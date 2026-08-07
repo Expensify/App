@@ -247,6 +247,10 @@ function IOURequestStepConfirmation({
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    // "Something else" (LOOKING_AROUND) users have no workspace, so their global-create expense lands in their self-DM.
+    // We route them to Spend > Expenses (Search) after creating instead of dropping them into that self-DM report.
+    const isLookingAroundUser = introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const receiptFilename = transaction?.receipt?.filename;
@@ -589,8 +593,9 @@ function IOURequestStepConfirmation({
                 iouType,
                 isCreatingTrackExpense,
                 isSelfDMDestination,
+                isLookingAroundUser,
             }),
-        [isTransactionReady, destinationReportID, destinationReport, isFromGlobalCreate, canPreInsertSearch, iouType, isCreatingTrackExpense, isSelfDMDestination],
+        [isTransactionReady, destinationReportID, destinationReport, isFromGlobalCreate, canPreInsertSearch, iouType, isCreatingTrackExpense, isSelfDMDestination, isLookingAroundUser],
     );
 
     const {reveal: revealPreMountDestination, cleanupPreMount} = usePreMountDestination(preMountDestinationRoute, {
@@ -922,6 +927,7 @@ function IOURequestStepConfirmation({
                         isFromGlobalCreate={isFromGlobalCreate}
                         iouType={iouType}
                         isSelfDMDestination={isSelfDMDestination}
+                        isLookingAroundUser={isLookingAroundUser}
                         requestType={requestType}
                         canDismissFromSearch={canDismissFromSearch}
                         gpsRequired={!!gpsRequired}

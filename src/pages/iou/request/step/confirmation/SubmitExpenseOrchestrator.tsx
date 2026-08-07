@@ -60,6 +60,12 @@ type SubmitExpenseOrchestratorProps = {
      */
     isSelfDMDestination: boolean;
 
+    /**
+     * Whether the user onboarded as "Something else" (LOOKING_AROUND). Such users have no workspace, so a global-create
+     * expense is routed to Spend > Expenses (Search) instead of dismissing into their self-DM report.
+     */
+    isLookingAroundUser: boolean;
+
     /** Request sub-type (manual, scan, distance). Used for telemetry scenario derivation. */
     requestType: string | undefined;
 
@@ -128,6 +134,7 @@ function SubmitExpenseOrchestrator({
     isFromGlobalCreate,
     iouType,
     isSelfDMDestination,
+    isLookingAroundUser,
     requestType,
     canDismissFromSearch,
     gpsRequired,
@@ -207,6 +214,7 @@ function SubmitExpenseOrchestrator({
             isReportTopmostSplit: isReportTopmostSplitNavigator(),
             isSearchTopmostFullScreen: isSearchTopmostFullScreenRoute(),
             isDestinationReportLoaded: !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport)?.reportID,
+            isLookingAroundUser,
         };
     };
 

@@ -54,6 +54,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isLookingAroundUser: false,
             }),
         ).toBeUndefined();
     });
@@ -69,6 +70,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isLookingAroundUser: false,
             }),
         ).toBeUndefined();
     });
@@ -83,6 +85,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
         });
 
         expect(route).toEqual(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}));
@@ -100,6 +103,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
         });
 
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
@@ -115,6 +119,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.TRACK,
             isCreatingTrackExpense: true,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
         });
 
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
@@ -130,9 +135,28 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.CREATE,
             isCreatingTrackExpense: false,
             isSelfDMDestination: true,
+            isLookingAroundUser: false,
         });
 
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
+    });
+
+    it('does NOT pre-insert the self-DM report for a LOOKING_AROUND user (they are routed to Search after submit)', () => {
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+
+        const route = getSubmitExpensePreMountDestinationRoute({
+            isTransactionReady: true,
+            destinationReportID: '123',
+            destinationReport: {reportID: '123'},
+            isFromGlobalCreate: true,
+            canPreInsertSearch: false,
+            iouType: CONST.IOU.TYPE.CREATE,
+            isCreatingTrackExpense: false,
+            isSelfDMDestination: true,
+            isLookingAroundUser: true,
+        });
+
+        expect(route).toBeUndefined();
     });
 
     it('returns the report route for a report-bound global create (PAY)', () => {
@@ -145,6 +169,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.PAY,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
         });
 
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
@@ -163,6 +188,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isLookingAroundUser: false,
             }),
         ).toBeUndefined();
     });
@@ -181,6 +207,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isLookingAroundUser: false,
             }),
         ).toBeUndefined();
     });
@@ -202,6 +229,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
         });
 
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
@@ -221,6 +249,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isLookingAroundUser: false,
             }),
         ).toBeUndefined();
     });
@@ -240,6 +269,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
         });
 
         expect(route).toEqual(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}));
@@ -264,6 +294,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             iouType: CONST.IOU.TYPE.SUBMIT,
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
+            isLookingAroundUser: false,
         });
 
         expect(route).toEqual(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}));
