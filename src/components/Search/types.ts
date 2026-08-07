@@ -198,6 +198,7 @@ type SearchQueryActionsValue = {
 
 type SearchResultsContextValue = {
     currentSearchResults: SearchResults | undefined;
+    currentSearchTransactionsByReportID: Map<string, Transaction[]>;
     /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
     shouldUseLiveData: boolean;
     sortedReportIDs: ReadonlyArray<string | undefined>;

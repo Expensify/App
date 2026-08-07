@@ -1,6 +1,6 @@
 import useTodoSearchResults from '@hooks/useTodoSearchResults';
 
-import {isTodoSearch} from '@libs/SearchUIUtils';
+import {getTransactionsByReportID, isTodoSearch} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,7 +17,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {SearchResultsActionsValue, SearchResultsContextValue} from './types';
 
 import {useSearchQueryContext} from './SearchContext';
-import {SearchResultsActionsContext, SearchResultsContext} from './SearchContextDefinitions';
+import {EMPTY_TRANSACTIONS_BY_REPORT_ID, SearchResultsActionsContext, SearchResultsContext} from './SearchContextDefinitions';
 
 type SearchResultsProviderProps = {
     children: React.ReactNode;
@@ -82,8 +82,13 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
         });
     };
 
+    // Computed here, not per row: it scans every snapshot key.
+    const searchData = currentSearchResults?.data;
+    const currentSearchTransactionsByReportID = searchData ? getTransactionsByReportID(searchData) : EMPTY_TRANSACTIONS_BY_REPORT_ID;
+
     const resultsValue: SearchResultsContextValue = {
         currentSearchResults,
+        currentSearchTransactionsByReportID,
         shouldUseLiveData,
         sortedReportIDs,
         shouldShowFiltersBarLoading,
