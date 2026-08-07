@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/MaintainVisibleScrollPositionHelper.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/MaintainVisibleScrollPositionHelper.kt
-index 20e998d..55893fd 100644
+index 2bee605..ba26e7b 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/MaintainVisibleScrollPositionHelper.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/MaintainVisibleScrollPositionHelper.kt
-@@ -80,6 +80,7 @@ internal class MaintainVisibleScrollPositionHelper<ScrollViewT>(
+@@ -79,10 +79,11 @@ internal class MaintainVisibleScrollPositionHelper<ScrollViewT>(
        return
      }
      isListening = false
@@ -10,27 +10,12 @@ index 20e998d..55893fd 100644
      uIManager.removeUIManagerEventListener(this)
    }
  
-@@ -87,15 +88,14 @@ internal class MaintainVisibleScrollPositionHelper<ScrollViewT>(
-    * Update the scroll position of the managed ScrollView. This should be called after layout has
-    * been updated.
-    */
--  fun updateScrollPosition() {
-+  fun onLayout() {
-     // On Fabric this will be called internally in `didMountItems`.
--    if (scrollView == null || getUIManagerType(scrollView.id) == UIManagerType.FABRIC) {
--      return
-+    if (scrollView != null && getUIManagerType(scrollView.id) != UIManagerType.FABRIC) {
-+      didMountItemsInternal()
-     }
--    updateScrollPositionInternal()
-   }
- 
 -  private fun updateScrollPositionInternal() {
 +  private fun didMountItemsInternal() {
      val config = config ?: return
      val firstVisibleViewRef = firstVisibleViewRef ?: return
      val prevFirstVisibleFrame = prevFirstVisibleFrame ?: return
-@@ -128,12 +128,18 @@ internal class MaintainVisibleScrollPositionHelper<ScrollViewT>(
+@@ -115,12 +116,18 @@ internal class MaintainVisibleScrollPositionHelper<ScrollViewT>(
      }
    }
  
@@ -50,7 +35,7 @@ index 20e998d..55893fd 100644
      for (i in config.minIndexForVisible until contentView.childCount) {
        val child = contentView.getChildAt(i)
  
-@@ -141,27 +147,49 @@ internal class MaintainVisibleScrollPositionHelper<ScrollViewT>(
+@@ -128,27 +135,49 @@ internal class MaintainVisibleScrollPositionHelper<ScrollViewT>(
        val position = if (horizontal) child.x + child.width else child.y + child.height
  
        // If the child is partially visible or this is the last child, select it as the anchor.
@@ -64,8 +49,8 @@ index 20e998d..55893fd 100644
 +              (firstVisibleView == null && i == contentView.getChildCount() - 1)) {
 +        firstVisibleView = child
 +        firstVisibleViewPosition = position
-       }
-     }
++      }
++    }
 +    firstVisibleViewRef = WeakReference(firstVisibleView)
 +  }
 +
@@ -81,8 +66,8 @@ index 20e998d..55893fd 100644
 +      // There are cases where it is possible for this to still be null so just bail out.
 +      if (firstVisibleView == null) {
 +        return
-+      }
-+    }
+       }
+     }
 +    val frame = Rect()
 +    firstVisibleView.getHitRect(frame)
 +    if (frame.width() > 0 || frame.height() > 0) {
@@ -110,10 +95,10 @@ index 20e998d..55893fd 100644
  
    override fun didDispatchMountItems(uiManager: UIManager) {
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactHorizontalScrollView.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactHorizontalScrollView.java
-index 4a5d3f9..cefaaec 100644
+index fb8918f..246eb9f 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactHorizontalScrollView.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactHorizontalScrollView.java
-@@ -662,7 +662,9 @@ public class ReactHorizontalScrollView extends HorizontalScrollView
+@@ -654,7 +654,9 @@ public class ReactHorizontalScrollView extends HorizontalScrollView
            mVirtualViewContainerState.updateState();
          }
        }
@@ -124,33 +109,11 @@ index 4a5d3f9..cefaaec 100644
      } finally {
        Systrace.endSection(Systrace.TRACE_TAG_REACT);
      }
-@@ -1680,7 +1682,7 @@ public class ReactHorizontalScrollView extends HorizontalScrollView
-     if (v.getLayoutDirection() == LAYOUT_DIRECTION_RTL) {
-       adjustPositionForContentChangeRTL(left, right, oldLeft, oldRight);
-     } else if (mMaintainVisibleContentPositionHelper != null) {
--      mMaintainVisibleContentPositionHelper.updateScrollPosition();
-+      mMaintainVisibleContentPositionHelper.onLayout();
-     }
-     ReactScrollViewHelper.emitLayoutChangeEvent(this);
-   }
-diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactNestedScrollView.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactNestedScrollView.java
-index 7e78332..a5e228f 100644
---- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactNestedScrollView.java
-+++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactNestedScrollView.java
-@@ -1464,7 +1464,7 @@ class ReactNestedScrollView extends NestedScrollView
-     }
- 
-     if (mMaintainVisibleContentPositionHelper != null) {
--      mMaintainVisibleContentPositionHelper.updateScrollPosition();
-+      mMaintainVisibleContentPositionHelper.onLayout();
-     }
- 
-     if (isShown() && isContentReady()) {
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollView.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollView.java
-index 3efd382..459707f 100644
+index d263aab..3bc7f7c 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollView.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollView.java
-@@ -597,6 +597,9 @@ public class ReactScrollView extends ScrollView
+@@ -598,6 +598,9 @@ public class ReactScrollView extends ScrollView
            mVirtualViewContainerState.updateState();
          }
        }
@@ -160,12 +123,3 @@ index 3efd382..459707f 100644
      } finally {
        Systrace.endSection(Systrace.TRACE_TAG_REACT);
      }
-@@ -1456,7 +1459,7 @@ public class ReactScrollView extends ScrollView
-     }
- 
-     if (mMaintainVisibleContentPositionHelper != null) {
--      mMaintainVisibleContentPositionHelper.updateScrollPosition();
-+      mMaintainVisibleContentPositionHelper.onLayout();
-     }
- 
-     if (isShown() && isContentReady()) {
