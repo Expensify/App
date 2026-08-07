@@ -2205,6 +2205,14 @@ const CONST = {
         SPAN_GEOLOCATION_WAIT: 'ManualGeolocationWait',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_SEND_MESSAGE_VISIBLE: 'ManualSendMessageVisible',
+        // Sequential, non-overlapping phases that partition a ManualSendMessageVisible span, so a slow send
+        // can be attributed to a stage instead of reading as one opaque duration.
+        SPAN_SEND_MESSAGE_PHASE: {
+            OPTIMISTIC_BUILD: 'ManualSendMessageOptimisticBuild',
+            API_WRITE_ENQUEUE: 'ManualSendMessageApiWriteEnqueue',
+            PROPAGATE: 'ManualSendMessagePropagate',
+            RENDER_COMMIT: 'ManualSendMessageRenderCommit',
+        },
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_SKELETON: 'ManualSkeleton',
         SPAN_ODOMETER_TO_CONFIRMATION: 'ManualOdometerToConfirmation',

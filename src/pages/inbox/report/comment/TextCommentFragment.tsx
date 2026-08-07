@@ -14,6 +14,7 @@ import hydrateEmojiHtml from '@libs/hydrateEmojiHtml';
 import Parser from '@libs/Parser';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
+import {endSendMessagePhases, markSendMessageRendered} from '@libs/telemetry/sendMessageSpans';
 
 import variables from '@styles/variables';
 
@@ -71,6 +72,12 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
 
     const processedTextArray = splitTextWithEmojis(message);
 
+    // Backstop for the send-message render phase, for sends the report-actions list can't mark itself
+    // (expense/invoice reports use a different list; in Concierge a draft or an optimistic reply can sit
+    // ahead of the sent message). No-op unless this exact action has a send in flight that is still in its
+    // pre-render phase.
+    markSendMessageRendered(reportActionID);
+
     // Original effect anchor, kept while the visible variant below is validated against it in Sentry.
     useEffect(() => {
         if (!reportActionID) {
@@ -83,6 +90,9 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
         if (!reportActionID) {
             return;
         }
+        // Sentry drops child spans that are still running when their parent ends, so the phases have to
+        // close before the span they partition does.
+        endSendMessagePhases(reportActionID);
         endSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`);
     };
 
