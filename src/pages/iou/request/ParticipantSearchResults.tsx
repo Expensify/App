@@ -374,17 +374,17 @@ function ParticipantSearchResults({
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(
+                        ? getPolicyExpenseReportOption({
                               participant,
                               privateIsArchived,
                               personalDetails,
-                              userToInviteExpenseReport,
-                              userToInviteExpenseReportPolicy,
+                              expenseReport: userToInviteExpenseReport,
+                              policy: userToInviteExpenseReportPolicy,
                               translate,
                               formatPhoneNumber,
                               currentUserAccountID,
                               reportAttributesDerived,
-                          )
+                          })
                         : getParticipantsOption(participant, personalDetails, translate);
                 }),
                 sectionIndex: 5,
