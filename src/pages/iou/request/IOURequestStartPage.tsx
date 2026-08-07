@@ -248,7 +248,6 @@ function IOURequestStartPage({
                 <ActivityIndicator
                     testID="manualTabPendingReset"
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={{context: 'IOURequestStartPage.manualTabPendingReset'}}
                 />
             </View>
         );

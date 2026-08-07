@@ -97,7 +97,7 @@ import {createRandomReport, createRegularChat} from '../utils/collections/report
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
-import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@rnmapbox/maps', () => {
@@ -4967,14 +4967,17 @@ describe('OptionsListUtils', () => {
                     [iouAction.reportActionID]: iouAction,
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                const reportPreviewMessage = getReportPreviewReportActionMessage({
-                    reportOrID: iouReport,
-                    iouReportAction: iouAction,
-                    shouldConsiderScanningReceiptOrPendingRoute: true,
-                    policy: null,
-                    isForListPreview: true,
-                    originalReportAction: reportPreviewAction,
-                });
+                const reportPreviewMessage = getReportPreviewReportActionMessage(
+                    {
+                        reportOrID: iouReport,
+                        iouReportAction: iouAction,
+                        shouldConsiderScanningReceiptOrPendingRoute: true,
+                        policy: null,
+                        isForListPreview: true,
+                        originalReportAction: reportPreviewAction,
+                    },
+                    getCurrencyDecimalsLocal,
+                );
                 const formattedMessage = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
                 expect(formattedMessage).toBe('$1.00 for A A A');
             });
@@ -9256,6 +9259,44 @@ describe('OptionsListUtils', () => {
 
             expect(result).toBeDefined();
             expect(result.reportID).toBe('1');
+        });
+
+        it('should keep the room name for a chat room unless showPersonalDetails is enabled', async () => {
+            const report: Report = {
+                reportID: '20',
+                reportName: '#admins',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                policyID,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    1: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+            const reportAction = createRandomReportAction(1);
+            const sortedActions = {[report.reportID]: [reportAction]};
+
+            // The participant's display name is resolved from Onyx, so seed it to keep the assertion below deterministic.
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+
+            const roomOption = createOptionFromReport({report, personalDetails: PERSONAL_DETAILS, privateIsArchived: undefined, policy: POLICY, sortedActions, conciergeReportID: undefined});
+            const personalDetailsOption = createOptionFromReport({
+                report,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                sortedActions,
+                conciergeReportID: undefined,
+                config: {showPersonalDetails: true},
+            });
+
+            expect(roomOption.text).toBe('#admins');
+            // With showPersonalDetails the option is named after the other participant (account 1 in PERSONAL_DETAILS).
+            expect(personalDetailsOption.text).toBe('Mister Fantastic');
         });
     });
 

@@ -2211,7 +2211,6 @@ const CONST = {
         SPAN_GEOLOCATION_WAIT: 'ManualGeolocationWait',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
-        SPAN_SKELETON: 'ManualSkeleton',
         SPAN_ODOMETER_TO_CONFIRMATION: 'ManualOdometerToConfirmation',
         SPAN_ODOMETER_IMAGE_STITCH: 'ManualOdometerImageStitch',
         SPAN_ODOMETER_IMAGE_CAPTURE: 'ManualOdometerImageCapture',
@@ -2255,7 +2254,6 @@ const CONST = {
         ATTRIBUTE_CANCELED_BY_SKELETON: 'canceled_by_skeleton',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
         ATTRIBUTE_ROUTE_TO: 'route_to',
-        ATTRIBUTE_MIN_DURATION: 'min_duration',
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
         ATTRIBUTE_IS_WARM: 'is_warm',
         ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN: 'lazy_tab_fallback_shown',
@@ -2266,7 +2264,6 @@ const CONST = {
         // report list, so durations that include the openApp wait can be excluded from render measurements.
         ATTRIBUTE_SKELETON_SHOWN: 'skeleton_shown',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
-        ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
         ATTRIBUTE_SCENARIO: 'scenario',
         // Start type stamped on the navigate-to-reports spans: cold, warm_first, or warm_subsequent.
         ATTRIBUTE_START_TYPE: 'start_type',
@@ -2381,10 +2378,7 @@ const CONST = {
             WARM_SUBSEQUENT: 'warm_subsequent',
             UNKNOWN: 'unknown',
         },
-        // Event names
-        EVENT_SKELETON_ATTRIBUTES_UPDATE: 'skeleton_attributes_updated',
         CONFIG: {
-            SKELETON_MIN_DURATION: 10_000,
             MEMORY_TRACKING_INTERVAL: 2 * 60 * 1000,
 
             // Web Memory Thresholds (% of jsHeapSizeLimit)
@@ -2828,6 +2822,7 @@ const CONST = {
         FILE_TOO_LARGE: 'fileTooLarge',
         FILE_TOO_SMALL: 'fileTooSmall',
         FILE_CORRUPTED: 'fileCorrupted',
+        HEIC_CONVERSION_FAILED: 'heicConversionFailed',
         PROTECTED_FILE: 'protectedFile',
         HEIC_OR_HEIF_IMAGE: 'heicOrHeifImage',
         IMAGE_DIMENSIONS_TOO_LARGE: 'imageDimensionsTooLarge',
@@ -6989,6 +6984,11 @@ const CONST = {
                     reportView: true,
                 },
                 TAG: {column: this.TABLE_COLUMNS.TAG, search: true, reportView: true},
+                VIOLATIONS: {
+                    column: this.TABLE_COLUMNS.VIOLATIONS,
+                    search: false,
+                    reportView: false,
+                },
                 TAG_GL_CODE: {
                     column: this.TABLE_COLUMNS.TAG_GL_CODE,
                     search: true,
@@ -7304,6 +7304,7 @@ const CONST = {
             TO: 'to',
             CATEGORY: 'category',
             TAG: 'tag',
+            VIOLATIONS: 'violations',
             ORIGINAL_AMOUNT: 'originalamount',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
@@ -7537,6 +7538,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.TO]: 'to',
                 [this.TABLE_COLUMNS.CATEGORY]: 'category',
                 [this.TABLE_COLUMNS.TAG]: 'tag',
+                [this.TABLE_COLUMNS.VIOLATIONS]: 'violations',
                 [this.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'purchase-amount',
                 [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
                 [this.TABLE_COLUMNS.BILLABLE]: 'billable',
@@ -7637,6 +7639,7 @@ const CONST = {
             TOP_CATEGORIES: 'topCategories',
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
+            VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
         },
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
@@ -7821,6 +7824,15 @@ const CONST = {
                 title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.QBD}.title` as const,
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.QBD}.description` as const,
                 icon: 'QBDSquare',
+            },
+            [this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                id: this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE,
+                alias: 'intuit-enterprise-suite',
+                name: 'Intuit Enterprise Suite',
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE}.description` as const,
+                icon: 'QBOSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             [this.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 id: this.POLICY.CONNECTIONS.NAME.CERTINIA,

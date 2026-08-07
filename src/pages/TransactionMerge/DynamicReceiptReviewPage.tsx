@@ -22,7 +22,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -82,11 +81,7 @@ function DynamicReceiptReviewPage({route}: DynamicReceiptReviewPageProps) {
     };
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'TransactionMerge.ReceiptReviewPage',
-            isLoadingMergeTransaction: isLoadingOnyxValue(mergeTransactionMetadata),
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

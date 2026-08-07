@@ -2786,7 +2786,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
@@ -2852,7 +2852,7 @@ describe('actions/Report', () => {
             type: CONST.POLICY.TYPE.TEAM,
         };
 
-        Report.createNewReport({accountID: 1234}, true, false, policy, [CONST.BETAS.ALL], false, false, undefined, {managedCardTransactionID});
+        Report.createNewReport({accountID: 1234}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal, false, undefined, {managedCardTransactionID});
 
         expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_APP_REPORT, expect.objectContaining({managedCardTransactionID}), expect.anything());
     });
@@ -2873,7 +2873,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
+        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await new Promise<void>((resolve) => {
@@ -2911,7 +2911,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
+        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
 
         // Then the parent report's hasOutstandingChildRequest property should remain unchanged
         await new Promise<void>((resolve) => {
@@ -2946,7 +2946,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
+        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
 
         await waitForBatchedUpdates();
         // Then the report's status should be draft.
@@ -2988,7 +2988,7 @@ describe('actions/Report', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await waitForBatchedUpdates();
@@ -9556,6 +9556,7 @@ describe('actions/Report', () => {
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
                 selfDMReportActions: undefined,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
 
@@ -9623,6 +9624,7 @@ describe('actions/Report', () => {
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
                 selfDMReportActions: undefined,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
 
@@ -9680,6 +9682,7 @@ describe('actions/Report', () => {
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
                 selfDMReportActions: undefined,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
 
