@@ -6736,8 +6736,6 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
-                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
-                        return 'Podwójne księgowanie';
                     default: {
                         return '';
                     }
@@ -6830,7 +6828,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                             return `Importowanie danych z ${integrationName}`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
-                            return 'Importowanie danych QuickBooks Desktop';
+                            return 'Importowanie danych z QuickBooks Desktop';
                         case 'quickbooksDesktopImportTitle':
                             return 'Importowanie tytułu';
                         case 'quickbooksDesktopImportApproveCertificate':
@@ -6840,7 +6838,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'quickbooksDesktopImportSavePolicy':
                             return 'Importowanie polityki zapisu';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Trwa synchronizowanie danych z QuickBooks... Upewnij się, że Web Connector jest uruchomiony';
+                            return 'Trwa synchronizowanie danych z QuickBooks… Upewnij się, że Web Connector jest uruchomiony';
                         case 'quickbooksOnlineSyncTitle':
                             return `Synchronizowanie danych ${integrationName}`;
                         case 'quickbooksOnlineSyncLoadData':
@@ -6856,7 +6854,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'quickbooksOnlineSyncApplyClassesLocations':
                             return 'Aktualizowanie pól raportu';
                         case 'jobDone':
-                            return 'Oczekiwanie na wczytanie zaimportowanych danych';
+                            return 'Oczekiwanie na załadowanie zaimportowanych danych';
                         case 'xeroSyncImportChartOfAccounts':
                             return 'Synchronizowanie planu kont';
                         case 'xeroSyncImportCategories':
@@ -6864,7 +6862,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'xeroSyncImportCustomers':
                             return 'Synchronizowanie klientów';
                         case 'xeroSyncXeroReimbursedReports':
-                            return 'Oznaczanie raportów Expensify jako rozliczonych';
+                            return 'Oznaczanie raportów Expensify jako zrekompensowane';
                         case 'xeroSyncExpensifyReimbursedReports':
                             return 'Oznaczanie rachunków i faktur Xero jako opłaconych';
                         case 'xeroSyncImportTrackingCategories':
@@ -6902,9 +6900,9 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'netSuiteSyncUpdateConnectionData':
                             return 'Aktualizowanie informacji o połączeniu';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
-                            return 'Oznaczanie raportów Expensify jako rozliczonych';
+                            return 'Oznaczanie raportów Expensify jako zrekompensowane';
                         case 'netSuiteSyncExpensifyReimbursedReports':
-                            return 'Oznaczanie rachunków i faktur w NetSuite jako opłaconych';
+                            return 'Oznaczanie rachunków i faktur NetSuite jako opłaconych';
                         case 'netSuiteImportVendorsTitle':
                             return 'Importowanie dostawców';
                         case 'netSuiteImportCustomListsTitle':
@@ -6912,7 +6910,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'netSuiteSyncImportCustomLists':
                             return 'Importowanie list niestandardowych';
                         case 'netSuiteSyncImportSubsidiaries':
-                            return 'Importowanie spółek zależnych';
+                            return 'Importowanie jednostek zależnych';
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
                             return 'Importowanie dostawców';
@@ -6925,34 +6923,28 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'financialForceSyncTitle':
                             return 'Synchronizowanie danych Certinia';
                         case 'financialForceSyncStep':
-                            return 'Synchronizowanie połączenia z Certinia';
+                            return 'Synchronizowanie polaczenia Certinia';
                         case 'financialForceSyncCategories':
                             return 'Importowanie kategorii';
                         case 'financialForceSyncTags':
-                            return 'Importowanie tagów';
+                            return 'Importowanie tagow';
                         case 'financialForceSyncVendors':
-                            return 'Importowanie dostawców';
+                            return 'Importowanie dostawcow';
                         case 'financialForceSyncContacts':
-                            return 'Importowanie kontaktów';
+                            return 'Importowanie kontaktow';
                         case 'financialForceSyncCompanies':
                             return 'Importowanie firm';
                         case 'financialForceSyncUsers':
-                            return 'Importowanie użytkowników';
+                            return 'Importowanie uzytkownikow';
                         case 'financialForceSyncDimensions':
-                            return 'Importowanie wymiarów';
+                            return 'Importowanie wymiarow';
                         case 'financialForceMarkAsReimbursed':
-                            return 'Oznaczanie raportów jako zwrócone';
+                            return 'Oznaczanie raportow jako zwrocone';
                         case 'rilletSyncTitle':
                             return 'Synchronizowanie danych Rillet';
                         case 'rilletSyncConnection':
                             return 'Inicjowanie połączenia z Rillet';
                         case 'rilletSyncImportData':
-                            return 'Wczytywanie danych';
-                        case 'dualEntrySyncTitle':
-                            return 'Synchronizowanie danych DualEntry';
-                        case 'dualEntrySyncConnection':
-                            return 'Inicjowanie połączenia z DualEntry';
-                        case 'dualEntrySyncImportData':
                             return 'Wczytywanie danych';
                         default: {
                             return `Brak tłumaczenia dla etapu: ${stage}`;
@@ -6994,7 +6986,6 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                     `Upewnij się, że to konto jest takie samo jak konto rozliczeniowe Consolidated Travel Billing (kończące się na ${lastFourPAN}), żeby Continuous Reconciliation działało poprawnie.`,
             },
             syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia skonsolidowanego rozliczania podróży',
-            dualEntry: 'Podwójne księgowanie',
         },
         export: {
             notReadyHeading: 'Niegotowe do eksportu',
@@ -7207,46 +7198,40 @@ ${reportName}`,
                     `<muted-text>Pola raportu są dostępne tylko w planie Control, od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                title: 'Wiele poziomów zatwierdzania',
-                description:
-                    'Wiele poziomów zatwierdzania to narzędzie do obsługi procesów dla firm, które wymagają, aby raport został zaakceptowany przez więcej niż jedną osobę, zanim będzie można go rozliczyć.',
+                title: 'NetSuite',
+                description: `Korzystaj z automatycznej synchronizacji i ograniczaj ręczne wprowadzanie danych dzięki integracji Expensify + NetSuite. Uzyskaj dogłębny, aktualny w czasie rzeczywistym wgląd w finanse dzięki obsłudze natywnych i niestandardowych segmentów, w tym mapowaniu projektów i klientów.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Wiele poziomów akceptacji jest dostępnych tylko w planie Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `na osobę miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+                    `<muted-text>Nasza integracja z NetSuite jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                title: 'Wiele poziomów zatwierdzania',
-                description:
-                    'Wiele poziomów zatwierdzania to narzędzie do obsługi procesów dla firm, które wymagają, aby raport został zaakceptowany przez więcej niż jedną osobę, zanim będzie można go rozliczyć.',
+                title: 'Sage Intacct',
+                description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + Sage Intacct. Zyskaj szczegółowy, aktualny w czasie rzeczywistym wgląd finansowy z użyciem zdefiniowanych przez użytkownika wymiarów, a także kategoryzowanie wydatków według działu, klasy, lokalizacji, klienta i projektu (zadania).`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Wiele poziomów akceptacji jest dostępnych tylko w planie Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `na osobę miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+                    `<muted-text>Integracja z Sage Intacct jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                title: 'Wiele poziomów zatwierdzania',
-                description:
-                    'Wiele poziomów zatwierdzania to narzędzie do obsługi procesów dla firm, które wymagają, aby raport został zaakceptowany przez więcej niż jedną osobę, zanim będzie można go rozliczyć.',
+                title: 'QuickBooks Desktop',
+                description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + QuickBooks Desktop. Zyskaj maksymalną wydajność dzięki dwukierunkowemu połączeniu w czasie rzeczywistym oraz kategoryzacji wydatków według klasy, pozycji, klienta i projektu.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Wiele poziomów akceptacji jest dostępnych tylko w planie Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `na osobę miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+                    `<muted-text>Nasza integracja z QuickBooks Desktop jest dostępna wyłącznie w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
-                title: 'Wiele poziomów zatwierdzania',
-                description:
-                    'Wiele poziomów zatwierdzania to narzędzie do obsługi procesów dla firm, które wymagają, aby raport został zaakceptowany przez więcej niż jedną osobę, zanim będzie można go rozliczyć.',
+                title: 'Certinia',
+                description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + Certinia. Dopasuj wymiary kategoryzacji wydatków i synchronizację podatków do konfiguracji Certinia, aby uzyskać lepszą widoczność finansową.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Wiele poziomów akceptacji jest dostępnych tylko w planie Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `na osobę miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+                    `<muted-text>Integracja z Certinia jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
-                title: 'Wiele poziomów zatwierdzania',
-                description:
-                    'Wiele poziomów zatwierdzania to narzędzie do obsługi procesów dla firm, które wymagają, aby raport został zaakceptowany przez więcej niż jedną osobę, zanim będzie można go rozliczyć.',
+                title: 'Rillet',
+                description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + Rillet. Dopasuj wymiary kategoryzacji wydatków i synchronizację podatków do konfiguracji Rillet, aby uzyskać lepszą widoczność finansową.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Wiele poziomów akceptacji jest dostępnych tylko w planie Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `na osobę miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+                    `<muted-text>Integracja z Rillet jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
-                title: 'Wiele poziomów zatwierdzania',
-                description:
-                    'Wiele poziomów zatwierdzania to narzędzie do obsługi procesów dla firm, które wymagają, aby raport został zaakceptowany przez więcej niż jedną osobę, zanim będzie można go rozliczyć.',
+                title: 'Zaawansowane zatwierdzanie',
+                description: `Jeśli chcesz dodać więcej poziomów akceptacji – albo po prostu upewnić się, że największe wydatki zostaną przejrzane przez kolejną osobę – mamy na to rozwiązanie. Zaawansowane zatwierdzanie pomaga wdrożyć odpowiednie mechanizmy kontrolne na każdym poziomie, aby utrzymać wydatki zespołu pod kontrolą.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Wiele poziomów akceptacji jest dostępnych tylko w planie Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `na osobę miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+                    `<muted-text>Zaawansowane zatwierdzanie jest dostępne tylko w planie Control, który zaczyna się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
             },
             categories: {
                 title: 'Kategorie',
@@ -7324,9 +7309,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Wiele poziomów zatwierdzania',
                 description:
-                    'Wiele poziomów zatwierdzania to narzędzie do obsługi procesów dla firm, które wymagają, aby raport został zaakceptowany przez więcej niż jedną osobę, zanim będzie można go rozliczyć.',
+                    'Wiele poziomów akceptacji to narzędzie do obsługi workflow dla firm, które wymagają, aby więcej niż jedna osoba zatwierdziła raport, zanim zostanie on rozliczony.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Wiele poziomów akceptacji jest dostępnych tylko w planie Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `na osobę miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+                    `<muted-text>Wiele poziomów zatwierdzania jest dostępnych tylko w planie Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
             },
             pricing: {
                 perActiveMember: 'na aktywnego członka miesięcznie.',
@@ -7446,11 +7431,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Publiczna widoczność rachunków jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
             },
-            title: 'Wiele poziomów zatwierdzania',
-            description:
-                'Wiele poziomów zatwierdzania to narzędzie do obsługi procesów dla firm, które wymagają, aby raport został zaakceptowany przez więcej niż jedną osobę, zanim będzie można go rozliczyć.',
-            onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                `<muted-text>Wiele poziomów akceptacji jest dostępnych tylko w planie Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `na osobę miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
         },
         downgrade: {
             commonFeatures: {
@@ -8117,16 +8097,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         emptyDomain: {
             title: 'Zwiększ swoje bezpieczeństwo dzięki domenom',
             subtitle: 'Wymagaj od członków swojej domeny logowania jednokrotnym logowaniem (SSO), ograniczaj tworzenie przestrzeni roboczych i nie tylko.',
-        },
-        dualEntry: {
-            dualEntrySetup: 'Konfiguracja DualEntry',
-            enterCredentials: 'Wpisz swój klucz API DualEntry',
-            howToFindAPIKey:
-                '<strong>Znajdowanie klucza API.</strong><ol><li>Zaloguj się do DualEntry</li><li>Przejdź do [nazwa organizacji] -> Ustawienia -> Dostęp deweloperski -> Klucze API</li><li>Utwórz klucz API</li><li>Wklej klucz API poniżej</li></ol>',
-            subsidiary: 'Spółka zależna',
-            subsidiarySelectDescription: 'Wybierz jednostkę zależną w DualEntry, z której chcesz zaimportować dane.',
-            noCompaniesFound: 'Nie znaleziono firm',
-            noCompaniesFoundDescription: 'Dodaj proszę firmę w DualEntry i zsynchronizuj połączenie ponownie',
         },
     },
     getAssistancePage: {

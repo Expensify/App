@@ -6795,8 +6795,6 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
-                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
-                        return 'Doppelte Buchung';
                     default: {
                         return '';
                     }
@@ -6869,7 +6867,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                             return 'Konten werden importiert';
                         case 'quickbooksOnlineImportClasses':
                         case 'quickbooksDesktopImportClasses':
-                            return 'Klassen importieren';
+                            return 'Importieren von Klassen';
                         case 'quickbooksOnlineImportLocations':
                             return 'Standorte werden importiert';
                         case 'quickbooksOnlineImportProcessing':
@@ -6878,28 +6876,28 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'intacctImportSyncBillPayments':
                             return 'Synchronisierung erstatteter Berichte und Rechnungszahlungen';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return 'Steuerschlüssel werden importiert';
+                            return 'Steuercodes importieren';
                         case 'quickbooksOnlineCheckConnection':
                             return `${integrationName}-Verbindung wird geprüft`;
                         case 'quickbooksOnlineImportMain':
-                            return `Importiere ${integrationName}-Daten`;
+                            return `${integrationName}-Daten werden importiert`;
                         case 'startingImportXero':
-                            return 'Xero-Daten importieren';
+                            return 'Xero-Daten werden importiert';
                         case 'startingImportQBO':
-                            return `Importiere ${integrationName}-Daten`;
+                            return `${integrationName}-Daten werden importiert`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
-                            return 'Import von QuickBooks Desktop-Daten';
+                            return 'QuickBooks-Desktop-Daten importieren';
                         case 'quickbooksDesktopImportTitle':
                             return 'Titel wird importiert';
                         case 'quickbooksDesktopImportApproveCertificate':
-                            return 'Genehmigungszertifikat wird importiert';
+                            return 'Importieren des Genehmigungszertifikats';
                         case 'quickbooksDesktopImportDimensions':
                             return 'Dimensionen werden importiert';
                         case 'quickbooksDesktopImportSavePolicy':
-                            return 'Sparrichtlinie wird importiert';
+                            return 'Speicherrichtlinie wird importiert';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Daten werden noch mit QuickBooks synchronisiert … Bitte stellen Sie sicher, dass der Web Connector ausgeführt wird';
+                            return 'Synchronisiere weiterhin Daten mit QuickBooks … Bitte stelle sicher, dass der Web Connector ausgeführt wird';
                         case 'quickbooksOnlineSyncTitle':
                             return `${integrationName}-Daten werden synchronisiert`;
                         case 'quickbooksOnlineSyncLoadData':
@@ -6909,11 +6907,11 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'quickbooksOnlineSyncApplyCategories':
                             return 'Kategorien werden aktualisiert';
                         case 'quickbooksOnlineSyncApplyCustomers':
-                            return 'Kunden/Projekte werden aktualisiert';
+                            return 'Kund:innen/Projekte werden aktualisiert';
                         case 'quickbooksOnlineSyncApplyEmployees':
                             return 'Personenliste wird aktualisiert';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
-                            return 'Berichtsfelder werden aktualisiert';
+                            return 'Berichtsfelder aktualisieren';
                         case 'jobDone':
                             return 'Warten auf das Laden der importierten Daten';
                         case 'xeroSyncImportChartOfAccounts':
@@ -6929,7 +6927,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'xeroSyncImportTrackingCategories':
                             return 'Tracking-Kategorien werden synchronisiert';
                         case 'xeroSyncImportBankAccounts':
-                            return 'Bankkonten synchronisieren';
+                            return 'Bankkonten werden synchronisiert';
                         case 'xeroSyncImportTaxRates':
                             return 'Steuersätze werden synchronisiert';
                         case 'xeroCheckConnection':
@@ -6945,7 +6943,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'netSuiteSyncImportTaxes':
                             return 'Steuern importieren';
                         case 'netSuiteSyncImportItems':
-                            return 'Elemente werden importiert';
+                            return 'Importiere Positionen';
                         case 'netSuiteSyncData':
                             return 'Daten in Expensify importieren';
                         case 'netSuiteSyncAccounts':
@@ -6955,7 +6953,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'netSuiteSyncCategories':
                             return 'Kategorien werden synchronisiert';
                         case 'netSuiteSyncReportFields':
-                            return 'Import von Daten als Expensify-Berichts­felder';
+                            return 'Daten als Expensify-Berichts­felder importieren';
                         case 'netSuiteSyncTags':
                             return 'Daten als Expensify-Tags importieren';
                         case 'netSuiteSyncUpdateConnectionData':
@@ -6965,22 +6963,22 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'NetSuite-Rechnungen und -Gutschriften als bezahlt markieren';
                         case 'netSuiteImportVendorsTitle':
-                            return 'Lieferanten werden importiert';
+                            return 'Lieferanten importieren';
                         case 'netSuiteImportCustomListsTitle':
                             return 'Benutzerdefinierte Listen importieren';
                         case 'netSuiteSyncImportCustomLists':
                             return 'Benutzerdefinierte Listen importieren';
                         case 'netSuiteSyncImportSubsidiaries':
-                            return 'Importieren von Tochtergesellschaften';
+                            return 'Import von Tochtergesellschaften';
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
-                            return 'Lieferanten werden importiert';
+                            return 'Lieferanten importieren';
                         case 'intacctCheckConnection':
-                            return 'Sage-Intacct-Verbindung wird überprüft';
+                            return 'Sage Intacct-Verbindung wird überprüft';
                         case 'intacctImportDimensions':
-                            return 'Importieren von Sage Intacct-Dimensionen';
+                            return 'Sage Intacct-Dimensionen werden importiert';
                         case 'intacctImportTitle':
-                            return 'Sage-Intacct-Daten werden importiert';
+                            return 'Sage Intacct-Daten importieren';
                         case 'financialForceSyncTitle':
                             return 'Certinia-Daten werden synchronisiert';
                         case 'financialForceSyncStep':
@@ -6994,27 +6992,21 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'financialForceSyncContacts':
                             return 'Kontakte werden importiert';
                         case 'financialForceSyncCompanies':
-                            return 'Unternehmen importieren';
+                            return 'Unternehmen werden importiert';
                         case 'financialForceSyncUsers':
-                            return 'Importieren von Nutzern';
+                            return 'Benutzer werden importiert';
                         case 'financialForceSyncDimensions':
                             return 'Dimensionen werden importiert';
                         case 'financialForceMarkAsReimbursed':
-                            return 'Berichte als erstattet markieren';
+                            return 'Berichte werden als erstattet markiert';
                         case 'rilletSyncTitle':
                             return 'Rillet-Daten werden synchronisiert';
                         case 'rilletSyncConnection':
-                            return 'Verbindung zu Rillet wird initialisiert';
+                            return 'Verbindung mit Rillet wird initialisiert';
                         case 'rilletSyncImportData':
                             return 'Daten werden geladen';
-                        case 'dualEntrySyncTitle':
-                            return 'Synchronisiere DualEntry-Daten';
-                        case 'dualEntrySyncConnection':
-                            return 'Verbindung zu DualEntry wird initialisiert';
-                        case 'dualEntrySyncImportData':
-                            return 'Daten werden geladen';
                         default: {
-                            return `Übersetzung für Stufe fehlt: ${stage}`;
+                            return `Übersetzung fehlt für Stufe: ${stage}`;
                         }
                     }
                 },
@@ -7054,7 +7046,6 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                     `Stellen Sie sicher, dass dieses Konto mit Ihrem Konsolidierten Reiseabrechnungs-Abrechnungskonto (endet auf ${lastFourPAN}) übereinstimmt, damit die kontinuierliche Abstimmung ordnungsgemäß funktioniert.`,
             },
             syncTravelInvoicingSettlements: 'Konsolidierte Reiseabrechnungs-Abrechnungen synchronisieren',
-            dualEntry: 'Doppelte Buchung',
         },
         export: {
             notReadyHeading: 'Nicht bereit zum Export',
@@ -7271,46 +7262,40 @@ ${reportName}`,
                     `<muted-text>Berichtsfelder sind nur im Control-Tarif verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                title: 'Mehrere Genehmigungsebenen',
-                description:
-                    'Mehrere Genehmigungsebenen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person zur Genehmigung eines Berichts benötigen, bevor dieser erstattet werden kann.',
+                title: 'NetSuite',
+                description: `Profitiere von automatischer Synchronisierung und reduziere manuelle Eingaben mit der Expensify + NetSuite-Integration. Gewinne detaillierte Finanzanalysen in Echtzeit mit nativer und benutzerdefinierter Segmentunterstützung, einschließlich Projekt- und Kundenzuordnung.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Mehrere Genehmigungsebenen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+                    `<muted-text>Unsere NetSuite-Integration ist nur im Control-Tarif verfügbar, beginnend ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                title: 'Mehrere Genehmigungsebenen',
-                description:
-                    'Mehrere Genehmigungsebenen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person zur Genehmigung eines Berichts benötigen, bevor dieser erstattet werden kann.',
+                title: 'Sage Intacct',
+                description: `Profitieren Sie von automatischer Synchronisierung und reduzieren Sie manuelle Eingaben mit der Expensify + Sage Intacct-Integration. Erhalten Sie detaillierte Finanzanalysen in Echtzeit mit benutzerdefinierten Dimensionen sowie einer Spesencodierung nach Abteilung, Kategorie, Standort, Kunde und Projekt (Auftrag).`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Mehrere Genehmigungsebenen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+                    `<muted-text>Unsere Integration mit Sage Intacct ist nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                title: 'Mehrere Genehmigungsebenen',
-                description:
-                    'Mehrere Genehmigungsebenen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person zur Genehmigung eines Berichts benötigen, bevor dieser erstattet werden kann.',
+                title: 'QuickBooks Desktop',
+                description: `Profitiere von automatischer Synchronisierung und reduziere manuelle Eingaben mit der Integration Expensify + QuickBooks Desktop. Erziele maximale Effizienz mit einer Echtzeit-Zwei-Wege-Verbindung und der Spesenkodierung nach Klasse, Artikel, Kunde und Projekt.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Mehrere Genehmigungsebenen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+                    `<muted-text>Unsere QuickBooks Desktop-Integration ist nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
-                title: 'Mehrere Genehmigungsebenen',
-                description:
-                    'Mehrere Genehmigungsebenen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person zur Genehmigung eines Berichts benötigen, bevor dieser erstattet werden kann.',
+                title: 'Certinia',
+                description: `Profitiere von automatisierter Synchronisierung und reduziere manuelle Eingaben mit der Expensify + Certinia-Integration. Richte Spesenkodierungsdimensionen und die Steuersynchronisierung auf deine Certinia-Einrichtung aus, um eine klarere finanzielle Übersicht zu erhalten.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Mehrere Genehmigungsebenen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+                    `<muted-text>Unsere Certinia-Integration ist nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
-                title: 'Mehrere Genehmigungsebenen',
-                description:
-                    'Mehrere Genehmigungsebenen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person zur Genehmigung eines Berichts benötigen, bevor dieser erstattet werden kann.',
+                title: 'Rillet',
+                description: `Profitiere von automatisierter Synchronisierung und reduziere manuelle Eingaben mit der Expensify + Rillet-Integration. Richte Spesenkodierungsdimensionen und die Steuersynchronisierung auf deine Rillet-Einrichtung aus, um eine klarere finanzielle Übersicht zu erhalten.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Mehrere Genehmigungsebenen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+                    `<muted-text>Unsere Rillet-Integration ist nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
-                title: 'Mehrere Genehmigungsebenen',
-                description:
-                    'Mehrere Genehmigungsebenen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person zur Genehmigung eines Berichts benötigen, bevor dieser erstattet werden kann.',
+                title: 'Erweiterte Genehmigungen',
+                description: `Wenn du weitere Genehmigungsstufen hinzufügen möchtest – oder einfach sicherstellen willst, dass die höchsten Ausgaben noch einmal geprüft werden – bist du bei uns richtig. Erweiterte Genehmigungen helfen dir, auf jeder Ebene die passenden Kontrollen einzurichten, damit du die Ausgaben deines Teams im Griff behältst.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Mehrere Genehmigungsebenen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+                    `<muted-text>Erweiterte Genehmigungen sind nur im Control-Tarif verfügbar, der bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`} beginnt</muted-text>`,
             },
             categories: {
                 title: 'Kategorien',
@@ -7386,9 +7371,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                     `<muted-text>Entfernungsraten sind im Collect-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
-                title: 'Mehrere Genehmigungsebenen',
+                title: 'Mehrere Genehmigungsstufen',
                 description:
-                    'Mehrere Genehmigungsebenen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person zur Genehmigung eines Berichts benötigen, bevor dieser erstattet werden kann.',
+                    'Mehrere Genehmigungsstufen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person benötigen, um einen Bericht zu genehmigen, bevor er erstattet werden kann.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Mehrere Genehmigungsebenen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
@@ -7511,11 +7496,6 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Die öffentliche Belegsichtbarkeit ist nur im Control-Tarif verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
-            title: 'Mehrere Genehmigungsebenen',
-            description:
-                'Mehrere Genehmigungsebenen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person zur Genehmigung eines Berichts benötigen, bevor dieser erstattet werden kann.',
-            onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                `<muted-text>Mehrere Genehmigungsebenen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
         },
         downgrade: {
             commonFeatures: {
@@ -8190,16 +8170,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         emptyDomain: {
             title: 'Stärken Sie Ihre Sicherheit mit Domains',
             subtitle: 'Verlangen Sie, dass Mitglieder in Ihrer Domain sich per Single Sign-On anmelden, schränken Sie das Erstellen von Arbeitsbereichen ein und mehr.',
-        },
-        dualEntry: {
-            dualEntrySetup: 'DualEntry-Einrichtung',
-            enterCredentials: 'Geben Sie Ihren DualEntry-API-Schlüssel ein',
-            howToFindAPIKey:
-                '<strong>So finden Sie Ihren API-Schlüssel.</strong><ol><li>Melden Sie sich bei DualEntry an</li><li>Navigieren Sie zu [Organisationsname] -> Einstellungen -> Entwicklerzugriff -> API-Schlüssel</li><li>Erstellen Sie einen API-Schlüssel</li><li>Fügen Sie den API-Schlüssel unten ein</li></ol>',
-            subsidiary: 'Tochtergesellschaft',
-            subsidiarySelectDescription: 'Wählen Sie die Tochtergesellschaft in DualEntry aus, aus der Sie Daten importieren möchten.',
-            noCompaniesFound: 'Keine Unternehmen gefunden',
-            noCompaniesFoundDescription: 'Bitte fügen Sie ein Unternehmen in DualEntry hinzu und synchronisieren Sie die Verbindung erneut',
         },
     },
     getAssistancePage: {

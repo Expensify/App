@@ -6946,8 +6946,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
-                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
-                        return 'ΔιπλήΚαταχώριση';
                     default: {
                         return '';
                     }
@@ -7025,35 +7023,35 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'quickbooksOnlineImportLocations':
                             return 'Γίνεται εισαγωγή τοποθεσιών';
                         case 'quickbooksOnlineImportProcessing':
-                            return 'Επεξεργασία εισαγόμενων δεδομένων';
+                            return 'Γίνεται επεξεργασία των εισαγόμενων δεδομένων';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
                             return 'Συγχρονισμός αποζημιωμένων αναφορών και πληρωμών λογαριασμών';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return 'Εισαγωγή φορολογικών κωδικών';
+                            return 'Εισαγωγή κωδικών φόρου';
                         case 'quickbooksOnlineCheckConnection':
-                            return `Έλεγχος σύνδεσης ${integrationName}`;
+                            return `Γίνεται έλεγχος σύνδεσης με το ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
-                            return `Γίνεται εισαγωγή δεδομένων ${integrationName}`;
+                            return `Εισαγωγή δεδομένων από το ${integrationName}`;
                         case 'startingImportXero':
                             return 'Εισαγωγή δεδομένων Xero';
                         case 'startingImportQBO':
-                            return `Γίνεται εισαγωγή δεδομένων ${integrationName}`;
+                            return `Εισαγωγή δεδομένων από το ${integrationName}`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
-                            return 'Εισαγωγή δεδομένων QuickBooks Desktop';
+                            return 'Εισαγωγή δεδομένων από το QuickBooks Desktop';
                         case 'quickbooksDesktopImportTitle':
                             return 'Εισαγωγή τίτλου';
                         case 'quickbooksDesktopImportApproveCertificate':
-                            return 'Γίνεται εισαγωγή πιστοποιητικού έγκρισης';
+                            return 'Εισαγωγή πιστοποιητικού έγκρισης';
                         case 'quickbooksDesktopImportDimensions':
                             return 'Γίνεται εισαγωγή διαστάσεων';
                         case 'quickbooksDesktopImportSavePolicy':
                             return 'Γίνεται εισαγωγή πολιτικής αποθήκευσης';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Συγχρονίζουμε ακόμα δεδομένα με το QuickBooks… Βεβαιωθείτε ότι το Web Connector εκτελείται';
+                            return 'Συνεχίζεται ο συγχρονισμός δεδομένων με το QuickBooks... Βεβαιωθείτε ότι το Web Connector εκτελείται';
                         case 'quickbooksOnlineSyncTitle':
-                            return `Γίνεται συγχρονισμός δεδομένων ${integrationName}`;
+                            return `Συγχρονισμός δεδομένων ${integrationName}`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':
@@ -7069,15 +7067,15 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'jobDone':
                             return 'Αναμονή για τη φόρτωση των εισαγόμενων δεδομένων';
                         case 'xeroSyncImportChartOfAccounts':
-                            return 'Γίνεται συγχρονισμός λογιστικού σχεδίου';
+                            return 'Γίνεται συγχρονισμός του λογιστικού σχεδίου';
                         case 'xeroSyncImportCategories':
-                            return 'Συγχρονισμός κατηγοριών';
+                            return 'Γίνεται συγχρονισμός κατηγοριών';
                         case 'xeroSyncImportCustomers':
                             return 'Γίνεται συγχρονισμός πελατών';
                         case 'xeroSyncXeroReimbursedReports':
-                            return 'Σήμανση των αναφορών Expensify ως αποζημιωμένων';
+                            return 'Σήμανση αναφορών Expensify ως αποζημιωμένων';
                         case 'xeroSyncExpensifyReimbursedReports':
-                            return 'Σήμανση λογαριασμών και τιμολογίων Xero ως εξοφλημένων';
+                            return 'Σήμανση των Xero λογαριασμών και τιμολογίων ως εξοφλημένων';
                         case 'xeroSyncImportTrackingCategories':
                             return 'Γίνεται συγχρονισμός κατηγοριών παρακολούθησης';
                         case 'xeroSyncImportBankAccounts':
@@ -7089,11 +7087,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'xeroSyncTitle':
                             return 'Συγχρονισμός δεδομένων Xero';
                         case 'netSuiteSyncConnection':
-                            return 'Γίνεται προετοιμασία σύνδεσης με το NetSuite';
+                            return 'Γίνεται αρχικοποίηση σύνδεσης με το NetSuite';
                         case 'netSuiteSyncCustomers':
                             return 'Γίνεται εισαγωγή πελατών';
                         case 'netSuiteSyncInitData':
-                            return 'Γίνεται ανάκτηση δεδομένων από το NetSuite';
+                            return 'Γίνεται λήψη δεδομένων από το NetSuite';
                         case 'netSuiteSyncImportTaxes':
                             return 'Εισαγωγή φόρων';
                         case 'netSuiteSyncImportItems':
@@ -7101,21 +7099,21 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'netSuiteSyncData':
                             return 'Εισαγωγή δεδομένων στο Expensify';
                         case 'netSuiteSyncAccounts':
-                            return 'Γίνεται συγχρονισμός λογαριασμών';
+                            return 'Συγχρονισμός λογαριασμών';
                         case 'netSuiteSyncCurrencies':
-                            return 'Συγχρονισμός νομισμάτων';
+                            return 'Γίνεται συγχρονισμός νομισμάτων';
                         case 'netSuiteSyncCategories':
-                            return 'Συγχρονισμός κατηγοριών';
+                            return 'Γίνεται συγχρονισμός κατηγοριών';
                         case 'netSuiteSyncReportFields':
                             return 'Εισαγωγή δεδομένων ως πεδία αναφοράς Expensify';
                         case 'netSuiteSyncTags':
-                            return 'Εισαγωγή δεδομένων ως ετικετών Expensify';
+                            return 'Εισαγωγή δεδομένων ως ετικέτες Expensify';
                         case 'netSuiteSyncUpdateConnectionData':
                             return 'Ενημέρωση στοιχείων σύνδεσης';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
-                            return 'Σήμανση των αναφορών Expensify ως αποζημιωμένων';
+                            return 'Σήμανση αναφορών Expensify ως αποζημιωμένων';
                         case 'netSuiteSyncExpensifyReimbursedReports':
-                            return 'Σήμανση των λογαριασμών και των τιμολογίων NetSuite ως εξοφλημένων';
+                            return 'Σήμανση λογαριασμών και τιμολογίων NetSuite ως εξοφλημένων';
                         case 'netSuiteImportVendorsTitle':
                             return 'Εισαγωγή προμηθευτών';
                         case 'netSuiteImportCustomListsTitle':
@@ -7123,20 +7121,20 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'netSuiteSyncImportCustomLists':
                             return 'Εισαγωγή προσαρμοσμένων λιστών';
                         case 'netSuiteSyncImportSubsidiaries':
-                            return 'Εισαγωγή θυγατρικών εταιρειών';
+                            return 'Εισαγωγή θυγατρικών';
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
                             return 'Εισαγωγή προμηθευτών';
                         case 'intacctCheckConnection':
-                            return 'Έλεγχος σύνδεσης Sage Intacct';
+                            return 'Έλεγχος σύνδεσης με το Sage Intacct';
                         case 'intacctImportDimensions':
                             return 'Εισαγωγή διαστάσεων Sage Intacct';
                         case 'intacctImportTitle':
                             return 'Εισαγωγή δεδομένων Sage Intacct';
                         case 'financialForceSyncTitle':
-                            return 'Γίνεται συγχρονισμός δεδομένων Certinia';
+                            return 'Συγχρονισμός δεδομένων Certinia';
                         case 'financialForceSyncStep':
-                            return 'Γίνεται συγχρονισμός της σύνδεσης με το Certinia';
+                            return 'Γίνεται συγχρονισμός της σύνδεσης Certinia';
                         case 'financialForceSyncCategories':
                             return 'Γίνεται εισαγωγή κατηγοριών';
                         case 'financialForceSyncTags':
@@ -7154,16 +7152,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'financialForceMarkAsReimbursed':
                             return 'Σήμανση αναφορών ως αποζημιωμένων';
                         case 'rilletSyncTitle':
-                            return 'Γίνεται συγχρονισμός δεδομένων Rillet';
+                            return 'Συγχρονισμός δεδομένων Rillet';
                         case 'rilletSyncConnection':
-                            return 'Γίνεται προετοιμασία σύνδεσης με το Rillet';
+                            return 'Γίνεται αρχικοποίηση σύνδεσης με το Rillet';
                         case 'rilletSyncImportData':
-                            return 'Φόρτωση δεδομένων';
-                        case 'dualEntrySyncTitle':
-                            return 'Γίνεται συγχρονισμός δεδομένων DualEntry';
-                        case 'dualEntrySyncConnection':
-                            return 'Γίνεται προετοιμασία σύνδεσης με το DualEntry';
-                        case 'dualEntrySyncImportData':
                             return 'Φόρτωση δεδομένων';
                         default: {
                             return `Λείπει μετάφραση για το στάδιο: ${stage}`;
@@ -7206,7 +7198,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     : `Τα έξοδα που δεν αντιστοιχίζονται αυτόματα θα αντιστοιχίζονται από προεπιλογή σε αυτόν τον προμηθευτή. Διαφορετικά, θα εξαχθούν ως Credit Card Misc.`,
             defaultVendorSelectHeader: ({connectionName}: ConnectionDisplayNameParams) =>
                 `Επιλέξτε έναν προεπιλεγμένο προμηθευτή ${connectionName} για δαπάνες που δεν αντιστοιχίζονται αυτόματα.`,
-            dualEntry: 'ΔιπλήΚαταχώριση',
         },
         hr: {
             title: 'HR',
@@ -7531,46 +7522,40 @@ ${reportName}`,
                     `<muted-text>Τα πεδία αναφοράς είναι διαθέσιμα μόνο στο πλάνο Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                title: 'Πολλαπλά επίπεδα έγκρισης',
-                description:
-                    'Τα πολλαπλά επίπεδα έγκρισης είναι ένα εργαλείο ροής εργασίας για εταιρείες που απαιτούν περισσότερα από ένα άτομα να εγκρίνουν μια αναφορά πριν μπορέσει να αποζημιωθεί.',
+                title: 'NetSuite',
+                description: `Απολαύστε αυτόματο συγχρονισμό και μειώστε τις χειροκίνητες καταχωρίσεις με την ενοποίηση Expensify + NetSuite. Αποκτήστε σε βάθος, σε πραγματικό χρόνο οικονομικές πληροφορίες με υποστήριξη ενσωματωμένων και προσαρμοσμένων τμημάτων, συμπεριλαμβανομένης της αντιστοίχισης έργων και πελατών.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Πολλαπλά επίπεδα έγκρισης είναι διαθέσιμα μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος τον μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+                    `<muted-text>Η ενσωμάτωσή μας με το NetSuite είναι διαθέσιμη μόνο στο πλάνο Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                title: 'Πολλαπλά επίπεδα έγκρισης',
-                description:
-                    'Τα πολλαπλά επίπεδα έγκρισης είναι ένα εργαλείο ροής εργασίας για εταιρείες που απαιτούν περισσότερα από ένα άτομα να εγκρίνουν μια αναφορά πριν μπορέσει να αποζημιωθεί.',
+                title: 'Sage Intacct',
+                description: `Απολαύστε τον αυτοματοποιημένο συγχρονισμό και μειώστε τις χειροκίνητες καταχωρήσεις με την ενοποίηση Expensify + Sage Intacct. Αποκτήστε σε βάθος, σε πραγματικό χρόνο, οικονομικές πληροφορίες με καθοριζόμενες από τον χρήστη διαστάσεις, καθώς και κωδικοποίηση εξόδων ανά τμήμα, κατηγορία, τοποθεσία, πελάτη και έργο (job).`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Πολλαπλά επίπεδα έγκρισης είναι διαθέσιμα μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος τον μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+                    `<muted-text>Η ενσωμάτωσή μας με το Sage Intacct είναι διαθέσιμη μόνο στο πλάνο Control, από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                title: 'Πολλαπλά επίπεδα έγκρισης',
-                description:
-                    'Τα πολλαπλά επίπεδα έγκρισης είναι ένα εργαλείο ροής εργασίας για εταιρείες που απαιτούν περισσότερα από ένα άτομα να εγκρίνουν μια αναφορά πριν μπορέσει να αποζημιωθεί.',
+                title: 'QuickBooks Desktop',
+                description: `Απολαύστε τον αυτοματοποιημένο συγχρονισμό και μειώστε τις χειροκίνητες καταχωρήσεις με την ενοποίηση Expensify + QuickBooks Desktop. Πετύχετε μέγιστη αποδοτικότητα με μια αμφίδρομη, σε πραγματικό χρόνο σύνδεση και κωδικοποίηση εξόδων κατά κλάση, είδος, πελάτη και έργο.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Πολλαπλά επίπεδα έγκρισης είναι διαθέσιμα μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος τον μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+                    `<muted-text>Η ενσωμάτωσή μας με το QuickBooks Desktop είναι διαθέσιμη μόνο στο πρόγραμμα Control, που ξεκινά από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
-                title: 'Πολλαπλά επίπεδα έγκρισης',
-                description:
-                    'Τα πολλαπλά επίπεδα έγκρισης είναι ένα εργαλείο ροής εργασίας για εταιρείες που απαιτούν περισσότερα από ένα άτομα να εγκρίνουν μια αναφορά πριν μπορέσει να αποζημιωθεί.',
+                title: 'Certinia',
+                description: `Απολαύστε αυτόματο συγχρονισμό και μειώστε τις χειροκίνητες καταχωρίσεις με την ενσωμάτωση Expensify + Certinia. Ευθυγραμμίστε τις διαστάσεις κωδικοποίησης εξόδων και τον συγχρονισμό φόρων με τη ρύθμιση Certinia σας για πιο ξεκάθαρη οικονομική εικόνα.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Πολλαπλά επίπεδα έγκρισης είναι διαθέσιμα μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος τον μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+                    `<muted-text>Η ενσωμάτωσή μας με το Certinia είναι διαθέσιμη μόνο στο πρόγραμμα Control, με τιμή που ξεκινά από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
-                title: 'Πολλαπλά επίπεδα έγκρισης',
-                description:
-                    'Τα πολλαπλά επίπεδα έγκρισης είναι ένα εργαλείο ροής εργασίας για εταιρείες που απαιτούν περισσότερα από ένα άτομα να εγκρίνουν μια αναφορά πριν μπορέσει να αποζημιωθεί.',
+                title: 'Rillet',
+                description: `Απολαύστε τον αυτόματο συγχρονισμό και μειώστε τις χειροκίνητες εγγραφές με την ενσωμάτωση Expensify + Rillet. Ευθυγραμμίστε τις διαστάσεις κωδικοποίησης εξόδων και τον συγχρονισμό φόρων με τη ρύθμιση Rillet για πιο ξεκάθαρη οικονομική εικόνα.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Πολλαπλά επίπεδα έγκρισης είναι διαθέσιμα μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος τον μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+                    `<muted-text>Η ενοποίησή μας με το Rillet είναι διαθέσιμη μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
-                title: 'Πολλαπλά επίπεδα έγκρισης',
-                description:
-                    'Τα πολλαπλά επίπεδα έγκρισης είναι ένα εργαλείο ροής εργασίας για εταιρείες που απαιτούν περισσότερα από ένα άτομα να εγκρίνουν μια αναφορά πριν μπορέσει να αποζημιωθεί.',
+                title: 'Προηγμένες εγκρίσεις',
+                description: `Αν θέλετε να προσθέσετε περισσότερα επίπεδα έγκρισης στη διαδικασία – ή απλώς να βεβαιωθείτε ότι οι μεγαλύτερες δαπάνες ελέγχονται από ένα ακόμη άτομο – σας καλύπτουμε. Οι προηγμένες εγκρίσεις σάς βοηθούν να θέσετε τους κατάλληλους ελέγχους σε κάθε επίπεδο, ώστε να κρατάτε τις δαπάνες της ομάδας σας υπό έλεγχο.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Πολλαπλά επίπεδα έγκρισης είναι διαθέσιμα μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος τον μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+                    `<muted-text>Οι προηγμένες εγκρίσεις είναι διαθέσιμες μόνο στο πρόγραμμα Control, το οποίο ξεκινά από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
             approvalSubmit: {
                 title: 'Εγκρίσεις',
@@ -7687,9 +7672,9 @@ ${reportName}`,
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Πολλαπλά επίπεδα έγκρισης',
                 description:
-                    'Τα πολλαπλά επίπεδα έγκρισης είναι ένα εργαλείο ροής εργασίας για εταιρείες που απαιτούν περισσότερα από ένα άτομα να εγκρίνουν μια αναφορά πριν μπορέσει να αποζημιωθεί.',
+                    'Τα πολλαπλά επίπεδα έγκρισης είναι ένα εργαλείο ροής εργασιών για εταιρείες που απαιτούν περισσότερα από ένα άτομα να εγκρίνουν μια αναφορά πριν μπορέσει να αποζημιωθεί.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Πολλαπλά επίπεδα έγκρισης είναι διαθέσιμα μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος τον μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+                    `<muted-text>Πολλαπλά επίπεδα έγκρισης είναι διαθέσιμα μόνο στο πλάνο Control, από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
             roles: {
                 title: 'Ρόλοι',
@@ -7771,11 +7756,6 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Η δημόσια ορατότητα αποδείξεων είναι διαθέσιμη μόνο στο πρόγραμμα Control, με τιμή από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
-            title: 'Πολλαπλά επίπεδα έγκρισης',
-            description:
-                'Τα πολλαπλά επίπεδα έγκρισης είναι ένα εργαλείο ροής εργασίας για εταιρείες που απαιτούν περισσότερα από ένα άτομα να εγκρίνουν μια αναφορά πριν μπορέσει να αποζημιωθεί.',
-            onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                `<muted-text>Πολλαπλά επίπεδα έγκρισης είναι διαθέσιμα μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος τον μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
         },
         downgrade: {
             commonFeatures: {
@@ -8377,16 +8357,6 @@ ${reportName}`,
             emptySubtitle: 'Οι προμηθευτές θα εμφανιστούν εδώ μετά την ολοκλήρωση του συγχρονισμού λογιστικής σας.',
             findVendor: 'Εύρεση προμηθευτή',
             managedInAccountingSoftware: 'Οι προμηθευτές διαχειρίζονται στο',
-        },
-        dualEntry: {
-            dualEntrySetup: 'Ρύθμιση DualEntry',
-            enterCredentials: 'Εισαγάγετε το κλειδί API του DualEntry',
-            howToFindAPIKey:
-                '<strong>Εύρεση του κλειδιού API.</strong><ol><li>Συνδεθείτε στο DualEntry</li><li>Μεταβείτε σε [organization name] -> Settings -> Developer access -> API keys</li><li>Δημιουργήστε κλειδί API</li><li>Επικολλήστε το κλειδί API παρακάτω</li></ol>',
-            subsidiary: 'Θυγατρική',
-            subsidiarySelectDescription: 'Επιλέξτε τη θυγατρική στο DualEntry από την οποία θέλετε να εισαγάγετε δεδομένα.',
-            noCompaniesFound: 'Δεν βρέθηκαν εταιρείες',
-            noCompaniesFoundDescription: 'Παρακαλούμε προσθέστε μια εταιρεία στο DualEntry και συγχρονίστε ξανά τη σύνδεση',
         },
     },
     getAssistancePage: {

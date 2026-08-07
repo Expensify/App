@@ -6531,8 +6531,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
-                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
-                        return '双重记账';
                     default: {
                         return '';
                     }
@@ -6597,28 +6595,28 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
                         case 'quickbooksDesktopImportEmployees':
-                            return '导入员工';
+                            return '正在导入员工';
                         case 'quickbooksOnlineImportAccounts':
                         case 'quickbooksDesktopImportAccounts':
                             return '导入账户';
                         case 'quickbooksOnlineImportClasses':
                         case 'quickbooksDesktopImportClasses':
-                            return '正在导入类';
+                            return '导入类别';
                         case 'quickbooksOnlineImportLocations':
                             return '正在导入地点';
                         case 'quickbooksOnlineImportProcessing':
                             return '正在处理导入的数据';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return '同步已报销报告和账单付款';
+                            return '同步已报销报表和账单付款';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return '正在导入税码';
+                            return '导入税码';
                         case 'quickbooksOnlineCheckConnection':
                             return `正在检查 ${integrationName} 连接`;
                         case 'quickbooksOnlineImportMain':
                             return `正在导入 ${integrationName} 数据`;
                         case 'startingImportXero':
-                            return '正在导入 Xero 数据';
+                            return '导入 Xero 数据';
                         case 'startingImportQBO':
                             return `正在导入 ${integrationName} 数据`;
                         case 'startingImportQBD':
@@ -6633,7 +6631,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'quickbooksDesktopImportSavePolicy':
                             return '正在导入保存策略';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return '仍在与 QuickBooks 同步数据……请确保 Web Connector 正在运行';
+                            return '仍在与 QuickBooks 同步数据…请确保 Web Connector 正在运行';
                         case 'quickbooksOnlineSyncTitle':
                             return `正在同步 ${integrationName} 数据`;
                         case 'quickbooksOnlineSyncLoadData':
@@ -6649,7 +6647,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'quickbooksOnlineSyncApplyClassesLocations':
                             return '更新报表字段';
                         case 'jobDone':
-                            return '正在加载导入的数据';
+                            return '正在等待导入的数据加载';
                         case 'xeroSyncImportChartOfAccounts':
                             return '正在同步科目表';
                         case 'xeroSyncImportCategories':
@@ -6661,7 +6659,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'xeroSyncExpensifyReimbursedReports':
                             return '将 Xero 账单和发票标记为已支付';
                         case 'xeroSyncImportTrackingCategories':
-                            return '正在同步跟踪类别';
+                            return '正在同步追踪类别';
                         case 'xeroSyncImportBankAccounts':
                             return '正在同步银行账户';
                         case 'xeroSyncImportTaxRates':
@@ -6677,7 +6675,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'netSuiteSyncInitData':
                             return '正在从 NetSuite 获取数据';
                         case 'netSuiteSyncImportTaxes':
-                            return '正在导入税费';
+                            return '导入税务';
                         case 'netSuiteSyncImportItems':
                             return '正在导入项目';
                         case 'netSuiteSyncData':
@@ -6691,15 +6689,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'netSuiteSyncReportFields':
                             return '将数据导入为 Expensify 报告字段';
                         case 'netSuiteSyncTags':
-                            return '以 Expensify 标签的形式导入数据';
+                            return '以 Expensify 标签导入数据';
                         case 'netSuiteSyncUpdateConnectionData':
                             return '正在更新连接信息';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
                             return '将 Expensify 报告标记为已报销';
                         case 'netSuiteSyncExpensifyReimbursedReports':
-                            return '将 NetSuite 账单和发票标记为已支付';
+                            return '将 NetSuite 账单和发票标记为已付款';
                         case 'netSuiteImportVendorsTitle':
-                            return '导入供应商';
+                            return '正在导入供应商';
                         case 'netSuiteImportCustomListsTitle':
                             return '导入自定义列表';
                         case 'netSuiteSyncImportCustomLists':
@@ -6708,11 +6706,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             return '正在导入子公司';
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
-                            return '导入供应商';
+                            return '正在导入供应商';
                         case 'intacctCheckConnection':
                             return '正在检查 Sage Intacct 连接';
                         case 'intacctImportDimensions':
-                            return '正在导入 Sage Intacct 维度';
+                            return '导入 Sage Intacct 维度';
                         case 'intacctImportTitle':
                             return '导入 Sage Intacct 数据';
                         case 'financialForceSyncTitle':
@@ -6724,7 +6722,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'financialForceSyncTags':
                             return '正在导入标签';
                         case 'financialForceSyncVendors':
-                            return '导入供应商';
+                            return '正在导入供应商';
                         case 'financialForceSyncContacts':
                             return '正在导入联系人';
                         case 'financialForceSyncCompanies':
@@ -6734,21 +6732,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'financialForceSyncDimensions':
                             return '正在导入维度';
                         case 'financialForceMarkAsReimbursed':
-                            return '将报表标记为已报销';
+                            return '正在将报告标记为已报销';
                         case 'rilletSyncTitle':
                             return '正在同步 Rillet 数据';
                         case 'rilletSyncConnection':
                             return '正在初始化与 Rillet 的连接';
                         case 'rilletSyncImportData':
                             return '正在加载数据';
-                        case 'dualEntrySyncTitle':
-                            return '正在同步 DualEntry 数据';
-                        case 'dualEntrySyncConnection':
-                            return '正在初始化与 DualEntry 的连接';
-                        case 'dualEntrySyncImportData':
-                            return '正在加载数据';
                         default: {
-                            return `阶段缺少翻译：${stage}`;
+                            return `缺少以下阶段的翻译：${stage}`;
                         }
                     }
                 },
@@ -6782,7 +6774,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) => `请确保此账户与您的合并差旅账单结算账户（以 ${lastFourPAN} 结尾）一致，以便连续对账功能正常运行。`,
             },
             syncTravelInvoicingSettlements: '同步合并差旅结算',
-            dualEntry: '双重记账',
         },
         export: {
             notReadyHeading: '尚未准备好导出',
@@ -6989,40 +6980,40 @@ ${reportName}`,
                     `<muted-text>报表字段仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                title: '多级审批',
-                description: '多级审批是为那些在报销前需要多人审批报表的公司提供的流程管理工具。',
+                title: 'NetSuite',
+                description: `通过 Expensify + NetSuite 集成实现自动同步，减少手动录入。借助对原生和自定义维度的支持（包括项目和客户映射），获取深入的实时财务洞察。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>多级审批仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+                    `<muted-text>我们的 NetSuite 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                title: '多级审批',
-                description: '多级审批是为那些在报销前需要多人审批报表的公司提供的流程管理工具。',
+                title: 'Sage Intacct',
+                description: `通过 Expensify 与 Sage Intacct 的集成，享受自动同步，减少手动录入。借助用户自定义维度，以及按部门、类别、地点、客户和项目（工作）进行费用编码，获得深入且实时的财务洞察。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>多级审批仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+                    `<muted-text>我们的 Sage Intacct 集成仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                title: '多级审批',
-                description: '多级审批是为那些在报销前需要多人审批报表的公司提供的流程管理工具。',
+                title: 'QuickBooks Desktop',
+                description: `通过 Expensify 与 QuickBooks Desktop 的集成，享受自动同步，减少手动录入。借助实时双向连接以及按类别、项目、客户和项目进行费用编码，实现极致效率。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>多级审批仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+                    `<muted-text>我们的 QuickBooks Desktop 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
-                title: '多级审批',
-                description: '多级审批是为那些在报销前需要多人审批报表的公司提供的流程管理工具。',
+                title: 'Certinia',
+                description: `通过 Expensify 与 Certinia 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Certinia 配置对齐，以获得更清晰的财务可见性。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>多级审批仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+                    `<muted-text>我们的 Certinia 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
-                title: '多级审批',
-                description: '多级审批是为那些在报销前需要多人审批报表的公司提供的流程管理工具。',
+                title: 'Rillet',
+                description: `通过 Expensify 与 Rillet 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Rillet 配置对齐，以获得更清晰的财务可见性。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>多级审批仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+                    `<muted-text>我们的 Rillet 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
-                title: '多级审批',
-                description: '多级审批是为那些在报销前需要多人审批报表的公司提供的流程管理工具。',
+                title: '高级审批',
+                description: `如果你想在审批流程中增加更多层级，或者只是想确保金额最大的报销能再多一道审核，我们都能满足你的需求。高级审批功能帮助你在各个层级设置合适的审批规则，从而有效控制团队支出。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>多级审批仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+                    `<muted-text>高级审批仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             categories: {
                 title: '类别',
@@ -7097,7 +7088,7 @@ ${reportName}`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: '多级审批',
-                description: '多级审批是为那些在报销前需要多人审批报表的公司提供的流程管理工具。',
+                description: '多级审批是一个工作流程工具，适用于在报销前需要多个人批准报销单的公司。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>多级审批仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
@@ -7213,10 +7204,6 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>公开收据可见性仅适用于 Control 方案，起价为<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
-            title: '多级审批',
-            description: '多级审批是为那些在报销前需要多人审批报表的公司提供的流程管理工具。',
-            onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                `<muted-text>多级审批仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
         },
         downgrade: {
             commonFeatures: {
@@ -7851,16 +7838,6 @@ ${reportName}`,
             reconnectLink: '重新连接。',
         },
         emptyDomain: {title: '通过域名提升安全性', subtitle: '要求您域中的成员通过单点登录登录、限制工作区创建等。'},
-        dualEntry: {
-            dualEntrySetup: 'DualEntry 设置',
-            enterCredentials: '输入你的 DualEntry API 密钥',
-            howToFindAPIKey:
-                '<strong>查找您的 API 密钥。</strong><ol><li>登录 DualEntry</li><li>导航到 [组织名称] -> 设置 -> 开发者访问 -> API 密钥</li><li>创建 API 密钥</li><li>将 API 密钥粘贴到下方</li></ol>',
-            subsidiary: '子公司',
-            subsidiarySelectDescription: '请选择要从中导入数据的 DualEntry 子公司。',
-            noCompaniesFound: '未找到公司',
-            noCompaniesFoundDescription: '请在 DualEntry 中添加一家公司，然后再次同步连接',
-        },
     },
     getAssistancePage: {
         title: '获取帮助',

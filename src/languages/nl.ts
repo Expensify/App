@@ -6755,8 +6755,6 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
-                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
-                        return 'DubbeleBoeking';
                     default: {
                         return '';
                     }
@@ -6836,9 +6834,9 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                             return 'Geïmporteerde gegevens verwerken';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return 'Terugbetaalde rapporten en rekeningbetalingen synchroniseren';
+                            return 'Rapporten met terugbetaling en rekeningbetalingen synchroniseren';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return 'Belastingcodes importeren';
+                            return 'Belastingscodes importeren';
                         case 'quickbooksOnlineCheckConnection':
                             return `${integrationName}-verbinding controleren`;
                         case 'quickbooksOnlineImportMain':
@@ -6857,7 +6855,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'quickbooksDesktopImportDimensions':
                             return 'Dimensies importeren';
                         case 'quickbooksDesktopImportSavePolicy':
-                            return 'Bezig met importeren van spaarbeleid';
+                            return 'Beleid voor opslaan importeren';
                         case 'quickbooksDesktopWebConnectorReminder':
                             return 'Nog steeds gegevens synchroniseren met QuickBooks... Zorg ervoor dat de Web Connector actief is';
                         case 'quickbooksOnlineSyncTitle':
@@ -6877,13 +6875,13 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'jobDone':
                             return 'Wachten tot geïmporteerde gegevens zijn geladen';
                         case 'xeroSyncImportChartOfAccounts':
-                            return 'Grootboekrekeningen synchroniseren';
+                            return 'Rekeningschema synchroniseren';
                         case 'xeroSyncImportCategories':
                             return 'Categorieën synchroniseren';
                         case 'xeroSyncImportCustomers':
                             return 'Klanten synchroniseren';
                         case 'xeroSyncXeroReimbursedReports':
-                            return 'Expensify-rapporten als vergoed markeren';
+                            return 'Expensify-rapporten als vergoed gemarkeerd';
                         case 'xeroSyncExpensifyReimbursedReports':
                             return 'Xero-facturen en -rekeningen als betaald markeren';
                         case 'xeroSyncImportTrackingCategories':
@@ -6907,7 +6905,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'netSuiteSyncImportItems':
                             return 'Items importeren';
                         case 'netSuiteSyncData':
-                            return 'Gegevens in Expensify importeren';
+                            return 'Gegevens importeren in Expensify';
                         case 'netSuiteSyncAccounts':
                             return 'Accounts synchroniseren';
                         case 'netSuiteSyncCurrencies':
@@ -6921,7 +6919,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'netSuiteSyncUpdateConnectionData':
                             return 'Verbindingsgegevens bijwerken';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
-                            return 'Expensify-rapporten als vergoed markeren';
+                            return 'Expensify-rapporten als vergoed gemarkeerd';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'NetSuite-facturen en -rekeningen als betaald markeren';
                         case 'netSuiteImportVendorsTitle':
@@ -6946,7 +6944,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'financialForceSyncStep':
                             return 'Certinia-verbinding synchroniseren';
                         case 'financialForceSyncCategories':
-                            return 'Categorieën importeren';
+                            return 'Categorieen importeren';
                         case 'financialForceSyncTags':
                             return 'Tags importeren';
                         case 'financialForceSyncVendors':
@@ -6966,12 +6964,6 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'rilletSyncConnection':
                             return 'Verbinding met Rillet initialiseren';
                         case 'rilletSyncImportData':
-                            return 'Gegevens laden';
-                        case 'dualEntrySyncTitle':
-                            return 'DualEntry-gegevens synchroniseren';
-                        case 'dualEntrySyncConnection':
-                            return 'Verbinding met DualEntry initialiseren';
-                        case 'dualEntrySyncImportData':
                             return 'Gegevens laden';
                         default: {
                             return `Vertaling ontbreekt voor fase: ${stage}`;
@@ -7014,7 +7006,6 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                     `Zorg ervoor dat deze rekening overeenkomt met je Consolidated Travel Billing-afwikkelingsrekening (eindigend op ${lastFourPAN}), zodat Continuous Reconciliation goed werkt.`,
             },
             syncTravelInvoicingSettlements: 'Geconsolideerde Travel Billing-afrekeningen synchroniseren',
-            dualEntry: 'DubbeleBoeking',
         },
         export: {
             notReadyHeading: 'Niet klaar om te exporteren',
@@ -7227,46 +7218,40 @@ ${reportName}`,
                     `<muted-text>Rapportvelden zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                title: 'Meerdere goedkeuringsniveaus',
-                description:
-                    'Meerdere goedkeuringsniveaus is een workflowtool voor bedrijven die meer dan één persoon nodig hebben om een rapport goed te keuren voordat het kan worden vergoed.',
+                title: 'NetSuite',
+                description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + NetSuite-integratie. Krijg diepgaande realtime financiële inzichten met ondersteuning voor native en aangepaste segmenten, inclusief project- en klanttoewijzing.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Meerdere goedkeuringsniveaus zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+                    `<muted-text>Onze NetSuite-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                title: 'Meerdere goedkeuringsniveaus',
-                description:
-                    'Meerdere goedkeuringsniveaus is een workflowtool voor bedrijven die meer dan één persoon nodig hebben om een rapport goed te keuren voordat het kan worden vergoed.',
+                title: 'Sage Intacct',
+                description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + Sage Intacct-integratie. Krijg diepgaande, realtime financiële inzichten met door de gebruiker gedefinieerde dimensies, evenals kosten­codering per afdeling, klasse, locatie, klant en project (taak).`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Meerdere goedkeuringsniveaus zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+                    `<muted-text>Onze Sage Intacct-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                title: 'Meerdere goedkeuringsniveaus',
-                description:
-                    'Meerdere goedkeuringsniveaus is een workflowtool voor bedrijven die meer dan één persoon nodig hebben om een rapport goed te keuren voordat het kan worden vergoed.',
+                title: 'QuickBooks Desktop',
+                description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + QuickBooks Desktop-integratie. Bereik maximale efficiëntie met een realtime tweerichtingsverbinding en uitgavencodering op basis van klasse, item, klant en project.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Meerdere goedkeuringsniveaus zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+                    `<muted-text>Onze QuickBooks Desktop-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
-                title: 'Meerdere goedkeuringsniveaus',
-                description:
-                    'Meerdere goedkeuringsniveaus is een workflowtool voor bedrijven die meer dan één persoon nodig hebben om een rapport goed te keuren voordat het kan worden vergoed.',
+                title: 'Certinia',
+                description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + Certinia-integratie. Stem uitgavendimensies en belastingsynchronisatie af op je Certinia-configuratie voor helderder financieel inzicht.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Meerdere goedkeuringsniveaus zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+                    `<muted-text>Onze Certinia-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
-                title: 'Meerdere goedkeuringsniveaus',
-                description:
-                    'Meerdere goedkeuringsniveaus is een workflowtool voor bedrijven die meer dan één persoon nodig hebben om een rapport goed te keuren voordat het kan worden vergoed.',
+                title: 'Rillet',
+                description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + Rillet-integratie. Stem uitgavendimensies en belastingsynchronisatie af op je Rillet-configuratie voor helderder financieel inzicht.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Meerdere goedkeuringsniveaus zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+                    `<muted-text>Onze Rillet-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
-                title: 'Meerdere goedkeuringsniveaus',
-                description:
-                    'Meerdere goedkeuringsniveaus is een workflowtool voor bedrijven die meer dan één persoon nodig hebben om een rapport goed te keuren voordat het kan worden vergoed.',
+                title: 'Geavanceerde goedkeuringen',
+                description: `Als je extra lagen van goedkeuring wilt toevoegen – of gewoon zeker wilt weten dat de hoogste uitgaven een extra controle krijgen – dan ben je bij ons aan het juiste adres. Geavanceerde goedkeuringen helpen je om op elk niveau de juiste controles in te bouwen, zodat je de uitgaven van je team onder controle houdt.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Meerdere goedkeuringsniveaus zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+                    `<muted-text>Geavanceerde goedkeuringen zijn alleen beschikbaar in het Control-abonnement, dat begint bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
             categories: {
                 title: 'Categorieën',
@@ -7463,11 +7448,6 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Publieke bonzichtbaarheid is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
-            title: 'Meerdere goedkeuringsniveaus',
-            description:
-                'Meerdere goedkeuringsniveaus is een workflowtool voor bedrijven die meer dan één persoon nodig hebben om een rapport goed te keuren voordat het kan worden vergoed.',
-            onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                `<muted-text>Meerdere goedkeuringsniveaus zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
         },
         downgrade: {
             commonFeatures: {
@@ -8135,16 +8115,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             reconnectLink: 'Opnieuw verbinden.',
         },
         emptyDomain: {title: 'Verbeter je beveiliging met domeinen', subtitle: 'Vereis dat leden op je domein inloggen via single sign-on, beperk het aanmaken van werkruimtes en meer.'},
-        dualEntry: {
-            dualEntrySetup: 'DualEntry-configuratie',
-            enterCredentials: 'Voer je DualEntry API-sleutel in',
-            howToFindAPIKey:
-                '<strong>Je API-sleutel vinden.</strong><ol><li>Log in bij DualEntry</li><li>Ga naar [organisatienaam] -> Instellingen -> Ontwikkelaarstoegang -> API-sleutels</li><li>Maak een API-sleutel</li><li>Plak de API-sleutel hieronder</li></ol>',
-            subsidiary: 'Dochteronderneming',
-            subsidiarySelectDescription: 'Kies de dochteronderneming in DualEntry waarvan je gegevens wilt importeren.',
-            noCompaniesFound: 'Geen bedrijven gevonden',
-            noCompaniesFoundDescription: 'Voeg een bedrijf toe in DualEntry en synchroniseer de verbinding opnieuw',
-        },
     },
     getAssistancePage: {
         title: 'Hulp krijgen',

@@ -6819,8 +6819,6 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
-                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
-                        return 'Saisie double';
                     default: {
                         return '';
                     }
@@ -6903,18 +6901,18 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         case 'intacctImportSyncBillPayments':
                             return 'Synchronisation des notes de frais remboursées et des paiements de factures';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return 'Importation de codes fiscaux';
+                            return 'Importation des codes de taxe';
                         case 'quickbooksOnlineCheckConnection':
-                            return `Vérification de la connexion ${integrationName}`;
+                            return `Vérification de la connexion à ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
                             return `Importation des données ${integrationName}`;
                         case 'startingImportXero':
-                            return 'Importation de données Xero';
+                            return 'Importation des données Xero';
                         case 'startingImportQBO':
                             return `Importation des données ${integrationName}`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
-                            return 'Importation des données QuickBooks Desktop';
+                            return 'Importation de données QuickBooks Desktop';
                         case 'quickbooksDesktopImportTitle':
                             return 'Importation du titre';
                         case 'quickbooksDesktopImportApproveCertificate':
@@ -6938,7 +6936,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         case 'quickbooksOnlineSyncApplyEmployees':
                             return 'Mise à jour de la liste des personnes';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
-                            return 'Mise à jour des champs de la note de frais';
+                            return 'Mise à jour des champs de note de frais';
                         case 'jobDone':
                             return 'En attente du chargement des données importées';
                         case 'xeroSyncImportChartOfAccounts':
@@ -7005,7 +7003,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         case 'intacctImportDimensions':
                             return 'Importation des dimensions Sage Intacct';
                         case 'intacctImportTitle':
-                            return 'Importation de données Sage Intacct';
+                            return 'Importation des données Sage Intacct';
                         case 'financialForceSyncTitle':
                             return 'Synchronisation des données Certinia';
                         case 'financialForceSyncStep':
@@ -7015,28 +7013,22 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         case 'financialForceSyncTags':
                             return 'Importation des tags';
                         case 'financialForceSyncVendors':
-                            return 'Importation de fournisseurs';
+                            return 'Importation des fournisseurs';
                         case 'financialForceSyncContacts':
                             return 'Importation des contacts';
                         case 'financialForceSyncCompanies':
-                            return 'Importation d’entreprises';
+                            return 'Importation des entreprises';
                         case 'financialForceSyncUsers':
-                            return 'Importation d’utilisateurs';
+                            return 'Importation des utilisateurs';
                         case 'financialForceSyncDimensions':
                             return 'Importation des dimensions';
                         case 'financialForceMarkAsReimbursed':
-                            return 'Marquer les notes de frais comme remboursées';
+                            return 'Marquage des notes de frais comme remboursées';
                         case 'rilletSyncTitle':
                             return 'Synchronisation des données Rillet';
                         case 'rilletSyncConnection':
                             return 'Initialisation de la connexion à Rillet';
                         case 'rilletSyncImportData':
-                            return 'Chargement des données';
-                        case 'dualEntrySyncTitle':
-                            return 'Synchronisation des données DualEntry';
-                        case 'dualEntrySyncConnection':
-                            return 'Initialisation de la connexion à DualEntry';
-                        case 'dualEntrySyncImportData':
                             return 'Chargement des données';
                         default: {
                             return `Traduction manquante pour l’étape : ${stage}`;
@@ -7079,7 +7071,6 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                     `Assurez-vous que ce compte correspond à votre compte de règlement Consolidated Travel Billing (se terminant par ${lastFourPAN}) afin que le rapprochement continu fonctionne correctement.`,
             },
             syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyages consolidés',
-            dualEntry: 'Saisie double',
         },
         export: {
             notReadyHeading: 'Pas prêt à être exporté',
@@ -7295,46 +7286,40 @@ ${reportName}`,
                     `<muted-text>Les champs de note de frais sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                title: 'Plusieurs niveaux d’approbation',
-                description:
-                    'Les niveaux d’approbation multiples sont un outil de flux de travail pour les entreprises qui exigent que plusieurs personnes approuvent une note de frais avant qu’elle puisse être remboursée.',
+                title: 'NetSuite',
+                description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + NetSuite. Obtenez des informations financières détaillées et en temps réel avec la prise en charge des segments natifs et personnalisés, y compris la correspondance des projets et des clients.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Plusieurs niveaux d'approbation sont uniquement disponibles avec l'offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+                    `<muted-text>Notre intégration NetSuite est disponible uniquement avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                title: 'Plusieurs niveaux d’approbation',
-                description:
-                    'Les niveaux d’approbation multiples sont un outil de flux de travail pour les entreprises qui exigent que plusieurs personnes approuvent une note de frais avant qu’elle puisse être remboursée.',
+                title: 'Sage Intacct',
+                description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + Sage Intacct. Obtenez des informations financières détaillées et en temps réel avec des dimensions définies par l’utilisateur, ainsi qu’un codage des dépenses par service, classe, site, client et projet (mission).`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Plusieurs niveaux d'approbation sont uniquement disponibles avec l'offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+                    `<muted-text>Notre intégration à Sage Intacct est disponible uniquement avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                title: 'Plusieurs niveaux d’approbation',
-                description:
-                    'Les niveaux d’approbation multiples sont un outil de flux de travail pour les entreprises qui exigent que plusieurs personnes approuvent une note de frais avant qu’elle puisse être remboursée.',
+                title: 'QuickBooks Desktop',
+                description: `Profitez de la synchronisation automatique et réduisez les saisies manuelles grâce à l’intégration Expensify + QuickBooks Desktop. Gagnez en efficacité maximale avec une connexion bidirectionnelle en temps réel et un codage des dépenses par classe, article, client et projet.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Plusieurs niveaux d'approbation sont uniquement disponibles avec l'offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+                    `<muted-text>Notre intégration QuickBooks Desktop est uniquement disponible avec l’abonnement Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
-                title: 'Plusieurs niveaux d’approbation',
-                description:
-                    'Les niveaux d’approbation multiples sont un outil de flux de travail pour les entreprises qui exigent que plusieurs personnes approuvent une note de frais avant qu’elle puisse être remboursée.',
+                title: 'Certinia',
+                description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + Certinia. Alignez les dimensions de codage des dépenses et la synchronisation fiscale sur votre configuration Certinia pour une meilleure visibilité financière.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Plusieurs niveaux d'approbation sont uniquement disponibles avec l'offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+                    `<muted-text>Notre intégration Certinia est disponible uniquement avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
-                title: 'Plusieurs niveaux d’approbation',
-                description:
-                    'Les niveaux d’approbation multiples sont un outil de flux de travail pour les entreprises qui exigent que plusieurs personnes approuvent une note de frais avant qu’elle puisse être remboursée.',
+                title: 'Rillet',
+                description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + Rillet. Alignez les dimensions de codage des dépenses et la synchronisation fiscale sur votre configuration Rillet pour une meilleure visibilité financière.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Plusieurs niveaux d'approbation sont uniquement disponibles avec l'offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+                    `<muted-text>Notre intégration Rillet est disponible uniquement avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
-                title: 'Plusieurs niveaux d’approbation',
-                description:
-                    'Les niveaux d’approbation multiples sont un outil de flux de travail pour les entreprises qui exigent que plusieurs personnes approuvent une note de frais avant qu’elle puisse être remboursée.',
+                title: 'Approbations avancées',
+                description: `Si vous souhaitez ajouter plusieurs niveaux d’approbation au processus – ou simplement vous assurer que les plus grosses dépenses sont examinées une fois de plus – nous avons ce qu’il vous faut. Les approbations avancées vous aident à mettre en place les bons contrôles à chaque niveau afin de garder les dépenses de votre équipe sous contrôle.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Plusieurs niveaux d'approbation sont uniquement disponibles avec l'offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+                    `<muted-text>Les approbations avancées sont uniquement disponibles avec l’offre Control, qui commence à <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             categories: {
                 title: 'Catégories',
@@ -7410,11 +7395,11 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     `<muted-text>Les taux de distance sont disponibles avec l’abonnement Collect, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
-                title: 'Plusieurs niveaux d’approbation',
+                title: 'Niveaux d’approbation multiples',
                 description:
-                    'Les niveaux d’approbation multiples sont un outil de flux de travail pour les entreprises qui exigent que plusieurs personnes approuvent une note de frais avant qu’elle puisse être remboursée.',
+                    'Les niveaux d’approbation multiples sont un outil de workflow destiné aux entreprises qui exigent que plusieurs personnes approuvent une note de frais avant qu’elle puisse être remboursée.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Plusieurs niveaux d'approbation sont uniquement disponibles avec l'offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+                    `<muted-text>Les niveaux d’approbation multiples sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             pricing: {
                 perActiveMember: 'par membre actif et par mois.',
@@ -7536,11 +7521,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La visibilité publique des reçus est uniquement disponible avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
-            title: 'Plusieurs niveaux d’approbation',
-            description:
-                'Les niveaux d’approbation multiples sont un outil de flux de travail pour les entreprises qui exigent que plusieurs personnes approuvent une note de frais avant qu’elle puisse être remboursée.',
-            onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                `<muted-text>Plusieurs niveaux d'approbation sont uniquement disponibles avec l'offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
         },
         downgrade: {
             commonFeatures: {
@@ -8222,16 +8202,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         emptyDomain: {
             title: 'Renforcez votre sécurité avec des domaines',
             subtitle: 'Obligez les membres de votre domaine à se connecter via l’authentification unique, restreignez la création d’espaces de travail, et plus encore.',
-        },
-        dualEntry: {
-            dualEntrySetup: 'Configuration DualEntry',
-            enterCredentials: 'Saisissez votre clé API DualEntry',
-            howToFindAPIKey:
-                '<strong>Recherche de votre clé API.</strong><ol><li>Connectez-vous à DualEntry</li><li>Accédez à [organization name] -> Paramètres -> Accès développeur -> Clés API</li><li>Créez une clé API</li><li>Collez la clé API ci-dessous</li></ol>',
-            subsidiary: 'Filiale',
-            subsidiarySelectDescription: 'Choisissez la filiale dans DualEntry à partir de laquelle vous souhaitez importer des données.',
-            noCompaniesFound: 'Aucune entreprise trouvée',
-            noCompaniesFoundDescription: 'Veuillez ajouter une entreprise dans DualEntry et synchroniser à nouveau la connexion',
         },
     },
     getAssistancePage: {
