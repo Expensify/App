@@ -3138,6 +3138,7 @@ ${date} の ${merchant} への ${amount}`,
         accounting: {
             title: '会計ソフトを利用していますか？',
             none: 'なし',
+            otherAccountingSoftware: 'ご利用の会計ソフト',
         },
         interestedFeatures: {
             title: 'どの機能にご興味がありますか？',
