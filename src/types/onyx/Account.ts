@@ -225,7 +225,7 @@ type Account = {
     /** Whether the user's email domain is an internal Expensify domain (e.g. expensify.com) */
     isFromInternalDomain?: boolean;
 
-    /** Whether this account is allowed to start a supportal session. False during supportal, since the session is the customer. */
+    /** Whether the account this session is loaded as can start a supportal session. During supportal that is the customer, not the agent. */
     canSupportLogin?: boolean;
 
     /** Whether or not the user uses expensify card */
