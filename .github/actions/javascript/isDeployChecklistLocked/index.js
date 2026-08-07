@@ -13037,24 +13037,6 @@ function ReportHistoryStore(API, PubSub) {
      * @param {Number} reportID
      * @param {Object[]} newHistory
      */
-    function mergeItems(reportID, newHistory) {
-        if (newHistory.length === 0) {
-            return;
-        }
-        const newCache = newHistory.reverse().reduce((prev, curr) => {
-            if (!prev.some((item) => item.sequenceNumber === curr.sequenceNumber)) {
-                prev.unshift(curr);
-            }
-            return prev;
-        }, store.cache[reportID] || []);
-        store.cache[reportID] = newCache.sort((a, b) => b.sequenceNumber - a.sequenceNumber);
-    }
-    /**
-     * Merges history items into the cache and creates it if it doesn't yet exist.
-     *
-     * @param {Number} reportID
-     * @param {Object[]} newHistory
-     */
     function mergeHistoryByTimestamp(reportID, newHistory) {
         if (newHistory.length === 0) {
             return;
@@ -13086,31 +13068,6 @@ function ReportHistoryStore(API, PubSub) {
         store.cache[reportID] = newCache.sort((a, b) => b.reportActionTimestamp - a.reportActionTimestamp);
     }
     /**
-     * Gets the history.
-     *
-     * @param {Number} reportID
-     * @param {Boolean} ignoreCache
-     * @returns {Deferred}
-     */
-    function get(reportID, ignoreCache) {
-        const promise = new simply_deferred_1.Deferred();
-        if (ignoreCache) {
-            delete store.cache[reportID];
-        }
-        const cachedHistory = store.cache[reportID] || [];
-        const firstHistoryItem = cachedHistory[0] || {};
-        store.API.Report_GetHistory({
-            reportID,
-            offset: firstHistoryItem.sequenceNumber || 0,
-        })
-            .done((recentHistory) => {
-            mergeItems(reportID, recentHistory);
-            promise.resolve(store.cache[reportID]);
-        })
-            .fail(promise.reject);
-        return promise;
-    }
-    /**
      * Gets the history. This flow does not depend on the deprecated sequence number in report actions.
      *
      * @param {Number} reportID
@@ -13133,6 +13090,18 @@ function ReportHistoryStore(API, PubSub) {
         return promise;
     }
     /**
+     * Gets the history.
+     *
+     * @deprecated use getFlatHistory instead.
+     *
+     * @param {Number} reportID
+     * @param {Boolean} ignoreCache
+     * @returns {Deferred}
+     */
+    function get(reportID, ignoreCache) {
+        return getFlatHistory(reportID, ignoreCache);
+    }
+    /**
      * Gets the history from the cache if it exists. Otherwise fully loads the history.
      *
      * @param {Number} reportID
@@ -13147,6 +13116,15 @@ function ReportHistoryStore(API, PubSub) {
         return promise.resolve(cachedHistory);
     }
     return {
+        /**
+         * Gets the history.
+         *
+         * @deprecated use getFlatHistory instead.
+         *
+         * @param {Number} reportID
+         * @param {Boolean} ignoreCache
+         * @returns {Deferred}
+         */
         get: (reportID, ignoreCache = false) => {
             const promise = new simply_deferred_1.Deferred();
             get(reportID, ignoreCache)
@@ -13161,22 +13139,6 @@ function ReportHistoryStore(API, PubSub) {
             getFlatHistory(reportID, ignoreCache)
                 .done((reportHistory) => {
                 promise.resolve(filterHiddenActions(reportHistory));
-            })
-                .fail(promise.reject);
-            return promise;
-        },
-        insertIntoCache: (reportID, reportAction) => {
-            const promise = new simply_deferred_1.Deferred();
-            getFromCache(reportID)
-                .done((cachedHistory) => {
-                const sequenceNumber = reportAction.sequenceNumber;
-                if (cachedHistory.length >= sequenceNumber) {
-                    mergeItems(reportID, [reportAction]);
-                    return promise.resolve(filterHiddenActions(store.cache[reportID]));
-                }
-                get(reportID)
-                    .done((reportHistory) => promise.resolve(filterHiddenActions(reportHistory)))
-                    .fail(promise.reject);
             })
                 .fail(promise.reject);
             return promise;

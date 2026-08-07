@@ -2,6 +2,7 @@ import Button from '@components/Button';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -202,6 +203,8 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     const handleKeyPress = (e: TextInputKeyPressEvent) => {
         const event = e as unknown as KeyboardEvent;
         if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+            // The markdown input inserts a line break for any Enter keydown whose default is not already prevented, so the submit combo has to claim it first.
+            event.preventDefault();
             handleSave();
         }
     };
@@ -220,6 +223,8 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                     ref={inputRef}
                     label={translate('profilePage.aiPromptSection.prompt')}
                     accessibilityLabel={translate('profilePage.aiPromptSection.prompt')}
+                    type="markdown"
+                    excludedMarkdownStyles={['mentionReport']}
                     value={draftPrompt}
                     onChangeText={handleChangeText}
                     onKeyPress={handleKeyPress}
@@ -232,6 +237,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                     onFocus={handleInputFocus}
                 />
             </OfflineWithFeedback>
+            <Text style={[styles.textMicroSupporting, styles.mt1, styles.mb5]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
             <Button
                 success
                 text={showSavedConfirmation ? translate('profilePage.aiPromptSection.saved') : translate('common.save')}

@@ -72,6 +72,7 @@ function FeatureTrainingModal({modalInnerContainerStyle, onConfirm, onClose, sho
     return (
         <Modal
             isVisible={isModalVisible}
+            shouldTreatModalAsCovering
             type={onboardingIsMediumOrLargerScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
             onClose={closeModal}
             innerContainerStyle={{
