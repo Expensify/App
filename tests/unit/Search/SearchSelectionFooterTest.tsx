@@ -31,7 +31,7 @@ jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({selectedTransactions: mockSelectedTransactions.current, areAllMatchingItemsSelected: false, selectedReports: []}),
 }));
 
-type CapturedFooterProps = {defaultCurrency?: string; currency?: string; onCurrencyChange?: (currency: string | undefined) => void};
+type CapturedFooterProps = {defaultCurrency?: string; currency?: string; onCurrencyChange?: (currency: string) => void};
 const mockCapturedFooterProps: {current: CapturedFooterProps | undefined} = {current: undefined};
 jest.mock('@components/Search/SearchPageFooter', () => ({
     __esModule: true,

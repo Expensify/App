@@ -42,7 +42,7 @@ type SearchPageFooterProps = {
     isTotalLoading: boolean;
 
     /** Function to call when the footer currency changes */
-    onCurrencyChange: (currency: string | undefined) => void;
+    onCurrencyChange: (currency: string) => void;
 };
 
 function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoading, onCurrencyChange}: SearchPageFooterProps) {
@@ -69,9 +69,7 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
             return;
         }
 
-        // Reset (no item) selects the default explicitly rather than clearing the choice: the loaded figures can be
-        // denominated in another currency (e.g. after changing Preferences > Payment currency), and only an explicit
-        // selection converts them to it.
+        // Reset (no item) selects the default explicitly so figures loaded in another currency get converted to it.
         const nextCurrency = item?.value ?? defaultCurrency;
         if (!nextCurrency) {
             return;

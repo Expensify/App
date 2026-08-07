@@ -91,9 +91,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const {isOffline} = useNetwork();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
-    // The currency the server converts search figures to when the query carries no explicit target: the active
-    // policy's currency. For accounts without a workspace the active policy is the personal policy, whose output
-    // currency is what Preferences > Payment currency edits.
+    // The server converts search figures to the active policy's currency when the query carries no explicit target.
     const searchTargetCurrency = activePolicy?.outputCurrency ?? CONST.CURRENCY.USD;
     const [footerCurrencyState, setFooterCurrencyState] = useState<FooterCurrencyState>({
         searchHash: undefined,
@@ -248,9 +246,6 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // Use the per-selection (client) total for a partial selection; nothing-selected and everything-selected both fall
     // to the whole-search grand total, which every search type now returns converted, keyed by the search hash.
     const shouldUseClientTotal = !metadataCount || hasPartialSelection;
-    // The currency the loaded figures are denominated in (the server-converted per-row denomination when the snapshot
-    // metadata hasn't populated a currency). A chosen currency needs converting only when it differs from this, so
-    // choosing the currency the figures are already in — including Reset when nothing moved — stays a no-op.
     const firstSelectedTransactionKey = selectedTransactionsKeys.at(0);
     const firstSelectedTransaction = firstSelectedTransactionKey ? selectedTransactions[firstSelectedTransactionKey] : undefined;
     const selectedTransactionDefaultCurrency = firstSelectedTransaction?.groupCurrency ?? firstSelectedTransaction?.currency;
@@ -387,7 +382,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     ]);
 
     const handleFooterCurrencyChange = useCallback(
-        (currency: string | undefined) => {
+        (currency: string) => {
             setFooterCurrencyState({
                 searchHash: currentSearchHash,
                 selectedCurrency: currency,
