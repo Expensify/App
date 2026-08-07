@@ -22,6 +22,7 @@ jest.mock('@hooks/useLocalize', () =>
         translate: jest.fn((key: string) => key),
         numberFormat: jest.fn((num: number) => num.toString()),
         toLocaleDigit: jest.fn((digit: string) => digit),
+        preferredLocale: 'en',
     })),
 );
 

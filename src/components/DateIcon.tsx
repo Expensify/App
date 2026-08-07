@@ -1,6 +1,9 @@
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import DateUtils from '@libs/DateUtils';
 
 import {format, parseISO} from 'date-fns';
 import React from 'react';
@@ -16,8 +19,9 @@ type DateIconProps = {
 function DateIcon({date}: DateIconProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {preferredLocale} = useLocalize();
     const parsedDate = parseISO(date);
-    const monthAbbr = format(parsedDate, 'MMM');
+    const monthAbbr = DateUtils.formatToShortMonth(parsedDate, preferredLocale);
     const dayNumber = format(parsedDate, 'd');
     const StyleUtils = useStyleUtils();
 

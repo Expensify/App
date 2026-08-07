@@ -15,10 +15,10 @@ import type {ExpenseReportListItemRowNarrowProps} from './types';
 
 function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSelectMultiple, isSelectAllChecked, isIndeterminate, isDisabledCheckbox}: ExpenseReportListItemRowNarrowProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
-    const {amount: amountText, date: formattedDate, expenseCountText} = getExpenseReportRowDisplayValues(item, {translate, convertToDisplayString});
+    const {amount: amountText, date: formattedDate, expenseCountText} = getExpenseReportRowDisplayValues(item, {translate, convertToDisplayString, preferredLocale});
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3]}>

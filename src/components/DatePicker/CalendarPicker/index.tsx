@@ -13,7 +13,6 @@ import CONST from '@src/CONST';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import {addMonths, addYears, format, isSameDay, parseISO, setDate, setMonth, setYear, startOfDay, subMonths, subYears} from 'date-fns';
-import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -91,7 +90,7 @@ function CalendarPicker({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const themeStyles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const pressableRef = useRef<View>(null);
     const monthPressableRef = useRef<View>(null);
     const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
@@ -101,7 +100,7 @@ function CalendarPicker({
 
     const currentMonthView = currentDateView.getMonth();
     const currentYearView = currentDateView.getFullYear();
-    const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
+    const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView, preferredLocale);
     const initialHeight = (calendarDaysMatrix?.length || CONST.MAX_CALENDAR_PICKER_ROWS) * CONST.CALENDAR_PICKER_DAY_HEIGHT;
     const heightValue = useSharedValue(initialHeight);
 
@@ -218,8 +217,9 @@ function CalendarPicker({
         });
     };
 
-    const monthNames = DateUtils.getMonthNames().map((month) => Str.UCFirst(month));
-    const daysOfWeek = DateUtils.getDaysOfWeek().map((day) => day.toUpperCase());
+    const monthNames = DateUtils.getMonthNames(preferredLocale);
+    const daysOfWeekLong = DateUtils.getDaysOfWeek(preferredLocale);
+    const daysOfWeek = DateUtils.getDaysOfWeekShort(preferredLocale);
     useEffect(() => {
         if (isSmallScreenWidth || isFirstRender.current) {
             isFirstRender.current = false;
@@ -362,13 +362,13 @@ function CalendarPicker({
                 </View>
             </View>
             <View style={[themeStyles.flexRow, webOnlyMarginStyle]}>
-                {daysOfWeek.map((dayOfWeek) => (
+                {daysOfWeekLong.map((longName, slot) => (
                     <View
-                        key={dayOfWeek}
+                        key={longName}
                         style={[themeStyles.calendarDayRoot, themeStyles.flex1, themeStyles.justifyContentCenter, themeStyles.alignItemsCenter]}
                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                     >
-                        <Text style={themeStyles.sidebarLinkTextBold}>{dayOfWeek[0]}</Text>
+                        <Text style={themeStyles.sidebarLinkTextBold}>{daysOfWeek.at(slot)}</Text>
                     </View>
                 ))}
             </View>
@@ -398,7 +398,7 @@ function CalendarPicker({
                             };
                             const key = `${index}_day-${day}`;
                             const fullDate = day ? new Date(currentYearView, currentMonthView, day) : null;
-                            const accessibilityDateLabel = fullDate ? DateUtils.formatToLongDateWithWeekday(fullDate) : '';
+                            const accessibilityDateLabel = fullDate ? DateUtils.formatToLongDateWithWeekday(fullDate, preferredLocale) : '';
                             return (
                                 <PressableWithoutFeedback
                                     key={key}

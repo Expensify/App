@@ -46,7 +46,7 @@ type PolicyDistanceRateDetailsPageProps = PlatformStackScreenProps<SettingsNavig
 
 function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const policyID = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
@@ -248,7 +248,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                     >
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={canWriteDistanceRates}
-                            title={rate.startDate ? DateUtils.formatToReadableString(rate.startDate) : ''}
+                            title={rate.startDate ? DateUtils.formatToReadableString(rate.startDate, preferredLocale) : ''}
                             description={translate('workspace.distanceRates.startDate')}
                             descriptionTextStyle={styles.textNormal}
                             onPress={editStartDate}
@@ -263,7 +263,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                     >
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={canWriteDistanceRates}
-                            title={rate.endDate ? DateUtils.formatToReadableString(rate.endDate) : ''}
+                            title={rate.endDate ? DateUtils.formatToReadableString(rate.endDate, preferredLocale) : ''}
                             description={translate('workspace.distanceRates.endDate')}
                             descriptionTextStyle={styles.textNormal}
                             onPress={editEndDate}

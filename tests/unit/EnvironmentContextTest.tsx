@@ -6,9 +6,9 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-// Mock getEnvironment and getEnvironmentURL
-const mockGetEnvironment: jest.MockedFunction<() => Promise<string>> = jest.fn();
-const mockGetEnvironmentURL: jest.MockedFunction<() => Promise<string>> = jest.fn();
+// Default to resolved so ApiUtils' module-level `getEnvironment().then(...)` doesn't crash before setupTest runs.
+const mockGetEnvironment: jest.MockedFunction<() => Promise<string>> = jest.fn().mockResolvedValue(CONST.ENVIRONMENT.PRODUCTION);
+const mockGetEnvironmentURL: jest.MockedFunction<() => Promise<string>> = jest.fn().mockResolvedValue(CONST.NEW_EXPENSIFY_URL);
 
 jest.mock('@libs/Environment/getEnvironment', () => ({
     __esModule: true,

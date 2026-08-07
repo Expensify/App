@@ -26,6 +26,7 @@ import type {
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 
 import CONST from '@src/CONST';
+import type {Locale} from '@src/CONST/LOCALES';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {OnyxCollectionKey, OnyxCollectionValuesMapping} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -236,7 +237,7 @@ function getRangeBoundariesFromFormValue(rangeValue?: string, fallbackAfter?: st
     };
 }
 
-function getDateRangeDisplayValueFromFormValue(rangeValue?: string, fallbackAfter?: string, fallbackBefore?: string, shouldOmitCurrentYear = false) {
+function getDateRangeDisplayValueFromFormValue(rangeValue: string | undefined, locale: Locale, fallbackAfter?: string, fallbackBefore?: string, shouldOmitCurrentYear = false) {
     if (!rangeValue) {
         return '';
     }
@@ -244,11 +245,11 @@ function getDateRangeDisplayValueFromFormValue(rangeValue?: string, fallbackAfte
     const rangeBoundaries = getRangeBoundariesFromFormValue(rangeValue, fallbackAfter, fallbackBefore);
     if (rangeBoundaries.from && rangeBoundaries.to) {
         const shouldShowFullYear = !shouldOmitCurrentYear || DateUtils.doesDateBelongToAPastYear(rangeBoundaries.from) || DateUtils.doesDateBelongToAPastYear(rangeBoundaries.to);
-        return DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, shouldShowFullYear, shouldOmitCurrentYear);
+        return DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, shouldShowFullYear, shouldOmitCurrentYear, locale);
     }
 
     const singleBoundary = rangeBoundaries.from ?? rangeBoundaries.to;
-    return singleBoundary ? DateUtils.formatToReadableString(singleBoundary) : '';
+    return singleBoundary ? DateUtils.formatToReadableString(singleBoundary, locale) : '';
 }
 
 function parseRangeQueryValue(rangeValue?: string) {

@@ -138,20 +138,23 @@ function DatePresetFilterBase({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
 
     const shouldShowHorizontalRule = !!presets?.length;
     const customDateTitle = translate('search.filters.date.customDate');
     const customRangeTitle = translate('search.filters.date.customRange');
     const normalizedDefaultDateValues = useMemo(() => normalizeDateValues(defaultDateValues), [defaultDateValues]);
 
-    const getRangeDisplayTextFromDateValues = useCallback((dateValues: SearchDateValues) => {
-        const rangeValue = dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE];
-        if (!rangeValue) {
-            return '';
-        }
-        return getDateRangeDisplayValueFromFormValue(rangeValue, dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER], dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
-    }, []);
+    const getRangeDisplayTextFromDateValues = useCallback(
+        (dateValues: SearchDateValues) => {
+            const rangeValue = dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE];
+            if (!rangeValue) {
+                return '';
+            }
+            return getDateRangeDisplayValueFromFormValue(rangeValue, preferredLocale, dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER], dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
+        },
+        [preferredLocale],
+    );
 
     const getRangeEphemeralValuesFromDateValues = useCallback((dateValues: SearchDateValues) => {
         const rangeBoundaries = getRangeBoundariesFromFormValue(dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE]);

@@ -5,6 +5,7 @@ import DateUtils from '@libs/DateUtils';
 import {getSubscriptionStatus, PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 
 import CONST from '@src/CONST';
+import type {Locale} from '@src/CONST/LOCALES';
 import type {StripeCustomerID} from '@src/types/onyx';
 import type BillingStatus from '@src/types/onyx/BillingStatus';
 import type {AccountData, FundList} from '@src/types/onyx/Fund';
@@ -29,6 +30,7 @@ type BillingStatusResult = {
 
 type GetBillingStatusProps = {
     translate: LocaleContextProps['translate'];
+    preferredLocale: Locale;
     stripeCustomerId: OnyxEntry<StripeCustomerID>;
     accountData?: AccountData;
     purchase?: Purchase;
@@ -45,6 +47,7 @@ type GetBillingStatusProps = {
 
 function getBillingStatus({
     translate,
+    preferredLocale,
     stripeCustomerId,
     accountData,
     purchase,
@@ -73,7 +76,7 @@ function getBillingStatus({
 
     const endDate = ownerBillingGracePeriodEnd;
 
-    const endDateFormatted = endDate ? DateUtils.formatWithUTCTimeZone(fromUnixTime(endDate).toUTCString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT) : null;
+    const endDateFormatted = endDate ? DateUtils.formatInUTCToLong(fromUnixTime(endDate).toUTCString(), preferredLocale) : null;
 
     const isCurrentCardExpired = DateUtils.isCardExpired(accountData?.cardMonth ?? 0, accountData?.cardYear ?? 0);
 
@@ -81,7 +84,7 @@ function getBillingStatus({
     const purchaseCurrency = purchase?.currency;
     const purchaseDate = purchase?.created;
     const isBillingFailed = purchase?.message.billingType === CONST.BILLING.TYPE_FAILED_2018;
-    const purchaseDateFormatted = purchaseDate ? DateUtils.formatWithUTCTimeZone(purchaseDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT) : undefined;
+    const purchaseDateFormatted = purchaseDate ? DateUtils.formatInUTCToLong(purchaseDate, preferredLocale) : undefined;
     const purchaseAmountWithCurrency = convertAmountToDisplayString(purchaseAmount, purchaseCurrency);
 
     switch (subscriptionStatus?.status) {

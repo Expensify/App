@@ -1,6 +1,7 @@
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
+import type {Locale} from '@src/CONST/LOCALES';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -207,6 +208,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     reportActions,
     originalTransaction,
     convertToDisplayString,
+    preferredLocale,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -222,6 +224,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     reportActions?: OnyxTypes.ReportActions;
     originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    preferredLocale: Locale;
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
     const isTransactionOnHold = isOnHold(transaction);
@@ -311,8 +314,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     let previewDateText: TranslationPathOrText | undefined;
     if (!isCreatedMissing(transaction)) {
         const created = getFormattedCreated(transaction);
-        const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        previewDateText = {text: date};
+        previewDateText = {text: DateUtils.formatTransactionListDate(created, preferredLocale)};
     }
 
     // Paid, Approved and Review required are intentionally omitted here because the report status badge and the violation
