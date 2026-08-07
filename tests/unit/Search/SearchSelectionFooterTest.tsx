@@ -105,7 +105,8 @@ describe('SearchSelectionFooter', () => {
         // component (testing-library only unmounts it afterwards), and those renders can record mock calls.
         jest.clearAllMocks();
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID});
-        await Onyx.merge(ONYXKEYS.PERSONAL_POLICY_ID, PERSONAL_POLICY_ID);
+        // Accounts without a workspace have their personal policy as the active policy.
+        await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, PERSONAL_POLICY_ID);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${PERSONAL_POLICY_ID}`, {id: PERSONAL_POLICY_ID, outputCurrency: PAYMENT_CURRENCY});
         await waitForBatchedUpdates();
     });

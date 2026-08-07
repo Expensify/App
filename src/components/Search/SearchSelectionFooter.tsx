@@ -91,12 +91,10 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const {isOffline} = useNetwork();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const personalPolicy = usePolicy(personalPolicyID);
     // The currency the server converts search figures to when the query carries no explicit target: the active
     // policy's currency. For accounts without a workspace the active policy is the personal policy, whose output
     // currency is what Preferences > Payment currency edits.
-    const searchTargetCurrency = activePolicy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
+    const searchTargetCurrency = activePolicy?.outputCurrency ?? CONST.CURRENCY.USD;
     const [footerCurrencyState, setFooterCurrencyState] = useState<FooterCurrencyState>({
         searchHash: undefined,
         selectedCurrency: undefined,
