@@ -15,6 +15,7 @@ import Onyx from 'react-native-onyx';
 
 import type de from './de';
 import type el from './el';
+import type en from './en';
 import type es from './es';
 import type fr from './fr';
 import type it from './it';
@@ -25,7 +26,6 @@ import type ptBR from './pt-BR';
 import type {FlatTranslationsObject, TranslationPaths} from './types';
 import type zhHans from './zh-hans';
 
-import enTranslations from './en';
 import flattenObject from './flattenObject';
 
 // This function was added here to avoid circular dependencies
@@ -41,8 +41,8 @@ class IntlStore {
     /** React subscribers via `useSyncExternalStore`. Notified after `currentLocale` mutates so consumers re-render once, instead of two-ticking through Onyx. */
     private static listeners = new Set<() => void>();
 
-    /** Pre-seeded with EN so `translate('en', key)` resolves synchronously from module load (no cold-start path-string degradation). */
-    private static cache = new Map<Locale, FlatTranslationsObject>([[LOCALES.EN, flattenObject(enTranslations)]]);
+    /** No eager EN pre-seed — the splash gate covers cold-start flash and pre-seeding would drag ~150 KB gzip into every bundle. */
+    private static cache = new Map<Locale, FlatTranslationsObject>();
 
     /**
      * Cache for localized date-fns
@@ -81,8 +81,9 @@ class IntlStore {
             this.cache.has(LOCALES.EN) && this.dateUtilsCache.has(LOCALES.EN)
                 ? Promise.all([Promise.resolve(), Promise.resolve()])
                 : Promise.all([
-                      // Translations are pre-seeded above; only the date-fns chunk needs to load.
-                      Promise.resolve(),
+                      import('./en').then((module: DynamicModule<typeof en>) => {
+                          this.cache.set(LOCALES.EN, flattenObject(extractModuleDefaultExport(module)));
+                      }),
                       import('date-fns/locale/en-GB').then((module) => {
                           this.dateUtilsCache.set(LOCALES.EN, module.enGB);
                       }),
