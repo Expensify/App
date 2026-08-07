@@ -21,9 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
-import type {ValueOf} from 'type-fest';
 
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -38,14 +36,11 @@ type SidebarLinksProps = {
     /** Whether the full (unfiltered) LHN report set is empty. Used to distinguish an Onyx-cleared reload from a per-tab empty view. */
     hasReportData: boolean;
 
-    /** The chat priority mode */
-    priorityMode?: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
-
     /** Method to change currently active report */
     isActiveReport: (reportID: string) => boolean;
 };
 
-function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
+function SidebarLinks({insets, optionListItems, hasReportData, isActiveReport}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
@@ -87,7 +82,8 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
         [shouldUseNarrowLayout, isActiveReport, setStickyReportID],
     );
 
-    const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
+    // Every Inbox tab uses the default two-line row style (larger avatar, sender and preview on separate lines).
+    const viewMode = CONST.OPTION_MODE.DEFAULT;
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);

@@ -3125,6 +3125,7 @@ const translations = {
     },
     inboxTabs: {
         all: 'All',
+        focus: 'Focus',
         todo: 'To-dos',
         unread: 'Unread',
     },

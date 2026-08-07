@@ -3090,6 +3090,7 @@ ${amount} για ${merchant} - ${date}`,
     },
     inboxTabs: {
         all: 'Όλα',
+        focus: 'Εστίαση',
         todo: 'Εκκρεμότητες',
         unread: 'Μη αναγνωσμένα',
     },

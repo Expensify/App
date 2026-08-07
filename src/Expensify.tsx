@@ -39,7 +39,6 @@ import {startBootsplashMonitor} from './libs/telemetry/bootsplashTelemetry';
 import {cleanupTelemetryTrackers, initializeTelemetryTrackers} from './libs/telemetry/TelemetrySynchronizer';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
-import PriorityModeHandler from './PriorityModeHandler';
 import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
 
 Onyx.registerLogger(({level, message, parameters}) => {
@@ -286,7 +285,6 @@ function Expensify() {
     return (
         <>
             {shouldInit && <GlobalModals />}
-            <PriorityModeHandler />
             <DelegateAccessHandler />
             <FullstoryInitHandler />
             <FullstoryUserContextHandler />

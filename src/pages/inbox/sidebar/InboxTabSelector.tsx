@@ -24,6 +24,10 @@ function InboxTabSelector() {
             title: translate('inboxTabs.all'),
         },
         {
+            key: CONST.INBOX_TAB.FOCUS,
+            title: translate('inboxTabs.focus'),
+        },
+        {
             key: CONST.INBOX_TAB.UNREAD,
             title: translate('inboxTabs.unread'),
             badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.UNREAD]),
@@ -45,7 +49,7 @@ function InboxTabSelector() {
                 tabs={tabs}
                 activeTabKey={activeTab}
                 onTabPress={(key) => {
-                    if (key !== CONST.INBOX_TAB.ALL && key !== CONST.INBOX_TAB.UNREAD && key !== CONST.INBOX_TAB.TODO) {
+                    if (key !== CONST.INBOX_TAB.ALL && key !== CONST.INBOX_TAB.FOCUS && key !== CONST.INBOX_TAB.UNREAD && key !== CONST.INBOX_TAB.TODO) {
                         return;
                     }
                     setActiveTab(key);

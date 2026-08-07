@@ -2406,6 +2406,7 @@ const CONST = {
     },
     INBOX_TAB: {
         ALL: 'all',
+        FOCUS: 'focus',
         TODO: 'todo',
         UNREAD: 'unread',
     },

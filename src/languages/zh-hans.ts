@@ -2926,7 +2926,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         title: '欢迎使用 #focus 模式！',
         prompt: (priorityModePageUrl: string) => `通过只查看未读聊天或需要你关注的聊天，随时掌握最新进展。别担心，你可以随时在<a href="${priorityModePageUrl}">设置</a>中更改此项。`,
     },
-    inboxTabs: {all: '全部', todo: '待办事项', unread: '未读'},
+    inboxTabs: {all: '全部', focus: '专注', todo: '待办事项', unread: '未读'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `在 ${policyName} 中`,
         generatingPDF: '生成 PDF',

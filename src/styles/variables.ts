@@ -122,7 +122,7 @@ export default {
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
-    sideBarWithLHBWidth: 320,
+    sideBarWithLHBWidth: 360,
     searchSidebarExpandedWidth: 320,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,

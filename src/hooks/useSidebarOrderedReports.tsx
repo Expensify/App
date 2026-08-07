@@ -79,9 +79,11 @@ function SidebarOrderedReportsContextProvider({
     currentReportIDForTests,
 }: SidebarOrderedReportsContextProviderProps) {
     const {localeCompare} = useLocalize();
-    const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const [inboxTab = CONST.INBOX_TAB.ALL] = useOnyx(ONYXKEYS.NVP_INBOX_TAB);
     const activeTab = inboxTab ?? CONST.INBOX_TAB.ALL;
+    // Focus mode is now the "Focus" Inbox tab rather than a stored preference: the tab drives which reports the
+    // LHN includes and how they're sorted. Every other tab uses the default (Most Recent) mode.
+    const priorityMode = activeTab === CONST.INBOX_TAB.FOCUS ? CONST.PRIORITY_MODE.GSD : CONST.PRIORITY_MODE.DEFAULT;
     const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const reportUpdates = useCollectionDelta(chatReports);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -306,7 +308,7 @@ function SidebarOrderedReportsContextProvider({
     const stickyReportTab = stickyReport?.tab;
     const filteredReportIDs = useMemo(() => {
         const baseFilteredReportIDs = SidebarUtils.filterReportsForInboxTab(orderedReportIDs, reportsToDisplayInLHN, activeTab);
-        if (activeTab === CONST.INBOX_TAB.ALL || !stickyReportID || stickyReportTab !== activeTab || baseFilteredReportIDs.includes(stickyReportID)) {
+        if (activeTab === CONST.INBOX_TAB.ALL || activeTab === CONST.INBOX_TAB.FOCUS || !stickyReportID || stickyReportTab !== activeTab || baseFilteredReportIDs.includes(stickyReportID)) {
             return baseFilteredReportIDs;
         }
         if (!orderedReportIDs.includes(stickyReportID)) {
@@ -351,7 +353,7 @@ function SidebarOrderedReportsContextProvider({
     // visible after viewing it removes it from the tab. On the All tab we keep nothing sticky.
     const setStickyReportID = useCallback(
         (reportID: string) => {
-            if (activeTab === CONST.INBOX_TAB.ALL) {
+            if (activeTab === CONST.INBOX_TAB.ALL || activeTab === CONST.INBOX_TAB.FOCUS) {
                 return;
             }
             setStickyReport({reportID, tab: activeTab});
@@ -370,11 +372,11 @@ function SidebarOrderedReportsContextProvider({
         // requirement for web. Consider a case, where we have report with expenses and we click on
         // any expense, a new LHN item is added in the list and is visible on web. But on mobile, we
         // just navigate to the screen with expense details, so there seems no point to execute this logic on mobile.
-        // Only the "All" tab force-regenerates to surface the current report. On the To-do/Unread tabs the
-        // sticky-aware filteredReportIDs already keeps the opened report visible, and re-filtering here
-        // (without the sticky report) would briefly empty the list while opening it.
+        // The "All" and "Focus" tabs (both mode-only, no per-report filter) force-regenerate to surface the
+        // current report. On the To-do/Unread tabs the sticky-aware filteredReportIDs already keeps the opened
+        // report visible, and re-filtering here (without the sticky report) would briefly empty the list.
         if (
-            activeTab === CONST.INBOX_TAB.ALL &&
+            (activeTab === CONST.INBOX_TAB.ALL || activeTab === CONST.INBOX_TAB.FOCUS) &&
             (!shouldUseNarrowLayout || filteredReportIDs.length === 0) &&
             derivedCurrentReportID &&
             derivedCurrentReportID !== '-1' &&
