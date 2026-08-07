@@ -504,8 +504,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
 }
 
 /**
- * Fires asynchronous requests to load more data that is required by the App but not returned in OpenApp/ReconnectApp.
- * Called from the LoadPostDataForOpenOrReconnect middleware, once per OpenApp/ReconnectApp response.
+ * Fires asynchronous requests to load more data that is required by the App but not returned in OpenApp/ReconnectApp
  */
 function loadPostDataForOpenOrReconnect() {
     API.read(READ_COMMANDS.SEARCH_FOR_TODOS, null);
