@@ -407,12 +407,15 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             return {count: undefined, total: undefined, currency: undefined};
         }
 
+        const selectedTransactionItems = Object.values(selectedTransactions);
+        const fallbackCurrency = effectiveDefaultCurrency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
+
         if (shouldUseClientTotal) {
             const shouldUseConvertedSelectedTotal = hasCustomFooterCurrency && areAllSelectedConverted && !hasConversionFailed && !!selectedCurrency;
 
             // Reports sum each selected report's converted total; other searches sum per row — whole groups from the
-            // groups cache, individual transactions from the transactions cache — falling back to the unconverted
-            // per-row amount until the conversion is ready, which keeps the footer on that currency meanwhile.
+            // groups cache, individual transactions from the transactions cache — falling back to the default per-row
+            // amount until the conversion is ready, which keeps the footer on the default currency meanwhile.
             let total;
             if (shouldUseConvertedSelectedTotal && isReportsSearch && selectedCurrency) {
                 total = selectedReportIDs.reduce((acc, reportID) => acc - (convertedReports?.[reportID]?.[selectedCurrency] ?? 0), 0);
@@ -431,27 +434,26 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                 }, 0);
             }
 
-            // Unconverted figures keep the currency they're denominated in instead of borrowing the default's symbol,
-            // which can move away from the loaded figures (e.g. after changing Preferences > Payment currency).
-            return {count: selectedExpenseCount, total, currency: shouldUseConvertedSelectedTotal ? selectedCurrency : loadedFiguresCurrency};
+            return {count: selectedExpenseCount, total, currency: shouldUseConvertedSelectedTotal ? selectedCurrency : fallbackCurrency};
         }
 
         if (hasCustomFooterCurrency && isSearchTotalFresh && !hasConversionFailed && selectedCurrencyConvertedTotal) {
             return {count: selectedCurrencyConvertedTotal.count, total: selectedCurrencyConvertedTotal.total, currency: selectedCurrency};
         }
 
-        return {count: metadataCount, total: metadataTotal, currency: loadedFiguresCurrency};
+        return {count: metadataCount, total: metadataTotal, currency: effectiveDefaultCurrency ?? metadataCurrency};
     }, [
         areAllSelectedConverted,
         convertedGroups,
         convertedReports,
         convertedTransactions,
+        effectiveDefaultCurrency,
         hasConversionFailed,
         hasCustomFooterCurrency,
         isReportsSearch,
         isSearchTotalFresh,
-        loadedFiguresCurrency,
         metadataCount,
+        metadataCurrency,
         metadataTotal,
         selectedCurrency,
         selectedCurrencyConvertedTotal,

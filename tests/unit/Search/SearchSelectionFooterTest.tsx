@@ -131,21 +131,6 @@ describe('SearchSelectionFooter', () => {
         expect(mockCapturedFooterProps.current?.defaultCurrency).toBe(CONST.CURRENCY.EUR);
     });
 
-    it('labels the selected total with the currency its figures are denominated in, not the default', async () => {
-        // The payment currency changed after the snapshot loaded: the selected row's server-converted figure is still
-        // denominated in the old payment currency (INR), while the live default is now GBP.
-        mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY, 'INR', -100)};
-
-        // A partial selection (1 of 2), so the footer uses the client-side selected total.
-        render(<SearchSelectionFooter searchResults={buildSearchResults(undefined, 2)} />);
-        await waitForBatchedUpdates();
-
-        // The displayed total keeps its own denomination (INR) instead of borrowing the new default's symbol, while
-        // the Reset/default currency still follows the live payment currency.
-        expect(mockCapturedFooterProps.current?.currency).toBe('INR');
-        expect(mockCapturedFooterProps.current?.defaultCurrency).toBe(PAYMENT_CURRENCY);
-    });
-
     it('converts the figures to the default currency when Reset selects it explicitly', async () => {
         // Same stale-denomination scenario as above: the selected group's server-converted figure is still
         // denominated in the old payment currency (INR), while the live default is now GBP.
