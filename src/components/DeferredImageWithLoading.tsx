@@ -1,5 +1,3 @@
-import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
-
 import useRunAfterTransitions from '@hooks/useRunAfterTransitions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -9,6 +7,7 @@ import {View} from 'react-native';
 import type {ImageWithSizeLoadingProps} from './ImageWithLoading';
 
 import ImageWithLoading from './ImageWithLoading';
+import ScreenWrapperStatusContext from './ScreenWrapper/ScreenWrapperStatusContext';
 
 /**
  * Wrapper around ImageWithLoading that keeps the image out of the render passes happening during a screen's entry
