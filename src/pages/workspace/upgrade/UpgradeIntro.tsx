@@ -90,6 +90,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         'QBOSquare',
         'CertiniaSquare',
         'RilletSquare',
+        'DualEntrySquare',
         'AdvancedApprovalsSquare',
         'Unlock',
     ]);
