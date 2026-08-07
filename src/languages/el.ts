@@ -9353,6 +9353,10 @@ ${reportName}`,
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Παρακαλούμε επιλέξτε ημερομηνίες και για το Από και για το Έως',
         },
+        mergeReports: {
+            title: 'Merge reports',
+            description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
+        },
         goTo: ({destination}: {destination: string}) => `Μετάβαση στο ${destination}`,
         mySavedSearch: 'Οι δαπάνες μου',
         expensifyCardStatementPDF: {

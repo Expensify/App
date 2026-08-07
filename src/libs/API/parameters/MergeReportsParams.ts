@@ -1,6 +1,6 @@
 type MergeReportsParams = {
-    destinationReportID: string;
-    sourceReportIDs: string[];
+    reportID: string;
+    sourceReportIDList: string[];
     transactionIDToReportActionAndThreadData: string; // A map of transactionID to TransactionThreadInfo
 };
 

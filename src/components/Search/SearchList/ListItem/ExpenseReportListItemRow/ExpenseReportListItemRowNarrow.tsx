@@ -21,7 +21,7 @@ function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSe
     const {amount: amountText, date: formattedDate, expenseCountText} = getExpenseReportRowDisplayValues(item, {translate, convertToDisplayString});
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3, styles.cursorPointer]}>
             {!!canSelectMultiple && (
                 <Checkbox
                     onPress={onCheckboxPress}
