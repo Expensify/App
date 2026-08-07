@@ -1,9 +1,7 @@
 import {hasAuthToken} from '@libs/actions/Session';
 import continuePlaidOAuth from '@libs/continuePlaidOAuth';
-import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
-import {updatePendingConciergeDeepLinkForRoute} from '@libs/PendingConciergeDeepLink';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -12,8 +10,6 @@ import type {LinkingOptions} from '@react-navigation/native';
 
 import {findFocusedRoute} from '@react-navigation/native';
 import {Linking} from 'react-native';
-
-import prefixes from './prefixes';
 
 /**
  * Rules for dropping a deep link that would re-navigate to a screen the user is already on.
@@ -33,40 +29,8 @@ const skipRules: ReadonlyArray<{urlMatcher: RegExp; focusedScreens: readonly str
     },
 ];
 
-function isInternalAppURL(url: string) {
-    if (url.startsWith('/') || prefixes.some((prefix) => url.startsWith(prefix))) {
-        return true;
-    }
-
-    try {
-        return typeof window !== 'undefined' && new URL(url).origin === window.location.origin;
-    } catch {
-        return false;
-    }
-}
-
-function getNormalizedPathFromURL(url: string) {
-    let path = url;
-
-    try {
-        const parsedURL = new URL(url);
-        path = parsedURL.protocol === 'http:' || parsedURL.protocol === 'https:' || parsedURL.pathname ? parsedURL.pathname : parsedURL.host;
-    } catch {
-        // If URL parsing fails, treat the value as a route path.
-    }
-
-    return (normalizePath(path).replace(/\/$/, '') || '/').toLowerCase();
-}
-
-const subscribe: NonNullable<LinkingOptions<RootNavigatorParamList>['subscribe']> = (listener) => {
+const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener) => {
     const subscription = Linking.addEventListener('url', ({url}: {url: string}) => {
-        const isAuthenticated = hasAuthToken();
-        const normalizedPath = getNormalizedPathFromURL(url);
-        const route = normalizedPath === '/' ? '' : normalizedPath.slice(1);
-        if (!isAuthenticated && isInternalAppURL(url)) {
-            updatePendingConciergeDeepLinkForRoute(route, isAuthenticated);
-        }
-
         // Skip deep links to screens where the user is already focused.
         const skipRule = skipRules.find(({urlMatcher}) => urlMatcher.test(url));
         if (skipRule) {
@@ -91,7 +55,7 @@ const subscribe: NonNullable<LinkingOptions<RootNavigatorParamList>['subscribe']
         // which lives in AuthScreens and is not mounted while PublicScreens is showing. Dispatching it here
         // throws "NAVIGATE ... was not handled by any navigator". openReportFromDeepLink() already opens the
         // public room as an anonymous user and handles navigation, so defer to it instead. See #92672.
-        if (!isAuthenticated && url.includes(`/${ROUTES.REPORT}/`)) {
+        if (!hasAuthToken() && url.includes(`/${ROUTES.REPORT}/`)) {
             return;
         }
         listener(url);

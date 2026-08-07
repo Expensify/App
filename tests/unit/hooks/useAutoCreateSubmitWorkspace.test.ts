@@ -41,16 +41,13 @@ const MOCK_POLICY_ID = 'mock-policy-id';
 const MOCK_ADMINS_CHAT_REPORT_ID = 'mock-admins-chat-report-id';
 const MOCK_ONBOARDING_MESSAGE = {message: 'Welcome!', video: undefined, tasks: []};
 
-function setupDefaultMocks({conciergeReportID}: {conciergeReportID?: string} = {}) {
+function setupDefaultMocks() {
     mockUseOnyx.mockImplementation((key: string) => {
         if (key === 'session') {
             return [MOCK_SESSION];
         }
         if (key === 'betas') {
             return [[]];
-        }
-        if (key === 'conciergeReportID') {
-            return [conciergeReportID];
         }
         if (key.startsWith('policy_')) {
             return [false];
@@ -169,17 +166,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
         // Then the user should be navigated to the newly created Submit workspace
         // so they land on their workspace immediately after onboarding
         expect(navigateSpy).toHaveBeenCalledTimes(1);
-        expect(navigateSpy).toHaveBeenCalledWith(MOCK_POLICY_ID, expect.any(Boolean), undefined, true);
-    });
-
-    it('passes the Concierge report ID to submit workspace navigation when available', async () => {
-        setupDefaultMocks({conciergeReportID: 'concierge-report-id'});
-
-        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
-        await result.current('John', 'Doe');
-
-        expect(navigateSpy).toHaveBeenCalledTimes(1);
-        expect(navigateSpy).toHaveBeenCalledWith(MOCK_POLICY_ID, expect.any(Boolean), 'concierge-report-id', true);
+        expect(navigateSpy).toHaveBeenCalledWith(MOCK_POLICY_ID, expect.any(Boolean));
     });
 
     it('reuses the existing onboarding workspace instead of creating a new one', () => {
@@ -328,7 +315,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
         expect(createWorkspaceSpy).not.toHaveBeenCalled();
         expect(completeOnboardingSpy).not.toHaveBeenCalled();
         expect(navigateSpy).toHaveBeenCalledTimes(1);
-        expect(navigateSpy).toHaveBeenCalledWith(existingSubmitPolicy.id, expect.any(Boolean), undefined, false);
+        expect(navigateSpy).toHaveBeenCalledWith(existingSubmitPolicy.id, expect.any(Boolean));
     });
 
     it('keeps the Home fallback for onboarding callers when creation is skipped', async () => {
@@ -363,7 +350,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
         // behavior (landing on Home) so this fix stays scoped to already-onboarded callers
         expect(createWorkspaceSpy).not.toHaveBeenCalled();
         expect(navigateSpy).toHaveBeenCalledTimes(1);
-        expect(navigateSpy).toHaveBeenCalledWith(undefined, expect.any(Boolean), undefined, true);
+        expect(navigateSpy).toHaveBeenCalledWith(undefined, expect.any(Boolean));
     });
 
     it('uses the localCurrencyCode from personal details for workspace currency', () => {

@@ -17,7 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {navigateAfterOnboardingWithMicrotaskQueue, navigateToPendingDeepLinkAfterOnboarding} from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
@@ -139,7 +139,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         autoCreateTrackWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '', choice);
                         return;
                     }
-                    let didNavigateToPendingDeepLink = false;
                     completeOnboarding({
                         engagementChoice: choice,
                         onboardingMessage: onboardingMessages[choice],
@@ -152,14 +151,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         isSelfTourViewed,
                         conciergeChat,
                         adminsChatReport,
-                        onBeforeOnboardingModalUnmount: () => {
-                            didNavigateToPendingDeepLink = navigateToPendingDeepLinkAfterOnboarding(conciergeReportID);
-                        },
                     }).then(() => {
-                        if (didNavigateToPendingDeepLink) {
-                            return;
-                        }
-
                         navigateAfterOnboardingWithMicrotaskQueue(
                             shouldUseNarrowLayout,
                             isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),

@@ -5630,7 +5630,6 @@ type CompleteOnboardingProps = {
     adminsChatReport?: OnyxEntry<Report>;
     /** The self-DM report, looked up by ONYXKEYS.SELF_DM_REPORT_ID. */
     selfDMReport?: OnyxEntry<Report>;
-    onBeforeOnboardingModalUnmount?: () => void;
 };
 
 async function completeOnboarding({
@@ -5654,7 +5653,6 @@ async function completeOnboarding({
     conciergeChat,
     adminsChatReport,
     selfDMReport,
-    onBeforeOnboardingModalUnmount,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
         introSelected,
@@ -5703,7 +5701,6 @@ async function completeOnboarding({
         // during the wait. Must run before the API call so useLinking processes each step
         // pop before the optimistic data unmounts the modal.
         resetOnboardingStackToRoot();
-        onBeforeOnboardingModalUnmount?.();
 
         // We need to access the nvp_onboardingRHPVariant directly from the response to redirect the user to the correct page
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
@@ -5713,7 +5710,6 @@ async function completeOnboarding({
     // Pop onboarding nested stack just before the API write so useLinking removes browser
     // history entries for each step before the optimistic data unmounts the modal.
     resetOnboardingStackToRoot();
-    onBeforeOnboardingModalUnmount?.();
 
     // API calls are not chained in this case
     // eslint-disable-next-line rulesdir/no-multiple-api-calls

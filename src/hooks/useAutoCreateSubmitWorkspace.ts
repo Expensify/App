@@ -1,5 +1,5 @@
 import Log from '@libs/Log';
-import {navigateToPendingDeepLinkAfterOnboarding, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import {navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {canEditWorkspaceSettings, isGroupPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 
@@ -88,7 +88,6 @@ function useAutoCreateSubmitWorkspace() {
                       hasActiveAdminPolicies,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
-            let didNavigateToPendingDeepLink = false;
 
             if (shouldCompleteOnboarding) {
                 try {
@@ -102,9 +101,6 @@ function useAutoCreateSubmitWorkspace() {
                         introSelected,
                         isSelfTourViewed,
                         conciergeChat,
-                        onBeforeOnboardingModalUnmount: () => {
-                            didNavigateToPendingDeepLink = navigateToPendingDeepLinkAfterOnboarding(conciergeReportID);
-                        },
                     });
                 } catch (error) {
                     // Swallow onboarding completion failures so a network error doesn't block workspace
@@ -126,12 +122,7 @@ function useAutoCreateSubmitWorkspace() {
                 policyIDForNavigation = existingSubmitPolicyID;
             }
 
-            if (didNavigateToPendingDeepLink) {
-                return;
-            }
-
-            // Pass conciergeReportID so true onboarding completion can honor a pending /concierge intent after refresh.
-            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation, shouldUseNarrowLayout, conciergeReportID, shouldCompleteOnboarding);
+            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation, shouldUseNarrowLayout);
         },
         [
             currentUserEmail,
@@ -153,7 +144,6 @@ function useAutoCreateSubmitWorkspace() {
             hasActiveAdminPolicies,
             shouldUseNarrowLayout,
             conciergeChat,
-            conciergeReportID,
         ],
     );
 

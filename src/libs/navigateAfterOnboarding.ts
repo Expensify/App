@@ -13,8 +13,6 @@ import Onyx from 'react-native-onyx';
 import {setDisableDismissOnEscape} from './actions/Modal';
 import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
-import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
-import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingNavigationUtils';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {consumePendingConciergeDeepLink} from './PendingConciergeDeepLink';
@@ -27,33 +25,6 @@ Onyx.connectWithoutView({
         onboardingRHPVariant = value;
     },
 });
-
-type NavigateAfterOnboardingOptions = {
-    afterTransition?: () => void;
-    variantOverride?: OnboardingRHPVariant | null;
-};
-
-function getPendingDeepLinkRouteAfterOnboarding(conciergeReportID?: string): Route | undefined {
-    const shouldNavigateToConciergeFromDeepLink = consumePendingConciergeDeepLink();
-
-    if (shouldNavigateToConciergeFromDeepLink) {
-        // The report ID can still be unavailable immediately after signup refresh, so fall back to the Concierge route.
-        return conciergeReportID ? ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID) : (ROUTES.CONCIERGE as Route);
-    }
-
-    return undefined;
-}
-
-function navigateToPendingDeepLinkAfterOnboarding(conciergeReportID?: string) {
-    const pendingDeepLinkRoute = getPendingDeepLinkRouteAfterOnboarding(conciergeReportID);
-    if (!pendingDeepLinkRoute) {
-        return false;
-    }
-
-    setDisableDismissOnEscape(false);
-    Navigation.navigate(pendingDeepLinkRoute);
-    return true;
-}
 
 /**
  * Determines the report ID to navigate to after onboarding for control variant or ineligible users.
@@ -99,29 +70,22 @@ function navigateAfterOnboarding(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
-    options?: NavigateAfterOnboardingOptions,
+    variantOverride?: OnboardingRHPVariant | null,
 ) {
     setDisableDismissOnEscape(false);
-
-    // Resolve signup deep-link intents before onboarding variants, so /concierge wins unless the user explicitly replaced it with /.
-    if (navigateToPendingDeepLinkAfterOnboarding(conciergeReportID)) {
-        return;
-    }
 
     // On mobile (small screen), Track workspace admins with the trackExpensesWithConcierge variant
     // should navigate directly to the Concierge DM (which contains onboarding tasks).
     // This check is outside shouldOpenRHPVariant because that function returns false on native
     // (Side Panel doesn't exist on native), but we still need to navigate to Concierge on mobile.
-    const navigationOptions = options?.afterTransition ? {afterTransition: options.afterTransition} : undefined;
-    const variantOverride = options?.variantOverride;
     const variant = variantOverride ?? onboardingRHPVariant;
     if (isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), navigationOptions);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
         return;
     }
 
     if (shouldOpenRHPVariant(variantOverride)) {
-        handleRHPVariantNavigation(onboardingPolicyID, variantOverride, navigationOptions);
+        handleRHPVariantNavigation(onboardingPolicyID, variantOverride);
         return;
     }
 
@@ -135,10 +99,12 @@ function navigateAfterOnboarding(
         shouldPreventOpenAdminRoom,
     );
     if (reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), navigationOptions);
-    } else if (!isReportTopmostSplitNavigator()) {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+    } else if (consumePendingConciergeDeepLink()) {
+        Navigation.navigate(conciergeReportID ? ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID) : (ROUTES.CONCIERGE as Route));
+    } else {
         // Navigate to home to trigger guard evaluation
-        Navigation.navigate(ROUTES.HOME, navigationOptions);
+        Navigation.navigate(ROUTES.HOME);
     }
 }
 
@@ -150,16 +116,9 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
-    options?: NavigateAfterOnboardingOptions,
+    variantOverride?: OnboardingRHPVariant | null,
 ) {
-    dismissOnboardingModalBeforeExit();
-    const pendingDeepLinkRoute = getPendingDeepLinkRouteAfterOnboarding(conciergeReportID);
-    if (pendingDeepLinkRoute) {
-        setDisableDismissOnEscape(false);
-        Navigation.navigate(pendingDeepLinkRoute, options?.afterTransition ? {afterTransition: options.afterTransition} : undefined);
-        return;
-    }
-
+    Navigation.dismissModal();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         navigateAfterOnboarding(
             isSmallScreenWidth,
@@ -169,7 +128,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
             onboardingPolicyID,
             onboardingAdminsChatReportID,
             shouldPreventOpenAdminRoom,
-            options,
+            variantOverride,
         );
     });
 }
@@ -179,13 +138,8 @@ function navigateAfterOnboardingWithMicrotaskQueue(
  * navigate to Workspace > Categories with the side panel open so
  * the #admins room is visible in Concierge Anywhere.
  */
-function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNarrowLayout = false, conciergeReportID?: string, shouldHonorPendingDeepLink = true) {
+function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNarrowLayout = false) {
     setDisableDismissOnEscape(false);
-
-    // Submit workspace onboarding bypasses navigateAfterOnboarding(), so honor the same pending deep-link intent here.
-    if (shouldHonorPendingDeepLink && navigateToPendingDeepLinkAfterOnboarding(conciergeReportID)) {
-        return;
-    }
 
     if (!policyID) {
         Navigation.navigate(ROUTES.HOME);
@@ -201,18 +155,11 @@ function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNa
     SidePanelActions.openSidePanel(!shouldUseNarrowLayout);
 }
 
-function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, shouldUseNarrowLayout = false, conciergeReportID?: string, shouldHonorPendingDeepLink = true) {
-    dismissOnboardingModalBeforeExit();
-    const pendingDeepLinkRoute = shouldHonorPendingDeepLink ? getPendingDeepLinkRouteAfterOnboarding(conciergeReportID) : undefined;
-    if (shouldHonorPendingDeepLink && pendingDeepLinkRoute) {
-        setDisableDismissOnEscape(false);
-        Navigation.navigate(pendingDeepLinkRoute);
-        return;
-    }
-
+function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, shouldUseNarrowLayout = false) {
+    Navigation.dismissModal();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
-        navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout, conciergeReportID, shouldHonorPendingDeepLink);
+        navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout);
     });
 }
 
-export {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue, navigateToPendingDeepLinkAfterOnboarding, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue};
+export {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue};
