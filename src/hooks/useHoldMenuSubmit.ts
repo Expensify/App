@@ -44,9 +44,10 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, paymentType, methodI
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
-    const currentUserDetails = useCurrentUserPersonalDetails();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+    const currentUserDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -71,7 +72,6 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, paymentType, methodI
                 chatReport: currentChatReport,
                 iouReport: currentMoneyRequestReport,
                 introSelected,
-                iouReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
                 currentUserAccountID: currentUserDetails.accountID,
                 currentUserLogin: currentUserDetails.login ?? '',
                 full,
@@ -88,6 +88,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, paymentType, methodI
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,
                 isTrackIntentUser,
+                conciergeChat,
             });
         }
         onClose();
