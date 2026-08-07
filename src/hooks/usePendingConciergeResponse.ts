@@ -185,7 +185,7 @@ function usePendingConciergeResponse(reportID: string | undefined) {
             });
             dispatch('completed', snapshotTokens.at(-1) ?? snapshotHtml);
             // Don't reapply our older optimistic when the canonical is already there —
-            // it would clobber server-added markup (follow-up buttons, deep-link Pressables).
+            // Reapplying it would overwrite server-added follow-up buttons and deep-link Pressables.
             if (trickleInputsRef.current.persistedAction) {
                 discardPendingConciergeAction(reportID);
             } else {
@@ -222,7 +222,7 @@ function usePendingConciergeResponse(reportID: string | undefined) {
             intervalID = setInterval(() => {
                 const elapsed = Date.now() - trickleStart;
                 const progress = clampProgress(elapsed);
-                // progress ∈ [0,1] (clampProgress clamps) and lastIndex ≥ 99 (shouldTrickle gate),
+                // clampProgress keeps progress non-negative, and the shouldTrickle gate requires at least 100 reveal stages,
                 // so `progress * lastIndex` is always non-negative — only the upper bound needs clamping.
                 const stage = Math.min(lastIndex, Math.ceil(progress * lastIndex));
                 if (stage > lastStage) {
