@@ -1,7 +1,7 @@
 {
     "$schema": "./node_modules/oxlint/configuration_schema.json",
     "plugins": ["typescript", "import", "jsx-a11y", "unicorn", "react"],
-    "jsPlugins": [],
+    "jsPlugins": ["./oxlint-probe/expensify-rules.mjs", "./config/eslint/plugins/eslint-plugin-report-name-utils.mjs"],
     "categories": {
         "correctness": "off"
     },
@@ -1074,6 +1074,9 @@
         "XSLTProcessor": "readonly"
     },
     "settings": {
+        "react": {
+            "version": "19.2.3"
+        },
         "propWrapperFunctions": ["forbidExtraProps", "exact", "Object.freeze"],
         "progress": {
             "hide": false
@@ -1437,12 +1440,48 @@
             }
         ],
         "import/newline-after-import": "error",
-        "import/prefer-default-export": "error",
+        "import/prefer-default-export": "off",
         "import/no-absolute-path": "error",
         "import/no-webpack-loader-syntax": "error",
         "import/no-named-default": "error",
         "import/no-self-import": "error",
-        "import/no-cycle": "error",
+        "import/no-cycle": "off",
+        "rulesdir/context-provider-split-values": "error",
+        "rulesdir/no-acc-spread-in-reduce": "error",
+        "rulesdir/no-api-in-views": "error",
+        "rulesdir/no-api-side-effects-method": "error",
+        "rulesdir/no-beta-handler": "error",
+        "rulesdir/no-call-actions-from-actions": "error",
+        "rulesdir/no-deep-equal-in-memo": "error",
+        "rulesdir/no-default-id-values": "error",
+        "rulesdir/no-default-props": "error",
+        "rulesdir/no-direct-pre-insert-fullscreen-under-rhp": "error",
+        "rulesdir/no-inline-named-export": "error",
+        "rulesdir/no-multiple-api-calls": "error",
+        "rulesdir/no-multiple-onyx-in-file": "error",
+        "rulesdir/no-negated-variables": "error",
+        "rulesdir/no-onyx-connect": "error",
+        "rulesdir/no-set-or-map-return-in-useOnyx-selector": "error",
+        "rulesdir/no-thenable-actions-in-views": "error",
+        "rulesdir/no-unstable-hook-defaults": "error",
+        "rulesdir/no-use-state-initializer-functions": "error",
+        "rulesdir/no-useOnyx-dependencies-arg": "error",
+        "rulesdir/no-useless-compose": "error",
+        "rulesdir/prefer-actions-set-data": "error",
+        "rulesdir/prefer-early-return": "error",
+        "rulesdir/prefer-localization": "error",
+        "rulesdir/prefer-narrow-hook-dependencies": [
+            "error",
+            {
+                "stableObjectPatterns": ["[Ss]tyles?$", "^theme", "[Ii]cons?$"]
+            }
+        ],
+        "rulesdir/prefer-onyx-connect-in-libs": "error",
+        "rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth": "error",
+        "rulesdir/prefer-type-fest": "error",
+        "rulesdir/require-a11y-disable-justification": "error",
+        "rulesdir/require-live-region-for-status-updates": "error",
+        "rulesdir/use-double-negation-instead-of-boolean": "error",
         "no-array-constructor": "error",
         "no-bitwise": "error",
         "no-lonely-if": "error",
@@ -1629,14 +1668,8 @@
             ]
         ],
         "react/jsx-no-useless-fragment": "error",
-        "react/function-component-definition": [
-            "error",
-            {
-                "namedComponents": "function-declaration",
-                "unnamedComponents": "arrow-function"
-            }
-        ],
-        "react/jsx-no-constructed-context-values": "error",
+        "react/function-component-definition": "off",
+        "react/jsx-no-constructed-context-values": "off",
         "react/no-unstable-nested-components": "error",
         "react/no-namespace": "error",
         "react/style-prop-object": "error",
@@ -1765,19 +1798,30 @@
         "jsx-a11y/scope": "error",
         "jsx-a11y/tabindex-no-positive": "error",
         "react/rules-of-hooks": "error",
-        "react/exhaustive-deps": "error",
+        "react/exhaustive-deps": "off",
         "typescript/dot-notation": [
             "error",
             {
                 "allowKeywords": true
             }
-        ]
+        ],
+        "typescript/no-unsafe-assignment": "error",
+        "typescript/no-unsafe-argument": "error",
+        "typescript/no-unsafe-return": "error",
+        "typescript/no-unsafe-call": "error",
+        "typescript/no-unsafe-member-access": "error",
+        "react/jsx-key": "error"
     },
     "overrides": [
         {
             "files": ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
             "rules": {
-                "no-redeclare": "error",
+                "no-redeclare": [
+                    "error",
+                    {
+                        "builtinGlobals": false
+                    }
+                ],
                 "jsdoc/require-param": "error",
                 "jsdoc/require-param-type": "error",
                 "jsdoc/check-tag-names": "error"
@@ -1818,8 +1862,6 @@
                 "no-implied-eval": "off",
                 "no-unused-expressions": "error",
                 "no-unused-vars": "error",
-                "no-throw-literal": "off",
-                "prefer-promise-reject-errors": "off",
                 "typescript/await-thenable": "error",
                 "typescript/ban-ts-comment": "error",
                 "typescript/no-array-delete": "error",
@@ -1839,16 +1881,11 @@
                 "typescript/no-redundant-type-constituents": "error",
                 "typescript/no-require-imports": "error",
                 "typescript/no-this-alias": "error",
-                "typescript/no-unnecessary-type-assertion": "error",
+                "typescript/no-unnecessary-type-assertion": "off",
                 "typescript/no-unnecessary-type-constraint": "error",
-                "typescript/no-unsafe-argument": "error",
-                "typescript/no-unsafe-assignment": "error",
-                "typescript/no-unsafe-call": "error",
                 "typescript/no-unsafe-declaration-merging": "error",
                 "typescript/no-unsafe-enum-comparison": "error",
                 "typescript/no-unsafe-function-type": "error",
-                "typescript/no-unsafe-member-access": "error",
-                "typescript/no-unsafe-return": "error",
                 "typescript/no-unsafe-unary-minus": "error",
                 "typescript/no-wrapper-object-types": "error",
                 "typescript/only-throw-error": "error",
@@ -1926,7 +1963,12 @@
                 "no-dupe-class-members": "error",
                 "no-implied-eval": "off",
                 "no-new-func": "off",
-                "no-redeclare": "error",
+                "no-redeclare": [
+                    "error",
+                    {
+                        "builtinGlobals": false
+                    }
+                ],
                 "no-unused-expressions": [
                     "error",
                     {
@@ -1976,13 +2018,6 @@
                 "no-unsafe-negation": "off",
                 "valid-typeof": "off",
                 "import/no-named-as-default-member": "off",
-                "no-throw-literal": "error",
-                "prefer-promise-reject-errors": [
-                    "error",
-                    {
-                        "allowEmptyReject": true
-                    }
-                ],
                 "jsdoc/require-param": "off",
                 "max-params": [
                     "error",
@@ -2023,7 +2058,7 @@
                         "fixMixedExportsWithInlineTypeSpecifier": false
                     }
                 ],
-                "typescript/no-deprecated": "error",
+                "typescript/no-deprecated": "off",
                 "typescript/no-explicit-any": "error",
                 "typescript/no-non-null-assertion": "error",
                 "typescript/prefer-enum-initializers": "error",
@@ -2066,12 +2101,7 @@
                 "typescript/no-unnecessary-type-assertion": "off",
                 "typescript/no-unnecessary-type-conversion": "off",
                 "typescript/no-unnecessary-type-parameters": "off",
-                "typescript/no-unsafe-argument": "off",
-                "typescript/no-unsafe-assignment": "off",
-                "typescript/no-unsafe-call": "off",
                 "typescript/no-unsafe-enum-comparison": "off",
-                "typescript/no-unsafe-member-access": "off",
-                "typescript/no-unsafe-return": "off",
                 "typescript/no-unsafe-type-assertion": "off",
                 "typescript/no-unsafe-unary-minus": "off",
                 "typescript/no-useless-default-assignment": "off",
@@ -2192,7 +2222,6 @@
                     }
                 ],
                 "import/consistent-type-specifier-style": ["error", "prefer-top-level"],
-                "react/jsx-key": "error",
                 "react/forbid-component-props": [
                     "error",
                     {
@@ -2563,12 +2592,7 @@
         {
             "files": ["**/*.ts", "**/*.tsx"],
             "rules": {
-                "typescript/no-deprecated": [
-                    "error",
-                    {
-                        "allow": ["translateFn"]
-                    }
-                ]
+                "typescript/no-deprecated": "off"
             }
         },
         {
@@ -2897,6 +2921,196 @@
                         ]
                     }
                 ]
+            }
+        },
+        {
+            "files": ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
+            "rules": {
+                "rulesdir/no-default-props": "off"
+            }
+        },
+        {
+            "files": ["src/**/*.ts", "src/**/*.tsx"],
+            "rules": {
+                "rulesdir/no-object-keys-includes": "error"
+            }
+        },
+        {
+            "files": ["**/en.ts", "**/es.ts"],
+            "rules": {
+                "rulesdir/use-periods-for-error-messages": "error"
+            }
+        },
+        {
+            "files": ["src/libs/ReportNameUtils.ts"],
+            "rules": {
+                "report-name-utils/no-function-call-in-get-report-name": "error"
+            }
+        },
+        {
+            "files": ["src/libs/actions/OnyxDerived/configs/reportAttributes.ts"],
+            "rules": {
+                "no-restricted-imports": [
+                    "error",
+                    {
+                        "paths": [
+                            {
+                                "name": "@components/Button",
+                                "importNames": ["default"],
+                                "message": "The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed."
+                            },
+                            {
+                                "name": "@src/components/Button",
+                                "importNames": ["default"],
+                                "message": "The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed."
+                            },
+                            {
+                                "name": "react-native",
+                                "importNames": [
+                                    "useWindowDimensions",
+                                    "StatusBar",
+                                    "TouchableOpacity",
+                                    "TouchableWithoutFeedback",
+                                    "TouchableNativeFeedback",
+                                    "TouchableHighlight",
+                                    "Pressable",
+                                    "Text",
+                                    "ScrollView",
+                                    "ActivityIndicator",
+                                    "Animated",
+                                    "findNodeHandle",
+                                    "InteractionManager"
+                                ],
+                                "message": "\nFor 'useWindowDimensions', please use '@src/hooks/useWindowDimensions' instead.\nFor 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead.\nFor 'StatusBar', please use '@libs/StatusBar' instead.\nFor 'Text', please use '@components/Text' instead.\nFor 'ScrollView', please use '@components/ScrollView' instead.\nFor 'ActivityIndicator', please use '@components/ActivityIndicator' instead.\nFor 'Animated', please use 'Animated' from 'react-native-reanimated' instead.\nFor 'InteractionManager', please use afterTransition callbacks on Navigation/KeyboardUtils or other alternatives. See contributingGuides/INTERACTION_MANAGER.md."
+                            },
+                            {
+                                "name": "react-native-gesture-handler",
+                                "importNames": ["TouchableOpacity", "TouchableWithoutFeedback", "TouchableNativeFeedback", "TouchableHighlight"],
+                                "message": "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead."
+                            },
+                            {
+                                "name": "awesome-phonenumber",
+                                "importNames": ["parsePhoneNumber"],
+                                "message": "Please use '@libs/PhoneNumber' instead."
+                            },
+                            {
+                                "name": "react-native-safe-area-context",
+                                "importNames": ["useSafeAreaInsets", "SafeAreaConsumer", "SafeAreaInsetsContext"],
+                                "message": "Please use 'useSafeAreaInsets' from '@src/hooks/useSafeAreaInset' and/or 'SafeAreaConsumer' from '@components/SafeAreaConsumer' instead."
+                            },
+                            {
+                                "name": "react",
+                                "importNames": ["CSSProperties"],
+                                "message": "Please use 'ViewStyle', 'TextStyle', 'ImageStyle' from 'react-native' instead."
+                            },
+                            {
+                                "name": "react",
+                                "importNames": ["forwardRef"],
+                                "message": "forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs"
+                            },
+                            {
+                                "name": "@styles/index",
+                                "importNames": ["default", "defaultStyles"],
+                                "message": "Do not import styles directly. Please use the `useThemeStyles` hook instead."
+                            },
+                            {
+                                "name": "@styles/utils",
+                                "importNames": ["default", "DefaultStyleUtils"],
+                                "message": "Do not import StyleUtils directly. Please use the `useStyleUtils` hook instead."
+                            },
+                            {
+                                "name": "@styles/theme",
+                                "importNames": ["default", "defaultTheme"],
+                                "message": "Do not import themes directly. Please use the `useTheme` hook instead."
+                            },
+                            {
+                                "name": "@styles/theme/illustrations",
+                                "message": "Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead."
+                            },
+                            {
+                                "name": "date-fns/locale",
+                                "message": "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-GB'."
+                            },
+                            {
+                                "name": "expensify-common",
+                                "importNames": ["Device", "ExpensiMark"],
+                                "message": "\nFor 'Device', do not import it directly, it's known to make VSCode's IntelliSense crash. Please import the desired module from `expensify-common/Device` instead.\nFor 'ExpensiMark', please use '@libs/Parser' instead."
+                            },
+                            {
+                                "name": "lodash/memoize",
+                                "message": "Please use '@src/libs/memoize' instead."
+                            },
+                            {
+                                "name": "lodash",
+                                "importNames": ["memoize"],
+                                "message": "Please use '@src/libs/memoize' instead."
+                            },
+                            {
+                                "name": "lodash/isEqual",
+                                "message": "Please use 'deepEqual' from 'fast-equals' instead."
+                            },
+                            {
+                                "name": "lodash",
+                                "importNames": ["isEqual"],
+                                "message": "Please use 'deepEqual' from 'fast-equals' instead."
+                            },
+                            {
+                                "name": "react-native-onyx",
+                                "importNames": ["useOnyx"],
+                                "message": "Please use '@hooks/useOnyx' instead."
+                            },
+                            {
+                                "name": "@src/utils/findNodeHandle",
+                                "message": "Do not use 'findNodeHandle' as it is no longer supported on web."
+                            }
+                        ],
+                        "patterns": [
+                            {
+                                "group": ["**/assets/animations/**/*.json"],
+                                "message": "Do not import animations directly. Please use the '@components/LottieAnimations' import instead."
+                            },
+                            {
+                                "group": ["@styles/theme/themes/**"],
+                                "message": "Do not import themes directly. Please use the `useTheme` hook instead."
+                            },
+                            {
+                                "group": ["@styles/utils/**", "!@styles/utils/FontUtils", "!@styles/utils/types"],
+                                "message": "Do not import style util functions directly. Please use the `useStyleUtils` hook instead."
+                            },
+                            {
+                                "group": ["@styles/theme/illustrations/themes/**"],
+                                "message": "Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead."
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "files": ["src/languages/**", "src/CONST/index.ts", "src/NAICS.ts"],
+            "rules": {
+                "max-lines": "off"
+            }
+        },
+        {
+            "files": ["scripts/**", ".github/**"],
+            "rules": {
+                "typescript/no-unsafe-assignment": "off",
+                "typescript/no-unsafe-argument": "off",
+                "typescript/no-unsafe-return": "off",
+                "typescript/no-unsafe-call": "off",
+                "typescript/no-unsafe-member-access": "off",
+                "no-throw-literal": "off"
+            }
+        },
+        {
+            "files": ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
+            "rules": {
+                "typescript/no-unsafe-assignment": "off",
+                "typescript/no-unsafe-argument": "off",
+                "typescript/no-unsafe-return": "off",
+                "typescript/no-unsafe-call": "off",
+                "typescript/no-unsafe-member-access": "off"
             }
         }
     ]

@@ -51,6 +51,7 @@
     "lint": "./scripts/lint.sh",
     "lint-changed": "./scripts/lintChanged.sh",
     "lint-oxlint": "oxlint .",
+    "compare-oxlint": "./oxlint-probe/compareFullRepo.sh",
     "lint-watch": "onchange '**/*.{js,jsx,ts,tsx,mjs,cjs}' -- ./scripts/lint.sh {{changed}}",
     "eslint-report": "bun scripts/eslint-report.ts",
     "knip": "KNIP=true knip --include dependencies --exclude unlisted --no-exit-code --reporter compact",

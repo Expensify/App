@@ -1,19 +1,36 @@
-import * as noUseOnyxDependenciesArg from '../eslint-plugin-local-rules/no-useOnyx-dependencies-arg.js';
-// Feasibility probe: expose Expensify's rulesdir-loaded ESLint rules to oxlint
-// via the JS Plugins API (alpha). Wraps two representative rules:
-// - eslint-config-expensify/eslint-plugin-expensify/no-onyx-connect (shipped in node_modules)
-// - eslint-plugin-local-rules/no-useOnyx-dependencies-arg (in-repo)
-import * as noOnyxConnect from '../node_modules/eslint-config-expensify/eslint-plugin-expensify/no-onyx-connect.js';
+// Exposes Expensify's rulesdir-loaded ESLint rules to oxlint via the JS Plugins
+// API (alpha). Enumerates every rule module from the two rule directories used
+// by the ESLint config (eslint-plugin-rulesdir points at the same paths), so
+// rule IDs match ESLint's `rulesdir/<name>` exactly.
+import fs from 'node:fs';
+import {createRequire} from 'node:module';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+const require = createRequire(import.meta.url);
+const probeDir = path.dirname(fileURLToPath(import.meta.url));
+
+const RULE_DIRS = [path.resolve(probeDir, '../node_modules/eslint-config-expensify/eslint-plugin-expensify'), path.resolve(probeDir, '../eslint-plugin-local-rules')];
+
+// Helper modules living next to the rules that are not rules themselves
+const HELPER_FILES = new Set(['CONST.js']);
+
+const rules = {};
+for (const dir of RULE_DIRS) {
+    for (const file of fs.readdirSync(dir)) {
+        if (!file.endsWith('.js') || HELPER_FILES.has(file)) {
+            continue;
+        }
+        rules[file.replace(/\.js$/, '')] = require(path.join(dir, file));
+    }
+}
 
 const plugin = {
     meta: {
-        name: 'expensify',
+        name: 'rulesdir',
         version: '0.0.1',
     },
-    rules: {
-        'no-onyx-connect': noOnyxConnect,
-        'no-useOnyx-dependencies-arg': noUseOnyxDependenciesArg,
-    },
+    rules,
 };
 
 export default plugin;

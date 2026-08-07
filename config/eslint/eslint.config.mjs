@@ -721,6 +721,8 @@ const config = defineConfig([
     globalIgnores([
         '!**/.storybook',
         '!**/.github',
+        // Oxlint migration investigation artifacts (see OXLINT_MIGRATION_INVESTIGATION.md)
+        'oxlint-probe/**',
         '.github/actions/**/index.js',
         '**/*.config.js',
         '**/*.config.mjs',
