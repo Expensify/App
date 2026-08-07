@@ -494,6 +494,7 @@ const translations: TranslationDeepObject<typeof en> = {
         tryAgain: 'Riprova',
         tagGLCode: 'Tag codice GL',
         off: 'Disattivato',
+        commuter: 'pendolare',
         noResultsFoundSubtitle: 'Nessun risultato. Prova a modificare i filtri o la ricerca',
         unableToDisplayChart: 'Impossibile visualizzare il grafico',
         webGLNotSupported: 'Il tuo browser non supporta WebGL. Abilitalo oppure passa a un altro browser.',
@@ -8599,20 +8600,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `ha aggiunto "${prohibitedExpense}" alle spese vietate`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `ha rimosso "${prohibitedExpense}" dalle spese vietate`,
         commuterExclusions: {
-            changedToFixedDistance: 'ha modificato l’esclusione dei tragitti casa-lavoro in una distanza fissa per rimborso',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'miglio' : 'miglia';
-                } else {
-                    unitLabel = isSingular ? 'chilometro' : 'chilometri';
-                }
-                return `imposta un'esclusione di distanza fissa di ${distance} ${unitLabel} per richiesta`;
-            },
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `ha modificato l’esclusione a distanza fissa a ${newDistance} ${unit} per richiesta (in precedenza ${oldDistance} ${unit})`,
-            disabled: 'esclusione delle tratte casa-lavoro per le tariffe a distanza disattivata',
+            changedToFixedDistance: 'ha modificato "escludi tragitti casa-lavoro" in "distanza fissa per richiesta"',
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `imposta un'esclusione fissa di distanza di ${formattedDistance} per richiesta`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `ha modificato l’esclusione a distanza fissa a ${formattedNewDistance} per richiesta (in precedenza ${formattedOldDistance})`,
+            disabled: 'esclusione tragitti casa-lavoro per tariffe chilometriche disattivata',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `ha cambiato il metodo di rimborso in "${newReimbursementChoice}" (in precedenza "${oldReimbursementChoice}")`,
@@ -9479,6 +9471,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
         error: {
             selectSuggestedAddress: 'Seleziona un indirizzo suggerito o usa la posizione attuale',
+            mapOrGpsDistanceRequired: {
+                title: 'Distanza da mappa o GPS richiesta',
+                description: 'Questo spazio di lavoro richiede spese chilometriche basate su mappa o tracciate tramite GPS.',
+            },
         },
         odometer: {
             startReading: 'Inizia a leggere',
@@ -9494,6 +9490,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             cameraAccessRequired: 'Per scattare foto è necessario l’accesso alla fotocamera.',
             snapPhotoStart: "<muted-text-label>Scatta una foto del contachilometri all'<strong>inizio</strong> del viaggio.</muted-text-label>",
             snapPhotoEnd: '<muted-text-label>Scatta una foto del contachilometri alla <strong>fine</strong> del viaggio.</muted-text-label>',
+        },
+        commuterExclusion: {
+            original: ({formattedDistance}: {formattedDistance: string}) => `Originale: ${formattedDistance}`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Rimossi ${distance} spostamenti pendolari in ${unit}`,
+            systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
+                `Rimossi ${distance} ${unit} per il pendolarismo in base a ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">impostazioni distanza spazio di lavoro</a>` : 'impostazioni distanza spazio di lavoro'}.`,
         },
     },
     gps: {

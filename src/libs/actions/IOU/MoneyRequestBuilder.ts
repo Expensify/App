@@ -43,6 +43,7 @@ import {
     buildOptimisticTransaction,
     getAmount,
     getCurrency,
+    hasAppliedCommuterExclusion,
     hasSubmissionBlockingViolationInReport,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
@@ -1276,6 +1277,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         amount,
         distance,
         modifiedAmount,
+        modifiedMerchant,
         comment = '',
         currency,
         source = '',
@@ -1376,23 +1378,27 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     let didUpdateOptimisticTotal = false;
 
+    const shouldUseCommuterModifiedValues = hasAppliedCommuterExclusion(existingTransaction);
+    const reportAmount = shouldUseCommuterModifiedValues && modifiedAmount !== undefined ? modifiedAmount : amount;
+    const reportMerchant = shouldUseCommuterModifiedValues ? (modifiedMerchant ?? merchant) : merchant;
+
     if (!iouReport || shouldCreateNewMoneyRequestReport) {
-        const nonReimbursableTotal = reimbursable ? 0 : amount;
-        const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticReportID, created, amount, currency, merchant);
+        const nonReimbursableTotal = reimbursable ? 0 : reportAmount;
+        const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticReportID, created, reportAmount, currency, reportMerchant);
 
         iouReport = isPolicyExpenseChat
             ? buildOptimisticExpenseReport({
                   chatReportID: chatReport.reportID,
                   policyID: chatReport.policyID,
                   payeeAccountID,
-                  total: amount,
+                  total: reportAmount,
                   currency,
                   nonReimbursableTotal,
                   optimisticIOUReportID: optimisticReportID,
                   reportTransactions,
                   betas,
               })
-            : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, undefined, undefined, optimisticReportID);
+            : buildOptimisticIOUReport(payeeAccountID, payerAccountID, reportAmount, chatReport.reportID, currency, undefined, undefined, optimisticReportID);
     } else if (isPolicyExpenseChat) {
         // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
         // not the iouReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
@@ -1406,18 +1412,18 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 if (newReportTotal) {
                     iouReport.total = newReportTotal;
                 } else {
-                    iouReport.total -= amount;
+                    iouReport.total -= reportAmount;
                 }
 
                 if (!reimbursable) {
                     if (newNonReimbursableTotal !== undefined) {
                         iouReport.nonReimbursableTotal = newNonReimbursableTotal;
                     } else {
-                        iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - amount;
+                        iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - reportAmount;
                     }
                 } else {
                     // Reimbursable transaction: reflect the change in the freshly tracked reimbursableTotal too.
-                    iouReport.reimbursableTotal = previousReimbursableTotal - amount;
+                    iouReport.reimbursableTotal = previousReimbursableTotal - reportAmount;
                 }
                 didUpdateOptimisticTotal = true;
             }
@@ -1426,15 +1432,15 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 if (newReportTotal) {
                     iouReport.unheldTotal = newReportTotal;
                 } else {
-                    iouReport.unheldTotal -= amount;
+                    iouReport.unheldTotal -= reportAmount;
                 }
                 if (reimbursable) {
-                    iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - amount;
+                    iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - reportAmount;
                 }
             }
         }
     } else {
-        iouReport = updateIOUOwnerAndTotal(iouReport, payeeAccountID, amount, currency);
+        iouReport = updateIOUOwnerAndTotal(iouReport, payeeAccountID, reportAmount, currency);
     }
 
     // For selfDM split, use UNREPORTED_REPORT_ID for the transaction
@@ -1454,6 +1460,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             amount: shouldNegateAmount ? -amount : amount,
             distance,
             ...(modifiedAmount !== undefined && {modifiedAmount: shouldNegateAmount ? -modifiedAmount : modifiedAmount}),
+            ...(modifiedMerchant !== undefined && {modifiedMerchant}),
             currency,
             reportID: transactionReportID,
             comment,
@@ -1569,7 +1576,10 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     // For selfDM split: use TRACK type, split amount, and isPersonalTrackingExpense to match BE response
     // (linkedTrackedExpenseReportAction is undefined for new splits - we search by new transaction ID which doesn't exist yet)
     const iouActionType = isSelfDMSplit ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE;
-    const iouActionAmount = isSplitExpense && modifiedAmount !== undefined ? Math.abs(modifiedAmount) : amount;
+    let iouActionAmount = shouldUseCommuterModifiedValues ? Math.abs(reportAmount) : amount;
+    if (isSplitExpense && modifiedAmount !== undefined) {
+        iouActionAmount = Math.abs(modifiedAmount);
+    }
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
         buildOptimisticMoneyRequestEntities({
             iouReport,

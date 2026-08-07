@@ -494,6 +494,7 @@ const translations: TranslationDeepObject<typeof en> = {
         tryAgain: 'Réessayer',
         tagGLCode: 'Taguer le code GL',
         off: 'Désactivé',
+        commuter: 'navetteur',
         noResultsFoundSubtitle: 'Aucun résultat. Veuillez essayer de modifier vos filtres ou votre requête de recherche',
         unableToDisplayChart: 'Impossible d’afficher le graphique',
         webGLNotSupported: 'Votre navigateur ne prend pas en charge WebGL. Veuillez l’activer ou changer de navigateur.',
@@ -8663,19 +8664,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a supprimé « ${prohibitedExpense} » des dépenses interdites`,
         commuterExclusions: {
             changedToFixedDistance: 'a modifié l’exclusion des trajets domicile-travail en une distance fixe par demande',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'mile' : 'miles';
-                } else {
-                    unitLabel = isSingular ? 'kilomètre' : 'kilomètres';
-                }
-                return `définir l’exclusion de distance fixe à ${distance} ${unitLabel} par demande`;
-            },
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `a modifié l’exclusion de distance fixe à ${newDistance} ${unit} par demande (auparavant ${oldDistance} ${unit})`,
-            disabled: 'désactivé exclure les trajets domicile-travail pour les taux de distance',
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `définir l’exclusion de distance fixe à ${formattedDistance} par demande`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `a modifié l'exclusion de distance fixe à ${formattedNewDistance} par demande (auparavant ${formattedOldDistance})`,
+            disabled: 'exclure les trajets domicile-travail pour les taux de distance désactivé',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `a modifié le mode de remboursement en « ${newReimbursementChoice} » (auparavant « ${oldReimbursementChoice} »)`,
@@ -9540,6 +9532,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         error: {
             selectSuggestedAddress: 'Veuillez sélectionner une adresse suggérée ou utiliser la position actuelle',
+            mapOrGpsDistanceRequired: {
+                title: 'Distance de carte ou GPS requise',
+                description: 'Cet espace de travail requiert des dépenses kilométriques calculées soit sur la base d’une carte, soit suivies par GPS.',
+            },
         },
         odometer: {
             startReading: 'Commencer la lecture',
@@ -9556,6 +9552,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             cameraAccessRequired: "L'accès à l'appareil photo est requis pour prendre des photos.",
             snapPhotoStart: '<muted-text-label>Prenez une photo de votre compteur kilométrique au <strong>début</strong> de votre trajet.</muted-text-label>',
             snapPhotoEnd: '<muted-text-label>Prenez une photo de votre compteur kilométrique à la <strong>fin</strong> de votre trajet.</muted-text-label>',
+        },
+        commuterExclusion: {
+            original: ({formattedDistance}: {formattedDistance: string}) => `Original : ${formattedDistance}`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} unité(s) de trajet domicile-travail ${unit} supprimée(s)`,
+            systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
+                `${distance} ${unit} de trajet domicile-travail supprimé(s) en fonction de ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">paramètres de distance de l’espace de travail</a>` : 'paramètres de distance de l’espace de travail'}.`,
         },
     },
     gps: {

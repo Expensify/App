@@ -470,6 +470,7 @@ describe('TransactionUtils', () => {
                 },
             };
             const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
                 comment: {
                     customUnit: {
                         distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
@@ -510,6 +511,134 @@ describe('TransactionUtils', () => {
                 amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             });
+        });
+
+        it('recalculates commuter exclusion data when distance is changed', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 3,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            default: {
+                                customUnitRateID: '1',
+                                currency: CONST.CURRENCY.USD,
+                                rate: 1,
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                        commuterExclusion: 3,
+                        reimbursableDistance: 7,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+            });
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {distance: 20},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(20);
+            expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBe(3);
+            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBe(17);
+            expect(updatedTransaction.modifiedAmount).toBe(17);
+            expect(updatedTransaction.modifiedMerchant).toContain('17');
+            expect(updatedTransaction.modifiedMerchant).not.toContain('20');
+        });
+
+        it('converts commuter exclusion data when the distance rate unit is changed', () => {
+            // Given a policy with a 3 mile fixed distance commuter exclusion and a kilometer rate
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 3,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            // getMileageRates keys its result by the rates map key, so it must match customUnitRateID
+                            ID1: {
+                                customUnitRateID: '1',
+                                currency: CONST.CURRENCY.EUR,
+                                rate: 10,
+                            },
+                            ID2: {
+                                customUnitRateID: '2',
+                                currency: CONST.CURRENCY.EUR,
+                                rate: 30,
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                        },
+                    },
+                },
+            };
+
+            // And a 10 mile expense whose reimbursable distance is 7 miles after the exclusion
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'ID1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                        commuterExclusion: 3,
+                        reimbursableDistance: 7,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+            });
+
+            // When the rate is changed
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {customUnitRateID: 'ID2'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            // Then the original distance and commuter exclusion are converted to kilometers
+            expect(updatedTransaction.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(16.09);
+            expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBeCloseTo(4.83);
+            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBeCloseTo(11.26);
+
+            // And the amount and merchant use the converted reimbursable distance at the kilometer rate
+            expect(updatedTransaction.modifiedAmount).toBe(338);
+            expect(updatedTransaction.modifiedMerchant).toBe('11.26 km @ EUR 0.30 / km');
         });
 
         it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
