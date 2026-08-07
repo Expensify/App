@@ -355,7 +355,7 @@ describe('OnboardingPurpose Page', () => {
         const introSelectedValue = {
             choice: CONST.ONBOARDING_CHOICES.EMPLOYER,
             inviteType: CONST.ONBOARDING_INVITE_TYPES.CHAT,
-            companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
         };
 
         await act(async () => {
