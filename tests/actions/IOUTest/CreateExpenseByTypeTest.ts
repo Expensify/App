@@ -30,6 +30,7 @@ jest.mock('@libs/actions/IOU/Split', () => ({
 
 jest.mock('@libs/actions/IOU/PerDiem', () => ({
     submitPerDiemExpense: jest.fn(),
+    getPerDiemExpensePolicyID: jest.fn(),
 }));
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
