@@ -179,7 +179,7 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
                                 accessibilityLabel={translate('common.continue')}
                                 style={[styles.p9, styles.pt5]}
                                 onPress={capturePhoto}
-                                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
+                                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_CAMERA_PERMISSION_BUTTON}
                             >
                                 <Button.Text>{translate('common.continue')}</Button.Text>
                             </Button>
