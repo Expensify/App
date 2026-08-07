@@ -1,9 +1,10 @@
 import {waitFor} from '@testing-library/react-native';
 
 import * as API from '@libs/API';
-import {READ_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
 
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import '@libs/Navigation/AppNavigator/AuthScreens';
@@ -24,6 +25,10 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+
+function mockRead() {
+    return jest.spyOn(API, 'read').mockImplementation(() => {});
+}
 
 OnyxUpdateManager();
 
@@ -112,8 +117,8 @@ describe('actions/App', () => {
         expect(triggerFullReconnect).toHaveBeenCalledTimes(0);
     });
 
-    test('a reconnect the queue drops as a duplicate sends no SearchForTodos', async () => {
-        const read = jest.spyOn(API, 'read').mockImplementation(() => {});
+    test('two reconnects the queue merges into one send one SearchForTodos', async () => {
+        const read = mockRead();
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
 
         // Offline holds the queue, so the first reconnect is still in it when the second arrives
@@ -121,16 +126,33 @@ describe('actions/App', () => {
 
         App.reconnectApp();
         await waitForBatchedUpdates();
-
-        expect(PersistedRequests.getAll()).toHaveLength(1);
-        expect(read).toHaveBeenCalledTimes(1);
-        expect(read).toHaveBeenCalledWith(READ_COMMANDS.SEARCH_FOR_TODOS, null);
-
         App.reconnectApp();
         await waitForBatchedUpdates();
 
+        // The queue kept one ReconnectApp and nothing has reached the server, so no read went out
         expect(PersistedRequests.getAll()).toHaveLength(1);
+        expect(read).not.toHaveBeenCalled();
+
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+        SequentialQueue.flush();
+        await waitForBatchedUpdates();
+
+        // The one response that came back sent the one read
         expect(read).toHaveBeenCalledTimes(1);
+        expect(read).toHaveBeenCalledWith(READ_COMMANDS.SEARCH_FOR_TODOS, null);
+    });
+
+    test('a ReconnectApp restored from a previous session sends SearchForTodos when it drains', async () => {
+        const read = mockRead();
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
+
+        // No caller is waiting on this one — it was persisted by a session that is gone
+        await PersistedRequests.save({command: WRITE_COMMANDS.RECONNECT_APP, data: {}} as Request<never>);
+        SequentialQueue.flush();
+        await waitForBatchedUpdates();
+
+        expect(read).toHaveBeenCalledTimes(1);
+        expect(read).toHaveBeenCalledWith(READ_COMMANDS.SEARCH_FOR_TODOS, null);
     });
 
     test('clearOnyxAndResetApp preserves rolled-back ongoing requests across reset', async () => {

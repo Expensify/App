@@ -445,8 +445,6 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
     });
 
-    loadPostDataForOpenOrReconnect();
-
     return openAppPromise;
 }
 
@@ -501,17 +499,13 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
         });
 
-        return reconnectAppPromise.then((conflictActionType) => {
-            if (conflictActionType === 'noAction') {
-                return;
-            }
-            loadPostDataForOpenOrReconnect();
-        });
+        return reconnectAppPromise;
     });
 }
 
 /**
- * Fires asynchronous requests to load more data that is required by the App but not returned in OpenApp/ReconnectApp
+ * Fires asynchronous requests to load more data that is required by the App but not returned in OpenApp/ReconnectApp.
+ * Called from the LoadPostDataForOpenOrReconnect middleware, once per OpenApp/ReconnectApp response.
  */
 function loadPostDataForOpenOrReconnect() {
     API.read(READ_COMMANDS.SEARCH_FOR_TODOS, null);
@@ -977,6 +971,7 @@ export {
     openApp,
     setAppLoading,
     reconnectApp,
+    loadPostDataForOpenOrReconnect,
     triggerFullReconnect,
     handleRestrictedEvent,
     getMissingOnyxUpdates,

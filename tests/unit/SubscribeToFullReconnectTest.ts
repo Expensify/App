@@ -113,7 +113,7 @@ describe('subscribeToFullReconnect', () => {
             events.push({type: 'request', value: String(command)});
             capturedCommands.push(String(command));
             capturedOnyxData.push(onyxData ?? {});
-            return Promise.resolve('push' as const);
+            return Promise.resolve();
         });
         mockOpenAppWriteCommand.mockImplementation((command, params, onyxData) => {
             events.push({type: 'request', value: String(command)});

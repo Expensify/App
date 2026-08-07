@@ -5,6 +5,7 @@ import {
     FailureTracking,
     handleDeletedAccount,
     HandleUnusedOptimisticID,
+    LoadPostDataForOpenOrReconnect,
     LoadTest,
     Logging,
     Pagination,
@@ -25,7 +26,7 @@ import {getAll, getOngoingRequest, getLength as getPersistedRequestsLength} from
 
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {AnyRequest, ConflictData, OnyxData, PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
+import type {AnyRequest, OnyxData, PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 
 import type {OnyxKey} from 'react-native-onyx';
@@ -69,6 +70,9 @@ addMiddleware(SentryServerTiming);
 
 // RecordFullReconnectTime - Records the full-reconnect time into an OpenApp/full-ReconnectApp response. Must run before SaveResponseInOnyx applies the response.
 addMiddleware(RecordFullReconnectTime);
+
+// LoadPostDataForOpenOrReconnect - Sends the reads that OpenApp/ReconnectApp does not return, once per response that reaches the server.
+addMiddleware(LoadPostDataForOpenOrReconnect);
 
 // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This must be the last middleware that applies Onyx data
 // (middlewares after it, like FraudMonitoring, must not write Onyx), because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
@@ -219,25 +223,19 @@ function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand, TKey
 /**
  * Writes a ReconnectApp through the coverage-based reconnect resolver. See the Conflict Resolution section
  * of contributingGuides/SEQUENTIAL_QUEUE.md. getOngoingRequest() is read inside the closure so both
- * evaluation passes see the same in-flight request. Resolves with the outcome of the second pass, in
- * SequentialQueue.push, which is the one that decides whether this reconnect reaches the wire.
+ * evaluation passes see the same in-flight request.
  */
 function writeWithNoDuplicatesReconnectConflictAction<TCommand extends WriteCommand, TKey extends OnyxKey>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData<TKey> = {},
-): Promise<ConflictData['type']> {
+): Promise<void | Response<TKey>> {
     const incomingRequest: AnyRequest = {command, data: {updateIDFrom: readUpdateIDFrom(apiCommandParameters)}};
-    let conflictActionType: ConflictData['type'] = 'push';
     const conflictResolver = {
-        checkAndFixConflictingRequest: (persistedRequests: AnyRequest[]) => {
-            const resolution = resolveReconnectDuplicationConflictAction(persistedRequests, getOngoingRequest(), incomingRequest);
-            conflictActionType = resolution.conflictAction.type;
-            return resolution;
-        },
+        checkAndFixConflictingRequest: (persistedRequests: AnyRequest[]) => resolveReconnectDuplicationConflictAction(persistedRequests, getOngoingRequest(), incomingRequest),
     };
 
-    return write(command, apiCommandParameters, onyxData, conflictResolver).then(() => conflictActionType);
+    return write(command, apiCommandParameters, onyxData, conflictResolver);
 }
 
 /**
