@@ -206,6 +206,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         if (!canUseTouchScreen()) {
             selectionListRef.current?.focusTextInput();
         }
+
         // The row item is a fully-built option coming from the search selector, so it is safe to treat it as an OptionData.
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         toggleSelection(option as OptionData);

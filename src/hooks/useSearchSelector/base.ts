@@ -230,25 +230,28 @@ function useSearchSelectorBase({
             return defaultOptions;
         }
 
-        // Imported contacts get a generated accountID, so drop those whose login already matches a real Onyx account to avoid
-        // duplicate rows that would be treated as a new invite. Optimistic entries are skipped as getValidOptions filters them out.
-        const seenLogins = new Set<string>();
+        // Imported contacts get a generated accountID, so one sharing a login with a real Onyx user would show a duplicate
+        // row and be treated as a new invite. Track already-represented logins and drop contacts whose login is present.
+        const existingLogins = new Set<string>();
+
+        // Seed with real personal details only; optimistic ones are filtered out by getValidOptions and mustn't suppress a contact.
         for (const option of defaultOptions.personalDetails) {
             if (option.isOptimisticPersonalDetail) {
                 continue;
             }
             const login = addSMSDomainIfPhoneNumber(option.login ?? '').toLowerCase();
             if (login) {
-                seenLogins.add(login);
+                existingLogins.add(login);
             }
         }
 
+        // Keep a contact only if its login is new, deduping against both the seeded accounts and earlier contacts.
         const dedupedContactOptions = contactOptions.filter((contact) => {
             const login = addSMSDomainIfPhoneNumber(contact.login ?? '').toLowerCase();
-            if (!login || seenLogins.has(login)) {
+            if (!login || existingLogins.has(login)) {
                 return false;
             }
-            seenLogins.add(login);
+            existingLogins.add(login);
             return true;
         });
 

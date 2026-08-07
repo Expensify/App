@@ -558,6 +558,7 @@ describe('useSearchSelector phone contact de-duplication', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         mockFilteredPersonalDetails.current = [];
+
         // getValidOptions is mocked, so the contact de-duplication under test only depends on the inputs passed to the hook.
         mockGetValidOptions.mockReturnValue({options: EMPTY_OPTIONS, hasMore: false});
         await act(async () => {
@@ -591,10 +592,12 @@ describe('useSearchSelector phone contact de-duplication', () => {
         await waitForBatchedUpdatesWithAct();
 
         const personalDetails = getPersonalDetailsPassedToGetValidOptions();
+
         // Alice must appear exactly once, and with the real Onyx accountID rather than the generated contact one.
         const aliceEntries = personalDetails.filter((option) => option.login === 'alice@expensify.com');
         expect(aliceEntries).toHaveLength(1);
         expect(aliceEntries.at(0)?.accountID).toBe(100);
+
         // The contact that isn't already known must still be added.
         expect(personalDetails.map((option) => option.login)).toContain('carol@gmail.com');
     });
