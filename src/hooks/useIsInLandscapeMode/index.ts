@@ -1,8 +1,9 @@
+import isInLandscapeMode from '@libs/isInLandscapeMode';
 /**
- * We only want to change UI according to the landscape mode on native platforms.
+ * Returns whether device that uses mWeb is currently in landscape orientation.
  */
 function useIsInLandscapeMode(): boolean {
-    return false;
+    return isInLandscapeMode();
 }
 
 export default useIsInLandscapeMode;
