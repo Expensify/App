@@ -1539,6 +1539,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'La fecha de finalización no puede ser la misma que la fecha de inicio',
             manySplitsProvided: `El número máximo de divisiones permitidas es ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `El rango de fechas no puede exceder los ${CONST.IOU.SPLITS_LIMIT} días.`,
+            changeReportMaxTransactionsExceeded: `El número máximo de transacciones por informe es ${CONST.REPORT.MAX_TRANSACTIONS}, y este informe lo supera. Por favor, mueve algunas transacciones a otro informe.`,
         },
         dismissReceiptError: 'Descartar error',
         dismissReceiptErrorConfirmation: '¡Atención! Descartar este error eliminará completamente tu recibo cargado. ¿Estás seguro?',

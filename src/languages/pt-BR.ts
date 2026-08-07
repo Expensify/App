@@ -1530,6 +1530,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'A data de término não pode ser igual à data de início',
             manySplitsProvided: `O número máximo de divisões permitido é ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `O intervalo de datas não pode exceder ${CONST.IOU.SPLITS_LIMIT} dias.`,
+            changeReportMaxTransactionsExceeded: `O número máximo de transações por relatório é ${CONST.REPORT.MAX_TRANSACTIONS}, e este relatório excede esse limite. Mova algumas transações para outro relatório.`,
             unableToSubmitReport: 'Não foi possível enviar o relatório',
             allTransactionsPendingDescription: 'Você não pode enviar este relatório porque todas as transações estão pendentes. Elas podem levar alguns dias para serem lançadas.',
             stitchOdometerImagesFailed: 'Falha ao combinar imagens do hodômetro. Tente novamente mais tarde.',

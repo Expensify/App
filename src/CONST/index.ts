@@ -1471,6 +1471,8 @@ const CONST = {
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
+        // The backend rejects moving an expense into a report that already holds this many transactions.
+        MAX_TRANSACTIONS: 500,
         UNREPORTED_REPORT_ID: '0',
         TRASH_REPORT_ID: '-1',
         SPLIT_REPORT_ID: '-2',

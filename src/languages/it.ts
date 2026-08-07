@@ -1536,6 +1536,7 @@ const translations: TranslationDeepObject<typeof en> = {
             unableToSubmitReport: 'Impossibile inviare il report',
             allTransactionsPendingDescription: 'Non puoi inviare questo report perché tutte le transazioni sono in sospeso. Potrebbero volerci alcuni giorni prima che vengano registrate.',
             dateRangeExceedsMaxDays: `L’intervallo di date non può superare ${CONST.IOU.SPLITS_LIMIT} giorni.`,
+            changeReportMaxTransactionsExceeded: `Il numero massimo di transazioni per report è ${CONST.REPORT.MAX_TRANSACTIONS} e questo report lo supera. Sposta alcune transazioni in un altro report.`,
             stitchOdometerImagesFailed: 'Impossibile combinare le immagini del contachilometri. Riprova più tardi.',
             failedToSaveOdometerDraft: 'Impossibile salvare la tua bozza del contachilometri. Riprova.',
         },
