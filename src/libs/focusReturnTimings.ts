@@ -10,7 +10,7 @@ const TRIGGER_MAP_MAX = 64;
 /** A click long before a timer-triggered nav must not be captured as that nav's trigger (web mouse modality). */
 const MOUSE_TRIGGER_TTL_MS = 3_000;
 
-/** Enter/Space keydown latch window; only backstops async activation-to-nav (state changes and focus-moving keys already invalidate). */
+/** Enter/Space keydown latch window. Only backstops async activation-to-nav, since state changes and focus-moving keys already invalidate. */
 const KEYBOARD_TRIGGER_TTL_MS = 500;
 
 /** Same window on native — the press that started a forward nav is consumed within this many ms. */

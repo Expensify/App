@@ -141,11 +141,11 @@ function skipNextFocusRestore(): void {
     skipNextRestore = true;
 }
 
-/** Native-only. Web captures via `focusin`, so this is a no-op here to let the import resolve cross-platform. */
+/** Native-only. Web captures via `focusin` so this stub exists only to keep the import cross-platform. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function notifyPressedTrigger(_ref: RefObject<View | null> | null, _identifier?: string): void {}
 
-/** Native-only registry no-op. Cross-platform stub. */
+/** Native-only registry. Cross-platform stub. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function registerPressable(_routeKey: string, _identifier: string, _ref: RefObject<View | null>): () => void {
     return () => {};
@@ -590,7 +590,23 @@ function isFocusMovingKeydown(e: KeyboardEvent): boolean {
 /** Native tags or ARIA roles that make an element user-activatable regardless of tab order. */
 function isInteractive(el: HTMLElement): boolean {
     const interactiveTags = new Set(['BUTTON', 'SELECT']);
-    const interactiveRoles = new Set(['button', 'link', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'tab', 'switch', 'option', 'row', 'gridcell', 'treeitem', 'searchbox', 'combobox']);
+    const interactiveRoles = new Set([
+        'button',
+        'link',
+        'menuitem',
+        'menuitemcheckbox',
+        'menuitemradio',
+        'tab',
+        'switch',
+        'option',
+        'row',
+        'gridcell',
+        'treeitem',
+        'searchbox',
+        'combobox',
+        'checkbox',
+        'radio',
+    ]);
     if (interactiveTags.has(el.tagName)) {
         return true;
     }
