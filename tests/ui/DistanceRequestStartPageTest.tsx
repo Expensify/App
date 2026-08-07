@@ -9,7 +9,7 @@ import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 
 import DistanceRequestStartPage from '@pages/iou/request/DistanceRequestStartPage';
 
-import type {IOURequestType} from '@src/CONST';
+import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -78,7 +78,7 @@ async function setUpOnyx({selectedTab, lastDistanceExpenseType}: {selectedTab?: 
     });
 }
 
-async function renderPage(defaultSelectedTab: SelectedTabRequest, iouType = CONST.IOU.TYPE.TRACK) {
+async function renderPage(defaultSelectedTab: SelectedTabRequest, iouType: IOUType = CONST.IOU.TYPE.TRACK) {
     render(
         <OnyxListItemProvider>
             <CurrentUserPersonalDetailsProvider>
