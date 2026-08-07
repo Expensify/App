@@ -16,6 +16,7 @@ function ImportTransactionsSpreadsheetPage({route}: ImportTransactionsSpreadshee
 
     return (
         <ImportSpreadsheet
+            isImportingTransactions
             backTo={backTo}
             goTo={ROUTES.SETTINGS_WALLET_TRANSACTIONS_IMPORTED.getRoute(cardID ? Number(cardID) : undefined)}
         />

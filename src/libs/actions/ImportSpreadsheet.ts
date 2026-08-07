@@ -17,6 +17,7 @@ function setSpreadsheetData(
     fileName: string,
     isImportingMultiLevelTags: boolean,
     importTransactionSettings?: ImportTransactionSettings,
+    knownColumnRoles?: Record<number, string>,
 ): Promise<void | void[]> {
     // Validate that data is a non-empty array
     if (!Array.isArray(data) || data.length === 0) {
@@ -41,7 +42,7 @@ function setSpreadsheetData(
 
     const columnNames: Record<number, string> = {};
     for (let colIndex = 0; colIndex < numColumns; colIndex++) {
-        columnNames[colIndex] = CONST.CSV_IMPORT_COLUMNS.IGNORE;
+        columnNames[colIndex] = knownColumnRoles?.[colIndex] ?? CONST.CSV_IMPORT_COLUMNS.IGNORE;
     }
 
     // Use Onyx.set to replace the entire object (avoiding stale column data from previous files)

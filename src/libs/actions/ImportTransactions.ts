@@ -5,6 +5,7 @@ import {generateCardID} from '@libs/CardUtils';
 import parseCSVDate from '@libs/CSVDateUtils';
 import DateUtils from '@libs/DateUtils';
 import {rand64} from '@libs/NumberUtils';
+import {isOFXStatement} from '@libs/OFXUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -253,7 +254,10 @@ async function importTransactionsFromCSV(
     existingCardID?: number,
     previouslySavedLayout?: SavedCSVColumnLayoutData,
 ): Promise<ImportFinalModal> {
-    const settings = spreadsheet.importTransactionSettings ?? {};
+    // OFX already signs a charge, so the manual flip is dropped for this import without touching the saved preference.
+    const isBankStatement = isOFXStatement(spreadsheet.fileName ?? '');
+    const storedSettings = spreadsheet.importTransactionSettings ?? {};
+    const settings = isBankStatement ? {...storedSettings, flipAmountSign: false} : storedSettings;
     const {cardDisplayName = 'Imported Card', currency = CONST.CURRENCY.USD, isReimbursable = true, flipAmountSign = false} = settings;
 
     // Build transaction list from spreadsheet
@@ -282,8 +286,9 @@ async function importTransactionsFromCSV(
     // Create optimistic transactions
     const optimisticTransactions = buildOptimisticTransactions(transactionList, cardID, currency, isReimbursable);
 
-    // Build full column layout for oldDot compatibility
-    const columnLayout = buildColumnLayout(spreadsheet, cardDisplayName, currency, isReimbursable, flipAmountSign);
+    // Build full column layout for oldDot compatibility. OFX maps its own columns, so importing one into an
+    // existing card keeps that card's saved CSV layout rather than replacing it with the statement's.
+    const columnLayout = isBankStatement && previouslySavedLayout ? previouslySavedLayout : buildColumnLayout(spreadsheet, cardDisplayName, currency, isReimbursable, flipAmountSign);
 
     const params: ImportCSVTransactionsParams = {
         transactionList: JSON.stringify(transactionList),
