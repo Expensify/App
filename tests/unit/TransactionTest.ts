@@ -3,6 +3,7 @@ import {act, renderHook, waitFor} from '@testing-library/react-native';
 import useOnyx from '@hooks/useOnyx';
 
 import {changeTransactionsReport as changeTransactionsReportAction, dismissDuplicateTransactionViolation, markAsCash, sanitizeWaypointsForAPI, saveWaypoint} from '@libs/actions/Transaction';
+import * as API from '@libs/API';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -31,6 +32,7 @@ import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
+import {hasDefinedProperty, parseJSONRecord, readProperty} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
@@ -2018,6 +2020,99 @@ describe('Transaction', () => {
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
             // Rate should remain unchanged since it was already valid
             expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe(validRateID);
+        });
+
+        it('should not create MOVED_TRANSACTION action when moving expenses from a Draft report', async () => {
+            const mockAPIWrite = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            const draftReport = {
+                ...createRandomReport(10, undefined),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transaction = generateTransaction({reportID: draftReport.reportID});
+            const oldIOUAction = createIOUAction(transaction);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`, draftReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${draftReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: report,
+                policy: undefined,
+                allTransactions,
+                policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
+                isTrackIntentUser: false,
+            });
+            await waitForBatchedUpdates();
+
+            expect(mockAPIWrite).toHaveBeenCalled();
+
+            const parameters = mockAPIWrite.mock.calls.at(0)?.[1];
+            const transactionData = parseJSONRecord(readProperty(parameters, 'transactionIDToReportActionAndThreadData'));
+
+            expect(hasDefinedProperty(transactionData[transaction.transactionID], 'movedReportActionID')).toBe(false);
+
+            mockAPIWrite.mockRestore();
+        });
+
+        it('should create MOVED_TRANSACTION action when moving expenses from a non-Draft report', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const mockAPIWrite = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            const submittedReport = {
+                ...createRandomReport(11, undefined),
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transaction = generateTransaction({reportID: submittedReport.reportID});
+            const oldIOUAction = createIOUAction(transaction);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${submittedReport.reportID}`, submittedReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${submittedReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: report,
+                policy: undefined,
+                allTransactions,
+                policyTagList: undefined,
+                transactionViolations: {},
+                allReports: undefined,
+                isTrackIntentUser: false,
+            });
+            await waitForBatchedUpdates();
+
+            expect(mockAPIWrite).toHaveBeenCalled();
+
+            const parameters = mockAPIWrite.mock.calls.at(0)?.[1];
+            const transactionData = parseJSONRecord(readProperty(parameters, 'transactionIDToReportActionAndThreadData'));
+
+            expect(hasDefinedProperty(transactionData[transaction.transactionID], 'movedReportActionID')).toBe(true);
+
+            mockAPIWrite.mockRestore();
         });
     });
 
