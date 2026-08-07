@@ -40,7 +40,7 @@ node .claude/skills/agent-device/scripts/replay-with-deadline.mjs \
     -e KEY=VALUE
 ```
 
-Tested Agent Device versions 0.20.1 through 0.20.6 accept `replay --timeout` but can leave the daemon request running until a selector timeout. Measured on 0.20.6, a flow whose single step waits 5000ms on a selector that cannot match still takes 5505ms on iOS and 5262ms on Android under `--timeout 1000`. The repository wrapper enforces the wall-clock deadline outside the daemon, exits with code 124, and cleans the dedicated headless daemon. Always use a separate `AGENT_DEVICE_STATE_DIR` for this workflow so timeout cleanup cannot stop an interactive session. Selector waits remain the per-step bounds and produce the useful divergence report.
+Tested Agent Device versions 0.20.1 through 0.20.3 accept `replay --timeout` but can leave the daemon request running until a selector timeout. The repository wrapper enforces the wall-clock deadline outside the daemon, exits with code 124, and cleans the dedicated headless daemon. Always use a separate `AGENT_DEVICE_STATE_DIR` for this workflow so timeout cleanup cannot stop an interactive session. Selector waits remain the per-step bounds and produce the useful divergence report.
 
 `agent-device test` creates an isolated session for each attempt. Use it only for scripts that own `context`, `open`, and cleanup.
 
@@ -61,7 +61,6 @@ Each flow starts with `# @key value` comment lines. The `.ad` parser treats `#` 
 | `@measure` | 0..1      | Set to `canonical` when multiple scenarios emit the same Sentry span and this one owns measurement. |
 | `@tag`   | 0..N        | Free-form category (`auth`, `onboarding`, ...) or scoped (`sentry-<spanName>`).                  |
 | `@param` | 0..N        | Runtime input contract: `@param KEY description.` Use with `${KEY}` in flow body.                |
-| `@unique-label` | 0..N | Label string the author confirmed resolves to exactly one node, which lets a selector union end with an unqualified `label="..."` alternative. Required for iOS tab presses; see the authoring rules below. |
 
 Selector syntax matches the body: `id="..."`, `role="..." label="..."`, `text="..."`, `||` for fallbacks.
 
@@ -90,8 +89,6 @@ agent-device replay <flow>.ad -e EMAIL=other@example.com
 - **No fixed-duration `wait` calls.** Guard every asynchronous transition with `wait "<selector>" <timeoutMs>`, which polls until the selector resolves. A bare `wait <ms>` only burns wall clock.
 - **No command flags in a flow body.** The `.ad` parser only reads flags for `press`, `fill`, `click`, and a few capture commands; for `is`, `wait`, and `find` it treats `--first` and friends as positionals. Disambiguate with a tighter selector instead.
 - **Durable selectors.** Prefer `id=...` first, then `role=... label=...`, with `||` fallbacks. For shared navigation controls, put the iOS role selector before the Android `label=... hittable=true` fallback. Avoid `@eN` refs.
-- **Never end a union with an unqualified `label=...`.** A bare label matches the first node with that label anywhere in the tree, and `press` taps it without complaining. On the iOS bottom navigation, `press 'label="Spend"'` hits the page header at y=98 instead of the tab at y=779, so the flow keeps running against the wrong screen. Only add a bare-label alternative when the label string is unique in the tree, as `"Inbox. Your review is required"` is.
-- **`role="tab"` does not resolve on iOS.** React Native maps the tab role to no iOS accessibility trait, so those nodes come back as `Other` with `hittable: false` and both halves of a `role="tab" ... || label=... hittable=true` union miss. Tab presses therefore depend on a unique accessibility label. The Home and Spend tabs do not have one, so flows that press them are Android-only until the app exposes a `testID` on each tab.
 - **Every flow declares `@desc` and `@pre`.** Scenarios enforce every `@pre` before mutation and every `@post` before success. Utility macros (for example `go-back`) may omit `@post`. Add `@tag` when applicable.
 - **Choose directory intentionally.** Put reusable setup/navigation steps in `flows/macros/`; put outcome verification scenarios in `flows/scenarios/`.
 - **Keep scope coherent, not artificially tiny.** Flows can span multiple screens when that sequence is the reusable intent (for example "create and submit manual expense").

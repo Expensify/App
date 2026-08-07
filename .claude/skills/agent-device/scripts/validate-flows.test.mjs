@@ -67,35 +67,6 @@ wait "id=\\"End\\"" 1000
     assert.match(result.stderr, /bare label press must require hittable=true/);
 });
 
-test('allows a bare label alternative only for a declared @unique-label', () => {
-    const exempt = runValidator({
-        'unique-label.ad': `# @desc Declared unique label
-# @pre id="Start"
-# @post id="End"
-# @unique-label Inbox. Your review is required
-is exists "id=\\"Start\\""
-press "role=\\"tab\\" label=\\"Inbox\\" || label=\\"Inbox. Your review is required\\""
-wait "id=\\"End\\"" 1000
-`,
-    });
-
-    assert.equal(exempt.status, 0, exempt.stderr);
-
-    const undeclared = runValidator({
-        'other-label.ad': `# @desc Undeclared bare label
-# @pre id="Start"
-# @post id="End"
-# @unique-label Inbox. Your review is required
-is exists "id=\\"Start\\""
-press "role=\\"tab\\" label=\\"Spend\\" || label=\\"Spend\\""
-wait "id=\\"End\\"" 1000
-`,
-    });
-
-    assert.equal(undeclared.status, 1);
-    assert.match(undeclared.stderr, /bare label press must require hittable=true/);
-});
-
 test('requires a selector wait after opening the floating action menu', () => {
     const result = runValidator({
         'fab-race.ad': `# @desc Invalid FAB transition
