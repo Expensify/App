@@ -38,7 +38,7 @@ type ListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[
     type?: SearchDataTypes;
     policyID: Filter | undefined;
     style?: StyleProp<ViewStyle>;
-    /** Whether this filter is the one the advanced filters popover currently shows (false for contents kept mounted in the background) */
+    /** Whether this filter is the one the advanced filters popover currently shows */
     isActive?: boolean;
     onNegationChange: (isNegated: boolean) => void;
 };

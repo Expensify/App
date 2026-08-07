@@ -23,14 +23,11 @@ import React, {useState} from 'react';
 import ListFilterWrapper from './ListFilterViewWrapper';
 
 type UserSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
-    /** Whether this filter is the one the advanced filters popover currently shows. Defaults to true for standalone usages. */
+    /** Whether this filter is the one the advanced filters popover currently shows */
     isActive?: boolean;
 };
 
-/**
- * `moveInitialSelectionToTop` keys on `value`, so each option's accountID (`keyForList`) is mapped onto it. Copying every
- * option is the last full pass over the list per render, so the result is reused while the inputs are unchanged.
- */
+/** Maps each option's accountID onto `value` (what `moveInitialSelectionToTop` keys on) and pins the pre-selected rows to the top. */
 const buildListData = (options: OptionData[], initialSelectedValues: string[]) =>
     moveInitialSelectionToTop(
         options.map((option) => ({...option, value: option.keyForList})),
@@ -76,11 +73,8 @@ function UserSelector({value = [], isNegatable, selectionListTextInputStyle, sel
         shouldKeepSelectedInAvailableOptions: true,
     });
 
-    // Snapshot the pre-selected accountIDs from when the filter was last entered so they can be floated to the top
-    // without repinning rows that are toggled while it stays open (see https://github.com/Expensify/App/issues/61414).
-    // The filter content stays mounted between visits in the advanced filters popover, so the snapshot is also refreshed
-    // whenever `isActive` flips: on the way out the list is still shown for the hover intent delay and reorders itself
-    // while the cursor leaves, so coming back finds the fresh order already laid out in the first visible frame.
+    // Snapshot of the pre-selected accountIDs, refreshed whenever `isActive` flips so each popover visit pins the current
+    // selection to the top without repinning rows toggled while it stays open (see https://github.com/Expensify/App/issues/61414).
     const [initialSelectedValues, setInitialSelectedValues] = useState(() => value);
     const [wasActive, setWasActive] = useState(isActive);
     if (wasActive !== isActive) {

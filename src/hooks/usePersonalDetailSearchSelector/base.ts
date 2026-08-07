@@ -150,8 +150,7 @@ const defaultListOptions = {
 
 /**
  * Filtering the whole option list is a pure derivation of its inputs, so remounting consumers reuse the previous result.
- * The cache is sized to the number of filter contents kept mounted at once, so lists rendered next to each other
- * (e.g. the From/To/Attendee filters under the advanced filters popover) don't evict each other.
+ * The cache is sized to the number of mounted filter contents so lists rendered next to each other don't evict each other.
  */
 const memoizedGetValidOptions = memoize(getValidOptions, {
     maxSize: CONST.SEARCH.MAX_MOUNTED_FILTER_CONTENTS,
