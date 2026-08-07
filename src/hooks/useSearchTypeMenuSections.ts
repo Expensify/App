@@ -145,7 +145,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
 
     // The saved search the current query maps to (keyed by `hash`), derived from the existing `savedSearches`
     // subscription. Undefined when there is no match or when the match is pending deletion (unless offline).
-    const activeSavedSearch = useMemo(() => {
+    const activeSavedSearch = (() => {
         if (hash === undefined || !savedSearches) {
             return undefined;
         }
@@ -154,9 +154,9 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
             return undefined;
         }
         return item;
-    }, [savedSearches, hash, isOffline]);
+    })();
 
-    const activeItemIndex = useMemo(() => {
+    const activeItemIndex = (() => {
         // A saved search is not part of `typeMenuSections`, so keep suggested-search focus off it.
         if (activeSavedSearch) {
             return -1;
@@ -194,7 +194,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         }
 
         return -1;
-    }, [typeMenuSections, activeSavedSearch, similarSearchHash, sortBy, sortOrder, type]);
+    })();
 
     const activeKey = activeItemIndex < 0 ? undefined : typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex)?.key;
 

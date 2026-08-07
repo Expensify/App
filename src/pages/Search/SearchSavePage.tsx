@@ -34,7 +34,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/SearchSaveForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useCallback, useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type FilterValueProps = {
@@ -156,25 +156,21 @@ function SearchSavePage() {
     const {translate, localeCompare} = useLocalize();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const [name, setName] = useState('');
 
     const {currentSearchQueryJSON} = useSearchQueryContext();
 
-    const onSaveSearch = () => {
+    const onSaveSearch = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>) => {
         if (!currentSearchQueryJSON) {
             Navigation.goBack();
             return;
         }
 
-        saveSearch({queryJSON: currentSearchQueryJSON, newName: name.trim()});
+        saveSearch({queryJSON: currentSearchQueryJSON, newName: values[INPUT_IDS.NAME].trim()});
         Navigation.goBack();
     };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM> =>
-            getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate),
-        [translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM> =>
+        getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate);
 
     const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, translate, localeCompare, convertToDisplayStringWithoutCurrency);
     const appliedDisplays = getAppliedDisplays(searchAdvancedFiltersForm, currentSearchQueryJSON, translate);
@@ -201,8 +197,6 @@ function SearchSavePage() {
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.NAME}
                     ref={inputCallbackRef}
-                    value={name}
-                    onChangeText={setName}
                     placeholder={translate('common.name')}
                     accessibilityLabel={translate('common.name')}
                     role={CONST.ROLE.PRESENTATION}
