@@ -464,6 +464,7 @@ describe('PersonalDetailOptionsListUtils', () => {
                 phoneNumber: undefined,
                 private_isArchived: undefined,
                 reportID: '3',
+                searchText: 'mister fantastic reedrichards@expensify.com',
                 selected: false,
                 tooltipText: '1',
             });
@@ -495,6 +496,7 @@ describe('PersonalDetailOptionsListUtils', () => {
                 phoneNumber: undefined,
                 private_isArchived: undefined,
                 reportID: undefined,
+                searchText: 'mister fantastic reedrichards@expensify.com',
                 selected: false,
                 tooltipText: null,
             });
@@ -557,6 +559,7 @@ describe('PersonalDetailOptionsListUtils', () => {
                 phoneNumber: undefined,
                 private_isArchived: undefined,
                 reportID: undefined,
+                searchText: 'mister fantastic reedrichards@expensify.com',
                 selected: false,
                 tooltipText: null,
             });
