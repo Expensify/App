@@ -6595,6 +6595,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 one: '1 ετικέτα',
                 other: (count: number) => `${count} ετικέτες`,
             }),
+            showTagGLCodes: '[el] Show GL codes when selecting a tag',
         },
         taxes: {
             subtitle: 'Προσθέστε ονόματα φόρων, συντελεστές και ορίστε προεπιλογές.',
@@ -7457,8 +7458,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
         },
         exportAgainModal: {
             title: 'Προσοχή!',
-            description: (reportName, connectionName) =>
-                `Οι παρακάτω αναφορές έχουν ήδη εξαχθεί στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Είστε βέβαιοι ότι θέλετε να τις εξαγάγετε ξανά;
+            description: (
+                reportName,
+                connectionName,
+            ) => `Οι παρακάτω αναφορές έχουν ήδη εξαχθεί στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Είστε βέβαιοι ότι θέλετε να τις εξαγάγετε ξανά;
 
 ${reportName}`,
             confirmText: 'Ναι, εξαγωγή ξανά',
