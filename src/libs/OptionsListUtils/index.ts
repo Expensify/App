@@ -1644,7 +1644,7 @@ const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArc
  *    those reports are processed in step 4, avoiding work on thousands of reports while ensuring correct filtering.
  * 3. Search mode (`options.isSearching` true): uses the full pre-filtered report list with no recency sort and
  *    no `maxRecentReports` cap, so search can include all eligible reports.
- * 4. Personal details are built as filter/rank shells (no icons / last-message / policy work). getValidOptions
+ * 5. Personal details are built as filter/rank shells (no icons / last-message / policy work). getValidOptions
  *    hydrates survivors via hydrateLazyPersonalDetailOption. Reports stay eager — their filters read fully-built fields.
  *
  * @param options.isSearching - When true, skips the sort and top-N limit in step 2; when false, applies them.
@@ -2760,11 +2760,13 @@ function prepareReportOptionsForDisplay(
 }
 
 /**
- * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
- */
-/**
- * Deferring hydration keeps the contact options as shells, so the caller sees the PersonalDetailOptionOrShell
- * union and cannot render one without going through hydrateWithMarks. Everyone else gets built options.
+ * Filters reports and personal details down to options that are valid to display.
+ *
+ * Three declarations, one runtime function (TypeScript overloads):
+ * 1. Callers that pass `deferContactHydration: true` get `PersonalDetailOptionOrShell` contacts — hydrate with
+ *    hydrateWithMarks before rendering.
+ * 2. Everyone else gets fully built contacts (`OptionsResult`).
+ * 3. The implementation signature below is shared by both; do not call or export it separately.
  */
 function getValidOptions(
     options: OptionList,

@@ -119,7 +119,7 @@ type LazyHydrationContext = {
 
     /**
      * Bound to the locale the option list is keyed on, so the shell's display name and the hydrated option's
-     * agree. Both must use this one — the drift guard compares them field by field.
+     * agree.
      */
     translate: LocalizedTranslate;
 };
@@ -140,9 +140,9 @@ type SearchOption<T> = SearchOptionData & {
  *
  * The compile error only guards the direct read. Every display field of OptionData is optional, so a shell
  * structurally satisfies SearchOptionData: once it is handed to a helper typed against SearchOptionData or
- * Partial<SearchOptionData> — doesPersonalDetailMatchSearchTerm, for one — the display fields are back in
- * scope and read as `undefined`. Prefer PersonalDetailFilterRankFields for helpers that must accept either
- * half of the union; hydrate first before passing a shell anywhere that renders it.
+ * Partial<SearchOptionData>, the display fields are back in scope and read as `undefined`. Prefer
+ * PersonalDetailFilterRankFields for helpers that must accept either half of the union; hydrate first before
+ * passing a shell anywhere that renders it.
  */
 type PersonalDetailShell = Pick<
     SearchOptionData,
@@ -156,8 +156,9 @@ type PersonalDetailShell = Pick<
     | 'participantsList'
     | 'isOptimisticPersonalDetail'
 
-    // Written in place by getValidOptions once the visible options are selected
+    // isSelected/isBold: written in place by getValidOptions once the visible options are selected.
     | 'isSelected'
+    // selected: legacy duplicate, never updated after the shell is built.
     | 'selected'
     | 'isBold'
 > & {
