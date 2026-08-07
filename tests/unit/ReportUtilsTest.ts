@@ -1892,10 +1892,8 @@ describe('ReportUtils', () => {
                 expect(result).toBe('');
             });
 
-            test('should return Concierge display name for concierge chat report', async () => {
+            test('should return Concierge display name for concierge chat report', () => {
                 const conciergeReportID = 'concierge-123';
-                await Onyx.set(`${ONYXKEYS.CONCIERGE_REPORT_ID}`, conciergeReportID);
-
                 const conciergeReport: Report = {
                     reportID: conciergeReportID,
                     reportName: '',
@@ -1905,7 +1903,7 @@ describe('ReportUtils', () => {
                     chatType: undefined,
                 };
 
-                const result = computeReportName(conciergeReport);
+                const result = computeReportName(conciergeReport, undefined, undefined, undefined, undefined, undefined, undefined, undefined, conciergeReportID);
                 expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
             });
         });
@@ -2270,7 +2268,7 @@ describe('ReportUtils', () => {
                 participants: {},
             };
             test('should handle concierge chat report', () => {
-                const reportName = computeReportName(conciergeReport);
+                const reportName = computeReportName(conciergeReport, undefined, undefined, undefined, undefined, undefined, undefined, undefined, conciergeReportID);
                 expect(reportName).toBe(CONST.CONCIERGE_DISPLAY_NAME);
             });
 
@@ -2316,17 +2314,6 @@ describe('ReportUtils', () => {
                 expect(reportName).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
                 // Should generate name from participants instead
                 expect(reportName).toBe('Ragnar Lothbrok');
-            });
-
-            test('should use Onyx-connected conciergeReportID when explicit parameter is undefined', () => {
-                // conciergeReportID is already set in beforeAll to 'concierge-123'
-                const report: Report = {
-                    reportID: conciergeReportID,
-                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]),
-                };
-
-                const reportName = computeReportName(report, undefined, undefined, undefined, undefined, participantsPersonalDetails);
-                expect(reportName).toBe(CONST.CONCIERGE_DISPLAY_NAME);
             });
         });
 
@@ -7647,7 +7634,7 @@ describe('ReportUtils', () => {
                     excludeEmptyChats: true,
                     draftComment: '',
                     isReportArchived: undefined,
-                    conciergeReportID: undefined,
+                    conciergeReportID,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         });
@@ -20134,20 +20121,6 @@ describe('ReportUtils', () => {
             const action = {...createRandomReportAction(3), reportName: 'Custom Action Name'};
             const result = getChatListItemReportName(action, conciergeReport, conciergeReportID, translateLocal);
             expect(result).toBe('Custom Action Name');
-        });
-
-        it('should use Onyx-connected conciergeReportID when explicit parameter is undefined', async () => {
-            const conciergeReport: Report = {
-                reportID: conciergeReportID,
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, conciergeReport);
-            await waitForBatchedUpdates();
-
-            const action = {...createRandomReportAction(4)};
-            const result = getChatListItemReportName(action, conciergeReport, undefined, translateLocal);
-            expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
         it('should compute the invoice report name through the provided translate function', () => {
