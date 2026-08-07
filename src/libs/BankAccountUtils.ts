@@ -141,7 +141,12 @@ function getBankAccountConnectionStatus(accountData: AccountData | undefined): B
                     brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
                 };
             }
-            return undefined;
+            return {
+                labelKey: 'walletPage.bankAccountStatus.pending',
+                messageKey: 'walletPage.bankAccountStatus.validationFailedFallback',
+                tone: 'danger',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
         }
         default:
             return undefined;
