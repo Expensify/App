@@ -1,5 +1,6 @@
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
+import ExportDownloadReloadHandler from '@components/ExportDownloadReloadHandler';
 import GPSInProgressModal from '@components/GPSInProgressModal';
 import GPSTripStateChecker from '@components/GPSTripStateChecker';
 import {KeyboardDismissibleFlatListContextProvider} from '@components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
@@ -167,6 +168,7 @@ function AuthScreens() {
             <ThreeDSAuthHandler />
             <UserStatusHandler />
             <SupportalPermissionDeniedModal />
+            <ExportDownloadReloadHandler />
             <DelegatorConnectGuard>
                 <ComposeProviders
                     components={[
