@@ -298,8 +298,11 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 showReadOnlyModal,
                 translate,
                 icon: icons.Table,
-                // More is visible on General, the only tab Collect can open, so this needs the same upgrade gate as New rule.
-                tryNavigateToUpgrade: () => tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, rulesUpgradeBackTo),
+                // More is visible on General, the only tab Collect can open, so this needs the same upgrade gate as New
+                // rule. Return to the import page rather than the Rules list, so upgrading resumes what the user
+                // started. Safe even though the import page is Control-only: the upgrade page honours backTo only
+                // after a successful upgrade, and backing out without upgrading falls back to a plain goBack.
+                tryNavigateToUpgrade: () => tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, ROUTES.RULES_MERCHANT_IMPORT.getRoute(policyID)),
             }),
         ];
 
