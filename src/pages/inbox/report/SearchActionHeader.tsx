@@ -1,3 +1,4 @@
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -35,8 +36,9 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const personalDetailsList = usePersonalDetails();
 
-    const reportName = getChatListItemReportName(action, report, conciergeReportID, translate);
+    const reportName = getChatListItemReportName(action, report, conciergeReportID, translate, personalDetailsList);
 
     return (
         <View style={[styles.p4]}>
