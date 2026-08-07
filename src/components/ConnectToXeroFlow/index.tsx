@@ -2,6 +2,7 @@ import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAut
 
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
@@ -10,6 +11,8 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import {openLink} from '@userActions/Link';
 
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import React, {useEffect, useState} from 'react';
 
 import type {ConnectToXeroFlowProps} from './types';
@@ -17,6 +20,7 @@ import type {ConnectToXeroFlowProps} from './types';
 function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const {is2FAEnabled, getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
 
@@ -29,7 +33,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
         }
         // On web the setup opens OldDot in a new browser tab. Open it inline here (within the connect click's
         // user-gesture window) instead of navigating to a setup screen, otherwise the popup blocker stops the tab.
-        openLink(getXeroSetupLink(policyID), environmentURL);
+        openLink(getXeroSetupLink(policyID), environmentURL, false, session);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

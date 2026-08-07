@@ -47,6 +47,7 @@ function SubscriptionSettings() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const isActivePolicyAdmin = isPolicyAdmin(activePolicy);
     const subscriptionPlan = useSubscriptionPlan();
     const preferredCurrency = usePreferredCurrency();
@@ -74,7 +75,7 @@ function SubscriptionSettings() {
                 openAdminsRoom();
             }
         } else if (href.endsWith(CONST.PRICING)) {
-            openLink(CONST.PRICING, environmentURL);
+            openLink(CONST.PRICING, environmentURL, false, session);
         }
     };
 

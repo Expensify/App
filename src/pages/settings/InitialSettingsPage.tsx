@@ -229,7 +229,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const signOut = async (shouldForceSignout = false) => {
         if ((!network.isOffline && !isTrackingGPS) || shouldForceSignout) {
-            return signOutAndRedirectToSignIn();
+            return signOutAndRedirectToSignIn(undefined, undefined, true, undefined, session);
         }
 
         // When offline, warn the user that any actions they took while offline will be lost if they sign out
