@@ -1,7 +1,8 @@
 # @desc Switch to the Inbox from a screen where the bottom navigation is visible.
-# @pre role="tab" label="Inbox. Your review is required" || role="tab" label="Inbox" || label="Inbox. Your review is required" hittable=true || label="Inbox" hittable=true
+# @pre role="tab" label="Inbox. Your review is required" || role="tab" label="Inbox" || label="Inbox. Your review is required" hittable=true || label="Inbox" hittable=true || label="Inbox. Your review is required"
 # @post id="BaseSidebarScreen"
 # @tag navigation
-is exists "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true"
-press "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true"
+# @unique-label Inbox. Your review is required
+is exists "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true || label=\"Inbox. Your review is required\""
+press "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true || label=\"Inbox. Your review is required\""
 wait "id=\"BaseSidebarScreen\"" 10000

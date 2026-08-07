@@ -7,9 +7,10 @@
 # @tag    navigation
 # @tag    perf
 # @tag    sentry-ManualOpenCreateExpense
+# @unique-label Inbox. Your review is required
 is exists "id=\"BaseSidebarScreen\""
 is exists "id=\"floating-action-button\" || role=\"button\" label=\"Open actions menu\""
-press "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true"
+press "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true || label=\"Inbox. Your review is required\""
 press "id=\"floating-action-button\" || role=\"button\" label=\"Open actions menu\""
 wait "role=\"button\" label=\"Create expense\" || label=\"Create expense\" hittable=true" 10000
 press "role=\"button\" label=\"Create expense\" || label=\"Create expense\" hittable=true"

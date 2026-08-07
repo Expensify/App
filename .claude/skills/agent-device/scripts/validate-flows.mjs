@@ -63,7 +63,7 @@ function isMutation(command) {
     return /^(?:press|click|fill|type|longpress|scroll|swipe|back|home)(?:\s|$)/.test(command) || /^find\s+.+\s+"(?:click|fill|type)"(?:\s|$)/.test(command);
 }
 
-function validateSelector(commandSelector) {
+function validateSelector(commandSelector, uniqueLabels = new Set()) {
     const alternatives = commandSelector.selector.split('||').map((alternative) => alternative.trim());
     const findings = [];
     const idIndex = alternatives.findIndex((alternative) => alternative.startsWith('id='));
@@ -89,6 +89,14 @@ function validateSelector(commandSelector) {
 
     for (const alternative of alternatives) {
         if (!alternative.startsWith('label=')) {
+            continue;
+        }
+
+        // iOS reports every bottom-navigation node as hittable=false, so a tab press can only resolve
+        // through a bare label. That is safe only for a label the author has confirmed is unique in the
+        // tree, which `@unique-label` records; without it a bare label silently taps the first match.
+        const labelMatch = /^label="((?:\\.|[^"])*)"$/.exec(alternative);
+        if (labelMatch && uniqueLabels.has(decodeSelector(labelMatch[1]))) {
             continue;
         }
 
@@ -162,8 +170,9 @@ function validateFlow(filePath) {
         }
     }
 
+    const uniqueLabels = new Set(readMetadata(lines, 'unique-label').map(({value}) => value.trim()));
     for (const commandSelector of [...executableSelectors, ...interactionSelectors]) {
-        findings.push(...validateSelector(commandSelector));
+        findings.push(...validateSelector(commandSelector, uniqueLabels));
     }
 
     for (const [index, command] of body.entries()) {

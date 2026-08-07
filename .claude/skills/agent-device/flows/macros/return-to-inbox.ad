@@ -2,7 +2,8 @@
 # @pre role="button" label="Back"
 # @post id="BaseSidebarScreen"
 # @tag navigation
+# @unique-label Inbox. Your review is required
 press "role=\"button\" label=\"Back\""
-wait "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true" 10000
-press "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true"
+wait "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true || label=\"Inbox. Your review is required\"" 10000
+press "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true || label=\"Inbox. Your review is required\""
 wait "id=\"BaseSidebarScreen\"" 10000

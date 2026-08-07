@@ -1,12 +1,13 @@
 # @desc   Switch the bottom navigation tab from Home to Inbox. Triggers the ManualNavigateToInboxTab Sentry span end-to-end (BottomTab click -> Inbox layout completion). Assumes the user is signed in and the bottom nav bar is visible.
 # @pre    role="tab" label="Home" || label="Home" hittable=true
-# @pre    role="tab" label="Inbox. Your review is required" || role="tab" label="Inbox" || label="Inbox. Your review is required" hittable=true || label="Inbox" hittable=true
+# @pre    role="tab" label="Inbox. Your review is required" || role="tab" label="Inbox" || label="Inbox. Your review is required" hittable=true || label="Inbox" hittable=true || label="Inbox. Your review is required"
 # @post   id="BaseSidebarScreen"
 # @tag    navigation
 # @tag    perf
 # @tag    sentry-ManualNavigateToInboxTab
+# @unique-label Inbox. Your review is required
 is exists "role=\"tab\" label=\"Home\" || label=\"Home\" hittable=true"
-is exists "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true"
+is exists "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true || label=\"Inbox. Your review is required\""
 press "role=\"tab\" label=\"Home\" || label=\"Home\" hittable=true"
-press "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true"
+press "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true || label=\"Inbox. Your review is required\""
 wait "id=\"BaseSidebarScreen\"" 10000

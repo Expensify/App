@@ -11,10 +11,11 @@
 # @param  MESSAGE Unique message text to send and verify in the opened chat.
 # @param  TARGET_CHAT_LABEL Exact accessible label of the report/chat row to open from the Inbox LHN.
 # @param  EXPECTED_CHAT_TITLE Visible report/chat title expected after navigation.
+# @unique-label Inbox. Your review is required
 
 is exists "id=\"BaseSidebarScreen\""
 is exists "id=\"searchButton\" || role=\"button\" label=\"Search\""
-press "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true"
+press "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true || label=\"Inbox. Your review is required\""
 press "role=\"button\" label=\"${TARGET_CHAT_LABEL}\" || label=\"${TARGET_CHAT_LABEL}\" hittable=true"
 wait text "${EXPECTED_CHAT_TITLE}" 10000
 wait "id=\"composer\"" 10000
