@@ -31,7 +31,6 @@ import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationR
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canMemberRead, shouldShowPolicy as checkIfShouldShowPolicy, goBackFromInvalidPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -121,7 +120,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const policyAvatar = !policy
         ? {source: expensifyIcons.ExpensifyAppIcon, name: CONST.EXPENSIFY_ICON_NAME, type: CONST.ICON_TYPE_AVATAR}
         : {
-              source: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
+              source: policy.avatarURL ?? '',
               name: policy.name ?? '',
               type: CONST.ICON_TYPE_WORKSPACE,
               id: policy.id,
