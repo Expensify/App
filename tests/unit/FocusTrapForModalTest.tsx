@@ -122,4 +122,75 @@ describe('FocusTrapForModal — launcher capture', () => {
         expect(setActivePopoverLauncher).not.toHaveBeenCalled();
         expect(markActivePopoverLauncherDeactivated).not.toHaveBeenCalled();
     });
+
+    describe('launcherRef fallback', () => {
+        // Triggers that blur themselves to avoid a focus ring (the FAB, the composer "+") leave activeElement
+        // as body, so the anchor is the only thing left to identify the launcher with.
+        it('falls back to the anchor when activeElement is body, and returns focus to it on dismiss', () => {
+            const anchor = document.createElement('button');
+            document.body.appendChild(anchor);
+            const anchorRef = {current: anchor};
+
+            render(
+                <FocusTrapForModal
+                    active
+                    launcherRef={anchorRef}
+                >
+                    {null}
+                </FocusTrapForModal>,
+            );
+
+            withActiveElement(document.body, () => {
+                capturedOptions?.onActivate?.();
+                capturedOptions?.onPostDeactivate?.();
+            });
+
+            expect(setActivePopoverLauncher).toHaveBeenCalledWith(anchor);
+            expect(markActivePopoverLauncherDeactivated).toHaveBeenCalledWith(anchor);
+            expect(mockRestoreFocusWithModality).toHaveBeenCalledWith(anchor, expect.anything());
+        });
+
+        it('prefers the element that actually held focus over the anchor', () => {
+            const anchor = document.createElement('button');
+            const focused = document.createElement('input');
+            document.body.appendChild(anchor);
+            document.body.appendChild(focused);
+
+            render(
+                <FocusTrapForModal
+                    active
+                    launcherRef={{current: anchor}}
+                >
+                    {null}
+                </FocusTrapForModal>,
+            );
+
+            withActiveElement(focused, () => {
+                capturedOptions?.onActivate?.();
+            });
+
+            expect(setActivePopoverLauncher).toHaveBeenCalledWith(focused);
+        });
+
+        it('ignores an anchor that is not an attached DOM node (native ref / unmounted trigger)', () => {
+            const detached = document.createElement('button');
+
+            render(
+                <FocusTrapForModal
+                    active
+                    launcherRef={{current: detached}}
+                >
+                    {null}
+                </FocusTrapForModal>,
+            );
+
+            withActiveElement(document.body, () => {
+                capturedOptions?.onActivate?.();
+                capturedOptions?.onPostDeactivate?.();
+            });
+
+            expect(setActivePopoverLauncher).not.toHaveBeenCalled();
+            expect(markActivePopoverLauncherDeactivated).not.toHaveBeenCalled();
+        });
+    });
 });

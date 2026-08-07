@@ -59,6 +59,7 @@ function ReanimatedModal({
     shouldIgnoreBackHandlerDuringTransition = false,
     shouldEnableNewFocusManagement,
     shouldReturnFocus,
+    launcherRef,
     ...props
 }: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
@@ -142,7 +143,9 @@ function ReanimatedModal({
             transitionHandleRef.current = TransitionTracker.startTransition();
             onModalWillHide();
 
-            blurActiveElement();
+            // The focus trap deactivates first (child effects run before ours) and may have already returned focus to
+            // the launcher, which lives outside this modal — preserve it, and drop focus from anything else.
+            blurActiveElement(launcherRef?.current);
             setIsVisibleState(false);
             setIsTransitioning(true);
         }
@@ -268,6 +271,7 @@ function ReanimatedModal({
                         initialFocus={initialFocus}
                         shouldReturnFocus={shouldReturnFocus ?? !shouldEnableNewFocusManagement}
                         shouldPreventScroll={shouldPreventScrollOnFocus}
+                        launcherRef={launcherRef}
                     >
                         {isVisibleState && containerView}
                     </FocusTrapForModal>
