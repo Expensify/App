@@ -370,7 +370,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText1: 'Zoek een chat met de',
             subtitleText2: 'knop hierboven, of maak iets met de',
             subtitleText3: 'knop hieronder.',
-            noUnreadChats: 'Geen ongelezen chats',
+            noChats: 'Geen chats',
             noTodos: 'Geen taken',
             caughtUp: 'Je bent helemaal bij. Goed gedaan!',
             seeAllChats: 'Alle chats bekijken',
@@ -3068,7 +3068,7 @@ ${amount} voor ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Blijf op de hoogte door alleen ongelezen chats of chats te zien die je aandacht nodig hebben. Geen zorgen, je kunt dit op elk moment wijzigen in de <a href="${priorityModePageUrl}">instellingen</a>.`,
     },
-    inboxTabs: {all: 'Alles', focus: 'Focus', todo: 'Te doen', unread: 'Ongelezen'},
+    inboxTabs: {all: 'Alles', focus: 'Focus', chats: 'Chats', todo: 'Te doen'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,
         generatingPDF: 'PDF genereren',

@@ -187,6 +187,7 @@ import {
     isConciergeChatReport,
     isDeprecatedGroupDM,
     isDomainRoom,
+    isEmptyReport,
     isExpenseReport,
     isExpenseRequest,
     isGroupChat as isGroupChatUtil,
@@ -443,8 +444,11 @@ function getReportsToDisplayInLHN({
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
             const isUnreadReport = getIsUnreadReportForInboxTab(report, isReportArchived);
+            const isChatTabReport = getIsChatReportForInboxTab(report, isReportArchived, currentUserAccountID);
             reportsToDisplay[reportID] =
-                requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport} : report;
+                requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport || isChatTabReport
+                    ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, isChatTabReport}
+                    : report;
         }
     }
 
@@ -529,8 +533,9 @@ function updateReportsToDisplayInLHN({
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
             const isUnreadReport = getIsUnreadReportForInboxTab(report, isReportArchived);
+            const isChatTabReport = getIsChatReportForInboxTab(report, isReportArchived, currentUserAccountID);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const hasFlags = requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport;
+            const hasFlags = requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport || isChatTabReport;
             const existingEntry = displayedReports[reportID];
 
             if (hasFlags) {
@@ -538,9 +543,10 @@ function updateReportsToDisplayInLHN({
                     existingEntry !== report ||
                     existingEntry?.requiresAttention !== requiresAttention ||
                     existingEntry?.hasErrorsOtherThanFailedReceipt !== hasErrorsOtherThanFailedReceipt ||
-                    existingEntry?.isUnreadReport !== isUnreadReport
+                    existingEntry?.isUnreadReport !== isUnreadReport ||
+                    existingEntry?.isChatTabReport !== isChatTabReport
                 ) {
-                    getMutableCopy()[reportID] = {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport};
+                    getMutableCopy()[reportID] = {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, isChatTabReport};
                 }
             } else if (existingEntry !== report) {
                 getMutableCopy()[reportID] = report;
@@ -1575,9 +1581,39 @@ function getIsTodoReportForInboxTab(report: ReportsToDisplayInLHN[string]): bool
 }
 
 /**
+ * Whether a report belongs in the "Chats" Inbox tab: it holds a written conversation rather than only
+ * system/expense activity. 1:1 DMs (Concierge, employees, AI agents, Account Managers, Guides), group
+ * chats, and rooms (#admins, #announce, and other chat rooms) always qualify. Everything else ("chats in
+ * a report": expense/invoice reports, workspace chats, tasks) qualifies only when its latest activity is
+ * a written comment, and we drop automated Concierge comments there unless the current user submitted it.
+ * Computed once while building the LHN report set (which is cached/incremental) so the tab filter only reads a flag.
+ */
+function getIsChatReportForInboxTab(report: Report, isReportArchived: boolean, currentUserAccountID: number): boolean {
+    if (isEmptyReport(report, isReportArchived)) {
+        return false;
+    }
+
+    if (isOneOnOneChat(report) || isGroupChatUtil(report) || isChatRoom(report)) {
+        return true;
+    }
+
+    if (report.lastActionType !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
+        return false;
+    }
+
+    const isCurrentUserSubmitter = !!currentUserAccountID && report.ownerAccountID === currentUserAccountID;
+    if (!isCurrentUserSubmitter && report.lastActorAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Filters the already-ordered LHN report IDs down to the ones that belong to the active Inbox tab.
  * The "All" and "Focus" tabs return everything: they only change the Most Recent / Focus build mode
- * upstream. The other tabs narrow that set to reports requiring action (To-do) or unread (Unread).
+ * upstream. The other tabs narrow that set to reports requiring action (To-do) or holding a written
+ * conversation (Chats).
  */
 function filterReportsForInboxTab(reportIDs: string[], reportsToDisplay: ReportsToDisplayInLHN, activeTab: ValueOf<typeof CONST.INBOX_TAB>): string[] {
     if (activeTab === CONST.INBOX_TAB.ALL || activeTab === CONST.INBOX_TAB.FOCUS) {
@@ -1593,18 +1629,21 @@ function filterReportsForInboxTab(reportIDs: string[], reportsToDisplay: Reports
         switch (activeTab) {
             case CONST.INBOX_TAB.TODO:
                 return getIsTodoReportForInboxTab(report);
-            case CONST.INBOX_TAB.UNREAD:
-                return !!report.isUnreadReport;
+            case CONST.INBOX_TAB.CHATS:
+                return !!report.isChatTabReport;
             default:
                 return true;
         }
     });
 }
 
-/** Counts how many of the ordered reports fall into the To-do and Unread Inbox tabs, for the count badge shown on each. */
-function getInboxTabCounts(reportIDs: string[], reportsToDisplay: ReportsToDisplayInLHN): Record<typeof CONST.INBOX_TAB.TODO | typeof CONST.INBOX_TAB.UNREAD, number> {
+/**
+ * Counts the ordered reports for the badge shown on each tab: To-do counts reports needing action, while Chats
+ * counts only the chats with unread messages (the actionable subset) rather than every chat.
+ */
+function getInboxTabCounts(reportIDs: string[], reportsToDisplay: ReportsToDisplayInLHN): Record<typeof CONST.INBOX_TAB.TODO | typeof CONST.INBOX_TAB.CHATS, number> {
     let todoCount = 0;
-    let unreadCount = 0;
+    let chatsCount = 0;
 
     for (const reportID of reportIDs) {
         const report = reportsToDisplay[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -1614,14 +1653,14 @@ function getInboxTabCounts(reportIDs: string[], reportsToDisplay: ReportsToDispl
         if (getIsTodoReportForInboxTab(report)) {
             todoCount++;
         }
-        if (report.isUnreadReport) {
-            unreadCount++;
+        if (report.isChatTabReport && report.isUnreadReport) {
+            chatsCount++;
         }
     }
 
     return {
         [CONST.INBOX_TAB.TODO]: todoCount,
-        [CONST.INBOX_TAB.UNREAD]: unreadCount,
+        [CONST.INBOX_TAB.CHATS]: chatsCount,
     };
 }
 

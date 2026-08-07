@@ -370,7 +370,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText1: 'Znajdź czat za pomocą',
             subtitleText2: 'przycisk powyżej lub utwórz coś za pomocą',
             subtitleText3: 'przycisk poniżej.',
-            noUnreadChats: 'Brak nieprzeczytanych czatów',
+            noChats: 'Brak czatów',
             noTodos: 'Brak zadań',
             caughtUp: 'Ze wszystkim już się uporałeś. Dobra robota!',
             seeAllChats: 'Zobacz wszystkie czaty',
@@ -3054,7 +3054,7 @@ ${amount} dla ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Bądź na bieżąco, widząc tylko nieprzeczytane czaty lub czaty wymagające twojej uwagi. Spokojnie, możesz to zmienić w dowolnym momencie w <a href="${priorityModePageUrl}">ustawieniach</a>.`,
     },
-    inboxTabs: {all: 'Wszystko', focus: 'Skupienie', todo: 'Zadania do wykonania', unread: 'Nieprzeczytane'},
+    inboxTabs: {all: 'Wszystko', focus: 'Skupienie', chats: 'Czaty', todo: 'Zadania do wykonania'},
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `w ${policyName}`,
         generatingPDF: 'Wygeneruj PDF',

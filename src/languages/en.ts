@@ -398,7 +398,7 @@ const translations = {
             subtitleText1: 'Find a chat using the',
             subtitleText2: 'button above, or create something using the',
             subtitleText3: 'button below.',
-            noUnreadChats: 'No unread chats',
+            noChats: 'No chats',
             noTodos: 'No to-dos',
             caughtUp: "You're all caught up. Well done!",
             seeAllChats: 'See all chats',
@@ -3163,8 +3163,8 @@ const translations = {
     inboxTabs: {
         all: 'All',
         focus: 'Focus',
+        chats: 'Chats',
         todo: 'To-dos',
-        unread: 'Unread',
     },
     reportDetailsPage: {
         goToRoom: 'Go to room',
