@@ -88,6 +88,22 @@ describe('IntlStore', () => {
             unsubscribe();
         });
 
+        it('concurrent same-locale load() still populates the translations cache and notifies subscribers (P1 race guard, half-cached fast-path window)', async () => {
+            const listener = jest.fn();
+            const unsubscribe = IntlStore.subscribe(listener);
+
+            const firstLoad = IntlStore.load(CONST.LOCALES.EN);
+            const secondLoad = IntlStore.load(CONST.LOCALES.EN);
+            await Promise.all([firstLoad, secondLoad]);
+            await waitForBatchedUpdates();
+
+            expect(IntlStore.getCurrentLocale()).toBe(CONST.LOCALES.EN);
+            expect(IntlStore.getDateFnsLocale(CONST.LOCALES.EN)).toBeDefined();
+            expect(IntlStore.get('common.close')).toBeTruthy();
+            expect(listener).toHaveBeenCalled();
+            unsubscribe();
+        });
+
         it('discards a stale in-flight load when a newer load supersedes it (race guard)', async () => {
             await IntlStore.load(CONST.LOCALES.EN);
             const esLoad = IntlStore.load(CONST.LOCALES.ES);

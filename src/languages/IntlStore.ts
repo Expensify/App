@@ -216,8 +216,8 @@ class IntlStore {
     }
 
     public static load(locale: Locale) {
-        // Cold-start EN has translations seeded but the en-GB date-fns chunk + Onyx loading flag still need to fire.
-        if (IntlStore.currentLocale === locale && IntlStore.dateUtilsCache.has(locale)) {
+        // Both caches required — the chunks race and either can fill first.
+        if (IntlStore.currentLocale === locale && IntlStore.cache.has(locale) && IntlStore.dateUtilsCache.has(locale)) {
             // Bump the token so any in-flight earlier load() is invalidated; otherwise its `.then` would commit a stale locale.
             IntlStore.loadToken++;
             // Reset the flag here — the discarded load's `.then` will bail on the token check before reaching its own reset.
