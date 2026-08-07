@@ -9079,7 +9079,7 @@ function buildOptimisticTaskReport(
 function buildOptimisticExportIntegrationAction(
     integration: ConnectionName,
     markedManually = false,
-    exportLabel = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration],
+    exportLabel: string = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration],
 ): OptimisticExportIntegrationAction {
     return {
         reportActionID: rand64(),
