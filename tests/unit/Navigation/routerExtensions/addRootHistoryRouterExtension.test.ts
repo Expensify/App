@@ -628,7 +628,7 @@ describe('addRootHistoryRouterExtension', () => {
             const afterDismiss = getTestStateForAction(enhancedRouter, afterReplace, makeDismissAction());
 
             // pre-dismiss state.history.length = 2; post-dismiss rehydrated.history.length = 1.
-            // lengthDelta = 1 → freeze with offset 1 (one padding entry).
+            // lengthDelta of 1 means we freeze with offset 1 (one padding entry).
             // This validates the boundary: we still pad when delta is exactly 1.
             expect(afterDismiss.routes.length).toBe(1);
             expect(afterDismiss.history?.length).toBe(2);
@@ -807,7 +807,7 @@ describe('addRootHistoryRouterExtension', () => {
 
             // Route was really pushed (in-app back unaffected)...
             expect(newState?.routes).toHaveLength(2);
-            // ...but the guard entry is gone and history length is unchanged → useLinking does a replace.
+            // ...but the guard entry is gone and history length is unchanged, so useLinking does a replace.
             expect(newState?.history?.some((entry) => typeof entry === 'string' && entry.startsWith(`${MODAL}:`))).toBe(false);
             expect(newState?.history).toHaveLength(state.history?.length ?? -1);
         });

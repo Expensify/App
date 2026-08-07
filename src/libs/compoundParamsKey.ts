@@ -3,11 +3,11 @@
 // NUL — never appears in route keys or JSON-stringified params, so no chance of collision.
 const COMPOUND_KEY_DELIMITER = '\x00';
 
-// Placeholder so JSON.stringify can't collapse [undefined] → [null].
+// Placeholder so JSON.stringify can't collapse an array containing undefined into an array containing null.
 const UNDEFINED_PLACEHOLDER = '\u0000undefined';
 
 // URL-rehydrated params are always strings; PUSH_PARAMS dispatches may use numbers/booleans.
-// Top-level undefined is dropped by the caller's filter; nested undefined is preserved via UNDEFINED_PLACEHOLDER — asymmetric but inert (URL params are flat).
+// Top-level undefined is dropped by the caller's filter; nested undefined is preserved via UNDEFINED_PLACEHOLDER. This is asymmetric but inert because URL params are flat.
 // Assumes JSON-serializable params — non-plain objects (Date/RegExp) collapse to {} via Object.entries, acceptable since PUSH_PARAMS only carries URL-backed params.
 function normalizeForKey(value: unknown): unknown {
     if (value === null) {

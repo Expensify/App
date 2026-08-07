@@ -55,7 +55,7 @@ type ModalGuardTransition = {
 function reduceModalGuardState(state: ModalGuardState, event: ModalGuardEvent, isVisible: boolean): ModalGuardTransition {
     switch (event.type) {
         case MODAL_GUARD_EVENT_TYPE.GUARD_REMOVED:
-            // Our own close dispatch removed the guard entry — settle without firing onClose.
+            // Our own close dispatch removed the guard entry, so settle without firing onClose.
             if (state === MODAL_GUARD_STATE.CLOSING_BY_DISPATCH) {
                 return {state: MODAL_GUARD_STATE.CLOSED};
             }
