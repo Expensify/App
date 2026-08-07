@@ -45,6 +45,7 @@ import {
     isCurrencySupportedForDirectReimbursement,
     setPolicyPreventMemberCreatedTitle,
     setPolicyPreventSelfApproval,
+    setPolicyReceiptVisibilityPublic,
     setWorkspaceApprovalMode,
     setWorkspaceReimbursement,
     upgradeSubmit,
@@ -250,6 +251,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
                 enablePolicyRules(policy, true, false, policyDataRef.current);
                 break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.publicReceiptVisibility.id:
+                setPolicyReceiptVisibilityPublic(policyID, true, policy?.isReceiptVisibilityPublic);
+                break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id:
                 enableCompanyCards(policyID, true, false);
@@ -295,6 +299,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.id:
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.intuitEnterpriseSuite.id:
                 enablePolicyConnections(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.id:
