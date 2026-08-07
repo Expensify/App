@@ -51,7 +51,6 @@ import {
     isDraftReport,
     isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
-    isOneTransactionReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isSelfDM,
     prepareOnboardingOnyxData,
@@ -1452,20 +1451,6 @@ type ConvertTrackedExpenseToRequestParams = {
     workspaceParams?: ConvertTrackedWorkspaceParams;
     currentUserAccountID: number;
     shouldDeferAutoSubmit?: boolean;
-
-    /**
-     * The freshly-built IOU report/action/transaction for the submitted expense, used to optimistically
-     * patch the Search `snapshot_` key so the expense shows up in Spend > Expenses while offline. Without
-     * this, the submit-a-tracked-expense flow never writes to the snapshot and the expense stays hidden
-     * until the Search API repopulates it online. See https://github.com/Expensify/App/issues/97267.
-     */
-    searchParams?: {
-        transaction: OnyxTypes.Transaction;
-        participant?: Participant;
-        iouReport?: OnyxEntry<OnyxTypes.Report>;
-        iouAction?: OnyxEntry<OnyxTypes.ReportAction>;
-        policy?: OnyxEntry<OnyxTypes.Policy>;
-    };
 };
 
 function addTrackedExpenseToPolicy(parameters: AddTrackedExpenseToPolicyParam, onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys>) {
@@ -1495,7 +1480,7 @@ function hasManualDistanceOverride(transaction: OnyxEntry<OnyxTypes.Transaction>
 }
 
 function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrackedExpenseToRequestParams) {
-    const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams, currentUserAccountID, shouldDeferAutoSubmit, searchParams} = convertTrackedExpenseParams;
+    const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams, currentUserAccountID, shouldDeferAutoSubmit} = convertTrackedExpenseParams;
     const {accountID: payerAccountID, email: payerEmail} = payerParams;
     const {
         transactionID,
@@ -1633,31 +1618,6 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         customUnitRateID,
         waypoints: hasManualDistanceOverrideForRequest ? undefined : waypoints,
     };
-
-    // Optimistically patch the Search snapshot so the submitted expense appears in Spend > Expenses even
-    // while offline, mirroring how expense creation patches it (see MoneyRequestBuilder's getSearchOnyxUpdate
-    // call). See https://github.com/Expensify/App/issues/97267.
-    if (searchParams) {
-        const searchUpdate = getSearchOnyxUpdate({
-            transaction: searchParams.transaction,
-            participant: searchParams.participant,
-            iouReport: searchParams.iouReport,
-            iouAction: searchParams.iouAction,
-            policy: searchParams.policy,
-            transactionThreadReportID,
-            isFromOneTransactionReport: isOneTransactionReport(searchParams.iouReport),
-        });
-
-        if (searchUpdate) {
-            if (searchUpdate.optimisticData) {
-                optimisticData.push(...searchUpdate.optimisticData);
-            }
-            if (searchUpdate.successData) {
-                successData.push(...searchUpdate.successData);
-            }
-        }
-    }
-
     API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, {optimisticData, successData, failureData});
 }
 
@@ -1882,13 +1842,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                     workspaceParams,
                     currentUserAccountID: currentUserAccountIDParam,
                     shouldDeferAutoSubmit,
-                    searchParams: {
-                        transaction,
-                        participant: participantParams.participant,
-                        iouReport,
-                        iouAction,
-                        policy: policyParams?.policy,
-                    },
                 });
             };
             break;
@@ -2178,12 +2131,6 @@ function convertBulkTrackedExpensesToIOU({
             },
             onyxData,
             currentUserAccountID: currentUserAccountIDParam,
-            searchParams: {
-                transaction: moneyRequestTransaction,
-                participant: participantParams.participant,
-                iouReport: moneyRequestIOUReport,
-                iouAction,
-            },
         };
 
         convertTrackedExpenseToRequest(convertParams);
