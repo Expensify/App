@@ -748,10 +748,9 @@ function getUpdatedTransaction({
             lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
         }
 
-        if (!isFetchingWaypointsFromServer(transaction)) {
-            // When the waypoints are being fetched from the server, we have no information about the distance, and cannot recalculate the updated amount.
-            // Otherwise, recalculate the fields based on the new rate.
-
+        if (!isFetchingWaypointsFromServer(transaction) || hasLocallyKnownDistance(transaction)) {
+            // When the waypoints are being fetched from the server and we have no local distance, we cannot
+            // recalculate the updated amount. Otherwise, recalculate the fields based on the new rate.
             let updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
 
             // The provided `policy` may not own the new rate, leaving the amount at 0. Fall back to
@@ -1133,6 +1132,18 @@ function getOriginalCurrencyForDisplay(transaction: Pick<Transaction, 'originalC
  */
 function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return !!transaction?.pendingFields?.waypoints;
+}
+
+/**
+ * Whether the transaction's route distance is already known locally (from a computed route or stored quantity),
+ * so amount/merchant can be recalculated without waiting for the server.
+ *
+ * A waypoint edit whose route is still being computed by the server zeroes the amount but leaves the
+ * quantity/routes of the pre-edit route in place, so a zero amount means the stored distance is stale.
+ */
+function hasLocallyKnownDistance(transaction: OnyxInputOrEntry<Transaction>): boolean {
+    const hasDistanceSource = !!transaction?.comment?.customUnit?.quantity || !!transaction?.routes?.route0?.distance;
+    return hasDistanceSource && !!getAmount(transaction);
 }
 
 // Editing any of these fields makes the server regenerate the distance map receipt. `customUnitRateID`/`distance`
@@ -3257,6 +3268,7 @@ export {
     isOdometerDistanceRequest,
     isDistanceExpenseType,
     isFetchingWaypointsFromServer,
+    hasLocallyKnownDistance,
     hasPendingDistanceReceiptRegeneration,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
