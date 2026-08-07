@@ -143,6 +143,9 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Where the popover should be positioned relative to the anchor points. */
     anchorAlignment?: AnchorAlignment;
 
+    /** Whether the popover should flip to the opposite side of the anchor when it doesn't fit, instead of being clamped to the window edge */
+    shouldSwitchPositionIfOverflow?: boolean;
+
     /** Whether we don't want to show overlay */
     withoutOverlay?: boolean;
 
@@ -329,6 +332,7 @@ function BasePopoverMenu({
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
+    shouldSwitchPositionIfOverflow = false,
     animationIn = 'fadeIn',
     animationInDelay,
     animationOut = 'fadeOut',
@@ -722,6 +726,7 @@ function BasePopoverMenu({
             anchorPosition={anchorPosition}
             anchorRef={anchorRef}
             anchorAlignment={anchorAlignment}
+            shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
             onClose={() => {
                 setCurrentMenuItems(menuItems);
                 setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
@@ -787,6 +792,7 @@ export default React.memo(
         prevProps.fromSidebarMediumScreen === nextProps.fromSidebarMediumScreen &&
         // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- anchorAlignment object is created inline in most usages
         deepEqual(prevProps.anchorAlignment, nextProps.anchorAlignment) &&
+        prevProps.shouldSwitchPositionIfOverflow === nextProps.shouldSwitchPositionIfOverflow &&
         prevProps.animationIn === nextProps.animationIn &&
         prevProps.animationOut === nextProps.animationOut &&
         prevProps.animationInTiming === nextProps.animationInTiming &&

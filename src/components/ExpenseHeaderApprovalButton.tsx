@@ -1,3 +1,5 @@
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -62,6 +64,7 @@ type ApprovalDropdownOptionProps = {
     shouldShowPayButton: boolean;
     hasOnlyHeldExpenses: boolean;
     transactions: Transaction[];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 /**
@@ -76,11 +79,12 @@ function getApprovalDropdownOptions({
     shouldShowPayButton,
     hasOnlyHeldExpenses,
     transactions,
+    convertToDisplayString,
 }: ApprovalDropdownOptionProps): ApprovalOption[] {
     const APPROVE_PARTIAL = 'approve_partial';
     const APPROVE_FULL = 'approve_full';
     const options: ApprovalOption[] = [];
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton, transactions);
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton, transactions, convertToDisplayString);
 
     if (hasValidNonHeldAmount && !hasOnlyHeldExpenses) {
         options.push({
@@ -116,6 +120,7 @@ function ExpenseHeaderApprovalButton({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyExpensifyIcons(['ThumbsUp', 'DocumentCheck']);
+    const {convertToDisplayString} = useCurrencyListActions();
 
     const shouldShowDropdown = isAnyTransactionOnHold && !isDelegateAccessRestricted;
 
@@ -132,6 +137,7 @@ function ExpenseHeaderApprovalButton({
             shouldShowPayButton,
             hasOnlyHeldExpenses,
             transactions,
+            convertToDisplayString,
         });
 
         return (
@@ -139,11 +145,16 @@ function ExpenseHeaderApprovalButton({
                 options={approvalOptions}
                 menuHeaderText={hasOnlyHeldExpenses ? translate('iou.confirmApprovalAllHoldAmount') : translate('iou.confirmApprovalWithHeldAmount')}
                 onPress={() => {}}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 customText={translate('iou.approve')}
                 headerTextStyles={styles.lineHeightNormal}
                 shouldAlwaysShowDropdownMenu
                 isSplitButton={false}
                 anchorAlignment={anchorAlignment}
+                // `anchorAlignment` only expresses the preferred side. Callers anchor away from whatever they sit next to
+                // (the preview opens upward to clear the composer), which overflows when the button is near the opposite
+                // edge — the menu would otherwise be clamped to the window edge and cover the header. Flip instead.
+                shouldSwitchPositionIfOverflow
                 isDisabled={isDisabled}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.APPROVE_BUTTON}
             />

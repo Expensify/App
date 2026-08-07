@@ -115,6 +115,9 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** The anchor alignment of the popover menu */
     anchorAlignment?: AnchorAlignment;
 
+    /** Whether the popover menu should flip to the opposite side of the button when it doesn't fit, instead of being clamped to the window edge */
+    shouldSwitchPositionIfOverflow?: boolean;
+
     /* ref for the button */
     buttonRef?: RefObject<View | null>;
 

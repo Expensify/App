@@ -70,6 +70,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         disabledStyle,
         size = CONST.BUTTON_SIZE.MEDIUM,
         anchorAlignment = defaultAnchorAlignment,
+        shouldSwitchPositionIfOverflow = false,
         buttonRef,
         onPress,
         options,
@@ -347,6 +348,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     anchorRef={dropdownAnchor}
                     scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && {...styles.pt4, paddingBottom}}
                     anchorAlignment={anchorAlignment}
+                    shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
                     shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
                     headerText={menuHeaderText}
                     shouldUseScrollView={shouldPopoverUseScrollView}
