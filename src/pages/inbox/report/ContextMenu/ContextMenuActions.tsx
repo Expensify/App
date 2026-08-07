@@ -654,7 +654,17 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (
             closePopover,
-            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails, isTrackIntentUser},
+            {
+                moneyRequestAction,
+                iouTransaction,
+                iouTransactionViolations,
+                isDelegateAccessRestricted,
+                showDelegateNoAccessModal,
+                isOffline,
+                currentUserPersonalDetails,
+                isTrackIntentUser,
+                delegateAccountID,
+            },
         ) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
@@ -671,6 +681,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         currentUserPersonalDetails.accountID,
                         iouTransactionViolations,
                         isTrackIntentUser,
+                        delegateAccountID,
                     ),
                 );
                 return;
@@ -685,6 +696,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 currentUserPersonalDetails.accountID,
                 iouTransactionViolations,
                 isTrackIntentUser,
+                delegateAccountID,
             );
         },
         getDescription: () => {},
@@ -703,7 +715,17 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (
             closePopover,
-            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails, isTrackIntentUser},
+            {
+                moneyRequestAction,
+                iouTransaction,
+                iouTransactionViolations,
+                isDelegateAccessRestricted,
+                showDelegateNoAccessModal,
+                isOffline,
+                currentUserPersonalDetails,
+                isTrackIntentUser,
+                delegateAccountID,
+            },
         ) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
@@ -720,6 +742,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         currentUserPersonalDetails.accountID,
                         iouTransactionViolations,
                         isTrackIntentUser,
+                        delegateAccountID,
                     ),
                 );
                 return;
@@ -734,6 +757,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 currentUserPersonalDetails.accountID,
                 iouTransactionViolations,
                 isTrackIntentUser,
+                delegateAccountID,
             );
         },
         getDescription: () => {},

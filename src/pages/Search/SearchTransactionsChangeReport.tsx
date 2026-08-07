@@ -3,6 +3,7 @@ import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionCo
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -37,6 +38,7 @@ type TransactionGroupListItem = ListItem & {
 
 function SearchTransactionsChangeReport() {
     const {selectedTransactions} = useSearchSelectionContext();
+    const delegateAccountID = useDelegateAccountID();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
@@ -176,6 +178,7 @@ function SearchTransactionsChangeReport() {
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
+                delegateAccountID,
             });
             clearSelectedTransactions();
         });
@@ -255,6 +258,7 @@ function SearchTransactionsChangeReport() {
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
+            delegateAccountID,
         });
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
@@ -277,6 +281,7 @@ function SearchTransactionsChangeReport() {
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
+            delegateAccountID,
         });
         clearSelectedTransactions();
         Navigation.goBack();
