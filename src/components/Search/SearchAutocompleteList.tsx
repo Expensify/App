@@ -32,7 +32,6 @@ import {formatReportLastMessageText, getReportOrDraftReport, getReportSubtitlePr
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -51,6 +50,7 @@ import type {SearchQueryItem, SearchQueryListItemProps} from './SearchList/ListI
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 import type {UserFriendlyKey} from './types';
 
+import getAutocompleteInitialFocus from './getAutocompleteInitialFocus';
 import AvatarWithTextCell from './SearchList/ListItem/AvatarWithTextCell';
 import SearchQueryListItem, {isSearchQueryItem} from './SearchList/ListItem/SearchQueryListItem';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
@@ -501,12 +501,6 @@ function SearchAutocompleteList({
         debounceHandleSearch();
     }, [autocompleteQueryWithoutFilters, debounceHandleSearch, handleSearch, hasUpstreamDebounce]);
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'SearchAutocompleteList',
-        isRecentSearchesDataLoaded,
-        isLoadingOptions,
-    };
-
     /* Sections generation */
     const {sections, styledRecentReports, suggestionsCount} = useMemo(() => {
         const nextSections: Array<Section<AutocompleteListItem>> = [];
@@ -556,11 +550,6 @@ function SearchAutocompleteList({
                 fixedNumItems={3}
                 shouldStyleAsTable
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                reasonAttributes={{
-                    context: 'SearchAutocompleteList',
-                    isRecentSearchesDataLoaded,
-                    isLoadingOptions,
-                }}
             />
         );
 
@@ -655,7 +644,6 @@ function SearchAutocompleteList({
         styles,
         translate,
         isLoadingOptions,
-        isRecentSearchesDataLoaded,
         reports,
     ]);
 
@@ -681,35 +669,8 @@ function SearchAutocompleteList({
     const shouldAnnounceNoResults = !isLoading && suggestionsCount === 0 && !!trimmedAutocompleteQueryValue;
     useDebouncedAccessibilityAnnouncement(noResultsFoundText, shouldAnnounceNoResults, autocompleteQueryValue);
 
-    // Locate the first recent report row in the order it is actually rendered. The two-section switcher sorts the
-    // local "Recent chats" rows by a frozen rank, so the rendered order can differ from styledRecentReports (the
-    // unsorted combined local + server list). Walking sections keeps the focused row, its reference text, and the
-    // initially focused key all pointing at the first row the user actually sees.
     const recentReportKeys = new Set(styledRecentReports.map((report) => report.keyForList));
-    let firstRecentReportKey: string | undefined;
-    let firstRecentReportText = '';
-    let firstRecentReportFlatIndex = -1;
-    let flatIndex = 0;
-    for (const section of sections) {
-        const hasData = (section.data?.length ?? 0) > 0;
-        const hasHeader = hasData && (section.title !== undefined || ('customHeader' in section && section.customHeader !== undefined));
-        if (hasHeader) {
-            flatIndex++;
-        }
-        for (const item of section.data ?? []) {
-            if (item.keyForList && recentReportKeys.has(item.keyForList)) {
-                firstRecentReportKey = item.keyForList;
-                firstRecentReportText = item.text ?? '';
-                firstRecentReportFlatIndex = flatIndex;
-                break;
-            }
-            flatIndex++;
-        }
-        if (firstRecentReportFlatIndex !== -1) {
-            break;
-        }
-    }
-
+    const {firstRecentReportKey, firstRecentReportText, firstRecentReportFlatIndex, defaultFocusedKey, defaultFocusedFlatIndex} = getAutocompleteInitialFocus(sections, recentReportKeys);
     const normalizedReferenceText = firstRecentReportText.toLowerCase();
 
     // Stable across renders while the query is non-empty (searchQueryItems is a fresh array reference on every
@@ -783,16 +744,19 @@ function SearchAutocompleteList({
 
     // When options initialize after the list is already mounted, initiallyFocusedItemKey has no effect
     // because useState(initialFocusedIndex) in useArrowKeyFocusManager only reads the initial value.
-    // Imperatively focus the first recent report once options become available (desktop only).
+    // Imperatively focus the default row once options become available (desktop only).
     useEffect(() => {
-        if (shouldUseNarrowLayout || isLoadingOptions || hasSetInitialFocusRef.current || firstRecentReportFlatIndex === -1) {
+        if (shouldUseNarrowLayout || isLoadingOptions || hasSetInitialFocusRef.current || defaultFocusedFlatIndex === -1) {
             return;
         }
         hasSetInitialFocusRef.current = true;
 
-        lastProgrammaticFocusKeyRef.current = firstRecentReportKey;
-        innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, false);
-    }, [isLoadingOptions, firstRecentReportFlatIndex, firstRecentReportKey, shouldUseNarrowLayout]);
+        // Track whatever we actually focused (the contextual "Search in <chat>" suggestion when present, else the
+        // first recent report) so the auto-highlight effect below can tell whether the user has since navigated
+        // away, versus us having landed on a row other than firstRecentReportKey to begin with.
+        lastProgrammaticFocusKeyRef.current = defaultFocusedKey;
+        innerListRef.current?.updateAndScrollToFocusedIndex(defaultFocusedFlatIndex, false);
+    }, [isLoadingOptions, defaultFocusedFlatIndex, defaultFocusedKey, shouldUseNarrowLayout]);
 
     useEffect(() => {
         if (!shouldHighlightFirstItem || firstRecentReportFlatIndex === -1 || !shouldHighlight(normalizedReferenceText, autocompleteQueryValue)) {
@@ -823,7 +787,6 @@ function SearchAutocompleteList({
                 fixedNumItems={4}
                 shouldStyleAsTable
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                reasonAttributes={reasonAttributes}
             />
         );
     }
@@ -844,7 +807,7 @@ function SearchAutocompleteList({
             shouldSingleExecuteRowSelect
             ref={setListRef}
             initialScrollIndex={0}
-            initiallyFocusedItemKey={!shouldUseNarrowLayout ? firstRecentReportKey : undefined}
+            initiallyFocusedItemKey={!shouldUseNarrowLayout ? defaultFocusedKey : undefined}
             shouldHighlightInitiallyFocusedItem={!shouldUseNarrowLayout}
             shouldScrollToFocusedIndex={!isInitialRender}
             disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}

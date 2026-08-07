@@ -792,6 +792,8 @@ function getLastMessageTextForReport({
             report?.ownerAccountID,
             getLoginByAccountID(report?.ownerAccountID, personalDetails),
             getLoginByAccountID(lastReportAction.actorAccountID, personalDetails),
+            // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+            convertToDisplayStringUtil,
             currentUserAccountID,
         );
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
@@ -1228,7 +1230,17 @@ function createOption({
                       },
                   );
 
-        const computedReportName = deprecatedGetReportName(report, reportAttributesDerived);
+        const computedReportName =
+            deprecatedGetReportName(report, reportAttributesDerived) ||
+            (result.isSelfDM
+                ? getDisplayNameForParticipant({
+                      accountID: report.ownerAccountID,
+                      shouldAddCurrentUserPostfix: true,
+                      personalDetailsData: personalDetails ?? undefined,
+                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                      translate: translateFn,
+                  })
+                : '');
 
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils, translate: translateFn}) ||
