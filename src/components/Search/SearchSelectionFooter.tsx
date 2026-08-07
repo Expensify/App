@@ -89,11 +89,14 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true, areAllMatchingItemsSelected);
     const {isOffline} = useNetwork();
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const activePolicy = usePolicy(activePolicyID);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const personalPolicy = usePolicy(personalPolicyID);
-    // The Preferences > Payment currency setting. The server falls back to this same currency for search.currency,
-    // so a default derived from it won't change once a snapshot arrives carrying server totals.
-    const paymentCurrency = personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
+    // The currency the server converts search figures to when the query carries no explicit target: the active
+    // policy's currency. For accounts without a workspace the active policy is the personal policy, whose output
+    // currency is what Preferences > Payment currency edits.
+    const searchTargetCurrency = activePolicy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
     const [footerCurrencyState, setFooterCurrencyState] = useState<FooterCurrencyState>({
         searchHash: undefined,
         selectedCurrency: undefined,
@@ -247,9 +250,13 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // Use the per-selection (client) total for a partial selection; nothing-selected and everything-selected both fall
     // to the whole-search grand total, which every search type now returns converted, keyed by the search hash.
     const shouldUseClientTotal = !metadataCount || hasPartialSelection;
-    // metadataCurrency is unset for a fresh no-workspace account until a search populates search.currency (e.g. after
-    // visiting Reports), so fall back to the live payment currency instead of an arbitrary selected expense's currency.
-    const effectiveDefaultCurrency = defaultFooterCurrency ?? metadataCurrency ?? paymentCurrency;
+    // The currency the loaded figures are denominated in (the server-converted per-row denomination when the snapshot
+    // metadata hasn't populated a currency). A chosen currency needs converting only when it differs from this, so
+    // choosing the currency the figures are already in — including Reset when nothing moved — stays a no-op.
+    const firstSelectedTransactionKey = selectedTransactionsKeys.at(0);
+    const firstSelectedTransaction = firstSelectedTransactionKey ? selectedTransactions[firstSelectedTransactionKey] : undefined;
+    const selectedTransactionDefaultCurrency = firstSelectedTransaction?.groupCurrency ?? firstSelectedTransaction?.currency;
+    const effectiveDefaultCurrency = defaultFooterCurrency ?? metadataCurrency ?? selectedTransactionDefaultCurrency;
     const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== effectiveDefaultCurrency;
 
     // The most recent conversion request for this currency failed, so stop waiting on a converted value that isn't coming.
@@ -469,7 +476,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             count={footerData.count}
             total={footerData.total}
             currency={footerData.currency}
-            defaultCurrency={effectiveDefaultCurrency}
+            defaultCurrency={searchTargetCurrency}
             isTotalLoading={isFooterTotalLoading}
             onCurrencyChange={handleFooterCurrencyChange}
         />

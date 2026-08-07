@@ -1,7 +1,9 @@
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
 import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
 import type {SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
+
+import {getFooterConvertedAmounts} from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,10 +31,11 @@ jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({selectedTransactions: mockSelectedTransactions.current, areAllMatchingItemsSelected: false, selectedReports: []}),
 }));
 
-const mockCapturedFooterProps: {current: {defaultCurrency?: string; currency?: string} | undefined} = {current: undefined};
+type CapturedFooterProps = {defaultCurrency?: string; currency?: string; onCurrencyChange?: (currency: string | undefined) => void};
+const mockCapturedFooterProps: {current: CapturedFooterProps | undefined} = {current: undefined};
 jest.mock('@components/Search/SearchPageFooter', () => ({
     __esModule: true,
-    default: (props: {defaultCurrency?: string; currency?: string}) => {
+    default: (props: CapturedFooterProps) => {
         mockCapturedFooterProps.current = props;
         return null;
     },
@@ -48,11 +51,12 @@ const PAYMENT_CURRENCY = CONST.CURRENCY.GBP;
 
 const ACCOUNT_ID = 1;
 const PERSONAL_POLICY_ID = 'personalPolicy1';
+const WORKSPACE_POLICY_ID = 'workspacePolicy1';
 
-function buildSearchResults(currency: string | undefined): SearchResults {
+function buildSearchResults(currency: string | undefined, count = 1): SearchResults {
     return {
         search: {
-            count: 1,
+            count,
             currency,
             total: -100,
             offset: 0,
@@ -68,7 +72,7 @@ function buildSearchResults(currency: string | undefined): SearchResults {
     };
 }
 
-function buildSelectedTransaction(currency: string): SelectedTransactionInfo {
+function buildSelectedTransaction(currency: string, groupCurrency?: string, groupAmount?: number): SelectedTransactionInfo {
     return {
         isSelected: true,
         canReject: false,
@@ -82,6 +86,8 @@ function buildSelectedTransaction(currency: string): SelectedTransactionInfo {
         policyID: undefined,
         amount: 100,
         currency,
+        groupCurrency,
+        groupAmount,
         isFromOneTransactionReport: false,
     };
 }
@@ -95,6 +101,9 @@ describe('SearchSelectionFooter', () => {
         mockSearchQueryContext.current = {currentSearchHash: 1, currentSearchKey: undefined, currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE}};
         mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY)};
         mockCapturedFooterProps.current = undefined;
+        // Clear here rather than in afterEach: Onyx.clear() there re-renders the previous test's still-mounted
+        // component (testing-library only unmounts it afterwards), and those renders can record mock calls.
+        jest.clearAllMocks();
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_POLICY_ID, PERSONAL_POLICY_ID);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${PERSONAL_POLICY_ID}`, {id: PERSONAL_POLICY_ID, outputCurrency: PAYMENT_CURRENCY});
@@ -103,12 +112,11 @@ describe('SearchSelectionFooter', () => {
 
     afterEach(async () => {
         await Onyx.clear();
-        jest.clearAllMocks();
     });
 
-    it("falls back to the user's live payment currency when the search snapshot has no currency yet", async () => {
-        // A fresh no-workspace account: the Expenses search snapshot has not populated search.currency yet, and the
-        // only selected expense happens to be in a different currency (JPY) from the live payment currency (GBP).
+    it("offers the user's live payment currency as the Reset target when there is no active workspace", async () => {
+        // A fresh no-workspace account: the active policy is the personal policy, and the only selected expense
+        // happens to be in a different currency (JPY) from the live payment currency (GBP).
         render(<SearchSelectionFooter searchResults={buildSearchResults(undefined)} />);
         await waitForBatchedUpdates();
 
@@ -117,10 +125,54 @@ describe('SearchSelectionFooter', () => {
         expect(mockCapturedFooterProps.current?.defaultCurrency).toBe(PAYMENT_CURRENCY);
     });
 
-    it('prefers the search snapshot currency when one is already available', async () => {
+    it("offers the active workspace's currency as the Reset target when one is set", async () => {
+        // The server converts search figures to the active policy's currency, so with an active workspace the Reset
+        // target is the workspace currency, not the personal payment currency.
+        await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, WORKSPACE_POLICY_ID);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE_POLICY_ID}`, {id: WORKSPACE_POLICY_ID, outputCurrency: CONST.CURRENCY.EUR});
+        await waitForBatchedUpdates();
+
         render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.EUR)} />);
         await waitForBatchedUpdates();
 
         expect(mockCapturedFooterProps.current?.defaultCurrency).toBe(CONST.CURRENCY.EUR);
+    });
+
+    it('converts the figures when Reset selects a default the figures are not denominated in', async () => {
+        // The payment currency changed after the snapshot loaded: the selected group's server-converted figure is
+        // still denominated in the old payment currency (INR), while the live default is now GBP.
+        mockSelectedTransactions.current = {[`${CONST.SEARCH.GROUP_PREFIX}category1`]: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY, 'INR', -100)};
+
+        // A partial selection (1 of 2), so the footer uses the client-side selected total.
+        render(<SearchSelectionFooter searchResults={buildSearchResults(undefined, 2)} />);
+        await waitForBatchedUpdates();
+
+        // No picker choice yet, so nothing converts.
+        expect(getFooterConvertedAmounts).not.toHaveBeenCalled();
+
+        // Reset passes the default through onCurrencyChange as an explicit selection.
+        await act(async () => {
+            mockCapturedFooterProps.current?.onCurrencyChange?.(PAYMENT_CURRENCY);
+            await waitForBatchedUpdates();
+        });
+
+        // The chosen default differs from the figures' denomination, so a conversion to it is requested.
+        expect(getFooterConvertedAmounts).toHaveBeenCalledWith(expect.objectContaining({targetCurrency: PAYMENT_CURRENCY}));
+    });
+
+    it('does not convert when Reset selects the currency the figures are already denominated in', async () => {
+        mockSelectedTransactions.current = {[`${CONST.SEARCH.GROUP_PREFIX}category1`]: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY, PAYMENT_CURRENCY, -100)};
+
+        render(<SearchSelectionFooter searchResults={buildSearchResults(undefined, 2)} />);
+        await waitForBatchedUpdates();
+
+        await act(async () => {
+            mockCapturedFooterProps.current?.onCurrencyChange?.(PAYMENT_CURRENCY);
+            await waitForBatchedUpdates();
+        });
+
+        // The figures are already in the chosen currency, so no request is made and the snapshot data is used as-is.
+        expect(getFooterConvertedAmounts).not.toHaveBeenCalled();
+        expect(mockCapturedFooterProps.current?.currency).toBe(PAYMENT_CURRENCY);
     });
 });
