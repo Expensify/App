@@ -1,3 +1,6 @@
+/**
+ * Builds the Account and General menu section data shown on the Initial Settings page.
+ */
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
