@@ -3232,11 +3232,12 @@ const ROUTES = {
     },
     WORKSPACE_COMPANY_CARDS: {
         route: 'workspaces/:policyID/company-cards',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID: string | undefined, feed?: CompanyCardFeedWithDomainID) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_COMPANY_CARDS route');
             }
-            return `workspaces/${policyID}/company-cards` as const;
+            // `feed` opens the page on a specific feed instead of the last selected one, e.g. when deep-linking to a broken feed.
+            return feed ? (`workspaces/${policyID}/company-cards?feed=${encodeURIComponent(feed)}` as const) : (`workspaces/${policyID}/company-cards` as const);
         },
     },
     WORKSPACE_COMPANY_CARDS_IMPORT_SPREADSHEET: {

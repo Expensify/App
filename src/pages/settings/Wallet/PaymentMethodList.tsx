@@ -20,6 +20,7 @@ import {
     getCardConnectionStatusDisplay,
     getCardFeedIcon,
     getCardFeedWithDomainID,
+    getCompanyCardFeedWithDomainIDForCard,
     getPlaidInstitutionIconUrl,
     isActionableVirtualExpensifyCard,
     isBrokenConnectionPastDismissThreshold,
@@ -289,9 +290,10 @@ function PaymentMethodList({
                     icon = getCardFeedIcon(card.bank, illustrations, companyCardFeedIcons);
                 }
 
+                const feedNameWithDomainID = card.fundID ? getCardFeedWithDomainID(card.bank, card.fundID) : undefined;
+
                 let shouldShowRBR = false;
-                if (card.fundID) {
-                    const feedNameWithDomainID = getCardFeedWithDomainID(card.bank, card.fundID);
+                if (feedNameWithDomainID) {
                     shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID];
                 } else if ((!shouldShowConnectionStatus || !isUserPersonalCard) && card.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV) {
                     // Don't show red dot for CSV imported cards without fundID
@@ -313,6 +315,7 @@ function PaymentMethodList({
                     brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                 }
 
+                const companyCardFeedForCard = getCompanyCardFeedWithDomainIDForCard(card);
                 const isCardBroken = isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
                 const isCardInactiveState = isCardInactive(card);
                 const cardConnectionStatusDisplay = getCardConnectionStatusDisplay({
@@ -337,9 +340,11 @@ function PaymentMethodList({
                 }
                 let cardConnectionStatus: PaymentMethodItem['connectionStatus'];
                 if (cardConnectionStatusDisplay) {
+                    // Pass the card's own feed so the Company cards page opens on it rather than on whichever feed was selected last.
+                    const companyCardsRoute = policyIDForCard ? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard, companyCardFeedForCard) : undefined;
                     let cardConnectionMessage: string | undefined;
-                    if (cardConnectionStatusDisplay.shouldUseCompanyCardsLink && policyIDForCard) {
-                        cardConnectionMessage = translate('walletPage.cardStatus.fixConnectionIn', `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard)}`);
+                    if (cardConnectionStatusDisplay.shouldUseCompanyCardsLink && companyCardsRoute) {
+                        cardConnectionMessage = translate('walletPage.cardStatus.fixConnectionIn', `${environmentURL}/${companyCardsRoute}`);
                     } else if (cardConnectionStatusDisplay.shouldUsePersonalCardFix) {
                         cardConnectionMessage = translate('walletPage.cardStatus.fixConnection');
                     } else if (cardConnectionStatusDisplay.messageKey) {
@@ -354,12 +359,7 @@ function PaymentMethodList({
                         onActionPress: cardConnectionStatusDisplay.shouldUsePersonalCardFix
                             ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(String(card.cardID)))
                             : undefined,
-                        onLinkPress:
-                            cardConnectionStatusDisplay.shouldUseCompanyCardsLink && policyIDForCard
-                                ? () => {
-                                      Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard));
-                                  }
-                                : undefined,
+                        onLinkPress: cardConnectionStatusDisplay.shouldUseCompanyCardsLink && companyCardsRoute ? () => Navigation.navigate(companyCardsRoute) : undefined,
                     };
                 }
 

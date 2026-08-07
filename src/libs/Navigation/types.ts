@@ -2862,6 +2862,9 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS]: {
         policyID: string;
+
+        /** Opens the page on this feed instead of the last selected one. Used when deep-linking to a specific (e.g. broken) feed */
+        feed?: CompanyCardFeedWithDomainID;
     };
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
         policyID: string;
