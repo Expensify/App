@@ -40,7 +40,6 @@ function BaseTextInput({ref, autoGrowSingleLine = false, ...props}: BaseTextInpu
 
     return (
         <BaseTextInputImplementation
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
             onKeyPress={autoGrowSingleLine ? handleKeyPress : props.onKeyPress}
