@@ -17,6 +17,7 @@ import {
     isPolicyAdmin,
     isPolicyExpenseChat,
     isProcessingReport,
+    getPendingDeleteMemberAccountIDs,
     isValidReport,
 } from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -232,6 +233,7 @@ export default createOnyxDerivedValueConfig({
             policyTags,
             conciergeReportID,
             introSelected,
+            reportMetadata,
         ],
         {currentValue, sourceValues, triggeredKeys},
     ) => {
@@ -563,6 +565,7 @@ export default createOnyxDerivedValueConfig({
                     reportErrors,
                     transactions,
                     isOffline,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     transactionViolations,
                     !!isReportArchived,
                     reports,
@@ -596,6 +599,8 @@ export default createOnyxDerivedValueConfig({
                     actionTargetReportActionID = actionGreenTargetReportActionID;
                 }
 
+                const reportReportMetadata = reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
+                const pendingDeleteMemberAccountIDs = getPendingDeleteMemberAccountIDs(reportReportMetadata?.pendingChatMembers);
                 // Skip computeReportName when the name can't have changed (see nameSkipKeys).
                 const cachedName = currentValue?.reports?.[report.reportID]?.reportName;
                 const canReuseCachedName = cachedName !== undefined && nameSkipKeys.has(key);
@@ -618,6 +623,7 @@ export default createOnyxDerivedValueConfig({
                               conciergeReportID: conciergeReportID ?? undefined,
                               reportAttributes: currentValue?.reports,
                               isTrackIntentUser: isTrackIntentUserSelector(introSelected),
+                              pendingDeleteMemberAccountIDs,
                           }),
                     isEmpty: generateIsEmptyReport(report, isReportArchived),
                     brickRoadStatus,
@@ -709,6 +715,14 @@ export default createOnyxDerivedValueConfig({
             reports: reportAttributes,
             locale: preferredLocale ?? null,
         };
+    },
+    // On Onyx clear, drop the cross-compute baselines so the first post-clear pass is treated as a full
+    // change (see the engine's resetForClear). Otherwise the rehydrated data is diffed against the stale
+    // pre-clear baseline, "nothing changed" is concluded, and names computed while data was empty stay blank.
+    onReset: () => {
+        previousDisplayNames = {};
+        previousPersonalDetails = undefined;
+        previousPolicies = undefined;
     },
 });
 
