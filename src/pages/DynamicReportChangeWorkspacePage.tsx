@@ -75,7 +75,6 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const reportPreviewAction = useParentReportAction(report);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: changePolicyTrainingModalDismissedSelector});
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
@@ -161,7 +160,6 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 isASAPSubmitBetaEnabled,
                 employeeList,
                 isReportLastVisibleArchived,
-                reportNextStep,
                 reportActionsList: filteredReportActions,
                 reportPreviewAction,
                 isTrackIntentUser,
@@ -181,7 +179,6 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             hasViolationsParam: hasViolations,
             isChangePolicyTrainingModalDismissed: shouldSkipChangePolicyTrainingModal,
             isASAPSubmitBetaEnabled,
-            reportNextStep,
             isReportLastVisibleArchived,
             reportPreviewAction,
             isTrackIntentUser,
