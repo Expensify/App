@@ -9,6 +9,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {close} from '@libs/actions/Modal';
 import {isSafari} from '@libs/Browser';
+import {markActivePopoverLauncherDeactivated, resolvePopoverLauncherElement} from '@libs/LauncherStack';
 
 import CONST from '@src/CONST';
 
@@ -119,7 +120,15 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
                 onClose={handleClose}
                 isVisible={isVisible}
                 onModalWillShow={() => setContentActivityMode('visible')}
-                onModalHide={() => setContentActivityMode('hidden')}
+                onModalHide={() => {
+                    setContentActivityMode('hidden');
+                    // The FAB registers itself as the launcher before opening this menu. Deactivating on hide lets the
+                    // entry expire when the menu closes without navigating, so it can't be picked up as a stale launcher later.
+                    const launcher = resolvePopoverLauncherElement(anchorRef);
+                    if (launcher) {
+                        markActivePopoverLauncherDeactivated(launcher);
+                    }
+                }}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 animationIn="fadeIn"
                 animationOut="fadeOut"

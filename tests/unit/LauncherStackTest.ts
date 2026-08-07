@@ -1,10 +1,11 @@
 // Typed require with explicit .ts path — matches the project's test-file convention.
-const {pickLauncher, consumeLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests} = require<{
+const {pickLauncher, consumeLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests, resolvePopoverLauncherElement} = require<{
     pickLauncher: () => HTMLElement | null;
     consumeLauncher: (element: HTMLElement) => void;
     setActivePopoverLauncher: (element: HTMLElement) => void;
     markActivePopoverLauncherDeactivated: (element?: HTMLElement) => void;
     resetLauncherStackForTests: () => void;
+    resolvePopoverLauncherElement: (ref: {current: unknown} | null | undefined) => HTMLElement | null;
 }>('../../src/libs/LauncherStack.ts');
 
 function appendButton(): HTMLButtonElement {
@@ -177,6 +178,28 @@ describe('LauncherStack', () => {
             consumeLauncher(a);
             expect(() => consumeLauncher(a)).not.toThrow();
             expect(pickLauncher()).toBeNull();
+        });
+    });
+
+    describe('resolvePopoverLauncherElement', () => {
+        it('returns the host node for an attached ref', () => {
+            const button = appendButton();
+            expect(resolvePopoverLauncherElement({current: button})).toBe(button);
+        });
+
+        it('returns null for an empty or missing ref', () => {
+            expect(resolvePopoverLauncherElement(null)).toBeNull();
+            expect(resolvePopoverLauncherElement(undefined)).toBeNull();
+            expect(resolvePopoverLauncherElement({current: null})).toBeNull();
+        });
+
+        it('returns null for a detached node — a launcher outside the document can never receive focus', () => {
+            const detached = document.createElement('button');
+            expect(resolvePopoverLauncherElement({current: detached})).toBeNull();
+        });
+
+        it('returns null for a non-DOM ref value (native View instance)', () => {
+            expect(resolvePopoverLauncherElement({current: {measure: () => {}}})).toBeNull();
         });
     });
 });
