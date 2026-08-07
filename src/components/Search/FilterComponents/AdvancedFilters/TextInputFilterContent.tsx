@@ -52,7 +52,7 @@ function TextInputFilterContent({
     const styles = useThemeStyles();
     const [value, setValue] = useState(initialValue);
     const [isNegated, setIsNegated] = useState(initialIsNegated);
-    const shouldShowMerchantMatchType = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT;
+    const shouldShowMerchantMatchType = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT && !isNegated;
     const [merchantOperator, setMerchantOperator] = useState<MerchantMatchType>(initialMerchantOperator ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
     const merchantMatchTypeItems: Array<ListItem<MerchantMatchType>> = [
         {
