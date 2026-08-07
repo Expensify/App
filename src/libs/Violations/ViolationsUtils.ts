@@ -13,6 +13,7 @@ import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {
     arePolicyRulesEnabled,
+    getCurrentTaxID,
     getDistanceRateCustomUnitRate,
     getMatchingVendorByID,
     getPerDiemRateCustomUnitRate,
@@ -365,7 +366,8 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
             if (!taxCode || !policyTaxRates) {
                 return !taxCode;
             }
-            const matchingTaxRate = policyTaxRates[taxCode];
+            const currentTaxCode = getCurrentTaxID({taxRates: {taxes: policyTaxRates}}, taxCode) ?? taxCode;
+            const matchingTaxRate = policyTaxRates[currentTaxCode];
             if (!matchingTaxRate || matchingTaxRate.isDisabled) {
                 return false;
             }

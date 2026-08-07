@@ -15,7 +15,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
-import {getTaxByID} from '@libs/PolicyUtils';
+import {getTaxByID, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {calculateTaxAmount, compareDuplicateTransactionFields, getAmount, getDefaultTaxCode, getTaxValue, getTransactionID} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -53,18 +53,24 @@ function DynamicReviewTaxCodePage() {
 
     const compareResult = compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, reviewDuplicates?.transactionID, policy, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
+    const selectedTaxCode = reviewDuplicates?.taxCode ? resolveCurrentTaxCode(policy, reviewDuplicates.taxCode) : reviewDuplicates?.taxCode;
+
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'taxCode', route.params.reportID, route.params.backTo);
 
     const options = useMemo(
         () =>
-            compareResult.change.taxCode?.map((taxID) =>
-                !taxID
-                    ? {text: translate('violations.none'), value: getDefaultTaxCode(policy, transaction) ?? ''}
+            compareResult.change.taxCode?.map((taxID) => {
+                const currentTaxID = taxID ? resolveCurrentTaxCode(policy, taxID) : taxID;
+                return !currentTaxID
+                    ? {
+                          text: translate('violations.none'),
+                          value: resolveCurrentTaxCode(policy, getDefaultTaxCode(policy, transaction) ?? ''),
+                      }
                     : {
-                          text: getTaxByID(policy, taxID)?.name ?? '',
-                          value: taxID,
-                      },
-            ),
+                          text: getTaxByID(policy, currentTaxID)?.name ?? '',
+                          value: currentTaxID,
+                      };
+            }),
         [compareResult.change.taxCode, policy, transaction, translate],
     );
     const getTaxAmount = useCallback(
@@ -98,7 +104,7 @@ function DynamicReviewTaxCodePage() {
                 options={options}
                 index={currentScreenIndex}
                 onSelectRow={setTaxCode}
-                selectedValue={reviewDuplicates?.taxCode}
+                selectedValue={selectedTaxCode}
             />
         </ScreenWrapper>
     );

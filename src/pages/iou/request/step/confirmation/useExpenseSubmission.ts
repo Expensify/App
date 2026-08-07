@@ -29,7 +29,7 @@ import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterEx
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getNewAccountIDsAndLogins} from '@libs/PersonalDetailsUtils';
-import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {isTaxTrackingEnabled, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {
     findSelfDMReportID,
     generateReportID,
@@ -314,8 +314,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             : transactionDistance;
     const modifiedTransactionDistance = isModifiedGPSDistanceRequest ? transactionDistance : undefined;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
+    const taxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxCode = isTaxTrackingEnabled(isPolicyExpenseChat || isUnreported || isTrackExpense || isSelfDMDestination, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest)
-        ? ((transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '')
+        ? resolveCurrentTaxCode(policy, taxCode)
         : '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
