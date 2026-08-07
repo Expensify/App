@@ -55,13 +55,7 @@ import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils
 
 import {getBankName, isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
-import {
-    convertAmountToDisplayString,
-    convertToBackendAmount,
-    convertToDisplayString as convertToDisplayStringUtil,
-    convertToDisplayStringWithExplicitCurrency,
-    convertToShortDisplayString,
-} from './CurrencyUtils';
+import {convertAmountToDisplayString, convertToBackendAmount, convertToDisplayStringWithExplicitCurrency, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
@@ -468,7 +462,7 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
 
 function getCardConnectionBrokenMessage(card: Card | undefined, originalCardName: string | undefined, translate: LocaleContextProps['translate'], connectionLink?: string) {
     const personalCardName = originalCardName ?? card?.cardName ?? getBankName(card?.bank as CompanyCardFeed);
-    return translate('personalCard.conciergeBrokenConnection', {cardName: personalCardName, connectionLink});
+    return translate('personalCard.conciergeBrokenConnection', personalCardName, connectionLink);
 }
 
 function getElsewherePaymentReportActionMessage(translate: LocalizedTranslate, originalMessage: OriginalMessageIOU | undefined, payer?: string): string {
@@ -476,7 +470,7 @@ function getElsewherePaymentReportActionMessage(translate: LocalizedTranslate, o
         return translate('iou.receivedPaymentReportAction', payer);
     }
 
-    return translate('iou.paidElsewhere', {payer, comment: originalMessage?.comment?.trim()});
+    return translate('iou.paidElsewhere', payer, originalMessage?.comment?.trim());
 }
 
 /**
@@ -489,6 +483,7 @@ function getElsewherePaymentReportActionMessage(translate: LocalizedTranslate, o
 function getCrossBorderReimbursedMessage(
     translate: LocalizedTranslate,
     originalMessage: Pick<OriginalMessageIOU | OriginalMessageReimbursed, 'creditedAmount' | 'creditedCurrency' | 'debitBankAccountLast4' | 'creditBankAccountLast4'>,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     fallbackDebitBankAccountLast4?: string,
 ): string | undefined {
     const {creditedAmount, creditedCurrency} = originalMessage;
@@ -497,7 +492,7 @@ function getCrossBorderReimbursedMessage(
     }
 
     return translate('iou.reimbursedCrossBorder', {
-        amount: convertToDisplayStringUtil(creditedAmount, creditedCurrency),
+        amount: convertToDisplayString(creditedAmount, creditedCurrency),
         debitBankAccount: originalMessage.debitBankAccountLast4 ?? fallbackDebitBankAccountLast4 ?? '',
         creditBankAccount: originalMessage.creditBankAccountLast4 ?? '',
     });
@@ -505,7 +500,7 @@ function getCrossBorderReimbursedMessage(
 
 function getMarkedReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageMarkedReimbursed | undefined;
-    return translate('iou.paidElsewhere', {comment: originalMessage?.message?.trim()});
+    return translate('iou.paidElsewhere', undefined, originalMessage?.message?.trim());
 }
 
 function getReimbursedMessage(
@@ -514,6 +509,7 @@ function getReimbursedMessage(
     reportOwnerAccountID: number | undefined,
     submitterLoginParam: string | undefined,
     actorLoginParam: string | undefined,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     currentUserAccountID?: number,
 ): string {
     const effectiveCurrentUserAccountID = currentUserAccountID ?? deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -575,7 +571,7 @@ function getReimbursedMessage(
     }
 
     // The employee is credited in their own currency, so name that amount and both accounts, not the report total.
-    const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, effectiveDebitBankAccountLast4);
+    const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, effectiveDebitBankAccountLast4);
     if (crossBorderMessage) {
         return isAutomation ? `${crossBorderMessage} ${translate('iou.reimbursedOnBehalfOf', actorLogin.toLowerCase())}` : crossBorderMessage;
     }
@@ -2207,9 +2203,9 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
         case CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD: {
             const {oldValue, newValue, fieldName} = originalMessage;
             if (!oldValue) {
-                return translate('report.actions.type.changeFieldEmpty', {newValue, fieldName});
+                return translate('report.actions.type.changeFieldEmpty', newValue, fieldName);
             }
-            return translate('report.actions.type.changeField', {oldValue, newValue, fieldName});
+            return translate('report.actions.type.changeField', oldValue, newValue, fieldName);
         }
         case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV:
             return translate('report.actions.type.exportedToCSV');
@@ -2239,7 +2235,7 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
             if (!amount || !currency) {
                 return getMessageOfOldDotLegacyAction(oldDotAction as PartialReportAction);
             }
-            return translate('report.actions.type.markedReimbursedFromIntegration', {amount, currency});
+            return translate('report.actions.type.markedReimbursedFromIntegration', amount, currency);
         }
         case CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT:
             return translate('report.actions.type.outdatedBankAccount');
@@ -2256,9 +2252,9 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
         case CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT:
             return translate(`report.actions.type.selectedForRandomAudit${withMarkdown ? 'Markdown' : ''}`);
         case CONST.REPORT.ACTIONS.TYPE.SHARE:
-            return translate('report.actions.type.share', {to: originalMessage.to});
+            return translate('report.actions.type.share', originalMessage.to);
         case CONST.REPORT.ACTIONS.TYPE.UNSHARE:
-            return translate('report.actions.type.unshare', {to: originalMessage.to});
+            return translate('report.actions.type.unshare', originalMessage.to);
         case CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL:
             return translate('report.actions.type.takeControl');
         default:
@@ -2929,7 +2925,7 @@ function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate: Localiz
 
     const newRole = translate('workspace.common.roleName', stringNewValue).toLowerCase();
     const oldRole = translate('workspace.common.roleName', stringOldValue).toLowerCase();
-    return translate('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
+    return translate('report.actions.type.updateRole', email, oldRole, newRole);
 }
 
 function getPolicyChangeLogUpdateEmployee(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
@@ -3435,11 +3431,7 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
     const oldValueTranslationKey = CONST.POLICY.APPROVAL_MODE_TRANSLATION_KEYS[oldValue as keyof typeof CONST.POLICY.APPROVAL_MODE_TRANSLATION_KEYS];
 
     if (updatedField && updatedField === CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE && oldValueTranslationKey && newValueTranslationKey) {
-        return translate('workspaceActions.updateApprovalMode', {
-            newValue: translate(`workspaceApprovalModes.${newValueTranslationKey}`),
-            oldValue: translate(`workspaceApprovalModes.${oldValueTranslationKey}`),
-            fieldName: updatedField,
-        });
+        return translate('workspaceActions.updateApprovalMode', translate(`workspaceApprovalModes.${newValueTranslationKey}`), translate(`workspaceApprovalModes.${oldValueTranslationKey}`));
     }
 
     if (updatedField && updatedField === CONST.POLICY.EXPENSE_REPORT_RULES.PREVENT_SELF_APPROVAL && typeof oldValue === 'string' && typeof newValue === 'string') {
@@ -3964,7 +3956,7 @@ function getAddedConnectionMessage(translate: LocalizedTranslate, reportAction: 
     }
     const originalMessage = getOriginalMessage(reportAction);
     const connectionName = originalMessage?.connectionName;
-    return connectionName ? translate('report.actions.type.addedConnection', {connectionName}) : '';
+    return connectionName ? translate('report.actions.type.addedConnection', connectionName) : '';
 }
 
 function getRemovedConnectionMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
@@ -3973,7 +3965,7 @@ function getRemovedConnectionMessage(translate: LocalizedTranslate, reportAction
     }
     const originalMessage = getOriginalMessage(reportAction);
     const connectionName = originalMessage?.connectionName;
-    return connectionName ? translate('report.actions.type.removedConnection', {connectionName}) : '';
+    return connectionName ? translate('report.actions.type.removedConnection', connectionName) : '';
 }
 
 function getAddedCardFeedMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
