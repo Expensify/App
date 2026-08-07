@@ -99,7 +99,7 @@ export default function useSyncModalWithHistory({isVisible, shouldHandleNavigati
         });
     }, [isVisible, shouldHandleNavigationBack, modalId]);
 
-    // Browser Back/Forward changes the guard entry in root history — react via snapshot transitions.
+    // Browser Back/Forward changes the guard entry in root history, so we react via snapshot transitions.
     useEffect(() => {
         if (!shouldHandleNavigationBack) {
             prevSnapshotKeyRef.current = snapshotKey;
