@@ -238,6 +238,11 @@ class IntlStore {
         return IntlStore.cache.has(locale);
     }
 
+    /** Test-only cache seed — skips `load()`'s side effects (Onyx write, telemetry span, date-fns default) that pollute unrelated suites' mocks. Prod uses `load()`. */
+    public static seedForTests(locale: Locale, translations: FlatTranslationsObject): void {
+        IntlStore.cache.set(locale, translations);
+    }
+
     /** Monotonic token used to discard stale `load()` resolutions when a newer call has superseded them. */
     private static loadToken = 0;
 

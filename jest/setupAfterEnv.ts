@@ -1,5 +1,7 @@
 import '@testing-library/react-native';
-import IntlStore from '@src/languages/IntlStore';
+import type * as enModule from '@src/languages/en';
+import type * as flattenObjectModule from '@src/languages/flattenObject';
+import type * as IntlStoreModule from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {KeyboardEventName} from 'react-native';
@@ -58,10 +60,13 @@ jest.mock(
 
 /**
  * Test-time bootstrap for every suite:
- * - Onyx.init: safe to re-init if a test does it again (second call re-runs initStoreValues + re-resolves the deferred task).
- * - IntlStore.load('en'): seeds the translations cache so `translate()` returns real strings for tests that render before their own load resolves.
+ * - Onyx.init: safe to re-init if a test does it too (second call re-resolves the deferred task).
+ * - IntlStore.seedForTests('en'): `translate()` works pre-load. Lazy-required so a top-level import doesn't freeze `CONFIG` before env-toggle tests can override it.
  */
-beforeAll(async () => {
+beforeAll(() => {
     Onyx.init({keys: ONYXKEYS});
-    await IntlStore.load('en');
+    const IntlStore = jest.requireActual<typeof IntlStoreModule>('@src/languages/IntlStore').default;
+    const enTranslations = jest.requireActual<typeof enModule>('@src/languages/en').default;
+    const flattenObject = jest.requireActual<typeof flattenObjectModule>('@src/languages/flattenObject').default;
+    IntlStore.seedForTests('en', flattenObject(enTranslations));
 });
