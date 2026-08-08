@@ -36,7 +36,7 @@ type SearchActionHeaderProps = {
 
 function SearchActionHeaderContent({action, report, isWhisper, onPress, children}: SearchActionHeaderProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const personalDetailsList = usePersonalDetails();
     const parentReportID = isChatThread(report) ? report.parentReportID : undefined;
