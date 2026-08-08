@@ -822,6 +822,7 @@ function getOptionData({
     card,
     lastAction,
     translate,
+    formatPhoneNumber,
     convertToDisplayString,
     localeCompare,
     isReportArchived,
@@ -848,6 +849,7 @@ function getOptionData({
     card: Card | undefined;
     lastAction: ReportAction | undefined;
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     localeCompare: LocaleContextProps['localeCompare'];
     isReportArchived: boolean | undefined;
@@ -1008,6 +1010,7 @@ function getOptionData({
     if (!lastMessageTextFromReport) {
         lastMessageTextFromReport = getLastMessageTextForReport({
             translate,
+            formatPhoneNumber,
             report,
             personalDetails,
             lastActorDetails,

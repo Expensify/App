@@ -39,7 +39,7 @@ const defaultListOptions = {
 
 function ShareTab() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -89,6 +89,7 @@ function ShareTab() {
               conciergeReportID,
               isTrackIntentUser,
               translate,
+              formatPhoneNumber,
           }).options
         : defaultListOptions;
 

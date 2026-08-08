@@ -248,6 +248,7 @@ function handleMoneyRequestStepDistanceNavigation({
             reportAttributesDerived,
             reportDraft,
             translate,
+            formatPhoneNumber,
         );
 
         setDistanceRequestData?.(participants);

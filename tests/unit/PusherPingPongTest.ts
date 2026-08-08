@@ -9,6 +9,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
+import {formatPhoneNumber} from '../utils/TestHelper';
+
 jest.mock('@libs/API');
 const mockAPI = jest.mocked(API);
 
@@ -42,7 +44,7 @@ describe('Pusher PINGPONG watchdog', () => {
         // The automock returns undefined, and pingPusher chains a .catch on the returned promise
         mockAPI.makeRequestWithSideEffects.mockResolvedValue(undefined);
 
-        subscribeToUserEvents(123, 'test@example.com', () => undefined);
+        subscribeToUserEvents(123, 'test@example.com', formatPhoneNumber, () => undefined);
 
         const callback = jest.mocked(PusherUtils.subscribeToPrivateUserChannelEvent).mock.calls.find(([eventName]) => eventName === Pusher.TYPE.PONG)?.[2];
         if (!callback) {

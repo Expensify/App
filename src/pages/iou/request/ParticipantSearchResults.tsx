@@ -153,7 +153,7 @@ function ParticipantSearchResults({
         action !== CONST.IOU.ACTION.SUBMIT &&
         action !== CONST.IOU.ACTION.CATEGORIZE;
     const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {contactPermissionState, contacts, setContactPermissionState} = useContactImport();
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -306,6 +306,7 @@ function ParticipantSearchResults({
             currentUserAccountID,
             allPolicies,
             translate,
+            formatPhoneNumber,
             personalDetails,
             true,
             undefined,
@@ -373,16 +374,17 @@ function ParticipantSearchResults({
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(
+                        ? getPolicyExpenseReportOption({
                               participant,
                               privateIsArchived,
                               personalDetails,
-                              userToInviteExpenseReport,
-                              userToInviteExpenseReportPolicy,
+                              expenseReport: userToInviteExpenseReport,
+                              policy: userToInviteExpenseReportPolicy,
                               translate,
+                              formatPhoneNumber,
                               currentUserAccountID,
                               reportAttributesDerived,
-                          )
+                          })
                         : getParticipantsOption(participant, personalDetails, translate);
                 }),
                 sectionIndex: 5,

@@ -61,7 +61,7 @@ const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value
 const PAGINATION_SIZE = CONST.MAX_SELECTION_LIST_PAGE_LENGTH;
 
 function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -146,12 +146,13 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             includeSelectedOptions: true,
         },
         translate,
+        formatPhoneNumber,
     );
 
     const areOptionsInitialized = !isLoading;
 
     // Keep selected options in the list (don't filter them out) so they stay in place when toggled, rather than jumping to a separate section at the top.
-    const options = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, allPersonalDetails, {
+    const options = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, allPersonalDetails, formatPhoneNumber, {
         selectedOptions,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
     });

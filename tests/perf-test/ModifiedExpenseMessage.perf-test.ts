@@ -13,7 +13,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
-import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, translateLocal, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const CURRENT_USER_LOGIN = 'test@example.com';
@@ -75,6 +75,7 @@ test('[ModifiedExpenseMessage] getForReportAction on 1k reports and policies', a
             policy: undefined,
             policyTags: mockedPolicyTags,
             currentUserLogin: CURRENT_USER_LOGIN,
+            formatPhoneNumber,
         }),
     );
 });

@@ -87,7 +87,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // Option building is locale-dependent, so a consumer that stays mounted through a language switch recomputes.
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale, formatPhoneNumber} = useLocalize();
 
     // Sorted report actions from the RAM_ONLY_SORTED_REPORT_ACTIONS derived value; a new reference on
     // every recompute, so it doubles as the report-actions invalidation signal for the option-list cache.
@@ -107,7 +107,15 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
                       reportAttributesDerived,
                       privateIsArchivedMap,
                       allPolicies,
-                      {conciergeReportID, maxRecentReports: reportsLimit, includeP2P, isSearching, deferContactsUntilSearch, locale: preferredLocale},
+                      {
+                          conciergeReportID,
+                          maxRecentReports: reportsLimit,
+                          includeP2P,
+                          isSearching,
+                          deferContactsUntilSearch,
+                          locale: preferredLocale,
+                          formatPhoneNumber,
+                      },
                       undefined,
                       undefined,
                       isTrackIntentUser,
@@ -117,6 +125,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
         [
             enabled,
             allReports,
+            formatPhoneNumber,
             allPersonalDetails,
             reportAttributesDerived,
             privateIsArchivedMap,

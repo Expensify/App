@@ -249,7 +249,7 @@ function IOURequestStepConfirmation({
 
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isOffline} = useNetwork();
@@ -314,17 +314,18 @@ function IOURequestStepConfirmation({
                 // any participant without a reportID to getParticipantsOption instead.
                 return participant.accountID || !participant.reportID
                     ? getParticipantsOption(participant, personalDetails, translate)
-                    : getReportOption(
+                    : getReportOption({
                           participant,
                           privateIsArchived,
-                          participantPolicy,
+                          policy: participantPolicy,
                           personalDetails,
                           conciergeReportID,
                           reportAttributesDerived,
-                          participantReportDraft,
-                          currentUserPersonalDetails.accountID,
+                          reportDraft: participantReportDraft,
+                          currentUserAccountID: currentUserPersonalDetails.accountID,
                           translate,
-                      );
+                          formatPhoneNumber,
+                      });
             }) ?? [],
         [
             transaction?.participants,
@@ -337,6 +338,7 @@ function IOURequestStepConfirmation({
             conciergeReportID,
             reportDrafts,
             translate,
+            formatPhoneNumber,
             currentUserPersonalDetails.accountID,
         ],
     );

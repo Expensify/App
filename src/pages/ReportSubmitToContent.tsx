@@ -78,7 +78,7 @@ function ReportSubmitToContent({
 }: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {keyboardActiveHeight} = useKeyboardState();
 
@@ -209,6 +209,7 @@ function ReportSubmitToContent({
             countryCode,
             selectedOptions: [],
             loginsToExclude: CONST.EXPENSIFY_EMAILS_OBJECT,
+            formatPhoneNumber,
         });
 
         if (!inviteOption?.login) {
@@ -222,7 +223,7 @@ function ReportSubmitToContent({
             keyForList: `nonWorkspace:${login}`,
             isSelected: managerEmail.trim().toLowerCase() === login.trim().toLowerCase(),
         };
-    }, [countryCode, currentUserDetails.email, searchTerm, filteredWorkspaceMembers.length, loginList, managerEmail, personalDetails]);
+    }, [countryCode, currentUserDetails.email, searchTerm, filteredWorkspaceMembers.length, loginList, managerEmail, personalDetails, formatPhoneNumber]);
 
     const submitToSelectionData = useMemo(() => {
         if (!nonWorkspaceInviteRow) {

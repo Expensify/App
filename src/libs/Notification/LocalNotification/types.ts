@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type ClearReportNotifications from '@libs/Notification/clearReportNotifications/types';
 
 import type {Policy, PolicyTagLists, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
@@ -25,11 +27,13 @@ type LocalNotificationModifiedExpenseParams = {
     movedToReport?: OnyxEntry<Report>;
     currentUserLogin: string;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type LocalNotificationModifiedExpensePushParams = LocalNotificationModifiedExpenseParams & {
     usesIcon?: boolean;
     policyTags: OnyxEntry<PolicyTagLists>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     policy?: OnyxEntry<Policy>;
 };
 
