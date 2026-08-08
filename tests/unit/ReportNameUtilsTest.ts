@@ -311,6 +311,7 @@ describe('ReportNameUtils', () => {
                 translate: translateWithYouMarker,
                 isTrackIntentUser: false,
                 reportTransactions: {},
+                formatPhoneNumber,
             });
             // temporaryGetDisplayNameOrDefault lowercases the "you" postfix sourced from translate('common.you').
             expect(name).toBe('Lagertha Lothbrok (you marker)');
@@ -1617,6 +1618,7 @@ describe('ReportNameUtils', () => {
                 translate: translateWithHiddenMarker,
                 personalDetailsList: undefined,
                 linkedTransactions: [],
+                formatPhoneNumber,
             });
             expect(reportName).toContain('HiddenMarker');
         });
@@ -1640,7 +1642,13 @@ describe('ReportNameUtils', () => {
                 currency: 'USD',
             };
 
-            const reportName = getMoneyRequestReportName({report: invoiceReport, personalDetailsList: participantsPersonalDetails, linkedTransactions: [], translate: translateLocal});
+            const reportName = getMoneyRequestReportName({
+                report: invoiceReport,
+                personalDetailsList: participantsPersonalDetails,
+                linkedTransactions: [],
+                translate: translateLocal,
+                formatPhoneNumber,
+            });
             expect(reportName?.replaceAll(/\s+/g, ' ')).toContain('Ragnar Lothbrok');
         });
 
@@ -1670,6 +1678,7 @@ describe('ReportNameUtils', () => {
                 personalDetailsList: undefined,
                 linkedTransactions: [],
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             // Then it should return "New Report"
@@ -1718,6 +1727,7 @@ describe('ReportNameUtils', () => {
                 personalDetailsList: undefined,
                 linkedTransactions: [],
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             // Then it should NOT return empty string — it should fall through to dynamic name computation
@@ -1780,6 +1790,7 @@ describe('ReportNameUtils', () => {
                 personalDetailsList: undefined,
                 linkedTransactions: [nonReimbursableTransaction],
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             // Then it should use the "spent" wording with the owner's display name
@@ -1836,6 +1847,7 @@ describe('ReportNameUtils', () => {
                 personalDetailsList: undefined,
                 linkedTransactions: [],
                 translate: translateWithUnavailableMarker,
+                formatPhoneNumber,
             });
 
             expect(reportName).toContain('UnavailableWorkspaceMarker');

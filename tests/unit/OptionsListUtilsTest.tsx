@@ -7489,7 +7489,18 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportOption({reportID}, undefined, undefined, selfPersonalDetails, undefined, undefined, undefined, ownerAccountID, translateLocal);
+            const option = getReportOption({
+                participant: {reportID},
+                privateIsArchived: undefined,
+                policy: undefined,
+                personalDetails: selfPersonalDetails,
+                conciergeReportID: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                currentUserAccountID: ownerAccountID,
+                translate: translateLocal,
+                formatPhoneNumber,
+            });
 
             expect(option.text).toBe(`Test (${translateLocal('common.you').toLowerCase()})`);
             expect(option.alternateText).toBe(translateLocal('reportActionsView.yourSpace'));
@@ -10005,7 +10016,15 @@ describe('OptionsListUtils', () => {
             // The participant's display name is resolved from Onyx, so seed it to keep the assertion below deterministic.
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
 
-            const roomOption = createOptionFromReport({report, personalDetails: PERSONAL_DETAILS, privateIsArchived: undefined, policy: POLICY, sortedActions, conciergeReportID: undefined});
+            const roomOption = createOptionFromReport({
+                report,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                sortedActions,
+                conciergeReportID: undefined,
+                formatPhoneNumber,
+            });
             const personalDetailsOption = createOptionFromReport({
                 report,
                 personalDetails: PERSONAL_DETAILS,
@@ -10014,6 +10033,7 @@ describe('OptionsListUtils', () => {
                 sortedActions,
                 conciergeReportID: undefined,
                 config: {showPersonalDetails: true},
+                formatPhoneNumber,
             });
 
             expect(roomOption.text).toBe('#admins');

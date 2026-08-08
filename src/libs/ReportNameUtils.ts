@@ -26,6 +26,7 @@ import {Str} from 'expensify-common';
 
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
 import {convertToDisplayString} from './CurrencyUtils';
+import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
@@ -379,6 +380,7 @@ function getInvoiceReportName(
         linkedTransactions,
         personalDetailsList,
         translate,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
     });
     const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
     return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
@@ -1117,6 +1119,7 @@ function computeReportName({
             linkedTransactions: reportTransactions[report.reportID] ?? [],
             personalDetailsList,
             translate,
+            formatPhoneNumber,
         });
     }
 
