@@ -19,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {openInitialSettingsPage} from '@userActions/Wallet';
 
@@ -100,18 +99,11 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const generalMenuItems = getMenuItemsSection(generalMenuItemsData, styles.pt4);
 
     const isPersonalDetailsEmpty = isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined;
-    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'InitialSettingsPage',
-        isPersonalDetailsEmpty,
-    };
 
     const headerContent = (
         <View style={[styles.ph5, styles.pv4]}>
             {isPersonalDetailsEmpty ? (
-                <AccountSwitcherSkeletonView
-                    avatarSize={CONST.AVATAR_SIZE.DEFAULT}
-                    reasonAttributes={skeletonReasonAttributes}
-                />
+                <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.DEFAULT} />
             ) : (
                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
                     <AccountSwitcher isScreenFocused={isScreenFocused} />

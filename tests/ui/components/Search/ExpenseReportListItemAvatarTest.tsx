@@ -318,7 +318,7 @@ describe('ExpenseReportListItemAvatar', () => {
 
             expect(item.avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE);
 
-            const singleAvatar = images.find((img) => img.parent === 'ReportActionAvatars-SingleAvatar');
+            const singleAvatar = images.find((img) => img.parent === 'SingleAvatar');
             expect(singleAvatar).toBeDefined();
             expect(singleAvatar?.uri).toBe(USER_AVATAR);
         });
@@ -368,7 +368,7 @@ describe('ExpenseReportListItemAvatar', () => {
             const subscriptFragments = fragments.filter((f) => f.startsWith('ReportActionAvatars-Subscript'));
             expect(subscriptFragments).toHaveLength(0);
 
-            const singleAvatar = images.find((img) => img.parent === 'ReportActionAvatars-SingleAvatar');
+            const singleAvatar = images.find((img) => img.parent === 'SingleAvatar');
             expect(singleAvatar).toBeDefined();
             expect(singleAvatar?.uri).toBe(USER_AVATAR);
         });
