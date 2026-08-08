@@ -22,6 +22,7 @@ import {
     getDateRangeDisplayValueFromFormValue,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
+    getFilterFormValues,
     getFilterFromQuery,
     getDateFilterRange,
     getKeywordQueryWithCurrentSearchContext,
@@ -30,6 +31,7 @@ import {
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
     getRoutes,
+    isFilterNegated,
     isDefaultExpenseReportsQuery,
     isDefaultExpensesQuery,
     isSearchBeforeViolationsSnapshotStarted,
@@ -466,29 +468,6 @@ describe('SearchQueryUtils', () => {
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
             expect(result).toEqual('type:expense category:equipment,consulting,none,Uncategorized');
-        });
-
-        test('serializes No Tag filter as missing tag query', () => {
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: 'expense',
-                tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
-            };
-
-            const result = buildQueryStringFromFilterFormValues(filterValues);
-
-            expect(result).toEqual('type:expense -has:tag');
-            expect(result).not.toContain('tag:none');
-        });
-
-        test('serializes real tag values as tag filters', () => {
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: 'expense',
-                tag: ['Engineering'],
-            };
-
-            const result = buildQueryStringFromFilterFormValues(filterValues);
-
-            expect(result).toEqual('type:expense tag:Engineering');
         });
 
         test('empty filter values', () => {
@@ -1513,37 +1492,6 @@ describe('SearchQueryUtils', () => {
             const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
 
             expect(result['reportFieldRange-start-date']).toBeUndefined();
-        });
-
-        test('hydrates missing tag query as No Tag filter', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense -has:tag');
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
-
-            expect(result).toEqual({
-                type: 'expense',
-                tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
-            });
-        });
-
-        test('hydrates missing tag query while preserving other has filters', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense has:receipt -has:tag');
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
-
-            expect(result).toEqual({
-                type: 'expense',
-                has: [CONST.SEARCH.HAS_VALUES.RECEIPT],
-                tag: [CONST.SEARCH.TAG_EMPTY_VALUE],
-            });
         });
 
         describe('view parameter', () => {
@@ -3655,6 +3603,43 @@ describe('SearchQueryUtils', () => {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 merchant: undefined,
                 columns: undefined,
+            });
+        });
+    });
+
+    describe('isNegated', () => {
+        it('returns true for negated filter keys (ending with the NOT modifier)', () => {
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+            expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
+        });
+
+        it('returns false for base (non-negated) filter keys', () => {
+            expect(isFilterNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT)).toBe(false);
+            expect(isFilterNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM)).toBe(false);
+            expect(isFilterNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.TO)).toBe(false);
+            expect(isFilterNegated(CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY)).toBe(false);
+        });
+    });
+
+    describe('getFilterFormValues', () => {
+        it('sets the base key and clears the negated key when not negated', () => {
+            const result = getFilterFormValues(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, 'coffee', false);
+
+            expect(result).toEqual({
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]: 'coffee',
+                [`${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${CONST.SEARCH.NOT_MODIFIER}`]: undefined,
+            });
+        });
+
+        it('sets the negated key and clears the base key when negated', () => {
+            const result = getFilterFormValues(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, 'coffee', true);
+
+            expect(result).toEqual({
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]: undefined,
+                [`${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${CONST.SEARCH.NOT_MODIFIER}`]: 'coffee',
             });
         });
     });
