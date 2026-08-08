@@ -25,6 +25,7 @@ type TextInputFilterContentProps = {
     largeButton?: boolean;
     autoFocus?: boolean;
     style?: StyleProp<ViewStyle>;
+    buttonText?: string;
     onChange: (value: string | undefined, isNegated: boolean) => void;
 };
 
@@ -32,7 +33,7 @@ function isTextInput(element: BaseTextInputRef | RNTextInput | null): element is
     return !!element && 'isFocused' in element;
 }
 
-function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: initialIsNegated, autoFocus, largeButton, style, onChange}: TextInputFilterContentProps) {
+function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: initialIsNegated, autoFocus, largeButton, style, buttonText, onChange}: TextInputFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(initialValue);
@@ -70,7 +71,7 @@ function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: 
                 style={[styles.ph5, styles.pb5]}
                 success
                 large={largeButton}
-                text={translate('common.confirm')}
+                text={buttonText ?? translate('common.confirm')}
                 pressOnEnter
                 onPress={() => {
                     if (error) {

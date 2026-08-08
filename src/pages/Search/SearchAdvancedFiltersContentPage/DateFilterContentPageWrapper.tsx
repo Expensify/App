@@ -10,7 +10,7 @@ import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-function DateFilterContentPageWrapper({baseFilterKey, value: initialValue, hasFeed, onChange}: DateFilterContentWrapperProps) {
+function DateFilterContentPageWrapper({baseFilterKey, value: initialValue, hasFeed, buttonText, onChange}: DateFilterContentWrapperProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(initialValue);
@@ -33,7 +33,7 @@ function DateFilterContentPageWrapper({baseFilterKey, value: initialValue, hasFe
                     style={[styles.ph5, styles.pb5, styles.pt3]}
                     success
                     large
-                    text={translate('common.confirm')}
+                    text={buttonText ?? translate('common.confirm')}
                     pressOnEnter
                     onPress={() => onChange(value)}
                 />

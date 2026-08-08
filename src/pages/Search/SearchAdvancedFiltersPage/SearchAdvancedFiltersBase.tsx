@@ -3,6 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import FilterList from '@components/Search/FilterComponents/AdvancedFilters/FilterList';
 
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -15,12 +16,14 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React, {useContext} from 'react';
+import {View} from 'react-native';
 
 function SearchAdvancedFiltersBase() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currentDraftFilters, shouldShowResetFilters} = useContext(SearchAdvancedFiltersContext);
     const {applyFilters, resetFilters} = useContext(SearchAdvancedFiltersActionContext);
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     return (
         <ScreenWrapper
@@ -36,21 +39,23 @@ function SearchAdvancedFiltersBase() {
                 policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, currentDraftFilters)}
                 onPress={(filterKey) => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(filterKey))}
             />
-            {shouldShowResetFilters && (
+            <View style={[styles.ph5, styles.pb5, isInLandscapeMode ? [styles.flexRow, styles.gap2] : [styles.gap3]]}>
+                {shouldShowResetFilters && (
+                    <Button
+                        style={[isInLandscapeMode ? styles.flex1 : undefined]}
+                        large
+                        text={translate('common.reset')}
+                        onPress={resetFilters}
+                    />
+                )}
                 <Button
-                    style={[styles.ph5, styles.pb3]}
+                    style={[isInLandscapeMode ? styles.flex1 : undefined]}
+                    success
                     large
-                    text={translate('common.reset')}
-                    onPress={resetFilters}
+                    text={translate('search.applyFilters')}
+                    onPress={applyFilters}
                 />
-            )}
-            <Button
-                style={[styles.ph5, styles.pb5]}
-                success
-                large
-                text={translate('search.applyFilters')}
-                onPress={applyFilters}
-            />
+            </View>
         </ScreenWrapper>
     );
 }
