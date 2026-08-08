@@ -246,22 +246,27 @@ function buildOptimisticTransactions(transactionList: TransactionFromCSV[], card
  * @param accountID - The current (importing) user's accountID, used as the cardholder for a new optimistic card
  * @param existingCardID - Optional cardID to add transactions to an existing card instead of creating a new one
  * @param previouslySavedLayout - Optional previous saved layout, used to fall back to the settings of the last import and to restore on failure
+ * @param currentCardSettings - Optional current values of the card being imported into, which win over the saved layout
  */
 async function importTransactionsFromCSV(
     spreadsheet: ImportedSpreadsheet,
     accountID: number,
     existingCardID?: number,
     previouslySavedLayout?: SavedCSVColumnLayoutData,
+    currentCardSettings?: Pick<ImportTransactionSettings, 'cardDisplayName' | 'isReimbursable'>,
 ): Promise<ImportFinalModal> {
     const settings = spreadsheet.importTransactionSettings ?? {};
 
     // Uploading another file to an existing card skips the import settings page, so the first upload's settings are
     // no longer in Onyx. That card's saved layout still holds them, so prefer it over the hard defaults.
+    // The name and the reimbursable flag can also be changed from the card itself afterwards, and those edits never
+    // reach the saved layout, so the card's current values win over it. Currency and the sign flip have no such
+    // control, which leaves the saved layout authoritative for them.
     // Required<> keeps this exhaustive: a new import setting will not compile until it is given a fallback here.
     const resolvedSettings: Required<ImportTransactionSettings> = {
-        cardDisplayName: settings.cardDisplayName ?? previouslySavedLayout?.name ?? 'Imported Card',
+        cardDisplayName: settings.cardDisplayName ?? currentCardSettings?.cardDisplayName ?? previouslySavedLayout?.name ?? 'Imported Card',
         currency: settings.currency ?? previouslySavedLayout?.accountDetails?.currency ?? CONST.CURRENCY.USD,
-        isReimbursable: settings.isReimbursable ?? previouslySavedLayout?.reimbursable ?? true,
+        isReimbursable: settings.isReimbursable ?? currentCardSettings?.isReimbursable ?? previouslySavedLayout?.reimbursable ?? true,
         flipAmountSign: settings.flipAmountSign ?? previouslySavedLayout?.flipAmountSign ?? false,
     };
     const {cardDisplayName, currency, isReimbursable, flipAmountSign} = resolvedSettings;
