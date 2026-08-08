@@ -36,12 +36,12 @@ import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
-import {getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
+import {getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions'
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'getCurrencyDecimals'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
@@ -52,7 +52,15 @@ type LegacyChangeTransactionsReportProps = Omit<
 
 function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, personalPolicyOutputCurrency, selfDMReportActions, ...rest}: LegacyChangeTransactionsReportProps) {
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
-    changeTransactionsReportAction({transactionIDs, transactions, allTransactionViolation: transactionViolations, personalPolicyOutputCurrency, selfDMReportActions, ...rest});
+    changeTransactionsReportAction({
+        transactionIDs,
+        transactions,
+        allTransactionViolation: transactionViolations,
+        personalPolicyOutputCurrency,
+        selfDMReportActions,
+        getCurrencyDecimals: getCurrencyDecimalsLocal,
+        ...rest,
+    });
 }
 
 const topMostReportID = '23423423';
@@ -206,7 +214,7 @@ describe('actions/Transaction', () => {
 
             await waitForBatchedUpdates();
 
-            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL], false);
+            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL], false, getCurrencyDecimalsLocal);
             // Create a tracked expense
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
@@ -594,6 +602,7 @@ describe('actions/Transaction', () => {
                     },
                 });
                 requestMoney({
+                    conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
                         payeeEmail: RORY_EMAIL,
@@ -720,7 +729,6 @@ describe('actions/Transaction', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
-                    iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
                     allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -772,6 +780,7 @@ describe('actions/Transaction', () => {
                     },
                 });
                 requestMoney({
+                    conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
                         payeeEmail: CARLOS_EMAIL,
@@ -898,7 +907,6 @@ describe('actions/Transaction', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
-                    iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
                     allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -955,6 +963,7 @@ describe('actions/Transaction', () => {
                 });
 
                 requestMoney({
+                    conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
                         payeeEmail: RORY_EMAIL,
@@ -1090,7 +1099,6 @@ describe('actions/Transaction', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
-                    iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
                     allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -1148,6 +1156,7 @@ describe('actions/Transaction', () => {
 
                 // Create the initial expense
                 requestMoney({
+                    conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
                         payeeEmail: RORY_EMAIL,
@@ -1304,7 +1313,6 @@ describe('actions/Transaction', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
-                    iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
                     allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},

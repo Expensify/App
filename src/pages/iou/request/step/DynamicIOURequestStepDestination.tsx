@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -26,7 +27,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit, getPolicyByCustomUnitID, isPolicyAdmin} from '@libs/PolicyUtils';
 import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import variables from '@styles/variables';
 
@@ -87,6 +87,7 @@ function DynamicIOURequestStepDestination({
     explicitPolicyID,
     ref,
 }: DynamicIOURequestStepDestinationProps) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const isEditPage = name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT;
     const backPath = useDynamicBackPath(isEditPage ? DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.path : DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -121,12 +122,6 @@ function DynamicIOURequestStepDestination({
     const isLoading = !isOffline && (!customUnit?.rates || isLoadingOnyxValue(policyMetadata));
     const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline && !isLoading;
     const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'IOURequestStepDestination',
-        isLoading,
-        isOffline,
-        hasCustomUnitRates: !isEmptyObject(customUnit?.rates),
-    };
 
     const navigateBack = () => {
         Navigation.goBack(backPath);
@@ -157,7 +152,7 @@ function DynamicIOURequestStepDestination({
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, targetIouType !== CONST.IOU.TYPE.TRACK);
                 setCustomUnitID(transactionID, customUnit.customUnitID);
-                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
+                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined, getCurrencyDecimals);
             }
             setCustomUnitRateID(transactionID, destination.keyForList ?? '', transaction, policy, false, personalPolicy?.outputCurrency);
             setMoneyRequestCurrency(transactionID, destination.currency);
@@ -210,7 +205,7 @@ function DynamicIOURequestStepDestination({
             return;
         }
         setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
+        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined, getCurrencyDecimals);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionID, policy?.customUnits, transaction?.iouRequestType]);
 
@@ -234,7 +229,6 @@ function DynamicIOURequestStepDestination({
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        reasonAttributes={reasonAttributes}
                     />
                 )}
                 {shouldShowOfflineView && <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>}
