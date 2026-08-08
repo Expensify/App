@@ -243,6 +243,7 @@ describe('PaymentUtils', () => {
             selectPaymentType(params);
 
             expect(approveMoneyRequest).toHaveBeenCalledWith({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
                 currentUserAccountIDParam: params.currentAccountID,
@@ -272,6 +273,7 @@ describe('PaymentUtils', () => {
             selectPaymentType(params);
 
             expect(approveMoneyRequest).toHaveBeenCalledWith({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
                 currentUserAccountIDParam: params.currentAccountID,

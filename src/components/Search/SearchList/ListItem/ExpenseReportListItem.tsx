@@ -345,6 +345,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         delegateAccountID,
         isTrackIntentUser,
         conciergeChat,
+        getCurrencyDecimals,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {
