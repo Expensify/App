@@ -338,6 +338,7 @@ function IOURequestStepConfirmation({
             conciergeReportID,
             reportDrafts,
             translate,
+            formatPhoneNumber,
             currentUserPersonalDetails.accountID,
         ],
     );
