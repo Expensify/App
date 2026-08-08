@@ -98,6 +98,7 @@ import {doesPersonalDetailExistSelector} from '@src/selectors/PersonalDetails';
 import type {BillingGraceEndPeriod, ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import arraysEqual from '@src/utils/arraysEqual';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -810,15 +811,29 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const getCSVExportParameters = useCallback(
         (isBasicExport: boolean, queryJSONToExport: SearchQueryJSON | undefined, exactMatchFilterKeys?: ReadonlySet<SearchFilterKey>) => {
-            const columnsToExport = getColumnsToShow({
-                currentAccountID: accountID,
-                data: exportSearchData ?? {},
-                visibleColumns,
-                type: exportSearchType,
-                groupBy: getValidGroupBy(queryJSON?.groupBy),
-                shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && !!queryJSON && isDefaultExpensesQuery(queryJSON),
-                fallbackPolicyID: policyForMovingExpensesID,
-            });
+            const groupBy = getValidGroupBy(queryJSON?.groupBy);
+            let columnsToExport: SearchColumnType[];
+
+            if (groupBy) {
+                // The expense rows of a grouped export carry the expense columns configured for the view, so the
+                // group columns getColumnsToShow resolves for a grouped search are not what the export needs. Its
+                // pass that hides columns with no data is skipped too: a grouped snapshot holds only groups (each
+                // group's expenses arrive when it is expanded), so every expense column would look empty.
+                const expensePermittedColumns: string[] = Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
+                const expenseColumns: SearchColumnType[] = (visibleColumns ?? []).filter((column) => expensePermittedColumns.includes(column));
+                const defaultExpenseColumns: SearchColumnType[] = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE);
+                columnsToExport =
+                    expenseColumns.length === 0 || arraysEqual(defaultExpenseColumns, expenseColumns) ? defaultExpenseColumns : [CONST.SEARCH.TABLE_COLUMNS.TYPE, ...expenseColumns];
+            } else {
+                columnsToExport = getColumnsToShow({
+                    currentAccountID: accountID,
+                    data: exportSearchData ?? {},
+                    visibleColumns,
+                    type: exportSearchType,
+                    shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && !!queryJSON && isDefaultExpensesQuery(queryJSON),
+                    fallbackPolicyID: policyForMovingExpensesID,
+                });
+            }
 
             const exportColumnLabels: Partial<Record<SearchColumnType, string>> = {};
             for (const column of columnsToExport) {
@@ -1741,16 +1756,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             // "Current view" is pinned directly under the accounting actions.
-            // For grouped exports there's no separate basic export - the backend expects isBasicExport to be true, so handleBasicExport
-            // powers the current view here (see https://github.com/Expensify/Expensify/issues/652978).
             exportOptions.push({
                 text: translate('export.currentView'),
                 icon: expensifyIcons.Table,
                 onSelected: () => {
-                    if (isGroupedSearch) {
-                        handleBasicExport();
-                        return;
-                    }
                     handleExportCurrentView();
                 },
                 shouldCloseModalOnSelect: true,

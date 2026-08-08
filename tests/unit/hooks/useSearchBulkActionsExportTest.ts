@@ -5,6 +5,7 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
+import {exportSearchItemsToCSV} from '@libs/actions/Search';
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
 
 import CONST from '@src/CONST';
@@ -180,8 +181,11 @@ jest.mock('@libs/SearchUIUtils', () => ({
     shouldShowDeleteOption: () => false,
     getSelectedGroupFilterEntry: jest.fn(),
     navigateToSearchRHP: jest.fn(),
-    // The export queries under test are not grouped, so this resolves to undefined.
     getValidGroupBy: jest.fn((groupBy?: string) => groupBy),
+    // Column labels are asserted as keys rather than translations, so the label lookup is the identity.
+    getSearchColumnTranslationKey: jest.fn((column: string) => column),
+    // A grouped export resolves its columns without this, so a call from a grouped case is itself a failure.
+    getColumnsToShow: jest.fn(() => []),
 }));
 
 jest.mock('@hooks/useDuplicateTransactionsAndViolations', () => ({
@@ -264,6 +268,13 @@ const expenseReportQueryJSON: SearchQueryJSON = {
     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
     view: CONST.SEARCH.VIEW.TABLE,
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense-report'},
+};
+
+const groupedExpenseQueryJSON: SearchQueryJSON = {
+    ...expenseReportQueryJSON,
+    inputQuery: 'type:expense groupBy:category',
+    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+    groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
 };
 
 function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedReports {
@@ -349,6 +360,26 @@ function getExportSubMenuItems(headerButtonsOptions: ReturnType<typeof useSearch
 function getExportOptionTexts(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions']) {
     const exportOption = headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
     return exportOption?.subMenuItems?.map((item) => item.text) ?? (exportOption ? [exportOption.text] : []);
+}
+
+/** The export menu collapses into a single top-level option when it holds only one item, so look in both shapes. */
+function getExportOptionByText(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions'], text: string) {
+    const exportOption = headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+    if (!exportOption) {
+        return undefined;
+    }
+    return exportOption.subMenuItems?.find((item) => item.text === text) ?? (exportOption.text === text ? exportOption : undefined);
+}
+
+/** The parameters the last plain-CSV export sent to the backend, with the serialized query parsed back. */
+function getLastCSVExportParameters() {
+    const [parameters] = jest.mocked(exportSearchItemsToCSV).mock.calls.at(-1) ?? [];
+    if (!parameters) {
+        throw new Error('exportSearchItemsToCSV was not called');
+    }
+    const query: unknown = JSON.parse(parameters.jsonQuery);
+    const columnLabels: unknown = JSON.parse(parameters.exportColumnLabels);
+    return {...parameters, query, columnLabels};
 }
 
 // ---------------------------------------------------------------------------
@@ -474,16 +505,97 @@ describe('useSearchBulkActions - export options', () => {
             }),
         };
 
-        const groupedExpenseQueryJSON: SearchQueryJSON = {
-            ...expenseReportQueryJSON,
-            inputQuery: 'type:expense groupBy:category',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
-        };
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView']);
         });
+    });
+
+    it('offers Current view as the only plain-CSV export on a grouped search', async () => {
+        /**
+         * A grouped basic export produces a fixed set of columns, which is fewer than Current view gives most
+         * configured views. Offering both would leave the user choosing between two similarly named exports
+         * where the more official-sounding one carries less of their data.
+         */
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        expect(getExportOptionTexts(result.current.headerButtonsOptions)).not.toContain('export.basicExport');
+    });
+
+    it('exports the current view of a grouped search with the default expense columns', async () => {
+        /**
+         * Given: a grouped search the user has not customised any columns on.
+         *
+         * When: Current view is selected.
+         *
+         * Then: the request is a current-view export (not a basic one) carrying the view's default expense
+         *       columns - including From, whose absence is the reported bug. The columns cannot come from the
+         *       data-presence pass in getColumnsToShow, because a grouped snapshot has no transactions to see.
+         */
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+
+        const defaultExpenseColumns: string[] = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE);
+        const {isBasicExport, query, columnLabels} = getLastCSVExportParameters();
+        expect(isBasicExport).toBe(false);
+        expect(defaultExpenseColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.FROM);
+        expect(query).toEqual(expect.objectContaining({columns: defaultExpenseColumns}));
+
+        // translate and the column translation key are both mocked as the identity here, so every column
+        // carries a label of its own name - what matters is that a label is sent for each one.
+        expect(columnLabels).toEqual(Object.fromEntries(defaultExpenseColumns.map((column) => [column, column])));
+    });
+
+    it('exports the current view of a grouped search with the configured expense columns in order', async () => {
+        /**
+         * Given: a grouped search whose visible columns mix expense columns with a group-level one.
+         *
+         * When: Current view is selected.
+         *
+         * Then: only the expense columns are requested, in the order the user arranged them, since the group
+         *       summary block keeps its own fixed columns.
+         */
+        await Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {
+            columns: [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, CONST.SEARCH.TABLE_COLUMNS.TAG, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.FROM],
+        });
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+
+        const {isBasicExport, query} = getLastCSVExportParameters();
+        expect(isBasicExport).toBe(false);
+        expect(query).toEqual(
+            expect.objectContaining({
+                columns: [CONST.SEARCH.TABLE_COLUMNS.TYPE, CONST.SEARCH.TABLE_COLUMNS.TAG, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.FROM],
+            }),
+        );
     });
 });
