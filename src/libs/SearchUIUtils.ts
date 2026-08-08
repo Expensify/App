@@ -156,6 +156,7 @@ import {
     generateReportID,
     getIcons,
     getMoneyRequestSpendBreakdown,
+    getPendingDeleteMemberAccountIDs,
     getPersonalDetailsForAccountID,
     getPolicyName,
     getReimbursableTotal,
@@ -2432,8 +2433,9 @@ function getSearchReportAvatarProps(
     personalDetailsList: OnyxTypes.PersonalDetailsList,
     policy?: OnyxTypes.Policy,
     isReportArchived = false,
+    pendingDeleteMemberAccountIDs?: string[],
 ) {
-    const avatarIcons = getIcons(report, formatPhoneNumber, translate, personalDetailsList, null, '', -1, policy, undefined, isReportArchived);
+    const avatarIcons = getIcons(report, formatPhoneNumber, translate, personalDetailsList, null, '', -1, policy, undefined, isReportArchived, pendingDeleteMemberAccountIDs);
     const hasSecondAvatar = avatarIcons.length > 1 && !!avatarIcons.at(1)?.name;
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>;
@@ -2739,7 +2741,20 @@ function getTaskSections(
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`]);
                 const parentReportName = deprecatedGetReportName(parentReport, reportAttributesDerivedValue);
-                const icons = getIcons(parentReport, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
+                const parentReportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${parentReport.reportID}`];
+                const icons = getIcons(
+                    parentReport,
+                    formatPhoneNumber,
+                    translate,
+                    personalDetails,
+                    null,
+                    '',
+                    -1,
+                    policy,
+                    undefined,
+                    isParentReportArchived,
+                    getPendingDeleteMemberAccountIDs(parentReportMetadata?.pendingChatMembers),
+                );
                 const parentReportIcon = icons?.at(0);
 
                 result.parentReportName = parentReportName;
@@ -3040,7 +3055,15 @@ function getReportSections({
 
                 const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(reportItem);
                 const reportIsArchived = isArchivedReport(getReportNameValuePairsFromKey(data, reportItem));
-                const avatarProps = getSearchReportAvatarProps(reportItem, formatPhoneNumber, translate, mergedPersonalDetails, policy, reportIsArchived);
+                const avatarProps = getSearchReportAvatarProps(
+                    reportItem,
+                    formatPhoneNumber,
+                    translate,
+                    mergedPersonalDetails,
+                    policy,
+                    reportIsArchived,
+                    getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers),
+                );
 
                 const isRejectedReport =
                     reportItem.stateNum === CONST.REPORT.STATE_NUM.OPEN &&
