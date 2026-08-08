@@ -6392,7 +6392,6 @@ function getParentNavigationSubtitle(
     translate: LocalizedTranslate,
     parentReportName: string | undefined,
     isParentReportArchived = false,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
 

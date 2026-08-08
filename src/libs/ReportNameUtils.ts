@@ -339,7 +339,6 @@ function getInvoicesChatName({
     policy,
     currentUserAccountID,
     translate,
-    formatPhoneNumber,
 }: {
     report: OnyxEntry<Report>;
     receiverPolicy: OnyxEntry<Policy>;
@@ -347,7 +346,6 @@ function getInvoicesChatName({
     policy: OnyxEntry<Policy>;
     currentUserAccountID?: number;
     translate: LocalizedTranslate;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
@@ -1148,7 +1146,6 @@ function computeReportName({
             currentUserAccountID,
             policy,
             translate,
-            formatPhoneNumber,
         });
     }
 

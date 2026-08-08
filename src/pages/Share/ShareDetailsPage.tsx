@@ -96,7 +96,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 reportAttributesDerived,
                 formatPhoneNumber,
             }),
-        [report, unknownUserDetails, personalDetails, privateIsArchived, policy, conciergeReportID, translate, currentUserAccountID, reportAttributesDerived],
+        [report, unknownUserDetails, personalDetails, privateIsArchived, policy, conciergeReportID, translate, currentUserAccountID, reportAttributesDerived, formatPhoneNumber],
     );
 
     const shouldShowAttachment = !isTextShared;
