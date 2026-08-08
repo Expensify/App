@@ -3395,7 +3395,7 @@ describe('ReportUtils', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             });
 
-            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined, translateLocal, undefined, false);
+            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined, translateLocal, undefined);
             expect(actual.workspaceName).toBe('Direct Policy Name');
         });
 
@@ -3423,14 +3423,14 @@ describe('ReportUtils', () => {
             };
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}200`, parentInvoiceRoom).then(() => {
-                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined, translateLocal, undefined, false);
+                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined, translateLocal, undefined);
                 const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
                 expect(normalizedActual.reportName).toContain('Invoice Policy');
             });
         });
 
         it('should fall back to allPolicies when policy parameter is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined, false);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             // Should still resolve via Onyx-connected allPolicies or report.policyName
             expect(normalizedActual.reportName).toContain('A workspace');
@@ -3443,7 +3443,7 @@ describe('ReportUtils', () => {
                 reportName: 'Chat Report',
                 type: CONST.REPORT.TYPE.CHAT,
             };
-            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined, translateLocal, undefined, false);
+            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined, translateLocal, undefined);
             expect(actual).toEqual({});
         });
 
@@ -3470,13 +3470,13 @@ describe('ReportUtils', () => {
             })
                 .then(waitForBatchedUpdates)
                 .then(() => {
-                    const actual = getParentNavigationSubtitle(childReport, undefined, conciergeReportID, translateLocal, 'Concierge', false);
+                    const actual = getParentNavigationSubtitle(childReport, undefined, conciergeReportID, translateLocal, 'Concierge');
                     expect(actual.reportName).toBe('Concierge');
                 });
         });
 
         it('should return reportName and workspaceName when parent report exists and conciergeReportID is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined, false);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined);
             expect(actual).toHaveProperty('reportName');
         });
 
@@ -3488,7 +3488,7 @@ describe('ReportUtils', () => {
             const expenseReport = {reportID: '780051', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: hiddenOwnerAccountID};
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
 
-            const actual = getParentNavigationSubtitle(expenseReport, undefined, undefined, translateWithHiddenMarker, undefined, false);
+            const actual = getParentNavigationSubtitle(expenseReport, undefined, undefined, translateWithHiddenMarker, undefined);
             expect(actual.reportName).toContain('HiddenMarker');
         });
     });
