@@ -214,6 +214,13 @@ class IntlStore {
         return this.currentLocale;
     }
 
+    /**
+     * Returns the date-fns locale to format dates in, which is undefined until that locale's date-fns module has loaded.
+     */
+    public static getDateFnsLocale(locale: Locale | undefined) {
+        return locale ? this.dateUtilsCache.get(locale) : undefined;
+    }
+
     public static load(locale: Locale) {
         if (this.currentLocale === locale) {
             return Promise.resolve();

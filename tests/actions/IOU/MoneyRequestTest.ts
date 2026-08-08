@@ -847,6 +847,7 @@ describe('MoneyRequest', () => {
 
         it('should go back when backTo is provided', () => {
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 backTo,
                 draftTransactionIDs: [baseParams.transactionID],
@@ -858,13 +859,7 @@ describe('MoneyRequest', () => {
         });
 
         it('should default draftTransactionIDs to empty array when undefined is passed', () => {
-            handleMoneyRequestStepDistanceNavigation({
-                ...baseParams,
-                backTo,
-                draftTransactionIDs: undefined,
-                delegateAccountID: undefined,
-                getCurrencySymbol,
-            });
+            handleMoneyRequestStepDistanceNavigation({dateFnsLocale: undefined, ...baseParams, backTo, draftTransactionIDs: undefined, delegateAccountID: undefined, getCurrencySymbol});
 
             expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
         });
@@ -876,6 +871,7 @@ describe('MoneyRequest', () => {
             };
 
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 transaction: splitTransaction,
                 manualDistance: undefined,
@@ -891,6 +887,7 @@ describe('MoneyRequest', () => {
 
         it('call trackExpense for TRACK iouType when from manual distance step and skipping confirmation', async () => {
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 manualDistance: 20,
                 shouldSkipConfirmation: true,
@@ -944,6 +941,7 @@ describe('MoneyRequest', () => {
             };
 
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 transaction: movedTransaction,
                 manualDistance: 20,
@@ -968,6 +966,7 @@ describe('MoneyRequest', () => {
         // createDistanceRequest writes under the draft transaction, so cleanup must target that id — not the UI's optimistic one.
         it('should pass the written transaction id from createDistanceRequest (not the draft or optimistic id) to cleanup for a non-track distance submission', async () => {
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 shouldSkipConfirmation: true,
                 manualDistance: 20,
@@ -1014,6 +1013,7 @@ describe('MoneyRequest', () => {
                 },
             };
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 policyForMovingExpenses,
                 manualDistance: undefined,
@@ -1082,6 +1082,7 @@ describe('MoneyRequest', () => {
 
         it('should call createDistanceRequest for non-TRACK iouType when from manual distance step and skipping confirmation', async () => {
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 shouldSkipConfirmation: true,
                 manualDistance: 20,
@@ -1126,6 +1127,7 @@ describe('MoneyRequest', () => {
 
         it('should call createDistanceRequest for non-TRACK iouType when not from manual distance step and skipping confirmation', () => {
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 shouldSkipConfirmation: true,
                 manualDistance: undefined,
@@ -1170,6 +1172,7 @@ describe('MoneyRequest', () => {
 
         it('should navigate to confirmation page when not skipping confirmation', async () => {
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 shouldSkipConfirmation: false,
                 iouType: CONST.IOU.TYPE.SUBMIT,
@@ -1206,6 +1209,7 @@ describe('MoneyRequest', () => {
             };
 
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 report: undefined,
                 defaultExpensePolicy,
@@ -1250,6 +1254,7 @@ describe('MoneyRequest', () => {
             };
 
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 report: undefined,
                 defaultExpensePolicy,
@@ -1266,6 +1271,7 @@ describe('MoneyRequest', () => {
 
         it('should navigate to participants page when the user click create expense option (combined submit/track flow)', () => {
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.CREATE,
                 draftTransactionIDs: [baseParams.transactionID],
@@ -1278,6 +1284,7 @@ describe('MoneyRequest', () => {
 
         it('should pass amountOwed through to shouldUseDefaultExpensePolicy and navigate to participants page when no default policy', () => {
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 report: undefined,
                 defaultExpensePolicy: undefined,
@@ -1293,6 +1300,7 @@ describe('MoneyRequest', () => {
         it('should pass ownerBillingGracePeriodEnd through to shouldUseDefaultExpensePolicy', () => {
             const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 report: undefined,
                 defaultExpensePolicy: undefined,
@@ -1308,6 +1316,7 @@ describe('MoneyRequest', () => {
 
         it('should pass currentUserAccountID to shouldUseDefaultExpensePolicy so the billing restriction uses the explicit account, not the deprecated session value', () => {
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 report: undefined,
                 defaultExpensePolicy: fakePolicy,
@@ -1323,6 +1332,7 @@ describe('MoneyRequest', () => {
         it('should pass conciergeReportID through to getMoneyRequestParticipantOptions when report exists', async () => {
             const conciergeReportID = 'concierge789';
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 shouldSkipConfirmation: false,
@@ -1341,6 +1351,7 @@ describe('MoneyRequest', () => {
 
         it('should set distance request data when conciergeReportID is undefined', async () => {
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 shouldSkipConfirmation: false,
@@ -1358,6 +1369,7 @@ describe('MoneyRequest', () => {
         it('should pass reportDraft to getMoneyRequestParticipantOptions and mark participant as disabled', async () => {
             let capturedParticipants: Participant[] = [];
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 shouldSkipConfirmation: false,
@@ -1379,6 +1391,7 @@ describe('MoneyRequest', () => {
         it('should not mark participant as disabled when reportDraft is undefined', async () => {
             let capturedParticipants: Participant[] = [];
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 shouldSkipConfirmation: false,
@@ -1404,6 +1417,7 @@ describe('MoneyRequest', () => {
             };
 
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 transaction: splitTransaction,
                 odometerDistance: 15,
@@ -1419,6 +1433,7 @@ describe('MoneyRequest', () => {
 
         it('should call trackExpense with odometerDistance as distance and forward odometerStart and odometerEnd', () => {
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 odometerDistance: 25,
                 odometerStart: 1000,
@@ -1445,6 +1460,7 @@ describe('MoneyRequest', () => {
 
         it('should call trackExpense with gpsDistance as distance and forward gpsCoordinates', () => {
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 gpsDistance: 5000,
                 gpsCoordinates: '37.7749,-122.4194',
@@ -1468,6 +1484,7 @@ describe('MoneyRequest', () => {
 
         it('should call createDistanceRequest with gpsDistance as distance and forward gpsCoordinates for non-TRACK iouType', () => {
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 gpsDistance: 3000,
                 gpsCoordinates: '40.7128,-74.0060',
@@ -1491,6 +1508,7 @@ describe('MoneyRequest', () => {
 
         it('should navigate to participants page when isArchivedExpenseReport is true even when report exists', () => {
             handleMoneyRequestStepDistanceNavigation({
+                dateFnsLocale: undefined,
                 ...baseParams,
                 report: fakeReport,
                 isArchivedExpenseReport: true,
@@ -1527,17 +1545,39 @@ describe('MoneyRequest', () => {
         });
 
         it('should return participants when conciergeReportID is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should return participants when conciergeReportID is provided', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, 'concierge123', undefined, undefined, undefined, translateLocal);
+            const participants = getMoneyRequestParticipantOptions(
+                currentUserAccountID,
+                fakeReport,
+                fakePolicy,
+                {},
+                'concierge123',
+                undefined,
+                undefined,
+                undefined,
+                translateLocal,
+                undefined,
+            );
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should pass conciergeReportID through to getReportOption for policy expense chat participants', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, 'concierge456', undefined, undefined, undefined, translateLocal);
+            const participants = getMoneyRequestParticipantOptions(
+                currentUserAccountID,
+                fakeReport,
+                fakePolicy,
+                {},
+                'concierge456',
+                undefined,
+                undefined,
+                undefined,
+                translateLocal,
+                undefined,
+            );
             // For policy expense chat, participants have accountID 0 and go through getReportOption
             // which uses conciergeReportID for identifying concierge chat
             expect(Array.isArray(participants)).toBe(true);
@@ -1545,7 +1585,7 @@ describe('MoneyRequest', () => {
         });
 
         it('should return participants with privateIsArchived passed through', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, true, undefined, undefined, translateLocal);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, true, undefined, undefined, translateLocal, undefined);
             expect(Array.isArray(participants)).toBe(true);
         });
 
@@ -1554,26 +1594,26 @@ describe('MoneyRequest', () => {
                 ...createRandomReport(2, undefined),
                 participants: {},
             };
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, dmReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, dmReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should mark policy expense chat participant as disabled when reportDrafts contains the report', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, fakeReport, translateLocal);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, fakeReport, translateLocal, undefined);
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             expect(participants.at(0)).toMatchObject({isDisabled: true});
         });
 
         it('should not mark participant as disabled when reportDraft is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             expect(participants.at(0)).toMatchObject({isDisabled: false});
         });
 
         it('should not mark participant as disabled when reportDrafts is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             // When reportDrafts is undefined, isDraftReport is called which checks Onyx directly

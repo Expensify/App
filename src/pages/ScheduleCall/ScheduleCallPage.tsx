@@ -51,7 +51,7 @@ const adminReportNameValuePairsSelector = (data?: ReportNameValuePairs) => ({
 
 function ScheduleCallPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const route = useRoute<PlatformStackRouteProp<ScheduleCallParamList, typeof SCREENS.SCHEDULE_CALL.BOOK>>();
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -122,7 +122,7 @@ function ScheduleCallPage() {
         // Group time slots by date to render per day slots on calendar
         const timeSlotMap: Record<string, TimeSlot[]> = {};
         for (const timeSlot of allTimeSlots) {
-            const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
+            const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING, {locale: dateFnsLocale});
             if (!timeSlotMap[timeSlotDate]) {
                 timeSlotMap[timeSlotDate] = [];
             }
@@ -135,7 +135,7 @@ function ScheduleCallPage() {
         }
 
         return timeSlotMap;
-    }, [calendlySchedule?.data, userTimezone]);
+    }, [calendlySchedule?.data, userTimezone, dateFnsLocale]);
 
     const selectableDates = Object.keys(timeSlotDateMap).sort(compareAsc);
     const firstDate = selectableDates.at(0);
@@ -217,7 +217,7 @@ function ScheduleCallPage() {
                                 <Text style={[styles.mb5]}>
                                     <RenderHTML
                                         html={translate('scheduledCall.book.slots', {
-                                            date: DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT),
+                                            date: DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT, {locale: dateFnsLocale}),
                                         })}
                                     />
                                 </Text>
@@ -241,7 +241,7 @@ function ScheduleCallPage() {
                                             }}
                                             shouldEnableHapticFeedback
                                             style={styles.twoColumnLayoutCol}
-                                            text={DateUtils.formatInTimeZoneWithFallback(timeSlot.startTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)}
+                                            text={DateUtils.formatInTimeZoneWithFallback(timeSlot.startTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}
                                         />
                                     ))}
                                     {timeFillerItem}

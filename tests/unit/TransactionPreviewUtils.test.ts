@@ -22,6 +22,7 @@ import {convertToDisplayString} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const basicProps = {
+    dateFnsLocale: undefined,
     iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD'),
     iouReportOwnerLogin: undefined,
     policy: undefined,
