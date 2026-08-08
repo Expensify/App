@@ -110,7 +110,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         transactionsWithoutPendingDelete.length > 0 && transactionsWithoutPendingDelete.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
     const isSelected = liveRowSelected || areAllReportTransactionsSelected;
     const {translate} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
@@ -245,6 +245,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
+            getCurrencyDecimals,
             hash: currentSearchHash,
             item: liveReportItem,
             goToItem: () => onSelectRow(reportItem as unknown as TItem),
@@ -344,6 +345,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         delegateAccountID,
         isTrackIntentUser,
         conciergeChat,
+        getCurrencyDecimals,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {

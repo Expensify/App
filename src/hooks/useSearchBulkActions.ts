@@ -959,6 +959,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 !!expenseReport.policyID && shouldRestrictUserBillableActions(reportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID);
 
             approveMoneyRequest({
+                getCurrencyDecimals,
                 expenseReport,
                 expenseReportPolicy: reportPolicy,
                 currentUserAccountIDParam: accountID,
@@ -1015,6 +1016,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isTrackIntentUser,
         personalDetails,
         delegateAccountID,
+        getCurrencyDecimals,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
