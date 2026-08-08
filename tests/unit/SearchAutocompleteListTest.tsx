@@ -169,9 +169,10 @@ const mockedReports = getMockedReports(10);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(10);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, formatPhoneNumber, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
     conciergeReportID: undefined,
     isSearching: true,
+    formatPhoneNumber,
 });
 const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_ENABLED = {addSafeAreaPadding: true};
 const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_DISABLED = {addSafeAreaPadding: false};
