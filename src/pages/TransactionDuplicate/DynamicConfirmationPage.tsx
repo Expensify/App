@@ -66,6 +66,7 @@ function DynamicConfirmationPage() {
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newTransaction?.reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newTransaction?.reportID}`);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
@@ -108,7 +109,15 @@ function DynamicConfirmationPage() {
         // Suppress the NotFound guard for the discarded thread the server tears down on merge.
         const keptReportRoute = ROUTES.REPORT_WITH_ID.getRoute(mergeParams.reportID);
         setDeleteTransactionNavigateBackUrl(keptReportRoute);
-        mergeDuplicates({...mergeParams, ...taxData, currentUserAccountID, currentUserLogin: currentUserLogin ?? '', allTransactionViolations, allReportActionsList: allReportActions});
+        mergeDuplicates({
+            ...mergeParams,
+            ...taxData,
+            currentUserAccountID,
+            currentUserLogin: currentUserLogin ?? '',
+            allTransactionViolations,
+            allReportActionsList: allReportActions,
+            allReportsList: allReports,
+        });
         if (isSuperWideRHPDisplayed) {
             Navigation.dismissToSuperWideRHP();
             return;
