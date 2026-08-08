@@ -5,7 +5,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
-import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
+import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -72,8 +72,9 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const policyChatForActivePolicy: OnyxTypes.Report =
         !isEmptyObject(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && policyChats.length > 0 ? (policyChats.at(0) ?? ({} as OnyxTypes.Report)) : ({} as OnyxTypes.Report);
 
-    const derivedQuickActionReportName = useDerivedReportNameByReportID(quickActionReport?.reportID);
-    const derivedPolicyChatReportName = useDerivedReportNameByReportID(policyChatForActivePolicy?.reportID);
+    const derivedNames = useDerivedReportNamesByReportIDs([quickActionReport?.reportID, policyChatForActivePolicy?.reportID]);
+    const derivedQuickActionReportName = quickActionReport?.reportID ? derivedNames[quickActionReport.reportID] : undefined;
+    const derivedPolicyChatReportName = policyChatForActivePolicy?.reportID ? derivedNames[policyChatForActivePolicy.reportID] : undefined;
 
     const quickActionReportPolicyID = getNonEmptyStringOnyxID(quickActionReport?.policyID);
     const policyChatForActivePolicyPolicyID = getNonEmptyStringOnyxID(policyChatForActivePolicy?.policyID);
