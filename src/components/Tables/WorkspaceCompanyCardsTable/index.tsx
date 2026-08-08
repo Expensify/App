@@ -407,11 +407,11 @@ function WorkspaceCompanyCardsTable({
             title={translate('workspace.common.companyCards')}
             headerComponent={showCards ? composeTableHeaderComponent(headerButtonsComponent, tableControlsComponent) : undefined}
             shouldUseStickyColumnHeader={showCards}
-            ListEmptyComponent={shouldShowPendingUnassignmentLoading ? <Table.LoadingState context="WorkspaceCompanyCardsTable" /> : undefined}
+            ListEmptyComponent={shouldShowPendingUnassignmentLoading ? <Table.LoadingState /> : undefined}
         >
             {!showCards && headerButtonsComponent}
 
-            {isLoading && <Table.LoadingState context="WorkspaceCompanyCardsTable" />}
+            {isLoading && <Table.LoadingState />}
 
             {!isLoading && isFeedPending && !feedErrorKey && (
                 <ScrollView addBottomSafeAreaPadding>

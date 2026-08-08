@@ -102,7 +102,7 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
         return (
             <>
                 {headerComponent}
-                <Table.LoadingState context="AgentsTable" />
+                <Table.LoadingState />
             </>
         );
     }

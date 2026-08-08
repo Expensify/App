@@ -102,7 +102,7 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, headerCompon
         return (
             <>
                 {headerComponent}
-                <Table.LoadingState context="WorkspaceRoomsTable" />
+                <Table.LoadingState />
             </>
         );
     }
