@@ -1820,7 +1820,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
              * Seeds a paid expense report whose action history ends with the given workflow action followed by a PAY
              * action, then cancels the payment and returns the reverted report so state can be asserted.
              */
-            async function cancelPaidReport(reportIDSuffix: string, workflowAction: ReportAction) {
+            async function cancelPaidReport(reportIDSuffix: string, workflowAction: ReportAction, policyOverrides?: Partial<Policy>) {
                 const reportID = `revert-${reportIDSuffix}`;
                 const chatReportID = `revert-chat-${reportIDSuffix}`;
 
@@ -1832,6 +1832,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     ownerAccountID: revertAdminAccountID,
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    ...policyOverrides,
                 };
 
                 const expenseReport: Report = {
@@ -1894,6 +1895,18 @@ describe('actions/IOU/PayMoneyRequest', () => {
             it('returns a delayed-submit report (auto-closed to Done via SUBMITTED_AND_CLOSED) to Done, not Outstanding', async () => {
                 const workflowAction = buildAction('workflow', CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, '2024-01-01 00:00:01.000');
                 const updatedReport = await cancelPaidReport('closed', workflowAction);
+                expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+                expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.CLOSED);
+            });
+
+            it('returns a submit-and-close report to Done when only its optimistic SUBMITTED action exists (payments off, not yet reconciled to SUBMITTED_AND_CLOSED)', async () => {
+                // A submit-and-close report auto-closes to Done on submit, but its optimistic action is a plain SUBMITTED
+                // action (the server reconciles it to SUBMITTED_AND_CLOSED later). Paying + cancelling in that window must
+                // still revert to Done, not misread the SUBMITTED action as an Outstanding instant-submit.
+                const workflowAction = buildAction('workflow', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, '2024-01-01 00:00:01.000');
+                const updatedReport = await cancelPaidReport('submit-and-close', workflowAction, {
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                });
                 expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
                 expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.CLOSED);
             });
