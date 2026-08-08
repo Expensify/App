@@ -463,6 +463,7 @@ function extractTime12Hour(dateTimeString: string, isFullFormat = false): string
         return '';
     }
     const date = new Date(dateTimeString);
+    // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- the AM/PM marker is parsed back by get12HourTimeObjectFromDate, so producer and parser must agree on one language.
     return format(date, isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a');
 }
 
@@ -475,6 +476,7 @@ function formatDateTimeTo12Hour(dateTimeString: string): string {
         return '';
     }
     const date = new Date(dateTimeString);
+    // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- the AM/PM marker is parsed back by get12HourTimeObjectFromDate, so producer and parser must agree on one language.
     return format(date, 'yyyy-MM-dd hh:mm a');
 }
 
@@ -636,6 +638,7 @@ function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {h
         minute: format(parsedTime, 'mm'),
         seconds: isFullFormat ? format(parsedTime, 'ss') : '00',
         milliseconds: isFullFormat ? format(parsedTime, 'SSS') : '000',
+        // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- pairs with the format above; the value is compared against CONST.TIME_PERIOD, not shown as-is.
         period: format(parsedTime, 'a').toUpperCase(),
     };
 }

@@ -225,6 +225,7 @@ function formatDateTimeTo12Hour(dateTimeString: string): string {
         return '';
     }
     const date = new Date(dateTimeString);
+    // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- this string is a per diem sub-rate key that gets matched against stored values, not read by a user.
     return format(date, 'hh:mm a, yyyy-MM-dd');
 }
 
