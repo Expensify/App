@@ -1,3 +1,4 @@
+import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -19,6 +20,7 @@ import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_R
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAncestors from '@hooks/useAncestors';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
@@ -108,6 +110,7 @@ import {
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, getOriginalTransactionWithSplitInfo, isDemoTransaction} from '@libs/TransactionUtils';
+import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete} from '@userActions/IOU/TrackExpense';
@@ -236,6 +239,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const filteredPoliciesInfoSelector = useMemo(() => createFilteredPoliciesInfoSelector(currentUserPersonalDetails?.email), [currentUserPersonalDetails?.email]);
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
     const {showConfirmModal} = useConfirmModal();
@@ -370,7 +374,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
     const shouldShowEditSplitOnDeleteAction = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
-    let deleteMenuItemTitle = translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction});
+    let deleteMenuItemTitle = translate('reportActionContextMenu.deleteAction', requestParentReportAction);
     if (shouldShowEditSplitOnDeleteAction) {
         deleteMenuItemTitle = translate('iou.editSplits');
     } else if (caseID === CASES.DEFAULT) {
@@ -858,12 +862,22 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             );
         }
 
+        const groupChatIcon = icons.at(0);
+        const groupChatAvatarSource = groupChatIcon?.source;
+        const groupChatAvatar = groupChatAvatarSource ? (
+            <UserAvatar
+                source={groupChatAvatarSource}
+                size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                accountID={getAccountIDFromAvatarID(groupChatIcon?.id)}
+                fallbackIcon={groupChatIcon?.fallbackIcon}
+            />
+        ) : null;
+
         return (
             <AvatarWithImagePicker
-                source={icons.at(0)?.source}
-                avatarID={icons.at(0)?.id}
+                source={groupChatAvatarSource}
+                avatar={groupChatAvatar}
                 isUsingDefaultAvatar={!report.avatarUrl}
-                size={CONST.AVATAR_SIZE.XXXX_LARGE}
                 onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                 onImageRemoved={() => {
                     // Calling this without a file will remove the avatar
@@ -1060,6 +1074,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 currentUserEmail: currentUserPersonalDetails.email ?? '',
                 policy: iouPolicy,
+                getCurrencyDecimals,
             });
         } else if (iouTransactionID) {
             const deleteResult = deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
@@ -1098,6 +1113,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         deleteTransactions,
         removeTransaction,
         iouPolicy,
+        getCurrencyDecimals,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
@@ -1146,6 +1162,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     iouReport,
                     chatIOUReport,
                     isChatIOUReportArchived,
+                    getCurrencyDecimals,
                     isSingleTransactionView,
                 );
             } else {
@@ -1156,6 +1173,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     iouReport,
                     chatIOUReport,
                     isChatIOUReportArchived,
+                    getCurrencyDecimals,
                     isSingleTransactionView,
                 );
             }
@@ -1177,6 +1195,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         isChatIOUReportArchived,
         isSingleTransactionView,
         requestParentReportActionChildReport,
+        getCurrencyDecimals,
     ]);
 
     const showDeleteModal = useCallback(async () => {

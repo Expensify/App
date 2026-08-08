@@ -1,8 +1,9 @@
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
-import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -12,12 +13,10 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID, getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
-import {serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isUnreportedManagedCardTransaction} from '@libs/TransactionUtils';
 
@@ -38,25 +37,10 @@ type TransactionGroupListItem = ListItem & {
 };
 
 function SearchTransactionsChangeReport() {
-    const {selectedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
-    const {currentSearchQueryJSON} = useSearchQueryContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
-
-    /** The backend resolves an "all matching" move from the query, so it needs the query and its hash together.
-     *  Without them only the loaded page moves while the UI claims otherwise, so warn instead of degrading silently. */
-    const getAllMatchingQueryParams = (): {jsonQuery?: string; hash?: number} => {
-        if (!areAllMatchingItemsSelected) {
-            return {};
-        }
-        if (!currentSearchQueryJSON) {
-            Log.warn('[SearchTransactionsChangeReport] All matching expenses are selected but the search query is unavailable; only the loaded expenses will be moved.');
-            return {};
-        }
-        return {jsonQuery: serializeQueryJSONForBackend(currentSearchQueryJSON), hash: currentSearchQueryJSON.hash};
-    };
-
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
     const transactions = Object.values(selectedTransactions)
         .map((transactionItem) => transactionItem.transaction)
@@ -82,6 +66,7 @@ function SearchTransactionsChangeReport() {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const firstTransactionKey = selectedTransactionsKeys.at(0);
     const firstTransactionReportID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.reportID : undefined;
@@ -172,6 +157,7 @@ function SearchTransactionsChangeReport() {
             policyForMovingExpenses,
             betas,
             isTrackIntentUser,
+            getCurrencyDecimals,
             false,
             shouldDismissEmptyReportsConfirmation,
             {managedCardTransactionID},
@@ -193,7 +179,7 @@ function SearchTransactionsChangeReport() {
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
-                ...getAllMatchingQueryParams(),
+                getCurrencyDecimals,
             });
             clearSelectedTransactions();
         });
@@ -212,15 +198,13 @@ function SearchTransactionsChangeReport() {
             const firstTransactionID = selectedTransactionsKeys.at(0);
             if (firstTransactionID) {
                 Navigation.navigate(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action: CONST.IOU.ACTION.EDIT,
-                            iouType: CONST.IOU.TYPE.SUBMIT,
-                            transactionID: firstTransactionID,
-                            reportID: selectedTransactions[firstTransactionID]?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
-                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                        }),
-                    ),
+                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.EDIT,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID: firstTransactionID,
+                        reportID: selectedTransactions[firstTransactionID]?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
+                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                    }),
                 );
             }
             return;
@@ -232,15 +216,13 @@ function SearchTransactionsChangeReport() {
         }
         if (shouldNavigateToUpgradePath) {
             Navigation.navigate(
-                createDynamicRoute(
-                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: CONST.IOU.ACTION.CREATE,
-                        iouType: CONST.IOU.TYPE.CREATE,
-                        transactionID: generateReportID(),
-                        reportID: generateReportID(),
-                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                    }),
-                ),
+                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                    action: CONST.IOU.ACTION.CREATE,
+                    iouType: CONST.IOU.TYPE.CREATE,
+                    transactionID: generateReportID(),
+                    reportID: generateReportID(),
+                    upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                }),
             );
             return;
         }
@@ -277,7 +259,7 @@ function SearchTransactionsChangeReport() {
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
-            ...getAllMatchingQueryParams(),
+            getCurrencyDecimals,
         });
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
@@ -300,7 +282,7 @@ function SearchTransactionsChangeReport() {
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
-            ...getAllMatchingQueryParams(),
+            getCurrencyDecimals,
         });
         clearSelectedTransactions();
         Navigation.goBack();

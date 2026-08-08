@@ -1,3 +1,5 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {
     ChangeTransactionsReportParams,
@@ -13,7 +15,6 @@ import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
-import Log from '@libs/Log';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -832,8 +833,7 @@ type ChangeTransactionsReportProps = {
     isTrackIntentUser: boolean | undefined;
     personalPolicyOutputCurrency: string | undefined;
     selfDMReportActions: OnyxEntry<ReportActions>;
-    jsonQuery?: string;
-    hash?: number;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 function getChangeTransactionsReportOnyxData({
@@ -852,6 +852,7 @@ function getChangeTransactionsReportOnyxData({
     isTrackIntentUser,
     personalPolicyOutputCurrency,
     selfDMReportActions,
+    getCurrencyDecimals,
 }: ChangeTransactionsReportProps) {
     const reports = allReportsParam ?? allReports;
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -1102,7 +1103,7 @@ function getChangeTransactionsReportOnyxData({
             created: oldIOUAction?.created ?? DateUtils.getDBTime(),
             ...(!oldIOUAction && {
                 actorAccountID: accountID,
-                message: getIOUReportActionMessage(reportID, actionType, Math.abs(transaction.amount), transaction.comment?.comment ?? '', transaction.currency),
+                message: getIOUReportActionMessage(reportID, actionType, Math.abs(transaction.amount), transaction.comment?.comment ?? '', transaction.currency, getCurrencyDecimals),
             }),
         };
 
@@ -1964,54 +1965,13 @@ function getChangeTransactionsReportOnyxData({
 }
 
 function changeTransactionsReport(props: ChangeTransactionsReportProps) {
-    const reportID = props.newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
-
-    // The "all matching" path needs the query and its hash together. Without the hash it falls through to the
-    // explicit-transaction path and moves only the loaded page while the UI says "all matching", so surface it
-    if (props.jsonQuery && props.hash === undefined) {
-        Log.warn('changeTransactionsReport: received an all-matching jsonQuery without a hash; falling back to the explicit transaction list, which only moves the loaded transactions.');
-    }
-
-    if (props.jsonQuery && props.hash !== undefined) {
-        const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
-        const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
-        const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
-
-        if (props.newReport) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${props.newReport.reportID}`,
-                value: {pendingFields: {reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
-            });
-            successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${props.newReport.reportID}`,
-                value: {pendingFields: {reportID: null}},
-            });
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${props.newReport.reportID}`,
-                value: {pendingFields: {reportID: null}},
-            });
-        }
-
-        const queryParameters: ChangeTransactionsReportParams = {
-            transactionList: '',
-            reportID,
-            transactionIDToReportActionAndThreadData: '{}',
-            jsonQuery: props.jsonQuery,
-            hash: props.hash,
-        };
-
-        API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, queryParameters, {optimisticData, successData, failureData});
-        return;
-    }
-
     const changeTransactionsReportOnyxData = getChangeTransactionsReportOnyxData(props);
     if (!changeTransactionsReportOnyxData) {
         return;
     }
     const {optimisticData, successData, failureData, transactionIDToReportActionAndThreadData, transactionIDToUpdatedCustomUnitRateID} = changeTransactionsReportOnyxData;
+
+    const reportID = props.newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
     const parameters: ChangeTransactionsReportParams = {
         transactionList: props.transactionIDs.join(','),
@@ -2022,7 +1982,6 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
         }),
     };
 
-    // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters, {
         optimisticData,
         successData,

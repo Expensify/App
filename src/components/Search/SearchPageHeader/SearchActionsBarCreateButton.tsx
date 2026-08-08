@@ -3,6 +3,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -59,6 +60,7 @@ function SearchActionsBarCreateButton() {
         selector: (policies: OnyxCollection<OnyxTypes.Policy>) => getGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, email),
     });
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
@@ -88,6 +90,7 @@ function SearchActionsBarCreateButton() {
                 defaultChatEnabledPolicy,
                 allBetas,
                 isTrackIntentUser,
+                getCurrencyDecimals,
                 false,
                 shouldDismissEmptyReportsConfirmation,
             );
@@ -99,7 +102,7 @@ function SearchActionsBarCreateButton() {
                 );
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas, isTrackIntentUser],
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas, isTrackIntentUser, getCurrencyDecimals],
     );
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
@@ -150,15 +153,13 @@ function SearchActionsBarCreateButton() {
                             const freshReportID = generateReportID();
                             const freshTransactionID = generateReportID();
                             Navigation.navigate(
-                                createDynamicRoute(
-                                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                        action: CONST.IOU.ACTION.CREATE,
-                                        iouType: CONST.IOU.TYPE.CREATE,
-                                        transactionID: freshTransactionID,
-                                        reportID: freshReportID,
-                                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                                    }),
-                                ),
+                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                    action: CONST.IOU.ACTION.CREATE,
+                                    iouType: CONST.IOU.TYPE.CREATE,
+                                    transactionID: freshTransactionID,
+                                    reportID: freshReportID,
+                                    upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                                }),
                             );
                             return;
                         }
