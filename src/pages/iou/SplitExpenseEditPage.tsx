@@ -180,12 +180,11 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
     });
     const distance = getDistanceInMeters(splitExpenseDraftTransaction, unit);
-    const commuterExclusionData = DistanceRequestUtils.getCommuterExclusionDisplayData(splitExpenseDraftTransaction?.comment?.customUnit, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
     const currentAmount =
         isDistance && distance && rate
             ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) * originalSign
             : Math.abs(Number(splitExpenseDraftTransaction?.amount)) * originalSign;
-    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, translate, true, isManualDistance, commuterExclusionData);
+    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, translate, false, isManualDistance);
     const currentRateID = getRateID(splitExpenseDraftTransaction);
     const rates = DistanceRequestUtils.getMileageRates(effectivePolicy, false, currentRateID);
 
