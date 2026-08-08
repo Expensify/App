@@ -13,6 +13,7 @@ import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -26,7 +27,7 @@ import type {Account, QBOReimbursableExportAccountType} from '@src/types/onyx/Po
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
-function Footer({isTaxEnabled}: {isTaxEnabled: boolean}) {
+function Footer({isTaxEnabled, integrationName}: {isTaxEnabled: boolean; integrationName: string}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -36,7 +37,7 @@ function Footer({isTaxEnabled}: {isTaxEnabled: boolean}) {
 
     return (
         <View style={[styles.gap2, styles.mt2, styles.ph5]}>
-            {isTaxEnabled && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>}
+            {isTaxEnabled && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription', integrationName)}</Text>}
         </View>
     );
 }
@@ -49,6 +50,7 @@ type MenuItem = ListItem & {
 
 function DynamicQuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {bankAccounts, accountPayable, journalEntryAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -99,7 +101,7 @@ function DynamicQuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
         (row: MenuItem) => {
             if (!row.accounts.at(0)) {
                 setSelectedExportDestinationError({
-                    [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(`workspace.qbo.exportDestinationSetupAccountsInfo.${row.value}`),
+                    [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(`workspace.qbo.exportDestinationSetupAccountsInfo.${row.value}`, integrationName),
                 });
                 return;
             }
@@ -121,7 +123,7 @@ function DynamicQuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
             }
             goBack();
         },
-        [qboConfig?.reimbursableExpensesExportDestination, policyID, qboConfig?.reimbursableExpensesAccount, goBack, translate],
+        [qboConfig?.reimbursableExpensesExportDestination, policyID, qboConfig?.reimbursableExpensesAccount, goBack, translate, integrationName],
     );
 
     const errors =
@@ -152,7 +154,12 @@ function DynamicQuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
                 setSelectedExportDestinationError(null);
                 clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION);
             }}
-            listFooterContent={<Footer isTaxEnabled={isTaxesEnabled} />}
+            listFooterContent={
+                <Footer
+                    isTaxEnabled={isTaxesEnabled}
+                    integrationName={integrationName}
+                />
+            }
         />
     );
 }
