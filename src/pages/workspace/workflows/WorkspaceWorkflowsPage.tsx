@@ -484,7 +484,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     return undefined;
             }
         };
-        const bankConnectionStatus = canAccessWalletConnectionStatusFeatures ? getBankAccountConnectionStatus(state) : undefined;
+        // Read the currency off the same account `state` comes from, so a workspace whose currency no longer matches its
+        // connected account can't flip the status to the wrong one.
+        const bankAccountCurrency = bankAccountConnectedToWorkspace?.bankCurrency ?? bankAccountConnectedToWorkspace?.accountData?.additionalData?.currency;
+        const bankConnectionStatus = canAccessWalletConnectionStatusFeatures ? getBankAccountConnectionStatus(state, bankAccountCurrency) : undefined;
         const bankConnectionBrickRoadIndicator = bankConnectionStatus?.brickRoadIndicator ?? (hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
         const bankConnectionStatusAddon = bankConnectionStatus ? (
             <ConnectionStatusBadge
