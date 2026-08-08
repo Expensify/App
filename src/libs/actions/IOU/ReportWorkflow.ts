@@ -1587,8 +1587,9 @@ function assignReportToMe(
     isASAPSubmitBetaEnabled: boolean,
     isTrackIntentUser: boolean | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    translate: LocaleContextProps['translate'],
 ) {
-    const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID, formatPhoneNumber);
+    const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID, formatPhoneNumber, translate);
 
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: accountID},
@@ -1700,6 +1701,9 @@ type AddReportApproverOptions = {
 
     /** Locale-aware formatter used for optimistic approver display names. */
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+
+    /** Locale-aware translate used for optimistic approver display names. */
+    translate: LocaleContextProps['translate'];
 };
 
 function addReportApprover({
@@ -1713,8 +1717,9 @@ function addReportApprover({
     isASAPSubmitBetaEnabled,
     isTrackIntentUser,
     formatPhoneNumber,
+    translate,
 }: AddReportApproverOptions) {
-    const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID, formatPhoneNumber);
+    const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID, formatPhoneNumber, translate);
 
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: newApproverAccountID},

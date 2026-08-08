@@ -149,6 +149,7 @@ function SearchAddApproverPage() {
                     isASAPSubmitBetaEnabled,
                     isTrackIntentUser,
                     formatPhoneNumber,
+                    translate,
                 });
             }
 

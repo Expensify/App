@@ -173,7 +173,17 @@ function SearchChangeApproverPage() {
 
             if (report.managerID !== currentUserDetails.accountID) {
                 const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
-                assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber);
+                assignReportToMe(
+                    report,
+                    currentUserDetails.accountID,
+                    currentUserDetails.email ?? '',
+                    policy,
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    isTrackIntentUser,
+                    formatPhoneNumber,
+                    translate,
+                );
             }
         }
 

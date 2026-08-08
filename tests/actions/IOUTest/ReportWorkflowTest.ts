@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {renderHook} from '@testing-library/react-native';
 
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
@@ -54,7 +55,16 @@ import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {createGlobalFetchMock, formatPhoneNumber, getOnyxData, getRequiredOnyxUpdate, getRequiredOnyxUpdates, getRequiredWriteCall, localeCompare} from '../../utils/TestHelper';
+import {
+    createGlobalFetchMock,
+    formatPhoneNumber,
+    getOnyxData,
+    getRequiredOnyxUpdate,
+    getRequiredOnyxUpdates,
+    getRequiredWriteCall,
+    localeCompare,
+    translateLocal,
+} from '../../utils/TestHelper';
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
@@ -3111,6 +3121,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isASAPSubmitBetaEnabled: false,
                 isTrackIntentUser: false,
                 formatPhoneNumber: formatPhoneNumberSpy,
+                translate: translateLocal,
             });
 
             const [, , onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
@@ -3119,6 +3130,53 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             expect(formatPhoneNumberSpy).toHaveBeenCalledWith(approverLogin);
             expect(reportAction.message).toEqual([expect.objectContaining({text: `changed the approver to ${formatPhoneNumber(approverLogin)}`})]);
+        });
+
+        it('uses the injected translate for the optimistic approver display name when the approver has no name', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write optimistic data to verify translate forwarding.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const approverAccountID = 987654321;
+            const policy = createRandomPolicy(2);
+            const report: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: 'change-approver-report-hidden',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: policy.id,
+                managerID: CARLOS_ACCOUNT_ID,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            // A non-optimistic personal detail with no login/displayName resolves to the hidden label provided by translate.
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [approverAccountID]: {
+                    accountID: approverAccountID,
+                    login: '',
+                    displayName: '',
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
+
+            addReportApprover({
+                report,
+                newApproverEmail: '',
+                newApproverAccountID: approverAccountID,
+                accountID: RORY_ACCOUNT_ID,
+                email: RORY_EMAIL,
+                policy,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                translate: translateWithHiddenMarker,
+            });
+
+            const [, , onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            const reportActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, Onyx.METHOD.MERGE, true);
+            const reportAction = getRequiredReportAction(reportActionsUpdate);
+
+            expect(reportAction.message).toEqual([expect.objectContaining({text: 'changed the approver to HiddenMarker'})]);
         });
     });
 

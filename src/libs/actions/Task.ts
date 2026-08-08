@@ -53,6 +53,7 @@ type EditTaskAssigneeOptions = {
     assigneeChatReport?: OnyxEntry<OnyxTypes.Report>;
     isOptimisticReport?: boolean;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    translate: LocaleContextProps['translate'];
 };
 
 type OptimisticReport = Pick<OnyxTypes.Report, 'reportName' | 'managerID' | 'pendingFields' | 'participants'>;
@@ -790,6 +791,7 @@ function editTaskAssignee({
     assigneeChatReport,
     isOptimisticReport,
     formatPhoneNumber,
+    translate,
 }: EditTaskAssigneeOptions) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(
@@ -797,6 +799,7 @@ function editTaskAssignee({
         currentUserAccountID,
         delegateEmail,
         formatPhoneNumber,
+        translate,
     );
     const reportName = report.reportName?.trim();
 
