@@ -42,7 +42,7 @@ import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Nav
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
-import {getDistanceInMeters, getRateID, getRequestType, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
+import {ensureKeyForListForWaypoints, getDistanceInMeters, getRateID, getRequestType, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -134,7 +134,7 @@ function IOURequestStepDistance({
                       waypoint0: {keyForList: 'start_waypoint'},
                       waypoint1: {keyForList: 'stop_waypoint'},
                   }
-                : transactionWaypoints)
+                : ensureKeyForListForWaypoints(transactionWaypoints))
         );
     }, [optimisticWaypoints, transactionWaypoints, areTransactionWaypointsEmpty]);
 
