@@ -1,4 +1,5 @@
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAIFeaturesPromoModal from '@hooks/useAIFeaturesPromoModal';
@@ -44,7 +45,7 @@ import {useEffect, useRef} from 'react';
 function initializePusher(
     currentUserAccountID: number | undefined,
     currentUserEmail: string | undefined,
-    formatPhoneNumber: (phoneNumber: string) => string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     getTopmostOneTransactionThreadReportID: () => string | undefined,
     getReportAttributes: () => ReportAttributesDerivedValue['reports'] | undefined,
 ) {
