@@ -42,7 +42,7 @@ const defaultProps = {
 };
 
 // Helper function to render TransactionItemRow with providers
-const renderTransactionItemRow = (transactionItem: TransactionWithOptionalSearchFields, reportActions?: ReportAction[]) => {
+const renderTransactionItemRow = (transactionItem: TransactionWithOptionalSearchFields, reportActions?: ReportAction[], overrideProps?: Partial<typeof defaultProps>) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
             <TransactionItemRow
@@ -52,6 +52,7 @@ const renderTransactionItemRow = (transactionItem: TransactionWithOptionalSearch
                 policy={transactionItem.policy}
                 reportActions={reportActions}
                 {...defaultProps}
+                {...overrideProps}
             />
         </ComposeProviders>,
     );
@@ -84,6 +85,22 @@ const createIOUReportAction = () =>
             currency: 'USD',
             comment: '',
             IOUTransactionID: MOCK_TRANSACTION_ID,
+        },
+    });
+
+// Helper function to create a submit report action carrying the violations flagged at submission time
+const createSubmittedReportAction = (violationName: string) =>
+    createBaseReportAction(3, {
+        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+        reportID: MOCK_REPORT_ID,
+        originalMessage: {
+            amount: -100,
+            currency: 'USD',
+            violations: {
+                transactions: {
+                    [MOCK_TRANSACTION_ID]: [{name: violationName}],
+                },
+            },
         },
     });
 
@@ -384,5 +401,64 @@ describe('TransactionItemRowRBR', () => {
 
         // Then the RBR message should be displayed with transaction errors, missing merchant error, and violations
         expect(screen.getByText('Unexpected error posting the comment. Please try again later. Missing merchant. Missing category.')).toBeOnTheScreen();
+    });
+    it('should display the submitted violations in place of the live RBR on narrow layouts', async () => {
+        // Given a transaction whose current violation differs from the one flagged when its report was submitted
+        const mockViolations: TransactionViolations = [
+            {
+                name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            },
+        ];
+        const mockTransaction = createBaseTransaction({violations: mockViolations});
+        const mockSubmittedAction = createSubmittedReportAction(CONST.VIOLATIONS.RECEIPT_REQUIRED);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
+
+        // When rendering the row on a narrow layout with the violations column in the search
+        renderTransactionItemRow(mockTransaction, [mockSubmittedAction], {shouldUseNarrowLayout: true});
+        await waitForBatchedUpdates();
+
+        // Then the submitted violation is labelled and shown, and the current violation is not
+        expect(screen.getByText('Violations:')).toBeOnTheScreen();
+        expect(screen.getByText('Receipt required')).toBeOnTheScreen();
+        expect(screen.queryByText('Missing category.')).not.toBeOnTheScreen();
+    });
+
+    it('should display the live RBR on narrow layouts when the violations column is not in the search', async () => {
+        // Given the same transaction rendered without the violations column
+        const mockViolations: TransactionViolations = [
+            {
+                name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            },
+        ];
+        const mockTransaction = createBaseTransaction({violations: mockViolations});
+        const mockSubmittedAction = createSubmittedReportAction(CONST.VIOLATIONS.RECEIPT_REQUIRED);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
+
+        // When rendering the row on a narrow layout
+        renderTransactionItemRow(mockTransaction, [mockSubmittedAction], {shouldUseNarrowLayout: true, columns: [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]});
+        await waitForBatchedUpdates();
+
+        // Then the current violation is shown and the submitted one is not
+        expect(screen.getByText('Missing category.')).toBeOnTheScreen();
+        expect(screen.queryByText('Receipt required')).not.toBeOnTheScreen();
+    });
+
+    it('should display the submitted violations in the violations column on wide layouts', async () => {
+        // Given a transaction flagged with a violation when its report was submitted
+        const mockTransaction = createBaseTransaction({violations: []});
+        const mockSubmittedAction = createSubmittedReportAction(CONST.VIOLATIONS.RECEIPT_REQUIRED);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, []);
+
+        // When rendering the row on a wide layout with the violations column in the search
+        renderTransactionItemRow(mockTransaction, [mockSubmittedAction]);
+        await waitForBatchedUpdates();
+
+        // Then the submitted violation is shown
+        expect(screen.getByText('Receipt required')).toBeOnTheScreen();
     });
 });

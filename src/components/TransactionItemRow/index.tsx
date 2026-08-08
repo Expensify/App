@@ -7,6 +7,7 @@ import {getCompanyCardDescription} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isExpenseReport, isSettled, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {getSubmittedViolationsForTransaction} from '@libs/SearchUIUtils';
 import {
     getAmount,
     getDescription,
@@ -137,6 +138,12 @@ function TransactionItemRow({
     };
     const missingFieldError = getMissingFieldError();
 
+    // The violations column reports what was flagged when the report was submitted, which can differ from the
+    // transaction's current violations, so it is only computed when that column is part of the search.
+    const submittedViolations = columns?.includes(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)
+        ? getSubmittedViolationsForTransaction(reportActions, transactionItem.transactionID, translate)
+        : undefined;
+
     if (shouldUseNarrowLayout) {
         const description = getDescription(transactionItem);
         const merchantOrDescription = merchant || description;
@@ -179,6 +186,7 @@ function TransactionItemRow({
                 createdAt={createdAt}
                 transactionThreadReportID={transactionThreadReportID}
                 shouldRenderChatBubbleCell={shouldRenderChatBubbleCell}
+                submittedViolations={submittedViolations}
                 shouldDeferRBR={shouldDeferRBR}
             />
         );
@@ -263,6 +271,7 @@ function TransactionItemRow({
             totalPerAttendee={!attendeesCount || totalAmount === undefined ? undefined : totalAmount / attendeesCount}
             createdAt={createdAt}
             transactionThreadReportID={transactionThreadReportID}
+            submittedViolations={submittedViolations}
             shouldDeferRBR={shouldDeferRBR}
             isMarkAsDone={shouldUseMarkAsDoneCopy}
         />

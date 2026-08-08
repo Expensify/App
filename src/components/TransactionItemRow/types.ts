@@ -147,6 +147,9 @@ type TransactionItemRowNarrowComputedData = {
     createdAt: string;
     transactionThreadReportID: string | undefined;
     shouldRenderChatBubbleCell: boolean;
+
+    /** The violations captured when the transaction's report was submitted, set only when the violations column is shown */
+    submittedViolations: string | undefined;
 };
 
 /**

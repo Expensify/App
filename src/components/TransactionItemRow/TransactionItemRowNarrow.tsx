@@ -2,8 +2,10 @@ import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import RadioButton from '@components/RadioButton';
 import DateCell from '@components/Search/SearchList/ListItem/DateCell';
+import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -84,10 +86,12 @@ function TransactionItemRowNarrow({
     categoryForDisplay,
     createdAt,
     shouldRenderChatBubbleCell,
+    submittedViolations,
 }: TransactionItemRowNarrowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     return (
@@ -181,7 +185,18 @@ function TransactionItemRowNarrow({
                         </View>
                     )}
                 </View>
-                {shouldShowErrors && (
+                {!!submittedViolations && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mt3]}>
+                        <Text style={[styles.textMicroSupporting, styles.flexShrink0]}>{`${translate('common.violations')}:`}</Text>
+                        <Text
+                            numberOfLines={2}
+                            style={[styles.textMicroSupporting, styles.flexShrink1]}
+                        >
+                            {submittedViolations}
+                        </Text>
+                    </View>
+                )}
+                {shouldShowErrors && !submittedViolations && (
                     <DeferredTransactionItemRowRBR
                         shouldDefer={shouldDeferRBR}
                         transaction={transactionItem}

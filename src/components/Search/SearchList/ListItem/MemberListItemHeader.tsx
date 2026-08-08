@@ -2,6 +2,7 @@ import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
+import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
@@ -159,32 +160,43 @@ function MemberListItemHeaderImpl({
                                     />
                                 </View>
                             </UserDetailsTooltip>
-                            <View style={[styles.gap1, styles.flexShrink1]}>
-                                <TextWithTooltip
-                                    text={formattedDisplayName}
-                                    style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
-                                />
-                                <TextWithTooltip
-                                    text={formattedLogin || formattedDisplayName}
-                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                                />
+                            <View style={[styles.gap1, styles.flex1]}>
+                                <View style={[styles.flexRow, styles.gap2]}>
+                                    <View style={styles.flex1}>
+                                        <TextWithTooltip
+                                            text={formattedDisplayName}
+                                            style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                                        />
+                                    </View>
+                                    <View style={styles.flexShrink0}>
+                                        <TotalCell
+                                            total={memberItem.total}
+                                            currency={memberItem.currency}
+                                        />
+                                    </View>
+                                </View>
+                                <View style={[styles.flexRow, styles.gap2]}>
+                                    <View style={styles.flex1}>
+                                        <TextWithTooltip
+                                            text={formattedLogin || formattedDisplayName}
+                                            style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                        />
+                                    </View>
+                                    <Text style={[styles.textLabelSupporting, styles.lh16, styles.flexShrink0, styles.textAlignRight]}>
+                                        {translate('iou.expenseCount', {count: memberItem.count ?? 0})}
+                                    </Text>
+                                </View>
                             </View>
                         </View>
                     )}
                     {!!isLargeScreenWidth && columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
                 </View>
-                {!isLargeScreenWidth && (
+                {!isLargeScreenWidth && !!onDownArrowClick && (
                     <View style={[styles.flexShrink0, styles.flexRow, styles.alignItemsCenter]}>
-                        <TotalCell
-                            total={memberItem.total}
-                            currency={memberItem.currency}
+                        <ExpandCollapseArrowButton
+                            isExpanded={isExpanded}
+                            onPress={onDownArrowClick}
                         />
-                        {!!onDownArrowClick && (
-                            <ExpandCollapseArrowButton
-                                isExpanded={isExpanded}
-                                onPress={onDownArrowClick}
-                            />
-                        )}
                     </View>
                 )}
             </View>
