@@ -41,6 +41,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Αναίρεση κοινής χρήσης',
         yes: 'Ναι',
         no: 'Όχι',
+        dontChange: 'Να μην αλλάξει',
         ok: 'OK',
         notNow: 'Όχι τώρα',
         noThanks: 'Όχι, ευχαριστώ',
