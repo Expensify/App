@@ -50,6 +50,7 @@ import {
     getValidWaypoints,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
+    isMapDistanceRequest,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 
@@ -102,6 +103,23 @@ function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: {lat: nu
             endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
         },
     );
+}
+
+/** Whether a map distance draft's stored quantity was manually changed from its calculated route distance. */
+function hasManualMapDistanceOverride(transaction: Transaction): boolean {
+    if (!isMapDistanceRequest(transaction)) {
+        return false;
+    }
+
+    const quantity = transaction.comment?.customUnit?.quantity;
+    const unit = transaction.comment?.customUnit?.distanceUnit;
+    const routeDistanceMeters = transaction.comment?.customUnit?.routeDistanceMeters ?? transaction.routes?.route0?.distance;
+    if (typeof quantity !== 'number' || !unit || typeof routeDistanceMeters !== 'number' || routeDistanceMeters <= 0) {
+        return false;
+    }
+
+    const routeQuantity = DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, unit);
+    return Math.abs(quantity - routeQuantity) > 0.01;
 }
 
 type UseExpenseSubmissionParams = {
@@ -703,7 +721,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             logSubmittedReceiptMilestone(item, trackReceipt, lastOptimisticTransactionID, submittedCommand);
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
-            const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
+            const hasManualDistanceOverride = hasManualMapDistanceOverride(item);
+            const itemDistance =
+                isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest || hasManualDistanceOverride ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
             const itemDistanceUnit = item.comment?.customUnit?.distanceUnit;
             const originalItemDistance =
                 isModifiedGPSDistanceRequest && gpsDraftDetails?.distanceInMeters && itemDistanceUnit
@@ -745,7 +765,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     billable: item.billable,
                     reimbursable: item.reimbursable,
                     gpsPoint,
-                    validWaypoints: Object.keys(item?.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true, isGPSDistanceRequest) : undefined,
+                    validWaypoints:
+                        !hasManualDistanceOverride && Object.keys(item?.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true, isGPSDistanceRequest) : undefined,
                     actionableWhisperReportActionID: item.actionableWhisperReportActionID,
                     linkedTrackedExpenseReportAction: item.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: item.linkedTrackedExpenseReportID,
@@ -756,7 +777,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     odometerEnd: isOdometerDistanceRequest ? item.comment?.odometerEnd : undefined,
                     isFromGlobalCreate: getIsFromGlobalCreate(item),
                     gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
-                    distanceRequestType,
+                    distanceRequestType: hasManualDistanceOverride ? CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL : getDistanceRequestType(item),
                 },
                 accountantParams: {
                     accountant: item.accountant,

@@ -816,7 +816,7 @@ function IOURequestStepDistance({
                 shouldShowWrapper={isEditing || !isCreatingNewRequest}
             >
                 <OnyxTabNavigator
-                    id={isEditing ? CONST.TAB.DISTANCE_EDIT_TYPE : CONST.TAB.DISTANCE_CREATE_MAP_TYPE}
+                    id={isEditing ? CONST.TAB.DISTANCE_EDIT_TYPE : CONST.TAB.DISTANCE_CREATE_TYPE}
                     defaultSelectedTab={CONST.TAB_REQUEST.DISTANCE_MAP}
                     tabBar={TabSelector}
                 >
