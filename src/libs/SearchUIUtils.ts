@@ -2741,7 +2741,10 @@ function getTaskSections(
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`]);
                 const parentReportName = deprecatedGetReportName(parentReport, reportAttributesDerivedValue);
+                // The search snapshot does not always carry the report metadata. Pass undefined rather than an empty array in that case,
+                // otherwise getGroupChatName treats it as "nothing is pending delete" and skips its own Onyx fallback.
                 const parentReportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${parentReport.reportID}`];
+                const parentReportPendingDeleteMemberAccountIDs = parentReportMetadata ? getPendingDeleteMemberAccountIDs(parentReportMetadata.pendingChatMembers) : undefined;
                 const icons = getIcons(
                     parentReport,
                     formatPhoneNumber,
@@ -2753,7 +2756,7 @@ function getTaskSections(
                     policy,
                     undefined,
                     isParentReportArchived,
-                    getPendingDeleteMemberAccountIDs(parentReportMetadata?.pendingChatMembers),
+                    parentReportPendingDeleteMemberAccountIDs,
                 );
                 const parentReportIcon = icons?.at(0);
 
@@ -3018,7 +3021,8 @@ function getReportSections({
                         ? reportItem.pendingFields.preview
                         : (reportItem?.pendingFields?.total ?? reportItem?.pendingFields?.preview));
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
-                const reportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`] ?? {};
+                const snapshotReportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`];
+                const reportMetadata = snapshotReportMetadata ?? {};
                 const allReportTransactions = transactionsByReportID.get(reportItem.reportID) ?? [];
                 const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions, allReportTransactions);
 
@@ -3062,7 +3066,8 @@ function getReportSections({
                     mergedPersonalDetails,
                     policy,
                     reportIsArchived,
-                    getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers),
+                    // See the note on the task rows above: undefined keeps the getGroupChatName fallback alive when the snapshot has no metadata.
+                    snapshotReportMetadata ? getPendingDeleteMemberAccountIDs(snapshotReportMetadata.pendingChatMembers) : undefined,
                 );
 
                 const isRejectedReport =
