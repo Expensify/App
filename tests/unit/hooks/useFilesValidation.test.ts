@@ -332,17 +332,17 @@ describe('useFilesValidation', () => {
             await waitFor(() => expect(onFilesValidated).toHaveBeenCalledWith([convertedFile], []));
         });
 
-        it('[gap] silently falls back to the original, unconverted file when HEIC conversion fails', async () => {
+        it('blocks the file and shows an error when HEIC conversion fails', async () => {
             const heicFile = createFile({uri: 'file-heic', name: 'photo.heic'});
             mockInvalid(CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE);
             mockConvertHeicImage.mockImplementation((file, callbacks) => callbacks?.onError?.(new Error('conversion failed'), file));
 
-            const {result, onFilesValidated} = setup();
+            const {result} = setup();
             triggerValidation(result, [heicFile]);
 
-            // The conversion error is swallowed: the original file is passed through as if it were valid.
-            await waitFor(() => expect(onFilesValidated).toHaveBeenCalledWith([heicFile], []));
-            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
+            expect(getShowConfirmModalOption('title')).toBe('attachmentPicker.attachmentError');
+            expect(getShowConfirmModalOption('prompt')).toBe('attachmentPicker.errorWhileConvertingHeic');
         });
 
         it('routes an oversized converted receipt image to resizing, then includes the resized result', async () => {
