@@ -82,9 +82,6 @@ type ReconcileSelectionParams = {
     /** The live TRANSACTION Onyx collection */
     transactions: OnyxCollection<Transaction>;
 
-    /** Email of the current user */
-    currentUserEmail: string;
-
     /** Login (email or phone) of the current user */
     currentUserLogin: string;
 
@@ -119,7 +116,6 @@ function useReconcileSelectionWithData({
     filteredData,
     searchResultsData,
     transactions,
-    currentUserEmail,
     currentUserLogin,
     currentUserAccountID,
     selfDMReport,
@@ -206,7 +202,7 @@ function useReconcileSelectionWithData({
                     newTransactionList[listKey] = {
                         ...baseEntry,
                         isSelected: areAllMatchingItemsSelected || !!previousSelection?.isSelected || propagateSelectionToAllRows,
-                        canReject: currentUserEmail && transactionItem.report ? canRejectReportAction(currentUserEmail, transactionItem.report) : false,
+                        canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID) : false,
                         policyID: transactionItem.report?.policyID,
                         groupKey: previousSelection?.groupKey ?? (propagateSelectionToAllRows && !isExpenseReportType ? reportKey : undefined),
                         isSelectedViaGroup: previousSelection?.isSelectedViaGroup,
@@ -245,7 +241,7 @@ function useReconcileSelectionWithData({
                 newTransactionList[listKey] = {
                     ...baseEntry,
                     isSelected: areAllMatchingItemsSelected || !!flatPreviousSelection?.isSelected,
-                    canReject: currentUserEmail && transactionItem.report ? canRejectReportAction(currentUserEmail, transactionItem.report) : false,
+                    canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID) : false,
                     policyID: transactionItem.report?.policyID,
                 };
             }
@@ -563,7 +559,6 @@ function SearchWriteActionsProvider({
         filteredData,
         searchResultsData,
         transactions,
-        currentUserEmail,
         currentUserLogin,
         currentUserAccountID: accountID,
         selfDMReport,
