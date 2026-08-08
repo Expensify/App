@@ -60,7 +60,7 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plane', 'PlaneCircleSlash', 'Bed', 'BedCircleSlash', 'CarWithKey', 'CarCircleSlash', 'Train', 'TrainCircleSlash', 'Luggage']);
 
     const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type, isCancelled);
@@ -121,7 +121,7 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
 
 function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomPreviewProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {anchor: contextMenuAnchorRef, shouldDisplayContextMenu = true, originalReportID} = useShowContextMenuState();
     const {checkIfContextMenuActive} = useShowContextMenuActions();
@@ -137,7 +137,7 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
     const reservationsData: ReservationData[] = getReservationsFromTripReport(chatReport, tripTransactions);
     const dateInfo =
         chatReport?.tripData?.startDate && chatReport?.tripData?.endDate
-            ? DateUtils.getFormattedDateRange(translate, new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate))
+            ? DateUtils.getFormattedDateRange(translate, dateFnsLocale, new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate))
             : '';
     const reportCurrency = iouReportCurrency ?? chatReport?.currency;
 

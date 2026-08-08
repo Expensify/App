@@ -138,7 +138,7 @@ function DatePresetFilterBase({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
 
     const shouldShowHorizontalRule = !!presets?.length;
     const customDateTitle = translate('search.filters.date.customDate');
@@ -150,7 +150,7 @@ function DatePresetFilterBase({
         if (!rangeValue) {
             return '';
         }
-        return getDateRangeDisplayValueFromFormValue(rangeValue, dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER], dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
+        return getDateRangeDisplayValueFromFormValue(dateFnsLocale, rangeValue, dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER], dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
     }, []);
 
     const getRangeEphemeralValuesFromDateValues = useCallback((dateValues: SearchDateValues) => {

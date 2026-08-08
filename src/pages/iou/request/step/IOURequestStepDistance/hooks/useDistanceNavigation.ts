@@ -151,7 +151,7 @@ function useDistanceNavigation({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const delegateAccountID = useDelegateAccountID();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
     return () => {
@@ -159,6 +159,7 @@ function useDistanceNavigation({
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
         handleMoneyRequestStepDistanceNavigation({
+            dateFnsLocale,
             iouType,
             action,
             report,

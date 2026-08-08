@@ -60,7 +60,7 @@ function IOURequestStepDistanceGPS({
     const styles = useThemeStyles();
     const delegateAccountID = useDelegateAccountID();
 
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -133,6 +133,7 @@ function IOURequestStepDistanceGPS({
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
         handleMoneyRequestStepDistanceNavigation({
+            dateFnsLocale,
             iouType,
             action,
             report,

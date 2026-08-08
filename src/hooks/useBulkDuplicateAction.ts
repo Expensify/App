@@ -37,7 +37,7 @@ type UseBulkDuplicateActionParams = {
 function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allReports, searchData, onAfterDuplicate}: UseBulkDuplicateActionParams) {
     const {accountID, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const {isBetaEnabled} = usePermissions();
@@ -71,6 +71,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
 
     const handleDuplicate = () => {
         bulkDuplicateExpenses({
+            dateFnsLocale,
             transactionIDs: selectedTransactionsKeys,
             allTransactions: allTransactions ?? {},
             sourcePolicyIDMap,

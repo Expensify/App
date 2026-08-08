@@ -78,7 +78,7 @@ function ReportSubmitToContent({
 }: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {keyboardActiveHeight} = useKeyboardState();
 
@@ -202,6 +202,7 @@ function ReportSubmitToContent({
         }
 
         const inviteOption = getUserToInviteOption({
+            dateFnsLocale,
             searchValue: trimmed,
             personalDetails,
             loginList,

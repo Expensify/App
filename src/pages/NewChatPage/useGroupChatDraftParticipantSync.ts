@@ -1,4 +1,5 @@
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {getUserToInviteOption} from '@libs/OptionsListUtils';
@@ -37,6 +38,7 @@ function useGroupChatDraftParticipantSync(
     const shouldRestoreSelectedOptionsRef = useRef(true);
     const isScreenFocusedRef = useIsFocusedRef();
 
+    const {dateFnsLocale} = useLocalize();
     const draftParticipantsSelector = (draft: NewGroupChatDraft | undefined) => {
         const isSubscriptionActive = shouldRestoreSelectedOptionsRef.current || !isScreenFocusedRef.current;
         return isSubscriptionActive ? draft?.participants : undefined;
@@ -57,6 +59,7 @@ function useGroupChatDraftParticipantSync(
             const option =
                 allPersonalDetailOptions.find((personalDetail) => personalDetail.accountID === participant.accountID) ??
                 getUserToInviteOption({
+                    dateFnsLocale,
                     searchValue: participant?.login,
                     personalDetails: allPersonalDetails,
                     loginList,

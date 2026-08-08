@@ -352,7 +352,7 @@ function isUnsetDistanceCustomUnitRateID(customUnitRateID: string | undefined): 
  * Missing bounds mean unbounded in that direction.
  */
 function isRateEligibleForDate(rate: MileageRate, expenseDate: string): boolean {
-    const normalizedExpenseDate = DateUtils.formatWithUTCTimeZone(expenseDate, CONST.DATE.FNS_FORMAT_STRING);
+    const normalizedExpenseDate = DateUtils.formatUnlocalizedWithUTCTimeZone(expenseDate, CONST.DATE.FNS_FORMAT_STRING);
     if (!normalizedExpenseDate) {
         return true;
     }

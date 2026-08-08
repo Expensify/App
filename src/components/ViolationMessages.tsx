@@ -42,7 +42,7 @@ export default function ViolationMessages({
     distanceUnit,
 }: ViolationMessagesProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
@@ -56,6 +56,7 @@ export default function ViolationMessages({
                 return [
                     violation.name,
                     ViolationsUtils.getViolationTranslation({
+                        dateFnsLocale,
                         violation,
                         translate,
                         convertToDisplayString,

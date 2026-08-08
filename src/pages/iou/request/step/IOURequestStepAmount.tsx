@@ -72,7 +72,7 @@ function IOURequestStepAmount({
     transaction,
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
@@ -212,6 +212,7 @@ function IOURequestStepAmount({
                   reportDraft,
                   currentUserPersonalDetails.accountID,
                   translate,
+                  dateFnsLocale,
               );
     });
     const participant = participants.at(0);
@@ -232,6 +233,7 @@ function IOURequestStepAmount({
         suppressDiscardPrompt();
         submitAmount({
             translate,
+            dateFnsLocale,
             report,
             transaction,
             splitDraftTransaction,

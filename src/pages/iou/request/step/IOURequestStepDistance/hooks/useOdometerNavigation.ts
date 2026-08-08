@@ -155,7 +155,7 @@ function useOdometerNavigation({
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
 
     const delegateAccountID = useDelegateAccountID();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
 
     return ({odometerStart, odometerEnd, odometerDistance, unit, previousOdometerDraft}: NavigateOptions) => {
@@ -163,6 +163,7 @@ function useOdometerNavigation({
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
         handleMoneyRequestStepDistanceNavigation({
+            dateFnsLocale,
             iouType,
             action,
             report,

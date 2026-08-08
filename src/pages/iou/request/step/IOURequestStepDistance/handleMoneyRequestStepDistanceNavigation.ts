@@ -80,6 +80,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
     setDistanceRequestData?: (participants: Participant[]) => void;
+    dateFnsLocale: LocaleContextProps['dateFnsLocale'];
     translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string;
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
@@ -181,6 +182,7 @@ function handleMoneyRequestStepDistanceNavigation({
     transactionViolations,
     lastSelectedDistanceRates,
     setDistanceRequestData,
+    dateFnsLocale,
     translate,
     quickAction,
     policyRecentlyUsedCurrencies,
@@ -248,6 +250,7 @@ function handleMoneyRequestStepDistanceNavigation({
             reportAttributesDerived,
             reportDraft,
             translate,
+            dateFnsLocale,
         );
 
         setDistanceRequestData?.(participants);

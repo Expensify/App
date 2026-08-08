@@ -98,7 +98,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     const {type, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
     const {isOffline} = useNetwork();
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {convertToDisplayString} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
@@ -188,6 +188,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         }
 
         const [filtered, allLength, hasDeletedTransactionFromSections] = getSections({
+            dateFnsLocale,
             type,
             data: searchDataWithOptimisticTransaction,
             currentAccountID: accountID,
@@ -268,6 +269,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
                 return item;
             }
             const [groupTransactions] = getSections({
+                dateFnsLocale,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 data: subSnapshot.data,
                 currentAccountID: accountID,
