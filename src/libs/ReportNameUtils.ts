@@ -26,7 +26,6 @@ import {Str} from 'expensify-common';
 
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
 import {convertToDisplayString} from './CurrencyUtils';
-import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
@@ -339,6 +338,7 @@ function getInvoicesChatName({
     policy,
     currentUserAccountID,
     translate,
+    formatPhoneNumber,
 }: {
     report: OnyxEntry<Report>;
     receiverPolicy: OnyxEntry<Policy>;
@@ -346,6 +346,7 @@ function getInvoicesChatName({
     policy: OnyxEntry<Policy>;
     currentUserAccountID?: number;
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
@@ -357,7 +358,7 @@ function getInvoicesChatName({
     }
 
     if (isIndividual) {
-        return formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[invoiceReceiverAccountID], translate}));
+        return formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[invoiceReceiverAccountID], translate}));
     }
 
     return getPolicyName({report, policy: receiverPolicy, unavailableTranslation: translate('workspace.common.unavailable')});
@@ -367,6 +368,7 @@ function getInvoiceReportName(
     report: OnyxEntry<Report>,
     linkedTransactions: Transaction[],
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     policy?: OnyxEntry<Policy>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
@@ -378,7 +380,7 @@ function getInvoiceReportName(
         linkedTransactions,
         personalDetailsList,
         translate,
-        formatPhoneNumber: formatPhoneNumberPhoneUtils,
+        formatPhoneNumber,
     });
     const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
     return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
@@ -392,6 +394,7 @@ function getInvoiceReportName(
 function getInvoicePayerName(
     report: OnyxEntry<Report>,
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
 ): string {
@@ -399,7 +402,7 @@ function getInvoicePayerName(
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 
     if (isIndividual) {
-        return formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: invoiceReceiverPersonalDetail ?? undefined, translate}));
+        return formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: invoiceReceiverPersonalDetail ?? undefined, translate}));
     }
 
     return getPolicyName({report, policy: invoiceReceiverPolicy, unavailableTranslation: translate('workspace.common.unavailable')});
@@ -446,7 +449,7 @@ function getMoneyRequestReportName({
     } else if (isInvoiceReport(report)) {
         const chatReport = getReportOrDraftReport(report?.chatReportID);
         const invoiceReceiverPersonalDetail = getInvoiceReceiverPersonalDetail(chatReport, personalDetailsList);
-        payerOrApproverName = getInvoicePayerName(chatReport, translate, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
+        payerOrApproverName = getInvoicePayerName(chatReport, translate, formatPhoneNumber, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
     } else {
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber, translate}) ?? '';
     }
@@ -461,7 +464,7 @@ function getMoneyRequestReportName({
     }
 
     if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(linkedTransactions)) {
-        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '';
+        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumber, translate}) ?? '';
         return translate('iou.payerSpentAmount', formattedAmount, payerOrApproverName);
     }
 
@@ -1129,7 +1132,7 @@ function computeReportName({
             chatReceiverPolicyID = (chatReceiver as {policyID: string}).policyID;
         }
         const invoiceReceiverPolicy = chatReceiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReceiverPolicyID}`] : undefined;
-        formattedName = getInvoiceReportName(report, reportTransactions[report.reportID] ?? [], translate, personalDetailsList, policy, invoiceReceiverPolicy);
+        formattedName = getInvoiceReportName(report, reportTransactions[report.reportID] ?? [], translate, formatPhoneNumber, personalDetailsList, policy, invoiceReceiverPolicy);
     }
 
     if (isInvoiceRoom(report)) {
@@ -1146,6 +1149,7 @@ function computeReportName({
             currentUserAccountID,
             policy,
             translate,
+            formatPhoneNumber,
         });
     }
 

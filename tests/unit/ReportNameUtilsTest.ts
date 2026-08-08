@@ -1270,6 +1270,7 @@ describe('ReportNameUtils', () => {
                 policy: undefined,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(name).toBe('Personal Workspace');
@@ -1290,6 +1291,7 @@ describe('ReportNameUtils', () => {
                 policy: undefined,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             const normalizedName = name?.replaceAll('\u00A0', ' ');
@@ -1301,7 +1303,7 @@ describe('ReportNameUtils', () => {
                 reportID: 'invoice-chat-3',
                 invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
             };
-            const name = getInvoicePayerName(report, translateLocal, participantsPersonalDetails['1']);
+            const name = getInvoicePayerName(report, translateLocal, formatPhoneNumber, participantsPersonalDetails['1']);
 
             const normalizedName = name?.replaceAll('\u00A0', ' ');
             expect(normalizedName).toBe('Ragnar Lothbrok');
@@ -1321,6 +1323,7 @@ describe('ReportNameUtils', () => {
                 policy: undefined,
                 currentUserAccountID,
                 translate: translateWithHiddenMarker,
+                formatPhoneNumber,
             });
 
             expect(name).toBe('HiddenMarker');
@@ -1333,7 +1336,7 @@ describe('ReportNameUtils', () => {
                 invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 424242},
             };
 
-            const name = getInvoicePayerName(report, translateWithHiddenMarker, null);
+            const name = getInvoicePayerName(report, translateWithHiddenMarker, formatPhoneNumber, null);
 
             expect(name).toBe('HiddenMarker');
         });
@@ -1354,6 +1357,7 @@ describe('ReportNameUtils', () => {
                 policy: undefined,
                 currentUserAccountID,
                 translate: translateWithUnavailableMarker,
+                formatPhoneNumber,
             });
 
             expect(name).toBe('UnavailableMarker');
@@ -1375,6 +1379,7 @@ describe('ReportNameUtils', () => {
                 policy: undefined,
                 currentUserAccountID,
                 translate: translateWithUnavailableMarker,
+                formatPhoneNumber,
             });
 
             expect(name).toBe('UnavailableMarker');
@@ -1389,7 +1394,7 @@ describe('ReportNameUtils', () => {
                 invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, policyID: 'missing-policy'},
             };
 
-            const name = getInvoicePayerName(report, translateWithUnavailableMarker, null);
+            const name = getInvoicePayerName(report, translateWithUnavailableMarker, formatPhoneNumber, null);
 
             expect(name).toBe('UnavailableMarker');
         });
