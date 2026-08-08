@@ -12,6 +12,8 @@ import AmountCell from '@components/Search/SearchList/ListItem/TotalCell';
 import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import type {SearchColumnType} from '@components/Search/types';
+import Text from '@components/Text';
+import {COPYABLE_TEXT_DATA_SET} from '@components/TextWithTooltip/selection';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -326,7 +328,12 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)]}
                     >
-                        <TextCell text={getReimbursable(transactionItem) ? translate('common.yes') : translate('common.no')} />
+                        <Text
+                            selectable
+                            dataSet={COPYABLE_TEXT_DATA_SET}
+                        >
+                            {getReimbursable(transactionItem) ? translate('common.yes') : translate('common.no')}
+                        </Text>
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
@@ -335,7 +342,12 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)]}
                     >
-                        <TextCell text={transactionItem.billable ? translate('common.yes') : translate('common.no')} />
+                        <Text
+                            selectable
+                            dataSet={COPYABLE_TEXT_DATA_SET}
+                        >
+                            {transactionItem.billable ? translate('common.yes') : translate('common.no')}
+                        </Text>
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.ACTION:
