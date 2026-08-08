@@ -28,7 +28,10 @@ function TableSearchBar({label}: TableSearchBarProps) {
 
     const {
         activeSearchString,
+        isEmptyResult,
+        listRef,
         shouldUseNarrowTableLayout,
+        scrollInputIntoView,
         onSearchStringChange,
         tableMethods: {updateSearchString},
     } = useTableContext();
@@ -48,6 +51,16 @@ function TableSearchBar({label}: TableSearchBarProps) {
         // We only want the cleanup to run on unmount to reset the search state
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        if (!isEmptyResult || !isTextInputFocused(inputRef)) {
+            return;
+        }
+
+        // Filtering to zero rows collapses the list below the persistent page header. Reset the
+        // old row offset so the focused input stays in the viewport while the keyboard remains open.
+        listRef.current?.scrollToOffset({offset: 0, animated: false});
+    }, [isEmptyResult, listRef]);
 
     const handleSearchStringChange = (text: string) => {
         updateSearchString(text);
@@ -81,7 +94,11 @@ function TableSearchBar({label}: TableSearchBarProps) {
             clearButtonStyle={shouldUseNarrowTableLayout ? undefined : styles.mr0}
             clearButtonIconSize={shouldUseNarrowTableLayout ? undefined : variables.iconSizeSmall}
             onBlur={() => setInputFocused(false)}
-            onFocus={() => setInputFocused(true)}
+            onFocus={() => {
+                setInputFocused(true);
+                // Keep the input visible above the keyboard when it is focused inside the scrolling table list.
+                scrollInputIntoView(inputRef.current);
+            }}
             onChangeText={handleSearchStringChange}
         />
     );

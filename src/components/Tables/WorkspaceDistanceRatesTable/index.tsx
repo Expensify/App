@@ -1,4 +1,4 @@
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -32,6 +32,7 @@ type WorkspaceDistanceRatesTableProps = {
     selectedKeys: string[];
     canWriteDistanceRates: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
 };
 
 const STATUS_ORDER: Record<string, number> = {
@@ -41,7 +42,7 @@ const STATUS_ORDER: Record<string, number> = {
     [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: 3,
 };
 
-function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, selectedKeys, canWriteDistanceRates, onRowSelectionChange}: WorkspaceDistanceRatesTableProps) {
+function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, selectedKeys, canWriteDistanceRates, onRowSelectionChange, headerComponent}: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
@@ -146,6 +147,9 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
         />
     );
 
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.distanceRates.findRate')} />;
+    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
+
     return (
         <Table
             data={ratesData}
@@ -160,15 +164,15 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
             initialSortColumn="name"
             narrowLayoutSortColumn="name"
             title={translate('workspace.common.distanceRates')}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
-            <Table.FilterBar label={translate('workspace.distanceRates.findRate')} />
             <Table.EmptyState
                 title={translate('workspace.distanceRates.emptyRates.title')}
                 subtitle={translate('workspace.distanceRates.emptyRates.subtitle')}
                 buttons={emptyStateButtons}
             />
             <Table.NoResultsState />
-            <Table.Header />
             <Table.Body />
         </Table>
     );

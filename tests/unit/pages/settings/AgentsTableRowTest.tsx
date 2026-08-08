@@ -63,7 +63,12 @@ jest.mock('@components/Table/TableContext', () => ({
         tableMethods: {},
         selectionEnabled: false,
         isMobileSelectionEnabled: false,
+        tableListMetadata: {
+            hasPageHeader: false,
+            shouldRenderStickyHeader: false,
+        },
     })),
+    useTableRowSemanticID: jest.fn(() => undefined),
 }));
 
 jest.mock('@components/Avatar/connected/AccountAvatar', () => {

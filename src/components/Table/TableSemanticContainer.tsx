@@ -21,9 +21,8 @@ type TableSemanticContainerProps = {
     columnCount: number;
 
     /**
-     * Whether `TableBody` still renders content while the table is empty (e.g. an empty-state or header list slot is
-     * supplied). When it does, it keeps its own `role="rowgroup"`, so the `role="table"` wrapper must be preserved to
-     * avoid orphaned table semantics.
+     * Whether `TableBody` still renders content while an inline-semantic table is empty (e.g. an empty-state or list
+     * header is supplied). Its `role="rowgroup"` then needs the enclosing `role="table"` wrapper.
      */
     rendersBodyWhenEmpty: boolean;
 

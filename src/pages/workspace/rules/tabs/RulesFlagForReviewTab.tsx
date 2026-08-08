@@ -27,9 +27,10 @@ type RulesFlagForReviewTabProps = {
     selectedKeys: string[];
     onSelectionChange: (selectedRowKeys: string[]) => void;
     showReadOnlyModal: () => void;
+    headerComponent?: React.ReactElement;
 };
 
-function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelectionChange, showReadOnlyModal}: RulesFlagForReviewTabProps) {
+function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelectionChange, showReadOnlyModal, headerComponent}: RulesFlagForReviewTabProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -83,6 +84,7 @@ function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelecti
             selectionEnabled={canWriteRules}
             selectedKeys={selectedKeys}
             onRowSelectionChange={onSelectionChange}
+            headerComponent={headerComponent}
             emptyState={flagForReviewEmptyState}
         />
     );

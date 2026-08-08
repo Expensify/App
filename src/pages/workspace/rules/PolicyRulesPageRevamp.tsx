@@ -332,9 +332,23 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     };
 
     const headerButtons = getHeaderContent();
+    const rulesTabSelector = (
+        <View style={[styles.flexShrink0, styles.w100]}>
+            <View style={[styles.flexRow, styles.mb1, styles.w100]}>
+                <TabSelectorContextProvider activeTabKey={activeTab}>
+                    <TabSelectorBase
+                        tabs={tabs}
+                        activeTabKey={activeTab}
+                        onTabPress={handleTabPress}
+                    />
+                </TabSelectorContextProvider>
+            </View>
+        </View>
+    );
     const sharedTableTabProps = {
         policyID,
         canWriteRules,
+        headerComponent: rulesTabSelector,
     };
 
     return (
@@ -361,17 +375,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 headerContent={!shouldDisplayButtonsInSeparateLine && headerButtons}
             >
                 <View style={[styles.flex1, styles.w100, styles.mnh0]}>
-                    <View style={[styles.flexShrink0, styles.w100]}>
-                        <View style={[styles.flexRow, styles.mb1, styles.w100]}>
-                            <TabSelectorContextProvider activeTabKey={activeTab}>
-                                <TabSelectorBase
-                                    tabs={tabs}
-                                    activeTabKey={activeTab}
-                                    onTabPress={handleTabPress}
-                                />
-                            </TabSelectorContextProvider>
-                        </View>
-                    </View>
+                    {!isTableTab && !isAgentsTab && rulesTabSelector}
                     {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.flexShrink0, styles.pl5, styles.pr5, styles.pb5, styles.w100]}>{headerButtons}</View>}
                     <View
                         style={[
@@ -430,6 +434,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                     policyID={policyID}
                                     canWriteRules={canWriteRules}
                                     showReadOnlyModal={showReadOnlyModal}
+                                    headerComponent={rulesTabSelector}
                                 />
                             </View>
                         )}

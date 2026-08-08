@@ -1,6 +1,8 @@
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
+import useScrollToFocusedInput from '@components/SelectionList/hooks/useScrollToFocusedInput';
 
+import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -11,12 +13,14 @@ import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
 
 import type {FlashListRef} from '@shopify/flash-list';
+import type {ReactElement} from 'react';
 
 import React, {useImperativeHandle, useRef} from 'react';
 
 import type {TableContextValue} from './TableContext';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
 
+import {getTableListMetadata} from './buildTableListData';
 import useFiltering from './middlewares/filtering';
 import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
@@ -25,6 +29,8 @@ import useSorting from './middlewares/sorting';
 import {shouldUseTableSemantics} from './tableAccessibility';
 import {doesBodyRenderWhenEmpty} from './TableBody';
 import TableContext from './TableContext';
+import TableEmptyState from './TableEmptyStates/TableEmptyState';
+import TableNoResultsState from './TableEmptyStates/TableNoResultsState';
 import TableSemanticContainer from './TableSemanticContainer';
 
 /**
@@ -41,6 +47,7 @@ function createTableHandle<DataType extends TableData, ColumnKey extends string 
     tableMethods: TableMethods<ColumnKey, FilterKey>,
     listRef: React.RefObject<FlashListRef<DataType> | null>,
     getProcessedData: () => Array<TableRow<DataType>>,
+    listDataRowOffset: number,
 ): TableHandle<DataType, ColumnKey, FilterKey> {
     return new Proxy(tableMethods, {
         get: (target, property) => {
@@ -50,6 +57,17 @@ function createTableHandle<DataType extends TableData, ColumnKey extends string 
 
             if (property === 'getProcessedData') {
                 return getProcessedData;
+            }
+
+            if (property === 'scrollToIndex') {
+                const scrollToIndex = listRef.current?.scrollToIndex;
+                if (listDataRowOffset === 0 || !scrollToIndex) {
+                    return scrollToIndex;
+                }
+
+                return (params: Parameters<FlashListRef<DataType>['scrollToIndex']>[0]) => {
+                    scrollToIndex({...params, index: params.index + listDataRowOffset});
+                };
             }
 
             return listRef.current?.[property as keyof FlashListRef<DataType>];
@@ -189,6 +207,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     isItemInSearch,
     initialSortColumn,
     narrowLayoutSortColumn,
+    headerComponent,
+    shouldUseStickyColumnHeader = false,
     children,
     selectionEnabled,
     shouldEnableSelectionInNarrowPaneModal,
@@ -200,7 +220,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const isMobileSelectionEnabled = useMobileSelectionMode();
     const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-
     if (!columns || columns.length === 0) {
         throw new Error('Table columns must be provided');
     }
@@ -237,6 +256,10 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const processedData = highlightMiddleware(selectionData);
 
     const listRef = useRef<FlashListRef<DataType>>(null);
+    // Keeps the table search input visible above the keyboard when it is focused inside the
+    // scrolling list (native only; the web variant of the hook is a no-op).
+    const {isKeyboardShown} = useKeyboardState();
+    const {containerRef: listContainerRef, trackScrollOffset, scrollInputIntoView} = useScrollToFocusedInput(listRef, isKeyboardShown);
 
     const tableMethods: TableMethods<ColumnKey, FilterKey> = {
         ...filterMethods,
@@ -246,14 +269,32 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         ...highlightingMethods,
     };
 
+    const originalDataLength = data?.length ?? 0;
+    const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
+    const shouldRenderStickyHeader = shouldUseStickyColumnHeader && !(shouldUseNarrowTableLayout && !title);
+
+    // When the page header scrolls with the table, TableBody owns the list footer used for empty
+    // states. They are extracted from the direct children here so they don't render a second time
+    // as siblings of the body.
+    const childrenArray = React.Children.toArray(children);
+    const emptyStateElement = childrenArray.find((child): child is ReactElement => React.isValidElement(child) && child.type === TableEmptyState);
+    const noResultsStateElement = childrenArray.find((child): child is ReactElement => React.isValidElement(child) && child.type === TableNoResultsState);
+
+    const tableListMetadata = getTableListMetadata({
+        headerComponent,
+        listHeaderComponent: listProps.ListHeaderComponent,
+        isEmptyResult,
+        shouldRenderStickyHeader,
+    });
+    const renderedChildren = tableListMetadata.hasPageHeader
+        ? childrenArray.filter((child) => !(React.isValidElement(child) && (child.type === TableEmptyState || child.type === TableNoResultsState)))
+        : children;
+
     /**
      * Exposes table control methods through the ref.
      * Uses a Proxy to also forward FlashList methods (like scrollToIndex).
      */
-    useImperativeHandle(ref, () => createTableHandle(tableMethods, listRef, () => processedData));
-
-    const originalDataLength = data?.length ?? 0;
-    const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
+    useImperativeHandle(ref, () => createTableHandle(tableMethods, listRef, () => processedData, tableListMetadata.listDataRowOffset));
 
     const handleMobileSelectionPress = () => {
         turnOnMobileSelectionMode();
@@ -267,7 +308,13 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const contextValue: TableContextValue<DataType, ColumnKey, FilterKey> = {
         title,
+        headerComponent,
+        emptyStateElement,
+        noResultsStateElement,
         listRef,
+        listContainerRef,
+        trackScrollOffset,
+        scrollInputIntoView,
         listProps,
         processedData,
         originalDataLength,
@@ -281,6 +328,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         tableMethods,
         hasActiveFilters,
         hasSearchString: hasActiveSearchString,
+        tableListMetadata,
         isEmptyResult,
         shouldUseNarrowTableLayout,
         selectionEnabled,
@@ -295,20 +343,20 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     // web layout where semantics apply), so it has to be counted alongside the configured data columns.
     const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
 
-    // When empty, `TableBody` still renders (keeping its role="rowgroup") if an empty-state or header list slot is
-    // supplied, so the semantic wrapper must be preserved then to avoid orphaned table semantics.
-    const rendersBodyWhenEmpty = doesBodyRenderWhenEmpty(listProps);
+    // In the normal inline semantic layout, an empty body with a list slot still needs its enclosing table wrapper.
+    // Page-header tables use TableBody's persistent full-layout wrapper as their semantic table ancestor.
+    const rendersBodyWhenEmpty = doesBodyRenderWhenEmpty(listProps, headerComponent);
 
     return (
         <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
             <TableSemanticContainer
-                isEnabled={isTableSemanticsEnabled}
+                isEnabled={isTableSemanticsEnabled && !tableListMetadata.hasPageHeader}
                 title={title}
                 rowCount={processedData.length}
                 columnCount={semanticColumnCount}
                 rendersBodyWhenEmpty={rendersBodyWhenEmpty}
             >
-                {children}
+                {renderedChildren}
             </TableSemanticContainer>
 
             <Modal

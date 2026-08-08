@@ -27,6 +27,19 @@ jest.mock('@components/Table/TableBody', () => {
     return {__esModule: true, default: () => createElement(RNView, {testID: 'stub-body'})};
 });
 
+const mockTrackedFilterBarMount = jest.fn();
+const mockTrackedFilterBarUnmount = jest.fn();
+
+function TrackedFilterBar() {
+    React.useEffect(() => {
+        mockTrackedFilterBarMount();
+        return () => {
+            mockTrackedFilterBarUnmount();
+        };
+    }, []);
+    return <View testID="tracked-filter-bar" />;
+}
+
 function renderContainer(
     children: React.ReactNode,
     {isEnabled = true, rowCount = 3, rendersBodyWhenEmpty = false}: {isEnabled?: boolean; rowCount?: number; rendersBodyWhenEmpty?: boolean} = {},
@@ -102,17 +115,8 @@ describe('TableSemanticContainer', () => {
         // Guards the regression where the empty branch returned raw `children` (implicit keys) while the wrapped branch
         // returns `React.Children.toArray(children)` (`.0`, `.1`, …). The key mismatch remounts surrounding children like
         // `Table.FilterBar`, whose unmount cleanup wipes the active search string the moment a query stops matching.
-        let mountCount = 0;
-        let unmountCount = 0;
-        function TrackedFilterBar() {
-            React.useEffect(() => {
-                mountCount++;
-                return () => {
-                    unmountCount++;
-                };
-            }, []);
-            return <View testID="tracked-filter-bar" />;
-        }
+        mockTrackedFilterBarMount.mockClear();
+        mockTrackedFilterBarUnmount.mockClear();
 
         // Passed as JSX siblings (no explicit keys) to mirror how tables render `Table.FilterBar`/`Table.Header`/`Table.Body`.
         const element = (rowCount: number) => (
@@ -130,14 +134,14 @@ describe('TableSemanticContainer', () => {
         );
 
         const {rerender} = render(element(3));
-        expect(mountCount).toBe(1);
+        expect(mockTrackedFilterBarMount).toHaveBeenCalledTimes(1);
 
         // Query stops matching -> table empties (wrapper skipped) -> then data returns (wrapper restored).
         rerender(element(0));
         rerender(element(3));
 
         // The filter bar instance survived both transitions, so its search-clearing cleanup never fired.
-        expect(unmountCount).toBe(0);
-        expect(mountCount).toBe(1);
+        expect(mockTrackedFilterBarUnmount).not.toHaveBeenCalled();
+        expect(mockTrackedFilterBarMount).toHaveBeenCalledTimes(1);
     });
 });

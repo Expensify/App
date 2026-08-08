@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableHeaderComponent} from '@components/Table';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 
 import useLocalize from '@hooks/useLocalize';
@@ -26,9 +26,10 @@ type WorkspaceSpendRulesTableProps = {
     selectedKeys: string[];
     emptyState: TableEmptyStateProps;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
 };
 
-function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, emptyState, onRowSelectionChange}: WorkspaceSpendRulesTableProps) {
+function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, emptyState, onRowSelectionChange, headerComponent}: WorkspaceSpendRulesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -99,6 +100,9 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, em
         />
     );
 
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.rules.spendRules.findRule')} />;
+    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
+
     return (
         <Table
             data={rulesData}
@@ -113,11 +117,11 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, em
             initialSortColumn="card"
             narrowLayoutSortColumn="card"
             title={translate('workspace.rules.tabs.cardRestrictions')}
+            headerComponent={tableHeaderComponent}
+            shouldUseStickyColumnHeader
         >
-            <Table.FilterBar label={translate('workspace.rules.spendRules.findRule')} />
             <Table.EmptyState {...emptyState} />
             <Table.NoResultsState />
-            <Table.Header />
             <Table.Body />
         </Table>
     );
