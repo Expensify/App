@@ -34,6 +34,8 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [savedColumnLayouts] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [accountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
@@ -123,7 +125,14 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
         // If existingCardID is provided, add transactions to that card instead of creating a new one
         const cardIDNumber = existingCardID ? Number(existingCardID) : undefined;
         const previouslySavedLayout = cardIDNumber && savedColumnLayouts ? savedColumnLayouts[String(cardIDNumber)] : undefined;
-        const importFinalModal = await importTransactionsFromCSV(spreadsheet, accountID, cardIDNumber, previouslySavedLayout);
+        const card = cardIDNumber ? cardList?.[String(cardIDNumber)] : undefined;
+        const currentCardSettings = card
+            ? {
+                  cardDisplayName: customCardNames?.[String(cardIDNumber)] ?? card.nameValuePairs?.cardTitle,
+                  isReimbursable: card.reimbursable,
+              }
+            : undefined;
+        const importFinalModal = await importTransactionsFromCSV(spreadsheet, accountID, cardIDNumber, previouslySavedLayout, currentCardSettings);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {
             setIsImporting(false);
