@@ -27,7 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import {delegateEmailSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import TestDriveBanner from './TestDriveBanner';
@@ -57,6 +57,7 @@ function TestDriveDemo() {
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
+    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding);
     const hasCalledOpenReportRef = useRef(false);
 
     useEffect(() => {
@@ -74,6 +75,8 @@ function TestDriveDemo() {
                     betas,
                     hasReportActions: hasConciergeReportActions,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
+                    isSelfTourViewed: hasSeenTour,
+                    hasCompletedGuidedSetupFlow,
                 });
             }
             return;
@@ -94,6 +97,7 @@ function TestDriveDemo() {
         );
     }, [
         hasSeenTour,
+        hasCompletedGuidedSetupFlow,
         hasConciergeReportActions,
         viewTourTaskReport,
         viewTourTaskParentReport,
