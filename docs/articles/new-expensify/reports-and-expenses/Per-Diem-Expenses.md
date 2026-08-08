@@ -35,3 +35,6 @@ The option only appears if the workspace you're submitting the expense on has Pe
 ## Can I create per diem expenses for multiple days?
 Yes! Just set your Start and End dates across the full period and add one or more sub-rates for each day or meal.
 
+## What happens if I choose Per Diem but no rates have been added yet?
+If your workspace has Per Diem enabled but no rates have been added, you'll see a **No per diem rates yet** message when you choose Per Diem. If you're a member, you'll be prompted to ask your Workspace Admin to add rates. If you're a Workspace Admin, you'll see an **Edit per diem rates** button to add them.
+
