@@ -314,6 +314,7 @@ describe('PerDiem', () => {
             };
 
             const result = getPerDiemExpenseInformation({
+                dateFnsLocale: undefined,
                 parentChatReport: {} as OnyxEntry<Report>,
                 transactionParams: mockTransactionParams,
                 participantParams: mockParticipantParams as unknown as RequestMoneyParticipantParams,
@@ -405,6 +406,7 @@ describe('PerDiem', () => {
 
             // When: Call getPerDiemExpenseInformation
             const result = getPerDiemExpenseInformation({
+                dateFnsLocale: undefined,
                 parentChatReport: {} as OnyxEntry<Report>,
                 transactionParams: mockTransactionParams,
                 participantParams: mockParticipantParams,
@@ -498,6 +500,7 @@ describe('PerDiem', () => {
             };
 
             const result = getPerDiemExpenseInformation({
+                dateFnsLocale: undefined,
                 parentChatReport: undefined,
                 transactionParams: mockTransactionParams,
                 participantParams: mockParticipantParams,
@@ -601,6 +604,7 @@ describe('PerDiem', () => {
 
             // When: Call getPerDiemExpenseInformation with existing chat report
             const result = getPerDiemExpenseInformation({
+                dateFnsLocale: undefined,
                 parentChatReport: existingChatReport as OnyxEntry<Report>,
                 transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
                 participantParams: mockParticipantParams as RequestMoneyParticipantParams,
@@ -691,6 +695,7 @@ describe('PerDiem', () => {
 
             // When: Call getPerDiemExpenseInformation for policy expense chat
             const result = getPerDiemExpenseInformation({
+                dateFnsLocale: undefined,
                 parentChatReport: {} as OnyxEntry<Report>,
                 transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
                 participantParams: mockParticipantParams as RequestMoneyParticipantParams,
@@ -749,6 +754,7 @@ describe('PerDiem', () => {
 
             // When submitting a per diem expense
             submitPerDiemExpense({
+                dateFnsLocale: undefined,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 hasViolations: false,
@@ -821,6 +827,7 @@ describe('PerDiem', () => {
             });
             await waitForBatchedUpdates();
             submitPerDiemExpense({
+                dateFnsLocale: undefined,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 hasViolations: false,
@@ -909,6 +916,7 @@ describe('PerDiem', () => {
 
             // When calling getPerDiemExpenseInformation with personalDetails
             const result = getPerDiemExpenseInformation({
+                dateFnsLocale: undefined,
                 parentChatReport: {} as OnyxEntry<Report>,
                 transactionParams: mockTransactionParams,
                 participantParams: {
@@ -964,6 +972,7 @@ describe('PerDiem', () => {
 
             // When submitting a per diem expense with personalDetails
             submitPerDiemExpense({
+                dateFnsLocale: undefined,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 hasViolations: false,

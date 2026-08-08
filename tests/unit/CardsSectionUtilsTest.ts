@@ -101,6 +101,7 @@ describe('CardSectionUtils', () => {
     it('should return undefined by default', () => {
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -122,6 +123,7 @@ describe('CardSectionUtils', () => {
         });
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -160,6 +162,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -188,6 +191,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: undefined,
@@ -215,6 +219,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -242,6 +247,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -269,6 +275,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -296,6 +303,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -323,6 +331,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -350,6 +359,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: {...ACCOUNT_DATA, cardYear: 2023},
@@ -371,6 +381,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -398,6 +409,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -425,6 +437,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -453,6 +466,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
