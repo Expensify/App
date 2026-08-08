@@ -163,6 +163,7 @@ import type Request from './Request';
 import type {AnyRequest} from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
+import type Rule from './Rule';
 import type {SavedCSVColumnLayoutData, SavedCSVColumnLayoutList} from './SavedCSVColumnLayout';
 import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
@@ -314,6 +315,7 @@ export type {
     RecentlyUsedTags,
     ReimbursementAccount,
     Report,
+    Rule,
     ReportNameValuePairs,
     ReportAction,
     ReportActionReactions,

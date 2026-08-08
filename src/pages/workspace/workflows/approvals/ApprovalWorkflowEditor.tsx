@@ -148,13 +148,15 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         // Always pass a backTo so that after editing expenses-from (including the invite-a-member detour),
         // we return to the page we came from. For EDIT that's the edit page; for CREATE we're on the
         // confirm (new) page, so return there instead of falling through to the Approver step.
+        // Preserve memberEmail so a fresh edit mount (e.g. after refresh) re-resolves this exact workflow
+        // instead of the first one sharing firstApproverEmail.
         const backTo =
             approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT
-                ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail)
+                ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail, approvalWorkflow.memberEmail)
                 : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID);
 
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path, backTo));
-    }, [approvalWorkflow.action, approvalWorkflow.originalApprovers, policyID]);
+    }, [approvalWorkflow.action, approvalWorkflow.originalApprovers, approvalWorkflow.memberEmail, policyID]);
 
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addAdditionalApprover = useCallback(() => {

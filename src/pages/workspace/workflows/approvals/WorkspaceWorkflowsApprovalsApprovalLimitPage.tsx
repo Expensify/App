@@ -99,7 +99,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
             // screen carries extra seed params, so a strict param match misses it and REPLACE mounts
             // a fresh edit screen that re-derives the workflow from the policy — wiping the unsaved
             // draft (the seeded agent and any in-progress edits). POP_TO returns to the live screen.
-            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApprover), {compareParams: false});
+            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApprover, approvalWorkflow?.memberEmail), {compareParams: false});
             return;
         }
         // Mark that we've completed the initial wizard flow before navigating to the summary page
