@@ -2,11 +2,11 @@
 
 ## Directory layout
 
-- `macros/` - reusable helpers for common setup/navigation actions that stop in a navigable state for further interactive work.
-- `tests/` - critical-scenario scripts for QA/perf verification that assert explicit outcomes (for example Sentry spans) and then stop.
-- `lib/` - bash drive libraries for flows that need conditional steering the linear `.ad` format cannot express (snapshot classification, state-dependent branching). Each file documents its own contract; the caller always owns the session lifecycle (`open`/`close`/`record`). Source them from an orchestrator or run them standalone against an already-open session (for example `lib/sign-in-drive.sh --platform web --session <name> --email <email>`).
+1. `macros/` contains reusable setup and navigation helpers for interactive work.
+2. `scenarios/` contains QA and performance journeys that run against a prepared session through `agent-device replay`.
+3. `lib/` contains bash drive libraries for flows that need conditional steering the linear `.ad` format cannot express. Each file documents its own contract; the caller owns session lifecycle.
 
-Composable `.ad` snippets - bounded units of work. A flow may span one or multiple screens as long as it represents a coherent, reusable action with clear start (`@pre`) and completion (`@post`) checkpoints. Each flow advertises machine-matchable metadata (`@pre`, `@post`, `@tag`, `@param`) via `# @`-prefixed comment headers, while flow type is derived from location (`flows/macros/` or `flows/tests/`).
+The `macros/` and `scenarios/` directories contain composable `.ad` snippets. The caller owns application startup, authentication, platform selection, session state, and cleanup. A flow may span one or multiple screens as long as it represents a coherent action with clear start (`@pre`) and completion (`@post`) checkpoints.
 
 ## Agent decision loop (interactive)
 
@@ -23,13 +23,30 @@ Before manually navigating, use this human-in-the-loop loop:
 7. `agent-device replay <path> -e KEY=VALUE ...`.
 8. If the flow declares `@post`, verify each `@post` with `is exists`. On success, re-enter the loop only if the user's stated goal is not complete; otherwise stop and report completion. On failure, propose peer flow/manual fallback options and ask before continuing. If no `@post` is declared (utility flow), rely on explicit user confirmation or the next snapshot before continuing.
 
-## QA workflow (separate)
+## QA workflow
 
-`flows/tests/` is reserved for dedicated QA automation and should not be offered to users as part of the interactive helper loop above. Run these flows with the dedicated test runner:
+Scenarios are not self-contained test-runner inputs. Open the app and prepare a named session first, then run:
 
 ```bash
-agent-device test .claude/skills/agent-device/flows/tests/<name>.ad -e KEY=VALUE ...
+AGENT_DEVICE_STATE_DIR="$HOME/.agent-device-expensify-headless" \
+agent-device open <app-id> \
+    --platform <ios-or-android> \
+    --session <name>
+AGENT_DEVICE_STATE_DIR="$HOME/.agent-device-expensify-headless" \
+node .claude/skills/agent-device/scripts/replay-with-deadline.mjs \
+    .claude/skills/agent-device/flows/scenarios/<name>.ad \
+    --session <name> \
+    --timeout 120000 \
+    -e KEY=VALUE
 ```
+
+Tested Agent Device versions 0.20.1 through 0.20.3 accept `replay --timeout` but can leave the daemon request running until a selector timeout. The repository wrapper enforces the wall-clock deadline outside the daemon, exits with code 124, and cleans the dedicated headless daemon. Always use a separate `AGENT_DEVICE_STATE_DIR` for this workflow so timeout cleanup cannot stop an interactive session. Selector waits remain the per-step bounds and produce the useful divergence report.
+
+`agent-device test` creates an isolated session for each attempt. Use it only for scripts that own `context`, `open`, and cleanup.
+
+Every scenario must execute each declared `@pre` and `@post` condition with `is exists` or `wait`. Metadata documents the contract but does not execute it.
+
+For headless runs, stop after the first failed replay or postcondition. Retry only after an explicit reset or another verified state change. Do not replay the same scenario against an unchanged state.
 
 ## Metadata header spec
 
@@ -39,13 +56,15 @@ Each flow starts with `# @key value` comment lines. The `.ad` parser treats `#` 
 | -------- | ----------- | ------------------------------------------------------------------------------------------------ |
 | `@desc`  | 1           | One-line human summary.                                                                          |
 | `@pre`   | 1..N        | Selector that must resolve in the current snapshot. Multiple lines are ANDed.                    |
-| `@post`  | 0..N        | Selector expected after replay. Multiple lines are ANDed. Used for chaining + success.           |
+| `@post`  | 0..N        | Selector expected after replay. Multiple lines are ANDed. The flow body enforces them.             |
+| `@reset` | 0..1        | Repository-relative macro path that restores the scenario's `@pre` state between measured runs.    |
+| `@measure` | 0..1      | Set to `canonical` when multiple scenarios emit the same Sentry span and this one owns measurement. |
 | `@tag`   | 0..N        | Free-form category (`auth`, `onboarding`, ...) or scoped (`sentry-<spanName>`).                  |
 | `@param` | 0..N        | Runtime input contract: `@param KEY description.` Use with `${KEY}` in flow body.                |
 
 Selector syntax matches the body: `id="..."`, `role="..." label="..."`, `text="..."`, `||` for fallbacks.
 
-## Parametrization (`agent-device` v0.13.0+)
+## Parametrization
 
 Declare runtime inputs via metadata (`@param`) and reference them in the body with `${VAR}` interpolation. Values are supplied by caller arguments (`-e`) or shell imports (`AD_VAR_*`) - never by in-file `env` directives.
 
@@ -67,10 +86,11 @@ agent-device replay <flow>.ad -e EMAIL=other@example.com
 ## Authoring rules
 
 - **No `open`, no `close`, no `context` header.** Caller owns lifecycle.
-- **No fixed `wait` calls.** `fill`/`press` resolve selectors with retry. Only add `wait <selector>` for real post-action blocks.
-- **Durable selectors.** Prefer `id=...` first, then `role=... label=...`, with `||` fallbacks. Avoid `@eN` refs.
-- **Every flow declares `@desc` and `@pre`.** Add `@post` for outcome-bearing flows; utility flows (for example `go-back`) may omit it. Add `@tag` when applicable.
-- **Choose directory intentionally.** Put reusable setup/navigation steps in `flows/macros/`; put outcome verification scenarios in `flows/tests/`.
+- **No fixed-duration `wait` calls.** Guard every asynchronous transition with `wait "<selector>" <timeoutMs>`, which polls until the selector resolves. A bare `wait <ms>` only burns wall clock.
+- **No command flags in a flow body.** The `.ad` parser only reads flags for `press`, `fill`, `click`, and a few capture commands; for `is`, `wait`, and `find` it treats `--first` and friends as positionals. Disambiguate with a tighter selector instead.
+- **Durable selectors.** Prefer `id=...` first, then `role=... label=...`, with `||` fallbacks. For shared navigation controls, put the iOS role selector before the Android `label=... hittable=true` fallback. Avoid `@eN` refs.
+- **Every flow declares `@desc` and `@pre`.** Scenarios enforce every `@pre` before mutation and every `@post` before success. Utility macros (for example `go-back`) may omit `@post`. Add `@tag` when applicable.
+- **Choose directory intentionally.** Put reusable setup/navigation steps in `flows/macros/`; put outcome verification scenarios in `flows/scenarios/`.
 - **Keep scope coherent, not artificially tiny.** Flows can span multiple screens when that sequence is the reusable intent (for example "create and submit manual expense").
 - **Peers share `@pre` and differ on `@post`.** One flow per narrow outcome is better than a mega-flow with conditional branches.
 - **Use `@param` for substituted values.** If a literal is interpolated into the body, declare `# @param KEY description.` and reference it as `${KEY}`.
@@ -88,15 +108,18 @@ agent-device replay <flow>.ad -e EMAIL=other@example.com
 4. `agent-device close` - flushes the `.ad`.
 5. Edit the generated file:
    - Delete the `context` line, leading `open ... --relaunch`, trailing `close`, and eyeballing `wait`s.
-   - Move file to `flows/macros/` or `flows/tests/`, then add `@desc`, `@pre`, optional `@post`, optional `@tag`, and any needed `@param` headers.
-6. Verify: pre-check from a matching state, replay, post-check.
+   - Move file to `flows/macros/` or `flows/scenarios/`, then add `@desc`, `@pre`, optional `@post`, optional `@tag`, and any needed `@param` headers.
+6. For scenarios, add executable checks for every declared `@pre` and `@post`.
+7. Verify: pre-check from a matching state, replay, post-check.
 
 ## Maintenance
 
-Heal selector drift in place:
+Heal selector drift by hand. Replay the flow and read the divergence report:
 
 ```bash
-agent-device replay -u .claude/skills/agent-device/flows/<kind>/<name>.ad
+agent-device replay .claude/skills/agent-device/flows/<kind>/<name>.ad --session <name>
 ```
 
-Re-verify `@pre`/`@post` still hold, then commit. Note: `replay -u` can rewrite interpolated lines to concrete selectors/values; review diffs and restore `${KEY}` placeholders where needed. Keep runtime inputs in `@param` + `-e`/`AD_VAR_*`; do not reintroduce in-file `env` directives.
+Every divergence carries ranked selector suggestions. Apply them yourself: `replay --update`/`-u` no longer rewrites the `.ad` file. Editing by hand also keeps `${KEY}` placeholders intact. Re-verify `@pre`/`@post` still hold, then commit. Keep runtime inputs in `@param` + `-e`/`AD_VAR_*`; do not reintroduce in-file `env` directives.
+
+Run `node .claude/skills/agent-device/scripts/validate-flows.mjs` after editing scenarios. It checks assertion order, selector specificity, reset paths, canonical ownership of duplicate Sentry tags, and guarded floating action menu transitions.

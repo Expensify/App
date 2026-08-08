@@ -1,7 +1,7 @@
 ---
 name: agent-device
 description: Drive iOS and Android devices for the Expensify App - testing, debugging, performance profiling, bug reproduction, and feature verification. Use when the developer needs to interact with the mobile app on a device.
-allowed-tools: Bash(agent-device *) Bash(npm root *) Bash(scripts/is-hybrid-app.sh)
+allowed-tools: Bash(agent-device *) Bash(node .claude/skills/agent-device/scripts/*) Bash(npm root *) Bash(scripts/is-hybrid-app.sh)
 ---
 
 # agent-device
@@ -10,7 +10,7 @@ allowed-tools: Bash(agent-device *) Bash(npm root *) Bash(scripts/is-hybrid-app.
 
 These checks evaluate at skill load. If any line shows `FAIL`, stop and surface the fix before running any device command.
 
-`agent-device` version: !`R=0.18.0; V=$(agent-device --version 2>/dev/null); [ -n "$V" ] && [ "$(printf '%s\n%s\n' "$R" "$V" | sort -V | head -1)" = "$R" ] && echo "OK ($V)" || echo "FAIL (need v$R+, got: ${V:-not installed}). Fix: npm install -g agent-device@latest"`
+`agent-device` version: !`R=0.20.0; V=$(agent-device --version 2>/dev/null); [ -n "$V" ] && [ "$(printf '%s\n%s\n' "$R" "$V" | sort -V | head -1)" = "$R" ] && echo "OK ($V)" || echo "FAIL (need v$R+, got: ${V:-not installed}). Fix: npm install -g agent-device@latest"`
 
 Bundled CLI skills dir: !`D="$(npm root -g)/agent-device/skills/agent-device"; test -s "$D/SKILL.md" && echo "OK ($D)" || echo "FAIL (missing $D/SKILL.md). Fix: npm install -g agent-device@latest"`
 
@@ -121,4 +121,4 @@ Read these files directly for device automation guidance (bootstrap, exploration
 
 ## Flows
 
-Repeatable steps (sign-in, onboarding, etc.) are captured as composable `.ad` snippets under [`flows/`](flows/README.md). For interactive usage, propose and run only `flows/macros/` helpers. `flows/tests/` belongs to a separate QA workflow and must not be proposed by this skill; QA/perf runs execute them via `agent-device test <path>`.
+Repeatable steps are captured as composable `.ad` snippets under [`flows/`](flows/README.md). Interactive agents may propose and run only `flows/macros/`. QA and performance runs use `flows/scenarios/` through the repository deadline wrapper against a prepared session. Repository scenarios are not inputs for `agent-device test` because they do not own application lifecycle.

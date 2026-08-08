@@ -1,0 +1,16 @@
+# @desc   Tap the submit button on the IOU confirmation page. Triggers ManualCreateExpenseSubmit, ManualSubmitToDestinationVisible, and ManualCreateExpenseServerResponse. If location permission is granted, ManualGeolocationWait also fires as a child of Submit.
+# @pre    id="IOURequestStepConfirmation"
+# @post   id="SearchPageNarrow" || id="Search"
+# @post   role="tab" label="Expenses" || role="button" label="Expenses" || label="Expenses" hittable=true
+# @tag    iou
+# @tag    perf
+# @tag    sentry-ManualCreateExpenseSubmit
+# @tag    sentry-ManualSubmitToDestinationVisible
+# @tag    sentry-ManualCreateExpenseServerResponse
+# @tag    sentry-ManualGeolocationWait
+# @param  AMOUNT Whole-number amount shown in the submit CTA (for example `22`).
+# @param  CURRENCY Currency symbol shown in the submit CTA (for example `PLN` or `USD`).
+is exists "id=\"IOURequestStepConfirmation\""
+press "role=\"button\" label=\"Create ${CURRENCY} ${AMOUNT}.00 expense\" || role=\"button\" label=\"Create expense\" || label=\"Create ${CURRENCY} ${AMOUNT}.00 expense\" hittable=true || label=\"Create expense\" hittable=true"
+wait "id=\"SearchPageNarrow\" || id=\"Search\"" 15000
+is exists "role=\"tab\" label=\"Expenses\" || role=\"button\" label=\"Expenses\" || label=\"Expenses\" hittable=true"
