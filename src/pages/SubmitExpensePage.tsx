@@ -8,7 +8,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {startMoneyRequest} from '@userActions/IOU/MoneyRequest';
 
@@ -49,17 +48,10 @@ function SubmitExpensePage() {
         [],
     );
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'SubmitExpensePage',
-    };
-
     return (
         <ScreenWrapper testID="SubmitExpensePage">
             <View style={[styles.borderBottom]}>
-                <ReportHeaderSkeletonView
-                    onBackButtonPress={Navigation.goBack}
-                    reasonAttributes={reasonAttributes}
-                />
+                <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
             </View>
             <ReportActionsSkeletonView />
         </ScreenWrapper>

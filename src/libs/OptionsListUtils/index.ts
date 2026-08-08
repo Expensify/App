@@ -1233,7 +1233,17 @@ function createOption({
                       },
                   );
 
-        const computedReportName = deprecatedGetReportName(report, reportAttributesDerived);
+        const computedReportName =
+            deprecatedGetReportName(report, reportAttributesDerived) ||
+            (result.isSelfDM
+                ? getDisplayNameForParticipant({
+                      accountID: report.ownerAccountID,
+                      shouldAddCurrentUserPostfix: true,
+                      personalDetailsData: personalDetails ?? undefined,
+                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                      translate: translateFn,
+                  })
+                : '');
 
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils, translate: translateFn}) ||

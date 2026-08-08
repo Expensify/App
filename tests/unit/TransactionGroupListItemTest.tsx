@@ -40,6 +40,7 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getSuggestedSearches: jest.fn(() => ({})),
     getSuggestedSearchesVisibility: jest.fn(() => ({topSpendersPolicyIDs: []})),
     isTodoSearch: jest.fn(() => false),
+    getSubmittedViolationsForTransaction: jest.fn(() => ''),
 }));
 
 jest.mock('@react-navigation/native', () => ({

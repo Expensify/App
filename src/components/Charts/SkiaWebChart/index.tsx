@@ -6,8 +6,6 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import variables from '@styles/variables';
 
 import type {ComponentType} from 'react';
@@ -26,7 +24,6 @@ type SkiaWebChartProps<TProps> = {
     componentProps: TProps;
 
     /** Identifies the loading skeleton span for telemetry. */
-    reasonContext: string;
 };
 
 function ChartUnavailable() {
@@ -55,7 +52,7 @@ function ChartUnavailable() {
 // `object` mirrors WithSkiaWeb's own constraint; `Record<string, unknown>` would reject the
 // interface-based render-html renderer props (VictoryChartRendererProps) that lack an index signature.
 // eslint-disable-next-line @typescript-eslint/no-restricted-types
-function SkiaWebChart<TProps extends object>({getComponent, componentProps, reasonContext}: SkiaWebChartProps<TProps>) {
+function SkiaWebChart<TProps extends object>({getComponent, componentProps}: SkiaWebChartProps<TProps>) {
     const styles = useThemeStyles();
 
     // Probe once per mount (not per render) so re-rendering doesn't repeatedly create WebGL contexts,
@@ -67,13 +64,9 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps, reas
         return <ChartUnavailable />;
     }
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: reasonContext};
     const fallback = (
         <View style={styles.chartWebFallback}>
-            <ActivityIndicator
-                size="large"
-                reasonAttributes={reasonAttributes}
-            />
+            <ActivityIndicator size="large" />
         </View>
     );
 

@@ -37,7 +37,7 @@ import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
-import {formatPhoneNumber, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -2577,6 +2577,7 @@ describe('actions/Duplicate', () => {
             isTrackIntentUser: false,
             delegateAccountID: undefined,
             formatPhoneNumber,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             ...overrides,
         });
 
@@ -3261,6 +3262,7 @@ describe('actions/Duplicate', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             ...overrides,
         });
 

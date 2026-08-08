@@ -5,51 +5,76 @@ import WidgetContainer from '@components/WidgetContainer';
 
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {setNameValuePair} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SearchKey} from '@libs/SearchUIUtils';
 
 import WidgetHeaderMenu from '@pages/home/common/WidgetHeaderMenu/WidgetHeaderMenu';
+import HomeSectionEmptyState from '@pages/home/HomeSectionEmptyState';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 import {View} from 'react-native';
 
-import useSpendOverTimeData, {SPEND_OVER_TIME_STATE} from './useSpendOverTimeData';
+import InsightTitleDropdown from './InsightTitleDropdown';
+import useHomeInsightConfigs from './useHomeInsightConfigs';
+import useInsightData, {INSIGHT_STATE} from './useInsightData';
 
-function SpendOverTimeSectionContent() {
+function InsightsSectionContent() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Expand', 'OfflineCloud']);
-    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
+    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass', 'Chart']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const {query, queryJSON, groupBy, view, sortedData, state, retry} = useSpendOverTimeData();
+    const insightConfigs = useHomeInsightConfigs();
+    const [selectedKey] = useOnyx(ONYXKEYS.NVP_HOME_SELECTED_INSIGHT);
 
-    if (!queryJSON || !view || !groupBy || view === CONST.SEARCH.VIEW.TABLE || state === SPEND_OVER_TIME_STATE.HIDDEN) {
+    // The persisted key can name an insight the user is no longer eligible for, so fall back to the first option.
+    const config = insightConfigs.find((insightConfig) => insightConfig.key === selectedKey) ?? insightConfigs.at(0);
+    const {queryJSON, groupBy, view, sortedData, state, retry} = useInsightData(config);
+
+    const onSelectInsight = (key: SearchKey) => {
+        if (key === config?.key) {
+            return;
+        }
+        setNameValuePair(ONYXKEYS.NVP_HOME_SELECTED_INSIGHT, key, config?.key ?? key);
+    };
+
+    if (!config || !queryJSON || !groupBy) {
         return null;
     }
 
     return (
         <WidgetContainer
-            title={translate('search.spendOverTime')}
+            titleContent={
+                <InsightTitleDropdown
+                    configs={insightConfigs}
+                    selectedKey={config.key}
+                    onSelect={onSelectInsight}
+                />
+            }
             titleRightContent={
-                state === SPEND_OVER_TIME_STATE.READY ? (
+                state === INSIGHT_STATE.READY || state === INSIGHT_STATE.EMPTY || state === INSIGHT_STATE.ERROR ? (
                     <WidgetHeaderMenu
-                        testID="spendOverTimeOverflowMenu"
-                        sentryLabel="SpendOverTimeOverflowMenu"
+                        testID="insightsOverflowMenu"
+                        sentryLabel="InsightsOverflowMenu"
                         menuItems={[
                             {
                                 text: translate('common.view'),
                                 icon: icons.Expand,
-                                onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query})),
+                                onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: config.searchQuery})),
                                 shouldCallAfterModalHide: true,
                             },
                         ]}
@@ -57,7 +82,7 @@ function SpendOverTimeSectionContent() {
                 ) : null
             }
         >
-            {state === SPEND_OVER_TIME_STATE.OFFLINE && (
+            {state === INSIGHT_STATE.OFFLINE && (
                 <BlockingView
                     icon={icons.OfflineCloud}
                     iconColor={theme.offline}
@@ -69,7 +94,15 @@ function SpendOverTimeSectionContent() {
                     containerStyle={[{minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.gap5]}
                 />
             )}
-            {state === SPEND_OVER_TIME_STATE.ERROR && (
+            {state === INSIGHT_STATE.EMPTY && (
+                <HomeSectionEmptyState
+                    testID="insightsSectionEmptyState"
+                    illustration={illustrations.Chart}
+                    title={translate('homePage.insightsSection.chartUnavailable')}
+                    description={translate('homePage.insightsSection.notEnoughData')}
+                />
+            )}
+            {state === INSIGHT_STATE.ERROR && (
                 <BlockingView
                     icon={illustrations.BrokenMagnifyingGlass}
                     iconHeight={variables.iconSizeMegaLarge}
@@ -85,14 +118,14 @@ function SpendOverTimeSectionContent() {
                     onButtonPress={retry}
                 />
             )}
-            {(state === SPEND_OVER_TIME_STATE.LOADING || state === SPEND_OVER_TIME_STATE.READY) && (
-                <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3]]}>
+            {(state === INSIGHT_STATE.LOADING || state === INSIGHT_STATE.READY) && (
+                <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3], view === CONST.SEARCH.VIEW.PIE && styles.pb6]}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={view}
                         groupBy={groupBy}
                         data={sortedData ?? []}
-                        isLoading={state === SPEND_OVER_TIME_STATE.LOADING}
+                        isLoading={state === INSIGHT_STATE.LOADING}
                     />
                 </View>
             )}
@@ -100,4 +133,4 @@ function SpendOverTimeSectionContent() {
     );
 }
 
-export default SpendOverTimeSectionContent;
+export default InsightsSectionContent;
