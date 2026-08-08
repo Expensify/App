@@ -13,6 +13,7 @@ import Onyx from 'react-native-onyx';
 import {setDisableDismissOnEscape} from './actions/Modal';
 import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
+import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingNavigationUtils';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {consumePendingConciergeDeepLink} from './PendingConciergeDeepLink';
@@ -118,7 +119,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     shouldPreventOpenAdminRoom = false,
     variantOverride?: OnboardingRHPVariant | null,
 ) {
-    Navigation.dismissModal();
+    dismissOnboardingModalBeforeExit();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         navigateAfterOnboarding(
             isSmallScreenWidth,
@@ -156,7 +157,7 @@ function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNa
 }
 
 function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, shouldUseNarrowLayout = false) {
-    Navigation.dismissModal();
+    dismissOnboardingModalBeforeExit();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout);
     });
