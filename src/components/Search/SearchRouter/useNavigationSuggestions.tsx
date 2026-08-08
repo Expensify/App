@@ -216,7 +216,7 @@ function buildWorkspaceNavigationItems({
     getDestinationText,
 }: BuildWorkspaceNavigationItemsParams): NavigationSuggestionSourceItem[] {
     return Object.values(policies ?? {})
-        .filter((policy): policy is OnyxTypes.Policy => !!policy?.id && shouldShowPolicy(policy, isOffline, currentUserLogin))
+        .filter((policy): policy is OnyxTypes.Policy => !!policy?.id && !policy.isJoinRequestPending && shouldShowPolicy(policy, isOffline, currentUserLogin))
         .flatMap((policy) => {
             const items = getWorkspaceMenuItems({
                 policy,

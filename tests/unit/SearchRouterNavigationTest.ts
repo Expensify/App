@@ -470,12 +470,14 @@ describe('Workspace Search Router navigation source', () => {
         expect(buildNavigationSuggestions('Workflows', [items], localeCompare).map((item) => item.keyForList)).toEqual([`workspace_1_${SCREENS.WORKSPACE.WORKFLOWS}`]);
     });
 
-    it('excludes inaccessible policies and disabled feature pages', () => {
+    it('excludes inaccessible policies, pending join requests, and disabled feature pages', () => {
         const accessiblePolicy = createWorkspacePolicy('1', 'Accessible Workspace', {areWorkflowsEnabled: false});
         const personalPolicy = createWorkspacePolicy('2', 'Personal Workspace', {type: CONST.POLICY.TYPE.PERSONAL, areWorkflowsEnabled: true});
-        const items = buildItems([accessiblePolicy, personalPolicy]);
+        const pendingJoinPolicy = createWorkspacePolicy('3', 'Pending Workspace', {isJoinRequestPending: true});
+        const items = buildItems([accessiblePolicy, personalPolicy, pendingJoinPolicy]);
 
         expect(items.some((item) => item.keyForList?.startsWith('workspace_2_'))).toBe(false);
+        expect(items.some((item) => item.keyForList?.startsWith('workspace_3_'))).toBe(false);
         expect(items.some((item) => item.keyForList === `workspace_1_${SCREENS.WORKSPACE.WORKFLOWS}`)).toBe(false);
     });
 
