@@ -1,6 +1,6 @@
 import useTodoSearchResults from '@hooks/useTodoSearchResults';
 
-import {isTodoSearch} from '@libs/SearchUIUtils';
+import {getViolationsFromSearchData, isTodoSearch} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -82,8 +82,12 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
         });
     };
 
+    // Computed here, not per row: it scans every snapshot key.
+    const currentSearchViolations = currentSearchResults?.data ? getViolationsFromSearchData(currentSearchResults.data) : CONST.EMPTY_OBJECT;
+
     const resultsValue: SearchResultsContextValue = {
         currentSearchResults,
+        currentSearchViolations,
         shouldUseLiveData,
         sortedReportIDs,
         shouldShowFiltersBarLoading,
