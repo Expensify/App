@@ -1967,6 +1967,15 @@ const staticStyles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.SYSTEM.fontFamily,
         },
 
+        onboardingHeaderContainer: {
+            height: 52,
+            paddingHorizontal: 20,
+            paddingVertical: 16,
+            marginTop: 8,
+            justifyContent: 'center',
+            alignItems: 'flex-start',
+        },
+
         createMenuContainer: {
             width: variables.sideBarWidth - 40,
             paddingVertical: variables.componentBorderRadiusLarge,
