@@ -10,7 +10,20 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getAllReportActions, getElsewherePaymentReportActionMessage, getReportActionHtml, getReportActionText, isCreatedAction} from '@libs/ReportActionsUtils';
+import {
+    getAllReportActions,
+    getElsewherePaymentReportActionMessage,
+    getReportActionHtml,
+    getReportActionText,
+    getSortedReportActions,
+    isApprovedAction,
+    isClosedAction,
+    isCreatedAction,
+    isForwardedAction,
+    isPayAction,
+    isSubmittedAction,
+    isSubmittedAndClosedAction,
+} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticIOUReportAction,
@@ -537,8 +550,34 @@ function cancelPayment(
     );
     const approvalMode = policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
 
-    const stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = CONST.REPORT.STATE_NUM.APPROVED;
-    const statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM> = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.APPROVED;
+    // Derive the pre-payment state from the report's own action history — the ground truth for where the
+    // report was before it was paid — instead of guessing from the current policy config. Mark as paid is
+    // offered from Outstanding (instant submit / payments-disabled) as well as from Approved/Done, so a
+    // policy-based guess cannot tell those apart once payment has overwritten the report state.
+    const expenseReportActions = getAllReportActions(expenseReport.reportID);
+    const sortedReportActions = getSortedReportActions(Object.values(expenseReportActions));
+    const latestPayIndex = sortedReportActions.findLastIndex(isPayAction);
+    const actionsBeforePayment = latestPayIndex === -1 ? sortedReportActions : sortedReportActions.slice(0, latestPayIndex);
+    const lastWorkflowAction = actionsBeforePayment.findLast(
+        (action) => isApprovedAction(action) || isForwardedAction(action) || isSubmittedAction(action) || isSubmittedAndClosedAction(action) || isClosedAction(action),
+    );
+
+    let stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = CONST.REPORT.STATE_NUM.APPROVED;
+    // Fallback to the policy-based guess only when there is no workflow action history to read.
+    let statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM> = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.APPROVED;
+
+    if (isSubmittedAndClosedAction(lastWorkflowAction) || isClosedAction(lastWorkflowAction)) {
+        // Done: delayed submit with approvals disabled (SUBMITTED_AND_CLOSED), or a manually closed report.
+        stateNum = CONST.REPORT.STATE_NUM.APPROVED;
+        statusNum = CONST.REPORT.STATUS_NUM.CLOSED;
+    } else if (isSubmittedAction(lastWorkflowAction) || isForwardedAction(lastWorkflowAction)) {
+        // Outstanding / Processing: instant submit without approvals (SUBMITTED), or still in the approval chain (FORWARDED).
+        stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
+        statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED;
+    } else if (isApprovedAction(lastWorkflowAction)) {
+        stateNum = CONST.REPORT.STATE_NUM.APPROVED;
+        statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
+    }
 
     // For OPTIONAL approval mode with a connected bank account, the report status is CLOSED but the next step
     // should show "waiting to pay", so we use SUBMITTED as the predictedNextStatus which routes through the
@@ -557,7 +596,6 @@ function cancelPayment(
         isTrackIntentUser,
     });
     const iouReportActions = getAllReportActions(chatReport.iouReportID);
-    const expenseReportActions = getAllReportActions(expenseReport.reportID);
     const iouCreatedAction = Object.values(iouReportActions).find((action) => isCreatedAction(action));
     const expenseCreatedAction = Object.values(expenseReportActions).find((action) => isCreatedAction(action));
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
