@@ -82,10 +82,23 @@ function MoneyRequestReportPreview({
     // reimbursable derivations so they include optimistically-deleted rows, exactly as before the decomposition.
     const allReportTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
     const transactions = allReportTransactions.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    // IDs seeded into the expense view's prev/next carousel. Offline-deleted rows stay visible in the preview (above)
-    // but their threads are gone, so they must not be reachable through the arrows either — same filter every other
-    // seeder in the tree applies.
-    const openableTransactionIDs = transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID);
+    // The transactions in the order the carousel renders them, reported back by it as that order changes.
+    const orderedTransactionsRef = useRef<Transaction[]>([]);
+    const handleOrderedTransactionsChange = useCallback((orderedTransactions: Transaction[]) => {
+        orderedTransactionsRef.current = orderedTransactions;
+    }, []);
+    // IDs seeded into the expense view's prev/next carousel, in the order the cards are shown. The carousel sorts
+    // RBR transactions first and then by date, so seeding the raw collection order would leave the arrows walking a
+    // different sequence from the one on screen — pressing next on the last card could jump to the first.
+    // Offline-deleted rows stay visible in the preview (above) but their threads are gone, so they must not be
+    // reachable through the arrows either — same filter every other seeder in the tree applies.
+    const getOpenableTransactionIDs = useCallback(
+        () =>
+            (orderedTransactionsRef.current.length > 0 ? orderedTransactionsRef.current : transactions)
+                .filter((transaction) => !isTransactionPendingDelete(transaction))
+                .map((transaction) => transaction.transactionID),
+        [transactions],
+    );
     // Tracks how many actions the IOU report has loaded so a deferred expense press can be retried once
     // the actions arrive (they may be missing right after a cache clear).
     const [iouReportActionCount] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
@@ -233,6 +246,10 @@ function MoneyRequestReportPreview({
                 op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
             });
 
+            // Read once per press. The cascade's abort compares this exact array against what is seeded, so it has to
+            // be the same reference throughout this call.
+            const openableTransactionIDs = getOpenableTransactionIDs();
+
             if (isSmallScreenWidth && iouReportID) {
                 // Narrow layouts open the report first and then the pressed expense on top of it, so back returns to
                 // the report and back again to the chat — the same order the wide layout cascades in.
@@ -313,7 +330,7 @@ function MoneyRequestReportPreview({
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: Navigation.getActiveRoute()}));
             });
         },
-        [isSmallScreenWidth, iouReportID, markReportRHPWidth, unmarkReportRHPWidth, openableTransactionIDs],
+        [isSmallScreenWidth, iouReportID, markReportRHPWidth, unmarkReportRHPWidth, getOpenableTransactionIDs],
     );
 
     const openTransactionFromPreview = useCallback(
@@ -465,6 +482,7 @@ function MoneyRequestReportPreview({
             invoiceReceiverPolicy={invoiceReceiverPolicy}
             lastTransactionViolations={lastTransactionViolations}
             renderTransactionItem={renderItem}
+            onOrderedTransactionsChange={handleOrderedTransactionsChange}
             onCarouselLayout={onCarouselLayout}
             onWrapperLayout={onWrapperLayout}
             currentWidth={widths.currentWidth}

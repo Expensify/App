@@ -93,6 +93,9 @@ type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOny
         /** Callback to render a transaction preview item */
         renderTransactionItem: ListRenderItem<Transaction>;
 
+        /** Called with the transactions in the order the carousel renders them */
+        onOrderedTransactionsChange?: (orderedTransactions: Transaction[]) => void;
+
         /** Callback called when the whole preview is pressed */
         onPress: () => void;
 

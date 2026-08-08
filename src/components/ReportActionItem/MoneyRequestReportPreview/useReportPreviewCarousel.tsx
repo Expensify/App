@@ -35,6 +35,13 @@ type UseReportPreviewCarouselParams = {
     /** Transactions that belong to the previewed report */
     transactions: Transaction[];
 
+    /**
+     * Called with the transactions in the order the carousel renders them. The expense view's prev/next arrows are
+     * seeded from this, and they have to walk the cards in the order the user sees, not the order the collection
+     * happens to be in.
+     */
+    onOrderedTransactionsChange?: (orderedTransactions: Transaction[]) => void;
+
     /** Violations for the previewed transactions, used to sort RBR transactions first */
     transactionViolations: Parameters<typeof compareByRBR>[2];
 
@@ -66,6 +73,7 @@ type UseReportPreviewCarouselParams = {
  */
 function useReportPreviewCarousel({
     transactions,
+    onOrderedTransactionsChange,
     transactionViolations,
     iouReport,
     policy,
@@ -156,7 +164,8 @@ function useReportPreviewCarousel({
 
     useEffect(() => {
         carouselTransactionsRef.current = carouselTransactions;
-    }, [carouselTransactions]);
+        onOrderedTransactionsChange?.(carouselTransactions);
+    }, [carouselTransactions, onOrderedTransactionsChange]);
 
     useEffect(() => {
         const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID));

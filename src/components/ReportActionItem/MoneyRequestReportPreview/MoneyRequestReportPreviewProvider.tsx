@@ -70,6 +70,7 @@ type MoneyRequestReportPreviewProviderProps = ChildrenProps & {
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
     renderTransactionItem: ListRenderItem<Transaction>;
+    onOrderedTransactionsChange?: (orderedTransactions: Transaction[]) => void;
     currentWidth: number;
     reportPreviewStyles: MoneyRequestReportPreviewStyleType;
     newTransactionIDs?: Set<string>;
@@ -96,6 +97,7 @@ function MoneyRequestReportPreviewProvider({
     onPaymentOptionsShow,
     onPaymentOptionsHide,
     renderTransactionItem,
+    onOrderedTransactionsChange,
     currentWidth,
     reportPreviewStyles,
     newTransactionIDs,
@@ -221,6 +223,7 @@ function MoneyRequestReportPreviewProvider({
         currentWidth,
         newTransactionIDs,
         renderTransactionItem,
+        onOrderedTransactionsChange,
     });
 
     const openReportFromPreview = useCallback(() => {

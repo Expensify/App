@@ -1006,6 +1006,39 @@ describe('MoneyRequestReportPreview', () => {
             expect(mockUnmarkReportRHPWidth).toHaveBeenCalledWith(`thread_${mockSecondTransactionID}`);
         });
 
+        it('seeds the expense view carousel in the order the cards are rendered, not collection order', async () => {
+            // The carousel sorts before rendering, so the collection order and the on-screen order can differ. The
+            // arrows walk the seeded list, so seeding collection order makes "next" on the last card jump to the
+            // first one. These two are supplied newest-first and render oldest-first.
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            const olderTransaction = {...mockTransaction, transactionID: 'ordering_older', created: '2026-08-01 00:00:00', amount: mockTransaction.amount * 3};
+            const newerTransaction = {...mockTransaction, transactionID: 'ordering_newer', created: '2026-08-20 00:00:00', amount: mockTransaction.amount * 5};
+            mockUseReportWithTransactionsAndViolations.mockImplementation(() => [mockIOUReport, [newerTransaction, olderTransaction], {}]);
+            mockUseReportTransactionsCollection.mockImplementation(() =>
+                toCollectionDataSet(ONYXKEYS.COLLECTION.TRANSACTION, [newerTransaction, olderTransaction], (transaction) => transaction.transactionID),
+            );
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            const setActiveTransactionIDsSpy = jest.spyOn(TransactionThreadNavigation, 'setActiveTransactionIDs');
+
+            renderPage({});
+            await waitForBatchedUpdatesWithAct();
+            setCurrentWidth();
+            await act(async () => {
+                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${olderTransaction.transactionID}`]: olderTransaction,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${newerTransaction.transactionID}`]: newerTransaction,
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText(getTransactionDisplayAmountAndHeaderText(olderTransaction).transactionDisplayAmount));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith([olderTransaction.transactionID, newerTransaction.transactionID]);
+            expect(setActiveTransactionIDsSpy).not.toHaveBeenCalledWith([newerTransaction.transactionID, olderTransaction.transactionID]);
+        });
+
         it('opens the report instead of the lone expense for a single-expense report', async () => {
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             setReportPreviewData({transactions: [mockTransaction]});
