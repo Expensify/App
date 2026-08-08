@@ -7,7 +7,7 @@ import type {Locale} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type DynamicModule from '@src/types/utils/DynamicModule';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
+import type {Locale as DateUtilsLocale} from 'date-fns';
 
 import {setDefaultOptions} from 'date-fns';
 import Onyx from 'react-native-onyx';
@@ -46,7 +46,7 @@ class IntlStore {
      * Cache for localized date-fns
      * @private
      */
-    private static dateUtilsCache = new Map<Locale, DateFnsLocale>();
+    private static dateUtilsCache = new Map<Locale, DateUtilsLocale>();
 
     /**
      * Set of loaders for each locale.
@@ -241,13 +241,10 @@ class IntlStore {
         return loaderPromise()
             .then(() => {
                 this.currentLocale = locale;
-
-                // Belt and braces for date formatting. Every user-visible formatter takes an explicit locale, which is what makes dates
-                // re-render on a language switch. This keeps the small number of round-trip and report-formula call sites that
-                // deliberately format without one following the user's language rather than falling back to English.
-                const dateFnsLocale = this.dateUtilsCache.get(locale);
-                if (dateFnsLocale) {
-                    setDefaultOptions({locale: dateFnsLocale});
+                // Set the default date-fns locale
+                const dateUtilsLocale = this.dateUtilsCache.get(locale);
+                if (dateUtilsLocale) {
+                    setDefaultOptions({locale: dateUtilsLocale});
                 }
             })
             .then(() => {
