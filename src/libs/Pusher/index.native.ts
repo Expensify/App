@@ -276,6 +276,7 @@ function subscribe<EventName extends PusherEventName>(
                                     }
                                 },
                                 onSubscriptionSucceeded: () => {
+                                    const wasSubscribed = channels[channelName] === CONST.PUSHER.CHANNEL_STATUS.SUBSCRIBED;
                                     channels[channelName] = CONST.PUSHER.CHANNEL_STATUS.SUBSCRIBED;
                                     if (!disposed) {
                                         wrappedCb = bindEventToChannel(channelName, eventName, eventCallback);
@@ -290,11 +291,10 @@ function subscribe<EventName extends PusherEventName>(
                                         }
                                     }
                                     resolve();
-                                    // When subscribing for the first time we register a success callback that can be
-                                    // called multiple times when the subscription succeeds again in the future
-                                    // e.g. as a result of Pusher disconnecting and reconnecting. This callback does
-                                    // not fire on the first subscription_succeeded event.
-                                    onResubscribe();
+
+                                    if (wasSubscribed) {
+                                        onResubscribe();
+                                    }
                                 },
                                 onSubscriptionError: (name: string, message: string) => {
                                     delete channels[channelName];

@@ -262,7 +262,7 @@ function subscribe<EventName extends PusherEventName>(
                         Log.info('[Pusher] Attempting to subscribe to channel', false, {channelName, eventName});
                         let channel = getChannel(channelName);
 
-                        if (!channel?.subscribed) {
+                        if (!channel) {
                             channel = socket.subscribe(channelName);
                             let isBound = false;
                             channel.bind('pusher:subscription_succeeded', () => {

@@ -121,6 +121,27 @@ describe('Pusher.subscribe', () => {
 
         await expect(subscribePromise).resolves.toBeUndefined();
     });
+
+    it('should not fire onResubscribe on the first handshake and should fire it once on every later handshake', async () => {
+        const channelName = 'private-user-resubscribe';
+        const onResubscribe = jest.fn();
+
+        await initPusher();
+
+        const handle = Pusher.subscribe(channelName, 'multipleEvents', () => {}, onResubscribe);
+        await jest.runAllTimersAsync();
+        await handle;
+
+        expect(onResubscribe).not.toHaveBeenCalled();
+
+        MockedPusher.getInstance().getChannel(channelName)?.onSubscriptionSucceeded();
+
+        expect(onResubscribe).toHaveBeenCalledTimes(1);
+
+        MockedPusher.getInstance().getChannel(channelName)?.onSubscriptionSucceeded();
+
+        expect(onResubscribe).toHaveBeenCalledTimes(2);
+    });
 });
 
 describe('Per-callback subscription handles', () => {
