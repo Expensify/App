@@ -59,6 +59,7 @@ import RadioButton from './RadioButton';
 import RenderHTML from './RenderHTML';
 import ReportActionAvatars from './ReportActionAvatars';
 import Text from './Text';
+import {COPYABLE_TEXT_DATA_SET, useCopyableTextRowPress} from './TextWithTooltip/selection';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 import getContextMenuAccessibilityHint from './utils/getContextMenuAccessibilityHint';
 import getContextMenuAccessibilityProps from './utils/getContextMenuAccessibilityProps';
@@ -439,6 +440,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Should enable copy to clipboard action */
         copyable?: boolean;
 
+        /** Whether the title text should be directly selectable */
+        isTitleSelectable?: boolean;
+
         /** Plaid image for the bank */
         plaidUrl?: string;
 
@@ -615,6 +619,7 @@ function MenuItem({
     plaidUrl,
     copyValue = title,
     copyable = false,
+    isTitleSelectable = false,
     hasSubMenuItems = false,
     forwardedFSClass,
     ref,
@@ -641,6 +646,7 @@ function MenuItem({
     const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const popoverAnchor = useRef<View>(null);
     const pressableRef = useRef<View>(null);
+    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
     useEffect(() => {
         const element = pressableRef.current;
         if (interactive || !element || typeof HTMLElement === 'undefined' || !(element instanceof HTMLElement) || typeof element.onclick === 'undefined') {
@@ -815,6 +821,10 @@ function MenuItem({
             return;
         }
 
+        if (shouldSuppressCopyableTextRowPress(isTitleSelectable)) {
+            return;
+        }
+
         if (event?.type === 'click') {
             (event.currentTarget as HTMLElement).blur();
         }
@@ -877,6 +887,9 @@ function MenuItem({
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                                onMouseDown={(event) => {
+                                    markMouseDownOnCopyableText(event?.target, isTitleSelectable);
+                                }}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}
@@ -1043,7 +1056,15 @@ function MenuItem({
                                                                 fsClass={forwardedFSClass}
                                                             >
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
-                                                                    <View style={[styles.renderHTMLTitle, styles.textAlignLeft, shouldApplyIconPaddingToHTMLTitle && iconLeftPadding]}>
+                                                                    <View
+                                                                        style={[
+                                                                            styles.renderHTMLTitle,
+                                                                            styles.textAlignLeft,
+                                                                            isTitleSelectable && styles.userSelectText,
+                                                                            shouldApplyIconPaddingToHTMLTitle && iconLeftPadding,
+                                                                        ]}
+                                                                        dataSet={isTitleSelectable ? COPYABLE_TEXT_DATA_SET : undefined}
+                                                                    >
                                                                         {/* Use Text instead of RenderHTML when the title is plain text.
                                                                             Titles with shouldRenderAsHTML use baseFontStyle, which differs from combinedTitleTextStyle below.
                                                                         */}
@@ -1058,7 +1079,11 @@ function MenuItem({
                                                                     <Text
                                                                         style={combinedTitleTextStyle}
                                                                         numberOfLines={numberOfLinesTitle || undefined}
-                                                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
+                                                                        dataSet={{
+                                                                            [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled,
+                                                                            ...(isTitleSelectable ? COPYABLE_TEXT_DATA_SET : {}),
+                                                                        }}
+                                                                        selectable={isTitleSelectable}
                                                                         accessibilityRole={titleAccessibilityRole}
                                                                     >
                                                                         {renderTitleContent()}

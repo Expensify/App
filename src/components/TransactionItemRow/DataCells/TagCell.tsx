@@ -54,6 +54,7 @@ function TagCell({canEdit, onSave, shouldUseNarrowLayout, shouldShowTooltip, tra
             text={tagForDisplay}
             numberOfLines={1}
             style={[styles.lineHeightLarge, styles.justifyContentCenter]}
+            isCopyable
         />
     );
 

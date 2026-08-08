@@ -928,7 +928,8 @@ function MoneyRequestView({
 
     const distanceCopyValue = !canEditDistance ? distanceToDisplay : undefined;
     const distanceRateCopyValue = !canEditDistanceRate ? rateToDisplay : undefined;
-    const amountCopyValue = !canEditAmount ? amountTitle : undefined;
+    // Keep the visible amount copyable even when it is editable, so users do not need to open the amount step first.
+    const amountCopyValue = amountTitle || undefined;
     const descriptionHTML = updatedTransactionDescription ?? transactionDescription;
     const descriptionCopyValue = !canEdit && descriptionHTML ? Parser.htmlToText(descriptionHTML) : undefined;
     const merchantCopyValue = !canEditMerchant ? updatedMerchantTitle : undefined;
@@ -991,6 +992,7 @@ function MoneyRequestView({
                     errorText={getErrorForField('waypoints')}
                     copyValue={distanceCopyValue}
                     copyable={!!distanceCopyValue}
+                    isTitleSelectable={!!distanceCopyValue}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnitRateID')}>
@@ -1049,6 +1051,7 @@ function MoneyRequestView({
                     errorText={getErrorForField('customUnitRateID')}
                     copyValue={distanceRateCopyValue}
                     copyable={!!distanceRateCopyValue}
+                    isTitleSelectable={!!distanceRateCopyValue}
                 />
             </OfflineWithFeedback>
         </>
@@ -1128,6 +1131,7 @@ function MoneyRequestView({
                     shouldShowDescriptionOnTop
                     copyValue={tagCopyValue}
                     copyable={!!tagCopyValue}
+                    isTitleSelectable={!!tagCopyValue}
                 />
             </OfflineWithFeedback>
         );
@@ -1228,6 +1232,7 @@ function MoneyRequestView({
                         errorText={getErrorForField('amount')}
                         copyValue={amountCopyValue}
                         copyable={!!amountCopyValue}
+                        isTitleSelectable={!!amountCopyValue}
                     />
                 </OfflineWithFeedback>
                 {!shouldHideEmptyDescription && (
@@ -1256,6 +1261,7 @@ function MoneyRequestView({
                             numberOfLinesTitle={0}
                             copyValue={descriptionCopyValue}
                             copyable={!!descriptionCopyValue}
+                            isTitleSelectable={!!descriptionCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -1287,6 +1293,7 @@ function MoneyRequestView({
                             numberOfLinesTitle={0}
                             copyValue={merchantCopyValue}
                             copyable={!!merchantCopyValue}
+                            isTitleSelectable={!!merchantCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -1313,6 +1320,7 @@ function MoneyRequestView({
                         errorText={getErrorForField('date')}
                         copyValue={dateCopyValue}
                         copyable={!!dateCopyValue}
+                        isTitleSelectable={!!dateCopyValue}
                     />
                 </OfflineWithFeedback>
                 {!!shouldShowCategory && (
@@ -1375,6 +1383,7 @@ function MoneyRequestView({
                             errorText={getErrorForField('category')}
                             copyValue={categoryCopyValue}
                             copyable={!!categoryCopyValue}
+                            isTitleSelectable={!!categoryCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -1417,6 +1426,7 @@ function MoneyRequestView({
                             interactive={false}
                             copyValue={cardCopyValue}
                             copyable={!!cardCopyValue}
+                            isTitleSelectable={!!cardCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -1445,6 +1455,7 @@ function MoneyRequestView({
                             errorText={getErrorForField('tax')}
                             copyValue={taxRateCopyValue}
                             copyable={!!taxRateCopyValue}
+                            isTitleSelectable={!!taxRateCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -1471,6 +1482,7 @@ function MoneyRequestView({
                             }}
                             copyValue={taxAmountCopyValue}
                             copyable={!!taxAmountCopyValue}
+                            isTitleSelectable={!!taxAmountCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -1513,6 +1525,7 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEdit}
                             copyValue={attendeesCopyValue}
                             copyable={!!attendeesCopyValue}
+                            isTitleSelectable={!!attendeesCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -1606,6 +1619,7 @@ function MoneyRequestView({
                             shouldRenderAsHTML
                             copyValue={reportCopyValue}
                             copyable={!!reportCopyValue}
+                            isTitleSelectable={!!reportCopyValue}
                         />
                     </OfflineWithFeedback>
                 )}

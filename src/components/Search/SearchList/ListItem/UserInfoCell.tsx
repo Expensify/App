@@ -1,5 +1,6 @@
 import Avatar from '@components/Avatar';
 import Text from '@components/Text';
+import {COPYABLE_TEXT_DATA_SET} from '@components/TextWithTooltip/selection';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -44,9 +45,12 @@ function UserInfoCell({avatar, accountID, displayName, avatarSize, containerStyl
                 avatarID={accountID}
                 containerStyles={[styles.pr2, avatarStyle]}
             />
+            {/* Keep this as plain text; selectable plus the copyable marker is enough for row copy behavior. */}
             <Text
                 numberOfLines={1}
                 style={[isLargeScreenWidth ? styles.themeTextColor : styles.textMicroSupporting, styles.flexShrink1, textStyle]}
+                selectable
+                dataSet={COPYABLE_TEXT_DATA_SET}
             >
                 {displayName}
             </Text>

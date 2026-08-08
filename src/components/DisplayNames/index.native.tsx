@@ -13,7 +13,17 @@ import React, {useMemo} from 'react';
 import type DisplayNamesProps from './types';
 
 // As we don't have to show tooltips of the Native platform so we simply render the full display names list.
-function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfLines = 1, renderAdditionalText, forwardedFSClass, testID, shouldParseFullTitle = true}: DisplayNamesProps) {
+function DisplayNames({
+    accessibilityLabel,
+    fullTitle,
+    textStyles = [],
+    numberOfLines = 1,
+    renderAdditionalText,
+    forwardedFSClass,
+    testID,
+    shouldParseFullTitle = true,
+    isCopyable = false,
+}: DisplayNamesProps) {
     const {translate} = useLocalize();
     const titleContainsTextAndCustomEmoji = useMemo(() => containsCustomEmoji(fullTitle) && !containsOnlyCustomEmoji(fullTitle), [fullTitle]);
     const title = useMemo(() => {
@@ -28,6 +38,7 @@ function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfL
             numberOfLines={numberOfLines}
             testID={`DisplayNames${testID !== undefined ? `-${testID}` : ''}`}
             fsClass={forwardedFSClass}
+            selectable={isCopyable}
         >
             {titleContainsTextAndCustomEmoji ? (
                 <TextWithEmojiFragment

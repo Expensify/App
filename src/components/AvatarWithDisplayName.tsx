@@ -4,7 +4,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -15,7 +15,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName} from '@libs/ReportActionsUtils';
-import {getReportNameFromNames} from '@libs/ReportAttributesUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import type {DisplayNameWithTooltips} from '@libs/ReportUtils';
 import {
@@ -95,6 +94,9 @@ type AvatarWithDisplayNameProps = {
     /** The style of the custom display name text */
     customDisplayNameStyle?: TextStyle;
 
+    /** Whether the displayed report title should be directly selectable/copyable */
+    isDisplayNameCopyable?: boolean;
+
     /** The style of the parent navigation subtitle text */
     parentNavigationSubtitleTextStyles?: StyleProp<TextStyle>;
 
@@ -108,15 +110,16 @@ function getCustomDisplayName(
     title: string,
     displayNamesWithTooltips: DisplayNameWithTooltips,
     transactions: TransactionListItemType[],
-    shouldUseFullTitle: boolean,
     customSearchDisplayStyle: TextStyle[],
     regularStyle: TextStyle[],
     isAnonymous: boolean,
     isMoneyRequestOrReport: boolean,
+    isCopyable: boolean,
 ): React.ReactNode {
     const reportName = report?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME;
     const isIOUOrInvoice = report?.type === CONST.REPORT.TYPE.IOU || report?.type === CONST.REPORT.TYPE.INVOICE;
     const hasTransactions = transactions.length > 0;
+    const shouldUseFullTitle = isMoneyRequestOrReport || isAnonymous;
 
     function getDisplayProps(): DisplayNamesProps {
         const baseProps = {
@@ -174,6 +177,7 @@ function getCustomDisplayName(
             numberOfLines={numberOfLines}
             textStyles={textStyles}
             shouldUseFullTitle={shouldUseFullTitleProp}
+            isCopyable={isCopyable}
         />
     );
 }
@@ -190,6 +194,7 @@ function AvatarWithDisplayName({
     avatarBorderColor: avatarBorderColorProp,
     shouldDisplayStatus = false,
     customDisplayNameStyle = {},
+    isDisplayNameCopyable = false,
     parentNavigationSubtitleTextStyles,
     parentNavigationStatusContainerStyles = {},
 }: AvatarWithDisplayNameProps) {
@@ -207,10 +212,10 @@ function AvatarWithDisplayName({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const derivedReportNames = useDerivedReportNamesByReportIDs([report?.reportID, report?.parentReportID]);
-    const derivedParentReportName = getReportNameFromNames(derivedReportNames, report?.parentReportID);
+    const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
+    const derivedParentReportName = useDerivedReportNameByReportID(report?.parentReportID);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const title = getReportName(report, getReportNameFromNames(derivedReportNames, report?.reportID));
+    const title = getReportName(report, derivedReportName);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, true, isReportArchived);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, translate, derivedParentReportName, isParentReportArchived);
@@ -281,18 +286,17 @@ function AvatarWithDisplayName({
         }
     };
 
-    const shouldUseFullTitle = isMoneyRequestOrReport || isAnonymous;
     const displayNameContent = getCustomDisplayName(
         shouldUseCustomSearchTitleName,
         report,
         title,
         displayNamesWithTooltips,
         transactions,
-        shouldUseFullTitle,
         [styles.headerText, styles.pre, customDisplayNameStyle],
         [isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre],
         isAnonymous,
         isMoneyRequestOrReport,
+        isDisplayNameCopyable,
     );
 
     const multipleAvatars = (

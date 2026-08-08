@@ -4,6 +4,7 @@ import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import {useCopyableTextRowPress} from '@components/TextWithTooltip/selection';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
@@ -73,6 +74,7 @@ export default function TableRow({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, isMobileSelectionEnabled, shouldEnableSelectionInNarrowPaneModal = false} = useTableContext();
+    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
 
     // Tables inside a narrow pane modal (RHP) opt into keying the selection UX off the real screen size (isSmallScreenWidth),
     // because shouldUseNarrowLayout is always true in an RHP and would otherwise suppress selection entirely. All other
@@ -187,6 +189,10 @@ export default function TableRow({
     };
 
     const handleRowPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
+        if (shouldSuppressCopyableTextRowPress()) {
+            return;
+        }
+
         if (isDisabled || !interactive) {
             return;
         }
@@ -232,6 +238,11 @@ export default function TableRow({
                 {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex)}
                 onMouseDown={(e) => {
                     const target = e?.target;
+                    const isCopyableTarget = markMouseDownOnCopyableText(target);
+
+                    if (isCopyableTarget) {
+                        return;
+                    }
 
                     if (!(target instanceof HTMLElement)) {
                         e.preventDefault();

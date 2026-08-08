@@ -6,6 +6,7 @@ import ScrollView from '@components/ScrollView';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import {useCopyableTextRowPress} from '@components/TextWithTooltip/selection';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
@@ -156,6 +157,7 @@ function TransactionGroupListExpandedImpl({
     const currentOffset = transactionsSnapshotMetadata?.offset ?? 0;
     const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
     const shouldDisplayLoadingIndicator = !isExpenseReportType && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
+    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
 
@@ -278,6 +280,10 @@ function TransactionGroupListExpandedImpl({
     }
 
     const handleOnPress = (transaction: TransactionListItemType, event?: ModifiedMouseEvent) => {
+        if (shouldSuppressCopyableTextRowPress()) {
+            return;
+        }
+
         // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
         if (isMobileSelectionModeEnabled || isDeletedTransaction(transaction) || isTransactionPendingDelete(transaction)) {
             onSelectionButtonPress?.(transaction as ListItem);
@@ -339,7 +345,13 @@ function TransactionGroupListExpandedImpl({
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={transaction.text ?? ''}
                             isNested
-                            onMouseDown={(e) => e.preventDefault()}
+                            onMouseDown={(e) => {
+                                const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
+                                if (isCopyableTarget) {
+                                    return;
+                                }
+                                e.preventDefault();
+                            }}
                             hoverStyle={[!transaction.isDisabled && styles.hoveredComponentBG, transaction.isSelected && styles.activeComponentBG]}
                             wrapperStyle={isDeletedOrPendingDelete ? styles.cursorDisabled : undefined}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
@@ -367,6 +379,7 @@ function TransactionGroupListExpandedImpl({
                                     columns={currentColumns}
                                     onButtonPress={(event) => handleButtonPress(transaction, event)}
                                     style={[styles.noBorderRadius, isLargeScreenWidth ? [styles.p3, styles.pv2, styles.tableRowHeight] : styles.p4, styles.flex1]}
+                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     isReportItemChild
                                     isInSingleTransactionReport={isInSingleTransactionReport}
                                     shouldShowBottomBorder={shouldShowBottomBorder}

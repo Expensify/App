@@ -36,6 +36,7 @@ type TransactionItemRowNarrowProps = Pick<
     | 'onCheckboxPress'
     | 'shouldShowCheckbox'
     | 'style'
+    | 'dataSet'
     | 'isInSingleTransactionReport'
     | 'shouldShowRadioButton'
     | 'onRadioButtonPress'
@@ -62,6 +63,7 @@ function TransactionItemRowNarrow({
     onCheckboxPress = () => {},
     shouldShowCheckbox = false,
     style,
+    dataSet,
     isInSingleTransactionReport = false,
     shouldShowRadioButton = false,
     onRadioButtonPress = () => {},
@@ -94,6 +96,7 @@ function TransactionItemRowNarrow({
         <>
             <View
                 style={[styles.expenseWidgetRadius, styles.overflowHidden, bgActiveStyles, styles.justifyContentEvenly, style]}
+                dataSet={dataSet}
                 testID="transaction-item-row"
             >
                 <View style={[styles.flexRow]}>

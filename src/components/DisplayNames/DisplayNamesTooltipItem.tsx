@@ -1,4 +1,5 @@
 import Text from '@components/Text';
+import {COPYABLE_TEXT_DATA_SET} from '@components/TextWithTooltip/selection';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,6 +36,9 @@ type DisplayNamesTooltipItemProps = ForwardedFSClassProps & {
 
     /** Refs to all the names which will be used to correct the horizontal position of the tooltip */
     childRefs: RefObject<RNText[]>;
+
+    /** Whether this display name should be directly selectable/copyable inside pressable rows */
+    isCopyable?: boolean;
 };
 
 function DisplayNamesTooltipItem({
@@ -47,6 +51,7 @@ function DisplayNamesTooltipItem({
     textStyles = [],
     childRefs = {current: []},
     forwardedFSClass,
+    isCopyable = false,
 }: DisplayNamesTooltipItemProps) {
     const styles = useThemeStyles();
     const tooltipIndexBridge = useCallback(() => getTooltipShiftX(index), [getTooltipShiftX, index]);
@@ -73,6 +78,8 @@ function DisplayNamesTooltipItem({
                 }}
                 style={[textStyles, styles.pre]}
                 fsClass={forwardedFSClass}
+                selectable={isCopyable}
+                dataSet={isCopyable ? COPYABLE_TEXT_DATA_SET : undefined}
             >
                 {displayName}
             </Text>

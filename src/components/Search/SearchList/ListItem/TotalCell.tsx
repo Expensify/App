@@ -23,6 +23,7 @@ function TotalCell({total, currency, isScanning = false}: TotalCellProps) {
             shouldShowTooltip
             text={displayText}
             style={[styles.optionDisplayName, styles.pre, styles.justifyContentCenter, styles.textBold, styles.textAlignRight, styles.fontWeightNormal]}
+            isCopyable
         />
     );
 }
