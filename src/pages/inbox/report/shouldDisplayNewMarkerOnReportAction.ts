@@ -30,6 +30,9 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
 
     /** The reportActionID of the current unread marker, if one exists */
     prevUnreadMarkerReportActionID?: string | null;
+
+    /** The reportActionID the user explicitly marked as unread, if any */
+    manuallyMarkedUnreadReportActionID?: string | null;
     /** Whether the app window is focused */
     hasWindowFocus?: boolean;
 };
@@ -48,6 +51,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
     isScrolledOverThreshold,
     isOffline,
     prevUnreadMarkerReportActionID,
+    manuallyMarkedUnreadReportActionID,
     hasWindowFocus = true,
 }: ShouldDisplayNewMarkerOnReportActionParams): boolean => {
     const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
@@ -60,6 +64,17 @@ const shouldDisplayNewMarkerOnReportAction = ({
     // If the unread marker should be hidden or is not within the visible area, don't show the unread marker.
     if (shouldHideNewMarker(message, isOffline)) {
         return false;
+    }
+
+    // The user explicitly marked THIS action as unread. Anchor the marker here regardless of the
+    // timestamp-based check below: once an optimistic self-message confirms, unreadMarkerTime,
+    // lastReadTime, and created all converge on (or drift past) the confirmed `created`, so
+    // isReportActionUnread wrongly reports it as read. The stored reportActionID is the only signal
+    // stable across that transition. The marked action is the oldest unread by construction
+    // (markCommentAsUnread sets lastReadTime = its created - 1ms), so it remains the correct anchor
+    // even when newer messages arrive after the mark.
+    if (!!manuallyMarkedUnreadReportActionID && message.reportActionID === manuallyMarkedUnreadReportActionID) {
+        return true;
     }
 
     const isCurrentMessageUnread = isReportActionUnread(message, unreadMarkerTime);
@@ -84,12 +99,19 @@ const shouldDisplayNewMarkerOnReportAction = ({
     const isPreviouslyOptimistic =
         (isPendingAdd(prevSortedVisibleReportActionsObjects[message.reportActionID]) && !isPendingAdd(message)) ||
         (!!prevSortedVisibleReportActionsObjects[message.reportActionID]?.isOptimisticAction && !message.isOptimisticAction);
-    const shouldIgnoreUnreadForCurrentUserMessage = isNewMessage || isPreviouslyOptimistic;
+    // While a manual mark-as-unread is active, the marked action is the sole anchor (handled by the
+    // `manuallyMarkedUnreadReportActionID` check above, which returns before this branch). Ignore unread
+    // for every *other* self-authored message so a newer self-message sent after the mark can't steal the
+    // marker off the marked one. When no manual mark exists this term is false, so #91940 behavior is unchanged.
+    const shouldIgnoreUnreadForCurrentUserMessage = isNewMessage || isPreviouslyOptimistic || !!manuallyMarkedUnreadReportActionID;
 
     if (isFromCurrentUser) {
-        // When an existing marker is being relocated (e.g. after the original unread message is deleted),
-        // allow the marker to land on a self-authored action.
-        // Otherwise, never anchor the "New" marker above a self-authored action on first open/re-entry.
+        // For a self-authored action, only move/keep the "New" marker when one already exists in this session
+        // (`prevUnreadMarkerReportActionID` is set). The explicit mark-as-unread case is handled earlier by the
+        // stable `manuallyMarkedUnreadReportActionID` check, which anchors the marker on first open/re-entry
+        // regardless of this guard. Without this guard, a persisted self-authored action (e.g. a reimbursable
+        // toggle) whose timestamps have drifted past `lastReadTime` would wrongly show the marker on a cold
+        // open/re-entry — the regression from Expensify/App#91940.
         if (prevUnreadMarkerReportActionID) {
             return !shouldIgnoreUnreadForCurrentUserMessage;
         }
@@ -131,6 +153,9 @@ type GetUnreadMarkerReportActionParams = {
 
     /** The reportActionID of the current unread marker, if one exists */
     prevUnreadMarkerReportActionID?: string | null;
+
+    /** The reportActionID the user explicitly marked as unread, if any */
+    manuallyMarkedUnreadReportActionID?: string | null;
     /** Whether the app window is focused */
     hasWindowFocus?: boolean;
 };
@@ -150,6 +175,7 @@ const getUnreadMarkerReportAction = ({
     isReversed,
     isAnonymousUser = false,
     prevUnreadMarkerReportActionID,
+    manuallyMarkedUnreadReportActionID,
     hasWindowFocus = true,
 }: GetUnreadMarkerReportActionParams): [string | null, number] => {
     if (isAnonymousUser) {
@@ -191,6 +217,7 @@ const getUnreadMarkerReportAction = ({
                 isScrolledOverThreshold,
                 isOffline,
                 prevUnreadMarkerReportActionID,
+                manuallyMarkedUnreadReportActionID,
                 hasWindowFocus,
             });
 
