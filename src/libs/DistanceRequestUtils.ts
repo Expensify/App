@@ -233,7 +233,7 @@ function getDistanceForDisplay(
 
     const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
-    const unitString = distanceInUnits === '1' ? singularDistanceUnit : distanceUnit;
+    const unitString = Number(distanceInUnits) === 1 ? singularDistanceUnit : distanceUnit;
 
     return `${distanceInUnits} ${unitString}`;
 }
