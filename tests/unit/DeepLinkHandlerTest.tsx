@@ -77,8 +77,8 @@ describe('DeepLinkHandler', () => {
                 [ONYXKEYS.CONCIERGE_REPORT_ID]: '',
                 [ONYXKEYS.NVP_INTRO_SELECTED]: {},
                 [ONYXKEYS.BETAS]: [],
-                // Deliberately mismatched flags so the assertion proves each field maps to its own source and they are not swapped:
-                // selfTourViewed -> isSelfTourViewed (true), hasCompletedGuidedSetupFlow passes through (false).
+                // Deliberately mismatched flags so the assertion proves each field maps to its own source and they are not swapped.
+                // selfTourViewed feeds isSelfTourViewed (true), while hasCompletedGuidedSetupFlow passes through unchanged (false).
                 [ONYXKEYS.NVP_ONBOARDING]: {selfTourViewed: true, hasCompletedGuidedSetupFlow: false},
             });
         });
