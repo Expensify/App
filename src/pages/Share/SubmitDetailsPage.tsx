@@ -173,14 +173,13 @@ function SubmitDetailsPage({
             report,
             parentReport,
             currentDate,
-            currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
             draftTransactionIDs,
         });
         // Populate transaction.participants so IOURequestStepReport can highlight the destination (mirrors other expense flows).
         setMoneyRequestParticipantsFromReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report, currentUserPersonalDetails.accountID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails, hasOnlyPersonalPolicies]);
+    }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails.accountID, hasOnlyPersonalPolicies]);
 
     // Use the branch-aware values computed above: for a share that needs conversion (e.g. HEIC), these resolve to the
     // converted JPEG from VALIDATED_FILE_OBJECT; otherwise they fall back to the raw attachment. Re-deriving from

@@ -9,8 +9,10 @@ import {useEffect, useRef} from 'react';
  * Manages the ManualNavigateToInboxTab span lifecycle for the inbox sidebar.
  *
  * Three signals are handled:
- * - onLayout fires on first mount: ends the span (normal path).
- * - useFocusEffect fires on re-focus when react-freeze has cached the layout: ends the span (warm path).
+ * - onLayout ends the span: cold on the first layout, warm on any later one. It can fire more than once on the
+ *   same instance, so it cannot assume a fresh mount.
+ * - useFocusEffect ends the span as warm on re-focus. On native this is the only signal, because react-freeze
+ *   keeps the cached layout and onLayout does not fire again.
  *   The blur cleanup cancels any orphaned span when the user navigates away before layout completes.
  * - useEffect unmount cleanup cancels the span only if layout never completed AND the active span
  *   is the same one that was present when this instance mounted (avoids canceling a span started
@@ -22,9 +24,13 @@ function useInboxTabSpanLifecycle(): () => void {
     const hasHadFirstLayout = useRef(false);
     const spanOnMount = useRef(getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB));
 
+    // onLayout can fire more than once on the same instance, so the first layout is the cold one and any later
+    // layout is a warm re-visit. Both end paths read this ref, so the reported value does not depend on which
+    // of them fires first.
     const onLayout = () => {
+        const isRepeatLayout = hasHadFirstLayout.current;
         hasHadFirstLayout.current = true;
-        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: false});
+        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: isRepeatLayout});
         spanOnMount.current = undefined;
     };
 

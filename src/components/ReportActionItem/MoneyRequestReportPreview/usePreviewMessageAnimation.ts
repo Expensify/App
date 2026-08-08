@@ -122,7 +122,7 @@ function usePreviewMessageAnimation({
         if (isPolicyExpenseChat || isTripRoom) {
             payerOrApproverName = getPolicyName({report: chatReport, policy, unavailableTranslation: translate('workspace.common.unavailable')});
         } else if (isInvoiceRoom) {
-            payerOrApproverName = getInvoicePayerName({report: chatReport, translate, invoiceReceiverPolicy, invoiceReceiverPersonalDetail, formatPhoneNumber});
+            payerOrApproverName = getInvoicePayerName(chatReport, translate, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
         } else {
             payerOrApproverName = getDisplayNameForParticipant({
                 accountID: managerID,
