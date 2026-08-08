@@ -48,7 +48,7 @@ import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
@@ -87,6 +87,7 @@ type IOURequestStepDistanceProps = WithCurrentUserPersonalDetailsProps &
 function IOURequestStepDistance({
     report,
     route: {
+        name: routeName,
         params: {action, iouType, reportID, transactionID, backTo, backToReport, reportActionID},
     },
     transaction,
@@ -120,6 +121,7 @@ function IOURequestStepDistance({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const shouldShowMapManualTabs = isEditing || iouType === CONST.IOU.TYPE.TRACK;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const currentTransaction = isEditingSplit && !isEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
 
@@ -369,17 +371,20 @@ function IOURequestStepDistance({
             if (isEditingSplit) {
                 iouWaypointType = CONST.IOU.TYPE.SPLIT_EXPENSE;
             }
-            // In the edit flow this page is wrapped in an OnyxTabNavigator, so Navigation.getActiveRoute()
+            // In the tabbed Map/Manual flow, Navigation.getActiveRoute()
             // returns a URL with the tab suffix (e.g. "/distance-map") that doesn't match the stack entry
             // — Navigation.goBack() then REPLACEs instead of POPs and crashes. Build the backTo URL
-            // explicitly there. The create flow has no tab navigator, so the production getActiveRoute()
-            // path is correct (GH #90037).
-            const waypointBackTo = isEditing
-                ? ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, report?.reportID ?? reportID, backTo)
-                : Navigation.getActiveRoute();
+            // explicitly there (GH #90037).
+            let waypointBackTo = Navigation.getActiveRoute();
+            if (shouldShowMapManualTabs) {
+                waypointBackTo =
+                    routeName === SCREENS.MONEY_REQUEST.CREATE
+                        ? ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(action, iouType, transactionID, report?.reportID ?? reportID, backToReport)
+                        : ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, report?.reportID ?? reportID, backTo);
+            }
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, iouWaypointType, transactionID, report?.reportID ?? reportID, index.toString(), waypointBackTo));
         },
-        [action, iouType, transactionID, report?.reportID, reportID, backTo, isEditingSplit, isEditing],
+        [action, iouType, transactionID, report?.reportID, reportID, backTo, backToReport, isEditingSplit, routeName, shouldShowMapManualTabs],
     );
 
     const navigateToNextStep = useDistanceNavigation({
@@ -410,6 +415,8 @@ function IOURequestStepDistance({
         betas,
         recentWaypoints,
         introSelected,
+        unit: distanceUnit,
+        personalOutputCurrency: personalPolicy?.outputCurrency,
     });
 
     const getError = useCallback(() => {
@@ -612,6 +619,17 @@ function IOURequestStepDistance({
 
         const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(value));
 
+        if (!isEditing) {
+            // This step can be opened from confirmation (`backTo` is set). Mark the draft as saved
+            // before navigating away so the transaction-backup cleanup does not restore the original
+            // route distance over the manual value.
+            transactionWasSaved.current = true;
+            setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action, iouType), distanceUnit);
+            suppressDiscardPrompt();
+            navigateToNextStep(distanceAsFloat);
+            return;
+        }
+
         if (isEditingSplit && transaction) {
             setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action, iouType), distanceUnit);
             setDraftSplitTransaction(
@@ -679,6 +697,7 @@ function IOURequestStepDistance({
         action,
         iouType,
         distanceUnit,
+        isEditing,
         isEditingSplit,
         transaction,
         currentTransaction?.comment?.customUnit?.distanceUnit,
@@ -707,6 +726,8 @@ function IOURequestStepDistance({
         personalPolicy?.outputCurrency,
         getCurrencyDecimals,
         getCurrencySymbol,
+        suppressDiscardPrompt,
+        navigateToNextStep,
     ]);
 
     const renderItem = useCallback(
@@ -785,17 +806,17 @@ function IOURequestStepDistance({
         [currentDistance, distanceUnit, submitManualDistance, manualFormError, handleManualInputChange],
     );
 
-    if (isEditing) {
+    if (shouldShowMapManualTabs) {
         return (
             <StepScreenWrapper
                 headerTitle={translate('common.distance')}
-                onBackButtonPress={navigateBackFromEditFlow}
+                onBackButtonPress={isEditing ? navigateBackFromEditFlow : navigateBack}
                 testID="IOURequestStepDistance"
                 shouldShowNotFoundPage={!currentTransaction?.comment?.waypoints || shouldShowNotFoundPage}
-                shouldShowWrapper
+                shouldShowWrapper={isEditing || !isCreatingNewRequest}
             >
                 <OnyxTabNavigator
-                    id={CONST.TAB.DISTANCE_EDIT_TYPE}
+                    id={isEditing ? CONST.TAB.DISTANCE_EDIT_TYPE : CONST.TAB.DISTANCE_CREATE_TYPE}
                     defaultSelectedTab={CONST.TAB_REQUEST.DISTANCE_MAP}
                     tabBar={TabSelector}
                 >

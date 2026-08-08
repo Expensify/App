@@ -387,6 +387,49 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             expect(mockTrackExpenseAction).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: params.transactions.at(0)}));
         });
 
+        it('submits a manually overridden map distance without waypoints so the backend preserves it', async () => {
+            const mapDistance = buildTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {
+                        quantity: 29,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    },
+                    waypoints: {
+                        waypoint0: {address: 'San Francisco', lat: 37.7749, lng: -122.4194},
+                        waypoint1: {address: 'New York', lat: 40.7128, lng: -74.006},
+                    },
+                },
+                routes: {route0: {distance: 2900000, geometry: {coordinates: []}}},
+            });
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.TRACK,
+                        transaction: mapDistance,
+                        transactions: [mapDistance],
+                        isDistanceRequest: true,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockTrackExpenseAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        distance: 29,
+                        validWaypoints: undefined,
+                        distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                    }),
+                }),
+            );
+        });
+
         // Regression test for #94282: an expense whose sole recipient is the current user must be a self-DM track
         // expense, even when the route iouType hasn't been converted to TRACK yet (new manual flow). Otherwise it
         // falls through to requestMoney and the backend rejects it ("you cannot request money from yourself").
