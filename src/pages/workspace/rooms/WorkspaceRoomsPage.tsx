@@ -35,7 +35,7 @@ import type SCREENS from '@src/SCREENS';
 
 import {useFocusEffect} from '@react-navigation/native';
 import {policyChatRoomsSelector} from '@selectors/Report';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type WorkspaceRoomsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.ROOMS>;
@@ -70,7 +70,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
             );
         },
     });
-    const policyReportIDs = useMemo(() => (policyReports ?? []).map((report) => report.reportID), [policyReports]);
+    const policyReportIDs = (policyReports ?? []).map((report) => report.reportID);
     const derivedNames = useDerivedReportNamesByReportIDs(policyReportIDs);
 
     // The newly created room reportID is stored in Onyx right before navigating back here so its row can play the highlight animation.

@@ -16,6 +16,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
+import {getReportNameFromNames} from '@libs/ReportAttributesUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getDisplayNameForParticipant, getIcons, getWorkspaceChats, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -73,8 +74,8 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
         !isEmptyObject(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && policyChats.length > 0 ? (policyChats.at(0) ?? ({} as OnyxTypes.Report)) : ({} as OnyxTypes.Report);
 
     const derivedNames = useDerivedReportNamesByReportIDs([quickActionReport?.reportID, policyChatForActivePolicy?.reportID]);
-    const derivedQuickActionReportName = quickActionReport?.reportID ? derivedNames[quickActionReport.reportID] : undefined;
-    const derivedPolicyChatReportName = policyChatForActivePolicy?.reportID ? derivedNames[policyChatForActivePolicy.reportID] : undefined;
+    const derivedQuickActionReportName = getReportNameFromNames(derivedNames, quickActionReport?.reportID);
+    const derivedPolicyChatReportName = getReportNameFromNames(derivedNames, policyChatForActivePolicy?.reportID);
 
     const quickActionReportPolicyID = getNonEmptyStringOnyxID(quickActionReport?.policyID);
     const policyChatForActivePolicyPolicyID = getNonEmptyStringOnyxID(policyChatForActivePolicy?.policyID);

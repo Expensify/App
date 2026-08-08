@@ -37,6 +37,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName} from '@libs/ReportActionsUtils';
+import {getReportNameFromNames} from '@libs/ReportAttributesUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     canJoinChat,
@@ -164,8 +165,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isParentOneTransactionThread = isOneTransactionThread(parentReport, grandParentReport, grandParentReportAction);
     const parentNavigationReport = isParentOneTransactionThread ? parentReport : reportHeaderData;
     const derivedNames = useDerivedReportNamesByReportIDs([parentNavigationReport?.parentReportID, reportHeaderData?.reportID]);
-    const derivedParentReportName = parentNavigationReport?.parentReportID ? derivedNames[parentNavigationReport.parentReportID] : undefined;
-    const derivedReportHeaderName = reportHeaderData?.reportID ? derivedNames[reportHeaderData.reportID] : undefined;
+    const derivedParentReportName = getReportNameFromNames(derivedNames, parentNavigationReport?.parentReportID);
+    const derivedReportHeaderName = getReportNameFromNames(derivedNames, reportHeaderData?.reportID);
     const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
     const reportHeaderDataPolicy = usePolicy(reportHeaderData?.policyID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
