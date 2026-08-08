@@ -1,6 +1,8 @@
+import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -27,6 +29,7 @@ import WorkspaceExpensifyCardPageEmptyState from './WorkspaceExpensifyCardPageEm
 type WorkspaceExpensifyCardPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
+    const {translate} = useLocalize();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.expensifyCard');
@@ -35,6 +38,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const settings = getCardSettings(cardSettings);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
+    const [cardsPageLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE}${policyID}`);
 
     const fetchExpensifyCards = useCallback(() => {
         updateSelectedExpensifyCardFeed(defaultFundID, policyID);
@@ -48,9 +52,24 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     }, [fetchExpensifyCards]);
 
     const paymentBankAccountID = settings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const isLoading = !isOffline && (!cardSettings || settings?.isLoading) && !cardSettings?.hasOnceLoaded;
+
+    // Gate the skeleton on the request lifecycle rather than on the presence of settings for the resolved
+    // fund. A completed request that returns no settings for that fund is a valid empty state, not a page
+    // that is still loading, and keying this on the fund leaves it stuck whenever the fund resolves late.
+    const isLoading = !isOffline && !cardsPageLoadingState?.hasOnceLoadedPage;
 
     const renderContent = () => {
+        if (cardsPageLoadingState?.hasLoadingError && !cardsPageLoadingState.hasOnceLoadedPage) {
+            return (
+                <FullPageErrorView
+                    shouldShow
+                    title={translate('errorPage.title', {isBreakLine: false})}
+                    subtitle={translate('errorPage.subtitle')}
+                    buttonTranslationKey="common.tryAgain"
+                    onButtonPress={fetchExpensifyCards}
+                />
+            );
+        }
         if (isLoading) {
             return <FullScreenLoadingIndicator shouldUseGoBackButton />;
         }
