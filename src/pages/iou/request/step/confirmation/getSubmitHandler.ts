@@ -31,6 +31,8 @@ type SubmitNavigationSnapshot = {
     isSearchTopmostFullScreen: boolean;
     /** Whether the destination report is already loaded in Onyx. */
     isDestinationReportLoaded: boolean;
+    /** Whether the user onboarded as "Something else" (LOOKING_AROUND) - they have no workspace. */
+    isLookingAroundUser: boolean;
 };
 
 function canUseDismissModalFastPath(snapshot: SubmitNavigationSnapshot): boolean {
@@ -64,6 +66,7 @@ function canUseDismissModalFastPath(snapshot: SubmitNavigationSnapshot): boolean
  * Decision tree (evaluated top to bottom):
  *   isPreInserted && !isReportPreInserted                                       -> SEARCH_PRE_INSERT
  *   isReportPreInserted                                                         -> REPORT_PRE_INSERT
+ *   isFromGlobalCreate && isLookingAroundUser && canDismissFromSearch           -> SEARCH_DISMISS
  *   canUseDismissModalFastPath()                                                -> DISMISS_MODAL
  *   isFromGlobalCreate && canDismissFromSearch && isSearchTopmostFullScreen      -> SEARCH_DISMISS
  *   isReportInRHP && destinationReportID                                        -> REPORT_IN_RHP_DISMISS
@@ -78,6 +81,12 @@ function getSubmitHandler(snapshot: SubmitNavigationSnapshot): SubmitHandler {
     }
     if (snapshot.isReportPreInserted) {
         return SUBMIT_HANDLER.REPORT_PRE_INSERT;
+    }
+    // "Something else" (LOOKING_AROUND) users have no workspace, so their global-create expense would otherwise
+    // dismiss into their self-DM report (the Inbox). Route them to Spend > Expenses (Search) instead. This must run
+    // before canUseDismissModalFastPath, which would pick DISMISS_MODAL when a report split is topmost (e.g. Home).
+    if (snapshot.isFromGlobalCreate && snapshot.isLookingAroundUser && snapshot.canDismissFromSearch) {
+        return SUBMIT_HANDLER.SEARCH_DISMISS;
     }
     if (canUseDismissModalFastPath(snapshot)) {
         return SUBMIT_HANDLER.DISMISS_MODAL;

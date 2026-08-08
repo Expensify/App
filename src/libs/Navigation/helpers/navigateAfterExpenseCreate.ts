@@ -8,12 +8,29 @@ import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpActi
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {IntroSelected} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 import dismissModalAndOpenReportInInboxTab from './dismissModalAndOpenReportInInboxTab';
 import isReportTopmostSplitNavigator from './isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
+
+// Read the onboarding intro choice at module level (non-render context) so we can route "Looking around /
+// Something else" (LOOKING_AROUND) users to Spend > Expenses after they create an expense from the Inbox (HOME),
+// instead of dropping them into their self-DM (Personal Space).
+let introSelected: OnyxEntry<IntroSelected>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (value) => {
+        introSelected = value;
+    },
+});
 
 type NavigateAfterExpenseCreateParams = {
     activeReportID?: string;
@@ -49,7 +66,11 @@ function navigateAfterExpenseCreate({
     shouldAddPendingNewTransactionIDs = false,
     shouldNavigate = true,
 }: NavigateAfterExpenseCreateParams) {
-    const isUserOnInbox = isReportTopmostSplitNavigator();
+    // "Looking around / Something else" (LOOKING_AROUND) users have no workspace, so after they create an expense
+    // from the Inbox (HOME) we want to drop them into Spend > Expenses rather than their self-DM (Personal Space).
+    // Treating them as "not on inbox" lets them fall through to the Search (Spend > Expenses) navigation below.
+    const isLookingAroundUser = introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+    const isUserOnInbox = isReportTopmostSplitNavigator() && !isLookingAroundUser;
 
     // If the expense is not created from global create or is currently on the inbox tab,
     // we just need to dismiss the money request flow screens
