@@ -19,6 +19,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import {getGovernmentRateCountryPhraseTranslationKey, isCurrencySupportedForAutoUpdate} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 
@@ -26,7 +27,12 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import {clearPolicyCommuterExclusionsErrors, clearPolicyDistanceRatesErrorFields} from '@userActions/Policy/DistanceRate';
+import {
+    clearPolicyCommuterExclusionsErrors,
+    clearPolicyDistanceRatesErrorFields,
+    clearWorkspaceDistanceAutoUpdateErrors,
+    setWorkspaceDistanceAutoUpdate,
+} from '@userActions/Policy/DistanceRate';
 import {enableDistanceRequestTax} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
@@ -45,6 +51,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const policyID = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -67,6 +74,17 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
         }
 
         clearPolicyDistanceRatesErrorFields(policyID, customUnit.customUnitID, {...errorFields, [fieldName]: null});
+    };
+
+    const countryPhraseTranslationKey = getGovernmentRateCountryPhraseTranslationKey(policy?.outputCurrency);
+    const isAutoUpdateSupported = isCurrencySupportedForAutoUpdate(policy?.outputCurrency) && !!customUnit && !!countryPhraseTranslationKey;
+
+    const onToggleAutoUpdateGovernmentRate = (isOn: boolean) => {
+        if (!customUnit) {
+            return;
+        }
+
+        setWorkspaceDistanceAutoUpdate(policyID, customUnit, isOn, governmentMileageRates ?? []);
     };
 
     const onToggleTrackTax = (isOn: boolean) => {
@@ -152,6 +170,37 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                         customUnitID={customUnit.customUnitID}
                                         interactive={canWriteDistanceRates}
                                     />
+                                </OfflineWithFeedback>
+                            )}
+                            {isAutoUpdateSupported && (
+                                <OfflineWithFeedback
+                                    errors={getLatestErrorField(policy ?? {}, 'shouldAutoUpdateGovernmentDistanceRates')}
+                                    errorRowStyles={styles.mh5}
+                                    pendingAction={policy?.pendingFields?.shouldAutoUpdateGovernmentDistanceRates}
+                                    onClose={() => clearWorkspaceDistanceAutoUpdateErrors(policyID)}
+                                >
+                                    <View style={[styles.mt2, styles.mh5]}>
+                                        <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                            <Text
+                                                style={[styles.textNormal, styles.colorMuted]}
+                                                accessible={false}
+                                                aria-hidden
+                                            >
+                                                {translate('workspace.distanceRates.autoUpdateGovernmentRate')}
+                                            </Text>
+                                            <Switch
+                                                isOn={!!policy?.shouldAutoUpdateGovernmentDistanceRates}
+                                                accessibilityLabel={translate('workspace.distanceRates.autoUpdateGovernmentRate')}
+                                                onToggle={onToggleAutoUpdateGovernmentRate}
+                                                disabled={!canWriteDistanceRates}
+                                                disabledAction={withReadOnlyFallback()}
+                                                showLockIcon={!canWriteDistanceRates}
+                                            />
+                                        </View>
+                                        <Text style={[styles.textLabel, styles.colorMuted]}>
+                                            {translate('workspace.distanceRates.autoUpdateGovernmentRateDescription', translate(countryPhraseTranslationKey))}
+                                        </Text>
+                                    </View>
                                 </OfflineWithFeedback>
                             )}
                             <OfflineWithFeedback
