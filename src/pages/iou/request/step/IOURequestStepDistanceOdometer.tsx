@@ -1,5 +1,6 @@
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptImage from '@components/ReceiptImage';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -63,7 +64,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useIsFocused} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -84,6 +85,25 @@ type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
 /** `BaseTextInputRef` also covers masked-input refs (`HTMLFormElement`), which don't have `isFocused`. */
 function isFocusableTextInputRef(ref: BaseTextInputRef): ref is AnimatedTextInputRef {
     return 'isFocused' in ref;
+}
+
+const isWeb = Platform.OS === 'web';
+const OdometerContainer = isWeb ? View : KeyboardAvoidingView;
+
+function getOdometerContainerConfig(isWebPlatform: boolean, isCreatingNewRequest: boolean, isFocused: boolean) {
+    let key = 'editing';
+    if (!isWebPlatform && isCreatingNewRequest) {
+        key = isFocused ? 'focused' : 'unfocused';
+    }
+    const props = isWebPlatform
+        ? // Web's KeyboardAvoidingView ignores `enabled`, so the parent ScreenWrapper still applies the iOS 26 Safari compensation.
+          {}
+        : {
+              behavior: 'padding' as const,
+              enabled: isCreatingNewRequest,
+          };
+
+    return {key, props};
 }
 
 function IOURequestStepDistanceOdometer({
@@ -599,6 +619,9 @@ function IOURequestStepDistanceOdometer({
         Navigation.closeRHPFlow();
     }, [fromLocaleDigit, startReading, endReading, odometerStartImage, odometerEndImage, translate, setFormError]);
 
+    // Remount the native create-flow avoider when tab focus changes so stale keyboard padding is cleared.
+    const {key: odometerContainerKey, props: odometerContainerProps} = getOdometerContainerConfig(isWeb, isCreatingNewRequest, isFocused);
+
     return (
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
@@ -608,7 +631,11 @@ function IOURequestStepDistanceOdometer({
             shouldShowWrapper={!isCreatingNewRequest}
             includeSafeAreaPaddingBottom
         >
-            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}>
+            <OdometerContainer
+                {...odometerContainerProps}
+                key={odometerContainerKey}
+                style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}
+            >
                 <View>
                     {/* Start Reading */}
                     <View style={[styles.mb6, styles.flexRow, !isEditing && [styles.alignItemsCenter, styles.gap3]]}>
@@ -745,7 +772,7 @@ function IOURequestStepDistanceOdometer({
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_ODOMETER_NEXT_BUTTON}
                     />
                 </View>
-            </View>
+            </OdometerContainer>
         </StepScreenWrapper>
     );
 }
@@ -758,4 +785,5 @@ const IOURequestStepDistanceOdometerWithWritableReportOrNotFound = withWritableR
 
 const IOURequestStepDistanceOdometerWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDistanceOdometerWithWritableReportOrNotFound);
 
+export {getOdometerContainerConfig};
 export default IOURequestStepDistanceOdometerWithFullTransactionOrNotFound;

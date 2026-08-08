@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Growl from '@libs/Growl';
 import Log from '@libs/Log';
 
@@ -180,6 +181,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
         }
         event.preventDefault();
         isDiscardModalOpenRef.current = true;
+        ComposerFocusManager.blurActiveInput();
         showConfirmModal({
             ...getDiscardChangesModalConfig(translate),
             shouldIgnoreBackHandlerDuringTransition: true,
