@@ -6392,8 +6392,8 @@ function getColumnsToShow({
                 // When the user explicitly selected the tax columns (customResult) and the workspace
                 // has taxes enabled, keep them regardless of per-transaction values — older expenses
                 // created before taxes were turned on still have null taxCode/taxAmount/taxValue.
-                const hasTaxInfo = isPolicyTaxEnabled || !!transaction.taxCode || !!transaction.taxAmount || !!transaction.taxValue;
-                if (hasTaxInfo) {
+                const hasAllTaxInfo = isPolicyTaxEnabled || !!transaction.taxCode || !!transaction.taxAmount || !!transaction.taxValue;
+                if (hasAllTaxInfo) {
                     columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
                     columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
                 }
