@@ -1549,6 +1549,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     if (isSplitExpense && existingTransaction) {
         const {convertedAmount: originalConvertedAmount, ...existingTransactionWithoutConvertedAmount} = existingTransaction;
         optimisticTransaction = fastMerge(existingTransactionWithoutConvertedAmount, optimisticTransaction, false);
+        if (customUnit && optimisticTransaction.comment) {
+            optimisticTransaction.comment.customUnit = customUnit;
+        }
 
         // Calculate proportional convertedAmount for the split based on the original conversion rate
 
