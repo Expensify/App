@@ -1,16 +1,10 @@
-import Icon from '@components/Icon';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
-import Text from '@components/Text';
 
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import getPlatform from '@libs/getPlatform';
-import {getSearchColumnTranslationKey, isTransactionGroupListItemType, isTransactionMatchWithGroupItem, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
+import {isTransactionGroupListItemType, isTransactionMatchWithGroupItem, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
@@ -22,7 +16,6 @@ import type {Transaction} from '@src/types/onyx';
 import type {NativeSyntheticEvent} from 'react-native';
 
 import React, {useImperativeHandle, useState} from 'react';
-import {View} from 'react-native';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
@@ -121,12 +114,8 @@ function ExpenseGroupedSearchView({
     containerStyle,
     ref,
 }: ExpenseGroupedSearchViewProps) {
-    const {type, groupBy, sortBy, sortOrder} = queryJSON;
+    const {type, groupBy} = queryJSON;
     const {isLargeScreenWidth} = useResponsiveLayout();
-    const styles = useThemeStyles();
-    const theme = useTheme();
-    const {translate} = useLocalize();
-    const sortArrowIcons = useMemoizedLazyExpensifyIcons(['ArrowDownLong', 'ArrowUpLong']);
 
     // Wide web layouts split each group into a sticky header row plus an expandable children-container row.
     // Computed here (not from the shared hook) because the split list feeds back into the hook as `listData`.
@@ -331,18 +320,6 @@ function ExpenseGroupedSearchView({
             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
             containerStyle={containerStyle}
         >
-            {!isLargeScreenWidth && (
-                // Narrow layouts have no column header, so the active sort is otherwise invisible.
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.ph4, styles.pv2]}>
-                    <Text style={styles.textMicroSupporting}>{`${translate('search.display.sortBy')}: ${translate(getSearchColumnTranslationKey(sortBy))}`}</Text>
-                    <Icon
-                        src={sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? sortArrowIcons.ArrowUpLong : sortArrowIcons.ArrowDownLong}
-                        fill={theme.icon}
-                        height={12}
-                        width={12}
-                    />
-                </View>
-            )}
             {tableHeaderVisible && (
                 <SelectionTopBar
                     isLargeScreenWidth={isLargeScreenWidth}
