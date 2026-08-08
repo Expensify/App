@@ -156,6 +156,9 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
 
     /** The selfDM report ID for split transactions */
     selfDMReportID?: string;
+
+    /** Keeps this transaction off the `pendingNewTransactionIDs` highlight rail, for flows that never open the expense report */
+    shouldSkipReportHighlightRail?: boolean;
 };
 
 type RequestMoneyInformation = {
@@ -278,6 +281,8 @@ type BuildOnyxDataForMoneyRequestParams = {
     isSelfDMSplit?: boolean;
     /** The selfDM report ID for split transactions */
     selfDMReportID?: string;
+    /** Whether to skip the `pendingNewTransactionIDs` highlight rail because this flow never opens the expense report */
+    shouldSkipReportHighlightRail?: boolean;
     isTrackIntentUser: boolean | undefined;
 };
 
@@ -440,6 +445,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         isSelfDMSplit,
         isReverseSplitOperation,
         selfDMReportID,
+        shouldSkipReportHighlightRail,
         isTrackIntentUser,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
@@ -673,13 +679,15 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    // Flag for the highlight rail only when the add makes the report multi-tx (its table fresh-mounts with the tx present, so the diff misses it); never the first tx (0→1), which would leave a stale flag; no successData (races the mount).
+    // Only flag when the add makes the report multi-tx: on 0→1 the table fresh-mounts with the tx already present, so
+    // nothing consumes the flag and it goes stale. Same reason callers pass shouldSkipReportHighlightRail when the flow
+    // won't open the expense report. No successData - it races the mount.
     const existingReportTransactions = iou.report?.reportID
         ? getReportTransactions(iou.report.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID)
         : [];
     const addMakesReportMultiTransaction =
         isMoneyRequestReport(iou.report) && existingReportTransactions.some((reportTransaction) => reportTransaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    if (iou.report?.reportID && transaction.transactionID && !isSelfDMSplit && addMakesReportMultiTransaction) {
+    if (iou.report?.reportID && transaction.transactionID && !isSelfDMSplit && !shouldSkipReportHighlightRail && addMakesReportMultiTransaction) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
@@ -1305,6 +1313,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         odometerEnd,
         isSelfDMSplit,
         selfDMReportID,
+        shouldSkipReportHighlightRail,
     } = transactionParams;
 
     const payerEmail = addSMSDomainIfPhoneNumber(participant.login ?? '');
@@ -1702,6 +1711,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         delegateAccountID,
         isSelfDMSplit,
         selfDMReportID,
+        shouldSkipReportHighlightRail,
         isTrackIntentUser,
     });
 

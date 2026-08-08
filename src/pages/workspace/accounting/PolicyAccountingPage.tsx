@@ -55,7 +55,6 @@ import {
     settingsPendingAction,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import Navigation from '@navigation/Navigation';
 
@@ -642,18 +641,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
               ]
             : [];
 
-        const syncActivityReasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'PolicyAccountingPage.connectionsMenuItems',
-            isSyncInProgress,
-        };
         let rightComponent;
         if (isSyncInProgress) {
-            rightComponent = (
-                <ActivityIndicator
-                    style={[styles.popoverMenuIcon]}
-                    reasonAttributes={syncActivityReasonAttributes}
-                />
-            );
+            rightComponent = <ActivityIndicator style={[styles.popoverMenuIcon]} />;
         } else if (canWriteAccounting) {
             rightComponent = (
                 <ThreeDotsMenu
