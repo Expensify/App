@@ -36,6 +36,7 @@ jest.mock('@src/languages/IntlStore', () => {
         __esModule: true,
         default: {
             getCurrentLocale: () => 'en',
+            getDateFnsLocale: () => undefined,
             load: () => Promise.resolve(),
             get: (key: string, locale?: string) => {
                 const translations = cache.get(locale ?? 'en');
