@@ -9,7 +9,7 @@ import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {arePaymentsEnabled, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {
     getAllReportActions,
     getElsewherePaymentReportActionMessage,
@@ -571,9 +571,17 @@ function cancelPayment(
         stateNum = CONST.REPORT.STATE_NUM.APPROVED;
         statusNum = CONST.REPORT.STATUS_NUM.CLOSED;
     } else if (isSubmittedAction(lastWorkflowAction) || isForwardedAction(lastWorkflowAction)) {
-        // Outstanding / Processing: instant submit without approvals (SUBMITTED), or still in the approval chain (FORWARDED).
-        stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
-        statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED;
+        if (isSubmittedAction(lastWorkflowAction) && !arePaymentsEnabled(policy)) {
+            // Done: a submit-and-close report (approvals and payments off) auto-closes on submit. Its optimistic
+            // SUBMITTED action — written before the server reconciles it to SUBMITTED_AND_CLOSED — would otherwise be
+            // misread here as an Outstanding instant-submit, so anchor it to Done using the report's own close behavior.
+            stateNum = CONST.REPORT.STATE_NUM.APPROVED;
+            statusNum = CONST.REPORT.STATUS_NUM.CLOSED;
+        } else {
+            // Outstanding / Processing: instant submit without approvals (SUBMITTED), or still in the approval chain (FORWARDED).
+            stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
+            statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED;
+        }
     } else if (isApprovedAction(lastWorkflowAction)) {
         stateNum = CONST.REPORT.STATE_NUM.APPROVED;
         statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
