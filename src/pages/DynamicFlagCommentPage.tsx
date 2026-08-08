@@ -9,6 +9,7 @@ import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -52,6 +53,7 @@ type SeverityItemList = SeverityItem[];
 function DynamicFlagCommentPage({parentReportAction, report, parentReport, reportAction}: DynamicFlagCommentPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.FLAG_COMMENT.path);
     const isReportArchived = useReportIsArchived(report?.reportID);
     let reportID: string | undefined = report?.reportID;
@@ -61,7 +63,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
         reportID = parentReport?.reportID;
     }
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
-    const originalReportID = getOriginalReportID(reportID, reportAction, reportActions);
+    const originalReportID = getOriginalReportID(reportID, reportAction, reportActions, isOffline);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
