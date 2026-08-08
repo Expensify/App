@@ -230,6 +230,7 @@ type HandleActionButtonPressParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     conciergeChat: OnyxEntry<Report>;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 function handleActionButtonPress({
@@ -268,6 +269,7 @@ function handleActionButtonPress({
     delegateAccountID,
     isTrackIntentUser,
     conciergeChat,
+    getCurrencyDecimals,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -352,6 +354,7 @@ function handleActionButtonPress({
                 delegateAccountID,
                 isTrackIntentUser,
                 ownerLogin: submitterLogin,
+                getCurrencyDecimals,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
@@ -624,6 +627,7 @@ type GetApproveActionCallbackParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 function getApproveActionCallback({
@@ -643,6 +647,7 @@ function getApproveActionCallback({
     delegateAccountID,
     isTrackIntentUser,
     ownerLogin,
+    getCurrencyDecimals,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
         return;
@@ -670,6 +675,7 @@ function getApproveActionCallback({
         full: true,
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
         isTrackIntentUser,
+        getCurrencyDecimals,
     });
 }
 
