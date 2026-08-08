@@ -27,7 +27,7 @@ function getRevealDurationMS(tokenCount: number): number {
 
 /** Keep optimistic timing separate because server-streamed replies use getRevealDurationMS and easeOut. */
 function getOptimisticRevealDurationMS(tokenCount: number): number {
-    return Math.max(1, tokenCount - 1) * OPTIMISTIC_FLAT_MS_PER_TOKEN;
+    return Math.min(TRICKLE_HARD_CAP_MS, Math.max(1, tokenCount - 1) * OPTIMISTIC_FLAT_MS_PER_TOKEN);
 }
 
 export {ACCELERATED_REMAINING_MS, easeOut, getOptimisticRevealDurationMS, getRevealDurationMS, MIN_TRICKLE_TOKEN_COUNT, TICK_INTERVAL_MS, TRICKLE_HARD_CAP_MS};
