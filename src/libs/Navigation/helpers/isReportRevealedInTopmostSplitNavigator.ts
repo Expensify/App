@@ -21,12 +21,7 @@ function isReportRevealedInTopmostSplitNavigator(): boolean {
     // A wide layout pads the split with a placeholder SCREENS.REPORT route that carries no reportID (or an empty one),
     // so matching on the route name alone would treat that empty placeholder as a revealed report. Require a non-empty reportID.
     return !!innerRoutes?.some(
-        (route) =>
-            route.name === SCREENS.REPORT &&
-            typeof route.params === 'object' &&
-            route.params !== null &&
-            'reportID' in route.params &&
-            !!(route.params as {reportID?: string}).reportID,
+        (route) => route.name === SCREENS.REPORT && typeof route.params === 'object' && route.params !== null && 'reportID' in route.params && !!route.params.reportID,
     );
 }
 
