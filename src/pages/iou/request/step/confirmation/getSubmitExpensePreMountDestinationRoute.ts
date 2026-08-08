@@ -23,6 +23,8 @@ type GetSubmitExpensePreMountDestinationRouteParams = {
     iouType: IOUType;
     isCreatingTrackExpense: boolean;
     isSelfDMDestination: boolean;
+    /** Whether the flow relocates an already-tracked expense (SUBMIT/SHARE/CATEGORIZE) rather than creating one in place. */
+    isMovingTransactionFromTrackExpense: boolean;
 };
 
 /**
@@ -38,6 +40,7 @@ function getSubmitExpensePreMountDestinationRoute({
     iouType,
     isCreatingTrackExpense,
     isSelfDMDestination,
+    isMovingTransactionFromTrackExpense,
 }: GetSubmitExpensePreMountDestinationRouteParams): Route | undefined {
     // Unlike getSkipConfirmationPreMountDestinationRoute (which lets usePreMountDestination own the narrow gate), this builder
     // returns undefined on wide up front - it avoids the nav reads below, and reveal() would never consume a wide result anyway.
@@ -71,13 +74,19 @@ function getSubmitExpensePreMountDestinationRoute({
     const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
     // Don't pre-insert if the report is already the topmost fullscreen - it would push a duplicate route (extra back press).
     const hasValidDestination = !!destinationReportID && (hasPreInsertedFullscreen || Navigation.getTopmostReportId() !== destinationReportID);
+    // A report destination while a *different* report is topmost has no tab to switch to, so the pre-insert overwrites the
+    // visible report and cancelling must rebuild it from a state snapshot - a restore the root router's guards can silently
+    // swallow (#97437). Relocating a tracked expense is where that bites: it is rebound to its destination chat before this
+    // screen opens, so the destination is a report the user has never been on. Skipping it costs only the pre-mount.
+    const isReplacingVisibleReport =
+        !hasPreInsertedFullscreen && isMovingTransactionFromTrackExpense && isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() !== destinationReportID;
     // The report must be in the REPORT collection so the pre-inserted screen can render immediately. A draft-only report
     // (e.g. the expense chat of a freshly created draft workspace in the zero-workspace "Submit to my employer" flow) can't
     // render - the report screen only reads COLLECTION.REPORT - so pre-inserting one would strand the user on an infinite
     // skeleton if they back out before submitting. Passing an empty draft to getReportOrDraftReport skips its REPORT_DRAFT
     // fallback while keeping the module-cache fallback for real reports that useOnyx hasn't hydrated yet.
     const isDestinationReportLoaded = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, {}, destinationReport)?.reportID;
-    const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded;
+    const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded && !isReplacingVisibleReport;
 
     if (!shouldPreInsertSearch && !shouldPreInsertReport) {
         return undefined;
