@@ -508,6 +508,19 @@ describe('MoneyRequestReportPreview', () => {
             await waitForBatchedUpdatesWithAct();
         };
 
+        // Both layouts open the report first and the pressed expense on a short timer on top of it. Let that timer
+        // run so assertions see the expense, not just the report underneath it.
+        const settleCascade = async () => {
+            await act(async () => {
+                jest.advanceTimersByTime(400);
+                await Promise.resolve();
+            });
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        // Route the narrow cascade opens beneath the pressed expense.
+        const narrowReportRoute = () => ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, '');
+
         beforeEach(() => {
             navigateSpy.mockImplementation(() => {});
             jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue('');
@@ -566,17 +579,71 @@ describe('MoneyRequestReportPreview', () => {
             expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
         });
 
-        it('opens the pressed expense in the RHP over the chat on narrow layouts', async () => {
+        it('opens the report and then the pressed expense on top of it (after a short delay) on narrow layouts', async () => {
+            // The pressed expense opens on a short setTimeout so the report settles first. Use real timers so that
+            // delayed navigation actually fires.
+            jest.useRealTimers();
             mockResponsiveLayoutOverride = narrowResponsiveLayout;
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
 
             await renderAndPopulateCarousel();
             await pressSecondTransaction();
+            await act(async () => {
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 350);
+                });
+            });
 
-            // The expense opens in the RHP, leaving the split stack untouched — the flows that clean up after a
-            // thread (split-expense save, delete) assume the thread is not a split-navigator screen.
-            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
-            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(`thread_${mockSecondTransactionID}`, undefined, undefined, ''));
+            // Back returns to the report and back again to the chat, matching the wide layout's order.
+            const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, '');
+            expect(navigateSpy).toHaveBeenCalledTimes(2);
+            expect(navigateSpy).toHaveBeenNthCalledWith(1, reportRoute);
+            expect(navigateSpy).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
+        });
+
+        it('keeps the pressed expense out of the split stack on narrow layouts', async () => {
+            // The expense must open in the RHP, never as a split-navigator screen: the flows that clean up after a
+            // thread (split-expense save, delete) assume it is not there. removeScreenByKey only filters the root
+            // navigator's routes, so a nested split screen can never be removed by it.
+            jest.useRealTimers();
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+            await act(async () => {
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 350);
+                });
+            });
+
+            // The thread must never be navigated to as a report screen, whatever backTo it would carry.
+            const threadID = `thread_${mockSecondTransactionID}`;
+            const threadAsReportScreen = navigateSpy.mock.calls.map(([route]) => String(route)).filter((route) => route.startsWith(`r/${threadID}`));
+            expect(threadAsReportScreen).toEqual([]);
+            // ...and it did open, as the RHP route, so the assertion above is not passing merely because nothing opened.
+            expect(navigateSpy).toHaveBeenLastCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadID, backTo: narrowReportRoute()}));
+        });
+
+        it('does not open the pressed expense if the user leaves the report during the narrow cascade delay', async () => {
+            // Same guard the wide cascade has: the delayed navigation must not land on top of whatever screen the
+            // user moved to while the timer was pending.
+            jest.useRealTimers();
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            jest.spyOn(Navigation, 'isActiveRoute').mockReturnValue(false);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+            await act(async () => {
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 350);
+                });
+            });
+
+            const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, '');
+            expect(navigateSpy).toHaveBeenCalledWith(reportRoute);
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
         });
 
         it('fetches the report actions when the thread resolved only from the transaction, so the carousel can resolve siblings', async () => {
@@ -598,9 +665,10 @@ describe('MoneyRequestReportPreview', () => {
 
             await renderAndPopulateCarousel();
             await pressSecondTransaction();
+            await settleCascade();
 
             // The expense opens straight away from the transaction's own thread id...
-            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: narrowReportRoute()}));
             // ...but the report's actions must still be fetched. The prev/next carousel resolves each sibling through
             // those actions; without them an arrow press cannot find the sibling's existing thread and mints a
             // duplicate thread with no parent instead.
@@ -662,7 +730,8 @@ describe('MoneyRequestReportPreview', () => {
             // Now press the second card, which opens straight away. That is the expense the user is waiting on.
             navigateSpy.mockClear();
             await pressSecondTransaction();
-            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
+            await settleCascade();
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: narrowReportRoute()}));
 
             // The first press's fetch finally lands. It must NOT navigate — the user has moved on.
             navigateSpy.mockClear();
@@ -807,8 +876,9 @@ describe('MoneyRequestReportPreview', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[`${mockAction.reportActionID}_loaded`]: mockAction});
                 await waitForBatchedUpdatesWithAct();
             });
+            await settleCascade();
 
-            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: narrowReportRoute()}));
         });
 
         it('falls back to the parent report once the re-fetch settles when the expense has no IOU action at all', async () => {
@@ -871,8 +941,9 @@ describe('MoneyRequestReportPreview', () => {
                 await waitForBatchedUpdatesWithAct();
             });
 
-            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
-            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, ''));
+            // The expense must end up on top. The report opening underneath it is the cascade's base, but stopping
+            // there would mean the press fell back to the parent report instead of reaching the pressed expense.
+            expect(navigateSpy).toHaveBeenLastCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: narrowReportRoute()}));
         });
 
         it('falls back to opening the parent report when the pressed expense has no thread', async () => {

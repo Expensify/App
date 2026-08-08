@@ -233,16 +233,42 @@ function MoneyRequestReportPreview({
                 op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
             });
 
-            if (isSmallScreenWidth) {
-                // Narrow layouts open the pressed expense in the RHP over the chat — the same route every other
-                // narrow entry point uses (see useNavigateToTransactionThread). Back returns to the chat.
+            if (isSmallScreenWidth && iouReportID) {
+                // Narrow layouts open the report first and then the pressed expense on top of it, so back returns to
+                // the report and back again to the chat — the same order the wide layout cascades in.
                 //
-                // Deliberately NOT as a split-navigator screen with the parent report placed beneath it. Doing that
-                // leaves the thread as a full-screen SCREENS.REPORT route inside the split stack, and the flows that
-                // clean up after a thread assume it is not there: the split-expense save path relies on
+                // The expense opens in the RHP, deliberately NOT as a split-navigator screen with the report placed
+                // beneath it. A thread pushed into the split stack is a full-screen SCREENS.REPORT route, and the
+                // flows that clean up after a thread assume it is not there: the split-expense save path relies on
                 // removeScreenByKey, which only filters the ROOT navigator's routes and so can never remove a nested
-                // split screen, and the delete path's goBack can land on a second copy of the parent report. Keeping
-                // the expense in the RHP keeps the split stack exactly as those flows expect it.
+                // split screen, and the delete path's goBack can land on a second copy of the report. Opening the
+                // report as an ordinary split screen and keeping only the expense in the RHP gives the same back
+                // order without putting the thread anywhere those flows cannot reach it.
+                const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute());
+                Navigation.navigate(reportRoute);
+                setActiveTransactionIDs(openableTransactionIDs).then(() => {
+                    // Let the report settle before opening the expense over it, so the two open as a cascade. On
+                    // narrow the report takes the whole screen, so without the delay it is never seen at all.
+                    cascadeTimerRef.current = setTimeout(() => {
+                        cascadeTimerRef.current = null;
+                        // The user may have navigated away during the cascade delay; don't open the expense over
+                        // whatever screen is now active.
+                        if (!Navigation.isActiveRoute(reportRoute)) {
+                            // Only drop the seeded sibling IDs if they are still the ones this press wrote. Another
+                            // flow may have seeded its own carousel during the delay, and clearing is global.
+                            if (getActiveTransactionIDs().ids === openableTransactionIDs) {
+                                clearActiveTransactionIDs();
+                            }
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
+                    }, PRESSED_EXPENSE_CASCADE_DELAY);
+                });
+                return;
+            }
+
+            if (isSmallScreenWidth) {
+                // Fallback when the report is unknown: open the pressed expense over whatever is showing.
                 setActiveTransactionIDs(openableTransactionIDs);
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: Navigation.getActiveRoute()}));
                 return;
