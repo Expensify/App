@@ -192,7 +192,10 @@ class ShareViewController: UIViewController {
     
     private func handleImageData(_ image: UIImage, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
         os_log("Handling image data")
-        let filename = "shared_image.png"
+        // Use a unique filename per share so the resulting file:// URI differs every time.
+        // A constant name produced an identical URI on every share, and the URI-keyed image
+        // cache kept serving the first decoded receipt. See https://github.com/Expensify/App/issues/95075
+        let filename = "shared_image_\(UUID().uuidString).png"
         processAndSave(data: image.pngData(), filename: filename, folder: folder, completion: completion)
     }
     
