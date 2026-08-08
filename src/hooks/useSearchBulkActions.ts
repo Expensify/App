@@ -488,6 +488,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'QBDSquare',
         'CertiniaSquare',
         'RilletSquare',
+        'DualEntrySquare',
         'GustoSquare',
         'Pencil',
         'Workflows',
@@ -2207,7 +2208,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         icon: expensifyIcons.ArrowCollapse,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
                         onSelected: () =>
-                            setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, getCurrencyDecimals, reports, false, true, transactionPolicies),
+                            setupMergeTransactionDataAndNavigate(
+                                transactionID,
+                                searchedTransactions,
+                                localeCompare,
+                                getCurrencyDecimals,
+                                reports,
+                                false,
+                                true,
+                                transactionPolicies,
+                                accountID,
+                                personalDetails,
+                            ),
                     });
                 }
             }

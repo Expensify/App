@@ -27,7 +27,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {findSelfDMReportID} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -162,11 +161,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     };
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'TransactionMerge.ConfirmationPage',
-            isLoadingMergeTransaction: isLoadingOnyxValue(mergeTransactionMetadata),
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
