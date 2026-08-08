@@ -9,6 +9,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
+import useDistanceHomeAddressCheck from '@hooks/useDistanceHomeAddressCheck';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
@@ -306,6 +307,22 @@ function IOURequestStepDistance({
         return stop;
     }, []);
 
+    // When the destination workspace requires home/office commuter exclusions, the per-member
+    // commute deduction can't be computed unless the member has a home address.
+    const {needsHomeAddressPrompt, promptForHomeAddress} = useDistanceHomeAddressCheck(policy);
+    const hasShownHomeAddressModalRef = useRef(false);
+    useEffect(() => {
+        if (!needsHomeAddressPrompt) {
+            hasShownHomeAddressModalRef.current = false;
+            return;
+        }
+        if (hasShownHomeAddressModalRef.current) {
+            return;
+        }
+        hasShownHomeAddressModalRef.current = true;
+        promptForHomeAddress();
+    }, [needsHomeAddressPrompt, promptForHomeAddress]);
+
     useEffect(() => {
         if (numberOfWaypoints <= numberOfPreviousWaypoints) {
             return;
@@ -471,6 +488,10 @@ function IOURequestStepDistance({
     );
 
     const submitWaypoints = useCallback(() => {
+        if (needsHomeAddressPrompt) {
+            promptForHomeAddress();
+            return;
+        }
         // If there is any error or loading state, don't let user go to next page.
         if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || (!isEditing && isLoading)) {
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
@@ -549,6 +570,8 @@ function IOURequestStepDistance({
         suppressDiscardPrompt();
         navigateToNextStep();
     }, [
+        needsHomeAddressPrompt,
+        promptForHomeAddress,
         duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,
         hasRouteError,
@@ -588,6 +611,10 @@ function IOURequestStepDistance({
     ]);
 
     const submitManualDistance = useCallback(() => {
+        if (needsHomeAddressPrompt) {
+            promptForHomeAddress();
+            return;
+        }
         isManuallyEditing.current = false;
 
         // For a map-based distance edit, require valid waypoints even when saving from the Manual tab.
@@ -673,6 +700,8 @@ function IOURequestStepDistance({
         removeBackupTransaction(transaction?.transactionID);
         navigateBackAfterSave();
     }, [
+        needsHomeAddressPrompt,
+        promptForHomeAddress,
         translate,
         distanceRate,
         transactionID,

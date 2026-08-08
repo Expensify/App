@@ -1,6 +1,7 @@
 import useActivePolicy from '@hooks/useActivePolicy';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDistanceHomeAddressCheck from '@hooks/useDistanceHomeAddressCheck';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
@@ -322,6 +323,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
     const transactionIDs = transactions?.map((tx) => tx.transactionID);
     const [storedTransactions] = useTransactionsByID(transactionIDs);
+
+    // Any distance flow that submits through this hook is blocked while the user is missing a home address on a
+    // homeAndOffice workspace.
+    const {needsHomeAddressPrompt: distanceNeedsHomeAddress, promptForHomeAddress: promptForDistanceHomeAddress} = useDistanceHomeAddressCheck(policy);
 
     function performPostBatchCleanup({
         participant,
@@ -885,6 +890,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     }
 
     function createTransaction(locationPermissionGranted = false, shouldHandleNavigation = true) {
+        if (isDistanceRequest && distanceNeedsHomeAddress) {
+            promptForDistanceHomeAddress();
+            return;
+        }
+
         setIsConfirmed(true);
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
 
