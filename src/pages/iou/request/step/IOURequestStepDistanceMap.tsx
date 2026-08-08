@@ -25,7 +25,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
-import {doesMoneyRequestDraftHaveUserInput, getRateID, getRequestType} from '@libs/TransactionUtils';
+import {doesMoneyRequestDraftHaveUserInput, ensureKeyForListForWaypoints, getRateID, getRequestType} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -94,7 +94,7 @@ function IOURequestStepDistanceMap({
                       waypoint0: {keyForList: 'start_waypoint'},
                       waypoint1: {keyForList: 'stop_waypoint'},
                   }
-                : transactionWaypoints)
+                : ensureKeyForListForWaypoints(transactionWaypoints))
         );
     }, [optimisticWaypoints, transactionWaypoints, areTransactionWaypointsEmpty]);
     const reportAttributesDerived = useReportAttributes();
