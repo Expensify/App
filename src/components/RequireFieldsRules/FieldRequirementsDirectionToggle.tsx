@@ -13,20 +13,36 @@ import {View} from 'react-native';
 type FieldRequirementsDirectionToggleProps = {
     direction?: FieldRequirementsDirection;
     disabled?: boolean;
+
+    /** When false, pressing the selected direction does nothing instead of clearing it. */
+    canDeselect?: boolean;
     onSelect: (direction: FieldRequirementsDirection | undefined) => void;
 };
 
-function FieldRequirementsDirectionToggle({direction, disabled = false, onSelect}: FieldRequirementsDirectionToggleProps) {
+function FieldRequirementsDirectionToggle({direction, disabled = false, canDeselect = true, onSelect}: FieldRequirementsDirectionToggleProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const isRequireSelected = direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
     const isWaiveDirectionSelected = direction === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE;
 
+    const selectDirection = (isSelected: boolean, nextDirection: FieldRequirementsDirection) => {
+        if (!isSelected) {
+            onSelect(nextDirection);
+            return;
+        }
+
+        if (!canDeselect) {
+            return;
+        }
+
+        onSelect(undefined);
+    };
+
     return (
         <View style={[styles.flexRow, styles.border, styles.borderRadiusNormal]}>
             <Button
-                onPress={() => onSelect(isRequireSelected ? undefined : CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE)}
+                onPress={() => selectDirection(isRequireSelected, CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE)}
                 isDisabled={disabled}
                 size={CONST.BUTTON_SIZE.SMALL}
                 style={styles.ph0}
@@ -39,7 +55,7 @@ function FieldRequirementsDirectionToggle({direction, disabled = false, onSelect
                 </Button.Text>
             </Button>
             <Button
-                onPress={() => onSelect(isWaiveDirectionSelected ? undefined : CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE)}
+                onPress={() => selectDirection(isWaiveDirectionSelected, CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE)}
                 isDisabled={disabled}
                 size={CONST.BUTTON_SIZE.SMALL}
                 style={styles.ph0}

@@ -5,19 +5,29 @@ import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getRequireFieldsFieldCouplingTooltipKey, isRequireFieldsFieldCouplingDisabled} from '@libs/RequireFieldsRulesUtils';
+import {dismissProductTraining} from '@libs/actions/Welcome';
+import {
+    canClearRequireFieldsField,
+    getRequireFieldsFieldCouplingTooltipKey,
+    isRequireFieldsFieldCouplingDisabled,
+    REQUIRE_FIELDS_COUPLING_TOOLTIP_NAMES,
+} from '@libs/RequireFieldsRulesUtils';
 import type {FieldRequirementsDirection} from '@libs/RequireFieldsRulesUtils';
+import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import type {PolicyCategory} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
 import FieldRequirementsDirectionToggle from './FieldRequirementsDirectionToggle';
@@ -54,16 +64,29 @@ function FieldRequirementSettingRow({
     const theme = useTheme();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb']);
-    const [dismissedCouplingTooltipKey, setDismissedCouplingTooltipKey] = useState<string | undefined>();
+    const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
     const isCouplingDisabled = isRequireFieldsFieldCouplingDisabled(fieldKey, effectiveForm, category, touchedFields, isEditing, clearedFields);
     const couplingTooltipKey = getRequireFieldsFieldCouplingTooltipKey(fieldKey, effectiveForm, category, touchedFields, isEditing, clearedFields, couplingInteractionFields);
     const couplingTooltip = couplingTooltipKey ? translate(`workspace.rules.requireFieldsRule.${couplingTooltipKey}`) : undefined;
-    const shouldDisplayCouplingTooltip = !!couplingTooltip && dismissedCouplingTooltipKey !== couplingTooltipKey;
+    const couplingTooltipName = couplingTooltipKey ? REQUIRE_FIELDS_COUPLING_TOOLTIP_NAMES[couplingTooltipKey] : undefined;
+    // Wait for the NVP so an already-dismissed tooltip doesn't flash before the dismissal arrives.
+    const shouldDisplayCouplingTooltip =
+        !!couplingTooltip &&
+        !!couplingTooltipName &&
+        !isLoadingOnyxValue(dismissedProductTrainingMetadata) &&
+        !isProductTrainingElementDismissed(couplingTooltipName, dismissedProductTraining);
 
-    const hideCouplingTooltip = useCallback(() => {
-        setDismissedCouplingTooltipKey(couplingTooltipKey);
-    }, [couplingTooltipKey]);
+    const hideCouplingTooltip = useCallback(
+        (isDismissedUsingCloseButton = false) => {
+            if (!couplingTooltipName) {
+                return;
+            }
+
+            dismissProductTraining(couplingTooltipName, isDismissedUsingCloseButton);
+        },
+        [couplingTooltipName],
+    );
 
     const renderCouplingTooltipContent = useCallback(() => {
         return (
@@ -83,7 +106,7 @@ function FieldRequirementSettingRow({
                         shouldUseAutoHitSlop
                         accessibilityLabel={translate('common.noThanks')}
                         role={CONST.ROLE.BUTTON}
-                        onPress={hideCouplingTooltip}
+                        onPress={() => hideCouplingTooltip(true)}
                     >
                         <Icon
                             src={expensifyIcons.Close}
@@ -128,6 +151,7 @@ function FieldRequirementSettingRow({
             <FieldRequirementsDirectionToggle
                 direction={setting}
                 disabled={!canWriteRules || isCouplingDisabled}
+                canDeselect={canClearRequireFieldsField(fieldKey)}
                 onSelect={handleSelectSetting}
             />
         </View>
@@ -146,7 +170,7 @@ function FieldRequirementSettingRow({
             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
             shiftHorizontal={variables.mileageRateTooltipShiftHorizontal}
             shiftVertical={variables.mileageRateTooltipShiftVertical}
-            onTooltipPress={hideCouplingTooltip}
+            onTooltipPress={() => hideCouplingTooltip()}
             shouldHideOnScroll
         >
             {rowContent}
