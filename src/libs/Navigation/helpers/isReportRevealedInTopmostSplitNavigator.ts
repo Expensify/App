@@ -15,10 +15,19 @@ function isReportRevealedInTopmostSplitNavigator(): boolean {
         return false;
     }
 
-    const innerRoutes: ReadonlyArray<{name: string}> | undefined =
+    const innerRoutes: ReadonlyArray<{name: string; params?: unknown}> | undefined =
         topmostFullScreenRoute.state?.routes ?? (topmostFullScreenRoute.key ? getPreservedNavigatorState(topmostFullScreenRoute.key)?.routes : undefined);
 
-    return !!innerRoutes?.some((route) => route.name === SCREENS.REPORT);
+    // A wide layout pads the split with a placeholder SCREENS.REPORT route that carries no reportID (or an empty one),
+    // so matching on the route name alone would treat that empty placeholder as a revealed report. Require a non-empty reportID.
+    return !!innerRoutes?.some(
+        (route) =>
+            route.name === SCREENS.REPORT &&
+            typeof route.params === 'object' &&
+            route.params !== null &&
+            'reportID' in route.params &&
+            !!(route.params as {reportID?: string}).reportID,
+    );
 }
 
 export default isReportRevealedInTopmostSplitNavigator;
