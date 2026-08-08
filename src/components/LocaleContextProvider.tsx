@@ -67,9 +67,8 @@ type LocaleContextProps = {
     preferredLocale: Locale | undefined;
 
     /**
-     * The date-fns locale matching `preferredLocale`, to pass as the `locale` option of date-fns `format`.
-     * Components formatting locale-sensitive tokens (MMM, MMMM, EEEE, do) must use this rather than the date-fns
-     * global default, which React can't track and so can't re-render on.
+     * The date-fns locale matching `preferredLocale`. Pass it as the `locale` option of date-fns `format` so that
+     * locale-sensitive tokens (MMM, MMMM, EEEE, do) re-render when the user switches language.
      */
     dateFnsLocale: DateFnsLocale | undefined;
 };
@@ -162,10 +161,12 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
     const localeCompare: LocaleContextProps['localeCompare'] = (a, b) => collator.compare(a, b);
 
+    const dateFnsLocale = IntlStore.getDateFnsLocale(currentLocale);
+
     const formatTravelDate: LocaleContextProps['formatTravelDate'] = (datetime) => {
         const date = new Date(datetime);
-        const formattedDate = formatDate(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
-        const formattedHour = formatDate(date, CONST.DATE.LOCAL_TIME_FORMAT);
+        const formattedDate = formatDate(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale});
+        const formattedHour = formatDate(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale});
         const at = translateLocalize(currentLocale, 'common.conjunctionAt');
         return `${formattedDate} ${at} ${formattedHour}`;
     };
@@ -183,7 +184,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         localeCompare,
         formatTravelDate,
         preferredLocale: currentLocale,
-        dateFnsLocale: IntlStore.getDateFnsLocale(currentLocale),
+        dateFnsLocale,
     };
 
     // eslint-disable-next-line rulesdir/context-provider-split-values

@@ -50,6 +50,13 @@ import Log from './Log';
 import memoize from './memoize';
 
 type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
+
+/** Formats with no locale-sensitive tokens, so their output is identical in every language. */
+type MachineDateFormat =
+    | typeof CONST.DATE.FNS_FORMAT_STRING
+    | typeof CONST.DATE.FNS_DB_FORMAT_STRING
+    | typeof CONST.DATE.FNS_DATE_TIME_FORMAT_STRING
+    | typeof CONST.DATE.FNS_TIMEZONE_FORMAT_STRING;
 type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
@@ -708,7 +715,7 @@ const getTimeValidationErrorKey = (translate: LocalizedTranslate, inputTime: Dat
  * Get a date and format this date using the UTC timezone.
  * param datetime
  * param dateFormat
- * param dateFnsLocale - language to resolve locale-sensitive tokens such as MMM in.
+ * param dateFnsLocale - language used to resolve locale-sensitive tokens such as MMM.
  * returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
  */
 function formatWithUTCTimeZone(datetime: string, dateFormat: string, dateFnsLocale: DateFnsLocale | undefined) {
@@ -729,7 +736,7 @@ function formatWithUTCTimeZone(datetime: string, dateFormat: string, dateFnsLoca
  * param dateFormat
  * returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
  */
-function formatMachineDateWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING) {
+function formatMachineDateWithUTCTimeZone(datetime: string, dateFormat: MachineDateFormat = CONST.DATE.FNS_FORMAT_STRING) {
     const date = toDate(datetime, {timeZone: 'UTC'});
 
     if (isValid(date)) {
@@ -1242,3 +1249,5 @@ const DateUtils = {
 };
 
 export default DateUtils;
+
+export type {MachineDateFormat};

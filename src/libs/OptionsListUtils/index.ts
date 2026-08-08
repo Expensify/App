@@ -1596,7 +1596,7 @@ function processReport(
         policyTags?: OnyxEntry<PolicyTagLists>;
         visibleReportActionsData?: VisibleReportActionsDerivedValue;
         isTrackIntentUser?: boolean;
-        // TODO: Remove optional (?) once all callers pass sortedActions.
+        // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
         sortedActions?: Record<string, ReportAction[]>;
     },
 ): {
@@ -1787,8 +1787,10 @@ function createFilteredOptionList(
         visibleReportActionsData,
         isTrackIntentUser,
         conciergeReportID,
-        // Option building translates strings imperatively (translateLocal), so the active locale is part of the output.
+        // Option building translates strings imperatively (translateLocal) and formats dates, so both the active locale and the
+        // date-fns locale are part of the output.
         locale ?? IntlStore.getCurrentLocale(),
+        options.dateFnsLocale,
         // The RAM_ONLY_SORTED_REPORT_ACTIONS derived value produces a new object on every recompute,
         // so its reference signals that the underlying report actions changed.
         sortedActions,
@@ -3495,7 +3497,6 @@ function filterOptions(
     config?: FilterUserToInviteConfig,
 ): Options {
     const trimmedSearchInput = searchInputValue.trim();
-    const dateFnsLocale = config?.dateFnsLocale;
     const searchInputValueForInvite = config?.searchInputValue ?? trimmedSearchInput;
 
     const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(trimmedSearchInput), countryCode || CONST.DEFAULT_COUNTRY_CODE));
@@ -3518,7 +3519,8 @@ function filterOptions(
         countryCode,
         {
             ...config,
-            dateFnsLocale,
+            // `config` is optional, so the required locale has to be set explicitly rather than relying on the spread.
+            dateFnsLocale: config?.dateFnsLocale,
             searchInputValue: searchInputValueForInvite,
         },
     );

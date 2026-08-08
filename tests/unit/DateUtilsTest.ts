@@ -270,8 +270,8 @@ describe('DateUtils', () => {
             expect(DateUtils.formatMachineDateWithUTCTimeZone(datetimeStr)).toEqual(expectedResult);
         });
 
-        it('formats locale-sensitive tokens in the locale it is given rather than the date-fns global default', () => {
-            // The suite runs with the global default set to English, so a Greek month name can only come from the argument.
+        it('formats locale-sensitive tokens in the locale it is given', () => {
+            // The suite runs in English, so a Greek month name can only come from the locale argument.
             expect(DateUtils.formatWithUTCTimeZone(datetime, CONST.DATE.MONTH_DAY_ABBR_FORMAT, el)).toEqual('Νοε 7');
         });
     });
