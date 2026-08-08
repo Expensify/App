@@ -1013,6 +1013,21 @@ describe('mergeTransactionRequest', () => {
             isTrackIntentUser: false,
         });
 
+        await waitForBatchedUpdates();
+
+        const optimisticSelfDMReportActions = await new Promise<ReportActions | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                callback: (actions) => {
+                    Onyx.disconnect(connection);
+                    resolve(actions ?? null);
+                },
+            });
+        });
+        const placeholderReportActionID = Object.values(optimisticSelfDMReportActions ?? {}).find((action) =>
+            isIOUActionForTransaction(action, targetTransaction.transactionID, CONST.IOU.REPORT_ACTION_TYPE.TRACK),
+        )?.reportActionID;
+
         await mockFetch?.resume?.();
         await waitForBatchedUpdates();
 
@@ -1039,8 +1054,10 @@ describe('mergeTransactionRequest', () => {
             isIOUActionForTransaction(action, targetTransaction.transactionID, CONST.IOU.REPORT_ACTION_TYPE.TRACK),
         );
 
-        expect(newIOUAction?.childReportID).toBe(targetTransactionThreadID);
-        expect(isIOUActionForTransaction(newIOUAction, targetTransaction.transactionID, CONST.IOU.REPORT_ACTION_TYPE.TRACK)).toBe(true);
+        // The server creates its own TRACK action for the Self-DM destination via the MergeTransaction
+        // response's onyxData; this mock has none, so on success the client deletes its optimistic
+        // placeholder rather than leaving it around as a duplicate of the (unmocked) server action.
+        expect(newIOUAction).toBeUndefined();
         expect(unreportedReportActions).toBeNull();
 
         const updatedTargetTransactionThread = await new Promise<Report | null>((resolve) => {
@@ -1054,7 +1071,7 @@ describe('mergeTransactionRequest', () => {
         });
 
         expect(updatedTargetTransactionThread?.parentReportID).toBe(selfDMReport.reportID);
-        expect(updatedTargetTransactionThread?.parentReportActionID).toBe(newIOUAction?.reportActionID);
+        expect(updatedTargetTransactionThread?.parentReportActionID).toBe(placeholderReportActionID);
     });
 
     it('should not inject the target IOU action into the source report when a cross-report merge fails', async () => {

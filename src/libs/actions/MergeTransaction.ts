@@ -722,33 +722,39 @@ function mergeTransactionRequest({
             });
         }
 
-        // For unreported/Self-DM destinations, the server creates the TRACK action in Self DM.
-        // Writing it optimistically creates a temporary duplicate expense card until Onyx is cleared.
-        if (mergeTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticDestinationReportID}`,
-                value: {
-                    [newIOUAction.reportActionID]: newIOUAction,
-                },
-            });
+        // The optimistic newIOUAction must always be written so the transaction thread has a parent
+        // action to load immediately, online or offline. For a Self-DM destination the server creates
+        // its own separate TRACK action for this transaction via the MergeTransaction response's
+        // onyxData (it does not reuse createdIOUReportActionID for that path). onyxData is applied
+        // before successData (see OnyxUpdates.applyHTTPSOnyxUpdates), so the server's real action is
+        // already in Onyx by the time successData runs — deleting the placeholder there instead of
+        // un-pending it avoids ending up with both visible as a duplicate expense card.
+        const isSelfDMDestination = mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const destinationReportActionsKey: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}` = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticDestinationReportID}`;
 
-            successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticDestinationReportID}`,
-                value: {
-                    [newIOUAction.reportActionID]: {pendingAction: null},
-                },
-            });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: destinationReportActionsKey,
+            value: {
+                [newIOUAction.reportActionID]: newIOUAction,
+            },
+        });
 
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticDestinationReportID}`,
-                value: {
-                    [newIOUAction.reportActionID]: null,
-                },
-            });
-        }
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: destinationReportActionsKey,
+            value: {
+                [newIOUAction.reportActionID]: isSelfDMDestination ? null : {pendingAction: null},
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: destinationReportActionsKey,
+            value: {
+                [newIOUAction.reportActionID]: null,
+            },
+        });
 
         // Remove the surviving expense's IOU action from its original report so it does not
         // appear in both reports during offline/optimistic state.
