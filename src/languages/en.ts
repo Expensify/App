@@ -42,6 +42,7 @@ const translations = {
         unshare: 'Unshare',
         yes: 'Yes',
         no: 'No',
+        dontChange: 'Don’t change',
         // @context Universal confirmation button. Keep the UI-standard term “OK” unless the locale strongly prefers an alternative.
         ok: 'OK',
         notNow: 'Not now',

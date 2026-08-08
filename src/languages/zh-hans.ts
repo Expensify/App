@@ -43,6 +43,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: '取消共享',
         yes: '是',
         no: '否',
+        dontChange: '不更改',
         ok: 'OK',
         notNow: '暂不处理',
         noThanks: '不用了，谢谢',

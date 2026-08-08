@@ -43,6 +43,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: '共有を解除',
         yes: 'はい',
         no: 'いいえ',
+        dontChange: '変更しない',
         ok: 'OK',
         notNow: '今はしない',
         noThanks: '結構です',
