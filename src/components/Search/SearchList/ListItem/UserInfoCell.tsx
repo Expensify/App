@@ -45,7 +45,6 @@ function UserInfoCell({avatar, accountID, displayName, avatarSize, containerStyl
                 avatarID={accountID}
                 containerStyles={[styles.pr2, avatarStyle]}
             />
-            {/* Keep this as plain text; selectable plus the copyable marker is enough for row copy behavior. */}
             <Text
                 numberOfLines={1}
                 style={[isLargeScreenWidth ? styles.themeTextColor : styles.textMicroSupporting, styles.flexShrink1, textStyle]}

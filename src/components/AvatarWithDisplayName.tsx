@@ -162,7 +162,7 @@ function getCustomDisplayName(
         return {
             fullTitle: title,
             textStyles: regularStyle,
-            shouldUseFullTitle: isMoneyRequestOrReport || isAnonymous,
+            shouldUseFullTitle,
             ...baseProps,
         };
     }

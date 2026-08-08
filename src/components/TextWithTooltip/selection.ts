@@ -161,17 +161,7 @@ function useCopyableTextRowPress() {
         pendingCopyableTextPressRef.current = null;
     };
 
-    useEffect(
-        () => () => {
-            if (!pendingCopyableTextPressRef.current) {
-                return;
-            }
-
-            clearTimeout(pendingCopyableTextPressRef.current);
-            pendingCopyableTextPressRef.current = null;
-        },
-        [],
-    );
+    useEffect(() => clearPendingCopyableTextPress, []);
 
     const markMouseDownOnCopyableText = (target: EventTarget | null | undefined, shouldCheck = true, shouldSuppressNextPress = false): boolean => {
         // A second click on text cancels any pending single-click row action before it can expand/collapse the group.
