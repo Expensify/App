@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import {getIsOffline} from '@libs/NetworkState';
+import {clearPendingConciergeDeepLink, setPendingConciergeDeepLink} from '@libs/PendingConciergeDeepLink';
 import {findLastAccessedReport, getReportIDFromLink, getReportOrDraftReport, getRouteFromLink, isMoneyRequestReport} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -451,6 +452,12 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     openExternalLink(href);
 }
 
+function isConciergeRoute(route: string) {
+    const [routeWithoutParams] = normalizePath(route).split(/[?#]/, 1);
+    const normalizedRoute = routeWithoutParams.replace(/\/$/, '');
+    return normalizedRoute === normalizePath(ROUTES.CONCIERGE);
+}
+
 function openReportFromDeepLink(
     url: string,
     reports: OnyxCollection<Report>,
@@ -496,6 +503,14 @@ function openReportFromDeepLink(
         route = '';
     }
 
+    if (!isAuthenticated) {
+        if (isConciergeRoute(route)) {
+            setPendingConciergeDeepLink();
+        } else {
+            clearPendingConciergeDeepLink();
+        }
+    }
+
     // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up
     if (!isAuthenticated && isPublicScreenRoute(route)) {
         return;
@@ -513,30 +528,6 @@ function openReportFromDeepLink(
 
     // Navigate to the report after sign-in/sign-up.
     waitForUserSignIn().then(() => {
-        // A Submit-via-PDF secure access link must reach the report regardless of onboarding status: the report screen
-        // is where JoinReportViaSecureLink runs, and onboarding is suppressed for secure-link visitors. The generic
-        // handling below intentionally drops deep links for users who still need to onboard, so branch out first.
-        if (Url.hasSecureLinkKey(route)) {
-            Navigation.waitForProtectedRoutes().then(() => {
-                // Secure links grant workspace + report access to a real account via JoinReportViaSecureLink, so an
-                // anonymous session can never fulfill them even though report routes are otherwise anonymous-accessible
-                // (canAnonymousUserAccessRoute would allow it). Force a real sign-in first; the deep link is re-processed
-                // after sign-in. Without this the user lands on /r/:id?secureKey with no join, stuck loading/404.
-                if (isAnonymousUser()) {
-                    signOutAndRedirectToSignIn(true);
-                    return;
-                }
-                // On cold launch the report is already the initial route; navigating again would stack a duplicate
-                // that renders "not found" until the join grants access. Only navigate when we're not already there.
-                if (Navigation.getTopmostReportId() === reportID) {
-                    return;
-                }
-                const secureKey = new URLSearchParams(route.split('?').at(1) ?? '').get('secureKey') ?? undefined;
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, undefined, secureKey), {waitForTransition: true});
-            });
-            return;
-        }
-
         // `false` when the user still had to onboard as this deep link was captured (fresh sign-up, or a
         // stale react-native-web URL); honoring it after onboarding flashes the "Not here" page (#91437).
         let initialHasCompletedGuidedSetupFlow: boolean | undefined;

@@ -13,10 +13,10 @@ import Onyx from 'react-native-onyx';
 import {setDisableDismissOnEscape} from './actions/Modal';
 import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
-import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
 import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingNavigationUtils';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
+import {consumePendingConciergeDeepLink} from './PendingConciergeDeepLink';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
 
 let onboardingRHPVariant: OnyxEntry<OnboardingRHPVariant>;
@@ -26,11 +26,6 @@ Onyx.connectWithoutView({
         onboardingRHPVariant = value;
     },
 });
-
-type NavigateAfterOnboardingOptions = {
-    afterTransition?: () => void;
-    variantOverride?: OnboardingRHPVariant | null;
-};
 
 /**
  * Determines the report ID to navigate to after onboarding for control variant or ineligible users.
@@ -76,24 +71,29 @@ function navigateAfterOnboarding(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
-    options?: NavigateAfterOnboardingOptions,
+    variantOverride?: OnboardingRHPVariant | null,
 ) {
+    // A pending /concierge signup deep link should win before onboarding variants or workspace/admin fallbacks choose their standard destinations.
+    if (consumePendingConciergeDeepLink()) {
+        setDisableDismissOnEscape(false);
+        Navigation.navigate(conciergeReportID ? ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID) : (ROUTES.CONCIERGE as Route));
+        return;
+    }
+
     setDisableDismissOnEscape(false);
 
     // On mobile (small screen), Track workspace admins with the trackExpensesWithConcierge variant
     // should navigate directly to the Concierge DM (which contains onboarding tasks).
     // This check is outside shouldOpenRHPVariant because that function returns false on native
     // (Side Panel doesn't exist on native), but we still need to navigate to Concierge on mobile.
-    const navigationOptions = options?.afterTransition ? {afterTransition: options.afterTransition} : undefined;
-    const variantOverride = options?.variantOverride;
     const variant = variantOverride ?? onboardingRHPVariant;
     if (isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), navigationOptions);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
         return;
     }
 
     if (shouldOpenRHPVariant(variantOverride)) {
-        handleRHPVariantNavigation(onboardingPolicyID, variantOverride, navigationOptions);
+        handleRHPVariantNavigation(onboardingPolicyID, variantOverride);
         return;
     }
 
@@ -107,10 +107,10 @@ function navigateAfterOnboarding(
         shouldPreventOpenAdminRoom,
     );
     if (reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), navigationOptions);
-    } else if (!isReportTopmostSplitNavigator()) {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+    } else {
         // Navigate to home to trigger guard evaluation
-        Navigation.navigate(ROUTES.HOME, navigationOptions);
+        Navigation.navigate(ROUTES.HOME);
     }
 }
 
@@ -122,7 +122,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
-    options?: NavigateAfterOnboardingOptions,
+    variantOverride?: OnboardingRHPVariant | null,
 ) {
     dismissOnboardingModalBeforeExit();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
@@ -134,7 +134,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
             onboardingPolicyID,
             onboardingAdminsChatReportID,
             shouldPreventOpenAdminRoom,
-            options,
+            variantOverride,
         );
     });
 }

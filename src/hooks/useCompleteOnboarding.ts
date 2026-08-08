@@ -137,9 +137,7 @@ function useCompleteOnboarding() {
                 policyID,
                 adminsChatReportID,
                 (session?.email ?? '').includes('+'),
-                {
-                    variantOverride: rhpVariant,
-                },
+                rhpVariant,
             );
         } catch (error) {
             Log.warn('[useCompleteOnboarding] Error completing onboarding', {error});
