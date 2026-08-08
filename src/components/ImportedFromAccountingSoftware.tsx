@@ -46,7 +46,17 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare', 'RilletSquare', 'GustoSquare']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'XeroSquare',
+        'QBOSquare',
+        'NetSuiteSquare',
+        'IntacctSquare',
+        'QBDSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+        'DualEntrySquare',
+        'GustoSquare',
+    ]);
     const icon = getIntegrationIcon(connectedIntegration, expensifyIcons);
 
     if (!customTagName && shouldShow) {
@@ -69,7 +79,7 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
                             src={icon}
                             height={variables.iconSizeMedium}
                             width={variables.iconSizeMedium}
-                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.SMALLER, ''), styles.appBG]}
+                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.X_SMALL, ''), styles.appBG]}
                         />
                     ) : undefined
                 }

@@ -42,7 +42,7 @@ function TransactionListItemWide<TItem extends ListItem>({
     handleActionButtonPress,
     shouldDisableActionPointerEvents,
     transactionPreviewData,
-    exportedReportActions,
+    reportActions,
     policyCategories,
     policyTagLists,
     nonPersonalAndWorkspaceCards,
@@ -187,6 +187,8 @@ function TransactionListItemWide<TItem extends ListItem>({
                         onButtonPress={handleActionButtonPress}
                         onCheckboxPress={() => onCheckboxPress?.(item)}
                         shouldUseNarrowLayout={false}
+                        shouldUseFullHeightEditableCellHoverTarget
+                        shouldSkipDeferRBR
                         isLargeScreenWidth
                         columns={columns}
                         isActionLoading={isLoading ?? isActionLoading}
@@ -203,12 +205,12 @@ function TransactionListItemWide<TItem extends ListItem>({
                         isActionColumnWide={transactionItem.isActionColumnWide}
                         shouldShowCheckbox={!!canSelectMultiple}
                         checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
-                        style={[styles.p3, styles.pv2, isLastItem ? styles.tableBottomRadius : styles.noBorderRadius]}
+                        style={[styles.ph3, isLastItem ? styles.tableBottomRadius : styles.noBorderRadius]}
                         violations={transactionViolations}
                         onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, transactionPreviewData, event)}
                         isHover={hovered}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                        reportActions={exportedReportActions}
+                        reportActions={reportActions}
                         isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                         onEditDate={onEditDate}
                         onEditMerchant={onEditMerchant}

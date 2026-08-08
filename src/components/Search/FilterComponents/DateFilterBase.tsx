@@ -39,6 +39,8 @@ type DateFilterBaseProps = {
     defaultDateValues: SearchDateValues;
     /** The date presets to display (e.g. "This month", "Last month") */
     presets: SearchDatePreset[];
+    /** Whether to show the "Custom date" (On/After/Before) option. Defaults to true. */
+    shouldShowCustomDate?: boolean;
     /** Whether the search advanced filters form Onyx data is loading or not */
     isSearchAdvancedFiltersFormLoading?: boolean;
     /** Callback when the back button is pressed. Required when shouldShowHeader is true. */
@@ -70,6 +72,7 @@ function DateFilterBase({
     title,
     defaultDateValues,
     presets,
+    shouldShowCustomDate,
     isSearchAdvancedFiltersFormLoading,
     onBackButtonPress,
     onSubmit,
@@ -234,6 +237,7 @@ function DateFilterBase({
                     selectedDateModifier={selectedDateModifier}
                     onSelectDateModifier={handleSelectDateModifier}
                     presets={presets}
+                    shouldShowCustomDate={shouldShowCustomDate}
                     isSearchAdvancedFiltersFormLoading={isSearchAdvancedFiltersFormLoading}
                     onDateValuesChange={handleDateValuesChange}
                     onRangeValidationErrorChange={setShouldShowRangeError}

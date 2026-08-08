@@ -46,6 +46,7 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
         'QBDSquare',
         'CertiniaSquare',
         'RilletSquare',
+        'DualEntrySquare',
         'GustoSquare',
         'Table',
         'TablePencil',
@@ -129,6 +130,7 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
             value={selectedExportedTo}
             items={sortedExportedToPickerOptions}
             isSearchable={exportedToPickerOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+            isNegatable
             autoFocus={autoFocus}
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
