@@ -37,7 +37,7 @@ const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ??
 
 const isRowDeleted = (item: SearchListItem) => item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-const GROUP_BY_OPTIONS_WITH_SELECTABLE_HEADERS: Set<SearchGroupBy> = new Set([
+const GROUP_BY_OPTIONS_WITH_SELECTABLE_HEADERS = new Set<SearchGroupBy>([
     CONST.SEARCH.GROUP_BY.MERCHANT,
     CONST.SEARCH.GROUP_BY.CATEGORY,
     CONST.SEARCH.GROUP_BY.FROM,
