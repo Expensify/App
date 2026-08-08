@@ -104,7 +104,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const currentDefaultSearchQueryString = currentSearchKey ? suggestedSearches[currentSearchKey]?.searchQuery : undefined;
     const currentDefaultSearchQueryJSON = currentDefaultSearchQueryString ? buildSearchQueryJSON(currentDefaultSearchQueryString) : undefined;
     const currentDefaultSearchQueryFilterKeys = new Set(currentDefaultSearchQueryJSON?.flatFilters.map((filter) => filter.key));
-    console.log('[DEBUG] Current search key and filters', currentSearchKey, currentDefaultSearchQueryString, currentDefaultSearchQueryJSON?.flatFilters, currentDefaultSearchQueryFilterKeys);
+
     const resetSearchKey = (pending = false, queryJSON = currentSearchQueryJSON) => {
         const searchKey = getInitialCurrentSearchKey(queryJSON);
         if (pending && queryJSON?.hash !== currentSearchHash) {
