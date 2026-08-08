@@ -1,5 +1,13 @@
 import {getCombinedCardFeedsFromAllFeeds, getWorkspaceCardFeedsStatus} from '@libs/CardFeedUtils';
-import {filterAllInactiveCards, forEachAssignedCard, getCardFeedWithDomainID, isBrokenConnectionPastDismissThreshold, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
+import {
+    filterAllInactiveCards,
+    forEachAssignedCard,
+    getCardFeedWithDomainID,
+    isBrokenConnectionPastDismissThreshold,
+    isCardConnectionBroken,
+    isLastScrapePastDismissThreshold,
+    isPersonalCard,
+} from '@libs/CardUtils';
 
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 
@@ -17,6 +25,7 @@ const DEFAULT_CARD_FEED_ERROR_STATE: CardFeedErrorState = {
     hasFeedErrors: false,
     hasWorkspaceErrors: false,
     isFeedConnectionBroken: false,
+    shouldPromptBrokenConnection: false,
 };
 
 function getShouldShowRBR(state: Partial<CardFeedErrorState>): boolean {
@@ -27,7 +36,9 @@ function getShouldShowRBR(state: Partial<CardFeedErrorState>): boolean {
         return true;
     }
 
-    return !!state.isFeedConnectionBroken;
+    // Deliberately keyed on the prompting flag, not `isFeedConnectionBroken`: past the grace period we stop showing
+    // the RBR while the connection stays broken so it can still be fixed.
+    return !!state.shouldPromptBrokenConnection;
 }
 
 export default createOnyxDerivedValueConfig({
@@ -53,7 +64,17 @@ export default createOnyxDerivedValueConfig({
         const personalCardsWithBrokenConnection: Record<string, Card> = {};
 
         function addErrorsForPersonalCard(card: Card) {
-            const hasCardErrors = !isEmptyObject(card.errors) || !isEmptyObject(card.errorFields);
+            // Once the card has gone without a successful sync past the grace period we stop leading the user to it: the
+            // time-sensitive task and the RBR are removed. The connection error is surfaced both as `errorFields.lastScrape`
+            // and as a server-set `card.errors` entry (the latter is what lights the Account button via
+            // `hasPaymentMethodError`), so past the threshold neither should light the RBR. This is keyed on the last
+            // successful sync rather than `isCardConnectionBroken`, because the server sets the connection error even for
+            // scrape statuses that check ignores (e.g. 434). Any actionable error kept in a separate `errorFields` entry
+            // (a failed reimbursable/start-date update) still surfaces. The error itself stays on the card so it's fixable.
+            const isPastDismissThreshold = isLastScrapePastDismissThreshold(card);
+            const errorFieldsForRBR =
+                isPastDismissThreshold && card.errorFields ? Object.fromEntries(Object.entries(card.errorFields).filter(([field]) => field !== 'lastScrape')) : card.errorFields;
+            const hasCardErrors = (!isPastDismissThreshold && !isEmptyObject(card.errors)) || !isEmptyObject(errorFieldsForRBR);
             const cardErrors = {
                 ...(hasCardErrors
                     ? {
@@ -66,21 +87,23 @@ export default createOnyxDerivedValueConfig({
                     : {}),
             } as Record<string, CardErrors>;
 
-            // Stop surfacing the broken connection (task + RBR) once it has been unresolved past the
-            // grace period; the underlying error on the card is kept so the user can still fix it.
-            const isFeedConnectionBroken = isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
+            const isFeedConnectionBroken = isCardConnectionBroken(card) && !isPastDismissThreshold;
             // Track personal cards with broken feed connection
             if (isFeedConnectionBroken) {
                 personalCardsWithBrokenConnection[card.cardID] = card;
             }
             const newFeedState: Omit<CardFeedErrorState, 'shouldShowRBR'> = {
                 isFeedConnectionBroken,
+                // A personal card is fixed from its own details page, which reads the card directly, so there is no
+                // separate capability signal to preserve here — prompting follows the same grace period.
+                shouldPromptBrokenConnection: isFeedConnectionBroken,
                 hasFeedErrors: !isEmptyObject(cardErrors),
                 hasWorkspaceErrors: false,
             };
             const shouldShowRBR = getShouldShowRBR(newFeedState);
 
             personalCardStates.isFeedConnectionBroken ||= newFeedState.isFeedConnectionBroken;
+            personalCardStates.shouldPromptBrokenConnection ||= newFeedState.shouldPromptBrokenConnection;
             personalCardStates.hasFeedErrors ||= newFeedState.hasFeedErrors;
             personalCardStates.shouldShowRBR ||= shouldShowRBR;
         }
@@ -123,12 +146,15 @@ export default createOnyxDerivedValueConfig({
                     : {}),
             } as Record<string, CardErrors>;
 
-            // Stop surfacing the broken connection (task + RBR) once it has been unresolved past the
-            // grace period; the underlying error on the card is kept so the user can still fix it.
-            const isFeedConnectionBroken = isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
+            // Keep the broken state itself truthful: the Company cards page renders its "log into your bank" fix from
+            // this flag, and the reconnect needs it to clear the error afterwards. Only stop *prompting* (the RBR and
+            // the time-sensitive task) once the connection has been unresolved past the grace period.
+            const isFeedConnectionBroken = isCardConnectionBroken(card);
+            const shouldPromptBrokenConnection = isFeedConnectionBroken && !isBrokenConnectionPastDismissThreshold(card);
 
             const newFeedState: Omit<CardFeedErrorState, 'shouldShowRBR'> = {
                 isFeedConnectionBroken: isFeedConnectionBroken || previousFeedErrors.isFeedConnectionBroken,
+                shouldPromptBrokenConnection: shouldPromptBrokenConnection || previousFeedErrors.shouldPromptBrokenConnection,
                 hasFeedErrors: hasFeedErrors || previousFeedErrors.hasFeedErrors,
                 hasWorkspaceErrors: hasWorkspaceErrors || previousFeedErrors.hasWorkspaceErrors,
             };
@@ -143,7 +169,9 @@ export default createOnyxDerivedValueConfig({
                 workspaceErrors,
             };
 
-            // Track cards with broken feed connection
+            // Track cards with broken feed connection. This stays truthful past the grace period so that reconnecting
+            // still clears the error (see useUpdateFeedBrokenConnection); consumers that prompt the user filter on the
+            // grace period themselves.
             if (isFeedConnectionBroken) {
                 cardsWithBrokenFeedConnection[card.cardID] = card;
             }
@@ -152,10 +180,12 @@ export default createOnyxDerivedValueConfig({
             const cardTypeState = isExpensifyCard ? expensifyCardFeedStates : companyCardFeedsState;
 
             allFeedsState.isFeedConnectionBroken ||= newFeedState.isFeedConnectionBroken;
+            allFeedsState.shouldPromptBrokenConnection ||= newFeedState.shouldPromptBrokenConnection;
             allFeedsState.hasFeedErrors ||= newFeedState.hasFeedErrors;
             allFeedsState.hasWorkspaceErrors ||= newFeedState.hasWorkspaceErrors;
 
             cardTypeState.isFeedConnectionBroken ||= newFeedState.isFeedConnectionBroken;
+            cardTypeState.shouldPromptBrokenConnection ||= newFeedState.shouldPromptBrokenConnection;
             cardTypeState.hasFeedErrors ||= newFeedState.hasFeedErrors;
             cardTypeState.hasWorkspaceErrors ||= newFeedState.hasWorkspaceErrors;
 

@@ -163,7 +163,10 @@ describe('CardFeedErrors Derived Value', () => {
                 expect(result.all.isFeedConnectionBroken).toBe(false);
             });
 
-            it('should NOT surface a broken company card connection once it is unresolved past the grace period', () => {
+            // Past the grace period we stop *prompting* about a broken company card feed (no RBR, no home task), but the
+            // feed stays flagged as broken: the Company cards page renders its "log into your bank" fix from that flag,
+            // and the reconnect needs the card in `cardsWithBrokenFeedConnection` to clear the error afterwards.
+            it('should stop prompting for a broken company card connection past the grace period but keep it fixable', () => {
                 const cardFeed = CARD_FEEDS[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE];
                 const card = createCard({
                     cardID: CARD_IDS.card1,
@@ -177,9 +180,36 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
-                expect(result.all.isFeedConnectionBroken).toBe(false);
                 expect(result.all.shouldShowRBR).toBe(false);
-                expect(result.cardsWithBrokenFeedConnection).toEqual({});
+                expect(result.all.shouldPromptBrokenConnection).toBe(false);
+                expect(result.companyCards.shouldShowRBR).toBe(false);
+                expect(result.shouldShowRbrForFeedNameWithDomainID[cardFeed.feedNameWithDomainID]).toBe(false);
+
+                // ...but the broken state itself is preserved so the feed can still be fixed.
+                expect(result.all.isFeedConnectionBroken).toBe(true);
+                expect(result.cardFeedErrors[cardFeed.feedNameWithDomainID]?.isFeedConnectionBroken).toBe(true);
+                expect(result.cardsWithBrokenFeedConnection[CARD_IDS.card1]).toEqual(card);
+            });
+
+            it('should still prompt for a broken company card connection within the grace period', () => {
+                const cardFeed = CARD_FEEDS[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE];
+                const recentScrape = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    bank: cardFeed.feedName,
+                    fundID: String(cardFeed.policyAccountID),
+                    lastScrapeResult: 403,
+                    lastScrape: recentScrape,
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.all.shouldShowRBR).toBe(true);
+                expect(result.all.shouldPromptBrokenConnection).toBe(true);
+                expect(result.all.isFeedConnectionBroken).toBe(true);
+                expect(result.cardsWithBrokenFeedConnection[CARD_IDS.card1]).toEqual(card);
             });
 
             it('should surface a broken personal card connection when there is no last successful scrape (fail safe)', () => {
@@ -210,6 +240,135 @@ describe('CardFeedErrors Derived Value', () => {
 
                 expect(result.personalCard.isFeedConnectionBroken).toBe(false);
                 expect(result.personalCardsWithBrokenConnection).toEqual({});
+            });
+
+            // A broken personal card surfaces its connection error via errorFields.lastScrape (this is what the card
+            // detail page reads). Past the grace period we stop leading the user to it, so that specific error must not
+            // light the Account/Wallet RBR — while the error itself is kept so the card can still be fixed.
+            it('should NOT show the RBR for a personal card past the grace period whose only error is the broken connection', () => {
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 403, // Broken connection
+                    lastScrape: '2020-01-01 00:00:00', // Last successful scrape is well beyond the grace period
+                    errorFields: {lastScrape: {error: 'Your card connection is broken.'}}, // Kept so the card can still be fixed
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(false);
+                expect(result.personalCard.isFeedConnectionBroken).toBe(false);
+            });
+
+            it('should still show the RBR for a broken personal card within the grace period', () => {
+                // Broken only since yesterday, so it is still well inside the grace period and must keep prompting.
+                const recentScrape = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 403,
+                    lastScrape: recentScrape,
+                    errorFields: {lastScrape: {error: 'Your card connection is broken.'}},
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(true);
+                expect(result.personalCard.isFeedConnectionBroken).toBe(true);
+            });
+
+            // Past the grace period we suppress ONLY the broken-connection error, not other actionable errors on the same
+            // card — e.g. a failed reimbursable/start-date update, which lands in a different errorFields entry.
+            it('should still show the RBR for a past-grace broken card that also has an unrelated field error', () => {
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 403,
+                    lastScrape: '2020-01-01 00:00:00',
+                    errorFields: {
+                        lastScrape: {error: 'Your card connection is broken.'},
+                        reimbursable: {error: 'Failed to update the reimbursable setting.'},
+                    },
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(true);
+            });
+
+            // The broken connection is also surfaced as a server-set `card.errors` entry (this is what lights the Account
+            // button via hasPaymentMethodError). Past the grace period that must not light the RBR either. It is not
+            // separable from a co-located card error, so a past-grace broken card whose card-level error is the dismissed
+            // connection stops prompting.
+            it('should NOT show the RBR for a past-grace broken card whose card-level error is the dismissed connection', () => {
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 403,
+                    lastScrape: '2020-01-01 00:00:00',
+                    errors: {connectionError: 'Your card connection is broken.'},
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(false);
+            });
+
+            it('should still show the RBR for a personal card with an unrelated error and a healthy connection', () => {
+                // Synced yesterday, so the card is inside the grace period and its errors surface normally.
+                const recentScrape = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 200, // Not a broken connection
+                    lastScrape: recentScrape,
+                    errors: {unrelatedError: 'Something else went wrong.'},
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(true);
+            });
+
+            // The server keeps re-sending the connection error even when lastScrapeResult is one of the IGNORED
+            // statuses (e.g. 434), which isCardConnectionBroken treats as not broken. The dismissal is therefore keyed
+            // on the last successful sync, not on the broken check — otherwise these cards light the Account/Wallet
+            // dots forever (the reported production case).
+            it('should NOT show the RBR for a card with an ignored scrape status (434) whose last sync is past the grace period', () => {
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 434, // In BROKEN_CONNECTION_IGNORED_STATUSES — not "broken", but still carries the error
+                    lastScrape: '2024-08-26 18:58:19', // Last successful sync is well beyond the grace period
+                    errors: {connectionError: 'Your card connection is broken.'},
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(false);
+                expect(result.personalCard.isFeedConnectionBroken).toBe(false);
+            });
+
+            it('should still show the RBR for a card with an ignored scrape status (434) whose last sync is within the grace period', () => {
+                const recentScrape = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 434,
+                    lastScrape: recentScrape,
+                    errors: {connectionError: 'Your card connection is broken.'},
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(true);
             });
         });
 
