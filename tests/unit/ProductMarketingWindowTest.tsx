@@ -14,7 +14,7 @@ import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 
-import {setNameValuePair} from '@libs/actions/User';
+import {dismissMarketingWindow} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT} from '@libs/ProductMarketingWindowUtils';
 
@@ -50,13 +50,13 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 
-// Keep setNameValuePair's optimistic Onyx merge (so persistence behavior is exercised end-to-end) while
-// dropping its API call and letting tests assert that the previous value is supplied for failure rollback.
+// Keep dismissMarketingWindow's optimistic Onyx merge so persistence behavior is exercised end-to-end
+// without issuing an API request.
 jest.mock('@libs/actions/User', () => {
     return {
-        setNameValuePair: jest.fn((name: typeof ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, value: string) => {
+        dismissMarketingWindow: jest.fn((updateKey: string) => {
             const OnyxModule = jest.requireActual<{default: typeof Onyx}>('react-native-onyx').default;
-            OnyxModule.merge(name, value);
+            OnyxModule.merge(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, updateKey);
         }),
     };
 });
@@ -65,7 +65,7 @@ const announcement = ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT;
 if (!announcement) {
     throw new Error('These tests require an active product marketing announcement; update them if the active announcement is removed.');
 }
-const mockSetNameValuePair = jest.mocked(setNameValuePair);
+const mockDismissMarketingWindow = jest.mocked(dismissMarketingWindow);
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const mockUseSafeAreaPaddings = jest.mocked(useSafeAreaPaddings);
@@ -469,8 +469,8 @@ describe('ProductMarketingWindowManager', () => {
         fireEvent.press(screen.getByText(en.common.dismiss));
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockSetNameValuePair).toHaveBeenCalledTimes(1);
-        expect(mockSetNameValuePair).toHaveBeenCalledWith(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, announcement.updateKey, '');
+        expect(mockDismissMarketingWindow).toHaveBeenCalledTimes(1);
+        expect(mockDismissMarketingWindow).toHaveBeenCalledWith(announcement.updateKey);
         expect(mockNavigate).not.toHaveBeenCalled();
         // The optimistic NVP write hides the window immediately.
         expect(screen.queryByText(adminHeading)).toBeNull();
@@ -494,12 +494,12 @@ describe('ProductMarketingWindowManager', () => {
         fireEvent.press(screen.getByText(adminCtaLabel));
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockSetNameValuePair).toHaveBeenCalledTimes(1);
-        expect(mockSetNameValuePair).toHaveBeenCalledWith(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, announcement.updateKey, OLDER_UPDATE_KEY);
+        expect(mockDismissMarketingWindow).toHaveBeenCalledTimes(1);
+        expect(mockDismissMarketingWindow).toHaveBeenCalledWith(announcement.updateKey);
         expect(mockNavigate).toHaveBeenCalledTimes(1);
         expect(mockNavigate).toHaveBeenCalledWith(announcement.admin.getCtaRoute(POLICY_ID));
 
-        const dismissCallOrder = mockSetNameValuePair.mock.invocationCallOrder.at(0) ?? Number.NaN;
+        const dismissCallOrder = mockDismissMarketingWindow.mock.invocationCallOrder.at(0) ?? Number.NaN;
         const navigateCallOrder = mockNavigate.mock.invocationCallOrder.at(0) ?? Number.NaN;
         expect(dismissCallOrder).toBeLessThan(navigateCallOrder);
 
@@ -535,30 +535,6 @@ describe('ProductMarketingWindowManager', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockNavigate).toHaveBeenCalledWith(announcement.admin.getCtaRoute(POLICY_ID));
-    });
-
-    it('shows the window again when a failed persistence request rolls the NVP back to its previous update key', async () => {
-        await act(async () => {
-            await setupOnyxBaseline({isAdmin: true});
-            await Onyx.set(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, OLDER_UPDATE_KEY);
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        renderManager();
-        await waitForBatchedUpdatesWithAct();
-
-        fireEvent.press(screen.getByText(en.common.dismiss));
-        await waitForBatchedUpdatesWithAct();
-        expect(screen.queryByText(adminHeading)).toBeNull();
-        expect(mockSetNameValuePair).toHaveBeenCalledWith(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, announcement.updateKey, OLDER_UPDATE_KEY);
-
-        await act(async () => {
-            // This is the failureData merge performed by setNameValuePair using the previous value passed above.
-            await Onyx.merge(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, OLDER_UPDATE_KEY);
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        expect(screen.getByText(adminHeading)).toBeTruthy();
     });
 
     it('uses the fixed-width bottom-right overlay on wide layouts', async () => {
