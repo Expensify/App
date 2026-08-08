@@ -73,6 +73,13 @@ function navigateAfterOnboarding(
     shouldPreventOpenAdminRoom = false,
     variantOverride?: OnboardingRHPVariant | null,
 ) {
+    // A pending /concierge signup deep link should win before onboarding variants or workspace/admin fallbacks choose their standard destinations.
+    if (consumePendingConciergeDeepLink()) {
+        setDisableDismissOnEscape(false);
+        Navigation.navigate(conciergeReportID ? ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID) : (ROUTES.CONCIERGE as Route));
+        return;
+    }
+
     setDisableDismissOnEscape(false);
 
     // On mobile (small screen), Track workspace admins with the trackExpensesWithConcierge variant
@@ -101,8 +108,6 @@ function navigateAfterOnboarding(
     );
     if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    } else if (consumePendingConciergeDeepLink()) {
-        Navigation.navigate(conciergeReportID ? ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID) : (ROUTES.CONCIERGE as Route));
     } else {
         // Navigate to home to trigger guard evaluation
         Navigation.navigate(ROUTES.HOME);
