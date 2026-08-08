@@ -1024,6 +1024,18 @@ function getCardFeedWithDomainID(feedName: CardFeedWithNumber, domainID: number 
     return `${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`;
 }
 
+/**
+ * The company card feed a card belongs to, in the `feed#domainID` form used by `lastSelectedFeed`.
+ * Returns undefined for personal cards and Expensify cards, which have no company card feed.
+ */
+function getCompanyCardFeedWithDomainIDForCard(card: Card): CompanyCardFeedWithDomainID | undefined {
+    if (!card.fundID || isPersonalCard(card) || isExpensifyCard(card)) {
+        return undefined;
+    }
+
+    return `${getCompanyCardFeed(card.bank)}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${card.fundID}`;
+}
+
 function splitCardFeedWithDomainID(feedName: CardFeedWithNumber | CardFeedWithDomainID | undefined): {feedName: CardFeedWithNumber; domainID: number | undefined} | undefined {
     if (!feedName) {
         return;
@@ -2166,6 +2178,7 @@ export {
     getOriginalCompanyFeeds,
     getCompanyCardFeed,
     getCardFeedWithDomainID,
+    getCompanyCardFeedWithDomainIDForCard,
     splitCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
     getSupportedCardCountriesForCurrency,
