@@ -116,6 +116,7 @@ type BuildWorkspaceNavigationItemsParams = {
 };
 
 type WorkspaceContextProps = {
+    /** The policy used to identify the workspace suggestion */
     policy: OnyxTypes.Policy;
 };
 
