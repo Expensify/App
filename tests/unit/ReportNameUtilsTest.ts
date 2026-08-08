@@ -1270,7 +1270,6 @@ describe('ReportNameUtils', () => {
                 policy: undefined,
                 currentUserAccountID,
                 translate: translateLocal,
-                formatPhoneNumber,
             });
 
             expect(name).toBe('Personal Workspace');
@@ -1291,7 +1290,6 @@ describe('ReportNameUtils', () => {
                 policy: undefined,
                 currentUserAccountID,
                 translate: translateLocal,
-                formatPhoneNumber,
             });
 
             const normalizedName = name?.replaceAll('\u00A0', ' ');
@@ -1323,7 +1321,6 @@ describe('ReportNameUtils', () => {
                 policy: undefined,
                 currentUserAccountID,
                 translate: translateWithHiddenMarker,
-                formatPhoneNumber,
             });
 
             expect(name).toBe('HiddenMarker');
@@ -1357,7 +1354,6 @@ describe('ReportNameUtils', () => {
                 policy: undefined,
                 currentUserAccountID,
                 translate: translateWithUnavailableMarker,
-                formatPhoneNumber,
             });
 
             expect(name).toBe('UnavailableMarker');
@@ -1379,7 +1375,6 @@ describe('ReportNameUtils', () => {
                 policy: undefined,
                 currentUserAccountID,
                 translate: translateWithUnavailableMarker,
-                formatPhoneNumber,
             });
 
             expect(name).toBe('UnavailableMarker');
