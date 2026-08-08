@@ -397,7 +397,7 @@ function WorkspaceCompanyCardsTable({
         >
             {headerButtonsComponent}
 
-            {isLoading && <Table.LoadingState context="WorkspaceCompanyCardsTable" />}
+            {isLoading && <Table.LoadingState />}
 
             {!isLoading && isFeedPending && !feedErrorKey && (
                 <ScrollView addBottomSafeAreaPadding>
@@ -457,7 +457,7 @@ function WorkspaceCompanyCardsTable({
                     {hasPendingUnassignment && cardsData.length === 0 ? (
                         // While bulk unassign requests are in flight, the pending rows are hidden and the feed can momentarily
                         // have no cards. Show the loading state instead of the empty-feed state until the rows settle.
-                        <Table.LoadingState context="WorkspaceCompanyCardsTable" />
+                        <Table.LoadingState />
                     ) : (
                         <>
                             <Table.EmptyState

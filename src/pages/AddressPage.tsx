@@ -9,7 +9,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import type {FormOnyxValues} from '@src/components/Form/types';
 import type {Country} from '@src/CONST';
@@ -92,8 +91,6 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
         [currentCountry],
     );
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddressPage', isLoadingApp: !!isLoadingApp};
-
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -107,10 +104,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
                 />
                 {isLoadingApp ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={reasonAttributes}
-                        />
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                     </View>
                 ) : (
                     <AddressForm
