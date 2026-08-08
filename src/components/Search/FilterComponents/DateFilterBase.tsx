@@ -113,7 +113,7 @@ function DateFilterBase({
                 normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
             ),
         );
-    }, [normalizedDefaultDateValues]);
+    }, [normalizedDefaultDateValues, dateFnsLocale]);
 
     const handleDateValuesChange = useCallback(
         (values: SearchDateValues) => {
@@ -127,7 +127,7 @@ function DateFilterBase({
             );
             onDateValuesChange?.(values);
         },
-        [onDateValuesChange],
+        [onDateValuesChange, dateFnsLocale],
     );
 
     const isDateModifierControlled = selectedDateModifierProp !== undefined;

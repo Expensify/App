@@ -296,6 +296,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             contextualReportPolicy,
             reportAttributes,
             isTrackIntentUser,
+            dateFnsLocale,
         ],
     );
 

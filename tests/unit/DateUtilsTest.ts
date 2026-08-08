@@ -244,7 +244,7 @@ describe('DateUtils', () => {
             it('returns an empty string', () => {
                 const invalidDateStr = '';
 
-                const formattedDate = DateUtils.formatUnlocalizedWithUTCTimeZone(invalidDateStr);
+                const formattedDate = DateUtils.formatMachineDateWithUTCTimeZone(invalidDateStr);
 
                 expect(formattedDate).toEqual('');
             });
@@ -267,7 +267,7 @@ describe('DateUtils', () => {
         it('returns the correct date when the date with time is used', () => {
             const datetimeStr = '2022-11-07 17:48:00';
             const expectedResult = '2022-11-07';
-            expect(DateUtils.formatUnlocalizedWithUTCTimeZone(datetimeStr)).toEqual(expectedResult);
+            expect(DateUtils.formatMachineDateWithUTCTimeZone(datetimeStr)).toEqual(expectedResult);
         });
 
         it('formats locale-sensitive tokens in the locale it is given rather than the date-fns global default', () => {

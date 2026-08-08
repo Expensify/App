@@ -357,6 +357,7 @@ function MoneyRequestReceiptView({
         isMarkAsCash,
         routeDistanceMeters,
         distanceUnit,
+        dateFnsLocale,
     ]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);

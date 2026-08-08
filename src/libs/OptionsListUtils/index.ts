@@ -1311,10 +1311,10 @@ function getReportOption(
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     reportDraft: OnyxEntry<Report>,
     currentUserAccountID: number,
-    translate: LocalizedTranslate,
-    dateFnsLocale: DateFnsLocale | undefined,
+    localize: {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined},
     policyTags?: OnyxCollection<PolicyTagLists>,
 ): OptionData {
+    const {translate, dateFnsLocale} = localize;
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
@@ -1445,13 +1445,13 @@ function getPolicyExpenseReportOption(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     expenseReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
-    translate: LocalizedTranslate,
-    dateFnsLocale: DateFnsLocale | undefined,
+    localize: {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined},
     currentUserAccountID: number,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
 ): SearchOptionData {
+    const {translate, dateFnsLocale} = localize;
     const visibleParticipantAccountIDs = Object.entries(expenseReport?.participants ?? {})
         .filter(([, reportParticipant]) => reportParticipant && !isHiddenForCurrentUser(reportParticipant.notificationPreference))
         .map(([accountID]) => Number(accountID));
@@ -1583,14 +1583,22 @@ function processReport(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
-    dateFnsLocale: DateFnsLocale | undefined,
     conciergeReportID: string | undefined,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    policyTags?: OnyxEntry<PolicyTagLists>,
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-    isTrackIntentUser?: boolean,
-    // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
-    sortedActions?: Record<string, ReportAction[]>,
+    dateFnsLocale: DateFnsLocale | undefined,
+    {
+        reportAttributesDerived,
+        policyTags,
+        visibleReportActionsData = {},
+        isTrackIntentUser,
+        sortedActions,
+    }: {
+        reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+        policyTags?: OnyxEntry<PolicyTagLists>;
+        visibleReportActionsData?: VisibleReportActionsDerivedValue;
+        isTrackIntentUser?: boolean;
+        // TODO: Remove optional (?) once all callers pass sortedActions.
+        sortedActions?: Record<string, ReportAction[]>;
+    },
 ): {
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
     reportOption: SearchOption<Report> | null; // The report option to add to allReportOptions if applicable
@@ -1837,19 +1845,13 @@ function createFilteredOptionList(
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
         const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-        const {reportMapEntry, reportOption} = processReport(
-            report,
-            personalDetails,
-            privateIsArchived,
-            policy,
-            options.dateFnsLocale,
-            conciergeReportID,
+        const {reportMapEntry, reportOption} = processReport(report, personalDetails, privateIsArchived, policy, conciergeReportID, options.dateFnsLocale, {
             reportAttributesDerived,
-            reportPolicyTags,
+            policyTags: reportPolicyTags,
             visibleReportActionsData,
             isTrackIntentUser,
             sortedActions,
-        );
+        });
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;
 
@@ -3270,8 +3272,7 @@ function formatSectionsFromSearchTerm(
                                   personalDetails,
                                   expenseReport,
                                   expenseReportPolicy,
-                                  translate,
-                                  dateFnsLocale,
+                                  {translate, dateFnsLocale},
                                   currentUserAccountID,
                                   reportAttributesDerived,
                               );
@@ -3312,8 +3313,7 @@ function formatSectionsFromSearchTerm(
                               personalDetails,
                               expenseReport,
                               expenseReportPolicy,
-                              translate,
-                              dateFnsLocale,
+                              {translate, dateFnsLocale},
                               currentUserAccountID,
                               reportAttributesDerived,
                           );

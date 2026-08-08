@@ -233,7 +233,7 @@ type NewChatPageProps = {
     ref?: Ref<NewChatPageRef>;
 };
 function NewChatPage({ref}: NewChatPageProps) {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
 

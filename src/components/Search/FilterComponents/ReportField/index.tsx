@@ -112,7 +112,7 @@ function SelectedDateReportField({ref, field, value: initialValue, selectedDateM
     const rangeKey = `${CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX}${suffix}` as const;
 
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate} = useLocalize();
 
     const [value, setValue] = useState({
         [CONST.SEARCH.DATE_MODIFIERS.ON]: initialValue[onKey],

@@ -323,11 +323,11 @@ function IOURequestStepConfirmation({
                           reportAttributesDerived,
                           participantReportDraft,
                           currentUserPersonalDetails.accountID,
-                          translate,
-                          dateFnsLocale,
+                          {translate, dateFnsLocale},
                       );
             }) ?? [],
         [
+            dateFnsLocale,
             transaction?.participants,
             iouType,
             personalDetails,

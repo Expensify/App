@@ -297,6 +297,7 @@ function SearchAutocompleteList({
         conciergeReportID,
         isTrackIntentUser,
         translate,
+        dateFnsLocale,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);

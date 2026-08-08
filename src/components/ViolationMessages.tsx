@@ -70,7 +70,7 @@ export default function ViolationMessages({
                     }),
                 ];
             }),
-        [canEdit, translate, convertToDisplayString, filteredViolations, companyCardPageURL, connectionLink, cardList, isMarkAsCash, routeDistanceMeters, distanceUnit],
+        [canEdit, translate, convertToDisplayString, filteredViolations, companyCardPageURL, connectionLink, cardList, isMarkAsCash, routeDistanceMeters, distanceUnit, dateFnsLocale],
     );
 
     return (

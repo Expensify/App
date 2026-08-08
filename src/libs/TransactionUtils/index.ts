@@ -1027,7 +1027,7 @@ function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, date
     const parsedDate = parse(postedDate, 'yyyyMMdd', new Date());
 
     if (isValid(parsedDate)) {
-        return DateUtils.formatUnlocalizedWithUTCTimeZone(format(parsedDate, 'yyyy-MM-dd'), dateFormat);
+        return DateUtils.formatMachineDateWithUTCTimeZone(format(parsedDate, 'yyyy-MM-dd'), dateFormat);
     }
     return '';
 }
@@ -1425,7 +1425,7 @@ function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
  */
 function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
     const created = getCreated(transaction);
-    return DateUtils.formatUnlocalizedWithUTCTimeZone(created, dateFormat);
+    return DateUtils.formatMachineDateWithUTCTimeZone(created, dateFormat);
 }
 
 /**

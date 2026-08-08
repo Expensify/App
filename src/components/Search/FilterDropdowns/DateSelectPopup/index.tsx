@@ -69,7 +69,7 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
                 value[CONST.SEARCH.DATE_MODIFIERS.AFTER],
                 value[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
             ),
-        [value],
+        [value, dateFnsLocale],
     );
     const displayedRangeText = selectedDateModifier ? rangeText : syncedRangeText;
     const selectedDateModifierTitle = getDateModifierTitle(selectedDateModifier, '', translate);

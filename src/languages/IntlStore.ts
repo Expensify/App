@@ -9,7 +9,6 @@ import type DynamicModule from '@src/types/utils/DynamicModule';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 
-import {setDefaultOptions} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import type de from './de';
@@ -241,11 +240,6 @@ class IntlStore {
         return loaderPromise()
             .then(() => {
                 this.currentLocale = locale;
-                // Set the default date-fns locale
-                const dateUtilsLocale = this.dateUtilsCache.get(locale);
-                if (dateUtilsLocale) {
-                    setDefaultOptions({locale: dateUtilsLocale});
-                }
             })
             .then(() => {
                 setAreTranslationsLoading(false);

@@ -177,7 +177,7 @@ function usePersonalDetailSearchSelectorBase({
     shouldUpdateSelectedOptionsOnSingleSelect = false,
     initialSearchPhrase = '',
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
-    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {options: defaultOptions, currentOption, isLoading: isPersonalDetailsOptionsLoading} = usePersonalDetailOptions({enabled: shouldInitialize, includeLoginsOnly});
 
     const optionsWithContacts = (() => {

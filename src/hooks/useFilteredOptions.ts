@@ -129,6 +129,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
             preferredLocale,
             isTrackIntentUser,
             sortedActions,
+            dateFnsLocale,
         ],
     );
 

@@ -380,8 +380,7 @@ function ParticipantSearchResults({
                               personalDetails,
                               userToInviteExpenseReport,
                               userToInviteExpenseReportPolicy,
-                              translate,
-                              dateFnsLocale,
+                              {translate, dateFnsLocale},
                               currentUserAccountID,
                               reportAttributesDerived,
                           )

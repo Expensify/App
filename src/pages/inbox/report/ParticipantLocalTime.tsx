@@ -45,7 +45,7 @@ function ParticipantLocalTime({participant}: ParticipantLocalTimeProps) {
         return () => {
             clearInterval(timer);
         };
-    }, [participant, getLocalDateFromDatetime]);
+    }, [participant, getLocalDateFromDatetime, dateFnsLocale]);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     const reportRecipientDisplayName = participant.firstName || participant.displayName;

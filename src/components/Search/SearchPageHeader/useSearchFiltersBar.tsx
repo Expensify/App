@@ -58,7 +58,7 @@ function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilter
 }
 
 function FilterPopup({baseFilterKey, searchAdvancedFiltersForm, closeOverlay, setPopoverWidth, updateFilterForm}: FilterPopupProps) {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate} = useLocalize();
     const label = translate(FILTER_VIEW_MAP[baseFilterKey].labelKey);
 
     const closeModalAndUpdateFilterForm = (values: Partial<SearchAdvancedFiltersForm>) => {

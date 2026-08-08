@@ -142,7 +142,7 @@ function CardSection() {
         }),
     );
 
-    const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
+    const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate(dateFnsLocale) : undefined;
 
     const sectionSubtitle = getSectionSubtitle({
         translate,

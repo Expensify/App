@@ -97,6 +97,7 @@ function GroupChildrenContent({
         conciergeReportID,
         convertToDisplayString,
         selectedTransactionIDsSet,
+        dateFnsLocale,
     ]);
 
     const isEmpty = transactions.length === 0;

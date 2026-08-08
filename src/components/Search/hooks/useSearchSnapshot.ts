@@ -246,6 +246,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         convertToDisplayString,
         reportAttributesForSections,
         optimisticTransactionID,
+        dateFnsLocale,
     ]);
 
     // Stage 2: for grouped views, fetch each group's sub-snapshot and enrich it with its transactions.
@@ -304,6 +305,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         cardFeeds,
         conciergeReportID,
         convertToDisplayString,
+        dateFnsLocale,
     ]);
 
     // Stage 3: sort the (enriched) data, then stamp the post-create highlight on each row. getSortedSections

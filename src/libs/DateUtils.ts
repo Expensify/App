@@ -729,7 +729,7 @@ function formatWithUTCTimeZone(datetime: string, dateFormat: string, dateFnsLoca
  * param dateFormat
  * returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
  */
-function formatUnlocalizedWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING) {
+function formatMachineDateWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING) {
     const date = toDate(datetime, {timeZone: 'UTC'});
 
     if (isValid(date)) {
@@ -1205,7 +1205,7 @@ const DateUtils = {
     getFilteredMonthItems,
     getDaysOfWeek,
     formatWithUTCTimeZone,
-    formatUnlocalizedWithUTCTimeZone,
+    formatMachineDateWithUTCTimeZone,
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,
     isValidStartEndTimeRange,

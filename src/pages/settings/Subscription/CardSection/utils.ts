@@ -190,12 +190,12 @@ function getBillingStatus({
  *
  * @returns - The next billing date in 'yyyy-MM-dd' format.
  */
-function getNextBillingDate(): string {
+function getNextBillingDate(dateFnsLocale: DateFnsLocale | undefined): string {
     const today = new Date();
 
     const nextBillingDate = startOfMonth(addMonths(today, 1));
 
-    return format(nextBillingDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+    return format(nextBillingDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, {locale: dateFnsLocale});
 }
 
 export default {getBillingStatus, getNextBillingDate};

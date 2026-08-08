@@ -7266,7 +7266,10 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, undefined, policy, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const option = getReportOption(participant, undefined, policy, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option.text).toBe('Test Workspace');
             expect(option.alternateText).toBe(translateLocal('workspace.common.workspace'));
@@ -7297,7 +7300,10 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportOption({reportID}, undefined, undefined, selfPersonalDetails, undefined, undefined, undefined, ownerAccountID, translateLocal, undefined);
+            const option = getReportOption({reportID}, undefined, undefined, selfPersonalDetails, undefined, undefined, undefined, ownerAccountID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option.text).toBe(`Test (${translateLocal('common.you').toLowerCase()})`);
             expect(option.alternateText).toBe(translateLocal('reportActionsView.yourSpace'));
@@ -7352,7 +7358,10 @@ describe('OptionsListUtils', () => {
             };
 
             // Pass the real personalDetails so the submits-to subtitle resolves to a name
-            const option = getReportOption(participant, undefined, policy, personalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const option = getReportOption(participant, undefined, policy, personalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option.text).toBe('Test Workspace with Submit');
             // For a BASIC-approval policy the report submits to the default approver (the owner),
@@ -7375,7 +7384,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, report, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, report, CONST.DEFAULT_NUMBER_ID, {translate: translateLocal, dateFnsLocale: undefined});
 
             expect(option.isDisabled).toBe(true);
         });
@@ -7416,7 +7425,10 @@ describe('OptionsListUtils', () => {
                 isSelfDM: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, personalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const option = getReportOption(participant, undefined, POLICY, personalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             // The option.isSelfDM is set by createOption based on the report type
             // Just verify the alternateText is correct for self DM
@@ -7451,7 +7463,10 @@ describe('OptionsListUtils', () => {
                 isInvoiceRoom: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option.isInvoiceRoom).toBe(true);
             expect(option.alternateText).toBe(translateLocal('workspace.common.invoices'));
@@ -7493,18 +7508,10 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(
-                participant,
-                !!reportNameValuePair?.private_isArchived,
-                POLICY,
-                {},
-                undefined,
-                undefined,
-                undefined,
-                CONST.DEFAULT_NUMBER_ID,
-                translateLocal,
-                undefined,
-            );
+            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option.text).toBe(POLICY.name);
             expect(option.alternateText).toBeTruthy();
@@ -7547,18 +7554,10 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(
-                participant,
-                !!reportNameValuePair?.private_isArchived,
-                POLICY,
-                {},
-                undefined,
-                {},
-                draftReport,
-                CONST.DEFAULT_NUMBER_ID,
-                translateLocal,
-                undefined,
-            );
+            const option = getReportOption(participant, !!reportNameValuePair?.private_isArchived, POLICY, {}, undefined, {}, draftReport, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option.isDisabled).toBe(true);
         });
@@ -7577,7 +7576,10 @@ describe('OptionsListUtils', () => {
             const participant: Participant = {reportID, selected: false};
 
             // Pass reportDraft = undefined → not a draft, should NOT be disabled
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option.isDisabled).toBeFalsy();
         });
@@ -7593,7 +7595,10 @@ describe('OptionsListUtils', () => {
             const participant: Participant = {reportID, selected: false};
 
             // Pass reportDraft explicitly → should be disabled regardless of Onyx state
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, draftReport, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, draftReport, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option.isDisabled).toBe(true);
         });
@@ -7613,7 +7618,10 @@ describe('OptionsListUtils', () => {
             const participant: Participant = {reportID, selected: false};
 
             // Callers are responsible for passing reportDraft explicitly — undefined means not disabled
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option.isDisabled).toBeFalsy();
         });
@@ -7799,7 +7807,10 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option.isSelected).toBe(true);
             expect(option.selected).toBe(true);
@@ -7820,7 +7831,10 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, undefined, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const option = getReportOption(participant, undefined, undefined, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -7842,7 +7856,10 @@ describe('OptionsListUtils', () => {
             };
 
             // Test that the function works with reportAttributesDerived parameter (optional)
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
         });
@@ -7878,7 +7895,10 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
             // The createOption function uses personalDetails to build display names
@@ -7941,7 +7961,10 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, undefined, policy, testPersonalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const option = getReportOption(participant, undefined, policy, testPersonalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Test Workspace with Approver');
@@ -7966,7 +7989,10 @@ describe('OptionsListUtils', () => {
             };
 
             // Pass empty personalDetails
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -7988,7 +8014,10 @@ describe('OptionsListUtils', () => {
             };
 
             // Pass undefined personalDetails
-            const option = getReportOption(participant, undefined, POLICY, undefined, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const option = getReportOption(participant, undefined, POLICY, undefined, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -8038,7 +8067,10 @@ describe('OptionsListUtils', () => {
                 isInvoiceRoom: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
             expect(option.isInvoiceRoom).toBe(true);
@@ -8060,7 +8092,10 @@ describe('OptionsListUtils', () => {
 
             const participant = {reportID};
 
-            const option = getReportOption(participant, undefined, POLICY, {}, conciergeReportID, undefined, undefined, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, conciergeReportID, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -8079,7 +8114,10 @@ describe('OptionsListUtils', () => {
 
             const participant = {reportID};
 
-            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const option = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -8116,7 +8154,10 @@ describe('OptionsListUtils', () => {
 
             // Passing conciergeReportID matching the reportID identifies this as the Concierge chat,
             // which affects getMovedTransactionMessage to use CONST.CONCIERGE_DISPLAY_NAME ('Concierge')
-            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, conciergeReportID, undefined, undefined, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const option = getReportOption(participant, undefined, POLICY, testPersonalDetails, conciergeReportID, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -8136,19 +8177,14 @@ describe('OptionsListUtils', () => {
 
             const participant = {reportID};
 
-            const optionWithConcierge = getReportOption(
-                participant,
-                undefined,
-                POLICY,
-                {},
-                differentConciergeReportID,
-                undefined,
-                undefined,
-                CONST.DEFAULT_NUMBER_ID,
-                translateLocal,
-                undefined,
-            );
-            const optionWithoutConcierge = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, translateLocal, undefined);
+            const optionWithConcierge = getReportOption(participant, undefined, POLICY, {}, differentConciergeReportID, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
+            const optionWithoutConcierge = getReportOption(participant, undefined, POLICY, {}, undefined, undefined, undefined, CONST.DEFAULT_NUMBER_ID, {
+                translate: translateLocal,
+                dateFnsLocale: undefined,
+            });
 
             // Both should produce the same result since the IDs don't match
             expect(optionWithConcierge.reportID).toBe(optionWithoutConcierge.reportID);
@@ -8206,7 +8242,15 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const option = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined, translateLocal, undefined, CURRENT_USER_ACCOUNT_ID);
+            const option = getPolicyExpenseReportOption(
+                participant,
+                undefined,
+                testPersonalDetails,
+                report,
+                undefined,
+                {translate: translateLocal, dateFnsLocale: undefined},
+                CURRENT_USER_ACCOUNT_ID,
+            );
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Test Workspace Policy');
@@ -8233,7 +8277,7 @@ describe('OptionsListUtils', () => {
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'workspace.common.workspace' ? 'WorkspaceMarker' : translateLocal(path, ...parameters));
 
             const participant = {reportID, policyID: testPolicyID, isPolicyExpenseChat: true, selected: false};
-            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined, translateWithMarker, undefined, CURRENT_USER_ACCOUNT_ID);
+            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined, {translate: translateWithMarker, dateFnsLocale: undefined}, CURRENT_USER_ACCOUNT_ID);
 
             // The subtitle resolves to the marker, proving the option builder used the injected translate (not translateLocal)
             expect(option.alternateText).toBe('WorkspaceMarker');
@@ -8296,7 +8340,15 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined, translateLocal, undefined, CURRENT_USER_ACCOUNT_ID);
+            const option = getPolicyExpenseReportOption(
+                participant,
+                undefined,
+                testPersonalDetails,
+                report,
+                undefined,
+                {translate: translateLocal, dateFnsLocale: undefined},
+                CURRENT_USER_ACCOUNT_ID,
+            );
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Team Workspace');
@@ -8342,7 +8394,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Should not throw when personalDetails is empty
-            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined, translateLocal, undefined, CURRENT_USER_ACCOUNT_ID);
+            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined, {translate: translateLocal, dateFnsLocale: undefined}, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Workspace Without Details');
@@ -8388,7 +8440,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Should not throw when personalDetails is undefined
-            const option = getPolicyExpenseReportOption(participant, undefined, undefined, report, undefined, translateLocal, undefined, CURRENT_USER_ACCOUNT_ID);
+            const option = getPolicyExpenseReportOption(participant, undefined, undefined, report, undefined, {translate: translateLocal, dateFnsLocale: undefined}, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Workspace Undefined Details');
@@ -8442,10 +8494,26 @@ describe('OptionsListUtils', () => {
                 selected: false,
             };
 
-            const optionSelected = getPolicyExpenseReportOption(participantSelected, undefined, {}, report, undefined, translateLocal, undefined, CURRENT_USER_ACCOUNT_ID);
+            const optionSelected = getPolicyExpenseReportOption(
+                participantSelected,
+                undefined,
+                {},
+                report,
+                undefined,
+                {translate: translateLocal, dateFnsLocale: undefined},
+                CURRENT_USER_ACCOUNT_ID,
+            );
 
             // eslint-disable-next-line rulesdir/no-negated-variables
-            const optionNotSelected = getPolicyExpenseReportOption(participantNotSelected, undefined, {}, report, undefined, translateLocal, undefined, CURRENT_USER_ACCOUNT_ID);
+            const optionNotSelected = getPolicyExpenseReportOption(
+                participantNotSelected,
+                undefined,
+                {},
+                report,
+                undefined,
+                {translate: translateLocal, dateFnsLocale: undefined},
+                CURRENT_USER_ACCOUNT_ID,
+            );
 
             expect(optionSelected.isSelected).toBe(true);
             expect(optionSelected.selected).toBe(true);
@@ -8483,8 +8551,24 @@ describe('OptionsListUtils', () => {
 
             const participant = {reportID, policyID: testPolicyID, isPolicyExpenseChat: true, selected: true};
 
-            const optionWithCurrentUser = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined, translateLocal, undefined, CURRENT_USER_ACCOUNT_ID);
-            const optionWithDifferentUser = getPolicyExpenseReportOption(participant, undefined, testPersonalDetails, report, undefined, translateLocal, undefined, 9999);
+            const optionWithCurrentUser = getPolicyExpenseReportOption(
+                participant,
+                undefined,
+                testPersonalDetails,
+                report,
+                undefined,
+                {translate: translateLocal, dateFnsLocale: undefined},
+                CURRENT_USER_ACCOUNT_ID,
+            );
+            const optionWithDifferentUser = getPolicyExpenseReportOption(
+                participant,
+                undefined,
+                testPersonalDetails,
+                report,
+                undefined,
+                {translate: translateLocal, dateFnsLocale: undefined},
+                9999,
+            );
 
             expect(optionWithCurrentUser).toBeDefined();
             expect(optionWithDifferentUser).toBeDefined();
@@ -8542,7 +8626,15 @@ describe('OptionsListUtils', () => {
                 selected: false,
             };
 
-            const option = getPolicyExpenseReportOption(participant, true, testPersonalDetails, report, undefined, translateLocal, undefined, CURRENT_USER_ACCOUNT_ID);
+            const option = getPolicyExpenseReportOption(
+                participant,
+                true,
+                testPersonalDetails,
+                report,
+                undefined,
+                {translate: translateLocal, dateFnsLocale: undefined},
+                CURRENT_USER_ACCOUNT_ID,
+            );
 
             expect(option).toBeDefined();
             expect(option.private_isArchived).toBe(true);
@@ -8588,7 +8680,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined, translateLocal, undefined, CURRENT_USER_ACCOUNT_ID);
+            const option = getPolicyExpenseReportOption(participant, undefined, {}, report, undefined, {translate: translateLocal, dateFnsLocale: undefined}, CURRENT_USER_ACCOUNT_ID);
 
             expect(option).toBeDefined();
             expect(option?.private_isArchived).toBeUndefined();
@@ -9263,7 +9355,15 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call getPolicyExpenseReportOption with report passed directly
-            const option = getPolicyExpenseReportOption(participant, undefined, PERSONAL_DETAILS, report, undefined, translateLocal, undefined, CURRENT_USER_ACCOUNT_ID);
+            const option = getPolicyExpenseReportOption(
+                participant,
+                undefined,
+                PERSONAL_DETAILS,
+                report,
+                undefined,
+                {translate: translateLocal, dateFnsLocale: undefined},
+                CURRENT_USER_ACCOUNT_ID,
+            );
 
             // Then the option should be created successfully
             expect(option).toBeDefined();
@@ -9974,7 +10074,15 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const result = getPolicyExpenseReportOption(participant, undefined, PERSONAL_DETAILS, report, POLICY, translateLocal, undefined, CURRENT_USER_ACCOUNT_ID);
+            const result = getPolicyExpenseReportOption(
+                participant,
+                undefined,
+                PERSONAL_DETAILS,
+                report,
+                POLICY,
+                {translate: translateLocal, dateFnsLocale: undefined},
+                CURRENT_USER_ACCOUNT_ID,
+            );
             expect(result).toBeDefined();
             expect(result.policyID).toBe(policyID);
         });
