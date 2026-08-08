@@ -98,7 +98,6 @@ import {doesPersonalDetailExistSelector} from '@src/selectors/PersonalDetails';
 import type {BillingGraceEndPeriod, ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import arraysEqual from '@src/utils/arraysEqual';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -821,9 +820,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 // group's expenses arrive when it is expanded), so every expense column would look empty.
                 const expensePermittedColumns: string[] = Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
                 const expenseColumns: SearchColumnType[] = (visibleColumns ?? []).filter((column) => expensePermittedColumns.includes(column));
-                const defaultExpenseColumns: SearchColumnType[] = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE);
-                columnsToExport =
-                    expenseColumns.length === 0 || arraysEqual(defaultExpenseColumns, expenseColumns) ? defaultExpenseColumns : [CONST.SEARCH.TABLE_COLUMNS.TYPE, ...expenseColumns];
+                columnsToExport = expenseColumns.length > 0 ? expenseColumns : Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE);
             } else {
                 columnsToExport = getColumnsToShow({
                     currentAccountID: accountID,
@@ -1637,7 +1634,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
             // The export templates available to the user, pre-grouped and sorted alphabetically. The basic export is part of the default group so it's sorted alongside
-            // the other default templates. Grouped exports don't have a separate basic export (it's surfaced as "Current view" below), so it's excluded there.
+            // the other default templates. It's excluded on a grouped search, where it carries fewer columns than "Current view" does.
             const {customTemplates, defaultTemplates} = getExportTemplates(
                 integrationsExportTemplates ?? [],
                 csvExportLayouts ?? {},

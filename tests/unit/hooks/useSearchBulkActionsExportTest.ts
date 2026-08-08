@@ -594,7 +594,7 @@ describe('useSearchBulkActions - export options', () => {
         expect(isBasicExport).toBe(false);
         expect(query).toEqual(
             expect.objectContaining({
-                columns: [CONST.SEARCH.TABLE_COLUMNS.TYPE, CONST.SEARCH.TABLE_COLUMNS.TAG, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.FROM],
+                columns: [CONST.SEARCH.TABLE_COLUMNS.TAG, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.FROM],
             }),
         );
     });
