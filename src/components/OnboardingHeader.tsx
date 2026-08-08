@@ -1,7 +1,3 @@
-import Icon from '@components/Icon';
-import {PressableWithoutFeedback} from '@components/Pressable';
-import Text from '@components/Text';
-
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -9,10 +5,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-import type {StyleProp, ViewStyle} from 'react-native';
-
 import React from 'react';
 import {View} from 'react-native';
+
+import Icon from './Icon';
+import {PressableWithoutFeedback} from './Pressable';
+import Text from './Text';
 
 type OnboardingHeaderProps = {
     onBackButtonPress?: () => void;
@@ -37,6 +35,7 @@ function OnboardingHeader({onBackButtonPress, shouldShowBackButton = true}: Onbo
                     onPress={onBackButtonPress}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
                     accessibilityLabel={translate('common.back')}
+                    sentryLabel="OnboardingHeader-Back"
                 >
                     <Icon
                         src={icons.BackArrow}
