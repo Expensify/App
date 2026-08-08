@@ -23,7 +23,6 @@ import {canMemberWrite, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 
-import {updateSelectedFeed} from '@userActions/Card';
 import {openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
@@ -59,19 +58,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     } = companyCards;
 
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
-
-    // A `feed` param means we were deep-linked to a specific feed (e.g. a broken one from the wallet), so select it
-    // instead of the last selected feed. It is applied once per param value so the user can still switch feeds afterwards.
-    const feedFromRoute = route.params.feed;
-    const appliedFeedFromRoute = useRef<string | undefined>(undefined);
-    useEffect(() => {
-        if (!feedFromRoute || !policyID || appliedFeedFromRoute.current === feedFromRoute || !allCardFeeds?.[feedFromRoute]) {
-            return;
-        }
-
-        appliedFeedFromRoute.current = feedFromRoute;
-        updateSelectedFeed(feedFromRoute, policyID);
-    }, [allCardFeeds, feedFromRoute, policyID]);
 
     // Use a ref so that changes to the employee list (e.g. after inviting a member) don't
     // recreate the callback and trigger an unnecessary re-fetch that flashes a skeleton loader.

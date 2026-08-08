@@ -45,6 +45,8 @@ import {getTravelInvoicingCard, isTravelCVVEligible} from '@libs/TravelInvoicing
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 
+import {updateSelectedFeed} from '@userActions/Card';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -340,8 +342,7 @@ function PaymentMethodList({
                 }
                 let cardConnectionStatus: PaymentMethodItem['connectionStatus'];
                 if (cardConnectionStatusDisplay) {
-                    // Pass the card's own feed so the Company cards page opens on it rather than on whichever feed was selected last.
-                    const companyCardsRoute = policyIDForCard ? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard, companyCardFeedForCard) : undefined;
+                    const companyCardsRoute = policyIDForCard ? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard) : undefined;
                     let cardConnectionMessage: string | undefined;
                     if (cardConnectionStatusDisplay.shouldUseCompanyCardsLink && companyCardsRoute) {
                         cardConnectionMessage = translate('walletPage.cardStatus.fixConnectionIn', `${environmentURL}/${companyCardsRoute}`);
@@ -359,7 +360,17 @@ function PaymentMethodList({
                         onActionPress: cardConnectionStatusDisplay.shouldUsePersonalCardFix
                             ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(String(card.cardID)))
                             : undefined,
-                        onLinkPress: cardConnectionStatusDisplay.shouldUseCompanyCardsLink && companyCardsRoute ? () => Navigation.navigate(companyCardsRoute) : undefined,
+                        onLinkPress:
+                            cardConnectionStatusDisplay.shouldUseCompanyCardsLink && companyCardsRoute
+                                ? () => {
+                                      // The Company cards page opens the last selected feed, so select this card's feed before going there.
+                                      // An unknown feed is ignored by getSelectedFeed, which falls back to the first available one.
+                                      if (companyCardFeedForCard && policyIDForCard) {
+                                          updateSelectedFeed(companyCardFeedForCard, policyIDForCard);
+                                      }
+                                      Navigation.navigate(companyCardsRoute);
+                                  }
+                                : undefined,
                     };
                 }
 
