@@ -1162,3 +1162,83 @@ describe('isParticipantP2P', () => {
         expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
     });
 });
+
+describe('reportHasRealPolicy', () => {
+    it('should return false for the placeholder self-DM policy', () => {
+        expect(IOUUtils.reportHasRealPolicy({...createRandomReport(1), policyID: CONST.POLICY.ID_FAKE})).toBe(false);
+    });
+
+    it('should return false when the report has no policyID', () => {
+        expect(IOUUtils.reportHasRealPolicy({...createRandomReport(2), policyID: undefined})).toBe(false);
+    });
+
+    it('should return false when the report is undefined', () => {
+        expect(IOUUtils.reportHasRealPolicy(undefined)).toBe(false);
+    });
+
+    it('should return true for a real workspace policy', () => {
+        expect(IOUUtils.reportHasRealPolicy({...createRandomReport(3), policyID: 'ABC123'})).toBe(true);
+    });
+});
+
+describe('pickReportForPolicy', () => {
+    const selfDMReport = {...createRandomReport(1), policyID: CONST.POLICY.ID_FAKE};
+    const reportWithoutPolicy = {...createRandomReport(2), policyID: undefined};
+    const workspaceReport = {...createRandomReport(3), policyID: 'ABC123'};
+    const otherWorkspaceReport = {...createRandomReport(4), policyID: 'DEF456'};
+
+    it('should return the first candidate when it has a real policy', () => {
+        expect(IOUUtils.pickReportForPolicy(workspaceReport, otherWorkspaceReport)).toBe(workspaceReport);
+    });
+
+    it('should skip the placeholder self-DM policy in favor of a real one', () => {
+        expect(IOUUtils.pickReportForPolicy(selfDMReport, workspaceReport)).toBe(workspaceReport);
+    });
+
+    it('should skip candidates without a policyID in favor of a real one', () => {
+        expect(IOUUtils.pickReportForPolicy(selfDMReport, reportWithoutPolicy, workspaceReport)).toBe(workspaceReport);
+    });
+
+    it('should skip undefined candidates', () => {
+        expect(IOUUtils.pickReportForPolicy(undefined, workspaceReport)).toBe(workspaceReport);
+    });
+
+    it('should fall back to the first defined candidate when none has a real policy', () => {
+        expect(IOUUtils.pickReportForPolicy(selfDMReport, reportWithoutPolicy)).toBe(selfDMReport);
+        expect(IOUUtils.pickReportForPolicy(undefined, reportWithoutPolicy)).toBe(reportWithoutPolicy);
+    });
+
+    it('should return undefined when there is no candidate at all', () => {
+        expect(IOUUtils.pickReportForPolicy(undefined, undefined)).toBeUndefined();
+    });
+});
+
+describe('shouldShowPerDiemTabOption', () => {
+    it('never shows for a split, even when a per diem policy exists', () => {
+        expect(IOUUtils.shouldShowPerDiemTabOption(CONST.IOU.TYPE.SPLIT, true, true, true)).toBe(false);
+    });
+
+    it('shows from an existing chat when the current policy has per diem enabled', () => {
+        expect(IOUUtils.shouldShowPerDiemTabOption(CONST.IOU.TYPE.SUBMIT, false, true, false)).toBe(true);
+    });
+
+    it('hides from an existing chat when the current policy does not have per diem enabled', () => {
+        expect(IOUUtils.shouldShowPerDiemTabOption(CONST.IOU.TYPE.SUBMIT, false, false, false)).toBe(false);
+    });
+
+    it('shows from global create when any per diem policy exists, even if the current policy is not enabled and rates are not loaded yet', () => {
+        expect(IOUUtils.shouldShowPerDiemTabOption(CONST.IOU.TYPE.CREATE, true, false, true)).toBe(true);
+    });
+
+    it('hides from global create when no per diem policy exists', () => {
+        expect(IOUUtils.shouldShowPerDiemTabOption(CONST.IOU.TYPE.CREATE, true, false, false)).toBe(false);
+    });
+
+    it('shows for a track expense from an existing chat when any per diem policy exists', () => {
+        expect(IOUUtils.shouldShowPerDiemTabOption(CONST.IOU.TYPE.TRACK, false, false, true)).toBe(true);
+    });
+
+    it('hides for a track expense when no per diem policy exists', () => {
+        expect(IOUUtils.shouldShowPerDiemTabOption(CONST.IOU.TYPE.TRACK, false, false, false)).toBe(false);
+    });
+});

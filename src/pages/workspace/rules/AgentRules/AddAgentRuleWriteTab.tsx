@@ -43,6 +43,8 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
             return;
         }
         if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+            // The markdown input inserts a line break for any Enter keydown whose default is not already prevented, so the submit combo has to claim it first.
+            event.preventDefault();
             formRef.current?.submit();
         }
     };
@@ -89,6 +91,8 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
                         label={describeRuleLabel}
                         accessibilityLabel={describeRuleLabel}
                         role={CONST.ROLE.PRESENTATION}
+                        type="markdown"
+                        excludedMarkdownStyles={['mentionReport']}
                         onKeyPress={submitFormOnModEnter}
                         multiline
                         shouldSaveDraft
