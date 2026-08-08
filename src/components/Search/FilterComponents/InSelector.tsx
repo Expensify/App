@@ -51,7 +51,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const {options, isLoading} = useFilteredOptions({
+    const {options, isLoading, getReportByID} = useFilteredOptions({
         enabled: ready,
         isSearching: !!debouncedSearchTerm.trim(),
     });
@@ -130,6 +130,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   conciergeReportID,
                   isTrackIntentUser,
                   translate,
+                  getReportByID,
               }).options;
 
     const chatOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {

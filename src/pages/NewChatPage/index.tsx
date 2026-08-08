@@ -87,6 +87,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         isLoading,
         loadMore: loadMoreReports,
         hasMore: hasMoreFilteredOptions,
+        getReportByID,
     } = useFilteredOptions({
         maxRecentReports: 500,
         enabled: didScreenTransitionEnd,
@@ -144,6 +145,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             sortedActions,
             selectedOptions,
             includeSelectedOptions: true,
+            getReportByID,
         },
         translate,
     );
