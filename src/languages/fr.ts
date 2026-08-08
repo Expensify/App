@@ -920,6 +920,12 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: 'Administrateurs uniquement',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal into another account',
+        emailLabel: 'Email address',
+        reasonLabel: 'Support login reason',
+        reasonHint: 'No recent tickets found for this account.',
+    },
     sidebarScreen: {
         buttonFind: 'Trouver quelque chose...',
         buttonMySettings: 'Mes paramètres',

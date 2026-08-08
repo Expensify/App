@@ -908,6 +908,12 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: '管理者のみ',
         },
     },
+    supportalSwitcher: {
+        title: 'Supportal into another account',
+        emailLabel: 'Email address',
+        reasonLabel: 'Support login reason',
+        reasonHint: 'No recent tickets found for this account.',
+    },
     sidebarScreen: {
         buttonFind: '何かを検索…',
         buttonMySettings: '自分の設定',
