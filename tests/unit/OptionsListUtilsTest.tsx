@@ -3743,6 +3743,7 @@ describe('OptionsListUtils', () => {
 
         it('should return the same matches for normalized multi-word queries with extra spaces', () => {
             const {options} = getSearchOptions({
+                translate: translateLocal,
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
