@@ -165,6 +165,12 @@ function ExpenseRulesPage() {
         isLoading,
     };
 
+    const expenseRulesSubtitle = (
+        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
+            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
+        </View>
+    );
+
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -193,11 +199,7 @@ function ExpenseRulesPage() {
             </HeaderWithBackButton>
             {shouldDisplayButtonsInSeparateLine && hasRules && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
 
-            {!hasRules && (
-                <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
-                </View>
-            )}
+            {!hasRules && expenseRulesSubtitle}
 
             {!hasRules && isLoading && (
                 <ActivityIndicator
@@ -212,13 +214,7 @@ function ExpenseRulesPage() {
                     selectedKeys={selectedRules}
                     personalExpenseRules={personalExpenseRules}
                     onRowSelectionChange={setSelectedRules}
-                    headerComponent={
-                        hasRules ? (
-                            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
-                            </View>
-                        ) : undefined
-                    }
+                    headerComponent={hasRules ? expenseRulesSubtitle : undefined}
                 />
             )}
 

@@ -17,7 +17,7 @@ import type {TableData} from '.';
 
 import {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getSyntheticRowKind} from './buildTableListData';
 import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
-import {TableRowHasHeaderContext, TableRowSemanticIDContext, useTableContext} from './TableContext';
+import {TableRowSemanticIDContext, useTableContext} from './TableContext';
 import TableHeader from './TableHeader';
 
 /**
@@ -288,14 +288,12 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 const dataIndex = getDataIndex(info.index, renderedTableListMetadata);
                 const semanticRowID = getVirtualizedRowSemanticID(isTableSemanticsEnabled, info.target);
                 return (
-                    <TableRowHasHeaderContext.Provider value={semanticTableHasHeader}>
-                        <TableRowSemanticIDContext.Provider value={semanticRowID}>
-                            {renderItem?.({
-                                ...info,
-                                index: dataIndex,
-                            }) ?? null}
-                        </TableRowSemanticIDContext.Provider>
-                    </TableRowHasHeaderContext.Provider>
+                    <TableRowSemanticIDContext.Provider value={semanticRowID}>
+                        {renderItem?.({
+                            ...info,
+                            index: dataIndex,
+                        }) ?? null}
+                    </TableRowSemanticIDContext.Provider>
                 );
             }
         }

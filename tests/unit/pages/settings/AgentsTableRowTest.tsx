@@ -69,9 +69,12 @@ jest.mock('@components/Table/TableContext', () => ({
         tableMethods: {},
         selectionEnabled: false,
         isMobileSelectionEnabled: false,
+        tableListMetadata: {
+            hasPageHeader: false,
+            shouldRenderStickyHeader: false,
+        },
     })),
     useTableRowSemanticID: jest.fn(() => undefined),
-    useTableRowHasHeader: jest.fn(() => true),
 }));
 
 jest.mock('@components/ReportActionAvatars', () => {

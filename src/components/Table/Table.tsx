@@ -328,7 +328,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         tableMethods,
         hasActiveFilters,
         hasSearchString: hasActiveSearchString,
-        shouldRenderStickyHeader,
         tableListMetadata,
         isEmptyResult,
         shouldUseNarrowTableLayout,

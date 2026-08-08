@@ -442,6 +442,12 @@ function PolicyDistanceRatesPage({
     ) : null;
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+    const distanceRatesTableHeader =
+        ratesData.length > 0 ? (
+            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
+            </View>
+        ) : undefined;
 
     return (
         <AccessOrNotFoundWrapper
@@ -490,13 +496,7 @@ function PolicyDistanceRatesPage({
                         selectionEnabled={canWriteDistanceRates}
                         onRowSelectionChange={setSelectedDistanceRates}
                         canWriteDistanceRates={canWriteDistanceRates}
-                        headerComponent={
-                            ratesData.length > 0 ? (
-                                <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
-                                </View>
-                            ) : undefined
-                        }
+                        headerComponent={distanceRatesTableHeader}
                     />
                 )}
             </ScreenWrapper>

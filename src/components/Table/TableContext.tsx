@@ -87,9 +87,6 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Whether search string is not empty. */
     hasSearchString: boolean;
 
-    /** Whether the table header is rendered as a sticky FlashList item. */
-    shouldRenderStickyHeader: boolean;
-
     /** Synthetic row metadata shared by the FlashList data and table ref methods. */
     tableListMetadata: TableListMetadata;
 
@@ -127,7 +124,6 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     listProps: {} as SharedListProps<TableData>,
     hasActiveFilters: false,
     hasSearchString: false,
-    shouldRenderStickyHeader: false,
     tableListMetadata: {
         hasPageHeader: false,
         shouldRenderStickyHeader: false,
@@ -143,7 +139,6 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
 
 const TableContext = createContext(defaultTableContextValue);
 const TableRowSemanticIDContext = createContext<string | null | undefined>(undefined);
-const TableRowHasHeaderContext = createContext(true);
 
 /**
  * Hook to access the Table context.
@@ -176,10 +171,6 @@ function useTableRowSemanticID() {
     return useContext(TableRowSemanticIDContext);
 }
 
-function useTableRowHasHeader() {
-    return useContext(TableRowHasHeaderContext);
-}
-
 export default TableContext;
-export {TableRowHasHeaderContext, TableRowSemanticIDContext, useTableContext, useTableRowHasHeader, useTableRowSemanticID};
+export {TableRowSemanticIDContext, useTableContext, useTableRowSemanticID};
 export type {TableContextValue};

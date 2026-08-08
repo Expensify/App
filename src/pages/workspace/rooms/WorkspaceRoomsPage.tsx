@@ -98,6 +98,19 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         openPolicyRoomsPage(policyID);
     });
 
+    const roomsTableHeader =
+        shouldUseNarrowLayout && !isArchived ? (
+            <View style={[styles.ph5, styles.pb3]}>
+                <Button
+                    success
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
+                    icon={headerIcons.Plus}
+                    text={translate('common.create')}
+                    style={styles.w100}
+                />
+            </View>
+        ) : undefined;
+
     return (
         <AccessOrNotFoundWrapper policyID={policyID}>
             <ScreenWrapper
@@ -129,19 +142,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     rooms={rooms}
                     policyID={policyID}
                     highlightedReportID={highlightedReportID}
-                    headerComponent={
-                        shouldUseNarrowLayout && !isArchived ? (
-                            <View style={[styles.ph5, styles.pb3]}>
-                                <Button
-                                    success
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
-                                    icon={headerIcons.Plus}
-                                    text={translate('common.create')}
-                                    style={styles.w100}
-                                />
-                            </View>
-                        ) : undefined
-                    }
+                    headerComponent={roomsTableHeader}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

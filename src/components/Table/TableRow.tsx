@@ -25,7 +25,7 @@ import Animated from 'react-native-reanimated';
 
 import getGridTemplateColumns from './getGridTemplateColumns';
 import {assignCellColumnIndexes, getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
-import {useTableContext, useTableRowHasHeader, useTableRowSemanticID} from './TableContext';
+import {useTableContext, useTableRowSemanticID} from './TableContext';
 
 type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'> & {
     /** When true, indicates that the view is an accessibility element.  By default, all the rows are accessible. */
@@ -77,9 +77,18 @@ export default function TableRow({
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
-    const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, isMobileSelectionEnabled, shouldEnableSelectionInNarrowPaneModal = false} = useTableContext();
+    const {
+        processedData,
+        columns,
+        shouldUseNarrowTableLayout,
+        tableMethods,
+        selectionEnabled,
+        isMobileSelectionEnabled,
+        shouldEnableSelectionInNarrowPaneModal = false,
+        tableListMetadata,
+    } = useTableContext();
     const semanticRowID = useTableRowSemanticID();
-    const semanticTableHasHeader = useTableRowHasHeader();
+    const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
     const isAccessibilityHidden = semanticRowID === null || ariaHidden === true;
     const inertProps = isAccessibilityHidden ? {inert: true} : {};
 
