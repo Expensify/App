@@ -11,32 +11,32 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-type SearchFiltersClearButtonProps = {
+type SearchFiltersResetButtonProps = {
     onPress: () => void;
 };
 
-function SearchFiltersClearButton({onPress}: SearchFiltersClearButtonProps) {
+function SearchFiltersResetButton({onPress}: SearchFiltersResetButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['RotateLeft']);
 
     return (
         <PressableWithFeedback
-            accessibilityLabel={translate('common.clear')}
+            accessibilityLabel={translate('common.reset')}
             onPress={onPress}
-            style={[styles.searchFiltersClearButton]}
+            style={[styles.searchFiltersResetButton]}
             hoverStyle={styles.hoveredComponentBG}
-            sentryLabel={CONST.SENTRY_LABEL.SEARCH.CLEAR_FILTERS_BUTTON}
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH.RESET_FILTERS_BUTTON}
         >
             <Icon
-                src={expensifyIcons.Close}
+                src={expensifyIcons.RotateLeft}
                 fill={theme.icon}
                 size={CONST.ICON_SIZE.EXTRA_SMALL}
             />
-            <Text style={[styles.textMicroBoldSupporting]}>{translate('common.clear')}</Text>
+            <Text style={[styles.textMicroBoldSupporting]}>{translate('common.reset')}</Text>
         </PressableWithFeedback>
     );
 }
 
-export default SearchFiltersClearButton;
+export default SearchFiltersResetButton;

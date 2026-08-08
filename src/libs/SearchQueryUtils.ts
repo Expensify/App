@@ -537,6 +537,30 @@ function wasViewExplicitlySet(queryJSON?: SearchQueryJSON | Readonly<SearchQuery
     return false;
 }
 
+function getQueryFilterWithoutKeywordHash(query: SearchQueryJSON) {
+    let orderedQuery = '';
+    const flatFilters = query.flatFilters
+        .map((filter) => {
+            const filterKey = filter.key;
+            const filters = cloneDeep(filter.filters);
+            filters.sort((a, b) => customCollator.compare(a.value.toString(), b.value.toString()));
+            return {filterString: buildFilterValuesString(filterKey, filters), filterKey};
+        })
+        .sort((a, b) => customCollator.compare(a.filterString, b.filterString));
+
+    for (const {filterString, filterKey} of flatFilters) {
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY) {
+            continue;
+        }
+
+        orderedQuery += ` ${filterString}`;
+    }
+
+    const primaryHash = hashText(orderedQuery, 2 ** 32);
+
+    return primaryHash;
+}
+
 /**
  * @private
  * Computes and returns a numerical hash for a given queryJSON.
@@ -774,6 +798,19 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQue
     }
 
     return queryParts.join(' ');
+}
+
+const NON_FILTER_CHIP_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+
+function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON | undefined) {
+    const resetFilters = (defaultQueryJSON?.flatFilters ?? []).filter((filter) => !NON_FILTER_CHIP_KEYS.has(filter.key));
+    const keptFilters = currentQueryJSON.flatFilters.filter((filter) => NON_FILTER_CHIP_KEYS.has(filter.key));
+
+    return buildSearchQueryString({
+        ...currentQueryJSON,
+        type: defaultQueryJSON?.type ?? currentQueryJSON.type,
+        flatFilters: [...resetFilters, ...keptFilters],
+    });
 }
 
 function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | undefined {
@@ -2452,30 +2489,6 @@ function getEmptyDateValues(): SearchDateValues {
 }
 
 /**
- * Returns an object containing the filter values needed to reset
- * the currently applied advanced filters back to their initial state.
- *
- * - STATUS is reset to `ALL`
- * - TYPE is reset to `EXPENSE`
- * - COLUMNS is reset to undefined only if the current TYPE is not EXPENSE
- * - Other filters are reset to `undefined`
- */
-function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>) {
-    const isTypeExpense = searchAdvancedFiltersForm.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
-    return Object.keys(searchAdvancedFiltersForm).reduce((acc, filterKey) => {
-        if (filterKey === FILTER_KEYS.TYPE) {
-            if (!isTypeExpense) {
-                acc[filterKey] = CONST.SEARCH.DATA_TYPES.EXPENSE;
-            }
-        } else if (filterKey !== FILTER_KEYS.COLUMNS || !isTypeExpense) {
-            Object.assign(acc, {[filterKey]: undefined});
-        }
-
-        return acc;
-    }, {} as Partial<SearchAdvancedFiltersForm>);
-}
-
-/**
  * Set of filter keys that represent free-text fields where the default `:` (eq) operator
  * should be treated as a substring/partial match (`contains`) when querying the backend.
  * This allows searches like `merchant:coffee` to match "Coffee shop".
@@ -2568,10 +2581,50 @@ function getFilterFormValues<K extends ListFilterContentProps['baseFilterKey'] |
     return update;
 }
 
+/**
+ * Checks whether a query still matches a default query: it contains all of the default query's filter keys and has the same type.
+ * Used to detect when a query no longer represents a given default/suggested search (e.g. a filter was removed).
+ */
+function doesQueryMatchDefaultFilterKeysAndType(queryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined) {
+    if (!queryJSON || !defaultQueryJSON) {
+        return true;
+    }
+
+    const queryFilterKeys = new Set(queryJSON.flatFilters.map((filter) => filter.key));
+    const defaultQueryFilterKeys = new Set(defaultQueryJSON.flatFilters.map((filter) => filter.key));
+
+    return [...defaultQueryFilterKeys].every((value) => queryFilterKeys.has(value)) && queryJSON.type === defaultQueryJSON.type;
+}
+
+function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string) {
+    if (!lastQuery) {
+        return defaultQuery;
+    }
+
+    const lastQueryJSON = buildSearchQueryJSON(lastQuery);
+
+    if (!lastQueryJSON) {
+        return defaultQuery;
+    }
+
+    const defaultQueryJSON = buildSearchQueryJSON(defaultQuery);
+
+    if (!defaultQueryJSON) {
+        return defaultQuery;
+    }
+
+    if (!doesQueryMatchDefaultFilterKeysAndType(lastQueryJSON, defaultQueryJSON)) {
+        return defaultQuery;
+    }
+
+    return lastQuery;
+}
+
 export {
     getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
     getRangeQueryValue,
+    getQueryFilterWithoutKeywordHash,
     getQueryHashes,
     withExactMatchFilterKeys,
     isSearchDatePreset,
@@ -2581,6 +2634,7 @@ export {
     isFilterSupported,
     buildSearchQueryJSON,
     buildSearchQueryString,
+    buildQueryStringWithResetFilters,
     buildUserReadableQueryString,
     buildFilterValuesString,
     getDisplayQueryFiltersForKey,
@@ -2609,7 +2663,6 @@ export {
     buildOptimisticSnapshotData,
     getDateFilterKeys,
     getEmptyDateValues,
-    getAdvancedFiltersToReset,
     getDateModifierTitle,
     applyContainsOperatorToTextFields,
     serializeQueryJSONForBackend,
@@ -2622,6 +2675,8 @@ export {
     removeNegation,
     getFilterFormValues,
     getFilterFromQuery,
+    getValidLastQuery,
+    doesQueryMatchDefaultFilterKeysAndType,
 };
 
 export type {BuildUserReadableQueryStringParams};

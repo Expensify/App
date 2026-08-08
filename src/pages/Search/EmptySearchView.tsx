@@ -80,7 +80,7 @@ type EmptySearchViewItem = {
 
 function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violationSnapshotStartedAt, onScroll, contentContainerStyle}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {typeMenuSections} = useSearchTypeMenuSections();
+    const typeMenuSections = useSearchTypeMenuSections();
     const {isBetaEnabled} = usePermissions();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);

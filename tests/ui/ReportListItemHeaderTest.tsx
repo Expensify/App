@@ -40,6 +40,8 @@ const mockSearchStateContext = {
     shouldTurnOffSelectionMode: false,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
+    currentDefaultSearchQueryJSON: undefined,
+    currentDefaultSearchQueryFilterKeys: new Set(),
     currentSearchResults: undefined,
     currentSearchViolations: {},
     currentSelectedTransactionReportID: undefined,
@@ -66,6 +68,8 @@ const mockSearchActionsContext = {
     setShouldResetSearchQuery: jest.fn(),
     removeTransaction: jest.fn(),
     setSortedReportIDs: jest.fn(),
+    setCurrentSearchKey: jest.fn(),
+    resetSearchKey: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const mockPersonalDetails: Record<string, PersonalDetails> = {

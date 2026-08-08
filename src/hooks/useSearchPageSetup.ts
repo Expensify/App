@@ -34,7 +34,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const {currentSearchKey} = useSearchQueryContext();
 
     const hash = queryJSON?.hash;
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, true);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
     // Tracks the jsonCode of the current query's most recent SEARCH response. It's the single source of
     // truth for both fire paths (the page-level fire below and the user-driven re-search in

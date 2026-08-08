@@ -4,6 +4,7 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 import {deleteSavedSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {searchKeyToSavedSearchID} from '@libs/SearchUIUtils';
 
 import ROUTES from '@src/ROUTES';
 
@@ -14,11 +15,11 @@ import useLocalize from './useLocalize';
 
 export default function useDeleteSavedSearch() {
     const {translate} = useLocalize();
-    const {currentSearchHash} = useSearchQueryContext();
+    const {currentSearchKey} = useSearchQueryContext();
     const {showConfirmModal} = useConfirmModal();
 
     const handleDeleteSavedSearch = useCallback(
-        (hash: number) => {
+        (savedSearchID: string) => {
             showConfirmModal({
                 title: translate('search.deleteSavedSearch'),
                 prompt: translate('search.deleteSavedSearchConfirm'),
@@ -29,9 +30,9 @@ export default function useDeleteSavedSearch() {
                 if (result.action !== ModalActions.CONFIRM) {
                     return;
                 }
-                deleteSavedSearch(hash);
+                deleteSavedSearch(savedSearchID);
 
-                if (hash === currentSearchHash) {
+                if (savedSearchID === searchKeyToSavedSearchID(currentSearchKey)) {
                     Navigation.navigate(
                         ROUTES.SEARCH_ROOT.getRoute({
                             query: buildCannedSearchQuery(),
@@ -40,7 +41,7 @@ export default function useDeleteSavedSearch() {
                 }
             });
         },
-        [showConfirmModal, translate, currentSearchHash],
+        [showConfirmModal, translate, currentSearchKey],
     );
 
     return {showDeleteModal: handleDeleteSavedSearch};

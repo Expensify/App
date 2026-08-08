@@ -54,7 +54,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
-import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
+import {isTransactionGroupListItemType, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
 
@@ -754,7 +754,7 @@ function getOnyxLoadingData(
     return {optimisticData, finallyData, failureData};
 }
 
-function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>; newName?: string}) {
+function saveSearch({id, queryJSON, newName}: {id: string; queryJSON: Readonly<SearchQueryJSON>; newName?: string}) {
     const saveSearchName = newName ?? queryJSON?.inputQuery ?? '';
     const jsonQuery = JSON.stringify(queryJSON);
 
@@ -763,7 +763,7 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
             value: {
-                [queryJSON.hash]: {
+                [id]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     name: saveSearchName,
                     query: queryJSON.inputQuery,
@@ -777,7 +777,7 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
             value: {
-                [queryJSON.hash]: null,
+                [id]: null,
             },
         },
     ];
@@ -787,13 +787,13 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
             value: {
-                [queryJSON.hash]: {
+                [id]: {
                     pendingAction: null,
                 },
             },
         },
     ];
-    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, savedSearchID: id, newName: saveSearchName}, {optimisticData, failureData, successData});
 }
 
 function seedMyExpensesSearch(currentUserAccountID: number, searchName: string, savedSearches: OnyxEntry<SaveSearch>) {
@@ -855,43 +855,50 @@ function seedMyExpensesSearch(currentUserAccountID: number, searchName: string, 
         },
     ];
 
-    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: searchName}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, savedSearchID: queryJSON.hash.toString(), newName: searchName}, {optimisticData, failureData, successData});
 }
 
-function deleteSavedSearch(hash: number) {
+function deleteSavedSearch(savedSearchID: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.SAVED_SEARCHES}`,
+            key: ONYXKEYS.SAVED_SEARCHES,
             value: {
-                [hash]: {
+                [savedSearchID]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
             },
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES | typeof ONYXKEYS.SEARCH_FILTERS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.SAVED_SEARCHES}`,
+            key: ONYXKEYS.SAVED_SEARCHES,
             value: {
-                [hash]: null,
+                [savedSearchID]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SEARCH_FILTERS,
+            value: {
+                [savedSearchIDToSearchKey(savedSearchID)]: null,
             },
         },
     ];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.SAVED_SEARCHES}`,
+            key: ONYXKEYS.SAVED_SEARCHES,
             value: {
-                [hash]: {
+                [savedSearchID]: {
                     pendingAction: null,
                 },
             },
         },
     ];
 
-    write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {savedSearchID}, {optimisticData, failureData, successData});
 }
 
 function openSearchPage(params?: OpenSearchPageParams) {
@@ -1048,7 +1055,7 @@ function search({
     }
     inFlightSearchRequests.add(dedupeKey);
 
-    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
+    const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
     const {backendQueryJSON, limit, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
     const query = {
         ...backendQueryJSON,
@@ -1066,6 +1073,20 @@ function search({
             queryJSON,
             offset,
             allowPostSearchRecount: false,
+        });
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.SEARCH_FILTERS>> = [...(onyxLoadingData.optimisticData ?? [])];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.SEARCH_FILTERS>> = [...(onyxLoadingData.failureData ?? [])];
+    const finallyData = onyxLoadingData.finallyData;
+
+    if (searchKey) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SEARCH_FILTERS,
+            value: {
+                [searchKey]: query.inputQuery,
+            },
         });
     }
 

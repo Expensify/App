@@ -31,6 +31,8 @@ const mockSearchStateContext = {
     currentSearchHash: 12345,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
+    currentDefaultSearchQueryJSON: undefined,
+    currentDefaultSearchQueryFilterKeys: new Set(),
     currentSearchResults: undefined,
     currentSearchViolations: {},
     currentSelectedTransactionReportID: undefined,
@@ -61,6 +63,8 @@ const mockSearchActionsContext = {
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
     setSortedReportIDs: jest.fn(),
+    setCurrentSearchKey: jest.fn(),
+    resetSearchKey: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const createYearListItem = (year: number, options: Partial<TransactionYearGroupListItemType> = {}): TransactionYearGroupListItemType => ({
