@@ -1,5 +1,5 @@
 /**
- * Builds the top-level and Spend navigation suggestions shown in the Search Router.
+ * Builds the top-level, Spend, and Account navigation suggestions shown in the Search Router.
  */
 import getSearchTabRoute from '@components/Navigation/NavigationTabBar/getSearchTabRoute';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
@@ -19,11 +19,15 @@ import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtil
 
 import navigationRef from '@navigation/navigationRef';
 
+import useSettingsNavigationMenuData from '@pages/settings/useSettingsNavigationMenuData';
+import type {MenuData, MenuSection} from '@pages/settings/useSettingsNavigationMenuData';
+
 import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ReactNode} from 'react';
@@ -41,6 +45,7 @@ const SEARCH_ROUTER_ICON_NAMES = ['Home', 'Inbox', 'ReceiptMultiple', 'Building'
 
 // Saved searches are user-defined searches, not canned destinations, so they are excluded from go-to navigation suggestions.
 const SAVED_SEARCHES_SECTION_PATH = 'search.savedSearchesMenuItemTitle';
+const SECURITY_MATCH_TERMS = ['password', '2fa', 'two factor', 'two-factor'];
 
 type BuildTopLevelNavigationItemsParams = {
     labels: {
@@ -62,6 +67,13 @@ type BuildSpendNavigationItemsParams = {
     getItemText: (item: SearchTypeMenuItem) => string;
     getDestinationText: (destination: string) => string;
     onSelect: (searchQuery: string) => void;
+};
+
+type BuildAccountNavigationItemsParams = {
+    sections: MenuSection[];
+    rightElement: ReactNode;
+    getItemText: (item: MenuData) => string;
+    getDestinationText: (destination: string) => string;
 };
 
 // Tab buttons own stateful navigation behavior and do not expose reusable descriptors, so Search Router keeps deterministic destination actions here.
@@ -123,6 +135,26 @@ function buildSpendNavigationItems({sections, icons, rightElement, getItemText, 
         );
 }
 
+function buildAccountNavigationItems({sections, rightElement, getItemText, getDestinationText}: BuildAccountNavigationItemsParams): NavigationSuggestionSourceItem[] {
+    return sections.flatMap((section) =>
+        section.items.flatMap((item) => {
+            if (!item.screenName || item.screenName === SCREENS.SETTINGS.SAVE_THE_WORLD) {
+                return [];
+            }
+
+            const itemText = getItemText(item);
+            return {
+                text: getDestinationText(itemText),
+                singleIcon: item.icon,
+                action: item.action,
+                keyForList: `account_${item.screenName}`,
+                rightElement,
+                matchTerms: [itemText, ...(item.screenName === SCREENS.SETTINGS.SECURITY ? SECURITY_MATCH_TERMS : [])],
+            };
+        }),
+    );
+}
+
 function useNavigationSuggestions(query: string, shouldWatchForApprovals = true): SearchQueryItem[] {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -130,6 +162,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {typeMenuSections} = useSearchTypeMenuSections(undefined, shouldWatchForApprovals);
+    const {accountMenuItemsData, generalMenuItemsData} = useSettingsNavigationMenuData();
 
     const topLevelItems = buildTopLevelNavigationItems({
         labels: {
@@ -161,8 +194,23 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         onSelect: (searchQuery) => navigateToCannedSpendSearch(searchQuery, clearSelectedTransactions),
     });
 
-    return buildNavigationSuggestions(query, [topLevelItems, spendItems], localeCompare);
+    const accountItems = buildAccountNavigationItems({
+        sections: [accountMenuItemsData, generalMenuItemsData],
+        rightElement: (
+            <TextWithIconCell
+                text={translate('initialSettingsPage.account')}
+                icon={icons.Gear}
+                iconSize={variables.fontSizeLabel}
+                showTooltip={false}
+                textStyle={[styles.textLabelSupporting, styles.label]}
+            />
+        ),
+        getItemText: (item) => translate(item.translationKey),
+        getDestinationText: (destination) => getGoToText(translate, destination),
+    });
+
+    return buildNavigationSuggestions(query, [topLevelItems, spendItems, accountItems], localeCompare);
 }
 
 export default useNavigationSuggestions;
-export {buildTopLevelNavigationItems, buildSpendNavigationItems};
+export {buildTopLevelNavigationItems, buildSpendNavigationItems, buildAccountNavigationItems};
