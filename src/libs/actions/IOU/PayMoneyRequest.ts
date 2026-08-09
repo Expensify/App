@@ -686,6 +686,10 @@ function cancelPayment(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
+                // Restore both stateNum and statusNum to the paid report's pre-cancel state. The optimistic update can now
+                // move stateNum away from APPROVED (e.g. to SUBMITTED when reverting to Outstanding), so restoring only
+                // statusNum would leave the report in a mixed state like SUBMITTED/REIMBURSED on rollback.
+                stateNum: expenseReport.stateNum,
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 isWaitingOnBankAccount: expenseReport.isWaitingOnBankAccount,
                 isCancelledIOU: false,

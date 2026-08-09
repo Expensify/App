@@ -1820,7 +1820,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
              * Seeds a paid expense report whose action history ends with the given workflow action followed by a PAY
              * action, then cancels the payment and returns the reverted report so state can be asserted.
              */
-            async function cancelPaidReport(reportIDSuffix: string, workflowAction: ReportAction, policyOverrides?: Partial<Policy>) {
+            async function cancelPaidReport(reportIDSuffix: string, workflowAction: ReportAction, policyOverrides?: Partial<Policy>, shouldFail = false) {
                 const reportID = `revert-${reportIDSuffix}`;
                 const chatReportID = `revert-chat-${reportIDSuffix}`;
 
@@ -1882,6 +1882,14 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 cancelPayment(expenseReport, chatReport, policy, true, revertAdminAccountID, revertAdminEmail, false, false);
                 await waitForBatchedUpdates();
 
+                if (shouldFail) {
+                    // Let the CancelPayment request fail so the failureData rolls the optimistic state back.
+                    mockFetch?.fail?.();
+                    await mockFetch?.resume?.();
+                    await waitForBatchedUpdates();
+                    mockFetch?.succeed?.();
+                }
+
                 return getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
             }
 
@@ -1918,6 +1926,15 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 const updatedReport = await cancelPaidReport('approved', workflowAction);
                 expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
                 expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+            });
+
+            it('rolls back to the paid state (APPROVED/REIMBURSED) when the cancel-payment request fails after reverting to Outstanding', async () => {
+                // The optimistic revert moves stateNum to SUBMITTED; if the request fails the report must roll all the way
+                // back to the paid APPROVED/REIMBURSED state, not stay in a mixed SUBMITTED/REIMBURSED state.
+                const workflowAction = buildAction('workflow', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, '2024-01-01 00:00:01.000');
+                const updatedReport = await cancelPaidReport('rollback', workflowAction, undefined, true);
+                expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+                expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
             });
         });
     });
