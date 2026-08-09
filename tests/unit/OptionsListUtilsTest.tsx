@@ -5827,6 +5827,7 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
@@ -5851,6 +5852,7 @@ describe('OptionsListUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 personalDetails: undefined,
                 translate: translateLocal,
