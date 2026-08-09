@@ -911,6 +911,11 @@ function computeChatThreadReportName(
         return undefined;
     }
 
+    // Concierge titles each of its threads with a summary of the question, so show that rather than the question itself.
+    if (report.reportName && isConciergeChatReport(getReportOrDraftReport(report.parentReportID))) {
+        return report.reportName;
+    }
+
     const parentReportActionMessage = getReportActionMessageFromActionsUtils(parentReportAction);
     const isArchivedNonExpense = isArchivedNonExpenseReport(report, isArchived);
 
