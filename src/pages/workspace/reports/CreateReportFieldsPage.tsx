@@ -28,7 +28,7 @@ function WorkspaceCreateReportFieldsPage({
             isInvoiceField={false}
             listValuesRoute={ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.getRoute(policyID)}
             getTypeSelectorRoute={ROUTES.WORKSPACE_REPORT_FIELDS_TYPE_SELECTOR.getRoute}
-            initialListValueRoute={createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE.path)}
+            initialListValueRoute={createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE.path, ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
             testID="WorkspaceCreateReportFieldsPage"
         />

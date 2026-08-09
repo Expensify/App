@@ -3418,6 +3418,7 @@ function buildOptimisticDuplicatePolicy(
     const isTaxesFeatureSelected = duplicatedParts?.taxes;
     const isTagsFeatureSelected = duplicatedParts?.tags;
     const isInvoicesFeatureSelected = duplicatedParts?.invoices;
+    const isInvoiceFieldsFeatureSelected = duplicatedParts?.invoiceFields;
     const isDistanceRatesFeatureSelected = duplicatedParts?.distance;
     const isRulesFeatureSelected = duplicatedParts?.expenses;
     const isWorkflowsFeatureSelected = duplicatedParts?.exportLayouts;
@@ -3451,7 +3452,7 @@ function buildOptimisticDuplicatePolicy(
         : undefined;
     const copiedFieldList = {
         ...(isReportsFeatureSelected ? reportFieldListWithoutPendingDelete : undefined),
-        ...(isInvoicesFeatureSelected ? invoiceFieldListWithoutPendingDelete : undefined),
+        ...(isInvoiceFieldsFeatureSelected ? invoiceFieldListWithoutPendingDelete : undefined),
     };
     const connectionsWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.connections);
     const taxRatesWithoutPendingDelete = {
@@ -3468,7 +3469,7 @@ function buildOptimisticDuplicatePolicy(
         areRulesEnabled: isRulesFeatureSelected,
         areWorkflowsEnabled: isWorkflowsFeatureSelected,
         areReportFieldsEnabled: isReportsFeatureSelected ? sourcePolicy?.areReportFieldsEnabled : false,
-        areInvoiceFieldsEnabled: isInvoicesFeatureSelected ? sourcePolicy?.areInvoiceFieldsEnabled : false,
+        areInvoiceFieldsEnabled: isInvoiceFieldsFeatureSelected ? sourcePolicy?.areInvoiceFieldsEnabled : false,
         areConnectionsEnabled: isConnectionsFeatureSelected,
         arePerDiemRatesEnabled: isPerDiemFeatureSelected,
         isTravelEnabled: isTravelFeatureSelected ? sourcePolicy?.isTravelEnabled : undefined,
@@ -3661,6 +3662,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
                     description: null,
                     type: null,
                     areReportFieldsEnabled: null,
+                    areInvoiceFieldsEnabled: null,
                     rulesDocumentURL: null,
                 },
             },

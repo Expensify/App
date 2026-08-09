@@ -28,7 +28,7 @@ function CreateInvoiceFieldsPage({
             isInvoiceField
             listValuesRoute={ROUTES.WORKSPACE_INVOICE_FIELDS_LIST_VALUES.getRoute(policyID)}
             getTypeSelectorRoute={ROUTES.WORKSPACE_INVOICE_FIELDS_TYPE_SELECTOR.getRoute}
-            initialListValueRoute={createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVOICE_FIELDS_INITIAL_LIST_VALUE.path)}
+            initialListValueRoute={createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVOICE_FIELDS_INITIAL_LIST_VALUE.path, ROUTES.WORKSPACE_INVOICE_FIELDS_CREATE.getRoute(policyID))}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED}
             testID="CreateInvoiceFieldsPage"
         />
