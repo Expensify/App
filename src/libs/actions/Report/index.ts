@@ -1157,6 +1157,17 @@ function addActions({
         const optimisticThreadCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction: CONST.REPORT.OWNER_EMAIL_FAKE, currentUserAccountID});
         parameters.conciergeThreadCreatedReportActionID = optimisticThreadCreatedAction.reportActionID;
 
+        const optimisticThreadDetails = {
+            childReportID: conciergeThreadReportID,
+            childType: CONST.REPORT.TYPE.CHAT,
+
+            // Concierge starts thinking in the thread right away, so count that as its first reply.
+            childVisibleActionCount: 1,
+            childCommenterCount: 1,
+            childOldestFourAccountIDs: String(CONST.ACCOUNT_ID.CONCIERGE),
+            childLastVisibleActionCreated: currentTime,
+        };
+
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.SET,
@@ -1176,13 +1187,13 @@ function addActions({
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                value: {[resolvedReportActionID]: {childReportID: conciergeThreadReportID, childType: CONST.REPORT.TYPE.CHAT}},
+                value: {[resolvedReportActionID]: optimisticThreadDetails},
             },
         );
         snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT}${conciergeThreadReportID}`] = optimisticThread;
         snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = {
             ...optimisticReportActions,
-            [resolvedReportActionID]: {...optimisticReportActions[resolvedReportActionID], childReportID: conciergeThreadReportID, childType: CONST.REPORT.TYPE.CHAT},
+            [resolvedReportActionID]: {...optimisticReportActions[resolvedReportActionID], ...optimisticThreadDetails},
         };
         successData.push(
             {
@@ -1218,7 +1229,16 @@ function addActions({
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                value: {[resolvedReportActionID]: {childReportID: null, childType: ''}},
+                value: {
+                    [resolvedReportActionID]: {
+                        childReportID: null,
+                        childType: '',
+                        childVisibleActionCount: 0,
+                        childCommenterCount: 0,
+                        childOldestFourAccountIDs: '',
+                        childLastVisibleActionCreated: '',
+                    },
+                },
             },
         );
     }
