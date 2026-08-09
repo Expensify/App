@@ -6,6 +6,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 
 import NewChatPage from '@pages/NewChatPage';
@@ -29,6 +30,11 @@ jest.mock('@react-navigation/native');
 jest.mock('@src/libs/Navigation/navigationRef');
 // Use the web (passthrough) variant; the .native one has an in-flight guard that swallows the rapid re-presses.
 jest.mock('@hooks/useSingleExecution', (): unknown => jest.requireActual('@hooks/useSingleExecution/index.ts'));
+// The deferred/optimistic selection path is web-only, so default these tests to web. Individual tests override it.
+jest.mock('@libs/getPlatform', () => ({
+    __esModule: true,
+    default: jest.fn(() => 'web'),
+}));
 jest.mock('react-native-permissions', () => ({
     __esModule: true,
     RESULTS: {
@@ -70,6 +76,10 @@ describe('NewChatPage', () => {
             keys: ONYXKEYS,
         });
         jest.spyOn(NativeNavigation, 'useRoute').mockReturnValue({key: '', name: ''});
+    });
+
+    beforeEach(() => {
+        jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.WEB);
     });
 
     afterEach(async () => {
@@ -229,7 +239,7 @@ describe('NewChatPage', () => {
         await waitForBatchedUpdatesWithAct();
         expect(screen.getByText(translateLocal('common.next'))).toBeVisible();
 
-        // Untoggle the selected row's checkbox; deferring the update must still unselect and exit group mode.
+        // Uncheck the selected row's checkbox; deferring the update must still unselect and exit group mode.
         const checkedCheckbox = screen.getAllByTestId(new RegExp(`^${CONST.SELECTION_BUTTON_TEST_ID}`)).at(0);
         expect(checkedCheckbox).toBeTruthy();
         if (!checkedCheckbox) {
@@ -277,6 +287,48 @@ describe('NewChatPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // The retry press must stay an add (idempotent), not silently cancel the pending one.
+        expect(screen.getByText(translateLocal('common.next'))).toBeVisible();
+        expect(screen.getAllByTestId(new RegExp(`^${CONST.SELECTION_BUTTON_TEST_ID}`))).toHaveLength(1);
+    });
+
+    it('should toggle once per rapid checkbox tap on native, where the update is not deferred', async () => {
+        // Native commits synchronously (no startTransition), so each tap must register - the reverse of the
+        // web double-tap above where two presses in one batch compose off the ref.
+        jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.IOS);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+        });
+        render(<NewChatPage />, {wrapper});
+        await waitForBatchedUpdatesWithAct();
+        act(() => {
+            triggerTransitionEnd();
+        });
+
+        const addButton = await waitFor(() => {
+            const button = screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0);
+            expect(button).toBeTruthy();
+            return button;
+        });
+        if (!addButton) {
+            return;
+        }
+        fireEvent.press(addButton);
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(translateLocal('common.next'))).toBeVisible();
+
+        // Two separate taps on the checkbox: uncheck then re-check. The net result must be selected again.
+        const checkbox = screen.getAllByTestId(new RegExp(`^${CONST.SELECTION_BUTTON_TEST_ID}`)).at(0);
+        if (checkbox) {
+            fireEvent.press(checkbox);
+        }
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText(translateLocal('common.next'))).toBeNull();
+
+        const addButtonAgain = screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0);
+        if (addButtonAgain) {
+            fireEvent.press(addButtonAgain);
+        }
+        await waitForBatchedUpdatesWithAct();
         expect(screen.getByText(translateLocal('common.next'))).toBeVisible();
         expect(screen.getAllByTestId(new RegExp(`^${CONST.SELECTION_BUTTON_TEST_ID}`))).toHaveLength(1);
     });
