@@ -388,7 +388,14 @@ function NewChatPage({ref}: NewChatPageProps) {
      * or navigates to the existing chat if one with those participants already exists.
      */
     const selectOption = (option?: OptionWithKey) => {
+        // Read the ref up front so every branch below uses the latest selection, not the deferred snapshot.
+        const latestSelectedOptions = latestSelectedOptionsRef.current;
+
         if (option?.isSelfDM) {
+            // Keep the self DM inert while a group selection is pending (its disabled state hasn't committed yet).
+            if (latestSelectedOptions.length > 0) {
+                return;
+            }
             if (!option.reportID) {
                 Navigation.dismissModal();
                 return;
@@ -396,9 +403,6 @@ function NewChatPage({ref}: NewChatPageProps) {
             Navigation.dismissModalWithReport({reportID: option.reportID});
             return;
         }
-
-        // Use the ref: a press mid-transition sees empty selectedOptions but a pending member, so keep it an add.
-        const latestSelectedOptions = latestSelectedOptionsRef.current;
 
         if (latestSelectedOptions.length && option) {
             // Prevent excluded emails from being added to groups
