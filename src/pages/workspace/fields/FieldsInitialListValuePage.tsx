@@ -80,7 +80,7 @@ function FieldsInitialListValuePage({policy, policyID, featureName, backPath, su
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
                         <ActivityIndicator
                             size="large"
-                            reasonAttributes={{context: testID, isLoadingFormDraft: !!isLoadingFormDraft}}
+                            extraLoadingContext={{context: testID, isLoadingFormDraft: !!isLoadingFormDraft}}
                         />
                     </View>
                 ) : (

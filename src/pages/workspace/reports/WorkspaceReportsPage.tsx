@@ -58,7 +58,7 @@ function WorkspaceReportFieldsPage({
     const titleField = getTitleFieldWithFallback(policy);
 
     const isLoading = !isOffline && policy === undefined;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceReportFieldsPage', isOffline, isPolicyUndefined: policy === undefined};
+    const extraLoadingContext = {context: 'WorkspaceReportFieldsPage', isOffline, isPolicyUndefined: policy === undefined};
 
     const titleFieldError = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
     const reportTitleErrors = getLatestErrorField({errorFields: titleFieldError ?? {}}, 'defaultValue');
@@ -117,7 +117,7 @@ function WorkspaceReportFieldsPage({
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}
-                        reasonAttributes={reasonAttributes}
+                        extraLoadingContext={extraLoadingContext}
                     />
                 )}
                 {!isLoading && (

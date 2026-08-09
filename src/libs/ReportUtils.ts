@@ -13749,7 +13749,8 @@ function getReportFieldMaps(report: OnyxEntry<Report>, fieldList: Record<string,
     const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
     const availableFields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
     const invoiceReportFields = report?.type === CONST.REPORT.TYPE.INVOICE ? getInvoiceReportFieldsFromReportNameValuePairs(reportNameValuePairs) : [];
-    const fields = [...new Map([...availableFields, ...invoiceReportFields].map((field) => [field.fieldID, field])).values()];
+    const fieldsMatchingReport = [...availableFields, ...invoiceReportFields].filter((field) => isReportFieldTargetMatchingReport(report, field));
+    const fields = [...new Map(fieldsMatchingReport.map((field) => [field.fieldID, field])).values()];
     const fieldValues: Record<string, string> = {};
     const fieldsByName: Record<string, PolicyReportField> = {};
 
