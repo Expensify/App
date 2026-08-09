@@ -1,7 +1,7 @@
 ---
 title: How Concierge Analyzes Spend
 description: Learn how Concierge proactively analyzes company spend to share highlights, and how to ask Concierge questions about your expense data on demand.
-keywords: [New Expensify, Concierge, spend analysis, ask Concierge about expenses, expense questions, Concierge management report, insights, AI, expense trends, proactive insights, spend monitoring, flux analysis]
+keywords: [New Expensify, Concierge, spend analysis, ask Concierge about expenses, expense questions, Concierge management report, insights, AI, expense trends, proactive insights, spend monitoring, flux analysis, spend chart, bar chart, Concierge chart]
 internalScope: Audience is Workspace Admins and Members. Covers how Concierge performs proactive spend analysis and how to ask Concierge questions about expense data. Does not cover how to use Insights or generate custom reports.
 ---
 
@@ -48,6 +48,19 @@ Examples:
 After Concierge answers, it may suggest a few follow-up questions to help you dig deeper.
 
 Concierge currently answers direct lookup questions about your expense data. If a question is too complex to answer this way, Concierge will let you know and point you to the **Search** page so you can explore it yourself. [Learn how to use search operators to filter and analyze spend](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze).
+
+---
+
+## How to explore a Concierge spend chart
+
+When you ask Concierge to show spending as a chart—for example, “Give me a bar chart of my monthly expenses this year”—Concierge can reply with an interactive bar chart directly in the chat, alongside its written answer.
+
+On web, you can interact with the chart to dig into the numbers behind it:
+
+- Hover over a bar to see a tooltip with the details for that bar.
+- Select a bar to open its matching expenses on the **Search** page.
+
+This lets you move from a high-level view of your spend straight to the individual expenses without building a search yourself.
 
 ---
 
