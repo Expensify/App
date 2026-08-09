@@ -76,7 +76,6 @@ import {
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/BillingBanner/EarlyDiscountBanner';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
@@ -280,12 +279,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isLoading = !report?.reportID || !title;
     const isParentReportLoading = !!report?.parentReportID && !parentReport;
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'HeaderView',
-        hasReportID: !!report?.reportID,
-        hasTitle: !!title,
-    };
-
     const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     // AGENT_REPORT is only ever opened as an RHP (see AddAgentPage) and should mirror the Concierge
     // side-panel chrome: no search button, no help dropdown/banners, close instead of back.
@@ -333,10 +326,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
             >
                 <View style={[styles.appContentHeader, styles.pr3]}>
                     {isLoading ? (
-                        <ReportHeaderSkeletonView
-                            onBackButtonPress={onNavigationMenuButtonClicked}
-                            reasonAttributes={reasonAttributes}
-                        />
+                        <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
                     ) : (
                         <View style={[styles.appContentHeaderTitle, (!shouldUseNarrowLayout || isAgentReportInRHP) && !isLoading && styles.pl5]}>
                             {shouldShowBackButton && (

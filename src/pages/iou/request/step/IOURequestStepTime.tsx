@@ -17,7 +17,6 @@ import {isValidMoneyRequestType} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabled} from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {getIOURequestPolicyID, setMoneyRequestDateAttribute} from '@userActions/IOU/MoneyRequest';
 
@@ -150,16 +149,7 @@ function IOURequestStepTime({
     };
 
     if (isLoadingTransaction) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'IOURequestStepTime',
-            isLoadingTransaction,
-        };
-        return (
-            <FullScreenLoadingIndicator
-                style={[styles.flex1, styles.pRelative]}
-                reasonAttributes={reasonAttributes}
-            />
-        );
+        return <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />;
     }
 
     return (
