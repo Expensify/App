@@ -402,17 +402,28 @@ describe('TransactionItemRowRBR', () => {
         // Then the RBR message should be displayed with transaction errors, missing merchant error, and violations
         expect(screen.getByText('Unexpected error posting the comment. Please try again later. Missing merchant. Missing category.')).toBeOnTheScreen();
     });
-    it('should display the submitted violations in place of the live RBR on narrow layouts', async () => {
-        // Given a transaction whose current violation differs from the one flagged when its report was submitted
+    it('should replace only the live violations with the submitted violations on narrow layouts', async () => {
+        // Given a transaction with a current violation and a missing merchant error, whose report was submitted with a different violation
         const mockViolations: TransactionViolations = [
             {
                 name: CONST.VIOLATIONS.MISSING_CATEGORY,
                 type: CONST.VIOLATION_TYPES.VIOLATION,
             },
         ];
-        const mockTransaction = createBaseTransaction({violations: mockViolations});
+        const mockReport = {
+            ...createRandomReport(1, undefined),
+            pendingAction: null,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+        const mockTransaction = createBaseTransaction({
+            violations: mockViolations,
+            report: mockReport,
+            modifiedMerchant: '',
+            merchant: '',
+        });
         const mockSubmittedAction = createSubmittedReportAction(CONST.VIOLATIONS.RECEIPT_REQUIRED);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT_ID}`, mockReport);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
 
         // When rendering the row on a narrow layout with the violations column in the search
@@ -423,6 +434,9 @@ describe('TransactionItemRowRBR', () => {
         expect(screen.getByText('Violations:')).toBeOnTheScreen();
         expect(screen.getByText('Receipt required')).toBeOnTheScreen();
         expect(screen.queryByText('Missing category.')).not.toBeOnTheScreen();
+
+        // Then the RBR still reports the errors that remain actionable
+        expect(screen.getByText('Missing merchant.')).toBeOnTheScreen();
     });
 
     it('should display the live RBR on narrow layouts when the violations column is not in the search', async () => {

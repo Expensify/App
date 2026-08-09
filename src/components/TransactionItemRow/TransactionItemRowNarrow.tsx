@@ -196,11 +196,13 @@ function TransactionItemRowNarrow({
                         </Text>
                     </View>
                 )}
-                {shouldShowErrors && !submittedViolations && (
+                {shouldShowErrors && (
                     <DeferredTransactionItemRowRBR
                         shouldDefer={shouldDeferRBR}
                         transaction={transactionItem}
-                        violations={violations}
+                        // The submitted violations displayed above stand in for the live violation messages, but the
+                        // rest of the RBR (missing fields, transaction and thread errors) stays actionable.
+                        violations={submittedViolations ? undefined : violations}
                         report={report}
                         containerStyles={[styles.mt3, styles.minHeight4]}
                         missingFieldError={missingFieldError}
