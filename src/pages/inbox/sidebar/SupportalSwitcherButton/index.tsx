@@ -1,3 +1,4 @@
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -184,6 +185,18 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
                             />
                         </View>
                     )}
+                    <Button
+                        variant="success"
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        style={styles.mt3}
+                        accessibilityLabel={translate('supportalSwitcher.login')}
+                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.SUPPORTAL_SWITCHER_BUTTON}
+                        onPress={isReasonRequired ? submitReason : submitEmail}
+                        isLoading={isCheckingReason}
+                        isDisabled={!email.trim() || (isReasonRequired && !reason.trim())}
+                    >
+                        <Button.Text>{translate('supportalSwitcher.login')}</Button.Text>
+                    </Button>
                 </View>
             </PopoverWithMeasuredContent>
         </>

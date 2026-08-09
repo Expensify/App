@@ -891,6 +891,7 @@ const translations: TranslationDeepObject<typeof en> = {
         emailLabel: 'Email address',
         reasonLabel: 'Support login reason',
         reasonHint: 'No recent tickets found for this account.',
+        login: 'Log in',
     },
     sidebarScreen: {
         buttonFind: '查找内容…',
