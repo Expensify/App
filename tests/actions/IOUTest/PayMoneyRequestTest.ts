@@ -1899,14 +1899,16 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.CLOSED);
             });
 
-            it('returns a submit-and-close report to Done when only its optimistic SUBMITTED action exists (payments off, not yet reconciled to SUBMITTED_AND_CLOSED)', async () => {
+            it('returns a submit-and-close report to Done when only its optimistic SUBMITTED action exists (not yet reconciled to SUBMITTED_AND_CLOSED), even with payments enabled', async () => {
                 // A submit-and-close report auto-closes to Done on submit, but its optimistic action is a plain SUBMITTED
-                // action (the server reconciles it to SUBMITTED_AND_CLOSED later). Paying + cancelling in that window must
-                // still revert to Done, not misread the SUBMITTED action as an Outstanding instant-submit.
-                const workflowAction = buildAction('workflow', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, '2024-01-01 00:00:01.000');
-                const updatedReport = await cancelPaidReport('submit-and-close', workflowAction, {
-                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                // action (the server reconciles it to SUBMITTED_AND_CLOSED later). `submitReport` stamps that action's
+                // originalMessage.workflow with the OPTIONAL approval mode, so paying + cancelling in that window must
+                // read the workflow and revert to Done — not misread the SUBMITTED action as an Outstanding instant-submit.
+                // Payments are enabled here (the default) to prove the revert no longer depends on reimbursementChoice.
+                const workflowAction = buildAction('workflow', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, '2024-01-01 00:00:01.000', {
+                    workflow: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 });
+                const updatedReport = await cancelPaidReport('submit-and-close', workflowAction);
                 expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
                 expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.CLOSED);
             });
