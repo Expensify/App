@@ -53,13 +53,12 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
 
     const paymentBankAccountID = settings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    // Gate the skeleton on the request lifecycle rather than on the presence of settings for the resolved
-    // fund. A completed request that returns no settings for that fund is a valid empty state, not a page
-    // that is still loading, and keying this on the fund leaves it stuck whenever the fund resolves late.
-    const isLoading = !isOffline && !cardsPageLoadingState?.hasOnceLoadedPage;
+    // Persisted settings can render immediately while the RAM-only page state is rebuilt after a reload.
+    const hasOnceLoadedPage = cardsPageLoadingState?.hasOnceLoadedPage ?? cardSettings?.hasOnceLoaded;
+    const isLoading = !isOffline && !hasOnceLoadedPage;
 
     const renderContent = () => {
-        if (!isOffline && cardsPageLoadingState?.hasLoadingError && !cardsPageLoadingState.hasOnceLoadedPage) {
+        if (!isOffline && cardsPageLoadingState?.hasLoadingError && !hasOnceLoadedPage) {
             return (
                 <FullPageErrorView
                     shouldShow
