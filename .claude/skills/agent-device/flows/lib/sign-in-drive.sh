@@ -75,12 +75,23 @@ take_snap() {
 
 snap_has() { printf '%s' "$SNAP" | grep -qiF -- "$1"; }
 
+# Where internal drive commands park their output. This library never writes to
+# stdout (callers may parse it as a machine protocol), but agent-device echoes
+# action results there — "Tapped (x, y)", "Filled N chars" — and --settle expands
+# that into a full settled diff. Route both streams to a log instead.
+drive_log() {
+  local dir="${GITHUB_WORKSPACE:-/tmp}/artifacts"
+  mkdir -p "$dir" 2>/dev/null || true
+  printf '%s/melvin-drive-%s.log' "$dir" "${SESSION:-unknown}"
+}
+
 # Native verb per platform: press on android, click on web.
 press_label() {
   local sel="role=\"button\" label=\"$1\" || label=\"$1\""
   local verb=click
   [[ "$PLATFORM" = android ]] && verb=press
-  agent-device "$verb" "$sel" --platform "$PLATFORM" --session "$SESSION" 2>/dev/null || true
+  agent-device "$verb" "$sel" --settle --platform "$PLATFORM" --session "$SESSION" \
+    >>"$(drive_log)" 2>&1 || true
 }
 
 # Dismiss splash / runtime permission / ANR overlays that block the login hierarchy.
@@ -218,8 +229,8 @@ clear_onboarding() {
     if snap_has '"First name"' || snap_has '"Full name"' \
       || snap_has "What's your name?" || snap_has $'What\u2019s your name?'; then
       human "sign-in-drive: onboarding — name MelvinBot (${step})"
-      agent-device fill "$SEL_NAME_FIELD" 'MelvinBot' \
-        --platform "$PLATFORM" --session "$SESSION" 2>/dev/null || true
+      agent-device fill "$SEL_NAME_FIELD" 'MelvinBot' --settle \
+        --platform "$PLATFORM" --session "$SESSION" >>"$(drive_log)" 2>&1 || true
       press_label "Continue"
       sleep 1
       continue
@@ -301,7 +312,16 @@ drive_sign_in() {
   fi
   human "sign-in-drive: replay ${sign_in_ad}"
   # Replay must share AGENT_DEVICE_STATE_DIR with open (caller exports it).
-  if ! agent-device replay "$sign_in_ad" -e "EMAIL=${email}" --platform "$PLATFORM" --session "$SESSION"; then
+  # Keep replay's stderr: on failure it names the diverging step, the selector it
+  # could not match, and a repair hint — far more useful than the generic messages
+  # below. Its stdout is progress chatter and belongs in the drive log.
+  mkdir -p "${GITHUB_WORKSPACE:-/tmp}/artifacts"
+  local replay_log="${GITHUB_WORKSPACE:-/tmp}/artifacts/melvin-signin-replay-${SESSION}.log"
+  if ! agent-device replay "$sign_in_ad" -e "EMAIL=${email}" --platform "$PLATFORM" --session "$SESSION" \
+    >>"$(drive_log)" 2>"$replay_log"; then
+    local replay_err
+    replay_err="$(tail -n 5 "$replay_log" 2>/dev/null | tr '\n' ' ')"
+    [[ -n "$replay_err" ]] && human "sign-in-drive: replay reported: ${replay_err}"
     # Already past login (onboarding residual / signup REPLACE) — clear, don't re-fill.
     take_snap
     if snap_onboarding || snap_has '"Skip"'; then
@@ -316,12 +336,16 @@ drive_sign_in() {
     # already saw the field. Fall back to direct fill+press.
     if snap_login_field; then
       human "sign-in-drive: replay wait flaked — direct fill for ${email}"
-      if agent-device fill "$SEL_LOGIN_FIELD" "${email}" \
-        --platform "$PLATFORM" --session "$SESSION" \
-        && agent-device press "$SEL_CONTINUE" \
-          --platform "$PLATFORM" --session "$SESSION"; then
+      local fallback_log="${GITHUB_WORKSPACE:-/tmp}/artifacts/melvin-signin-fallback-${SESSION}.log"
+      if agent-device fill "$SEL_LOGIN_FIELD" "${email}" --settle \
+        --platform "$PLATFORM" --session "$SESSION" >"$fallback_log" 2>&1 \
+        && agent-device press "$SEL_CONTINUE" --settle \
+          --platform "$PLATFORM" --session "$SESSION" >>"$fallback_log" 2>&1; then
         true
       else
+        local fallback_err
+        fallback_err="$(tail -n 5 "$fallback_log" 2>/dev/null | tr '\n' ' ')"
+        [[ -n "$fallback_err" ]] && human "sign-in-drive: fallback fill/press reported: ${fallback_err}"
         human "sign-in-drive: direct fill failed for ${email}"
         return 1
       fi
