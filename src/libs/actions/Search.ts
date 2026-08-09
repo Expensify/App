@@ -1434,7 +1434,7 @@ function rejectMoneyRequestInBulk(
         }
     > = {};
     for (const transactionID of transactionIDs) {
-        const data = prepareRejectMoneyRequestData(
+        const data = prepareRejectMoneyRequestData({
             transactionID,
             reportID,
             comment,
@@ -1444,9 +1444,8 @@ function rejectMoneyRequestInBulk(
             betas,
             delegateAccountID,
             getCurrencyDecimals,
-            undefined,
-            true,
-        );
+            shouldUseBulkAction: true,
+        });
         if (data) {
             optimisticData.push(...data.optimisticData);
             successData.push(...data.successData);

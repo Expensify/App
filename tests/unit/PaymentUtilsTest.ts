@@ -1,7 +1,6 @@
 import type {BankAccountMenuItem} from '@components/Search/types';
 
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
-import {getCurrencyDecimals} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePaymentType, getBusinessBankAccountOptions, selectPaymentType} from '@libs/PaymentUtils';
 import type {SelectPaymentTypeParams} from '@libs/PaymentUtils';

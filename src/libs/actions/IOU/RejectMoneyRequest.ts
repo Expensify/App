@@ -113,19 +113,33 @@ function dismissRejectUseExplanation() {
  *   - sharedRejectedToReportID: When rejecting multiple expenses sequentially, pass a single shared destination reportID so all rejections land in the same new report.
  * @returns optimisticData, successData, failureData, parameters, urlToNavigateBack
  */
-function prepareRejectMoneyRequestData(
-    transactionID: string,
-    reportID: string,
-    comment: string,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    currentUserAccountIDParam: number,
-    currentUserLogin: string,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    delegateAccountID: number | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    options?: RejectMoneyRequestOptions,
-    shouldUseBulkAction?: boolean,
-): RejectMoneyRequestData | undefined {
+type PrepareRejectMoneyRequestDataParams = {
+    transactionID: string;
+    reportID: string;
+    comment: string;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    currentUserAccountIDParam: number;
+    currentUserLogin: string;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    options?: RejectMoneyRequestOptions;
+    shouldUseBulkAction?: boolean;
+};
+
+function prepareRejectMoneyRequestData({
+    transactionID,
+    reportID,
+    comment,
+    policy,
+    currentUserAccountIDParam,
+    currentUserLogin,
+    betas,
+    delegateAccountID,
+    getCurrencyDecimals,
+    options,
+    shouldUseBulkAction,
+}: PrepareRejectMoneyRequestDataParams): RejectMoneyRequestData | undefined {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
     // TODO: https://github.com/Expensify/App/issues/66512
@@ -929,7 +943,18 @@ function rejectMoneyRequest(
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     options?: RejectMoneyRequestOptions,
 ): Route | undefined {
-    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, delegateAccountID, getCurrencyDecimals, options);
+    const data = prepareRejectMoneyRequestData({
+        transactionID,
+        reportID,
+        comment,
+        policy,
+        currentUserAccountIDParam,
+        currentUserLogin,
+        betas,
+        delegateAccountID,
+        getCurrencyDecimals,
+        options,
+    });
     if (!data) {
         return;
     }
