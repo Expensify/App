@@ -11,6 +11,7 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import useControlOnlyRuleUpgradeRedirect from '@hooks/useControlOnlyRuleUpgradeRedirect';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -104,6 +105,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
 
     const [selectedCardIDs, setSelectedCardIDs] = useState<string[]>([]);
     const {isLoading, startWithLoading} = usePressLoading();
+    useControlOnlyRuleUpgradeRedirect(policyID);
 
     useFocusEffect(
         useCallback(() => {
@@ -209,18 +211,11 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID]}
             shouldBeBlocked={!canWriteCardSpendRules}
         >
             {isCardSettingsLoading ? (
-                <FullScreenLoadingIndicator
-                    shouldUseGoBackButton
-                    reasonAttributes={{
-                        context: 'SpendRuleCardPage',
-                        isOffline,
-                        hasOnceLoaded: !!expensifyCardSettings?.hasOnceLoaded,
-                    }}
-                />
+                <FullScreenLoadingIndicator shouldUseGoBackButton />
             ) : (
                 <ScreenWrapper
                     testID="SpendRuleCardPage"

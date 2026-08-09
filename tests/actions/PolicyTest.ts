@@ -12,19 +12,8 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {askToJoinPolicy, joinAccessiblePolicy} from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    Onboarding,
-    PolicyJoinMember,
-    PolicyReportField,
-    Policy as PolicyType,
-    Report,
-    ReportAction,
-    ReportActions,
-    ReportNextStepDeprecated,
-    Transaction,
-    TransactionViolations,
-} from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/Report';
+import type {Onboarding, PolicyJoinMember, PolicyReportField, Policy as PolicyType, Report, ReportAction, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Participant, ReportNextStep} from '@src/types/onyx/Report';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -1555,8 +1544,6 @@ describe('actions/Policy', () => {
         it('should post onboarding tasks to the threaded conciergeChat instead of the deprecated CONCIERGE_REPORT_ID fallback', async () => {
             mockFetch?.pause?.();
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            // Given the deprecated Onyx.connect fallback points at a DIFFERENT report than the threaded param,
-            // so the assertions below fail if buildPolicyData stops forwarding conciergeChat (#66411).
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'deprecated-fallback-report');
             await waitForBatchedUpdates();
 
@@ -3388,10 +3375,8 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
-            const buildNextStepNewSpy = jest
-                .spyOn(require('@libs/NextStepUtils'), 'buildNextStepNew')
-
-                .mockReturnValue(createMock<ReportNextStepDeprecated>({type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Mock next step'}]}));
+            const optimisticNextStep = createMock<ReportNextStep>({messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION, icon: CONST.NEXT_STEP.ICONS.CHECKMARK});
+            const buildNextStepNewSpy = jest.spyOn(require('@libs/NextStepUtils'), 'buildOptimisticNextStep').mockReturnValue(optimisticNextStep);
 
             const getAllPolicyReportsSpy = jest.spyOn(ReportUtils, 'getAllPolicyReports');
             const isExpenseReportSpy = jest.spyOn(ReportUtils, 'isExpenseReport');
@@ -3414,18 +3399,10 @@ describe('actions/Policy', () => {
             isExpenseReportSpy.mockReturnValue(true);
             hasViolationsSpy.mockReturnValue(false);
 
-            const nextStepKey1 = `${ONYXKEYS.COLLECTION.NEXT_STEP}${submittedExpenseReport1.reportID}` as const;
-            const nextStepKey2 = `${ONYXKEYS.COLLECTION.NEXT_STEP}${submittedExpenseReport2.reportID}` as const;
-
-            const currentNextStep1 = createMock<ReportNextStepDeprecated>({type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Old next step 1'}]});
-
-            const currentNextStep2 = createMock<ReportNextStepDeprecated>({type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Old next step 2'}]});
+            const reportKey1 = `${ONYXKEYS.COLLECTION.REPORT}${submittedExpenseReport1.reportID}` as const;
+            const reportKey2 = `${ONYXKEYS.COLLECTION.REPORT}${submittedExpenseReport2.reportID}` as const;
 
             Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, {
-                reportNextSteps: {
-                    [nextStepKey1]: currentNextStep1,
-                    [nextStepKey2]: currentNextStep2,
-                },
                 transactionViolations: {},
                 betas: [],
                 personalDetailsList: {},
@@ -3437,12 +3414,16 @@ describe('actions/Policy', () => {
                 expect.anything(),
                 expect.objectContaining({
                     optimisticData: expect.arrayContaining([
-                        expect.objectContaining({onyxMethod: Onyx.METHOD.MERGE, key: nextStepKey1}),
-                        expect.objectContaining({onyxMethod: Onyx.METHOD.MERGE, key: nextStepKey2}),
+                        expect.objectContaining({onyxMethod: Onyx.METHOD.MERGE, key: reportKey1, value: {nextStep: optimisticNextStep, pendingFields: {nextStep: 'update'}}}),
+                        expect.objectContaining({onyxMethod: Onyx.METHOD.MERGE, key: reportKey2, value: {nextStep: optimisticNextStep, pendingFields: {nextStep: 'update'}}}),
                     ]),
                     failureData: expect.arrayContaining([
-                        expect.objectContaining({onyxMethod: Onyx.METHOD.MERGE, key: nextStepKey1, value: currentNextStep1}),
-                        expect.objectContaining({onyxMethod: Onyx.METHOD.MERGE, key: nextStepKey2, value: currentNextStep2}),
+                        expect.objectContaining({onyxMethod: Onyx.METHOD.MERGE, key: reportKey1, value: {nextStep: null, pendingFields: {nextStep: null}}}),
+                        expect.objectContaining({onyxMethod: Onyx.METHOD.MERGE, key: reportKey2, value: {nextStep: null, pendingFields: {nextStep: null}}}),
+                    ]),
+                    successData: expect.arrayContaining([
+                        expect.objectContaining({onyxMethod: Onyx.METHOD.MERGE, key: reportKey1, value: {pendingFields: {nextStep: null}}}),
+                        expect.objectContaining({onyxMethod: Onyx.METHOD.MERGE, key: reportKey2, value: {pendingFields: {nextStep: null}}}),
                     ]),
                 }),
             );
@@ -3456,15 +3437,13 @@ describe('actions/Policy', () => {
             hasViolationsSpy.mockRestore();
         });
 
-        it('should pass currentUserAccountID and currentUserEmail to hasViolations and buildNextStepNew', async () => {
+        it('should pass currentUserAccountID and currentUserEmail to hasViolations and buildOptimisticNextStep', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
             const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
-            const buildNextStepNewSpy = jest
-                .spyOn(require('@libs/NextStepUtils'), 'buildNextStepNew')
-
-                .mockReturnValue(createMock<ReportNextStepDeprecated>({type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Mock next step'}]}));
+            const optimisticNextStep = createMock<ReportNextStep>({messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION, icon: CONST.NEXT_STEP.ICONS.CHECKMARK});
+            const buildNextStepNewSpy = jest.spyOn(require('@libs/NextStepUtils'), 'buildOptimisticNextStep').mockReturnValue(optimisticNextStep);
 
             const getAllPolicyReportsSpy = jest.spyOn(ReportUtils, 'getAllPolicyReports');
             const isExpenseReportSpy = jest.spyOn(ReportUtils, 'isExpenseReport');
@@ -3488,14 +3467,7 @@ describe('actions/Policy', () => {
             const customAccountID = 999;
             const customEmail = 'custom@example.com';
 
-            const nextStepKey = `${ONYXKEYS.COLLECTION.NEXT_STEP}${submittedReport.reportID}` as const;
-
-            const currentNextStep = createMock<ReportNextStepDeprecated>({type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Old next step'}]});
-
             Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, customAccountID, customEmail, false, {
-                reportNextSteps: {
-                    [nextStepKey]: currentNextStep,
-                },
                 transactionViolations: {},
                 betas: [],
                 personalDetailsList: {},
@@ -3515,7 +3487,7 @@ describe('actions/Policy', () => {
                 expect.anything(),
             );
 
-            // Verify buildNextStepNew received the custom accountID and email
+            // Verify buildOptimisticNextStep received the custom accountID and email
             expect(buildNextStepNewSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     currentUserAccountIDParam: customAccountID,
@@ -3535,7 +3507,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
-            const buildNextStepNewSpy = jest.spyOn(require('@libs/NextStepUtils'), 'buildNextStepNew');
+            const buildNextStepNewSpy = jest.spyOn(require('@libs/NextStepUtils'), 'buildOptimisticNextStep');
             const getAllPolicyReportsSpy = jest.spyOn(ReportUtils, 'getAllPolicyReports');
 
             const policyID = Policy.generatePolicyID();
@@ -3558,8 +3530,8 @@ describe('actions/Policy', () => {
             const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.DISABLE_POLICY_APPROVALS);
             expect(apiCallArgs).toBeTruthy();
             const writeOptions = requireRecord(requireCallArgument(apiCallArgs, 2), 'DISABLE_POLICY_APPROVALS write options');
-            expect(requireRecordArrayProperty(writeOptions, 'optimisticData').some((u) => requireStringProperty(u, 'key').startsWith(ONYXKEYS.COLLECTION.NEXT_STEP))).toBe(false);
-            expect(requireRecordArrayProperty(writeOptions, 'failureData').some((u) => requireStringProperty(u, 'key').startsWith(ONYXKEYS.COLLECTION.NEXT_STEP))).toBe(false);
+            expect(requireRecordArrayProperty(writeOptions, 'optimisticData').some((u) => requireStringProperty(u, 'key').startsWith(ONYXKEYS.COLLECTION.REPORT))).toBe(false);
+            expect(requireRecordArrayProperty(writeOptions, 'failureData').some((u) => requireStringProperty(u, 'key').startsWith(ONYXKEYS.COLLECTION.REPORT))).toBe(false);
 
             apiWriteSpy.mockRestore();
             buildNextStepNewSpy.mockRestore();
@@ -7373,6 +7345,7 @@ describe('actions/Policy', () => {
                 localeTranslate: TestHelper.translateLocal,
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
 
@@ -7413,6 +7386,7 @@ describe('actions/Policy', () => {
                 localeTranslate: TestHelper.translateLocal,
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             expect(result).toBeUndefined();
         });
@@ -7470,6 +7444,7 @@ describe('actions/Policy', () => {
                 localeTranslate: TestHelper.translateLocal,
                 reportActionsList,
                 doesEmployeePersonalDetailExist: true,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
 
             // Verify the function returns a valid result (not undefined)
@@ -7523,6 +7498,7 @@ describe('actions/Policy', () => {
                 localeTranslate: TestHelper.translateLocal,
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
 
@@ -7592,6 +7568,7 @@ describe('actions/Policy', () => {
                 localeTranslate: TestHelper.translateLocal,
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
 
