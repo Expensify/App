@@ -5,8 +5,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -21,7 +21,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 
 import type {WithPolicyProps} from './withPolicy';
@@ -34,7 +34,7 @@ type Props = WithPolicyProps;
 function WorkspaceOverviewDescriptionPage({policy}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef, inputRef} = useAutoFocusInput(true);
+    const isInputInitializedRef = useRef(false);
     const [description, setDescription] = useState(() => Parser.htmlToMarkdown(policy?.description ?? translate('workspace.common.defaultDescription')));
 
     /**
@@ -105,14 +105,15 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             value={description}
                             spellCheck={false}
+                            autoFocus
                             onChangeText={setDescription}
                             autoGrowHeight
                             type="markdown"
-                            ref={(el) => {
-                                if (!inputRef.current) {
+                            ref={(el: BaseTextInputRef | null): void => {
+                                if (!isInputInitializedRef.current) {
                                     updateMultilineInputRange(el);
                                 }
-                                inputCallbackRef(el);
+                                isInputInitializedRef.current = true;
                             }}
                         />
                     </View>
