@@ -14,7 +14,7 @@ import {hasCircularReferences} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportFieldKey} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
-import {getReportFieldInitialValue, getUnsupportedReportFieldFormulaParts, isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
+import {getReportFieldInitialValue, getReportFieldsForTarget, getUnsupportedReportFieldFormulaParts, isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -79,7 +79,7 @@ function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, e
 
             if (
                 (reportField?.type === CONST.REPORT_FIELD_TYPES.TEXT || reportField?.type === CONST.REPORT_FIELD_TYPES.FORMULA) &&
-                hasCircularReferences(formInitialValue, reportField?.name, policy?.fieldList)
+                hasCircularReferences(formInitialValue, reportField?.name, getReportFieldsForTarget(policy?.fieldList, expectedTarget))
             ) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
             }

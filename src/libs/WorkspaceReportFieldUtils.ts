@@ -142,6 +142,13 @@ function isReportFieldTargetValid(reportField: PolicyReportField | null, expecte
 }
 
 /**
+ * Returns report fields that match the expected target.
+ */
+function getReportFieldsForTarget(fieldList: Record<string, PolicyReportField> | undefined, expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>): Record<string, PolicyReportField> {
+    return Object.fromEntries(Object.entries(fieldList ?? {}).filter(([, reportField]) => isReportFieldTargetValid(reportField, expectedTarget)));
+}
+
+/**
  * Returns the list of unsupported {report:*} formula parts in the initial value.
  * Used to validate formula report fields so unsupported tokens (e.g. {report:i}) are rejected with a clear error.
  */
@@ -250,4 +257,5 @@ export {
     hasFormulaPartsInInitialValue,
     isReportFieldNameExisting,
     isReportFieldTargetValid,
+    getReportFieldsForTarget,
 };
