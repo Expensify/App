@@ -61,10 +61,9 @@ const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value
 const PAGINATION_SIZE = CONST.MAX_SELECTION_LIST_PAGE_LENGTH;
 
 /**
- * Whether a pressed option refers to the same person as an already-selected one. Login is the primary identity,
- * but login-less options (e.g. DMs whose participant details haven't loaded yet) would all compare equal on login
- * alone (undefined === undefined), so fall back to accountID, then reportID. Pairs with no shared identity are
- * treated as distinct so they follow the add path.
+ * Checks whether a pressed option is the same one already selected. We match on login first, but login-less
+ * options (e.g. DMs still loading) would all look equal (undefined === undefined), so we fall back to accountID
+ * and then reportID. Options that share no identity are treated as different and follow the add path.
  */
 function isSameSelectedOption(selectedOption: SelectedOption, option: ListItem & Partial<OptionData>): boolean {
     if (selectedOption.login || option.login) {
@@ -286,8 +285,8 @@ function NewChatPage({ref}: NewChatPageProps) {
         areOptionsInitialized,
     } = useOptions(reportAttributesDerived);
 
-    // Latest committed selection, kept in a ref so back-to-back toggles compose off the newest list instead of a
-    // stale render snapshot while the deferred (startTransition) selection update below is still catching up.
+    // Keep the latest selection in a ref so quick successive toggles build on the newest list, not a stale
+    // render snapshot, while the deferred setSelectedOptions below is still catching up.
     const latestSelectedOptionsRef = useRef(selectedOptions);
     useEffect(() => {
         latestSelectedOptionsRef.current = selectedOptions;
@@ -341,13 +340,11 @@ function NewChatPage({ref}: NewChatPageProps) {
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      */
     const toggleOption = (option: ListItem & Partial<OptionData>) => {
-        // Compose off the latest selection (not a render snapshot) so back-to-back toggles don't drop each
-        // other's pending updates while the deferred list update below is still catching up.
+        // Read the latest selection from the ref so quick toggles don't drop each other while the update is deferred.
         const currentSelectedOptions = latestSelectedOptionsRef.current;
         const isOptionInList = currentSelectedOptions.some((selectedOption) => isSameSelectedOption(selectedOption, option));
-        // Removal intent comes from the pressed row's rendered state, not from ref membership: while the
-        // transition is pending the row still shows its stale control, so a re-press on a still-visible
-        // "Add to group" button must stay an add (idempotent below) rather than silently cancel the pending one.
+        // Decide removal from what the row currently shows, not ref membership: while the update is pending the row
+        // still shows the old "Add to group" button, so pressing it again should add (a no-op below), not undo.
         const shouldRemoveOption = !!option.isSelected && isOptionInList;
 
         let newSelectedOptions: SelectedOption[];
@@ -355,14 +352,14 @@ function NewChatPage({ref}: NewChatPageProps) {
         if (shouldRemoveOption) {
             newSelectedOptions = reject(currentSelectedOptions, (selectedOption) => isSameSelectedOption(selectedOption, option));
         } else if (isOptionInList) {
-            // Already added by a previous press of the same still-visible Add button; nothing to change.
+            // Already added by an earlier press of the still-visible Add button, so nothing changes.
             newSelectedOptions = currentSelectedOptions;
         } else {
             newSelectedOptions = [...currentSelectedOptions, {...option, isSelected: true, reportID: option.reportID, keyForList: `${option.keyForList ?? option.reportID}`}];
         }
 
-        // Advance the ref immediately so a second tap landing before the transition commits composes off this
-        // result instead of dropping it. External updates re-sync the ref via the effect above.
+        // Update the ref now so a second tap before the transition commits builds on this result. Outside
+        // changes re-sync the ref through the effect above.
         latestSelectedOptionsRef.current = newSelectedOptions;
 
         selectionListRef.current?.clearInputAfterSelect();
@@ -370,9 +367,8 @@ function NewChatPage({ref}: NewChatPageProps) {
             selectionListRef.current?.focusTextInput();
         }
 
-        // The selection update fans out into the whole options pipeline (getValidOptions -> filterAndOrderOptions ->
-        // sections -> useFlattenedSections -> every visible row re-render). Run it as a transition so the tapped
-        // checkbox (which shows optimistic feedback) can paint first and the heavy re-render doesn't block the frame.
+        // setSelectedOptions triggers a heavy re-render (getValidOptions -> filterAndOrderOptions -> sections ->
+        // every visible row). Run it in a transition so the tapped checkbox paints first and this doesn't block the frame.
         startTransition(() => {
             setSelectedOptions(newSelectedOptions);
 
@@ -408,9 +404,8 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
 
-        // Gate on the latest-selection ref (not the render snapshot): a row press can land during the deferred
-        // selection transition, when selectedOptions is still empty but a member is already pending in the ref.
-        // Reading the ref keeps that press an "add to group" instead of falling through to the 1:1 chat path.
+        // Use the ref, not the render snapshot: a press can land mid-transition when selectedOptions is still empty
+        // but a member is already pending in the ref. Reading the ref keeps it an "add to group", not a 1:1 chat.
         const latestSelectedOptions = latestSelectedOptionsRef.current;
 
         if (latestSelectedOptions.length && option) {
@@ -496,12 +491,10 @@ function NewChatPage({ref}: NewChatPageProps) {
         if (!personalData?.login || !personalData.accountID) {
             return;
         }
-        // Read from the latest-selection ref (not the render snapshot): the Next button stays tappable while the
-        // deferred selection transition is still pending, so tapping "Add to group" then quickly Next must not rebuild
-        // the draft from a stale selectedOptions that drops the just-added participant.
+        // Use the ref, not the render snapshot: Next stays tappable during the pending transition, so "Add to group"
+        // then a quick Next must not rebuild the draft from a stale selectedOptions that drops the new participant.
         const latestSelectedOptions = latestSelectedOptionsRef.current;
-        // Conversely, the stale Next button can be tapped right after the last member was removed; don't build
-        // a group draft containing only the current user.
+        // Likewise, Next can be tapped right after the last member is removed; don't build a draft with only yourself.
         if (latestSelectedOptions.length === 0) {
             return;
         }

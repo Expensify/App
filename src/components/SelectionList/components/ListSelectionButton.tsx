@@ -50,12 +50,10 @@ function ListSelectionButton<TItem extends ListItem>({
 }: ListSelectionButtonProps<TItem> & {role: typeof CONST.ROLE.CHECKBOX | typeof CONST.ROLE.RADIO}) {
     const label = accessibilityLabel ?? item.text ?? '';
 
-    // Paint the checkmark immediately on press, even when the parent defers the (expensive) selection-state
-    // update in a transition. The optimistic value is dropped as soon as the item prop catches up
-    // (state-adjustment-during-render, see https://react.dev/reference/react/useState#storing-information-from-previous-renders).
-    // Track the row identity (keyForList) alongside isSelected: SelectionList rows render through FlashList and are
-    // recycled, so the same component instance can receive a different item with the same isSelected value - resetting
-    // on identity change prevents a stale optimistic checkmark from leaking onto the recycled row.
+    // Show the checkmark right away on press instead of waiting for the parent's deferred selection update.
+    // We drop this optimistic value once the item prop catches up (adjusting state during render, see React docs).
+    // We also track keyForList because FlashList recycles rows, so one instance can receive a different item with
+    // the same isSelected value - resetting on identity change avoids showing a stale checkmark on a recycled row.
     const isCheckedProp = item.isSelected ?? false;
     const [prevItem, setPrevItem] = useState({key: item.keyForList, checked: isCheckedProp});
     const [optimisticChecked, setOptimisticChecked] = useState<boolean | null>(null);
@@ -72,9 +70,8 @@ function ListSelectionButton<TItem extends ListItem>({
             accessibilityLabel={label}
             isChecked={isChecked}
             onPress={() => {
-                // A checkbox toggles, so flip the current value. A radio press only ever selects, so paint it
-                // checked - inverting an already-checked radio would leave it stuck unchecked because its
-                // isSelected prop never changes to trigger the reset above.
+                // A checkbox flips; a radio only ever selects. Flipping an already-checked radio would leave it
+                // stuck unchecked since its isSelected prop never changes to reset the optimistic value.
                 setOptimisticChecked(role === CONST.ROLE.RADIO ? true : !isChecked);
                 onSelectRow(item);
             }}
