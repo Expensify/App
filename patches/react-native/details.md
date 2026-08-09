@@ -340,3 +340,10 @@
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/55751 (introduced the fix behind the `fixFindShadowNodeByTagRaceCondition` flag) and https://github.com/facebook/react-native/pull/56850 (removed the flag in RN 0.87.0)
 - E/App issue: https://github.com/Expensify/App/issues/97471
 - PR introducing patch: https://github.com/Expensify/App/pull/97496
+
+### [react-native+0.85.3+041+ios-responder-ignore-scroll.patch](react-native+0.85.3+041+ios-responder-ignore-scroll.patch)
+
+- Reason: Fixes taps being silently cancelled on iOS when a relayout-driven scroll lands mid-press. The responder plugin starts a negotiation on every `topScroll` event whose payload lacks `responderIgnoreScroll`, and `ScrollView._handleScrollShouldSetResponder` accepts whenever a finger is down. iOS never set the key, so a scroll that moved nothing could take the responder from a live press and terminate it, giving `onPressIn` and `onPressOut` with no `onPress`. Android sends `true` because `shouldTriggerResponderTransferOnScrollAndroid` defaults to `false`, which is why the defect is iOS only. The patch adds the field to `ScrollEvent` and sets it on iOS from `_isUserTriggeredScrolling`, so a real drag still transfers the responder and still cancels the press. It also sets it on `TextInputEventEmitter`, the only other emitter of this event on Fabric iOS. Android's text input already sends the key, because it dispatches the same shared `ScrollEvent`.
+- Upstream PR/issue: https://github.com/react/react-native/pull/57546
+- E/App issue: https://github.com/Expensify/App/issues/97127
+- PR introducing patch: 🛑
