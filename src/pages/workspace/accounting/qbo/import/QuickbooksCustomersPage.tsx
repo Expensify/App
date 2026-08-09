@@ -51,7 +51,7 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
             displayName="QuickbooksCustomersPage"
             headerTitle="workspace.qbo.customers"
             title="workspace.qbo.customersDescription"
-            titleAlreadyTranslated={translate('workspace.qbo.customersDescription', {integrationName})}
+            titleAlreadyTranslated={translate('workspace.qbo.customersDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
