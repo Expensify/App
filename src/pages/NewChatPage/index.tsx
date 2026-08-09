@@ -455,6 +455,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                     disabled={!!item.isDisabled}
                     accessibilityLabel={item.text ? translate('selectionList.userSelected', item.text) : ''}
                     style={styles.ml5}
+                    shouldUseOptimisticSelection
                 />
             );
         }

@@ -37,6 +37,7 @@ describe('ListSelectionButton', () => {
             <ListCheckbox
                 item={buildItem(false)}
                 onSelectRow={onSelectRow}
+                shouldUseOptimisticSelection
             />,
         );
 
@@ -49,11 +50,28 @@ describe('ListSelectionButton', () => {
         expect(getCheckedState()).toBe(true);
     });
 
+    it('does not paint optimistically when the opt-in is off (default for every other list)', () => {
+        const onSelectRow = jest.fn();
+        render(
+            <ListCheckbox
+                item={buildItem(false)}
+                onSelectRow={onSelectRow}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId(TEST_ID));
+
+        // Without the opt-in the check follows item.isSelected only, so it stays unchecked until the prop updates.
+        expect(onSelectRow).toHaveBeenCalledTimes(1);
+        expect(getCheckedState()).toBe(false);
+    });
+
     it('drops the optimistic value once the item prop catches up', () => {
         const {rerender} = render(
             <ListCheckbox
                 item={buildItem(false)}
                 onSelectRow={jest.fn()}
+                shouldUseOptimisticSelection
             />,
         );
 
@@ -65,6 +83,7 @@ describe('ListSelectionButton', () => {
             <ListCheckbox
                 item={buildItem(true)}
                 onSelectRow={jest.fn()}
+                shouldUseOptimisticSelection
             />,
         );
         expect(getCheckedState()).toBe(true);
@@ -74,6 +93,7 @@ describe('ListSelectionButton', () => {
             <ListCheckbox
                 item={buildItem(false)}
                 onSelectRow={jest.fn()}
+                shouldUseOptimisticSelection
             />,
         );
         expect(getCheckedState()).toBe(false);
@@ -84,6 +104,7 @@ describe('ListSelectionButton', () => {
             <ListCheckbox
                 item={buildItem(false)}
                 onSelectRow={jest.fn()}
+                shouldUseOptimisticSelection
             />,
         );
 
@@ -100,6 +121,7 @@ describe('ListSelectionButton', () => {
             <ListCheckbox
                 item={buildItem(false, 'user-a')}
                 onSelectRow={jest.fn()}
+                shouldUseOptimisticSelection
             />,
         );
 
@@ -111,6 +133,7 @@ describe('ListSelectionButton', () => {
             <ListCheckbox
                 item={buildItem(false, 'user-b')}
                 onSelectRow={jest.fn()}
+                shouldUseOptimisticSelection
             />,
         );
         expect(getCheckedState()).toBe(false);

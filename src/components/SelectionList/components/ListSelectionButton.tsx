@@ -29,6 +29,9 @@ type ListSelectionButtonProps<TItem extends ListItem> = {
     /** Whether to stop mouse down event propagation */
     shouldStopMouseDownPropagation?: boolean;
 
+    /** Paint the checkmark on press before the parent's selection update lands. Opt-in for pages that defer that update. */
+    shouldUseOptimisticSelection?: boolean;
+
     /** Test ID */
     testID?: string;
 
@@ -45,21 +48,22 @@ function ListSelectionButton<TItem extends ListItem>({
     style,
     containerStyle,
     shouldStopMouseDownPropagation = true,
+    shouldUseOptimisticSelection = false,
     testID,
     tabIndex,
 }: ListSelectionButtonProps<TItem> & {role: typeof CONST.ROLE.CHECKBOX | typeof CONST.ROLE.RADIO}) {
     const label = accessibilityLabel ?? item.text ?? '';
 
-    // Show the checkmark on press, then drop this optimistic value once the item prop catches up.
-    // keyForList is tracked too so a recycled FlashList row doesn't keep the previous row's checkmark.
     const isCheckedProp = item.isSelected ?? false;
+    // Optimistic checkmark, only when opted in. Drop it once item.isSelected catches up, and reset on keyForList change
+    // so a recycled FlashList row doesn't keep the previous row's checkmark. Off by default, so other lists are unchanged.
     const [prevItem, setPrevItem] = useState({key: item.keyForList, checked: isCheckedProp});
     const [optimisticChecked, setOptimisticChecked] = useState<boolean | null>(null);
-    if (prevItem.key !== item.keyForList || prevItem.checked !== isCheckedProp) {
+    if (shouldUseOptimisticSelection && (prevItem.key !== item.keyForList || prevItem.checked !== isCheckedProp)) {
         setPrevItem({key: item.keyForList, checked: isCheckedProp});
         setOptimisticChecked(null);
     }
-    const isChecked = optimisticChecked ?? isCheckedProp;
+    const isChecked = shouldUseOptimisticSelection ? (optimisticChecked ?? isCheckedProp) : isCheckedProp;
 
     return (
         <SelectionButton
@@ -68,8 +72,10 @@ function ListSelectionButton<TItem extends ListItem>({
             accessibilityLabel={label}
             isChecked={isChecked}
             onPress={() => {
-                // Checkbox flips; radio only selects (flipping a checked radio would stick, its prop never changes).
-                setOptimisticChecked(role === CONST.ROLE.RADIO ? true : !isChecked);
+                // A radio only ever selects (paint checked, never flip off); a checkbox toggles.
+                if (shouldUseOptimisticSelection) {
+                    setOptimisticChecked(role === CONST.ROLE.RADIO ? true : !isChecked);
+                }
                 onSelectRow(item);
             }}
             disabled={disabled}
