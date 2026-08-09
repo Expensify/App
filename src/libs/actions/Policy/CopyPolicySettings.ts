@@ -247,7 +247,7 @@ function buildPolicyFieldPatch(sourcePolicy: Policy, targetPolicy: Policy, parts
         const retainedTargetFields = Object.entries(targetPolicy.fieldList ?? {}).filter(([, field]) => !shouldCopyField(field));
         const copiedSourceFields = Object.entries(sourcePolicy.fieldList ?? {}).filter(([, field]) => shouldCopyField(field));
         const mergedFields = [...retainedTargetFields, ...copiedSourceFields];
-        patch.fieldList = mergedFields.length > 0 ? Object.fromEntries(mergedFields) : sourcePolicy.fieldList;
+        patch.fieldList = Object.fromEntries(mergedFields);
     }
 
     return patch;
