@@ -16,8 +16,7 @@ const buildItem = (isSelected: boolean, keyForList = 'test-user'): ListItem => (
     isSelected,
 });
 
-// The pressable renders with accessible={false}, so role-based queries and toBeChecked() can't reach it -
-// read the checked flag from the accessibility state it exposes instead.
+// The pressable is accessible={false}, so read the checked flag from its accessibility state directly.
 const getCheckedState = (): unknown => {
     const props: unknown = screen.getByTestId(TEST_ID).props;
     if (typeof props !== 'object' || props === null || !('accessibilityState' in props)) {
@@ -107,8 +106,7 @@ describe('ListSelectionButton', () => {
         fireEvent.press(screen.getByTestId(TEST_ID));
         expect(getCheckedState()).toBe(true);
 
-        // FlashList recycles the cell to a different, still-unselected item (same isSelected, new keyForList).
-        // The optimistic checkmark from the previous row must not leak onto the recycled one.
+        // FlashList recycles the cell to a new item (same isSelected, new keyForList); the old checkmark must not leak.
         rerender(
             <ListCheckbox
                 item={buildItem(false, 'user-b')}
@@ -119,8 +117,7 @@ describe('ListSelectionButton', () => {
     });
 
     it('keeps a selected radio checked when it is pressed again', () => {
-        // A radio press only ever selects, so re-pressing an already-selected radio (whose isSelected prop
-        // never changes) must not optimistically flip it to unchecked.
+        // A radio only selects, so re-pressing a checked radio must not flip it to unchecked.
         render(
             <ListRadioButton
                 item={buildItem(true)}

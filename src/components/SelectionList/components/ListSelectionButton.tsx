@@ -50,10 +50,8 @@ function ListSelectionButton<TItem extends ListItem>({
 }: ListSelectionButtonProps<TItem> & {role: typeof CONST.ROLE.CHECKBOX | typeof CONST.ROLE.RADIO}) {
     const label = accessibilityLabel ?? item.text ?? '';
 
-    // Show the checkmark right away on press instead of waiting for the parent's deferred selection update.
-    // We drop this optimistic value once the item prop catches up (adjusting state during render, see React docs).
-    // We also track keyForList because FlashList recycles rows, so one instance can receive a different item with
-    // the same isSelected value - resetting on identity change avoids showing a stale checkmark on a recycled row.
+    // Show the checkmark on press, then drop this optimistic value once the item prop catches up.
+    // keyForList is tracked too so a recycled FlashList row doesn't keep the previous row's checkmark.
     const isCheckedProp = item.isSelected ?? false;
     const [prevItem, setPrevItem] = useState({key: item.keyForList, checked: isCheckedProp});
     const [optimisticChecked, setOptimisticChecked] = useState<boolean | null>(null);
@@ -70,8 +68,7 @@ function ListSelectionButton<TItem extends ListItem>({
             accessibilityLabel={label}
             isChecked={isChecked}
             onPress={() => {
-                // A checkbox flips; a radio only ever selects. Flipping an already-checked radio would leave it
-                // stuck unchecked since its isSelected prop never changes to reset the optimistic value.
+                // Checkbox flips; radio only selects (flipping a checked radio would stick, its prop never changes).
                 setOptimisticChecked(role === CONST.ROLE.RADIO ? true : !isChecked);
                 onSelectRow(item);
             }}

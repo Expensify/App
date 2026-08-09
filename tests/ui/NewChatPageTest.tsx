@@ -27,8 +27,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@react-navigation/native');
 jest.mock('@src/libs/Navigation/navigationRef');
-// Force the web (passthrough) implementation. Jest would otherwise pick the .native variant, whose in-flight
-// guard swallows the rapid re-presses these pending-transition tests rely on. Web has no such guard.
+// Use the web (passthrough) variant; the .native one has an in-flight guard that swallows the rapid re-presses.
 jest.mock('@hooks/useSingleExecution', (): unknown => jest.requireActual('@hooks/useSingleExecution/index.ts'));
 jest.mock('react-native-permissions', () => ({
     __esModule: true,
@@ -230,9 +229,7 @@ describe('NewChatPage', () => {
         await waitForBatchedUpdatesWithAct();
         expect(screen.getByText(translateLocal('common.next'))).toBeVisible();
 
-        // Toggle the selected row's checkbox (it is only rendered on selected rows). The selection update now runs
-        // as a transition, so this covers that deferring it does not change the toggle semantics: the user is
-        // unselected and group-selection mode is exited.
+        // Untoggle the selected row's checkbox; deferring the update must still unselect and exit group mode.
         const checkedCheckbox = screen.getAllByTestId(new RegExp(`^${CONST.SELECTION_BUTTON_TEST_ID}`)).at(0);
         expect(checkedCheckbox).toBeTruthy();
         if (!checkedCheckbox) {
@@ -271,8 +268,7 @@ describe('NewChatPage', () => {
             return;
         }
 
-        // Both presses share one act() batch so nothing commits between them: the second press hits the same
-        // still-visible "Add to group" button, mimicking a double-tap before the deferred update catches up.
+        // One act() batch so nothing commits between the presses: the second hits the same Add button (double-tap).
         // eslint-disable-next-line testing-library/no-unnecessary-act -- the shared act batch is the point: it keeps the deferred update from committing between the two presses
         act(() => {
             fireEvent.press(addButton);
@@ -318,8 +314,7 @@ describe('NewChatPage', () => {
             return;
         }
 
-        // Both presses share one act() batch so nothing commits between them: Next is still rendered when pressed
-        // even though the last member was just removed. Confirming with an empty selection must not navigate.
+        // One act() batch so nothing commits between the presses: Next is still shown after removing the last member.
         // eslint-disable-next-line testing-library/no-unnecessary-act -- the shared act batch is the point: it keeps the deferred update from committing between the two presses
         act(() => {
             fireEvent.press(checkedCheckbox);
@@ -345,7 +340,7 @@ describe('NewChatPage', () => {
             triggerTransitionEnd();
         });
 
-        // Wait until more than one selectable user is rendered so we have a first user to add and a second row to press.
+        // Wait for more than one selectable user so we have a first to add and a second row to press.
         await waitFor(() => {
             expect(screen.getAllByText(translateLocal('newChatPage.addToGroup')).length).toBeGreaterThan(1);
         });
@@ -353,7 +348,7 @@ describe('NewChatPage', () => {
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
         const dismissModalSpy = jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
 
-        // The "Add to group" button belongs to the first user; the rows (onSelectRow -> selectOption) belong to the individual users in order.
+        // The Add button is the first user's; the rows map to each user in order.
         const addButton = screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0);
         const secondRow = screen.getAllByTestId(new RegExp(`^${CONST.BASE_LIST_ITEM_TEST_ID}`)).at(1);
         expect(addButton).toBeTruthy();
@@ -362,9 +357,8 @@ describe('NewChatPage', () => {
             return;
         }
 
-        // Both presses share one act() batch so nothing commits between them: the second user's row is pressed while
-        // selectedOptions is still empty and only the ref holds the first member. selectOption must read that ref and
-        // add the second user to the group, not fall through to the 1:1 chat path.
+        // One act() batch so nothing commits between the presses: the second row is pressed while selectedOptions is
+        // still empty and only the ref holds the first member, so selectOption must add it, not open a 1:1 chat.
         // eslint-disable-next-line testing-library/no-unnecessary-act -- the shared act batch is the point: it keeps the deferred update from committing between the two presses
         act(() => {
             fireEvent.press(addButton);

@@ -60,11 +60,7 @@ import useGroupChatDraftParticipantSync from './useGroupChatDraftParticipantSync
 const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE));
 const PAGINATION_SIZE = CONST.MAX_SELECTION_LIST_PAGE_LENGTH;
 
-/**
- * Checks whether a pressed option is the same one already selected. We match on login first, but login-less
- * options (e.g. DMs still loading) would all look equal (undefined === undefined), so we fall back to accountID
- * and then reportID. Options that share no identity are treated as different and follow the add path.
- */
+// Match options by login, then accountID, then reportID (login-less options would all tie on undefined).
 function isSameSelectedOption(selectedOption: SelectedOption, option: ListItem & Partial<OptionData>): boolean {
     if (selectedOption.login || option.login) {
         return selectedOption.login === option.login;
@@ -285,8 +281,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         areOptionsInitialized,
     } = useOptions(reportAttributesDerived);
 
-    // Keep the latest selection in a ref so quick successive toggles build on the newest list, not a stale
-    // render snapshot, while the deferred setSelectedOptions below is still catching up.
+    // Latest selection in a ref so fast toggles build on it while the deferred setSelectedOptions catches up.
     const latestSelectedOptionsRef = useRef(selectedOptions);
     useEffect(() => {
         latestSelectedOptionsRef.current = selectedOptions;
@@ -340,11 +335,9 @@ function NewChatPage({ref}: NewChatPageProps) {
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      */
     const toggleOption = (option: ListItem & Partial<OptionData>) => {
-        // Read the latest selection from the ref so quick toggles don't drop each other while the update is deferred.
         const currentSelectedOptions = latestSelectedOptionsRef.current;
         const isOptionInList = currentSelectedOptions.some((selectedOption) => isSameSelectedOption(selectedOption, option));
-        // Decide removal from what the row currently shows, not ref membership: while the update is pending the row
-        // still shows the old "Add to group" button, so pressing it again should add (a no-op below), not undo.
+        // Base removal on the row's shown state so re-pressing a still-visible Add stays an add, not an undo.
         const shouldRemoveOption = !!option.isSelected && isOptionInList;
 
         let newSelectedOptions: SelectedOption[];
@@ -352,14 +345,13 @@ function NewChatPage({ref}: NewChatPageProps) {
         if (shouldRemoveOption) {
             newSelectedOptions = reject(currentSelectedOptions, (selectedOption) => isSameSelectedOption(selectedOption, option));
         } else if (isOptionInList) {
-            // Already added by an earlier press of the still-visible Add button, so nothing changes.
+            // Already added, so nothing changes.
             newSelectedOptions = currentSelectedOptions;
         } else {
             newSelectedOptions = [...currentSelectedOptions, {...option, isSelected: true, reportID: option.reportID, keyForList: `${option.keyForList ?? option.reportID}`}];
         }
 
-        // Update the ref now so a second tap before the transition commits builds on this result. Outside
-        // changes re-sync the ref through the effect above.
+        // Advance the ref now so a second tap builds on this result.
         latestSelectedOptionsRef.current = newSelectedOptions;
 
         selectionListRef.current?.clearInputAfterSelect();
@@ -367,8 +359,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             selectionListRef.current?.focusTextInput();
         }
 
-        // setSelectedOptions triggers a heavy re-render (getValidOptions -> filterAndOrderOptions -> sections ->
-        // every visible row). Run it in a transition so the tapped checkbox paints first and this doesn't block the frame.
+        // Defer the heavy list re-render so the tapped checkbox paints first.
         startTransition(() => {
             setSelectedOptions(newSelectedOptions);
 
@@ -404,8 +395,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
 
-        // Use the ref, not the render snapshot: a press can land mid-transition when selectedOptions is still empty
-        // but a member is already pending in the ref. Reading the ref keeps it an "add to group", not a 1:1 chat.
+        // Use the ref: a press mid-transition sees empty selectedOptions but a pending member, so keep it an add.
         const latestSelectedOptions = latestSelectedOptionsRef.current;
 
         if (latestSelectedOptions.length && option) {
@@ -491,10 +481,9 @@ function NewChatPage({ref}: NewChatPageProps) {
         if (!personalData?.login || !personalData.accountID) {
             return;
         }
-        // Use the ref, not the render snapshot: Next stays tappable during the pending transition, so "Add to group"
-        // then a quick Next must not rebuild the draft from a stale selectedOptions that drops the new participant.
+        // Use the ref so a quick Next after Add doesn't rebuild from a stale selection.
         const latestSelectedOptions = latestSelectedOptionsRef.current;
-        // Likewise, Next can be tapped right after the last member is removed; don't build a draft with only yourself.
+        // Empty selection, so don't build a self-only draft.
         if (latestSelectedOptions.length === 0) {
             return;
         }
