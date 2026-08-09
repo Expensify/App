@@ -67,7 +67,7 @@ type AddNewCompanyCardFlowData = {
 
 type ImportCSVCompanyCardsData = {
     policyID: string;
-    workspaceAccountID: number;
+    domainAccountID: number;
     layoutName: string;
     layoutType: string;
     columnMappings: string[];
@@ -1236,7 +1236,7 @@ function setFeedStatementPeriodEndDay(
 
 function importCSVCompanyCards({
     policyID,
-    workspaceAccountID,
+    domainAccountID,
     layoutName,
     layoutType,
     columnMappings,
@@ -1260,9 +1260,10 @@ function importCSVCompanyCards({
             layoutType,
         }),
         csvData: JSON.stringify(csvDataWithGeneratedIDs),
+        domainAccountID,
     };
 
-    const feedNameWithDomainID = getCardFeedWithDomainID(feedName, workspaceAccountID);
+    const feedNameWithDomainID = getCardFeedWithDomainID(feedName, domainAccountID);
     const existingCompanyCards = workspaceCardFeeds?.settings?.companyCards ?? {};
     const existingNicknames = workspaceCardFeeds?.settings?.companyCardNicknames ?? {};
     const shouldCreateFeed = !existingCompanyCards?.[feedName];
@@ -1303,7 +1304,7 @@ function importCSVCompanyCards({
     if (shouldCreateFeed || shouldSetNickname) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
             value: {
                 settings: {
                     ...(shouldCreateFeed
@@ -1329,7 +1330,7 @@ function importCSVCompanyCards({
 
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
             value: {
                 settings: {
                     ...(shouldCreateFeed ? {companyCards: {[feedName]: null}} : {}),

@@ -60,6 +60,7 @@ describe('updateMoneyRequestVendor', () => {
         updateMoneyRequestVendor({
             transactionID: TRANSACTION_ID,
             vendorID: 'v-active',
+            vendorName: 'Active Vendor',
             transaction: baseTransaction,
             delegateAccountID: undefined,
             transactionViolations: [otherViolation, inactiveVendorViolation],
@@ -73,6 +74,7 @@ describe('updateMoneyRequestVendor', () => {
         updateMoneyRequestVendor({
             transactionID: TRANSACTION_ID,
             vendorID: '',
+            vendorName: '',
             transaction: baseTransaction,
             delegateAccountID: undefined,
             transactionViolations: [inactiveVendorViolation],
@@ -85,14 +87,28 @@ describe('updateMoneyRequestVendor', () => {
     it('restores the original violation list in failureData so a server rejection rolls back cleanly', () => {
         const original = [otherViolation, inactiveVendorViolation];
 
-        updateMoneyRequestVendor({transactionID: TRANSACTION_ID, vendorID: 'v-active', transaction: baseTransaction, delegateAccountID: undefined, transactionViolations: original});
+        updateMoneyRequestVendor({
+            transactionID: TRANSACTION_ID,
+            vendorID: 'v-active',
+            vendorName: 'Active Vendor',
+            transaction: baseTransaction,
+            delegateAccountID: undefined,
+            transactionViolations: original,
+        });
 
         const failureViolations = getRequiredOnyxUpdate(getOnyxDataArg(), 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`, Onyx.METHOD.SET, true);
         expect(failureViolations.value).toEqual(original);
     });
 
     it('does not write a violations update when there was no inactive-vendor violation to clear', () => {
-        updateMoneyRequestVendor({transactionID: TRANSACTION_ID, vendorID: 'v-active', transaction: baseTransaction, delegateAccountID: undefined, transactionViolations: [otherViolation]});
+        updateMoneyRequestVendor({
+            transactionID: TRANSACTION_ID,
+            vendorID: 'v-active',
+            vendorName: 'Active Vendor',
+            transaction: baseTransaction,
+            delegateAccountID: undefined,
+            transactionViolations: [otherViolation],
+        });
 
         const violationsUpdate = getRequiredOnyxUpdates(getOnyxDataArg(), 'optimisticData').some(
             (entry) => isObject(entry) && entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`,
@@ -106,7 +122,14 @@ describe('updateMoneyRequestVendor', () => {
         await waitForBatchedUpdates();
 
         // When: a vendor is picked while passing an empty violations parameter
-        updateMoneyRequestVendor({transactionID: TRANSACTION_ID, vendorID: 'v-active', transaction: baseTransaction, delegateAccountID: undefined, transactionViolations: []});
+        updateMoneyRequestVendor({
+            transactionID: TRANSACTION_ID,
+            vendorID: 'v-active',
+            vendorName: 'Active Vendor',
+            transaction: baseTransaction,
+            delegateAccountID: undefined,
+            transactionViolations: [],
+        });
 
         // Then: no violations update is written, proving the parameter (not the global collection) drives the logic.
         const violationsUpdate = getRequiredOnyxUpdates(getOnyxDataArg(), 'optimisticData').some(
@@ -123,7 +146,7 @@ describe('updateMoneyRequestVendor', () => {
         });
         await waitForBatchedUpdates();
 
-        updateMoneyRequestVendor({transactionID: TRANSACTION_ID, vendorID: 'v-new', delegateAccountID: undefined, transactionViolations: undefined});
+        updateMoneyRequestVendor({transactionID: TRANSACTION_ID, vendorID: 'v-new', vendorName: 'New Vendor', delegateAccountID: undefined, transactionViolations: undefined});
 
         const transactionFailure = getRequiredOnyxUpdate(getOnyxDataArg(), 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, Onyx.METHOD.MERGE, true);
         expect(transactionFailure.value).toEqual({
@@ -136,24 +159,40 @@ describe('updateMoneyRequestVendor', () => {
         // No transaction arg + nothing in Onyx — the prior vendor is unknown, so we must not
         // write `vendor: null` and silently clear whatever the server actually has. The
         // pendingFields-clear entry still runs (so the offline indicator clears on rejection).
-        updateMoneyRequestVendor({transactionID: TRANSACTION_ID, vendorID: 'v-new', delegateAccountID: undefined, transactionViolations: undefined});
+        updateMoneyRequestVendor({transactionID: TRANSACTION_ID, vendorID: 'v-new', vendorName: 'New Vendor', delegateAccountID: undefined, transactionViolations: undefined});
 
         const transactionFailure = getRequiredOnyxUpdate(getOnyxDataArg(), 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, Onyx.METHOD.MERGE, true);
         expect(transactionFailure.value).toEqual({pendingFields: {vendor: null}});
     });
 
     it('writes pendingFields.vendor = UPDATE in optimisticData so the offline indicator surfaces', () => {
-        updateMoneyRequestVendor({transactionID: TRANSACTION_ID, vendorID: 'v-new', transaction: baseTransaction, delegateAccountID: undefined, transactionViolations: undefined});
+        updateMoneyRequestVendor({
+            transactionID: TRANSACTION_ID,
+            vendorID: 'v-new',
+            vendorName: 'New Vendor',
+            transaction: baseTransaction,
+            delegateAccountID: undefined,
+            transactionViolations: undefined,
+        });
 
         const transactionOptimistic = getRequiredOnyxUpdate(getOnyxDataArg(), 'optimisticData', `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, Onyx.METHOD.MERGE, true);
+        // The selected vendor's display name is persisted alongside the externalID so the title still
+        // renders a human-readable label after the vendor later leaves the workspace's synced list.
         expect(transactionOptimistic.value).toEqual({
-            comment: {vendor: {externalID: 'v-new', isManuallySet: true}},
+            comment: {vendor: {externalID: 'v-new', name: 'New Vendor', isManuallySet: true}},
             pendingFields: {vendor: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
         });
     });
 
     it('clears pendingFields.vendor in successData when the server confirms the write', () => {
-        updateMoneyRequestVendor({transactionID: TRANSACTION_ID, vendorID: 'v-new', transaction: baseTransaction, delegateAccountID: undefined, transactionViolations: undefined});
+        updateMoneyRequestVendor({
+            transactionID: TRANSACTION_ID,
+            vendorID: 'v-new',
+            vendorName: 'New Vendor',
+            transaction: baseTransaction,
+            delegateAccountID: undefined,
+            transactionViolations: undefined,
+        });
 
         const transactionSuccess = getRequiredOnyxUpdate(getOnyxDataArg(), 'successData', `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, Onyx.METHOD.MERGE, true);
         expect(transactionSuccess.value).toEqual({pendingFields: {vendor: null}});
@@ -162,7 +201,7 @@ describe('updateMoneyRequestVendor', () => {
     it('clears pendingFields.vendor in failureData when the server rejects the write', () => {
         // Even without a prior snapshot to roll the vendor itself back, the pending indicator must
         // clear on failure — otherwise the row stays stuck in "pending" forever after a server reject.
-        updateMoneyRequestVendor({transactionID: TRANSACTION_ID, vendorID: 'v-new', delegateAccountID: undefined, transactionViolations: undefined});
+        updateMoneyRequestVendor({transactionID: TRANSACTION_ID, vendorID: 'v-new', vendorName: 'New Vendor', delegateAccountID: undefined, transactionViolations: undefined});
 
         const transactionFailure = getRequiredOnyxUpdate(getOnyxDataArg(), 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, Onyx.METHOD.MERGE, true);
         expect(transactionFailure.value).toMatchObject({pendingFields: {vendor: null}});
@@ -195,6 +234,7 @@ describe('updateMoneyRequestVendor', () => {
             updateMoneyRequestVendor({
                 transactionID: TRANSACTION_ID,
                 vendorID: 'v-new',
+                vendorName: 'New Vendor',
                 transaction: baseTransaction,
                 transactionThreadReport,
                 delegateAccountID: undefined,
@@ -206,7 +246,7 @@ describe('updateMoneyRequestVendor', () => {
             // `oldVendor: null` signals "no prior vendor". Onyx strips nested nulls on merge, which
             // is fine — `ModifiedExpenseMessage` treats either key's presence as a vendor change.
             expect(getOriginalMessage(optimisticAction)).toMatchObject({
-                vendor: {externalID: 'v-new', isManuallySet: true},
+                vendor: {externalID: 'v-new', name: 'New Vendor', isManuallySet: true},
                 oldVendor: null,
             });
         });
@@ -221,6 +261,7 @@ describe('updateMoneyRequestVendor', () => {
             updateMoneyRequestVendor({
                 transactionID: TRANSACTION_ID,
                 vendorID: 'v-new',
+                vendorName: 'New Vendor',
                 transaction: transactionWithVendor,
                 transactionThreadReport,
                 delegateAccountID: undefined,
@@ -244,6 +285,7 @@ describe('updateMoneyRequestVendor', () => {
             updateMoneyRequestVendor({
                 transactionID: TRANSACTION_ID,
                 vendorID: '',
+                vendorName: '',
                 transaction: transactionWithVendor,
                 transactionThreadReport,
                 delegateAccountID: undefined,
@@ -261,6 +303,7 @@ describe('updateMoneyRequestVendor', () => {
             updateMoneyRequestVendor({
                 transactionID: TRANSACTION_ID,
                 vendorID: 'v-new',
+                vendorName: 'New Vendor',
                 transaction: baseTransaction,
                 delegateAccountID: undefined,
                 transactionViolations: undefined,
