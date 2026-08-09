@@ -4,6 +4,7 @@ import LocationPermissionModal from '@components/LocationPermissionModal';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
@@ -78,6 +79,7 @@ function SubmitDetailsPage({
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
@@ -287,6 +289,7 @@ function SubmitDetailsPage({
 
         if (isSelfDM(report)) {
             trackExpense({
+                getCurrencyDecimals,
                 report: report ?? {reportID: reportOrAccountID},
                 isDraftPolicy: false,
                 isDraftChatReport: !!reportDraft,
@@ -333,6 +336,7 @@ function SubmitDetailsPage({
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
             requestMoney({
+                getCurrencyDecimals,
                 report: reportToSubmit,
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
                 policyParams: {policy, policyTagList: policyTagsForRequestMoney, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags},

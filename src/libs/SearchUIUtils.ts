@@ -2788,6 +2788,9 @@ type CreateAndOpenSearchTransactionThreadParams = {
 
     /** Whether to navigate to the transaction thread after creating it */
     shouldNavigate?: boolean;
+
+    /** Resolves decimal precision for a currency when formatting stored optimistic amounts */
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 /** Creates transaction thread report and navigates to it from the search page */
@@ -2803,6 +2806,7 @@ function createAndOpenSearchTransactionThread({
     IOUTransactionID,
     transactionPreviewData,
     shouldNavigate = true,
+    getCurrencyDecimals,
 }: CreateAndOpenSearchTransactionThreadParams): string | undefined {
     const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
@@ -2811,7 +2815,7 @@ function createAndOpenSearchTransactionThread({
     const previewData = transactionPreviewData
         ? {...transactionPreviewData, hasTransactionThreadReport: true}
         : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
-    setOptimisticDataForTransactionThreadPreview(item, previewData, IOUTransactionID);
+    setOptimisticDataForTransactionThreadPreview(item, previewData, getCurrencyDecimals, IOUTransactionID);
 
     const hasActualTransactionThread = iouReportAction?.childReportID && iouReportAction?.childReportID !== CONST.FAKE_REPORT_ID;
     let transactionThreadReport;

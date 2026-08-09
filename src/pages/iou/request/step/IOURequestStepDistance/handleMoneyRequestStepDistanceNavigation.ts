@@ -111,6 +111,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     policyTagList: PolicyTagLists;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 /** Amount + merchant for a manual-distance submit; pending placeholders otherwise (waypoint/GPS distance is computed server-side). */
@@ -213,6 +214,7 @@ function handleMoneyRequestStepDistanceNavigation({
     policyTagList,
     formatPhoneNumber,
     getCurrencySymbol,
+    getCurrencyDecimals,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -346,6 +348,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             currentUserLocalCurrency,
                             delegateAccountID,
                             reportActionsList: undefined,
+                            getCurrencyDecimals,
                         });
                         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                             report,
@@ -422,6 +425,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         isTrackIntentUser,
                         delegateAccountID,
                         formatPhoneNumber,
+                        getCurrencyDecimals,
                         // buildParticipantsPolicyTags is deprecated but still needed here until this call site is migrated to useOnyx (https://github.com/Expensify/App/issues/72721)
                         // eslint-disable-next-line @typescript-eslint/no-deprecated
                         participantsPolicyTags: buildParticipantsPolicyTags(participants),

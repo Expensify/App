@@ -777,6 +777,7 @@ type DuplicateExpenseTransactionParams = {
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 function duplicateExpenseTransaction({
@@ -806,6 +807,7 @@ function duplicateExpenseTransaction({
     delegateAccountID,
     policyTagList,
     formatPhoneNumber,
+    getCurrencyDecimals,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -857,6 +859,7 @@ function duplicateExpenseTransaction({
         shouldDeferAutoSubmit,
         isTrackIntentUser,
         delegateAccountID,
+        getCurrencyDecimals,
     };
 
     // If no workspace is provided the expense should be unreported
@@ -1086,6 +1089,7 @@ function duplicateReport({
             shouldDeferAutoSubmit: !isLastExpense,
             isTrackIntentUser,
             delegateAccountID,
+            getCurrencyDecimals,
         };
 
         const result = createExpenseByType({
@@ -1137,6 +1141,7 @@ type BulkDuplicateExpensesParams = {
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 function bulkDuplicateExpenses({
@@ -1162,6 +1167,7 @@ function bulkDuplicateExpenses({
     delegateAccountID,
     policyTagList,
     formatPhoneNumber,
+    getCurrencyDecimals,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1261,6 +1267,7 @@ function bulkDuplicateExpenses({
             delegateAccountID,
             policyTagList,
             formatPhoneNumber,
+            getCurrencyDecimals,
         });
 
         if (result?.iouReport) {

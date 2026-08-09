@@ -3569,6 +3569,7 @@ describe('actions/Report', () => {
             // When moving to another workspace
             Report.changeReportPolicy({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -3629,6 +3630,7 @@ describe('actions/Report', () => {
             // When moving to another workspace
             Report.changeReportPolicy({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -3699,6 +3701,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicy({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -3795,6 +3798,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicy({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -3879,6 +3883,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicy({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -3931,6 +3936,7 @@ describe('actions/Report', () => {
             // When moving to another workspace
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4022,6 +4028,7 @@ describe('actions/Report', () => {
             // Call changeReportPolicyAndInviteSubmitter
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUser: {accountID: 1},
@@ -4066,6 +4073,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4096,6 +4104,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: targetPolicy,
                 currentUser: {accountID: 1},
@@ -4125,6 +4134,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4154,6 +4164,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4185,6 +4196,7 @@ describe('actions/Report', () => {
             // Do not set personal details for ownerAccountID so getLoginByAccountID returns empty
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4237,6 +4249,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: targetPolicy,
                 currentUser: {accountID: 1, email: 'current-user@expensifail.com'},
@@ -4684,6 +4697,7 @@ describe('actions/Report', () => {
             const policy = createRandomPolicy(Number(1));
             Report.buildOptimisticChangePolicyData({
                 report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -4738,6 +4752,7 @@ describe('actions/Report', () => {
 
             const {optimisticData, successData, failureData} = Report.buildOptimisticChangePolicyData({
                 report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -4802,6 +4817,7 @@ describe('actions/Report', () => {
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
                 report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -4850,6 +4866,7 @@ describe('actions/Report', () => {
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
                 report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -4911,6 +4928,7 @@ describe('actions/Report', () => {
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
                 report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -4975,6 +4993,7 @@ describe('actions/Report', () => {
 
             const {optimisticData, failureData} = Report.buildOptimisticChangePolicyData({
                 report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport,
                 policy,
                 currentUserAccountID: 1,
@@ -9343,6 +9362,7 @@ describe('actions/Report', () => {
 
         it('sets delegateAccountID when delegateAccountIDParam is provided', () => {
             const result = ReportUtils.buildOptimisticIOUReportAction({
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 100,
                 currency: CONST.CURRENCY.USD,
@@ -9356,6 +9376,7 @@ describe('actions/Report', () => {
 
         it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
             const result = ReportUtils.buildOptimisticIOUReportAction({
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 100,
                 currency: CONST.CURRENCY.USD,
@@ -9374,14 +9395,14 @@ describe('actions/Report', () => {
         it('sets delegateAccountID when delegateAccountIDParam is provided', () => {
             const chatReport = createMock<OnyxTypes.Report>({reportID: 'chat1'});
             const iouReport = createMock<OnyxTypes.Report>({reportID: 'iou1', ownerAccountID: 1, managerID: 2});
-            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, '', null, undefined, undefined, DELEGATE_ACCOUNT_ID);
+            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, '', null, undefined, undefined, DELEGATE_ACCOUNT_ID);
             expect(result.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
 
         it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
             const chatReport = createMock<OnyxTypes.Report>({reportID: 'chat2'});
             const iouReport = createMock<OnyxTypes.Report>({reportID: 'iou2', ownerAccountID: 1, managerID: 2});
-            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, '', null, undefined, undefined, undefined);
+            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, '', null, undefined, undefined, undefined);
             expect(result.delegateAccountID).toBeUndefined();
         });
     });
