@@ -20,7 +20,7 @@ type OnboardingHeaderProps = {
 
 /**
  * Popover-style back link: caret + "Back" label.
- * Matches the submenu back row used by PopoverMenu (components-popovermenu-v2--with-submenu).
+ * Matches the submenu back row used by PopoverMenu.
  */
 function OnboardingHeader({onBackButtonPress, shouldShowBackButton = true}: OnboardingHeaderProps) {
     const styles = useThemeStyles();
