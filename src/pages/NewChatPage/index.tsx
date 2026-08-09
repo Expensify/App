@@ -77,6 +77,7 @@ function isSameSelectedOption(selectedOption: SelectedOption, option: ListItem &
 }
 
 function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined) {
+    const {translate} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -160,6 +161,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             selectedOptions,
             includeSelectedOptions: true,
         },
+        translate,
     );
 
     const areOptionsInitialized = !isLoading;
