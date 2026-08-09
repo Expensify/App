@@ -559,7 +559,8 @@ function NewChatPage({ref}: NewChatPageProps) {
                 shouldUpdateFocusedIndex
                 shouldSingleExecuteRowSelect
                 confirmButtonOptions={{
-                    onConfirm: (e, option) => (selectedOptions.length > 0 ? createGroup() : selectOption(option)),
+                    // Gate on the ref, like createGroup: mid-transition selectedOptions can still be 0 with a pending member.
+                    onConfirm: (e, option) => (latestSelectedOptionsRef.current.length > 0 ? createGroup() : selectOption(option)),
                 }}
                 rightHandSideComponent={itemRightSideComponent}
                 footerContent={footerContent}
