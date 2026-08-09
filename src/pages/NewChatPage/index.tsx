@@ -25,7 +25,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {filterAndOrderOptions, getHeaderMessage, getValidOptions} from '@libs/OptionsListUtils';
@@ -264,10 +263,6 @@ function NewChatPage({ref}: NewChatPageProps) {
 
     const {singleExecution} = useSingleExecution();
 
-    // Only web/desktop defers the selection update for the INP win (and so needs the optimistic checkmark).
-    // Native updates synchronously, matching main, so rapid checkbox taps aren't dropped by a deferred commit.
-    const shouldUseOptimisticSelection = getPlatform() === CONST.PLATFORM.WEB;
-
     useImperativeHandle(ref, () => ({
         focus: selectionListRef.current?.focusTextInput,
     }));
@@ -383,13 +378,8 @@ function NewChatPage({ref}: NewChatPageProps) {
             setGroupDraft({participants});
         };
 
-        // Web/desktop defers the heavy list re-render so the tapped checkbox paints first; native commits
-        // synchronously so back-to-back taps aren't dropped by the deferred update.
-        if (shouldUseOptimisticSelection) {
-            startTransition(commitSelection);
-        } else {
-            commitSelection();
-        }
+        // Defer the heavy list re-render so the tapped checkbox paints first.
+        startTransition(commitSelection);
     };
 
     /**
@@ -467,7 +457,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                     disabled={!!item.isDisabled}
                     accessibilityLabel={item.text ? translate('selectionList.userSelected', item.text) : ''}
                     style={styles.ml5}
-                    shouldUseOptimisticSelection={shouldUseOptimisticSelection}
+                    shouldUseOptimisticSelection
                 />
             );
         }
