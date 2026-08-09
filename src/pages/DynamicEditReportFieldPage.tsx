@@ -30,6 +30,7 @@ import {
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
+    isReportFieldTargetMatchingReport,
 } from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -94,7 +95,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
     const hasOtherViolations =
         report?.fieldList && Object.entries(report.fieldList).some(([key, field]) => key !== fieldKey && field.value === '' && !isReportFieldDisabled(report, reportField, policy));
 
-    if (!reportFieldsEnabled || !reportField || !policyField || !report || isDisabled) {
+    if (!reportFieldsEnabled || !reportField || !policyField || !report || !isReportFieldTargetMatchingReport(report, reportField) || isDisabled) {
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
