@@ -16,6 +16,7 @@ import usePreMountDestination from '@hooks/usePreMountDestination';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
+import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import {startSplitBill} from '@libs/actions/IOU/Split';
@@ -108,6 +109,9 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
+    const linkedTrackedExpenseTransactionIDs = transactions.map((item) => getExistingTransactionID(item.linkedTrackedExpenseReportAction)).filter(Boolean) as string[];
+    const linkedTrackedExpenseTransactionDrafts = linkedTrackedExpenseTransactionIDs.map((id) => allTransactionDrafts?.[id]).filter((draft): draft is Transaction => !!draft);
+    const [linkedTrackedExpenseTransactions] = useTransactionsByID(linkedTrackedExpenseTransactionIDs);
     const {isMultiScanEnabled} = useMultiScanState();
     const {translate, formatPhoneNumber} = useLocalize();
     const {disableMultiScan} = useMultiScanActions();
@@ -296,6 +300,8 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             reimbursable: defaultReimbursable,
             isSelfTourViewed,
             allTransactionDrafts,
+            linkedTrackedExpenseTransactionDrafts,
+            linkedTrackedExpenseTransactions,
             betas,
             personalDetails,
             recentWaypoints,
