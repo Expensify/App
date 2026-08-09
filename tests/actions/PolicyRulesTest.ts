@@ -1,5 +1,12 @@
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
-import {addPolicyAgentRule, clearPolicyAgentRuleErrors, clearPolicyCodingRuleErrors, deletePolicyAgentRule, updatePolicyAgentRule} from '@libs/actions/Policy/Rules';
+import {
+    addPolicyAgentRule,
+    clearPolicyAgentRuleErrors,
+    clearPolicyCodingRuleErrors,
+    deletePolicyAgentRule,
+    importMerchantRulesSpreadsheet,
+    updatePolicyAgentRule,
+} from '@libs/actions/Policy/Rules';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -379,6 +386,23 @@ describe('actions/PolicyRules', () => {
 
             const policy = await getPolicy(fakePolicy.id);
             expect(policy?.rules?.codingRules).toBeFalsy();
+        });
+    });
+
+    describe('importMerchantRulesSpreadsheet', () => {
+        it('returns the import-failed modal without firing the request while offline', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            // makeRequestWithSideEffects isn't queued for retry, so the action must not fire it while offline
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+            await waitForBatchedUpdates();
+
+            const rules = {ruleKey: {filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}, merchant: 'SBUX'}};
+
+            const result = await importMerchantRulesSpreadsheet(fakePolicy.id, rules, 0);
+
+            expect(result).toEqual({titleKey: 'spreadsheet.importFailedTitle', promptKey: 'spreadsheet.importFailedDescription'});
+            expect(mockFetch).not.toHaveBeenCalled();
         });
     });
 });

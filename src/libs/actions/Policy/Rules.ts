@@ -12,6 +12,7 @@ import type SetPolicyCodingRuleParams from '@libs/API/parameters/SetPolicyCoding
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import {getIsOffline} from '@libs/NetworkState';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 
@@ -286,6 +287,14 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
 async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<string, ImportedMerchantRule>, invalidCategoryCount = 0): Promise<ImportFinalModal> {
     // The API rejects an empty rules object, so fail fast when the spreadsheet produced no importable rules
     if (Object.keys(rules).length === 0) {
+        return getImportFailedFinalModal();
+    }
+
+    // Defense in depth: this uses makeRequestWithSideEffects, which isn't queued for retry, so firing it while
+    // offline produces an immediate failure. The Import button is already disabled offline whenever a real request
+    // is needed (only the all-rows-skipped path stays enabled, and that path never reaches this function), but guard
+    // the call site too so a click/render race or a future caller can never fire this un-queueable request offline.
+    if (getIsOffline()) {
         return getImportFailedFinalModal();
     }
 
