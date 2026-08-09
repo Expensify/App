@@ -9,10 +9,11 @@ import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {arePaymentsEnabled, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {
     getAllReportActions,
     getElsewherePaymentReportActionMessage,
+    getOriginalMessage,
     getReportActionHtml,
     getReportActionText,
     getSortedReportActions,
@@ -571,10 +572,15 @@ function cancelPayment(
         stateNum = CONST.REPORT.STATE_NUM.APPROVED;
         statusNum = CONST.REPORT.STATUS_NUM.CLOSED;
     } else if (isSubmittedAction(lastWorkflowAction) || isForwardedAction(lastWorkflowAction)) {
-        if (isSubmittedAction(lastWorkflowAction) && !arePaymentsEnabled(policy)) {
-            // Done: a submit-and-close report (approvals and payments off) auto-closes on submit. Its optimistic
-            // SUBMITTED action — written before the server reconciles it to SUBMITTED_AND_CLOSED — would otherwise be
-            // misread here as an Outstanding instant-submit, so anchor it to Done using the report's own close behavior.
+        // A submit-and-close report (approvals off) auto-closes on submit, but its optimistic SUBMITTED action —
+        // written before the server reconciles it to SUBMITTED_AND_CLOSED — would otherwise be misread here as an
+        // Outstanding instant-submit. `submitReport` stamps that action's `originalMessage.workflow` with the policy's
+        // OPTIONAL approval mode, so read it back to anchor the report to Done. This is independent of whether payments
+        // are enabled: a submit-and-close workspace can still have payments on, and `arePaymentsEnabled` would wrongly
+        // flip such a report back to Outstanding.
+        const submittedWorkflow = isSubmittedAction(lastWorkflowAction) ? getOriginalMessage(lastWorkflowAction)?.workflow : undefined;
+        if (submittedWorkflow === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
+            // Done: submit-and-close report auto-closed on submit.
             stateNum = CONST.REPORT.STATE_NUM.APPROVED;
             statusNum = CONST.REPORT.STATUS_NUM.CLOSED;
         } else {
