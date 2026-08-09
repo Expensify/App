@@ -305,6 +305,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.id:
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.intuitEnterpriseSuite.id:
                 enablePolicyConnections(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.id:
