@@ -3178,6 +3178,22 @@ function shouldReuseInitialTransaction(
 }
 
 /**
+ * A utility that ensures each waypoint item has a `keyForList` value.
+ */
+function ensureKeyForListForWaypoints(waypoints: WaypointCollection): WaypointCollection {
+    const isKeyForListMissing = Object.values(waypoints).some((waypoint) => !waypoint.keyForList);
+
+    if (!isKeyForListMissing) {
+        return waypoints;
+    }
+
+    return Object.entries(waypoints).reduce((acc, [key, value], index) => {
+        acc[key] = {...value, keyForList: value.keyForList ?? `${value.name ?? 'waypoint'}_${index}`};
+        return acc;
+    }, {} as WaypointCollection);
+}
+
+/**
  * A utility that ensures unreported transactions are unheld.
  */
 function recalculateUnreportedTransactionDetails() {
@@ -3368,6 +3384,7 @@ export {
     getExpenseTypeTranslationKey,
     getReceiptTypeTranslationKey,
     isDistanceTypeRequest,
+    ensureKeyForListForWaypoints,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
     isDeletedTransaction,
