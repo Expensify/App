@@ -59,10 +59,7 @@ function InteractiveStepSubPageHeader({stepNames, currentStepIndex, currentStepA
                     >
                         <InteractiveStepButton
                             stepNumber={index + 1}
-                            stepLabel={translate('stepCounter', {
-                                step: index + 1,
-                                total: stepNames.length,
-                            })}
+                            stepLabel={translate('stepCounter', index + 1, stepNames.length)}
                             currentStepDescription={isCurrentStep ? currentStepAccessibilityDescription : undefined}
                             isCurrentStep={isCurrentStep}
                             isLockedStep={isLockedStep}

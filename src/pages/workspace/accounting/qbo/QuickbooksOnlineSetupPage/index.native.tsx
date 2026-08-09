@@ -27,7 +27,6 @@ function QuickbooksOnlineSetupPage({route}: QuickbooksOnlineSetupPageProps) {
         <AccountingSetupWebViewPage
             uri={getQuickbooksOnlineSetupLink(policyID, isIntuitEnterpriseSuite, isSandbox)}
             testID="QuickbooksOnlineSetupPage"
-            context="QuickbooksOnlineSetupPage"
             shouldAppendShortLivedAuthToken
         />
     );
