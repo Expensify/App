@@ -1,11 +1,11 @@
 import type {PropsWithChildren} from 'react';
-import type {ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {NativeComponentRegistry, View} from 'react-native';
 import ReactNativeStyleAttributes from 'react-native/Libraries/Components/View/ReactNativeStyleAttributes';
 
-type DisplayContentsViewProps = PropsWithChildren<{style: ViewStyle}>;
+type DisplayContentsViewProps = PropsWithChildren<{style: StyleProp<ViewStyle>}>;
 type NativeComponentRegistryParams = Parameters<typeof NativeComponentRegistry.get<DisplayContentsViewProps>>;
 type ViewConfigProvider = NativeComponentRegistryParams[1];
 
@@ -34,6 +34,14 @@ const VIEW_CONFIG = {
 // Re-verify after upgrades.
 const DisplayContentsView = NativeComponentRegistry.get<DisplayContentsViewProps>('CustomViewWrapper', () => VIEW_CONFIG);
 
+// Pins the display the hiding would set anyway, so both states carry the same value. Yoga marks a node dirty
+// only when its style really changed (YogaLayoutableShadowNode::updateYogaProps), and 'contents' is also what
+// decides whether the view is flattened away, so leaving the value alone spares every hide and reveal a layout
+// pass over the subtree and a native view being destroyed and created again. The outer view then never exists
+// natively, which is one view less per screen. This mirrors the web wrapper, where the element is 'contents'
+// from its first render.
+const DISPLAY_CONTENTS: ViewStyle = {display: 'contents'};
+
 /**
  * Wraps the painted content in the same pair of views react-navigation renders in its ActivityView: the outer one
  * neutralizes the hiding, the inner one carries the accessibility state. The accessibility props could have been
@@ -47,7 +55,7 @@ const DisplayContentsView = NativeComponentRegistry.get<DisplayContentsViewProps
  */
 function CustomViewWrapper({style, inert, children}: PropsWithChildren<{style: ViewStyle; inert?: boolean}>) {
     return (
-        <DisplayContentsView style={style}>
+        <DisplayContentsView style={[style, DISPLAY_CONTENTS]}>
             <View
                 aria-hidden={inert}
                 style={[style, {pointerEvents: inert ? 'none' : 'box-none'}]}
