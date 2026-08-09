@@ -336,6 +336,63 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
 
+    it('includes CANCEL_PAYMENT for a non-admin payments admin who could pay on a manual-reimbursement workspace', () => {
+        // canIOUBePaid admits a non-admin member with WORKFLOWS_PAYMENTS write access (e.g. the payments admin role) on a
+        // manual workspace, so the cancel gate must too — it no longer requires the policy role to be ADMIN.
+        const paymentsAdminEmail = 'payments-admin@manual-test.com';
+        const paymentsAdminAccountID = 55;
+        const ownerEmail = 'owner@manual-test.com';
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID: POLICY_ID,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            total: -10000,
+            isWaitingOnBankAccount: false,
+        });
+        const policy = createMock<Policy>({
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            // The current user is a payments admin, NOT a workspace admin.
+            role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+            owner: ownerEmail,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            // Designated reimburser is someone else, so isPayer is false and only the WORKFLOWS_PAYMENTS branch can pass.
+            reimburser: ownerEmail,
+            outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
+            employeeList: {
+                [paymentsAdminEmail]: {role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+            },
+            connections: createQBOConnections(false, ownerEmail),
+        });
+        const transaction = createMock<Transaction>({
+            reportID: REPORT_ID,
+            amount: 10000,
+        });
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: paymentsAdminEmail,
+            currentUserAccountID: paymentsAdminAccountID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [],
+            isProduction: false,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+    });
+
     it('does not include PRINT option when the report is in OPEN state', () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
