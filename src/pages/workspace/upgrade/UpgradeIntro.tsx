@@ -87,6 +87,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         'IntacctSquare',
         'NetSuiteSquare',
         'QBDSquare',
+        'QBOSquare',
         'CertiniaSquare',
         'RilletSquare',
         'DualEntrySquare',

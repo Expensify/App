@@ -148,7 +148,6 @@ import {
     getTransactionReportName,
     getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
-    hasNonReimbursableTransactions,
     isAdminRoom,
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
@@ -176,6 +175,7 @@ import {
     shouldShowMarkAsDone,
 } from './ReportUtils';
 import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from './SpendRuleChangeLogUtils';
+import {hasNonReimbursableTransactions} from './TransactionUtils';
 
 type ComputeReportName = {
     report?: Report;
@@ -191,6 +191,7 @@ type ComputeReportName = {
     translate: LocalizedTranslate;
     conciergeReportID: string | undefined;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
+    reportTransactions: Record<string, Transaction[]>;
     isTrackIntentUser: boolean | undefined;
     pendingDeleteMemberAccountIDs?: string[];
 };
@@ -359,12 +360,20 @@ function getInvoicesChatName({
 
 function getInvoiceReportName(
     report: OnyxEntry<Report>,
+    linkedTransactions: Transaction[],
     translate: LocalizedTranslate,
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     policy?: OnyxEntry<Policy>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
 ): string {
-    const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy, personalDetailsList, translate});
+    const moneyRequestReportName = getMoneyRequestReportName({
+        report,
+        policy,
+        invoiceReceiverPolicy,
+        linkedTransactions,
+        personalDetailsList,
+        translate,
+    });
     const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
     return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
 }
@@ -397,12 +406,14 @@ function getMoneyRequestReportName({
     report,
     policy,
     invoiceReceiverPolicy,
+    linkedTransactions,
     personalDetailsList,
     translate,
 }: {
     report: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy>;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
+    linkedTransactions: Transaction[];
     personalDetailsList: OnyxEntry<PersonalDetailsList>;
     translate: LocalizedTranslate;
 }): string {
@@ -441,7 +452,7 @@ function getMoneyRequestReportName({
         return `${payerPaidAmountMessage} ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
     }
 
-    if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
+    if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(linkedTransactions)) {
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '';
         return translate('iou.payerSpentAmount', formattedAmount, payerOrApproverName);
     }
@@ -734,7 +745,7 @@ function computeReportNameBasedOnReportAction(
 
     if (isMoneyRequestAction(parentReportAction)) {
         const originalMessage = getOriginalMessage(parentReportAction);
-        const last4Digits = reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
+        const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
 
         if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -987,6 +998,7 @@ function computeReportName({
     allPolicyTags,
     conciergeReportID,
     reportAttributes,
+    reportTransactions,
     isTrackIntentUser,
     pendingDeleteMemberAccountIDs,
 }: ComputeReportName): string {
@@ -1034,6 +1046,7 @@ function computeReportName({
             translate,
             conciergeReportID,
             reportAttributes,
+            reportTransactions,
             isTrackIntentUser,
             // TODO: pass the true data in the next PR, issue https://github.com/Expensify/App/issues/66421
             pendingDeleteMemberAccountIDs: undefined,
@@ -1085,7 +1098,13 @@ function computeReportName({
 
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     if (isMoneyRequestReport(report)) {
-        formattedName = getMoneyRequestReportName({report, policy, personalDetailsList, translate});
+        formattedName = getMoneyRequestReportName({
+            report,
+            policy,
+            linkedTransactions: reportTransactions[report.reportID] ?? [],
+            personalDetailsList,
+            translate,
+        });
     }
 
     if (isInvoiceReport(report)) {
@@ -1096,7 +1115,7 @@ function computeReportName({
             chatReceiverPolicyID = (chatReceiver as {policyID: string}).policyID;
         }
         const invoiceReceiverPolicy = chatReceiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReceiverPolicyID}`] : undefined;
-        formattedName = getInvoiceReportName(report, translate, personalDetailsList, policy, invoiceReceiverPolicy);
+        formattedName = getInvoiceReportName(report, reportTransactions[report.reportID] ?? [], translate, personalDetailsList, policy, invoiceReceiverPolicy);
     }
 
     if (isInvoiceRoom(report)) {
