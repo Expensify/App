@@ -23,6 +23,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import {createExpenseReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const EMPLOYEE_ACCOUNT_ID = 1;
 const EMPLOYEE_EMAIL = 'employee@mail.com';
@@ -274,6 +275,65 @@ describe('getSecondaryAction', () => {
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY)).toBe(true);
+    });
+
+    it('includes CANCEL_PAYMENT for a non-reimburser admin who could pay on a manual-reimbursement workspace', async () => {
+        // The pay gate admits any admin with WORKFLOWS_PAYMENTS access on a manual workspace, not just the designated
+        // reimburser, so the cancel gate must admit that same admin once the report is marked as paid elsewhere.
+        // The policy is seeded into Onyx so isPaidGroupPolicy resolves and isPayer narrows to the designated reimburser
+        // (excluding this admin), which is what makes the new WORKFLOWS_PAYMENTS branch the only path that admits them.
+        const designatedPayerEmail = 'owner@manual-test.com';
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID: POLICY_ID,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            // Marked as paid elsewhere: APPROVED/REIMBURSED with no bank pay action.
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            total: -10000,
+            isWaitingOnBankAccount: false,
+        });
+        const policy = createMock<Policy>({
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.ADMIN,
+            owner: designatedPayerEmail,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            reimburser: designatedPayerEmail,
+            outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
+            employeeList: {
+                [ADMIN_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
+                [designatedPayerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+            },
+            connections: createQBOConnections(false, ADMIN_EMAIL),
+        });
+        const transaction = createMock<Transaction>({
+            reportID: REPORT_ID,
+            amount: 10000,
+        });
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await waitForBatchedUpdates();
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: ADMIN_EMAIL,
+            currentUserAccountID: ADMIN_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [],
+            isProduction: false,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
 
     it('does not include PRINT option when the report is in OPEN state', () => {
