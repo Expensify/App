@@ -1,9 +1,8 @@
-import {formatCurrentUserToAttendee} from '@libs/IOUUtils';
 import revokeOdometerImageUri from '@libs/OdometerUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 
 import type {Connection, OnyxEntry} from 'react-native-onyx';
 
@@ -170,18 +169,16 @@ function removeTransactionReceipt(transactionID: string | undefined) {
 
 type BuildOptimisticTransactionParams = {
     initialTransaction: Partial<Transaction>;
-    currentUserPersonalDetails: PersonalDetails;
     reportID: string;
 };
 
-function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUserPersonalDetails, reportID}: BuildOptimisticTransactionParams): Transaction {
+function buildOptimisticTransactionAndCreateDraft({initialTransaction, reportID}: BuildOptimisticTransactionParams): Transaction {
     const newTransactionID = generateTransactionID();
     const {currency, iouRequestType, isFromGlobalCreate, isFromFloatingActionButton} = initialTransaction ?? {};
     const newTransaction = {
         amount: 0,
         created: format(new Date(), 'yyyy-MM-dd'),
         currency,
-        comment: {attendees: formatCurrentUserToAttendee(currentUserPersonalDetails)},
         iouRequestType,
         reportID,
         transactionID: newTransactionID,
