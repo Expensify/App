@@ -128,6 +128,7 @@ function useSelectedTransactionsActions({
     const {isBetaEnabled} = usePermissions();
     const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({report, reportActions, policy});
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const {isProduction} = useEnvironment();
 
@@ -486,6 +487,8 @@ function useSelectedTransactionsActions({
                             false,
                             isOnSearch,
                             selectedTransactionsList.length > 1 ? [policy, policy] : undefined,
+                            currentUserAccountID,
+                            personalDetails,
                         ),
                 });
             }
