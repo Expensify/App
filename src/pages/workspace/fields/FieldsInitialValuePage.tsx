@@ -99,7 +99,7 @@ function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, e
 
             return errors;
         },
-        [availableListValuesLength, isInvoiceField, reportField?.name, reportField?.type, policy?.fieldList, translate],
+        [availableListValuesLength, expectedTarget, isInvoiceField, reportField?.name, reportField?.type, policy?.fieldList, translate],
     );
 
     if (!reportField || !isReportFieldTargetValid(reportField, expectedTarget)) {
