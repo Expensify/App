@@ -243,11 +243,18 @@ describe('WorkspaceUpgrade', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            // When the user acknowledges the upgrade by tapping "Got it, thanks"
-            fireEvent.press(await screen.findByText(TestHelper.translateLocal('workspace.upgrade.completed.gotIt')));
-            await waitForBatchedUpdatesWithAct();
+            // Locate the confirmation button before asserting so its async lookup can't interleave with the press.
+            const gotItButton = await screen.findByText(TestHelper.translateLocal('workspace.upgrade.completed.gotIt'));
 
-            // Then it replaces the upgrade route with the add-card flow nested under backTo, and does not leave via goBack
+            // Ignore any navigation triggered during mount/setup; we only care about the effect of the tap itself.
+            navigateSpy.mockClear();
+            goBackSpy.mockClear();
+
+            // When the user acknowledges the upgrade by tapping "Got it, thanks"
+            fireEvent.press(gotItButton);
+
+            // Then it synchronously replaces the upgrade route with the add-card flow nested under backTo, and does not leave via goBack.
+            // Assert right after the (synchronous) press, without awaiting, so unrelated async navigation can't land in the spies.
             expect(navigateSpy).toHaveBeenCalledWith(`${backTo}/${DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path}`, {forceReplace: true});
             expect(goBackSpy).not.toHaveBeenCalled();
 
