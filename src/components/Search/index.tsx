@@ -687,6 +687,7 @@ function Search({
             searchResults?.search?.hasMoreResults,
             currentSearchKey,
             filteredData,
+            getCurrencyDecimals,
         ],
     );
 

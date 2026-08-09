@@ -1,6 +1,7 @@
 import type {BankAccountMenuItem} from '@components/Search/types';
 
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
+import {getCurrencyDecimals} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePaymentType, getBusinessBankAccountOptions, selectPaymentType} from '@libs/PaymentUtils';
 import type {SelectPaymentTypeParams} from '@libs/PaymentUtils';
@@ -243,6 +244,7 @@ describe('PaymentUtils', () => {
             selectPaymentType(params);
 
             expect(approveMoneyRequest).toHaveBeenCalledWith({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
                 currentUserAccountIDParam: params.currentAccountID,
@@ -272,6 +274,7 @@ describe('PaymentUtils', () => {
             selectPaymentType(params);
 
             expect(approveMoneyRequest).toHaveBeenCalledWith({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
                 currentUserAccountIDParam: params.currentAccountID,
