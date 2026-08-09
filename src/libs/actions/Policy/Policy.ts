@@ -4185,7 +4185,7 @@ function openPolicyExpensifyCardsPage(policyID: string, workspaceAccountID: numb
     ];
 
     // A fund ID of CONST.DEFAULT_NUMBER_ID means the fund is not resolved yet. The request itself is still
-    // valid — the backend treats a missing domainAccountID as "load this policy's own feed" — but writing
+    // valid because the backend treats a missing domainAccountID as "load this policy's own feed", but writing
     // settings under that placeholder would create an Onyx entry no consumer can ever match to a real fund.
     if (workspaceAccountID !== CONST.DEFAULT_NUMBER_ID) {
         optimisticData.push({

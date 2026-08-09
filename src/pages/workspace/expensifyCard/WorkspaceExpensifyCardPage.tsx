@@ -59,7 +59,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const isLoading = !isOffline && !cardsPageLoadingState?.hasOnceLoadedPage;
 
     const renderContent = () => {
-        if (cardsPageLoadingState?.hasLoadingError && !cardsPageLoadingState.hasOnceLoadedPage) {
+        if (!isOffline && cardsPageLoadingState?.hasLoadingError && !cardsPageLoadingState.hasOnceLoadedPage) {
             return (
                 <FullPageErrorView
                     shouldShow
