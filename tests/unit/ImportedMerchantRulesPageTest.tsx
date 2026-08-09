@@ -6,7 +6,12 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import * as Rules from '@libs/actions/Policy/Rules';
 
-import ImportedMerchantRulesPage, {buildImportedCategoryLookup, normalizeImportedTag} from '@pages/workspace/rules/MerchantRules/ImportedMerchantRulesPage';
+import ImportedMerchantRulesPage, {
+    buildImportedCategoryLookup,
+    normalizeImportedTag,
+    parseSpreadsheetRules,
+    willImportShortCircuitLocally,
+} from '@pages/workspace/rules/MerchantRules/ImportedMerchantRulesPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -78,7 +83,7 @@ function buildRulesEnabledControlPolicy(): Policy {
 }
 
 // A spreadsheet that maps a merchant filter column and one action column, so validation passes
-// and pressing Import proceeds to build a rule.
+// and pressing Import proceeds to build a net-new rule (which needs the API).
 function buildSpreadsheet(): ImportedSpreadsheet {
     const mappedColumns = [CONST.CSV_IMPORT_COLUMNS.MERCHANT_IS, CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT];
     const columns: Record<number, string> = {};
@@ -89,6 +94,27 @@ function buildSpreadsheet(): ImportedSpreadsheet {
         data: [
             ['Merchant is', 'Starbucks'],
             ['Updated merchant', 'SBUX'],
+        ],
+        columns,
+        containsHeader: true,
+        isImportingMultiLevelTags: false,
+        isImportingIndependentMultiLevelTags: false,
+        isGLAdjacent: false,
+    };
+}
+
+// A spreadsheet whose only mapped action is a Category cell referencing a category that doesn't exist on the
+// workspace. Every row is dropped, so no net-new rule remains and importRules short-circuits locally with no API call.
+function buildInvalidCategorySpreadsheet(): ImportedSpreadsheet {
+    const mappedColumns = [CONST.CSV_IMPORT_COLUMNS.MERCHANT_IS, CONST.CSV_IMPORT_COLUMNS.CATEGORY];
+    const columns: Record<number, string> = {};
+    for (const [index, columnName] of mappedColumns.entries()) {
+        columns[index] = columnName;
+    }
+    return {
+        data: [
+            ['Merchant is', 'Starbucks'],
+            ['Updated category', 'Nonexistent category'],
         ],
         columns,
         containsHeader: true,
@@ -115,7 +141,7 @@ function renderImportedMerchantRulesPage() {
     );
 }
 
-async function seedOnyx(isOffline: boolean) {
+async function seedOnyx(isOffline: boolean, spreadsheet: ImportedSpreadsheet = buildSpreadsheet()) {
     await act(async () => {
         await Onyx.clear();
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildRulesEnabledControlPolicy());
@@ -123,7 +149,7 @@ async function seedOnyx(isOffline: boolean) {
         await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
         await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
         await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: isOffline});
-        await Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET, buildSpreadsheet());
+        await Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET, spreadsheet);
         await waitForBatchedUpdatesWithAct();
     });
 }
@@ -222,9 +248,64 @@ describe('ImportedMerchantRulesPage', () => {
         });
     });
 
-    // The merchant-rules importer passes `shouldDisableButtonWhenOffline={false}` to ImportSpreadsheetColumns because
-    // the all-skipped path (every row a duplicate/unknown category) builds its confirmation modal client-side with no
-    // API call, so the Import button must stay usable offline instead of following the shared importer's offline guard.
+    describe('willImportShortCircuitLocally', () => {
+        it('is true when no rule remains but rows were skipped as duplicates', () => {
+            expect(willImportShortCircuitLocally({rules: {}, skippedDuplicateCount: 2, invalidCategoryNames: new Set()})).toBe(true);
+        });
+
+        it('is true when no rule remains but a category cell was invalid', () => {
+            expect(willImportShortCircuitLocally({rules: {}, skippedDuplicateCount: 0, invalidCategoryNames: new Set(['travel'])})).toBe(true);
+        });
+
+        it('is false when a net-new rule remains, even if some rows were skipped', () => {
+            const rules = {ruleKey: {filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}, merchant: 'SBUX'}};
+            expect(willImportShortCircuitLocally({rules, skippedDuplicateCount: 3, invalidCategoryNames: new Set(['travel'])})).toBe(false);
+        });
+
+        it('is false when nothing was parsed at all', () => {
+            expect(willImportShortCircuitLocally({rules: {}, skippedDuplicateCount: 0, invalidCategoryNames: new Set()})).toBe(false);
+        });
+    });
+
+    describe('parseSpreadsheetRules', () => {
+        it('builds a net-new rule from a mapped row', () => {
+            const result = parseSpreadsheetRules(buildSpreadsheet(), true, buildRulesEnabledControlPolicy(), undefined);
+
+            expect(Object.keys(result.rules)).toHaveLength(1);
+            expect(Object.values(result.rules).at(0)).toMatchObject({
+                filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
+                merchant: 'SBUX',
+            });
+            expect(result.skippedDuplicateCount).toBe(0);
+            expect(result.invalidCategoryNames.size).toBe(0);
+        });
+
+        it('skips a row that duplicates an existing coding rule', () => {
+            const policy = buildRulesEnabledControlPolicy();
+            policy.rules = {
+                codingRules: {
+                    existing: {filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}, merchant: 'SBUX'},
+                },
+            };
+
+            const result = parseSpreadsheetRules(buildSpreadsheet(), true, policy, undefined);
+
+            expect(Object.keys(result.rules)).toHaveLength(0);
+            expect(result.skippedDuplicateCount).toBe(1);
+        });
+
+        it('drops a row whose category cell does not match a workspace category', () => {
+            const result = parseSpreadsheetRules(buildInvalidCategorySpreadsheet(), true, buildRulesEnabledControlPolicy(), undefined);
+
+            expect(Object.keys(result.rules)).toHaveLength(0);
+            expect([...result.invalidCategoryNames]).toEqual(['nonexistent category']);
+        });
+    });
+
+    // The merchant-rules importer only bypasses the shared importer's offline guard for the all-skipped client-only path
+    // (every row a duplicate/unknown category), which builds its confirmation modal locally with no API call. When the
+    // spreadsheet has any net-new rule the import still needs importMerchantRulesSpreadsheet (a non-retryable
+    // makeRequestWithSideEffects call), so the button must stay disabled offline to avoid an immediate import-failed modal.
     describe('Import button offline behavior', () => {
         // The confirm button on the import page renders `common.import`
         const IMPORT_BUTTON_TEXT = 'Import';
@@ -241,23 +322,37 @@ describe('ImportedMerchantRulesPage', () => {
             });
         });
 
-        it('keeps the Import button enabled while offline', async () => {
+        it('disables the Import button while offline when the import has a net-new rule (needs the API)', async () => {
             await seedOnyx(true);
 
             renderImportedMerchantRulesPage();
             await waitForBatchedUpdatesWithAct();
 
             // `toBeDisabled` walks ancestors, so asserting on the button label reflects the Button's own disabled state
+            expect(screen.getByText(IMPORT_BUTTON_TEXT)).toBeDisabled();
+        });
+
+        it('keeps the Import button enabled while offline when every row is skipped (client-only path)', async () => {
+            await seedOnyx(true, buildInvalidCategorySpreadsheet());
+
+            renderImportedMerchantRulesPage();
+            await waitForBatchedUpdatesWithAct();
+
             expect(screen.getByText(IMPORT_BUTTON_TEXT)).not.toBeDisabled();
         });
 
-        it('runs the import when the Import button is pressed while offline', async () => {
-            await seedOnyx(true);
-            const importSpy = jest.spyOn(Rules, 'importMerchantRulesSpreadsheet').mockResolvedValue({
-                titleKey: 'spreadsheet.importSuccessfulTitle',
-                promptKey: 'spreadsheet.importMerchantRulesSuccessfulDescription',
-                promptKeyParams: {rules: 1, duplicates: 0, invalidCategories: 0},
-            });
+        it('keeps the Import button enabled online even when the import needs the API', async () => {
+            await seedOnyx(false);
+
+            renderImportedMerchantRulesPage();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(IMPORT_BUTTON_TEXT)).not.toBeDisabled();
+        });
+
+        it('short-circuits locally without calling the import API when pressing Import offline for the all-skipped path', async () => {
+            await seedOnyx(true, buildInvalidCategorySpreadsheet());
+            const importSpy = jest.spyOn(Rules, 'importMerchantRulesSpreadsheet');
 
             renderImportedMerchantRulesPage();
             await waitForBatchedUpdatesWithAct();
@@ -265,7 +360,7 @@ describe('ImportedMerchantRulesPage', () => {
             fireEvent.press(screen.getByText(IMPORT_BUTTON_TEXT));
             await waitForBatchedUpdatesWithAct();
 
-            expect(importSpy).toHaveBeenCalledTimes(1);
+            expect(importSpy).not.toHaveBeenCalled();
         });
     });
 });
