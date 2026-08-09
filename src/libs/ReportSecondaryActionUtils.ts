@@ -412,10 +412,7 @@ function isCancelPaymentAction(
         return false;
     }
 
-    // Mirror the pay gate (canIOUBePaid): whoever could mark the report paid must be able to cancel that payment. That is
-    // the report payer (the designated reimburser or the report manager) or, on a manual-reimbursement workspace, any
-    // member with WORKFLOWS_PAYMENTS write access. There is deliberately no separate admin requirement — `canIOUBePaid`
-    // has none, so gating cancel on admin would block a non-admin payer who could mark the report paid in the first place.
+    // Mirror the pay gate (canIOUBePaid.canPay), so whoever could mark the report paid can cancel it — no admin requirement.
     const canCancelPayment =
         isPayerUtils(currentAccountID, currentUserEmail, report, bankAccountList, policy, false) ||
         (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && canMemberWrite(policy, currentUserEmail, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
