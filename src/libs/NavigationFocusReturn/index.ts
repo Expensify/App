@@ -60,7 +60,35 @@ function captureTriggerForRoute(routeKey: string): void {
 
     const launcher = pickLauncher();
     let inner: HTMLElement | null;
-    // Re-check focusability. Form-submit spinners can add aria-disabled between keydown and here. We skip ancestors so the outgoing RHP pane (transiently aria-hidden) doesn't false-reject rows inside it.
+    /*
+     * When the user presses Enter or Space on a control that navigates (a Settings row, a
+     * menu item), the destination screen usually mounts before this function runs. If
+     * that screen autofocuses one of its own controls (BaseTextInput's mount autofocus is
+     * the common case), the focus change fires a focusin event that overwrites
+     * lastInteractiveElement with the destination's input. Capturing that here would
+     * attribute the trigger to the wrong element. By the time back-navigation runs, the
+     * destination's input has been unmounted, so focus falls to <body> instead of
+     * returning to the row the user activated.
+     *
+     * To avoid that, keyActivationHandler snapshots the focused element at keydown time
+     * (lastKeyboardTriggerElement) before any destination code can run in response to the
+     * activation. Below we prefer that snapshot when two things hold:
+     *   1. It is still recent (within KEYBOARD_TRIGGER_TTL_MS). We need a window because
+     *      activation-to-navigation is generally async (microtasks, promise chains, async
+     *      form submits), so keydown and this capture rarely land in the same tick. 500ms
+     *      covers realistic activation-to-nav latency and is short enough that a keydown
+     *      from long ago cannot pin the trigger for a navigation it didn't cause.
+     *   2. The element is still focusable. A form-submit spinner may have added
+     *      aria-disabled between keydown and now. We check the element itself but not its
+     *      ancestors, because React Navigation marks the outgoing screen aria-hidden as
+     *      soon as the destination is focused (via CardA11yWrapper / Screen wrapper).
+     *      Walking up would find that and false-reject the still-valid control inside
+     *      it. The aria-hidden is cleared when the user navigates back, so restoration
+     *      still works.
+     * When the snapshot isn't usable, we fall through to lastInteractiveElement (the
+     * older focusin-tracked value, for keyboard nav) or lastMouseTrigger (for mouse nav)
+     * below.
+     */
     const isWithinTTL = performance.now() - lastKeyboardTriggerTime < KEYBOARD_TRIGGER_TTL_MS;
     const isStillFocusable =
         lastKeyboardTriggerElement !== null &&
