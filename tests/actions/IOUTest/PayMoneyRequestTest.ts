@@ -1908,11 +1908,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             });
 
             it('returns a submit-and-close report to Done when only its optimistic SUBMITTED action exists (not yet reconciled to SUBMITTED_AND_CLOSED), even with payments enabled', async () => {
-                // A submit-and-close report auto-closes to Done on submit, but its optimistic action is a plain SUBMITTED
-                // action (the server reconciles it to SUBMITTED_AND_CLOSED later). `submitReport` stamps that action's
-                // originalMessage.workflow with the OPTIONAL approval mode, so paying + cancelling in that window must
-                // read the workflow and revert to Done — not misread the SUBMITTED action as an Outstanding instant-submit.
-                // Payments are enabled here (the default) to prove the revert no longer depends on reimbursementChoice.
+                // Optimistic SUBMITTED action with workflow=OPTIONAL must revert to Done, even with payments enabled.
                 const workflowAction = buildAction('workflow', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, '2024-01-01 00:00:01.000', {
                     workflow: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 });
@@ -1929,8 +1925,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             });
 
             it('rolls back to the paid state (APPROVED/REIMBURSED) when the cancel-payment request fails after reverting to Outstanding', async () => {
-                // The optimistic revert moves stateNum to SUBMITTED; if the request fails the report must roll all the way
-                // back to the paid APPROVED/REIMBURSED state, not stay in a mixed SUBMITTED/REIMBURSED state.
+                // On failure the report must roll back to the paid APPROVED/REIMBURSED state, not a mixed SUBMITTED/REIMBURSED.
                 const workflowAction = buildAction('workflow', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, '2024-01-01 00:00:01.000');
                 const updatedReport = await cancelPaidReport('rollback', workflowAction, undefined, true);
                 expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);

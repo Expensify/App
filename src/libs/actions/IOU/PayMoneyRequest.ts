@@ -551,10 +551,7 @@ function cancelPayment(
     );
     const approvalMode = policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
 
-    // Derive the pre-payment state from the report's own action history — the ground truth for where the
-    // report was before it was paid — instead of guessing from the current policy config. Mark as paid is
-    // offered from Outstanding (instant submit / payments-disabled) as well as from Approved/Done, so a
-    // policy-based guess cannot tell those apart once payment has overwritten the report state.
+    // Derive the pre-payment state from the report's action history instead of guessing from the policy config.
     const expenseReportActions = getAllReportActions(expenseReport.reportID);
     const sortedReportActions = getSortedReportActions(Object.values(expenseReportActions));
     const latestPayIndex = sortedReportActions.findLastIndex(isPayAction);
@@ -572,19 +569,13 @@ function cancelPayment(
         stateNum = CONST.REPORT.STATE_NUM.APPROVED;
         statusNum = CONST.REPORT.STATUS_NUM.CLOSED;
     } else if (isSubmittedAction(lastWorkflowAction) || isForwardedAction(lastWorkflowAction)) {
-        // A submit-and-close report (approvals off) auto-closes on submit, but its optimistic SUBMITTED action —
-        // written before the server reconciles it to SUBMITTED_AND_CLOSED — would otherwise be misread here as an
-        // Outstanding instant-submit. `submitReport` stamps that action's `originalMessage.workflow` with the policy's
-        // OPTIONAL approval mode, so read it back to anchor the report to Done. This is independent of whether payments
-        // are enabled: a submit-and-close workspace can still have payments on, and `arePaymentsEnabled` would wrongly
-        // flip such a report back to Outstanding.
+        // submitReport stamps a submit-and-close report's optimistic SUBMITTED action with workflow=OPTIONAL, so map it to Done.
         const submittedWorkflow = isSubmittedAction(lastWorkflowAction) ? getOriginalMessage(lastWorkflowAction)?.workflow : undefined;
         if (submittedWorkflow === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
-            // Done: submit-and-close report auto-closed on submit.
             stateNum = CONST.REPORT.STATE_NUM.APPROVED;
             statusNum = CONST.REPORT.STATUS_NUM.CLOSED;
         } else {
-            // Outstanding / Processing: instant submit without approvals (SUBMITTED), or still in the approval chain (FORWARDED).
+            // Outstanding (instant submit) or Processing (still in the approval chain).
             stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
             statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED;
         }
@@ -686,9 +677,7 @@ function cancelPayment(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
-                // Restore both stateNum and statusNum to the paid report's pre-cancel state. The optimistic update can now
-                // move stateNum away from APPROVED (e.g. to SUBMITTED when reverting to Outstanding), so restoring only
-                // statusNum would leave the report in a mixed state like SUBMITTED/REIMBURSED on rollback.
+                // Restore stateNum too — the optimistic revert can move it off APPROVED, so restoring only statusNum leaves a mixed state on rollback.
                 stateNum: expenseReport.stateNum,
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 isWaitingOnBankAccount: expenseReport.isWaitingOnBankAccount,

@@ -278,10 +278,7 @@ describe('getSecondaryAction', () => {
     });
 
     it('includes CANCEL_PAYMENT for a non-reimburser admin who could pay on a manual-reimbursement workspace', async () => {
-        // The pay gate admits any admin with WORKFLOWS_PAYMENTS access on a manual workspace, not just the designated
-        // reimburser, so the cancel gate must admit that same admin once the report is marked as paid elsewhere.
-        // The policy is seeded into Onyx so isPaidGroupPolicy resolves and isPayer narrows to the designated reimburser
-        // (excluding this admin), which is what makes the new WORKFLOWS_PAYMENTS branch the only path that admits them.
+        // Seed the policy into Onyx so isPayer narrows to the reimburser; only the WORKFLOWS_PAYMENTS branch admits this admin.
         const designatedPayerEmail = 'owner@manual-test.com';
         const report = createMock<Report>({
             reportID: REPORT_ID,
@@ -337,8 +334,7 @@ describe('getSecondaryAction', () => {
     });
 
     it('includes CANCEL_PAYMENT for a non-admin payments admin who could pay on a manual-reimbursement workspace', () => {
-        // canIOUBePaid admits a non-admin member with WORKFLOWS_PAYMENTS write access (e.g. the payments admin role) on a
-        // manual workspace, so the cancel gate must too — it no longer requires the policy role to be ADMIN.
+        // A non-admin with WORKFLOWS_PAYMENTS access can pay on a manual workspace, so they can cancel too.
         const paymentsAdminEmail = 'payments-admin@manual-test.com';
         const paymentsAdminAccountID = 55;
         const ownerEmail = 'owner@manual-test.com';
