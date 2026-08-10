@@ -500,6 +500,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expand: 'Ανάπτυξη',
         dialogOpened: 'διάλογος',
         downloadReceipts: 'Λήψη αποδείξεων',
+        commuter: 'επιβάτης καθημερινών μετακινήσεων',
     },
     socials: {
         podcast: 'Ακολουθήστε μας στο Podcast',
@@ -8794,20 +8795,11 @@ ${reportName}`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `προστέθηκε το "${prohibitedExpense}" στις απαγορευμένες δαπάνες`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `αφαιρέσατε το «${prohibitedExpense}» από τις απαγορευμένες δαπάνες`,
         commuterExclusions: {
-            changedToFixedDistance: 'άλλαξε τον αποκλεισμό μετακινήσεων από/προς εργασία σε σταθερή απόσταση ανά απαίτηση',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'μίλι' : 'μίλια';
-                } else {
-                    unitLabel = isSingular ? 'χιλιόμετρο' : 'χιλιόμετρα';
-                }
-                return `ορίστε σταθερό αποκλεισμό απόστασης σε ${distance} ${unitLabel} ανά αίτημα`;
-            },
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `άλλαξε τον αποκλεισμό σταθερής απόστασης σε ${newDistance} ${unit} ανά απαίτηση (προηγουμένως ${oldDistance} ${unit})`,
-            disabled: 'απενεργοποιήθηκε ο αποκλεισμός μετακινήσεων από/προς εργασία για χιλιομετρικές αποζημιώσεις',
+            changedToFixedDistance: 'άλλαξε την εξαίρεση μετακινήσεων σε σταθερή απόσταση ανά αίτημα',
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `ορίστε σταθερό αποκλεισμό απόστασης σε ${formattedDistance} ανά αίτημα`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `άλλαξε τον αποκλεισμό σταθερής απόστασης σε ${formattedNewDistance} ανά αίτημα (προηγουμένως ${formattedOldDistance})`,
+            disabled: 'απενεργοποιήθηκε ο αποκλεισμός μετακινήσεων από και προς την εργασία για χιλιομετρικές αποζημιώσεις',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `άλλαξε τη μέθοδο αποζημίωσης σε «${newReimbursementChoice}» (προηγουμένως «${oldReimbursementChoice}»)`,
@@ -9748,6 +9740,10 @@ ${reportName}`,
         },
         error: {
             selectSuggestedAddress: 'Παρακαλείστε να επιλέξετε μια προτεινόμενη διεύθυνση ή να χρησιμοποιήσετε την τρέχουσα τοποθεσία',
+            mapOrGpsDistanceRequired: {
+                title: 'Απαιτείται απόσταση από χάρτη ή GPS',
+                description: 'Αυτός ο χώρος εργασίας απαιτεί έξοδα απόστασης είτε με βάση χάρτη είτε με παρακολούθηση GPS.',
+            },
         },
         odometer: {
             startReading: 'Ξεκινήστε την ανάγνωση',
@@ -9763,6 +9759,12 @@ ${reportName}`,
             cameraAccessRequired: 'Απαιτείται πρόσβαση στην κάμερα για τη λήψη φωτογραφιών.',
             snapPhotoStart: '<muted-text-label>Βγάλτε μια φωτογραφία το χιλιομετρητή σας στην <strong>αρχή</strong> του ταξιδιού σας.</muted-text-label>',
             snapPhotoEnd: '<muted-text-label>Βγάλτε μια φωτογραφία του χιλιομετρητή σας στο <strong>τέλος</strong> του ταξιδιού σας.</muted-text-label>',
+        },
+        commuterExclusion: {
+            original: ({formattedDistance}: {formattedDistance: string}) => `Αρχικό: ${formattedDistance}`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Αφαιρέθηκαν ${distance} διαδρομές εκτός έδρας (${unit})`,
+            systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
+                `Αφαιρέθηκαν ${distance} διαδρομές μετακίνησης ${unit} βάσει του ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ρυθμίσεις απόστασης χώρου εργασίας</a>` : 'ρυθμίσεις απόστασης χώρου εργασίας'}.`,
         },
     },
     gps: {

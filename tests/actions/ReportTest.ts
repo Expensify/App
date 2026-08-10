@@ -3552,6 +3552,46 @@ describe('actions/Report', () => {
     });
 
     describe('changeReportPolicy', () => {
+        it('blocks manual distance using the provided transaction list', async () => {
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'sourcePolicy',
+            };
+            const targetPolicy = {
+                ...createRandomPolicy(2),
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 1,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+            };
+            const manualDistanceTransaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            };
+
+            Report.changeReportPolicy({
+                report: expenseReport,
+                parentReport: undefined,
+                policy: targetPolicy,
+                currentUserAccountID: 1,
+                email: '',
+                managerLogin: '',
+                hasViolationsParam: false,
+                isChangePolicyTrainingModalDismissed: false,
+                ownerLogin: undefined,
+                isASAPSubmitBetaEnabled: false,
+                reportPreviewAction: undefined,
+                isTrackIntentUser: false,
+                reportTransactions: [manualDistanceTransaction],
+            });
+            await waitForBatchedUpdates();
+
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.CHANGE_REPORT_POLICY, 0);
+        });
+
         it('should unarchive the expense report', async () => {
             // Given an archived expense report
             const expenseReport: OnyxTypes.Report = {
@@ -3580,6 +3620,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -3640,6 +3681,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -3710,6 +3752,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -3806,6 +3849,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -3890,6 +3934,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -3946,6 +3991,7 @@ describe('actions/Report', () => {
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4035,6 +4081,7 @@ describe('actions/Report', () => {
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4079,6 +4126,7 @@ describe('actions/Report', () => {
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4109,6 +4157,7 @@ describe('actions/Report', () => {
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4138,6 +4187,7 @@ describe('actions/Report', () => {
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4167,6 +4217,7 @@ describe('actions/Report', () => {
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4198,6 +4249,7 @@ describe('actions/Report', () => {
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4250,6 +4302,7 @@ describe('actions/Report', () => {
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
