@@ -3,10 +3,19 @@ import useEnvironment from '@hooks/useEnvironment';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelfDMReport from '@hooks/useSelfDMReport';
+import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {canRejectReportAction} from '@libs/ReportUtils';
-import {isGroupedItemArray, isReportActionListItemType, isTaskListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
+import {
+    isGroupedItemArray,
+    isReportActionListItemType,
+    isTaskListItemType,
+    isTransactionGroupListItemType,
+    isTransactionListItemType,
+    isTransactionReportGroupListItemType,
+} from '@libs/SearchUIUtils';
+import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -19,18 +28,22 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 
-import type {SearchData, SearchRowSelectionActionsValue, SelectedTransactionInfo, SelectedTransactions} from './types';
+import type {SearchListItem, TransactionListItemType} from './SearchList/ListItem/types';
+import type {SearchData, SearchRowSelectionActionsValue, SearchShiftRangeChildrenActions, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 import {useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
-import {SearchRowSelectionActionsContext} from './SearchContextDefinitions';
+import {SearchRowSelectionActionsContext, SearchShiftRangeChildrenContext} from './SearchContextDefinitions';
 import {useSyncSelectedReports} from './SearchSelectionProvider';
-import {mapEmptyReportToSelectedEntry, mapTransactionItemToSelectedEntry, prepareTransactionsList} from './selectionBuilders';
+import {buildGroupChildrenIndex, buildShiftRangeItems, mapEmptyReportToSelectedEntry, mapTransactionItemToSelectedEntry, prepareTransactionsList} from './selectionBuilders';
 
 type SearchWriteActionsProviderProps = {
     /** The currently displayed (filtered, grouped) rows. Screen-derived; the provider cannot recompute it. */
     filteredData: SearchData;
+
+    /** The exact rows the list renders, so a range spans the on-screen order rather than the pre-sort `filteredData` */
+    renderedData: SearchListItem[];
 
     /** Keeps "select all matching" in lock-step: select-all unchecks once the selection no longer covers every item. */
     totalSelectableItemsCount: number;
@@ -333,6 +346,7 @@ function useSyncMobileSelectionModeWithScreenSize({
 // `selectedTransactions`, so dispatching one re-renders neither this provider's stable children nor the rows.
 function SearchWriteActionsProvider({
     filteredData,
+    renderedData,
     totalSelectableItemsCount,
     searchResults,
     transactions,
@@ -349,15 +363,190 @@ function SearchWriteActionsProvider({
     const selfDMReport = useSelfDMReport();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-    const {applySelection} = useSearchSelectionActions();
+    const {applySelection, getSelectedTransactions} = useSearchSelectionActions();
+
+    // Group-by children load lazily, so the rows that render them publish them here.
+    const [groupChildrenByKey, setGroupChildrenByKey] = useState<Record<string, TransactionListItemType[]>>({});
+
+    // Built once (by construction, not by React Compiler) so the register effect can't loop.
+    const [shiftRangeChildrenActions] = useState<SearchShiftRangeChildrenActions>(() => ({
+        registerGroupChildren: (groupKey, groupChildren) => setGroupChildrenByKey((prev) => (prev[groupKey] === groupChildren ? prev : {...prev, [groupKey]: groupChildren})),
+        unregisterGroupChildren: (groupKey) =>
+            setGroupChildrenByKey((prev) => {
+                if (!(groupKey in prev)) {
+                    return prev;
+                }
+                const next = {...prev};
+                delete next[groupKey];
+                return next;
+            }),
+    }));
 
     const searchResultsData = searchResults?.data;
     const currentUserEmail = email ?? '';
     const currentUserLogin = login ?? '';
 
-    const toggle: SearchRowSelectionActionsValue['toggle'] = (item, itemTransactions) => {
+    // One lookup policy (snapshot first, live Onyx fallback) so a row's action flags can't differ by selection gesture.
+    const resolveTransactionRefs = (item: TransactionListItemType) => {
+        const itemTransaction = (searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] ??
+            transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`]) as OnyxEntry<Transaction>;
+        const originalItemTransaction = (searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
+            transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`]) as OnyxEntry<Transaction>;
+        const parentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${item.report?.parentReportID}`] as OnyxEntry<Report>;
+        return {itemTransaction, originalItemTransaction, parentReport};
+    };
+
+    // Shared selection-entry builder so the toggle / select-all / range call sites can't drift apart.
+    const buildSelectedEntry = (item: TransactionListItemType) => {
+        const {itemTransaction, originalItemTransaction, parentReport} = resolveTransactionRefs(item);
+        return mapTransactionItemToSelectedEntry({
+            item,
+            itemTransaction,
+            originalItemTransaction,
+            currentUserLogin: currentUserEmail,
+            currentUserAccountID: accountID,
+            reportNameValuePairs,
+            outstandingReportsByPolicyID,
+            selfDMReport,
+            isProduction,
+            allowNegativeAmount: true,
+            parentReport,
+        });
+    };
+
+    // Expense-report rows are the selectable unit; only group-by rows are headers whose children flatten in.
+    const hasValidGroupBy = areItemsGrouped && !isExpenseReportType;
+    const flattenedShiftRangeItems = buildShiftRangeItems(renderedData, groupChildrenByKey, hasValidGroupBy);
+    // Built from the rows the range spans, so a row can't be ranged under one parent and stored under another.
+    const {childrenByGroupKey, groupKeyByChildKey} = buildGroupChildrenIndex(renderedData, groupChildrenByKey, hasValidGroupBy);
+    const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
+
+    const applyShiftRangeBatch = (batch: ShiftRangeBatch<SearchData[number]>) => {
+        applySelection(
+            (selectedTransactions) => {
+                const updated: SelectedTransactions = {...selectedTransactions};
+                const addTransaction = (tx: TransactionListItemType) => {
+                    if (!tx.keyForList || isTransactionPendingDelete(tx)) {
+                        return;
+                    }
+                    const [key, info] = buildSelectedEntry(tx);
+                    const parentGroupKey = groupKeyByChildKey.get(tx.keyForList);
+                    updated[key] = parentGroupKey ? {...info, groupKey: parentGroupKey} : info;
+                };
+                // A group selected before its children loaded lives under the group key alone, so deleting a child key below would find nothing.
+                const spellOutGroupSelection = (childKey: string) => {
+                    const groupKey = groupKeyByChildKey.get(childKey);
+                    if (!groupKey || !updated[groupKey]?.isSelected) {
+                        return;
+                    }
+                    delete updated[groupKey];
+                    for (const child of childrenByGroupKey.get(groupKey) ?? []) {
+                        if (isTransactionPendingDelete(child)) {
+                            continue;
+                        }
+                        const [key, info] = buildSelectedEntry(child);
+                        // No `isSelectedViaGroup`: the caller is about to drop one of these, so the group stops being a whole-group selection.
+                        updated[key] = {...info, groupKey};
+                    }
+                };
+                const removeRow = (row: SearchData[number]) => {
+                    if (isTransactionListItemType(row) || (isTransactionReportGroupListItemType(row) && row.transactions.length === 0)) {
+                        if (row.keyForList) {
+                            spellOutGroupSelection(row.keyForList);
+                            delete updated[row.keyForList];
+                        }
+                        return;
+                    }
+                    if (isTransactionGroupListItemType(row)) {
+                        // Mirrors the group toggle: a group can hold an entry under its own key as well as under its children's.
+                        if (row.keyForList) {
+                            delete updated[row.keyForList];
+                        }
+                        for (const child of row.transactions ?? []) {
+                            if (child.keyForList) {
+                                delete updated[child.keyForList];
+                            }
+                        }
+                    }
+                };
+                const addRow = (row: SearchData[number]) => {
+                    if (isTransactionListItemType(row)) {
+                        addTransaction(row);
+                    } else if (isTransactionReportGroupListItemType(row) && row.transactions.length === 0) {
+                        if (row.keyForList && row.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                            const [key, info] = mapEmptyReportToSelectedEntry(row);
+                            updated[key] = info;
+                        }
+                    } else if (isTransactionGroupListItemType(row)) {
+                        for (const child of row.transactions ?? []) {
+                            addTransaction(child);
+                        }
+                    }
+                };
+                for (const row of batch.toDeselect) {
+                    removeRow(row);
+                }
+                for (const row of batch.toSelect) {
+                    addRow(row);
+                }
+                return updated;
+            },
+            {data: filteredData, totalSelectableItemsCount},
+        );
+    };
+
+    const rangeApi = useShiftRangeSelection<SearchData[number]>({
+        items: flattenedShiftRangeItems,
+        getItemKey: (item) => item.keyForList,
+        // A report row stores its selection under its child transactions, so it counts as selected when any child is.
+        isItemSelected: (item) => {
+            const selected = getSelectedTransactions();
+            if (isTransactionGroupListItemType(item) && item.transactions.length > 0) {
+                return item.transactions.some((transaction) => selected[transaction.keyForList]?.isSelected);
+            }
+            if (!item.keyForList) {
+                return false;
+            }
+            if (selected[item.keyForList]?.isSelected) {
+                return true;
+            }
+            // A child of a group selected before its children loaded has no entry of its own, but it renders (and counts) as selected.
+            const parentGroupKey = groupKeyByChildKey.get(item.keyForList);
+            return !!(parentGroupKey && selected[parentGroupKey]?.isSelected);
+        },
+        // Pending-delete rows (kept rendered offline) can't be toggled, so they can't anchor or join a range either.
+        isDisabledItem: (item) => (isTransactionListItemType(item) ? isTransactionPendingDelete(item) : item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+        onApplyRange: applyShiftRangeBatch,
+        isHeaderItem: isShiftRangeHeaderItem,
+    });
+
+    const toggle: SearchRowSelectionActionsValue['toggle'] = (item, itemTransactions, shiftKey) => {
         if (isReportActionListItemType(item) || isTaskListItemType(item)) {
             return;
+        }
+
+        // The hook rejects headers as range targets, so shift+click on one falls through to the group toggle.
+        if (rangeApi.applyShiftClick(item, shiftKey)) {
+            return;
+        }
+
+        // One children source for the seed and the selection, so a group can't seed a different block than it selects.
+        const groupTransactions = isTransactionGroupListItemType(item) ? (itemTransactions ?? item.transactions ?? []) : [];
+
+        if (isShiftRangeHeaderItem(item) && isTransactionGroupListItemType(item)) {
+            // A header click selects a whole block, so seed it and a later shift+click can narrow it (like Select All).
+            const selected = getSelectedTransactions();
+            const groupWasSelected = groupTransactions.some((child) => !!selected[child.keyForList]?.isSelected);
+            if (groupWasSelected) {
+                // Deselecting paints no block, so reset instead of leaving a stale span to collapse.
+                rangeApi.clearAnchor();
+            } else {
+                // Seed just this block: seeding the whole selection would span unrelated rows and deselect them.
+                rangeApi.seedRangeFromSelection(new Set(groupTransactions.map((child) => child.keyForList).filter(Boolean)));
+            }
+        } else if (!isShiftRangeHeaderItem(item)) {
+            // Seed the anchor so a later shift+click continues from here; the hook ignores rows a range can't reach.
+            rangeApi.notifyAnchor(item);
         }
 
         if (isTransactionListItemType(item)) {
@@ -366,9 +555,7 @@ function SearchWriteActionsProvider({
             }
             applySelection(
                 (selectedTransactions) => {
-                    const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] as OnyxEntry<Transaction>;
-                    const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                    const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${item.report?.parentReportID}`] as OnyxEntry<Report>;
+                    const {itemTransaction, originalItemTransaction, parentReport: itemParentReport} = resolveTransactionRefs(item);
                     const updatedTransactions = prepareTransactionsList({
                         item,
                         itemTransaction,
@@ -407,11 +594,9 @@ function SearchWriteActionsProvider({
             return;
         }
 
-        const currentTransactions = itemTransactions ?? item.transactions;
-
         applySelection(
             (selectedTransactions) => {
-                if (currentTransactions.length === 0 && item.keyForList) {
+                if (groupTransactions.length === 0 && item.keyForList) {
                     const reportKey = item.keyForList;
 
                     if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -433,12 +618,12 @@ function SearchWriteActionsProvider({
                 const groupKey = item.keyForList;
                 const isGroupKeySelected = !!(groupKey && selectedTransactions[groupKey]?.isSelected);
 
-                if (isGroupKeySelected || currentTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
+                if (isGroupKeySelected || groupTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
                     const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
                     if (groupKey) {
                         delete reducedSelectedTransactions[groupKey];
                     }
-                    for (const transaction of currentTransactions) {
+                    for (const transaction of groupTransactions) {
                         delete reducedSelectedTransactions[transaction.keyForList];
                     }
                     return reducedSelectedTransactions;
@@ -447,28 +632,10 @@ function SearchWriteActionsProvider({
                 return {
                     ...selectedTransactions,
                     ...Object.fromEntries(
-                        currentTransactions
+                        groupTransactions
                             .filter((t) => !isTransactionPendingDelete(t))
                             .map((transactionItem) => {
-                                const itemTransaction = (searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] ??
-                                    transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]) as OnyxEntry<Transaction>;
-                                const originalItemTransaction =
-                                    searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
-                                    transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                                const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                                const [key, entry] = mapTransactionItemToSelectedEntry({
-                                    item: transactionItem,
-                                    itemTransaction,
-                                    originalItemTransaction,
-                                    currentUserLogin: currentUserEmail,
-                                    currentUserAccountID: accountID,
-                                    reportNameValuePairs,
-                                    outstandingReportsByPolicyID,
-                                    selfDMReport,
-                                    isProduction,
-                                    allowNegativeAmount: true,
-                                    parentReport: itemParentReport,
-                                });
+                                const [key, entry] = buildSelectedEntry(transactionItem);
                                 return [key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}];
                             }),
                     ),
@@ -479,6 +646,12 @@ function SearchWriteActionsProvider({
     };
 
     const toggleAll: SearchRowSelectionActionsValue['toggleAll'] = () => {
+        // Decide select-all vs clear before the updater so the range seed/clear (a ref write) stays out of the reducer.
+        if (Object.keys(getSelectedTransactions()).length > 0) {
+            rangeApi.clearAnchor();
+        } else {
+            rangeApi.seedFullRange();
+        }
         applySelection(
             (selectedTransactions) => {
                 if (Object.keys(selectedTransactions).length > 0) {
@@ -498,22 +671,7 @@ function SearchWriteActionsProvider({
                             if (isTransactionPendingDelete(transactionItem)) {
                                 continue;
                             }
-                            const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
-                            const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                            const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                            const [key, entry] = mapTransactionItemToSelectedEntry({
-                                item: transactionItem,
-                                itemTransaction,
-                                originalItemTransaction,
-                                currentUserLogin: currentUserEmail,
-                                currentUserAccountID: accountID,
-                                reportNameValuePairs,
-                                outstandingReportsByPolicyID,
-                                selfDMReport,
-                                isProduction,
-                                allowNegativeAmount: true,
-                                parentReport: itemParentReport,
-                            });
+                            const [key, entry] = buildSelectedEntry(transactionItem);
                             entries.push([key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}]);
                         }
                         return entries;
@@ -530,24 +688,7 @@ function SearchWriteActionsProvider({
                     if (isTransactionPendingDelete(transactionItem)) {
                         continue;
                     }
-                    const itemTransaction = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
-                    const originalItemTransaction = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                    const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                    entries.push(
-                        mapTransactionItemToSelectedEntry({
-                            item: transactionItem,
-                            itemTransaction,
-                            originalItemTransaction,
-                            currentUserLogin: currentUserEmail,
-                            currentUserAccountID: accountID,
-                            reportNameValuePairs,
-                            outstandingReportsByPolicyID,
-                            selfDMReport,
-                            isProduction,
-                            allowNegativeAmount: true,
-                            parentReport: itemParentReport,
-                        }),
-                    );
+                    entries.push(buildSelectedEntry(transactionItem));
                 }
                 return Object.fromEntries(entries);
             },
@@ -577,7 +718,11 @@ function SearchWriteActionsProvider({
 
     const rowSelectionActionsValue: SearchRowSelectionActionsValue = {toggle, toggleAll};
 
-    return <SearchRowSelectionActionsContext value={rowSelectionActionsValue}>{children}</SearchRowSelectionActionsContext>;
+    return (
+        <SearchRowSelectionActionsContext value={rowSelectionActionsValue}>
+            <SearchShiftRangeChildrenContext value={shiftRangeChildrenActions}>{children}</SearchShiftRangeChildrenContext>
+        </SearchRowSelectionActionsContext>
+    );
 }
 
 export default SearchWriteActionsProvider;

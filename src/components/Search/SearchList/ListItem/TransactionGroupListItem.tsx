@@ -2,16 +2,13 @@ import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import {useSearchResultsContext, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext} from '@components/Search/SearchContext';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
-import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -25,7 +22,6 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getSections} from '@libs/SearchUIUtils';
 import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -69,6 +65,7 @@ import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TagListItemHeader from './TagListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
+import useGroupChildrenForShiftRange from './useGroupChildrenForShiftRange';
 import useLiveRowCapabilities from './useLiveRowCapabilities';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
@@ -106,13 +103,10 @@ function TransactionGroupListItemImpl({
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
-    const {selectedTransactions} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isScreenFocused = useIsFocused();
-    const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
@@ -129,10 +123,6 @@ function TransactionGroupListItemImpl({
         hasTransactionThreadReport: !!oneTransactionThreadReport,
     };
 
-    const selectedTransactionIDs = Object.keys(selectedTransactions);
-    const selectedTransactionIDsSet = new Set(selectedTransactionIDs);
-    // A group selected before its children were fetched is stored under the group key, since no transaction IDs were known yet
-    const isGroupSelected = !!(item?.keyForList && selectedTransactions[item.keyForList]?.isSelected);
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
 
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -151,36 +141,21 @@ function TransactionGroupListItemImpl({
 
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
     const [isExpanded, setIsExpanded] = useState(false);
-    const isActionLoadingSet = useActionLoadingReportIDs();
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    let transactions: TransactionListItemType[];
-    if (isExpenseReportType) {
-        transactions = groupItem.transactions;
-    } else if (!transactionsSnapshot?.data) {
-        transactions = [];
-    } else {
-        const [sectionData] = getSections({
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            data: transactionsSnapshot?.data,
-            currentAccountID: currentUserDetails.accountID,
-            currentUserEmail: currentUserDetails.email ?? '',
-            translate,
-            formatPhoneNumber,
-            bankAccountList,
-            isActionLoadingSet,
-            cardFeeds,
-            conciergeReportID,
-            convertToDisplayString,
-            reportAttributesDerivedValue: undefined,
-        }) as [TransactionListItemType[], number, boolean];
-        transactions = sectionData.map((transactionItem) => ({
-            ...transactionItem,
-            // The whole group being selected implies every child is, even though only the group key is stored
-            isSelected: isGroupSelected || selectedTransactionIDsSet.has(transactionItem.transactionID),
-        }));
-    }
+    // The inline path renders the children itself, so it registers them too.
+    const {transactions, isGroupSelected} = useGroupChildrenForShiftRange({
+        groupKey: groupItem.keyForList,
+        isExpanded,
+        shouldUnregisterOnUnmount: true,
+        isExpenseReportType,
+        groupTransactions: groupItem.transactions,
+        snapshotData: transactionsSnapshot?.data,
+        bankAccountList,
+        cardFeeds,
+        conciergeReportID,
+    });
 
     const selectedItemsLength = transactions.reduce((acc, transaction) => (transaction.isSelected ? acc + 1 : acc), 0);
 
@@ -325,8 +300,9 @@ function TransactionGroupListItemImpl({
         onLongPressRow?.(transaction as ListItem);
     };
 
-    const handleSelectionButtonPress = (val: ListItem) => {
-        onSelectionButtonPress?.(val, isExpenseReportType ? undefined : transactions);
+    // Forward shiftKey so Shift+click on an expanded child applies the range; group headers never send it (they ignore Shift).
+    const handleSelectionButtonPress = (val: ListItem, _itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => {
+        onSelectionButtonPress?.(val, isExpenseReportType ? undefined : transactions, shiftKey);
     };
 
     const onExpandIconPress = () => {

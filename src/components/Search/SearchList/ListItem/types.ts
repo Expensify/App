@@ -515,7 +515,7 @@ const GROUP_ITEM_TYPES = {
     CHILDREN_CONTAINER: 'children_container',
 } as const;
 
-type GroupHeaderListItemType = {listItemType: typeof GROUP_ITEM_TYPES.GROUP_HEADER};
+type GroupHeaderListItemType = {listItemType: typeof GROUP_ITEM_TYPES.GROUP_HEADER; groupKeyForList: string};
 
 type GroupHeaderItemType =
     | (TransactionReportGroupListItemType & GroupHeaderListItemType)
@@ -533,6 +533,7 @@ type GroupHeaderItemType =
 
 type GroupChildrenContainerItemType = TransactionGroupListItemType & {
     listItemType: typeof GROUP_ITEM_TYPES.CHILDREN_CONTAINER;
+    groupKeyForList: string;
 };
 
 function isGroupHeaderItem(item: SearchListItem): item is GroupHeaderItemType {

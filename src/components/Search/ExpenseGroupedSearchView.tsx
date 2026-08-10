@@ -15,7 +15,7 @@ import type {Transaction} from '@src/types/onyx';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
-import React, {useImperativeHandle, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
@@ -24,6 +24,7 @@ import type {SearchQueryJSON, SelectedTransactions} from './types';
 import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
 import SelectionTopBar from './primitives/SelectionTopBar';
+import {useSearchShiftRangeChildren} from './SearchContext';
 import BaseSearchList from './SearchList/BaseSearchList';
 import GroupChildrenContainer from './SearchList/ListItem/GroupChildrenContainer';
 import GroupHeader from './SearchList/ListItem/GroupHeader';
@@ -134,6 +135,28 @@ function ExpenseGroupedSearchView({
             return next;
         });
 
+    // Pruning lives here because a sticky header can be collapsed while its children row is recycled out of the tree.
+    const {unregisterGroupChildren} = useSearchShiftRangeChildren();
+    const previouslyExpandedGroupsRef = useRef(expandedGroups);
+    useEffect(() => {
+        for (const key of previouslyExpandedGroupsRef.current) {
+            if (!expandedGroups.has(key)) {
+                unregisterGroupChildren(key);
+            }
+        }
+        previouslyExpandedGroupsRef.current = expandedGroups;
+    }, [expandedGroups, unregisterGroupChildren]);
+
+    // After a layout switch the other path starts collapsed, so clearing this lets the effect above unregister those groups.
+    const wasSplitRef = useRef(shouldSplit);
+    useEffect(() => {
+        if (wasSplitRef.current === shouldSplit) {
+            return;
+        }
+        wasSplitRef.current = shouldSplit;
+        setExpandedGroups((previousGroups) => (previousGroups.size === 0 ? previousGroups : new Set()));
+    }, [shouldSplit]);
+
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
@@ -218,7 +241,7 @@ function ExpenseGroupedSearchView({
 
     const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
         if (isGroupHeaderItem(item)) {
-            const originalKey = (item.keyForList ?? '').replace('header_', '');
+            const originalKey = item.groupKeyForList;
             return (
                 <GroupHeader
                     item={item}
@@ -246,7 +269,7 @@ function ExpenseGroupedSearchView({
         }
 
         if (isGroupChildrenContainerItem(item)) {
-            const originalKey = (item.keyForList ?? '').replace('children_', '');
+            const originalKey = item.groupKeyForList;
             const containerNewTransactionID = item.keyForList ? newTransactionIDByItemKey.get(originalKey) : undefined;
             return (
                 <GroupChildrenContainer

@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import {useSearchRowSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchRowSelectionActions, useSearchSelectionContext, useSearchShiftRangeChildren} from '@components/Search/SearchContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import type {TransactionCategoryGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import SearchWriteActionsProvider from '@components/Search/SearchWriteActionsProvider';
@@ -60,6 +60,7 @@ function Wrapper({children}: {children: React.ReactNode}) {
         <SearchContextProvider>
             <SearchWriteActionsProvider
                 filteredData={[categoryGroup]}
+                renderedData={[categoryGroup]}
                 totalSelectableItemsCount={2}
                 searchResults={undefined}
                 transactions={undefined}
@@ -80,6 +81,7 @@ const renderSelection = () =>
         () => ({
             ...useSearchSelectionContext(),
             ...useSearchRowSelectionActions(),
+            ...useSearchShiftRangeChildren(),
         }),
         {wrapper: Wrapper},
     );
@@ -126,6 +128,35 @@ describe('Lazily loaded group selection', () => {
         // Then the group-level selection is cleared rather than left behind, so nothing stays selected
         expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
         expect(Object.keys(result.current.selectedTransactions)).toHaveLength(0);
+    });
+
+    it('narrows a selection held under the group key when shift+click collapses the range onto one child', async () => {
+        const {result} = renderSelection();
+        const [firstChild] = loadedChildren;
+
+        // Given a group whose children have loaded and been registered
+        await act(async () => {
+            result.current.registerGroupChildren(GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Given Select All, which lands under the group key since the group carries no transactions itself
+        await act(async () => {
+            result.current.toggleAll();
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
+
+        // When shift+click collapses the seeded range onto the first child
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the group entry is spelled out into its children, so the rest can be dropped
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']).toBeUndefined();
     });
 
     it('selects every child of a group that was not already selected once its children loaded', async () => {

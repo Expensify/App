@@ -1,15 +1,9 @@
-import {useSearchSelectionContext} from '@components/Search/SearchContext';
-
-import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {search} from '@libs/actions/Search';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getSections} from '@libs/SearchUIUtils';
 import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -22,6 +16,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import type {GroupChildrenContentProps, TransactionListItemType} from './types';
 
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
+import useGroupChildrenForShiftRange from './useGroupChildrenForShiftRange';
 
 function GroupChildrenContent({
     item,
@@ -40,11 +35,8 @@ function GroupChildrenContent({
     cardFeeds,
     conciergeReportID,
 }: GroupChildrenContentProps) {
-    const {translate, formatPhoneNumber} = useLocalize();
-    const {selectedTransactions} = useSearchSelectionContext();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isScreenFocused = useIsFocused();
-    const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
 
     const groupItem = item;
@@ -52,53 +44,22 @@ function GroupChildrenContent({
 
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState<number>(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
-    const isActionLoadingSet = useActionLoadingReportIDs();
     const snapshotData = transactionsSnapshot?.data;
 
-    const selectedTransactionIDsSet = useMemo(() => new Set(Object.keys(selectedTransactions)), [selectedTransactions]);
-
-    const transactions: TransactionListItemType[] = useMemo(() => {
-        if (isExpenseReportType) {
-            return groupItem.transactions;
-        }
-        if (!snapshotData) {
-            return [];
-        }
-        const [sectionData] = getSections({
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            data: snapshotData,
-            currentAccountID: currentUserDetails.accountID,
-            currentUserEmail: currentUserDetails.email ?? '',
-            translate,
-            formatPhoneNumber,
-            bankAccountList,
-            isActionLoadingSet,
-            cardFeeds,
-            conciergeReportID,
-            convertToDisplayString,
-            reportAttributesDerivedValue: undefined,
-        }) as [TransactionListItemType[], number, boolean];
-        return sectionData.map((transactionItem) => ({
-            ...transactionItem,
-            isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
-        }));
-    }, [
+    // Uses groupKeyForList: this split container's own keyForList is prefixed.
+    const {rangeChildren, transactions} = useGroupChildrenForShiftRange({
+        groupKey: groupItem.groupKeyForList,
+        isExpanded,
+        shouldUnregisterOnUnmount: false,
         isExpenseReportType,
-        groupItem.transactions,
+        groupTransactions: groupItem.transactions,
         snapshotData,
-        currentUserDetails.accountID,
-        currentUserDetails.email,
-        translate,
-        formatPhoneNumber,
         bankAccountList,
-        isActionLoadingSet,
         cardFeeds,
         conciergeReportID,
-        convertToDisplayString,
-        selectedTransactionIDsSet,
-    ]);
+    });
 
-    const isEmpty = transactions.length === 0;
+    const isEmpty = rangeChildren.length === 0;
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
 
     const refreshTransactions = () => {

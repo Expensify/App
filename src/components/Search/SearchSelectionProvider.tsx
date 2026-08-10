@@ -42,6 +42,12 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         currentSearchHashRef.current = currentSearchHash;
     }, [currentSearchHash]);
 
+    // Read through this ref so selectionActionsValue stays stable and actions-only consumers don't re-render on every selection change.
+    const selectedTransactionsRef = useRef(selectionState.selectedTransactions);
+    useEffect(() => {
+        selectedTransactionsRef.current = selectionState.selectedTransactions;
+    }, [selectionState.selectedTransactions]);
+
     const setSelectedTransactions: SearchSelectionActionsValue['setSelectedTransactions'] = (transactionIDs, data) => {
         if (transactionIDs instanceof Array) {
             if (!transactionIDs.length && areTransactionsEmpty.current) {
@@ -201,6 +207,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     const selectionActionsValue: SearchSelectionActionsValue = {
         setSelectedTransactions,
         applySelection,
+        getSelectedTransactions: () => selectedTransactionsRef.current,
         setSelectedReports,
         setCurrentSelectedTransactionReportID,
         clearSelectedTransactions,

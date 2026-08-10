@@ -247,7 +247,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         handleActionButtonPress({
             hash: currentSearchHash,
             item: liveReportItem,
-            goToItem: () => onSelectRow(reportItem as unknown as TItem),
+            goToItem: () => onSelectRow(item),
             snapshotReport,
             snapshotPolicy,
             submitterLogin,
@@ -306,7 +306,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         });
     }, [
         currentSearchHash,
-        reportItem,
+        item,
         liveReportItem,
         onSelectRow,
         searchData,
@@ -346,9 +346,12 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         conciergeChat,
     ]);
 
-    const handleSelectionButtonPress = useCallback(() => {
-        onSelectionButtonPress?.(reportItem as unknown as TItem);
-    }, [onSelectionButtonPress, reportItem]);
+    const handleSelectionButtonPress = useCallback(
+        (shiftKey?: boolean) => {
+            onSelectionButtonPress?.(item, undefined, shiftKey);
+        },
+        [onSelectionButtonPress, item],
+    );
 
     const listItemPressableStyle = useMemo(
         () => [

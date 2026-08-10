@@ -1,6 +1,6 @@
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getReimbursableTotal, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
-import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {isGroupedItemArray, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -8,7 +8,7 @@ import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePa
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import type {TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
+import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 type MapTransactionItemToSelectedEntryParams = {
@@ -309,4 +309,50 @@ function deriveSelectedReports(transactionIDs: SelectedTransactions, data: Searc
     return [];
 }
 
-export {mapTransactionItemToSelectedEntry, mapEmptyReportToSelectedEntry, prepareTransactionsList, deriveSelectedReports};
+/** The single rule for which children belong to a group: the lazily registered ones, else the group's own. */
+function resolveGroupChildren(group: TransactionGroupListItemType, groupChildrenByKey: Record<string, TransactionListItemType[]>): TransactionListItemType[] {
+    return groupChildrenByKey[group.keyForList] ?? group.transactions ?? [];
+}
+
+/**
+ * Flattened source (each group header followed by its children, in visual order) that shift-range ranges over. Flattens only in
+ * group-by views — children come from `groupChildrenByKey` (else `group.transactions`); expense-report and flat views pass through.
+ */
+function buildShiftRangeItems(sortedData: SearchListItem[], groupChildrenByKey: Record<string, TransactionListItemType[]>, groupsAreHeaders: boolean): SearchListItem[] {
+    if (!groupsAreHeaders || !isGroupedItemArray(sortedData)) {
+        return sortedData;
+    }
+    return sortedData.flatMap((group) => [group, ...resolveGroupChildren(group, groupChildrenByKey)]);
+}
+
+type GroupChildrenIndex = {
+    childrenByGroupKey: Map<string, TransactionListItemType[]>;
+    groupKeyByChildKey: Map<string, string>;
+};
+
+/**
+ * Parent/child lookups over the same rows `buildShiftRangeItems` flattens, so the range and the selection agree on who owns a row.
+ * Empty outside group-by views, where the list holds no child rows to attribute to a parent.
+ */
+function buildGroupChildrenIndex(sortedData: SearchListItem[], groupChildrenByKey: Record<string, TransactionListItemType[]>, groupsAreHeaders: boolean): GroupChildrenIndex {
+    const childrenByGroupKey = new Map<string, TransactionListItemType[]>();
+    const groupKeyByChildKey = new Map<string, string>();
+    if (!groupsAreHeaders || !isGroupedItemArray(sortedData)) {
+        return {childrenByGroupKey, groupKeyByChildKey};
+    }
+    for (const group of sortedData) {
+        if (!group.keyForList) {
+            continue;
+        }
+        const children = resolveGroupChildren(group, groupChildrenByKey);
+        childrenByGroupKey.set(group.keyForList, children);
+        for (const child of children) {
+            if (child.keyForList) {
+                groupKeyByChildKey.set(child.keyForList, group.keyForList);
+            }
+        }
+    }
+    return {childrenByGroupKey, groupKeyByChildKey};
+}
+
+export {mapTransactionItemToSelectedEntry, mapEmptyReportToSelectedEntry, prepareTransactionsList, deriveSelectedReports, buildShiftRangeItems, buildGroupChildrenIndex};

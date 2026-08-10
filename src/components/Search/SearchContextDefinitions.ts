@@ -12,6 +12,7 @@ import type {
     SearchRowSelectionActionsValue,
     SearchSelectionActionsValue,
     SearchSelectionContextValue,
+    SearchShiftRangeChildrenActions,
 } from './types';
 
 // This file holds the bare React.createContext() calls so they can be imported by `@hooks/useOnyx`
@@ -58,6 +59,7 @@ const defaultSearchSelectionContext: SearchSelectionContextValue = {
 
 const defaultSearchSelectionActions: SearchSelectionActionsValue = {
     setSelectedTransactions: () => {},
+    getSelectedTransactions: () => ({}),
     applySelection: () => {},
     setSelectedReports: () => {},
     setCurrentSelectedTransactionReportID: () => {},
@@ -71,6 +73,11 @@ const defaultRowSelectionActions: SearchRowSelectionActionsValue = {
     toggleAll: () => {},
 };
 
+const defaultSearchShiftRangeChildrenActions: SearchShiftRangeChildrenActions = {
+    registerGroupChildren: () => {},
+    unregisterGroupChildren: () => {},
+};
+
 const SearchQueryContext = React.createContext<SearchQueryContextValue>(defaultSearchQueryContext);
 const SearchQueryActionsContext = React.createContext<SearchQueryActionsValue>(defaultSearchQueryActions);
 const SearchResultsContext = React.createContext<SearchResultsContextValue>(defaultSearchResultsContext);
@@ -78,6 +85,7 @@ const SearchResultsActionsContext = React.createContext<SearchResultsActionsValu
 const SearchSelectionContext = React.createContext<SearchSelectionContextValue>(defaultSearchSelectionContext);
 const SearchSelectionActionsContext = React.createContext<SearchSelectionActionsValue>(defaultSearchSelectionActions);
 const SearchRowSelectionActionsContext = React.createContext<SearchRowSelectionActionsValue>(defaultRowSelectionActions);
+const SearchShiftRangeChildrenContext = React.createContext<SearchShiftRangeChildrenActions>(defaultSearchShiftRangeChildrenActions);
 
 export {
     SearchQueryContext,
@@ -87,4 +95,5 @@ export {
     SearchSelectionContext,
     SearchSelectionActionsContext,
     SearchRowSelectionActionsContext,
+    SearchShiftRangeChildrenContext,
 };

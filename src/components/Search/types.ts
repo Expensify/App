@@ -241,6 +241,8 @@ type SearchSelectionActionsValue = {
      * `totalSelectableItemsCount` unchecks "select all matching" when the new selection no longer covers every item.
      */
     applySelection: (updater: (previousSelectedTransactions: SelectedTransactions) => SelectedTransactions, options?: {data?: SearchData; totalSelectableItemsCount?: number}) => void;
+    /** Reads the current selection on demand without subscribing, so the shift-range hook can anchor from the live selection. */
+    getSelectedTransactions: () => SelectedTransactions;
     setSelectedReports: (reports: SelectedReports[]) => void;
     setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */
@@ -262,10 +264,18 @@ type SearchData = TransactionListItemType[] | TransactionGroupListItemType[] | R
  * never re-renders consumers that only need to dispatch.
  */
 type SearchRowSelectionActionsValue = {
-    /** Toggle selection of a single transaction row or a group (report / grouped rows). */
-    toggle: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
+    /** Toggle selection of a single transaction row or a group (report / grouped rows). `shiftKey` extends a range. */
+    toggle: (item: SearchListItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
     /** Toggle selection of all currently selectable items. */
     toggleAll: () => void;
+};
+
+/** Lets lazily-loaded group-by children publish themselves to the shift-range source. */
+type SearchShiftRangeChildrenActions = {
+    /** Publish a group's rendered children, in visual order. */
+    registerGroupChildren: (groupKey: string, children: TransactionListItemType[]) => void;
+    /** Remove a group's children when it collapses, or when the row that owns its expanded state unmounts. */
+    unregisterGroupChildren: (groupKey: string) => void;
 };
 
 /** Composed value of all three Search state contexts. Kept as a union for callers that need the full bag shape (e.g. test fixtures, action `searchContext` payloads). */
@@ -481,6 +491,7 @@ export type {
     SearchSelectionActionsValue,
     SearchData,
     SearchRowSelectionActionsValue,
+    SearchShiftRangeChildrenActions,
     ASTNode,
     QueryFilter,
     Filter,

@@ -24,6 +24,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -52,6 +53,7 @@ import {
 } from '@libs/ReportUtils';
 import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, getTableMinWidth, hasFlexColumn, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
+import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
 import {getTransactionPendingAction, getVisibleTransactionViolations, hasNonReimbursableTransactions, isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -358,19 +360,6 @@ function MoneyRequestReportTransactionList({
     useHandleSelectionMode(selectedTransactionIDs);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
-    const toggleTransaction = useCallback(
-        (transactionID: string) => {
-            let newSelectedTransactionIDs = selectedTransactionIDs;
-            if (selectedTransactionIDs.includes(transactionID)) {
-                newSelectedTransactionIDs = selectedTransactionIDs.filter((t) => t !== transactionID);
-            } else {
-                newSelectedTransactionIDs = [...selectedTransactionIDs, transactionID];
-            }
-            setSelectedTransactions(newSelectedTransactionIDs);
-        },
-        [setSelectedTransactions, selectedTransactionIDs],
-    );
-
     const isTransactionSelected = useCallback((transactionID: string) => selectedTransactionIDs.includes(transactionID), [selectedTransactionIDs]);
 
     useFocusEffect(
@@ -570,12 +559,41 @@ function MoneyRequestReportTransactionList({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [resolvedTransactions, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldGroupTransactions]);
 
-    const visualOrderTransactionIDs = useMemo(() => {
-        if (!shouldGroupTransactions || groupedTransactions.length === 0) {
-            return sortedTransactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID);
-        }
-        return groupedTransactions.flatMap((group) => group.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID));
-    }, [groupedTransactions, sortedTransactions, shouldGroupTransactions]);
+    // The order rows actually appear in: sorting and grouping both reorder the incoming transactions.
+    const visualOrderTransactions = useMemo(
+        () => (shouldGroupTransactions && groupedTransactions.length > 0 ? groupedTransactions.flatMap((group) => group.transactions) : resolvedTransactions),
+        [groupedTransactions, resolvedTransactions, shouldGroupTransactions],
+    );
+
+    const visualOrderTransactionIDs = useMemo(
+        () => visualOrderTransactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID),
+        [visualOrderTransactions],
+    );
+
+    // A shift+click asks this once per row, and again if it has to re-resolve the anchor, so the lookup has to be constant time.
+    const selectedTransactionIDsSet = useMemo(() => new Set(selectedTransactionIDs), [selectedTransactionIDs]);
+
+    const rangeApi = useShiftRangeSelection<OnyxTypes.Transaction>({
+        items: visualOrderTransactions,
+        getItemKey: (t) => t.transactionID ?? null,
+        isItemSelected: (t) => selectedTransactionIDsSet.has(t.transactionID),
+        isDisabledItem: (t) => isTransactionPendingDelete(t),
+        onApplyRange: (batch) => setSelectedTransactions(applyShiftRangeBatchToKeySet(batch, selectedTransactionIDs, (t) => t.transactionID)),
+    });
+
+    const toggleTransaction = useCallback(
+        (transactionID: string, shiftKey?: boolean) => {
+            const item = visualOrderTransactions.find((t) => t.transactionID === transactionID);
+            if (item && rangeApi.applyShiftClick(item, shiftKey)) {
+                return;
+            }
+            setSelectedTransactions(selectedTransactionIDs.includes(transactionID) ? selectedTransactionIDs.filter((t) => t !== transactionID) : [...selectedTransactionIDs, transactionID]);
+            if (item) {
+                rangeApi.notifyAnchor(item);
+            }
+        },
+        [setSelectedTransactions, selectedTransactionIDs, visualOrderTransactions, rangeApi],
+    );
 
     // Order-sensitive proxy for visualOrderTransactionIDs used as the effect dependency below. It must stay
     // order-sensitive: changing the report's sorting/grouping (without changing which transactions are present)
@@ -646,23 +664,26 @@ function MoneyRequestReportTransactionList({
     }, [groupedTransactions, selectedTransactionIDs]);
 
     const toggleGroupSelection = useCallback(
+        // Group headers ignore Shift — they always toggle the whole group.
         (groupKey: string) => {
             const group = groupedTransactions.find((g) => g.groupKey === groupKey);
             if (!group) {
                 return;
             }
-            const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
+            const selectableChildren = group.transactions.filter((t) => !isTransactionPendingDelete(t));
+            const groupTransactionIDs = selectableChildren.map((t) => t.transactionID);
             const anySelected = groupTransactionIDs.some((id) => selectedTransactionIDs.includes(id));
-
-            let newSelectedTransactionIDs = selectedTransactionIDs;
+            const nextSelectedIDs = anySelected ? selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id)) : [...selectedTransactionIDs, ...groupTransactionIDs];
+            setSelectedTransactions(nextSelectedIDs);
             if (anySelected) {
-                newSelectedTransactionIDs = selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id));
+                // Deselecting paints no block, so reset instead of leaving a stale span to collapse.
+                rangeApi.clearAnchor();
             } else {
-                newSelectedTransactionIDs = [...selectedTransactionIDs, ...groupTransactionIDs];
+                // Seed just this block: seeding the whole selection would span unrelated rows and deselect them.
+                rangeApi.seedRangeFromSelection(groupTransactionIDs);
             }
-            setSelectedTransactions(newSelectedTransactionIDs);
         },
-        [groupedTransactions, selectedTransactionIDs, setSelectedTransactions],
+        [groupedTransactions, selectedTransactionIDs, setSelectedTransactions, rangeApi],
     );
 
     /**
@@ -923,9 +944,11 @@ function MoneyRequestReportTransactionList({
                         onPress={() => {
                             if (selectedTransactionIDs.length !== 0) {
                                 clearSelectedTransactions(true);
-                            } else {
-                                setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
+                                rangeApi.clearAnchor();
+                                return;
                             }
+                            setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
+                            rangeApi.seedFullRange();
                         }}
                         accessibilityLabel={translate('accessibilityHints.selectAllTransactions')}
                         isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}

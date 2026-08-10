@@ -205,6 +205,28 @@ describe('useShiftRangeSelection', () => {
             });
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'c', 'e'], toDeselect: []});
         });
+
+        it('keeps the last usable anchor when notifyAnchor is passed a row the list does not contain', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            act(() => result.current.notifyAnchor(ROW_B));
+            // A row that can never be a range endpoint, such as an expanded child in a report list
+            act(() => result.current.notifyAnchor({keyForList: 'not-in-the-list'}));
+            act(() => {
+                result.current.applyShiftClick(ROW_D, true);
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd'], toDeselect: []});
+        });
+
+        it('matches notifyAnchor by key, so a re-rendered copy of a row still anchors', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            act(() => result.current.notifyAnchor({...ROW_B}));
+            act(() => {
+                result.current.applyShiftClick(ROW_D, true);
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd'], toDeselect: []});
+        });
     });
 
     describe('range computation', () => {

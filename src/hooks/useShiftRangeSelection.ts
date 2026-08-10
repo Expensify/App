@@ -15,10 +15,8 @@ type Params<TItem> = {
 type Api<TItem> = {
     applyShiftClick: (item: TItem, shiftKey?: boolean) => boolean;
     notifyAnchor: (item: TItem) => void;
-    // No caller in this PR — the Search provider's group toggles consume it in the follow-up.
     seedRangeFromSelection: (selectedKeys: ReadonlySet<string> | readonly string[]) => void;
     seedFullRange: () => void;
-    // No caller in this PR — the Search provider's clear-all consumes it in the follow-up.
     clearAnchor: () => void;
 };
 
@@ -57,8 +55,10 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
             return true;
         },
         notifyAnchor: (item) => {
-            const key = keyOf(paramsRef.current, item);
-            if (key == null) {
+            const currentParams = paramsRef.current;
+            const key = keyOf(currentParams, item);
+            // A row a range can't reach would leave an anchor the next shift+click has to re-resolve from the top, so the last reachable one is kept.
+            if (key == null || !isAnchorable(currentParams, key)) {
                 return;
             }
             sessionRef.current = {kind: 'anchored', anchor: key};
@@ -220,6 +220,11 @@ function keyOf<TItem>(params: Params<TItem>, item: TItem | null | undefined): st
         return null;
     }
     return params.getItemKey(item) ?? null;
+}
+
+/** Whether a key belongs to a row that is currently in the list and free to take part in a range. Matched by key: callers pass clones. */
+function isAnchorable<TItem>(params: Params<TItem>, key: string): boolean {
+    return params.items.some((row) => keyOf(params, row) === key && !isExcluded(params, row));
 }
 
 function isExcluded<TItem>(params: Params<TItem>, item: TItem | null | undefined): boolean {
