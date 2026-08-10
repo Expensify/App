@@ -606,6 +606,9 @@ const ONYXKEYS = {
     /** Indicates whether we should use the staging version of the secure API server */
     SHOULD_USE_STAGING_SERVER: 'shouldUseStagingServer',
 
+    /** The last OldDot staging toggle generation this app has accepted; only unaccepted generations are applied */
+    LAST_ACCEPTED_OLD_DOT_STAGING_TOGGLE_GENERATION: 'lastAcceptedOldDotStagingToggleGeneration',
+
     /** Indicates whether the debug mode is currently enabled */
     IS_DEBUG_MODE_ENABLED: 'isDebugModeEnabled',
 
@@ -1727,6 +1730,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT]: boolean;
     [ONYXKEYS.SHOULD_MASK_ONYX_STATE]: boolean;
     [ONYXKEYS.SHOULD_USE_STAGING_SERVER]: boolean;
+    [ONYXKEYS.LAST_ACCEPTED_OLD_DOT_STAGING_TOGGLE_GENERATION]: number;
     [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: boolean;
     [ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE]: boolean;
     [ONYXKEYS.IS_SENTRY_DEBUG_ENABLED]: boolean;

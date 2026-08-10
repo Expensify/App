@@ -19,14 +19,15 @@ function HybridAppHandler() {
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [shouldUseStagingServer, shouldUseStagingServerMetadata] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+    const [lastAcceptedStagingToggleGeneration, lastAcceptedStagingToggleGenerationMetadata] = useOnyx(ONYXKEYS.LAST_ACCEPTED_OLD_DOT_STAGING_TOGGLE_GENERATION);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const isLoadingCredentials = isLoadingOnyxValue(credentialsMetadata);
-    const isLoadingShouldUseStagingServer = isLoadingOnyxValue(shouldUseStagingServerMetadata);
+    const isLoadingShouldUseStagingServer = isLoadingOnyxValue(shouldUseStagingServerMetadata) || isLoadingOnyxValue(lastAcceptedStagingToggleGenerationMetadata);
 
     const finalizeTransitionFromOldDot = (hybridAppSettings: HybridAppSettings) => {
         const loggedOutFromOldDot = !!hybridAppSettings.hybridApp.loggedOutFromOldDot;
 
-        setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot, credentials, shouldUseStagingServer).then(() => {
+        setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot, credentials, shouldUseStagingServer, lastAcceptedStagingToggleGeneration).then(() => {
             if (loggedOutFromOldDot) {
                 endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
                 endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);

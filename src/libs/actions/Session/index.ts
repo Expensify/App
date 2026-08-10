@@ -344,6 +344,7 @@ const KEYS_TO_PRESERVE_SUPPORTAL = [
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
     ONYXKEYS.NETWORK,
     ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    ONYXKEYS.LAST_ACCEPTED_OLD_DOT_STAGING_TOGGLE_GENERATION,
     ONYXKEYS.BETA_BUILD_VERSION,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
 
@@ -685,6 +686,7 @@ function setupNewDotAfterTransitionFromOldDot(
     tryNewDot: TryNewDot | undefined,
     credentialsParam: Credentials | undefined,
     shouldUseStagingServer: boolean | undefined,
+    lastAcceptedStagingToggleGeneration: number | undefined,
 ) {
     const {hybridApp, ...newDotOnyxValues} = hybridAppSettings;
 
@@ -789,7 +791,7 @@ function setupNewDotAfterTransitionFromOldDot(
                 readyToShowAuthScreens: !hybridApp?.useNewDotSignInPage,
             };
 
-            const onyxUpdates: Array<OnyxUpdate<typeof ONYXKEYS.HYBRID_APP | keyof typeof newDotOnyxValues>> = [
+            const onyxUpdates: Array<OnyxUpdate<typeof ONYXKEYS.HYBRID_APP | typeof ONYXKEYS.LAST_ACCEPTED_OLD_DOT_STAGING_TOGGLE_GENERATION | keyof typeof newDotOnyxValues>> = [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.HYBRID_APP,
@@ -797,10 +799,29 @@ function setupNewDotAfterTransitionFromOldDot(
                 },
             ];
 
+            // OldDot bumps the generation only on deliberate toggle flips, so an unaccepted generation marks a real
+            // change rather than the ambient value sent on every transition.
+            const oldDotStagingToggleGeneration = hybridApp?.stagingToggleGeneration ?? 0;
+            const lastAcceptedGeneration = lastAcceptedStagingToggleGeneration ?? 0;
+            const hasNewOldDotStagingToggleChange = oldDotStagingToggleGeneration > lastAcceptedGeneration;
+
+            // A generation lower than the accepted one means OldDot wiped its state (sign-out) and the counter
+            // restarted; re-baseline or every future flip would stay below the stored value and be ignored.
+            const didOldDotResetGeneration = oldDotStagingToggleGeneration < lastAcceptedGeneration;
+
+            if (hasNewOldDotStagingToggleChange || didOldDotResetGeneration) {
+                onyxUpdates.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.LAST_ACCEPTED_OLD_DOT_STAGING_TOGGLE_GENERATION,
+                    value: oldDotStagingToggleGeneration,
+                });
+            }
+
             for (const [key, value] of Object.entries(newDotOnyxValues)) {
                 // OldDot sends its staging flag on every transition; merging it over NewDot's preserved value would
-                // reset the toggle on every cold start. Take it only while NewDot has none (first-transition seed).
-                if (key === ONYXKEYS.SHOULD_USE_STAGING_SERVER && shouldUseStagingServer !== undefined) {
+                // reset the toggle on every cold start. Take it only while NewDot has none (first-transition seed)
+                // or when it carries a deliberate OldDot toggle change we haven't applied yet.
+                if (key === ONYXKEYS.SHOULD_USE_STAGING_SERVER && shouldUseStagingServer !== undefined && !hasNewOldDotStagingToggleChange) {
                     continue;
                 }
 
