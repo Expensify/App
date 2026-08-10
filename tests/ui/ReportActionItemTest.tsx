@@ -1579,6 +1579,11 @@ describe('ReportActionItem', () => {
                 newParentReportID: 'report2',
                 movedReportID: 'report3',
             });
+            // The destination policy must be in Onyx so getMovedActionMessage resolves the workspace name and
+            // renders the translated "moved this ... workspace" message instead of falling back to the stored html.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {id: 'policy1', name: 'Test Workspace'});
+            });
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
