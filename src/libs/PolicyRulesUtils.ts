@@ -49,11 +49,13 @@ const SUGGESTED_AGENT_RULE_ICON_RULES = [
  * example a "mismatch" rule whose new title happens to contain "total"), which would flip
  * its icon. Add an id here when that happens instead of tuning the shared keyword lists.
  */
+/* eslint-disable @typescript-eslint/naming-convention -- keys are external kebab-case rule ids from Web-Expensify's InProductSuggestedRules. */
 const SUGGESTED_AGENT_RULE_ICON_OVERRIDES: Readonly<Record<string, Exclude<SuggestedAgentRuleIcon, 'ThumbsUp'>>> = {
     'number-of-expenses': 'Flag',
     'receipt-transaction-mismatch': 'Flag',
     'itemized-split-recommended': 'Flag',
 };
+/* eslint-enable @typescript-eslint/naming-convention */
 
 const SUGGESTED_AGENT_RULE_ICON_NAMES = [DEFAULT_SUGGESTED_AGENT_RULE_ICON, ...SUGGESTED_AGENT_RULE_ICON_RULES.map((rule) => rule.icon)] as const;
 
