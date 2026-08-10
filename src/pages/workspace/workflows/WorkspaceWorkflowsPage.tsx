@@ -56,7 +56,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     canAccessSubmitWorkspaceFeatures,
     canMemberRead,
@@ -211,15 +211,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
     const policyReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
-    const policyReimburserDetails = usePersonalDetailByLogin(policyReimburserEmail);
-    const displayNameForAuthorizedPayer = useMemo(
-        () =>
-            temporaryGetDisplayNameOrDefault({
-                passedPersonalDetails: policyReimburserDetails,
-                defaultValue: policyReimburserEmail,
-                translate,
-            }),
-        [policyReimburserDetails, policyReimburserEmail, translate],
+    const displayNameForAuthorizedPayer = usePersonalDetailByLogin(policyReimburserEmail, (personalDetails) =>
+        temporaryGetDisplayNameOrDefault({
+            passedPersonalDetails: personalDetails,
+            defaultValue: policyReimburserEmail,
+            translate,
+        }),
     );
 
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
