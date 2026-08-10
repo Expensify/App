@@ -13,7 +13,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
 type IntegrationMessageProps = {
+    /** Integration report action to render. */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE>;
+
+    /** ID of policy that owns report action. */
     policyID: string | undefined;
 };
 

@@ -57,6 +57,14 @@ function getExportLabelForConnection(connectionName: ConnectionName, policy?: On
     return CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
 }
 
+function getExportLabelsForConnection(connectionName: ConnectionName, policies: Array<OnyxEntry<Policy>>): string[] {
+    const connectionPolicies = policies.filter((policy) => !!policy?.connections?.[connectionName]);
+    if (connectionPolicies.length === 0) {
+        return [getExportLabelForConnection(connectionName)];
+    }
+    return [...new Set(connectionPolicies.map((policy) => getExportLabelForConnection(connectionName, policy)))];
+}
+
 function isIntuitEnterpriseSuiteConnection(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.connections?.quickbooksOnline?.config?.credentials?.scope?.includes(INTUIT_ENTERPRISE_SUITE_SCOPE);
 }
@@ -87,6 +95,7 @@ export {
     getAccountingIntegrationDisplayName,
     getConnectionNameFromRouteParam,
     getExportLabelForConnection,
+    getExportLabelsForConnection,
     getExportIntegrationDisplayName,
     getQuickbooksOnlineIntegrationName,
     getRouteParamForConnection,

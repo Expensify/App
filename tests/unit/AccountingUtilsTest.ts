@@ -2,6 +2,7 @@ import {
     getAccountingIntegrationDisplayName,
     getExportIntegrationDisplayName,
     getExportLabelForConnection,
+    getExportLabelsForConnection,
     getQuickbooksOnlineIntegrationName,
     isIntuitEnterpriseSuiteConnection,
 } from '@libs/AccountingUtils';
@@ -89,6 +90,17 @@ describe('AccountingUtils', () => {
 
         it('returns the QBO label for a standard QBO connection', () => {
             expect(getExportLabelForConnection(CONST.POLICY.CONNECTIONS.NAME.QBO, buildQBOConnectionPolicy('com.intuit.quickbooks.accounting'))).toBe(CONST.EXPORT_LABELS.QBO);
+        });
+    });
+
+    describe('getExportLabelsForConnection', () => {
+        it('returns distinct labels for standard QBO and IES policies', () => {
+            expect(
+                getExportLabelsForConnection(CONST.POLICY.CONNECTIONS.NAME.QBO, [
+                    buildQBOConnectionPolicy('com.intuit.quickbooks.accounting'),
+                    buildQBOConnectionPolicy(INTUIT_ENTERPRISE_SUITE_SCOPE),
+                ]),
+            ).toEqual([CONST.EXPORT_LABELS.QBO, CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE]);
         });
     });
 

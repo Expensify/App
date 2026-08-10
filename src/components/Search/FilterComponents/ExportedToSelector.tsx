@@ -9,7 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getExportLabelForConnection} from '@libs/AccountingUtils';
+import {getExportLabelsForConnection} from '@libs/AccountingUtils';
 import {getIntegrationIcon} from '@libs/ReportUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies} from '@libs/SearchQueryUtils';
 
@@ -76,11 +76,7 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
         const connectedIntegrationPickerItems = integrationConnectionNames
             .filter((connectionName) => connectedIntegrationNames.has(connectionName))
             .flatMap((connectionName) => {
-                const connectionPolicies = policiesToLoadTemplatesFrom.filter((policy) => !!policy?.connections?.[connectionName]);
-                const searchValues =
-                    connectionPolicies.length > 0
-                        ? [...new Set(connectionPolicies.map((policy) => getExportLabelForConnection(connectionName, policy)))]
-                        : [getExportLabelForConnection(connectionName)];
+                const searchValues = getExportLabelsForConnection(connectionName, policiesToLoadTemplatesFrom);
                 const icon = getIntegrationIcon(connectionName, expensifyIcons);
                 return searchValues.map((searchValue) => ({
                     text: searchValue,
