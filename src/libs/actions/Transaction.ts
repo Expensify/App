@@ -231,8 +231,9 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     };
 
     if (!isRemovedWaypointEmpty) {
+        const {routes, ...transactionWithoutRoutes} = newTransaction;
         newTransaction = {
-            ...newTransaction,
+            ...transactionWithoutRoutes,
             comment: {
                 ...newTransaction.comment,
                 customUnit: {
@@ -241,22 +242,12 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
                     // distance-match the refetched routes against it and pick a route the user never selected.
                     routeDistanceMeters: null,
                 },
-                // The route is cleared below, so the previously selected alternate route no longer exists
+                // The routes are cleared above, so the previously selected alternate route no longer exists
                 selectedRouteKey: null,
             },
             // Clear any errors that may be present, which apply to the old route
             errorFields: {
                 route: null,
-            },
-            // Clear the existing route so that we don't show an old route
-            routes: {
-                route0: {
-                    // Clear the existing distance to recalculate next time
-                    distance: null,
-                    geometry: {
-                        coordinates: null,
-                    },
-                },
             },
         };
     }
