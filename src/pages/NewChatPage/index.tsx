@@ -58,7 +58,7 @@ type NewChatPageProps = {
 };
 
 function NewChatPage({ref}: NewChatPageProps) {
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();

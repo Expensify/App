@@ -774,7 +774,7 @@ describe('MoneyRequest', () => {
             isTrackIntentUser: false,
             formatPhoneNumber,
             delegateAccountID: undefined,
-            participants: getMoneyRequestParticipantOptions(1, fakeReport, fakePolicy, {}, undefined, false, {}, undefined, translateLocal),
+            participants: getMoneyRequestParticipantOptions(1, fakeReport, fakePolicy, {}, undefined, false, {}, undefined, translateLocal, formatPhoneNumber),
             participantsPolicyTags: {},
         };
         const splitShares: SplitShares = {
