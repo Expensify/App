@@ -27,7 +27,6 @@ import {View} from 'react-native';
 import HeaderLoadingBar from './HeaderLoadingBar';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderActions from './MoneyReportHeaderActions';
-import {ExportDownloadStatusProvider} from './MoneyReportHeaderActions/ExportDownloadStatusContext';
 import MoneyReportHeaderModals from './MoneyReportHeaderModals';
 import MoneyReportHeaderMoreContent from './MoneyReportHeaderMoreContent';
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
@@ -49,15 +48,13 @@ type MoneyReportHeaderProps = {
 function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
     return (
         <MoneyReportHeaderModals reportID={reportID}>
-            <ExportDownloadStatusProvider>
-                <PaymentAnimationsProvider>
-                    <MoneyReportHeaderContent
-                        reportID={reportID}
-                        shouldDisplayBackButton={shouldDisplayBackButton}
-                        onBackButtonPress={onBackButtonPress}
-                    />
-                </PaymentAnimationsProvider>
-            </ExportDownloadStatusProvider>
+            <PaymentAnimationsProvider>
+                <MoneyReportHeaderContent
+                    reportID={reportID}
+                    shouldDisplayBackButton={shouldDisplayBackButton}
+                    onBackButtonPress={onBackButtonPress}
+                />
+            </PaymentAnimationsProvider>
         </MoneyReportHeaderModals>
     );
 }

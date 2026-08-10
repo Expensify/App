@@ -89,7 +89,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         handleExpensifyCardStatementPDFModalHide,
         isExpensifyCardStatementMultiFeedAlertVisible,
         handleExpensifyCardStatementMultiFeedAlertClose,
-        exportDownloadStatusModal,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
@@ -325,7 +324,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     isDM={areAllTransactionsFromDMReports}
                 />
             )}
-            {exportDownloadStatusModal}
         </>
     );
 }

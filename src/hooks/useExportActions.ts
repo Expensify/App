@@ -1,6 +1,6 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {useExportDownloadStatus} from '@components/MoneyReportHeaderActions/ExportDownloadStatusContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import {exportReceiptsToZip} from '@libs/actions/Export';
 import {openOldDotLink} from '@libs/actions/Link';
@@ -70,7 +70,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 
     const {showDecisionModal} = useDecisionModal();
     const {triggerExportOrConfirm} = useExportAgainModal(moneyRequestReport?.reportID, moneyRequestReport?.policyID);
-    const {trackExport} = useExportDownloadStatus();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Table',
@@ -116,7 +116,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             return;
         }
 
-        const exportID = queueExportSearchWithTemplate(
+        queueExportSearchWithTemplate(
             {
                 templateName,
                 templateType,
@@ -128,7 +128,8 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             },
             true,
         );
-        trackExport(exportID);
+        // Clear the selection now that the export has started; the app-level ExportDownloadStatusManager shows the modal.
+        clearSelectedTransactions(true);
     };
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = {
@@ -278,8 +279,8 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
-                const exportID = exportReceiptsToZip([moneyRequestReport.reportID]);
-                trackExport(exportID);
+                exportReceiptsToZip([moneyRequestReport.reportID]);
+                clearSelectedTransactions(true);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.PRINT]: {
