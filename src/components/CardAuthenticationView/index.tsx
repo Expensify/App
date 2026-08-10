@@ -4,8 +4,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,7 +26,6 @@ function CardAuthenticationView({onAuthenticationComplete, onClose}: CardAuthent
     const {translate} = useLocalize();
     const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
     const [isLoading, setIsLoading] = useState(true);
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'CardAuthenticationView', isLoading};
 
     const handleSCAAuthentication = (event: MessageEvent<string>) => {
         if (event.origin !== SECURE_ORIGIN) {
@@ -59,7 +56,7 @@ function CardAuthenticationView({onAuthenticationComplete, onClose}: CardAuthent
                 style={{border: 'none'}}
                 onLoad={() => setIsLoading(false)}
             />
-            {isLoading && <LoadingIndicator reasonAttributes={reasonAttributes} />}
+            {isLoading && <LoadingIndicator />}
         </View>
     );
 }
