@@ -15,6 +15,6 @@ describe('benchmark span logging', () => {
         logSpanEnd('ManualAppStartup', 250);
 
         expect(writeLog).toHaveBeenCalledTimes(1);
-        expect(writeLog).toHaveBeenCalledWith(`${BENCHMARK_LOG_TAG} ${JSON.stringify({event: 'span_end', span: 'ManualAppStartup', durationMs: 250, timestamp: 1_234})}`);
+        expect(writeLog).toHaveBeenCalledWith(`${BENCHMARK_LOG_TAG} ${JSON.stringify({event: 'span_end', span: 'ManualAppStartup', durationMs: 250, timestamp: 1_234})}`, 'ManualAppStartup');
     });
 });

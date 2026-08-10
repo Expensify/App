@@ -1,4 +1,4 @@
-import {benchmarkStartups, benchmarkStats, findBenchmarkDuration, parseBenchmarkLogEvents, percentile} from '@scripts/benchmarkAppStartup';
+import {benchmarkStartups, benchmarkStats, findBenchmarkDuration, iosBenchmarkMarkerPath, parseBenchmarkLogEvents, percentile} from '@scripts/benchmarkAppStartup';
 
 import {mkdtempSync, readFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -14,6 +14,10 @@ describe('benchmarkAppStartup', () => {
 
         expect(parseBenchmarkLogEvents(output)).toHaveLength(2);
         expect(findBenchmarkDuration(output, 'ManualAppStartup')).toBe(500);
+    });
+
+    it('creates an app-container-safe marker path for an iOS span', () => {
+        expect(iosBenchmarkMarkerPath('Manual/App Startup')).toBe('Library/Caches/ExpensifyBenchmark/Manual%2FApp%20Startup.log');
     });
 
     it('calculates interpolated percentiles and summary statistics', () => {

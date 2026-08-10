@@ -7,7 +7,7 @@ import process from 'node:process';
 
 import type {NativeAppBenchmarkAdapter, PlatformName, StartupMode} from './lib/nativeAppBenchmark';
 
-import {PLATFORM_NAMES, createNativeAppBenchmarkAdapter, findBenchmarkDuration, parseBenchmarkLogEvents} from './lib/nativeAppBenchmark';
+import {PLATFORM_NAMES, createNativeAppBenchmarkAdapter, findBenchmarkDuration, iosBenchmarkMarkerPath, parseBenchmarkLogEvents} from './lib/nativeAppBenchmark';
 
 const DEFAULT_SPAN_NAME = 'ManualAppStartup';
 const DEFAULT_RUNS = 20;
@@ -235,5 +235,5 @@ if (isDirectRun) {
     });
 }
 
-export {benchmarkAppStartups, benchmarkStartups, benchmarkStats, findBenchmarkDuration, parseBenchmarkLogEvents, percentile};
+export {benchmarkAppStartups, benchmarkStartups, benchmarkStats, findBenchmarkDuration, iosBenchmarkMarkerPath, parseBenchmarkLogEvents, percentile};
 export type {BenchmarkAppStartupsOptions, BenchmarkResult, BenchmarkStartupsOptions, BenchmarkStats};

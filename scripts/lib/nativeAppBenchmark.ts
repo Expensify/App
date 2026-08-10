@@ -2,7 +2,7 @@
 
 import type {TupleToUnion} from 'type-fest';
 
-import {spawn, spawnSync} from 'node:child_process';
+import {spawnSync} from 'node:child_process';
 import {existsSync, mkdtempSync, readFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -12,7 +12,7 @@ const PLATFORM_NAMES = ['android', 'ios'] as const;
 const RELAUNCH_DELAY_MS = 500;
 const POLL_INTERVAL_MS = 250;
 const BENCHMARK_LOG_TAG = '[EXPENSIFY_BENCHMARK]';
-const MAX_CAPTURED_LOG_LENGTH = 1_000_000;
+const IOS_BENCHMARK_DIRECTORY = 'Library/Caches/ExpensifyBenchmark';
 
 type PlatformName = TupleToUnion<typeof PLATFORM_NAMES>;
 type StartupMode = 'process' | 'cold';
@@ -122,47 +122,8 @@ function findBenchmarkDuration(output: string, spanName: string): number | undef
     return parseBenchmarkLogEvents(output).findLast((event) => event.span === spanName)?.durationMs;
 }
 
-function waitForBenchmarkProcess(rootDirectory: string, command: string, args: string[], spanName: string, timeoutSeconds: number): Promise<number> {
-    return new Promise((resolvePromise, reject) => {
-        const processHandle = spawn(command, args, {cwd: rootDirectory});
-        let output = '';
-        let settled = false;
-        let timeout: ReturnType<typeof setTimeout>;
-
-        const finish = (result: {duration: number} | {error: Error}) => {
-            if (settled) {
-                return;
-            }
-
-            settled = true;
-            clearTimeout(timeout);
-            processHandle.kill('SIGINT');
-            if ('error' in result) {
-                reject(result.error);
-                return;
-            }
-            resolvePromise(result.duration);
-        };
-
-        const readOutput = (chunk: Buffer) => {
-            output = `${output}${chunk.toString()}`.slice(-MAX_CAPTURED_LOG_LENGTH);
-            const duration = findBenchmarkDuration(output, spanName);
-            if (duration !== undefined) {
-                finish({duration});
-            }
-        };
-
-        timeout = setTimeout(() => finish({error: new Error(`Timed out after ${timeoutSeconds}s waiting for benchmark span ${spanName}.\n${output}`)}), timeoutSeconds * 1000);
-        processHandle.stdout.on('data', readOutput);
-        processHandle.stderr.on('data', readOutput);
-        processHandle.on('error', (error) => finish({error}));
-        processHandle.on('exit', (code) => {
-            if (settled) {
-                return;
-            }
-            finish({error: new Error(`App launch exited with code ${code ?? 'unknown'} before ${spanName} completed.\n${output}`)});
-        });
-    });
+function iosBenchmarkMarkerPath(spanName: string): string {
+    return `${IOS_BENCHMARK_DIRECTORY}/${encodeURIComponent(spanName)}.log`;
 }
 
 function createAndroidAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeAppBenchmarkAdapterOptions, 'platform'>): NativeAppBenchmarkAdapter {
@@ -257,6 +218,32 @@ function createIosAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeA
     const environmentDeviceIdentifier = typeof iosDeviceID === 'string' ? iosDeviceID : undefined;
     const device = resolveIosDevice(rootDirectory, deviceIdentifier ?? environmentDeviceIdentifier);
     const terminate = () => runAllowFailure('xcrun', ['devicectl', 'device', 'process', 'terminate', '--device', device, appID]);
+    const readBenchmarkMarker = (spanName: string): string | undefined => {
+        const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-ios-marker-'));
+        const localPath = join(temporaryDirectory, 'benchmark.log');
+        try {
+            const copied = runAllowFailure('xcrun', [
+                'devicectl',
+                'device',
+                'copy',
+                'from',
+                '--device',
+                device,
+                '--source',
+                iosBenchmarkMarkerPath(spanName),
+                '--destination',
+                localPath,
+                '--domain-type',
+                'appDataContainer',
+                '--domain-identifier',
+                appID,
+                '--quiet',
+            ]);
+            return copied && existsSync(localPath) ? readFileSync(localPath, 'utf8') : undefined;
+        } finally {
+            rmSync(temporaryDirectory, {recursive: true, force: true});
+        }
+    };
 
     return {
         name: 'ios',
@@ -276,14 +263,24 @@ function createIosAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeA
             }
             await sleep(RELAUNCH_DELAY_MS);
         },
-        launchAndWait: (spanName, timeoutSeconds) =>
-            waitForBenchmarkProcess(
-                rootDirectory,
-                'xcrun',
-                ['devicectl', 'device', 'process', 'launch', '--device', device, '--terminate-existing', '--console', appID],
-                spanName,
-                timeoutSeconds,
-            ),
+        launchAndWait: async (spanName, timeoutSeconds) => {
+            const previousMarker = readBenchmarkMarker(spanName);
+            run('xcrun', ['devicectl', 'device', 'process', 'launch', '--device', device, '--terminate-existing', appID]);
+
+            const deadline = Date.now() + timeoutSeconds * 1000;
+            let marker: string | undefined;
+            while (Date.now() < deadline) {
+                marker = readBenchmarkMarker(spanName);
+                if (marker !== undefined && marker !== previousMarker) {
+                    const duration = findBenchmarkDuration(marker, spanName);
+                    if (duration !== undefined) {
+                        return duration;
+                    }
+                }
+                await sleep(POLL_INTERVAL_MS);
+            }
+            fail(`Timed out after ${timeoutSeconds}s waiting for benchmark span ${spanName}.\n${marker ?? 'No iOS benchmark marker was found.'}`);
+        },
     };
 }
 
@@ -294,5 +291,5 @@ function createNativeAppBenchmarkAdapter(options: NativeAppBenchmarkAdapterOptio
     return createIosAdapter(options);
 }
 
-export {BENCHMARK_LOG_TAG, PLATFORM_NAMES, createNativeAppBenchmarkAdapter, findBenchmarkDuration, parseBenchmarkLogEvents};
+export {BENCHMARK_LOG_TAG, PLATFORM_NAMES, createNativeAppBenchmarkAdapter, findBenchmarkDuration, iosBenchmarkMarkerPath, parseBenchmarkLogEvents};
 export type {BenchmarkLogEvent, NativeAppBenchmarkAdapter, NativeAppBenchmarkAdapterOptions, PlatformName, StartupMode};

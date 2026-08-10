@@ -1,3 +1,5 @@
+import writeBenchmarkLog from './writeBenchmarkLog';
+
 const BENCHMARK_LOG_TAG = '[EXPENSIFY_BENCHMARK]';
 const configuredSpanNames: unknown = process.env.EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS;
 
@@ -23,7 +25,7 @@ function parseBenchmarkSpanNames(value: unknown): string[] {
     ];
 }
 
-function createBenchmarkSpanEndLogger(spanNames: string[], writeLog: (message: string) => void): (spanName: string, durationMs: number) => void {
+function createBenchmarkSpanEndLogger(spanNames: string[], writeLog: (message: string, spanName: string) => void): (spanName: string, durationMs: number) => void {
     const enabledSpanNames = new Set(spanNames);
 
     return (spanName, durationMs) => {
@@ -37,15 +39,11 @@ function createBenchmarkSpanEndLogger(spanNames: string[], writeLog: (message: s
             durationMs,
             timestamp: Date.now(),
         };
-        writeLog(`${BENCHMARK_LOG_TAG} ${JSON.stringify(event)}`);
+        writeLog(`${BENCHMARK_LOG_TAG} ${JSON.stringify(event)}`, spanName);
     };
 }
 
-const logBenchmarkSpanEnd = createBenchmarkSpanEndLogger(parseBenchmarkSpanNames(configuredSpanNames), (message) => {
-    // Production builds strip console.info/debug/log. Warnings are retained and are not forwarded by the app's Sentry console integration.
-    // eslint-disable-next-line no-console
-    console.warn(message);
-});
+const logBenchmarkSpanEnd = createBenchmarkSpanEndLogger(parseBenchmarkSpanNames(configuredSpanNames), writeBenchmarkLog);
 
 export {BENCHMARK_LOG_TAG, createBenchmarkSpanEndLogger, parseBenchmarkSpanNames};
 export default logBenchmarkSpanEnd;
