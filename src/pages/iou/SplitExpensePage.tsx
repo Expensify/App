@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -103,7 +103,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const {currentSearchHash, currentSearchQueryJSON} = useSearchQueryContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
 
-    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
 
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.SPLIT_EXPENSE_TAB_TYPE}`);
     const [draftTransaction, draftTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -368,6 +368,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -486,15 +487,15 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 />
             )}
             <Button
-                success
-                large
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.w100]}
-                text={translate('common.save')}
                 onPress={onSaveSplitExpense}
-                pressOnEnter
-                enterKeyEventListenerPriority={1}
                 sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.SAVE_BUTTON}
-            />
+            >
+                <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+                <Button.Text>{translate('common.save')}</Button.Text>
+            </Button>
         </View>
     );
 

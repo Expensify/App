@@ -102,6 +102,7 @@ type CreateTransactionParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type SetMoneyRequestCommuterExclusionFieldsParams = {
@@ -146,6 +147,7 @@ function createTransaction({
     isTrackIntentUser,
     delegateAccountID,
     formatPhoneNumber,
+    getCurrencyDecimals,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -208,6 +210,7 @@ function createTransaction({
                 currentUserLocalCurrency,
                 delegateAccountID,
                 reportActionsList: undefined,
+                getCurrencyDecimals,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
@@ -255,6 +258,7 @@ function createTransaction({
                 isTrackIntentUser,
                 delegateAccountID,
                 formatPhoneNumber,
+                getCurrencyDecimals,
             });
         }
     }

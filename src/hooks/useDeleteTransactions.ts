@@ -311,6 +311,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     currentSearchHash !== undefined && currentSearchHash >= 0 ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
 
                 updateSplitTransactions({
+                    getCurrencyDecimals,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     allReportActionsList: allReportActions,
