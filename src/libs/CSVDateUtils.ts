@@ -5,7 +5,18 @@ import {addDays, format, isValid, parse} from 'date-fns';
 // Common date formats to try when parsing CSV dates
 // Order matters - more specific/common formats first
 const CSV_DATE_FORMATS = [
+    // Two-digit years come first because the `yyyy` token would otherwise read "25" as the year 0025.
+    // They cannot swallow a four-digit year, `yy` rejects the leftover digits.
+    'MM/dd/yy', // US short year: 11/02/25
+    'M/d/yy', // US short: 1/2/25
+    'dd/MM/yy', // European short year: 02/11/25
+    'MM-dd-yy', // US with dashes: 11-02-25
+    'dd-MM-yy', // European with dashes: 02-11-25
+    'MMM d, yy', // Month name: Nov 2, 25
+    'd MMM yy', // European with month name: 2 Nov 25
+
     'yyyy-MM-dd', // ISO format: 2025-11-02
+
     'MM/dd/yyyy', // US format: 11/02/2025
     'dd/MM/yyyy', // European format: 02/11/2025
     'M/d/yyyy', // US short: 1/2/2025
