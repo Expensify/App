@@ -76,7 +76,6 @@ import {
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/BillingBanner/EarlyDiscountBanner';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
@@ -280,25 +279,25 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isLoading = !report?.reportID || !title;
     const isParentReportLoading = !!report?.parentReportID && !parentReport;
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'HeaderView',
-        hasReportID: !!report?.reportID,
-        hasTitle: !!title,
-    };
-
     const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
-    const shouldDisplaySearchRouter = !isInSidePanel && (!isReportInRHP || isSmallScreenWidth);
+    // AGENT_REPORT is only ever opened as an RHP (see AddAgentPage) and should mirror the Concierge
+    // side-panel chrome: no search button, no help dropdown/banners, close instead of back.
+    const isAgentReportInRHP = route.name === SCREENS.RIGHT_MODAL.AGENT_REPORT;
+    const shouldMirrorSidePanelHeader = isInSidePanel || isAgentReportInRHP;
+    const shouldDisplaySearchRouter = !shouldMirrorSidePanelHeader && (!isReportInRHP || isSmallScreenWidth);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboarding, conciergeReportID, onboardingPurposeSelected);
     const shouldShowRegisterForWebinar =
         (introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO || introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL) &&
         (isChatUsedForOnboarding || (isAdminRoom(report) && !isChatThread)) &&
-        !isInSidePanel;
-    const shouldShowOnBoardingHelpDropdownButton = (shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isReportArchived && !isInSidePanel;
-    const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding && !isInSidePanel;
+        !shouldMirrorSidePanelHeader;
+    const shouldShowOnBoardingHelpDropdownButton = (shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isReportArchived && !shouldMirrorSidePanelHeader;
+    const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding && !shouldMirrorSidePanelHeader;
     const latestScheduledCall = reportNameValuePairs?.calendlyCalls?.at(-1);
     const hasActiveScheduledCall = latestScheduledCall && !isPast(latestScheduledCall.eventTime) && latestScheduledCall.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED;
-    const shouldShowCloseButton = !!isInSidePanel && !shouldUseNarrowLayout;
+    // Not gated on !shouldUseNarrowLayout like the side-panel case: isInNarrowPaneModal makes
+    // shouldUseNarrowLayout true for any RHP regardless of actual screen width.
+    const shouldShowCloseButton = (!!isInSidePanel && !shouldUseNarrowLayout) || isAgentReportInRHP;
     const shouldShowBackButton = (shouldUseNarrowLayout || !!isInSidePanel) && !shouldShowCloseButton;
 
     const onboardingHelpDropdownButton = (
@@ -327,12 +326,9 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
             >
                 <View style={[styles.appContentHeader, styles.pr3]}>
                     {isLoading ? (
-                        <ReportHeaderSkeletonView
-                            onBackButtonPress={onNavigationMenuButtonClicked}
-                            reasonAttributes={reasonAttributes}
-                        />
+                        <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
                     ) : (
-                        <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && !isLoading && styles.pl5]}>
+                        <View style={[styles.appContentHeaderTitle, (!shouldUseNarrowLayout || isAgentReportInRHP) && !isLoading && styles.pl5]}>
                             {shouldShowBackButton && (
                                 <PressableWithoutFeedback
                                     ref={setBackButtonRef}
@@ -358,7 +354,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                             )}
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                                 <PressableWithoutFeedback
-                                    onPress={() => navigateToDetailsPage(report)}
+                                    onPress={() => navigateToDetailsPage(report, isInSidePanel)}
                                     style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                                     disabled={shouldDisableDetailPage}
                                     accessibilityLabel={title}
@@ -467,7 +463,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     </Tooltip>
                                 )}
                                 {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
-                                {!isInSidePanel && !isConciergeChat && <SidePanelButton />}
+                                {!shouldMirrorSidePanelHeader && !isConciergeChat && <SidePanelButton />}
                             </View>
                         </View>
                     )}

@@ -102,6 +102,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, setShouldShowOfflineModal});
     const canWriteCompanyCards = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
+    const isSelectionModeEnabled = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
     const handleBackButtonPress = () => {
         if (isMobileSelectionModeEnabled) {
@@ -120,11 +121,12 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
             policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
         >
             <WorkspacePageWithSections
-                icon={memoizedIllustrations.CompanyCard}
-                headerText={translate('workspace.common.companyCards')}
+                icon={isSelectionModeEnabled ? undefined : memoizedIllustrations.CompanyCard}
+                headerText={translate(isSelectionModeEnabled ? 'common.selectMultiple' : 'workspace.common.companyCards')}
                 route={route}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
                 onBackButtonPress={handleBackButtonPress}
+                shouldUseHeadlineHeader={!isSelectionModeEnabled}
                 shouldShowOfflineIndicatorInWideScreen
                 showLoadingAsFirstRender={false}
                 addBottomSafeAreaPadding
@@ -138,6 +140,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     onAssignCard={assignCard}
                     isAssigningCardDisabled={isAssigningCardDisabled || !canWriteCompanyCards}
                     canWriteCompanyCards={canWriteCompanyCards}
+                    isSelectionModeEnabled={isSelectionModeEnabled}
                     onReloadPage={loadPolicyCompanyCardsPage}
                     onReloadFeed={loadPolicyCompanyCardsFeed}
                 />
