@@ -13216,6 +13216,7 @@ function getChatListItemReportName(
     action: ReportAction & {reportName?: string},
     report: Report | undefined,
     conciergeReportID: string | undefined,
+    linkedTransactions: Transaction[],
     translate: LocalizedTranslate,
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
 ): string {
@@ -13224,7 +13225,7 @@ function getChatListItemReportName(
         // Search snapshots of invoice reports may only carry `parentReportID` as the invoice room ID, so fall back to it
         // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` resolves the NewDot title.
         const invoiceReport = reportForHeader.chatReportID ? reportForHeader : {...reportForHeader, chatReportID: reportForHeader.parentReportID};
-        return getInvoiceReportName(invoiceReport, translate, personalDetailsList);
+        return getInvoiceReportName(invoiceReport, linkedTransactions, translate, personalDetailsList);
     }
 
     if (action?.reportName) {

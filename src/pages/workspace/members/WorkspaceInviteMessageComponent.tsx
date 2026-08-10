@@ -299,7 +299,6 @@ function WorkspaceInviteMessageComponent({
                             }}
                             secondaryAvatarContainerStyle={styles.secondAvatarInline}
                             invitedEmailsToAccountIDs={invitedEmailsToAccountIDsDraft}
-                            shouldUseCustomFallbackAvatar
                             shouldShowTooltip={shouldShowTooltip}
                         />
                     </View>

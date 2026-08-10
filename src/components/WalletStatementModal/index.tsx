@@ -46,10 +46,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
         <View style={styles.flex1}>
             {isLoading && (
                 <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={{context: 'WalletStatementModal'}}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             )}
             <iframe
