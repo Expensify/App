@@ -1278,6 +1278,8 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Δημιουργία χρονοχρέωσης',
     },
     iou: {
+        expenseAdded: 'Δαπάνη προστέθηκε',
+        invoiceSent: 'Τιμολόγιο στάλθηκε',
         amount: 'Ποσό',
         percent: 'Ποσοστό',
         date: 'Ημερομηνία',
