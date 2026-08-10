@@ -12,7 +12,6 @@ import {
     extractSubmitterEmails,
     filterRulesForPolicy,
     getApprovalLimitDescription,
-    getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getOverLimitForwardsToDisplayName,
     getRulesSubmitterToFirstApprover,
@@ -1640,46 +1639,6 @@ describe('WorkflowUtils', () => {
             const result = getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList, policyWithACH);
 
             expect(result).toEqual([openBusinessBankAccount, secondMatchingAccount]);
-        });
-    });
-
-    describe('getEligibleExistingBusinessBankAccounts', () => {
-        const openBusinessBankAccount = {
-            bankCurrency: 'USD',
-            bankCountry: 'US',
-            accountData: {
-                state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
-            },
-        };
-
-        it('should return an empty array when the bank account list is undefined', () => {
-            expect(getEligibleExistingBusinessBankAccounts(undefined, 'USD')).toEqual([]);
-        });
-
-        it('should return an empty array when the policy currency is undefined', () => {
-            expect(getEligibleExistingBusinessBankAccounts({'1': openBusinessBankAccount}, undefined)).toEqual([]);
-        });
-
-        it('should return open business accounts matching the policy currency', () => {
-            expect(getEligibleExistingBusinessBankAccounts({'1': openBusinessBankAccount}, 'USD')).toEqual([openBusinessBankAccount]);
-        });
-
-        it('should filter out accounts with a non-matching currency', () => {
-            const eurAccount = {...openBusinessBankAccount, bankCurrency: 'EUR'};
-            expect(getEligibleExistingBusinessBankAccounts({'1': eurAccount}, 'USD')).toEqual([]);
-        });
-
-        it('should filter out non-business accounts', () => {
-            const personalAccount = {...openBusinessBankAccount, accountData: {...openBusinessBankAccount.accountData, type: CONST.BANK_ACCOUNT.TYPE.PERSONAL}};
-            expect(getEligibleExistingBusinessBankAccounts({'1': personalAccount}, 'USD')).toEqual([]);
-        });
-
-        it('should exclude partially set up accounts by default but include them when requested', () => {
-            const setupAccount = {...openBusinessBankAccount, accountData: {...openBusinessBankAccount.accountData, state: CONST.BANK_ACCOUNT.STATE.SETUP}};
-
-            expect(getEligibleExistingBusinessBankAccounts({'1': setupAccount}, 'USD')).toEqual([]);
-            expect(getEligibleExistingBusinessBankAccounts({'1': setupAccount}, 'USD', true)).toEqual([setupAccount]);
         });
     });
 
