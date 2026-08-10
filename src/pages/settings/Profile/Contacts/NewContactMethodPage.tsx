@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage, getLatestErrorField} from '@libs/ErrorUtils';
 import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -24,7 +25,7 @@ import {addNewContactMethod, clearContactMethod, clearUnvalidatedNewContactMetho
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewContactMethodForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -116,7 +117,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     );
 
     const onBackButtonPress = useCallback(() => {
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
+        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, navigateBackTo));
     }, [navigateBackTo]);
 
     useEffect(() => {
