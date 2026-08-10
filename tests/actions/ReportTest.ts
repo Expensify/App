@@ -15,7 +15,7 @@ import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildNextStepNew} from '@libs/NextStepUtils';
+import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, isActionOfType, isDeletedAction} from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -61,7 +61,6 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('@libs/NextStepUtils', () => ({
-    buildNextStepNew: jest.fn(),
     buildOptimisticNextStep: jest.fn(),
 }));
 
@@ -2787,7 +2786,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
@@ -2853,7 +2852,7 @@ describe('actions/Report', () => {
             type: CONST.POLICY.TYPE.TEAM,
         };
 
-        Report.createNewReport({accountID: 1234}, true, false, policy, [CONST.BETAS.ALL], false, false, undefined, {managedCardTransactionID});
+        Report.createNewReport({accountID: 1234}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal, false, undefined, {managedCardTransactionID});
 
         expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_APP_REPORT, expect.objectContaining({managedCardTransactionID}), expect.anything());
     });
@@ -2874,7 +2873,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
+        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await new Promise<void>((resolve) => {
@@ -2912,7 +2911,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
+        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
 
         // Then the parent report's hasOutstandingChildRequest property should remain unchanged
         await new Promise<void>((resolve) => {
@@ -2947,7 +2946,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
+        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
 
         await waitForBatchedUpdates();
         // Then the report's status should be draft.
@@ -2989,7 +2988,7 @@ describe('actions/Report', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await waitForBatchedUpdates();
@@ -3944,7 +3943,6 @@ describe('actions/Report', () => {
                     [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                 },
                 isReportLastVisibleArchived: undefined,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
@@ -4034,7 +4032,6 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList,
                 isReportLastVisibleArchived: false,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
@@ -4079,7 +4076,6 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
                 isReportLastVisibleArchived: undefined,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
@@ -4110,7 +4106,6 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
                 isReportLastVisibleArchived: undefined,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
@@ -4140,7 +4135,6 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
                 isReportLastVisibleArchived: undefined,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
@@ -4170,7 +4164,6 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
                 isReportLastVisibleArchived: undefined,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
@@ -4202,7 +4195,6 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList: {},
                 isReportLastVisibleArchived: undefined,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
@@ -4255,7 +4247,6 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 employeeList: targetPolicy.employeeList,
                 isReportLastVisibleArchived: false,
-                reportNextStep: undefined,
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
@@ -4705,7 +4696,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
             });
-            expect(buildNextStepNew).toHaveBeenCalledWith({
+            expect(buildOptimisticNextStep).toHaveBeenCalledWith({
                 report,
                 policy,
                 currentUserAccountIDParam: 1,
@@ -6094,18 +6085,19 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(
-                    CHILD_REPORT_ID,
-                    TEST_USER_ACCOUNT_ID,
-                    PARENT_REPORT_ACTION,
-                    PARENT_REPORT,
-                    INTRO_SELECTED,
-                    false,
-                    undefined,
-                    undefined,
-                    'hidden',
-                    undefined,
-                );
+                Report.toggleSubscribeToChildReport({
+                    childReportID: CHILD_REPORT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: INTRO_SELECTED,
+                    isSelfTourViewed: false,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: undefined,
+                    prevNotificationPreference: 'hidden',
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
 
@@ -6123,7 +6115,19 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(undefined, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, false, undefined, undefined, undefined, undefined);
+                Report.toggleSubscribeToChildReport({
+                    childReportID: undefined,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: INTRO_SELECTED,
+                    isSelfTourViewed: false,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: undefined,
+                    prevNotificationPreference: undefined,
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
 
@@ -6141,7 +6145,19 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(CHILD_REPORT_ID, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, undefined, true, undefined, undefined, 'hidden', undefined);
+                Report.toggleSubscribeToChildReport({
+                    childReportID: CHILD_REPORT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: undefined,
+                    isSelfTourViewed: true,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: undefined,
+                    prevNotificationPreference: 'hidden',
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
 
@@ -6159,18 +6175,19 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(
-                    CHILD_REPORT_ID,
-                    TEST_USER_ACCOUNT_ID,
-                    PARENT_REPORT_ACTION,
-                    PARENT_REPORT,
-                    INTRO_SELECTED,
-                    true,
-                    undefined,
-                    undefined,
-                    CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    undefined,
-                );
+                Report.toggleSubscribeToChildReport({
+                    childReportID: CHILD_REPORT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: INTRO_SELECTED,
+                    isSelfTourViewed: true,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: undefined,
+                    prevNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
 
@@ -6188,7 +6205,19 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(undefined, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, true, undefined, undefined, undefined, undefined);
+                Report.toggleSubscribeToChildReport({
+                    childReportID: undefined,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: INTRO_SELECTED,
+                    isSelfTourViewed: true,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: undefined,
+                    prevNotificationPreference: undefined,
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
 
@@ -6206,7 +6235,19 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(undefined, TEST_USER_ACCOUNT_ID, PARENT_REPORT_ACTION, PARENT_REPORT, INTRO_SELECTED, false, undefined, undefined, undefined, undefined);
+                Report.toggleSubscribeToChildReport({
+                    childReportID: undefined,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: INTRO_SELECTED,
+                    isSelfTourViewed: false,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: undefined,
+                    prevNotificationPreference: undefined,
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
 
@@ -6224,18 +6265,19 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(
-                    CHILD_REPORT_ID,
-                    TEST_USER_ACCOUNT_ID,
-                    PARENT_REPORT_ACTION,
-                    PARENT_REPORT,
-                    INTRO_SELECTED,
-                    true,
-                    undefined,
-                    undefined,
-                    'hidden',
-                    undefined,
-                );
+                Report.toggleSubscribeToChildReport({
+                    childReportID: CHILD_REPORT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: INTRO_SELECTED,
+                    isSelfTourViewed: true,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: undefined,
+                    prevNotificationPreference: 'hidden',
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
 
@@ -6253,18 +6295,19 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(
-                    CHILD_REPORT_ID,
-                    TEST_USER_ACCOUNT_ID,
-                    PARENT_REPORT_ACTION,
-                    PARENT_REPORT,
-                    INTRO_SELECTED,
-                    false,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                );
+                Report.toggleSubscribeToChildReport({
+                    childReportID: CHILD_REPORT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: INTRO_SELECTED,
+                    isSelfTourViewed: false,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: undefined,
+                    prevNotificationPreference: undefined,
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
 
@@ -6283,18 +6326,19 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(
-                    CHILD_REPORT_ID,
-                    TEST_USER_ACCOUNT_ID,
-                    PARENT_REPORT_ACTION,
-                    PARENT_REPORT,
-                    INTRO_SELECTED,
-                    undefined,
-                    undefined,
-                    testBetas,
-                    'hidden',
-                    undefined,
-                );
+                Report.toggleSubscribeToChildReport({
+                    childReportID: CHILD_REPORT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: INTRO_SELECTED,
+                    isSelfTourViewed: undefined,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: testBetas,
+                    prevNotificationPreference: 'hidden',
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
 
@@ -6313,18 +6357,19 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.toggleSubscribeToChildReport(
-                    undefined,
-                    TEST_USER_ACCOUNT_ID,
-                    PARENT_REPORT_ACTION,
-                    PARENT_REPORT,
-                    INTRO_SELECTED,
-                    undefined,
-                    undefined,
-                    testBetas,
-                    undefined,
-                    undefined,
-                );
+                Report.toggleSubscribeToChildReport({
+                    childReportID: undefined,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    parentReportAction: PARENT_REPORT_ACTION,
+                    parentReport: PARENT_REPORT,
+                    introSelected: INTRO_SELECTED,
+                    isSelfTourViewed: undefined,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    betas: testBetas,
+                    prevNotificationPreference: undefined,
+                    personalDetails: undefined,
+                    hasReportActions: false,
+                });
             }).not.toThrow();
         });
     });
@@ -9511,6 +9556,7 @@ describe('actions/Report', () => {
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
                 selfDMReportActions: undefined,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
 
@@ -9578,6 +9624,7 @@ describe('actions/Report', () => {
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
                 selfDMReportActions: undefined,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
 
@@ -9635,6 +9682,7 @@ describe('actions/Report', () => {
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
                 selfDMReportActions: undefined,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
 

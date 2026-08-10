@@ -16,7 +16,6 @@ import {getCommandURL} from '@libs/ApiUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCodeType} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {getAddressComponents, getPlaceAutocompleteTerms} from '@libs/GooglePlacesUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import variables from '@styles/variables';
 
@@ -81,7 +80,6 @@ function AddressSearchListEmptyComponent({searchValue, onEmptyChange}: {searchVa
 
 function AddressSearchListLoader({onLoadingChange}: {onLoadingChange: (isLoading: boolean) => void}) {
     const styles = useThemeStyles();
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddressSearch.listLoader'};
 
     useEffect(() => {
         onLoadingChange(true);
@@ -90,7 +88,7 @@ function AddressSearchListLoader({onLoadingChange}: {onLoadingChange: (isLoading
 
     return (
         <View style={[styles.pv4]}>
-            <ActivityIndicator reasonAttributes={reasonAttributes} />
+            <ActivityIndicator />
         </View>
     );
 }
@@ -392,11 +390,6 @@ function AddressSearch({
 
     const listLoader = useMemo(() => <AddressSearchListLoader onLoadingChange={setIsLoadingResults} />, []);
 
-    const fetchingLocationReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'AddressSearch.isFetchingCurrentLocation',
-        isFetchingCurrentLocation,
-    };
-
     return (
         /*
          * The GooglePlacesAutocomplete component uses a VirtualizedList internally,
@@ -538,10 +531,7 @@ function AddressSearch({
             </ScrollView>
             {isFetchingCurrentLocation && (
                 <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={fetchingLocationReasonAttributes}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             )}
         </>
