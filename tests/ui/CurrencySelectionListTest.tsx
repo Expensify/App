@@ -48,7 +48,6 @@ type MockSection = {sectionIndex: number; data: Array<{currencyCode: string; isS
 
 type MockSelectionListProps = {
     sections: MockSection[];
-    shouldPreventAutoScrollOnSelect?: boolean;
     textInputOptions?: {onChangeText?: (value: string) => void};
 };
 
@@ -79,8 +78,6 @@ describe('CurrencySelectionList', () => {
 
         expect(pinnedCurrencyCodes()).toEqual(['USD']);
         expect(props?.sections.at(0)?.data.at(0)?.isSelected).toBe(true);
-        // Selecting an item below the fold in a multi-section list must not scroll the viewport to the top.
-        expect(props?.shouldPreventAutoScrollOnSelect).toBe(true);
     });
 
     it('keeps the original currency pinned when the selected currency changes', () => {
