@@ -4492,6 +4492,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/dualentry/company-selector',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/company-selector` as const,
     },
+    POLICY_ACCOUNTING_DUALENTRY_IMPORT: {
+        route: 'workspaces/:policyID/accounting/dualentry/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/import` as const,
+    },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',
         getRoute: (reportID: string | undefined, backToReport?: string) => `search/r/${reportID}/add-existing-expense/${backToReport ?? ''}` as const,

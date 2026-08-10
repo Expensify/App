@@ -1,13 +1,20 @@
 import {write} from '@libs/API';
-import type {ConnectPolicyToDualEntryParams, UpdateDualEntrySubsidiaryParams} from '@libs/API/parameters';
+import type {
+    ConnectPolicyToDualEntryParams,
+    UpdateDualEntryEnableNewCategoriesParams,
+    UpdateDualEntryFieldMappingParams,
+    UpdateDualEntrySubsidiaryParams,
+    UpdateDualEntrySyncTaxRatesParams,
+} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {DualEntryConnectionsConfig} from '@src/types/onyx/Policy';
+import type {DualEntryCoding, DualEntryConnectionsConfig} from '@src/types/onyx/Policy';
 
 import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -113,6 +120,107 @@ function prepareDualEntryOnyxData<TSettingName extends keyof DualEntryConnection
     return {optimisticData, successData, failureData};
 }
 
+function prepareDualEntryCodingOnyxData<TSettingName extends keyof DualEntryCoding>(
+    policyID: string,
+    settingName: TSettingName,
+    value: Partial<DualEntryCoding[TSettingName]>,
+    oldValue: Partial<DualEntryCoding[TSettingName]> | null,
+) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    dualEntry: {
+                        config: {
+                            coding: {[settingName]: value ?? null},
+                            pendingFields: {[settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            errorFields: {[settingName]: null},
+                        },
+                    },
+                },
+            },
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {connections: {dualEntry: {config: {pendingFields: {[settingName]: null}}}}},
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    dualEntry: {
+                        config: {
+                            coding: {[settingName]: oldValue ?? null},
+                            pendingFields: {[settingName]: null},
+                            errorFields: {[settingName]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                        },
+                    },
+                },
+            },
+        },
+    ];
+    return {optimisticData, successData, failureData};
+}
+
+function prepareDualEntryFieldMappingOnyxData(
+    policyID: string,
+    fieldID: string,
+    mapping: ValueOf<NonNullable<DualEntryCoding['fieldMappings']>>,
+    oldMapping: ValueOf<NonNullable<DualEntryCoding['fieldMappings']>> | null,
+) {
+    const feedbackKey = `${CONST.DUALENTRY_CONFIG.FIELD_MAPPING_PREFIX}${fieldID}`;
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    dualEntry: {
+                        config: {
+                            coding: {fieldMappings: {[fieldID]: mapping}},
+                            pendingFields: {[feedbackKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            errorFields: {[feedbackKey]: null},
+                        },
+                    },
+                },
+            },
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {connections: {dualEntry: {config: {pendingFields: {[feedbackKey]: null}}}}},
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    dualEntry: {
+                        config: {
+                            coding: {fieldMappings: {[fieldID]: oldMapping ?? null}},
+                            pendingFields: {[feedbackKey]: null},
+                            errorFields: {[feedbackKey]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                        },
+                    },
+                },
+            },
+        },
+    ];
+    return {optimisticData, successData, failureData};
+}
+
 function updateDualEntrySubsidiary(policyID: string, subsidiaryID: DualEntryConnectionsConfig['subsidiaryID'], oldSubsidiaryID?: DualEntryConnectionsConfig['subsidiaryID']) {
     const onyxData = prepareDualEntryOnyxData(policyID, CONST.DUALENTRY_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID ?? null);
     const params: UpdateDualEntrySubsidiaryParams = {
@@ -122,4 +230,27 @@ function updateDualEntrySubsidiary(policyID: string, subsidiaryID: DualEntryConn
     write(WRITE_COMMANDS.UPDATE_DUALENTRY_SUBSIDIARY, params, onyxData);
 }
 
-export {connectToDualEntry, clearDualEntryErrorField, updateDualEntrySubsidiary};
+function updateDualEntryEnableNewCategories(policyID: string, enabled: boolean, oldEnabled: boolean) {
+    const onyxData = prepareDualEntryOnyxData(policyID, CONST.DUALENTRY_CONFIG.ENABLE_NEW_CATEGORIES, enabled, oldEnabled);
+    const params: UpdateDualEntryEnableNewCategoriesParams = {policyID, enabled};
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_ENABLE_NEW_CATEGORIES, params, onyxData);
+}
+
+function updateDualEntryFieldMapping(
+    policyID: string,
+    fieldID: string,
+    mapping: ValueOf<NonNullable<DualEntryCoding['fieldMappings']>>,
+    oldMapping?: ValueOf<NonNullable<DualEntryCoding['fieldMappings']>>,
+) {
+    const onyxData = prepareDualEntryFieldMappingOnyxData(policyID, fieldID, mapping, oldMapping ?? null);
+    const params: UpdateDualEntryFieldMappingParams = {policyID, fieldID, mapping};
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_FIELD_MAPPING, params, onyxData);
+}
+
+function updateDualEntrySyncTaxRates(policyID: string, enabled: boolean, oldEnabled: boolean) {
+    const onyxData = prepareDualEntryCodingOnyxData(policyID, CONST.DUALENTRY_CONFIG.SYNC_TAX_RATES, enabled, oldEnabled);
+    const params: UpdateDualEntrySyncTaxRatesParams = {policyID, enabled};
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_TAX_RATES, params, onyxData);
+}
+
+export {connectToDualEntry, clearDualEntryErrorField, updateDualEntrySubsidiary, updateDualEntryEnableNewCategories, updateDualEntryFieldMapping, updateDualEntrySyncTaxRates};

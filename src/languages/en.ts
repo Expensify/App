@@ -5845,6 +5845,11 @@ const translations = {
             subsidiarySelectDescription: "Choose the subsidiary in DualEntry that you'd like to import data from.",
             noCompaniesFound: 'No companies found',
             noCompaniesFoundDescription: 'Please add a company in DualEntry and sync the connection again',
+            accountTypesDescription: 'Your DualEntry accounts will import as categories.',
+            enableNewAccountsTitle: 'Enable newly imported accounts',
+            enableNewAccountsDescription: 'New DualEntry accounts will be available as categories.',
+            dimensionsImport: 'Choose which DualEntry dimensions to import as tags',
+            importDescription: 'Choose which coding configurations to import from DualEntry.',
         },
         type: {
             free: 'Free',
