@@ -1,10 +1,9 @@
 import useDeferVisibleUntilFocusTransitionEnd from '@hooks/useDeferVisibleUntilFocusTransitionEnd';
 
-import Log from '@libs/Log';
-
 import type {ActivityProps} from 'react';
 
-import {useEffect, useRef, useState} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import {useEffect, useState} from 'react';
 
 import useIsWindowSizeChanging from './useIsWindowSizeChanging';
 
@@ -12,23 +11,29 @@ import useIsWindowSizeChanging from './useIsWindowSizeChanging';
 // otherwise keep rendering at full priority. Whichever fires first wins.
 const FIRST_RENDER_FALLBACK_DELAY_MS = 100;
 
-type ScreenActivityModeParams = {
-    /** Whether the screen is covered right now, as useIsScreenCovered reports it */
+type ScreenActivityState = {
+    /** Activity mode the screen renders with */
+    mode: ActivityProps['mode'];
+
+    /** Whether the screen is covered right now, which is what its accessibility state follows */
     isScreenCovered: boolean;
-
-    /** Key identifying this screen instance */
-    routeKey: string;
-
-    /** Name of the screen whose Activity state is being tracked */
-    routeName: string;
 };
 
 /**
- * Decides whether a screen is deprioritized with React <Activity>. A screen is hidden as long as it is covered.
- * The covered state is passed in rather than read here, because the accessibility state has to follow it with no
- * delay while this mode deliberately lags behind it on the reveal.
+ * Reports how a covered screen is presented, which the wrapper needs in two forms that do not change at the same
+ * moment. The accessibility state has to follow the navigation state with no delay in either direction, because a
+ * screen the user is already looking at must not stay out of the accessibility tree and the tab order for the
+ * length of an animation. React Navigation 8 derives its `inert` flag the same way. The Activity mode deliberately
+ * lags behind on the reveal instead, so the two are reported separately.
  *
- * Two cases keep a screen visible whatever the navigation state says:
+ * A screen counts as covered in two ways. Another screen of its own navigator sits on top of it, which the caller
+ * passes in as isScreenBlurred because only the navigator knows its own top route. Or the whole navigator lost
+ * focus to a route higher in the tree, which useIsFocused reports here. The wrapper runs outside
+ * descriptor.render(), so that focus is the focus of the navigator rather than of the screen, which covers cases
+ * such as the search expense list while an RHP is open on top of it.
+ *
+ * A screen is deprioritized with React <Activity> for as long as it is covered. Two cases keep it visible whatever
+ * the navigation state says:
  *
  * - The first render always goes through, because React never mounts the effects of a hidden Activity, so a screen
  *   that mounts while already covered would sit in the stack without ever fetching its data, subscribing or
@@ -43,7 +48,8 @@ type ScreenActivityModeParams = {
  * cheaply and a reveal that another navigation overtakes is cancelled before it costs anything. The screen stays
  * painted the whole time, so only its updates arrive after the transition.
  */
-function useScreenActivityMode({isScreenCovered, routeKey, routeName}: ScreenActivityModeParams): ActivityProps['mode'] {
+function useScreenActivityState(isScreenBlurred: boolean): ScreenActivityState {
+    const isFocused = useIsFocused();
     const isWindowSizeChanging = useIsWindowSizeChanging();
     const [hasCompletedFirstRender, setHasCompletedFirstRender] = useState(false);
 
@@ -56,31 +62,14 @@ function useScreenActivityMode({isScreenCovered, routeKey, routeName}: ScreenAct
         };
     }, []);
 
-    const navigationMode: ActivityProps['mode'] = isScreenCovered ? 'hidden' : 'visible';
-    const isShownAfterTransition = useDeferVisibleUntilFocusTransitionEnd(navigationMode === 'visible');
+    const isScreenCovered = isScreenBlurred || !isFocused;
+    const isShownAfterTransition = useDeferVisibleUntilFocusTransitionEnd(!isScreenCovered);
     const isKeptVisible = !hasCompletedFirstRender || isWindowSizeChanging;
-    const previousNavigationModeRef = useRef<ActivityProps['mode'] | null>(null);
 
-    // Only navigation driven changes are logged. The first render and window size changes flip every deprioritized
-    // screen at once, and windowSizeChangeStore logs those once for all of them.
-    useEffect(() => {
-        if (previousNavigationModeRef.current === navigationMode) {
-            return;
-        }
-
-        const isFirstMount = previousNavigationModeRef.current === null;
-        previousNavigationModeRef.current = navigationMode;
-        Log.info(`[ScreenActivityWrapper] ${isFirstMount ? 'Activity mounted' : 'Activity state changed'}`, false, {
-            routeKey,
-            routeName,
-            navigationMode,
-        });
-    }, [navigationMode, routeKey, routeName]);
-
-    if (isKeptVisible) {
-        return 'visible';
-    }
-    return isShownAfterTransition ? 'visible' : 'hidden';
+    return {
+        mode: isKeptVisible || isShownAfterTransition ? 'visible' : 'hidden',
+        isScreenCovered,
+    };
 }
 
-export default useScreenActivityMode;
+export default useScreenActivityState;

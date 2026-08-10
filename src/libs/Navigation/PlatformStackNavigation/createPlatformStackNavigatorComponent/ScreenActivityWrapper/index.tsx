@@ -5,8 +5,7 @@ import type NonTopScreenWrapperProps from '@libs/Navigation/PlatformStackNavigat
 
 import React, {Activity} from 'react';
 
-import useIsScreenCovered from './useIsScreenCovered';
-import useScreenActivityMode from './useScreenActivityMode';
+import useScreenActivityState from './useScreenActivityState';
 
 /**
  * Deprioritizes rendering of a covered screen with React <Activity>. Unlike react-freeze, a hidden Activity keeps
@@ -18,10 +17,9 @@ import useScreenActivityMode from './useScreenActivityMode';
  * still shown (dimmed under the RHP overlay on wide layouts, or as the underlay of a swipe-back gesture) does not
  * disappear. It only stops updating until it is revealed again.
  */
-function ScreenActivityWrapper({isScreenBlurred, routeKey, routeName, children}: NonTopScreenWrapperProps) {
+function ScreenActivityWrapper({isScreenBlurred, children}: NonTopScreenWrapperProps) {
     const styles = useThemeStyles();
-    const isScreenCovered = useIsScreenCovered(isScreenBlurred);
-    const mode = useScreenActivityMode({isScreenCovered, routeKey, routeName});
+    const {mode, isScreenCovered} = useScreenActivityState(isScreenBlurred);
 
     return (
         <Activity mode={mode}>

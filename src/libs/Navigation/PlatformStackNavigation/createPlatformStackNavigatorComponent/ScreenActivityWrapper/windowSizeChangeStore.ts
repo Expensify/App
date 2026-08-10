@@ -51,7 +51,7 @@ function handleDimensionsChange({window}: {window: ScaledSize}) {
 
     rememberWindowSize(window);
     if (!isWindowSizeChanging) {
-        // Logged once per change instead of per screen, because every deprioritized screen flips twice here.
+        // Logged once per change rather than per screen, because a single change reveals every deprioritized screen.
         Log.info('[ScreenActivityWrapper] Window size changed, revealing deprioritized screens', false, {
             width: window.width,
             height: window.height,

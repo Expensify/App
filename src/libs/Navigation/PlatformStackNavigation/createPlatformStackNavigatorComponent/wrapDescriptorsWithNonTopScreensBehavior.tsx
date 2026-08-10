@@ -49,15 +49,7 @@ function wrapDescriptorsWithNonTopScreensBehavior<T extends Descriptor>(
         const isScreenBlurred = key !== topRouteKey;
         result[key] = {
             ...descriptor,
-            render: () => (
-                <NonTopScreenWrapper
-                    isScreenBlurred={isScreenBlurred}
-                    routeKey={key}
-                    routeName={descriptor.route.name}
-                >
-                    {descriptor.render()}
-                </NonTopScreenWrapper>
-            ),
+            render: () => <NonTopScreenWrapper isScreenBlurred={isScreenBlurred}>{descriptor.render()}</NonTopScreenWrapper>,
         };
     }
     return result;

@@ -10,12 +10,6 @@ type NonTopScreenWrapperProps = {
      * example dimmed under the RHP overlay on wide layouts. */
     isScreenBlurred: boolean;
 
-    /** Key identifying this screen instance */
-    routeKey: string;
-
-    /** Name of the screen the wrapper is applied to */
-    routeName: string;
-
     /** The screen content to deprioritize while it is covered */
     children: ReactNode;
 };
