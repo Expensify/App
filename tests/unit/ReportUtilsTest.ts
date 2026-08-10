@@ -17130,8 +17130,9 @@ describe('ReportUtils', () => {
             expect(canEditReportTitle(report, testPolicy, currentUserAccountID)).toBe(true);
         });
 
-        it('returns false when title field is disabled', () => {
+        it('returns false when title field is disabled for a non-admin', () => {
             const testPolicy = getPolicy({
+                role: CONST.POLICY.ROLE.USER,
                 fieldList: {
                     [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: getTitleField(false),
                 },
@@ -17144,6 +17145,24 @@ describe('ReportUtils', () => {
             };
 
             expect(canEditReportTitle(report, testPolicy, currentUserAccountID)).toBe(false);
+        });
+
+        it('returns true for an admin when title field is disabled ("Prevent members from changing custom report names" is on)', () => {
+            const testPolicy = getPolicy({
+                role: CONST.POLICY.ROLE.ADMIN,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: getTitleField(false),
+                },
+            });
+            const report = {
+                ...createExpenseReport(124),
+                policyID: testPolicy.id,
+                ownerAccountID: 888,
+                managerID: 999,
+            };
+
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValueOnce(true);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID)).toBe(true);
         });
 
         it('returns false for non-expense reports', () => {

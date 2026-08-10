@@ -4743,7 +4743,7 @@ function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string | u
 
 /**
  * Given a report field, check if the field can be edited or not.
- * For title fields, its considered disabled if `deletable` prop is `true` (https://github.com/Expensify/App/issues/35043#issuecomment-1911275433)
+ * For title fields, its considered disabled for non-admins if `deletable` prop is `false` (i.e. the "Prevent members from changing custom report names" setting is on). Admins are always exempt.
  * For non title fields, its considered disabled if:
  * 1. The user is not admin of the report
  * 2. Report is settled, closed, approved, or submitted and already forwarded for review
@@ -4763,7 +4763,7 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
     }
 
     if (isTitleField) {
-        return !reportField?.deletable;
+        return !isAdmin && !reportField?.deletable;
     }
 
     return reportField?.type === CONST.REPORT_FIELD_TYPES.FORMULA;
