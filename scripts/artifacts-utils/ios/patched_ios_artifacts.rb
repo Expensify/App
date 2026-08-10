@@ -1,0 +1,106 @@
+# Consumer for Expensify's patched React Native iOS prebuilt artifacts.
+# Reopens ReactNativeCoreUtils (rncore.rb) to point RNCore resolution and
+# download at our private GitHub Packages Maven repo (matched by patches hash).
+# Must be required after react_native_pods.rb, which defines ReactNativeCoreUtils.
+
+require 'json'
+
+module PatchedIOSArtifacts
+    # scripts/artifacts-utils/ios/ -> repo root is three levels up.
+    NEW_DOT_ROOT = File.expand_path('../../..', __dir__)
+
+    # Whether this install consumes a prebuilt RNCore. Defaults to false so that if
+    # setup never ran, prebuilt-only pod tweaks are a no-op rather than misapplied.
+    @using_prebuilt = false
+
+    def self.setup
+        is_hybrid = ENV['IS_HYBRID_APP'] == 'true'
+        package_name = is_hybrid ? 'react-hybrid' : 'react-standalone'
+
+        # Manual escape hatch: force a full from-source build (e.g. to unblock a prebuild issue).
+        build_from_source = ENV['BUILD_RN_FROM_SOURCE'] == '1'
+        resolution = build_from_source ? {'buildFromSource' => true, 'version' => nil} : resolve(package_name, is_hybrid)
+
+        # A single decision drives both prebuilt flags, so we never land in a mixed
+        # prebuilt-deps / source-core state (which desyncs the CocoaPods sandbox).
+        @using_prebuilt = !resolution['buildFromSource']
+        flag = @using_prebuilt ? '1' : '0'
+        ENV['RCT_USE_RN_DEP'] = flag
+        ENV['RCT_USE_PREBUILT_RNCORE'] = flag
+
+        ReactNativeCoreUtils.class_variable_set(:@@patched_version, resolution['version'])
+        # The resolver hands us the artifact URL prefix, so Maven coordinates live only in the resolver.
+        ReactNativeCoreUtils.class_variable_set(:@@patched_artifact_url_prefix, resolution['artifactUrlPrefix'])
+        ReactNativeCoreUtils.class_variable_set(:@@patched_github_token, resolution['githubToken'])
+        ReactNativeCoreUtils.class_variable_set(:@@patched_build_from_source, resolution['buildFromSource'])
+    end
+
+    # True only when a matching prebuilt artifact resolved and prebuilds are enabled.
+    def self.using_prebuilt_rncore?
+        @using_prebuilt
+    end
+
+    # Applies pod tweaks that are only correct when consuming a prebuilt RNCore.
+    # No-op on a source build (manual override or patch-hash miss), so a fallback
+    # never inherits prebuilt-only configuration.
+    def self.configure_prebuilt_pods(installer)
+        return unless @using_prebuilt
+
+        installer.pod_targets.each do |pod|
+            # RNFB and RNSentry #import non-modular <React/...> headers, which under
+            # use_frameworks! with a prebuilt React Core trips Clang's modular-import
+            # rules. As static libraries they have no module map, so those rules no
+            # longer apply.
+            next unless pod.name.start_with?('RNFB', 'RNSentry')
+            def pod.build_type
+                Pod::BuildType.static_library
+            end
+        end
+    end
+
+    def self.resolve(package_name, is_hybrid)
+        cmd = [
+            'bun', File.join(NEW_DOT_ROOT, 'scripts/artifacts-utils/resolve-artifacts.ts'),
+            '--platform=ios', "--package=#{package_name}", "--hybrid=#{is_hybrid}", "--new-dot-root=#{NEW_DOT_ROOT}"
+        ]
+        # stdout is pure JSON; the resolver logs to stderr.
+        output = IO.popen(cmd, chdir: NEW_DOT_ROOT, &:read)
+        raise "resolver exited #{$?.exitstatus}" unless $?.success?
+        JSON.parse(output)
+    rescue => e
+        Pod::UI.warn("[PatchedIOSArtifacts] Resolver failed (#{e.message}); building from source.") if defined?(Pod::UI)
+        {'buildFromSource' => true, 'version' => nil}
+    end
+end
+
+class ReactNativeCoreUtils
+    def self.setup_rncore(react_native_path, react_native_version)
+        @@react_native_path = react_native_path
+        # Base RN version (e.g. 0.85.3) — used by RN's install flow as a non-empty guard. The actual
+        # download URL uses @@patched_version via our stable_tarball_url override, so this stays the plain version.
+        @@react_native_version = react_native_version
+        @@build_from_source = @@patched_build_from_source
+        @@download_dsyms = ENV['RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS'] == '1'
+    end
+
+    def self.stable_tarball_url(_version, build_type, dsyms = false)
+        classifier = "reactnative-core-#{dsyms ? 'dSYM-' : ''}#{build_type}"
+        "#{@@patched_artifact_url_prefix}-#{classifier}.tar.gz"
+    end
+
+    def self.download_rncore_tarball(_react_native_path, tarball_url, version, configuration, dsyms = false)
+        dir = artifacts_dir
+        destination = configuration.nil? ?
+            "#{dir}/reactnative-core-#{version}#{dsyms ? '-dSYM' : ''}.tar.gz" :
+            "#{dir}/reactnative-core-#{version}#{dsyms ? '-dSYM' : ''}-#{configuration}.tar.gz"
+
+        unless File.exist?(destination)
+            tmp = "#{dir}/reactnative-core.download"
+            # curl drops the Authorization header on the cross-host redirect to the object store.
+            header = @@patched_github_token ? %(-H "Authorization: Bearer #{@@patched_github_token}") : ''
+            ok = system(%(mkdir -p "#{dir}" && curl --fail --location --proto '=https' #{header} "#{tarball_url}" -o "#{tmp}" && mv "#{tmp}" "#{destination}"))
+            raise "[PatchedIOSArtifacts] Failed to download #{tarball_url}" unless ok
+        end
+        destination
+    end
+end

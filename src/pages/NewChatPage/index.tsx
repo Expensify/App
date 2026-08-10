@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -61,6 +61,7 @@ const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value
 const PAGINATION_SIZE = CONST.MAX_SELECTION_LIST_PAGE_LENGTH;
 
 function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined) {
+    const {translate} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -144,6 +145,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             selectedOptions,
             includeSelectedOptions: true,
         },
+        translate,
     );
 
     const areOptionsInitialized = !isLoading;
@@ -433,11 +435,12 @@ function NewChatPage({ref}: NewChatPageProps) {
             <Button
                 onPress={() => toggleOption(item)}
                 style={[styles.pl2]}
-                text={translate('newChatPage.addToGroup')}
                 accessibilityLabel={item.text ? translate('newChatPage.addUserToGroup', item.text) : ''}
                 innerStyles={buttonInnerStyles}
-                small
-            />
+                size={CONST.BUTTON_SIZE.SMALL}
+            >
+                <Button.Text>{translate('newChatPage.addToGroup')}</Button.Text>
+            </Button>
         );
     };
 
@@ -465,12 +468,13 @@ function NewChatPage({ref}: NewChatPageProps) {
 
             {!!selectedOptions.length && (
                 <Button
-                    success
-                    large
-                    text={translate('common.next')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={createGroup}
-                    pressOnEnter
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.next')}</Button.Text>
+                </Button>
             )}
         </>
     );
