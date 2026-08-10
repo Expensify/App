@@ -193,6 +193,13 @@ function initSplitExpenseItemData(
     }: {amount?: number; transactionID?: string; reportID?: string; created?: string; merchant?: string; customUnit?: TransactionCustomUnit; isManuallyEdited?: boolean} = {},
 ): SplitExpense {
     const transactionDetails = getTransactionDetails(transaction);
+    const sourceCustomUnit = customUnit ?? transaction?.comment?.customUnit;
+    const splitCustomUnit = sourceCustomUnit ? {...sourceCustomUnit} : undefined;
+    if (splitCustomUnit) {
+        delete splitCustomUnit.commuterExclusion;
+        delete splitCustomUnit.reimbursableDistance;
+        delete splitCustomUnit.commuterExclusionMethod;
+    }
 
     return {
         transactionID: transactionID ?? transactionDetails?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID),
@@ -200,13 +207,13 @@ function initSplitExpenseItemData(
         description: transactionDetails?.comment,
         category: transactionDetails?.category,
         tags: transaction?.tag ? [transaction?.tag] : [],
-        created: created ?? transactionDetails?.created ?? DateUtils.formatWithUTCTimeZone(DateUtils.getDBTime(), CONST.DATE.FNS_FORMAT_STRING),
+        created: created ?? transactionDetails?.created ?? DateUtils.formatMachineDateWithUTCTimeZone(DateUtils.getDBTime(), CONST.DATE.FNS_FORMAT_STRING),
         merchant: merchant ?? transactionDetails?.merchant,
         statusNum: transactionReport?.statusNum ?? 0,
         reportID: reportID ?? transaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
         reimbursable: transactionDetails?.reimbursable,
         billable: transactionDetails?.billable,
-        customUnit: customUnit ?? transaction?.comment?.customUnit ?? undefined,
+        customUnit: splitCustomUnit,
         waypoints: transaction?.comment?.waypoints ?? undefined,
         odometerStart: transaction?.comment?.odometerStart ?? undefined,
         odometerEnd: transaction?.comment?.odometerEnd ?? undefined,
@@ -610,7 +617,7 @@ function updateSplitExpenseField(
                 description: transactionDetails?.comment,
                 category: transactionDetails?.category,
                 tags: splitExpenseDraftTransaction?.tag ? [splitExpenseDraftTransaction?.tag] : [],
-                created: transactionDetails?.created ?? DateUtils.formatWithUTCTimeZone(DateUtils.getDBTime(), CONST.DATE.FNS_FORMAT_STRING),
+                created: transactionDetails?.created ?? DateUtils.formatMachineDateWithUTCTimeZone(DateUtils.getDBTime(), CONST.DATE.FNS_FORMAT_STRING),
                 waypoints: splitExpenseDraftTransaction?.modifiedWaypoints ?? splitExpenseDraftTransaction?.comment?.waypoints ?? undefined,
                 customUnit: {
                     ...(splitExpenseDraftTransaction?.comment?.customUnit ?? undefined),
