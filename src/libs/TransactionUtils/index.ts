@@ -929,7 +929,6 @@ function getUpdatedTransaction({
                 lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(selectedRouteDistanceInMeters, unit)));
                 lodashSet(updatedTransaction, 'comment.customUnit.routeDistanceMeters', selectedRouteDistanceInMeters);
             }
-            console.log('1', {updatedTransaction});
         }
     }
 
@@ -979,8 +978,6 @@ function getUpdatedTransaction({
         ...(Object.hasOwn(transactionChanges, 'odometerStart') && {odometerStart: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'odometerEnd') && {odometerEnd: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
     };
-
-    console.log({updatedTransaction});
 
     return updatedTransaction;
 }
