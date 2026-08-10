@@ -2898,13 +2898,6 @@ function getValidOptions(
         const isSelfDMChat = (report: SearchOption<Report>) => shouldSeparateSelfDMChat && report.isSelfDM && !report.private_isArchived;
 
         const isSearchTermsFound = (report: SearchOption<Report>) => {
-            // Keep the pre-filter a superset of filterReports(). In particular, use the canonical matcher first
-            // so apostrophes, hyphens, zero-width characters, diacritics, and email searches without dots are not
-            // discarded before filterAndOrderOptions gets a chance to apply the final report filtering.
-            if (filterReports([report], searchTerms).length > 0) {
-                return true;
-            }
-
             let searchText = `${report.text ?? ''}${report.login ?? ''}`;
             if (report.isThread) {
                 searchText += report.alternateText ?? '';
@@ -2917,7 +2910,11 @@ function getValidOptions(
                 searchText += participantsSearchText;
             }
             searchText = deburr(searchText.toLocaleLowerCase());
-            return searchTerms.every((term) => searchText.includes(term));
+
+            // Keep the pre-filter a superset of filterReports(). The canonical matcher handles apostrophes,
+            // hyphens, zero-width characters, diacritics, and email searches without dots that this cheap
+            // substring check may miss. Run it only when the cheap check does not find a match.
+            return searchTerms.every((term) => searchText.includes(term)) || filterReports([report], searchTerms).length > 0;
         };
 
         const filteringFunction = (report: SearchOption<Report>) => {
