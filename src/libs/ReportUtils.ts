@@ -4741,7 +4741,7 @@ function isReportFieldTargetMatchingReport(report: OnyxEntry<Report>, reportFiel
  * Invoice field visibility therefore depends on fields attached to the report, while expense fields still depend on the workspace setting.
  */
 function shouldDisplayReportFields(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    return isInvoiceReport(report) || (isGroupPolicyExpenseReport(report, policy?.type) && !!policy?.areReportFieldsEnabled);
+    return (isInvoiceReport(report) && policy?.areInvoiceFieldsEnabled !== false) || (isGroupPolicyExpenseReport(report, policy?.type) && !!policy?.areReportFieldsEnabled);
 }
 
 /**
