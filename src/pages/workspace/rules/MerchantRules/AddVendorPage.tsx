@@ -70,7 +70,8 @@ function AddVendorPage({route}: AddVendorPageProps) {
     // gate below. On a deep-link cold-load policy.connections is empty until the fetch lands, so hasVendorFeature
     // would briefly return false and flash NotFoundPage before the picker appears.
     if (isFetchNeeded || isLoadingFetchedFlag) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'AddVendorPage', isFetchNeeded, isLoadingFetchedFlag}} />;
+        const reasonAttributes: React.ComponentProps<typeof FullScreenLoadingIndicator>['reasonAttributes'] = {context: 'AddVendorPage', isFetchNeeded, isLoadingFetchedFlag};
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     // Gate direct/deeplink access behind the same predicate that hides the "Set vendor to" row, so the beta can't be
