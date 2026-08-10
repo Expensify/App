@@ -159,6 +159,30 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['2']).toBeUndefined();
     });
 
+    it('deselects a single child of a group that was selected before its children loaded', async () => {
+        const {result} = renderSelection();
+        const [firstChild] = loadedChildren;
+
+        // Given a group selected while it was still collapsed, whose children have since loaded and been registered
+        await act(async () => {
+            result.current.toggle(categoryGroup, []);
+            result.current.registerGroupChildren(GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
+
+        // When one of those children, which renders as selected through the group, is clicked
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then only that child is dropped and the rest of the group stays selected
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
+        expect(result.current.selectedTransactions['1']).toBeUndefined();
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+    });
+
     it('selects every child of a group that was not already selected once its children loaded', async () => {
         const {result} = renderSelection();
 

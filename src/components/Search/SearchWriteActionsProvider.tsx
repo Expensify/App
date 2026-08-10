@@ -421,10 +421,29 @@ function SearchWriteActionsProvider({
     const {childrenByGroupKey, groupKeyByChildKey} = buildGroupChildrenIndex(renderedData, groupChildrenByKey, hasValidGroupBy);
     const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
 
+    // A group selected before its children loaded lives under the group key alone, so dropping one child needs the group written out first.
+    const spellOutGroupSelection = (selection: SelectedTransactions, childKey: string): SelectedTransactions => {
+        const groupKey = groupKeyByChildKey.get(childKey);
+        if (!groupKey || !selection[groupKey]?.isSelected) {
+            return selection;
+        }
+        const spelledOut: SelectedTransactions = {...selection};
+        delete spelledOut[groupKey];
+        for (const child of childrenByGroupKey.get(groupKey) ?? []) {
+            if (isTransactionPendingDelete(child)) {
+                continue;
+            }
+            const [key, info] = buildSelectedEntry(child);
+            // No `isSelectedViaGroup`: the caller is about to drop one of these, so the group stops being a whole-group selection.
+            spelledOut[key] = {...info, groupKey};
+        }
+        return spelledOut;
+    };
+
     const applyShiftRangeBatch = (batch: ShiftRangeBatch<SearchData[number]>) => {
         applySelection(
             (selectedTransactions) => {
-                const updated: SelectedTransactions = {...selectedTransactions};
+                let updated: SelectedTransactions = {...selectedTransactions};
                 const addTransaction = (tx: TransactionListItemType) => {
                     if (!tx.keyForList || isTransactionPendingDelete(tx)) {
                         return;
@@ -433,26 +452,10 @@ function SearchWriteActionsProvider({
                     const parentGroupKey = groupKeyByChildKey.get(tx.keyForList);
                     updated[key] = parentGroupKey ? {...info, groupKey: parentGroupKey} : info;
                 };
-                // A group selected before its children loaded lives under the group key alone, so deleting a child key below would find nothing.
-                const spellOutGroupSelection = (childKey: string) => {
-                    const groupKey = groupKeyByChildKey.get(childKey);
-                    if (!groupKey || !updated[groupKey]?.isSelected) {
-                        return;
-                    }
-                    delete updated[groupKey];
-                    for (const child of childrenByGroupKey.get(groupKey) ?? []) {
-                        if (isTransactionPendingDelete(child)) {
-                            continue;
-                        }
-                        const [key, info] = buildSelectedEntry(child);
-                        // No `isSelectedViaGroup`: the caller is about to drop one of these, so the group stops being a whole-group selection.
-                        updated[key] = {...info, groupKey};
-                    }
-                };
                 const removeRow = (row: SearchData[number]) => {
                     if (isTransactionListItemType(row) || (isTransactionReportGroupListItemType(row) && row.transactions.length === 0)) {
                         if (row.keyForList) {
-                            spellOutGroupSelection(row.keyForList);
+                            updated = spellOutGroupSelection(updated, row.keyForList);
                             delete updated[row.keyForList];
                         }
                         return;
@@ -556,11 +559,12 @@ function SearchWriteActionsProvider({
             applySelection(
                 (selectedTransactions) => {
                     const {itemTransaction, originalItemTransaction, parentReport: itemParentReport} = resolveTransactionRefs(item);
+                    const baseSelection = spellOutGroupSelection(selectedTransactions, item.keyForList);
                     const updatedTransactions = prepareTransactionsList({
                         item,
                         itemTransaction,
                         originalItemTransaction,
-                        selectedTransactions,
+                        selectedTransactions: baseSelection,
                         currentUserLogin: currentUserEmail,
                         currentUserAccountID: accountID,
                         reportNameValuePairs,
@@ -572,7 +576,7 @@ function SearchWriteActionsProvider({
 
                     if (areItemsGrouped && isGroupedItemArray(filteredData)) {
                         const parentGroup = filteredData.find((group) => group.transactions.some((transaction) => transaction.keyForList === item.keyForList));
-                        const groupKey = selectedTransactions[item.keyForList]?.groupKey ?? parentGroup?.keyForList;
+                        const groupKey = baseSelection[item.keyForList]?.groupKey ?? groupKeyByChildKey.get(item.keyForList) ?? parentGroup?.keyForList;
                         // Toggling one expense makes this group a partial selection, so export the remaining expenses individually.
                         if (groupKey) {
                             for (const [key, transaction] of Object.entries(updatedTransactions)) {
