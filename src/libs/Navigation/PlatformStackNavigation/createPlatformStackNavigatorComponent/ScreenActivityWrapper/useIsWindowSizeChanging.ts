@@ -3,17 +3,12 @@ import {useSyncExternalStore} from 'react';
 import {getSnapshot, subscribe} from './windowSizeChangeStore';
 
 /**
- * Reports whether the window is being resized or the device has just changed orientation. A screen deprioritized
- * with React <Activity> has no mounted effects, so its layout goes stale when the window size changes. Reading this
- * flag lets it become visible for the duration of the change and lay itself out again while it is still covered,
- * instead of catching up in front of the user on reveal.
- *
- * useIsResizing answers a similar question for tooltips, but it only listens to the web resize event and reports
- * nothing on native, and it counts the height changes that the soft keyboard causes. This hook reads dimension
- * changes on both platforms and ignores everything that leaves the layout width and the orientation alone.
- *
- * The hook lives apart from windowSizeChangeStore because the store's function bodies compile differently under the
- * two React Compiler toolchains, which the compliance check reads as a memoization divergence.
+ * Reports whether the window width or the orientation is changing, on both platforms. A screen hidden by
+ * <Activity> has no mounted effects, so it reads this flag to become visible for the duration of the change and
+ * lay itself out while still covered. The existing useIsResizing does not fit here, because it is web only and
+ * also counts the height changes the soft keyboard causes. The hook lives apart from windowSizeChangeStore because
+ * the store compiles differently under the two React Compiler toolchains, which the compliance check reads as a
+ * memoization divergence.
  */
 function useIsWindowSizeChanging() {
     return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);

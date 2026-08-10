@@ -3,12 +3,9 @@ import type {PropsWithChildren} from 'react';
 import React, {useRef} from 'react';
 
 /**
- * Refuses every write to 'display' on the element and keeps the declaration reporting 'contents'. React hides a
- * host element with 'style.setProperty(display, none, important)' and reveals it by assigning to 'style.display',
- * so both have to be replaced. Any other property still goes through, so the style prop of this component may not
- * carry 'display' itself.
- *
- * Returns a writer bound to the original method, so the observer below can reach past the patch.
+ * Refuses every write to 'display' on the element. React hides a host element with
+ * 'style.setProperty(display, none, important)' and reveals it by assigning to 'style.display', so both are
+ * replaced. Returns a writer bound to the original method, so the observer below can reach past the patch.
  */
 function pinDisplayToContents(element: HTMLDivElement) {
     const {style} = element;
@@ -40,23 +37,16 @@ function pinDisplayToContents(element: HTMLDivElement) {
 }
 
 /**
- * Keeps children painted while React hides the surrounding subtree, so the navigator's card visibility, not
- * Activity, decides what is on screen. React hides a hidden <Activity> (and a suspended tree) with an inline
+ * Keeps children painted while React hides the surrounding subtree. React hides a hidden <Activity> with an inline
  * 'display: none !important' that no stylesheet rule can beat, so the element's own declaration refuses the write
  * instead. This is the web counterpart of the native view config in index.native.tsx.
  *
- * Refusing the write also keeps a hide cheap, because a display that really lands tears down the layout tree of
- * the whole covered screen and restoring it costs a second pass.
+ * The MutationObserver only catches a React version that writes the style attribute as a whole. It cannot live in
+ * an effect, because a hidden Activity unmounts the effects of its subtree, so a callback ref attaches it once per
+ * element and lets the observer be collected together with the element.
  *
- * The MutationObserver only catches a React version that writes the style attribute as a whole, so it normally
- * never fires. It cannot live in an effect, because a hidden Activity unmounts the effects of its subtree and the
- * cleanup would disconnect it in the very commit that hides the screen. A callback ref attaches it once per
- * element and never disconnects it, so the observer and the element are collected together after unmount.
- *
- * Painted content stays in the tab order, which 'inert' takes away while the screen is covered.
- * react-navigation's CardA11yWrapper sets only 'aria-hidden' and 'pointer-events: none', and a hidden Activity
- * runs no effects, so the flag has to be part of the rendered output. It is a plain div because react-native's
- * View does not declare 'inert'.
+ * The 'inert' attribute takes the painted content out of the tab order while the screen is covered. It is a plain
+ * div because react-native's View does not declare 'inert'.
  */
 function CustomViewWrapper({style, inert, children}: PropsWithChildren<{style: React.CSSProperties; inert?: boolean}>) {
     const observedElementRef = useRef<HTMLDivElement | null>(null);

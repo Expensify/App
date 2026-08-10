@@ -1,13 +1,11 @@
 import type {ReactNode} from 'react';
 
 /**
- * The props every non-top screen wrapper receives. One shape for all of them, so
- * wrapDescriptorsWithNonTopScreensBehavior can pick a wrapper by behavior and render it without knowing which one
- * it got.
+ * The props every non-top screen wrapper receives, so wrapDescriptorsWithNonTopScreensBehavior can render any of
+ * them interchangeably.
  */
 type NonTopScreenWrapperProps = {
-    /** Whether another screen of the same navigator is on top of this one. Such a screen can still be visible, for
-     * example dimmed under the RHP overlay on wide layouts. */
+    /** Whether another screen of the same navigator is on top of this one */
     isScreenBlurred: boolean;
 
     /** The screen content to deprioritize while it is covered */

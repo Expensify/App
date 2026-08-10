@@ -196,8 +196,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
      */
     const shouldRenderTertiaryOverlay = useShouldRenderOverlay(isRHPFocused && isWideRHPBelow && isSuperWideRHPBelow, thirdOverlayProgress);
 
-    // Routes currently registered as wide or super-wide, kept whole so that the listener below can still deregister
-    // one that was closed while its screen was hidden by <Activity>.
+    // Routes registered as wide or super-wide, kept whole so the listener below can deregister one that was closed
+    // while its screen was hidden by <Activity>.
     const registeredRHPRoutesRef = useRef<Map<string, NavigationRoute>>(new Map());
 
     /**
@@ -283,9 +283,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const getReportRHPWidthHint = (reportID: string): RHPWidthHint | undefined => reportRHPWidthHints.get(reportID);
 
     /**
-     * A screen hidden by <Activity> has no mounted effects, so a route closed while it is hidden never runs the
-     * deregistration in useRHPWidth, and its width and report hint would stay with the RHP forever. This listener
-     * deregisters every registered route once it has left the navigation state.
+     * A route closed while its screen is hidden by <Activity> never runs the deregistration in useRHPWidth,
+     * because a hidden screen has no mounted effects. This listener deregisters it once it left the navigation state.
      */
     useEffect(() => {
         const unsubscribe = navigationRef.addListener('state', () => {

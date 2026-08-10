@@ -27,10 +27,9 @@ const WRAPPER_FOR_BEHAVIOR: Record<Exclude<NonTopScreenBehavior, 'none'>, Compon
 };
 
 /**
- * Wraps each screen's render function so that a non-top screen either freezes (react-freeze) or gets deprioritized
- * (React <Activity>), depending on its nonTopScreenBehavior option, which keeps covered screens off the critical
- * path. A screen that picked no behavior is left unwrapped, and so is a persistent screen (e.g. sidebar on web),
- * because it stays visible and interactive alongside the top screen even when the navigator loses focus.
+ * Wraps each screen's render function with the wrapper its nonTopScreenBehavior option picked, which keeps covered
+ * screens off the critical path. Screens that picked no behavior and persistent screens (e.g. the sidebar on web)
+ * stay unwrapped, because a persistent screen remains interactive alongside the top screen.
  */
 function wrapDescriptorsWithNonTopScreensBehavior<T extends Descriptor>(
     descriptors: Record<string, T>,

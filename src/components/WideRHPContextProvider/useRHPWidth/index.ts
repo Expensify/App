@@ -29,11 +29,9 @@ function useRHPWidth(width: RHPWidth) {
     const {setRHPWidth, removeRHPRouteKey, getReportRHPWidthHint, unmarkReportRHPWidth} = useWideRHPActions();
 
     const onClose = () => {
-        // Effects also unmount when a covered screen is hidden by <Activity>, so an unmounting effect does not
-        // always mean the screen is closing. The registration has to survive a hide, otherwise the RHP container
-        // snaps back to the single width, so it is dropped only once the route has left the navigation state. A
-        // route closed while its screen is hidden never runs this cleanup again, and the navigation state listener
-        // in WideRHPContextProvider deregisters it instead.
+        // An unmounting effect does not always mean the screen is closing, because <Activity> also unmounts effects
+        // when it hides a covered screen. The registration is therefore dropped only once the route has left the
+        // navigation state, and a route closed while hidden is deregistered by the listener in WideRHPContextProvider.
         const rootState = navigationRef.isReady() ? navigationRef.getRootState() : undefined;
         if (rootState && extractPresentNavigationKeys(rootState).has(route.key)) {
             return;
