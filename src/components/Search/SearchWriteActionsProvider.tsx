@@ -36,7 +36,7 @@ import type {SearchData, SearchRowSelectionActionsValue, SearchShiftRangeChildre
 import {useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchRowSelectionActionsContext, SearchShiftRangeChildrenContext} from './SearchContextDefinitions';
 import {useSyncSelectedReports} from './SearchSelectionProvider';
-import {buildGroupChildrenIndex, buildShiftRangeItems, mapEmptyReportToSelectedEntry, mapTransactionItemToSelectedEntry, prepareTransactionsList} from './selectionBuilders';
+import {buildGroupChildrenIndex, buildShiftRangeItems, isGroupSelected, mapEmptyReportToSelectedEntry, mapTransactionItemToSelectedEntry, prepareTransactionsList} from './selectionBuilders';
 
 type SearchWriteActionsProviderProps = {
     /** The currently displayed (filtered, grouped) rows. Screen-derived; the provider cannot recompute it. */
@@ -538,8 +538,7 @@ function SearchWriteActionsProvider({
 
         if (isShiftRangeHeaderItem(item) && isTransactionGroupListItemType(item)) {
             // A header click selects a whole block, so seed it and a later shift+click can narrow it (like Select All).
-            const selected = getSelectedTransactions();
-            const groupWasSelected = groupTransactions.some((child) => !!selected[child.keyForList]?.isSelected);
+            const groupWasSelected = isGroupSelected(getSelectedTransactions(), item.keyForList, groupTransactions);
             if (groupWasSelected) {
                 // Deselecting paints no block, so reset instead of leaving a stale span to collapse.
                 rangeApi.clearAnchor();
@@ -620,9 +619,8 @@ function SearchWriteActionsProvider({
                 // A group selected before its children were fetched is stored under the group key. Once the children load,
                 // deselecting has to clear that entry too, otherwise the group stays selected with no way to deselect it.
                 const groupKey = item.keyForList;
-                const isGroupKeySelected = !!(groupKey && selectedTransactions[groupKey]?.isSelected);
 
-                if (isGroupKeySelected || groupTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
+                if (isGroupSelected(selectedTransactions, groupKey, groupTransactions)) {
                     const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
                     if (groupKey) {
                         delete reducedSelectedTransactions[groupKey];

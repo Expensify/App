@@ -309,6 +309,14 @@ function deriveSelectedReports(transactionIDs: SelectedTransactions, data: Searc
     return [];
 }
 
+/** A group is selected when its own key is, which is how a group selected before its children loaded is stored, or when any child is. */
+function isGroupSelected(selection: SelectedTransactions, groupKey: string | undefined, children: TransactionListItemType[]): boolean {
+    if (groupKey && selection[groupKey]?.isSelected) {
+        return true;
+    }
+    return children.some((child) => !!selection[child.keyForList]?.isSelected);
+}
+
 /** The single rule for which children belong to a group: the lazily registered ones, else the group's own. */
 function resolveGroupChildren(group: TransactionGroupListItemType, groupChildrenByKey: Record<string, TransactionListItemType[]>): TransactionListItemType[] {
     return groupChildrenByKey[group.keyForList] ?? group.transactions ?? [];
@@ -355,4 +363,4 @@ function buildGroupChildrenIndex(sortedData: SearchListItem[], groupChildrenByKe
     return {childrenByGroupKey, groupKeyByChildKey};
 }
 
-export {mapTransactionItemToSelectedEntry, mapEmptyReportToSelectedEntry, prepareTransactionsList, deriveSelectedReports, buildShiftRangeItems, buildGroupChildrenIndex};
+export {mapTransactionItemToSelectedEntry, mapEmptyReportToSelectedEntry, prepareTransactionsList, deriveSelectedReports, buildShiftRangeItems, buildGroupChildrenIndex, isGroupSelected};

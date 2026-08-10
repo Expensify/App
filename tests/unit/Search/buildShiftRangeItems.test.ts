@@ -1,6 +1,6 @@
 import type {TransactionCategoryGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import {buildGroupChildrenIndex, buildShiftRangeItems} from '@components/Search/selectionBuilders';
-import type {SearchData} from '@components/Search/types';
+import {buildGroupChildrenIndex, buildShiftRangeItems, isGroupSelected, mapEmptyReportToSelectedEntry} from '@components/Search/selectionBuilders';
+import type {SearchData, SelectedTransactions} from '@components/Search/types';
 
 import CONST from '@src/CONST';
 
@@ -118,6 +118,28 @@ describe('buildShiftRangeItems', () => {
         const result = buildShiftRangeItems(filteredData, groupChildrenByKey, false);
 
         expect(result).toBe(filteredData);
+    });
+});
+
+describe('isGroupSelected', () => {
+    const child = makeChild(1, 'c1');
+
+    /** Builds a real selection whose entries are only ever read for `isSelected`, so the empty-report builder supplies a fully typed one. */
+    function selectionOf(...keys: string[]): SelectedTransactions {
+        const [, entry] = mapEmptyReportToSelectedEntry(makeGroup('anyGroup'));
+        return Object.fromEntries(keys.map((key) => [key, entry]));
+    }
+
+    it('counts a group selected under its own key, which is how it is stored before its children load', () => {
+        expect(isGroupSelected(selectionOf('groupA'), 'groupA', [child])).toBe(true);
+    });
+
+    it('counts a group with any child selected', () => {
+        expect(isGroupSelected(selectionOf('c1'), 'groupA', [child])).toBe(true);
+    });
+
+    it('does not count a group whose key and children are both unselected', () => {
+        expect(isGroupSelected(selectionOf('other'), 'groupA', [child])).toBe(false);
     });
 });
 

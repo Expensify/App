@@ -147,15 +147,17 @@ function ExpenseGroupedSearchView({
         previouslyExpandedGroupsRef.current = expandedGroups;
     }, [expandedGroups, unregisterGroupChildren]);
 
-    // After a layout switch the other path starts collapsed, so clearing this lets the effect above unregister those groups.
+    // A layout switch hands these groups to the other render path, so drop their registrations while leaving open what the user opened.
     const wasSplitRef = useRef(shouldSplit);
     useEffect(() => {
         if (wasSplitRef.current === shouldSplit) {
             return;
         }
         wasSplitRef.current = shouldSplit;
-        setExpandedGroups((previousGroups) => (previousGroups.size === 0 ? previousGroups : new Set()));
-    }, [shouldSplit]);
+        for (const key of expandedGroups) {
+            unregisterGroupChildren(key);
+        }
+    }, [shouldSplit, expandedGroups, unregisterGroupChildren]);
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
