@@ -229,6 +229,9 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
                 },
+                allReportsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: expenseReport,
+                },
                 allReportActionsList: {
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {action456: iouAction1, action789: iouAction2},
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`]: {},
@@ -319,6 +322,7 @@ describe('actions/Duplicate', () => {
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 allTransactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: []},
+                allReportsList: {},
                 allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {}},
             });
             await waitForBatchedUpdates();
@@ -379,6 +383,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: [],
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: [],
                 },
+                allReportsList: {},
                 allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {}},
             });
             await waitForBatchedUpdates();
@@ -598,6 +603,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
                 },
+                allReportsList: {},
                 allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {[iouAction1ID]: iouAction1, [iouAction2ID]: iouAction2}},
             });
             await waitForBatchedUpdates();
@@ -705,6 +711,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                 },
+                allReportsList: {},
                 allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {mainAction123: mainIouAction, action456: dupIouAction}},
             });
             await waitForBatchedUpdates();
@@ -792,6 +799,10 @@ describe('actions/Duplicate', () => {
                 allTransactionViolations: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`]: crossDuplicateViolations,
+                },
+                allReportsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${keptReportID}`]: keptReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${crossReportID}`]: crossReport,
                 },
                 allReportActionsList: {
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${keptReportID}`]: {actionMain: mainIouAction},

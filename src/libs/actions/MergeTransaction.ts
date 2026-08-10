@@ -383,6 +383,7 @@ type MergeTransactionRequestParams = {
     allTransactionViolations: OnyxCollection<TransactionViolations>;
     sourceTransaction: Transaction;
     targetTransactionThreadReport: OnyxEntry<Report>;
+    sourceTransactionThreadReport: OnyxEntry<Report>;
     targetTransactionThreadParentReport: OnyxEntry<Report>;
     iouReportOwnerLogin: string | undefined;
     policy: OnyxEntry<Policy>;
@@ -412,6 +413,7 @@ function mergeTransactionRequest({
     targetTransaction,
     sourceTransaction,
     targetTransactionThreadReport,
+    sourceTransactionThreadReport,
     targetTransactionThreadParentReport,
     iouReportOwnerLogin,
     allTransactionViolations,
@@ -596,6 +598,7 @@ function mergeTransactionRequest({
                 shouldDeleteTransactionThread,
                 reportAction: sourceIouAction,
                 currentUserAccountID: currentUserAccountIDParam,
+                transactionThread: sourceTransactionThreadReport,
             });
             optimisticSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.optimisticData);
             successSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.successData);
@@ -627,6 +630,8 @@ function mergeTransactionRequest({
                 actionableWhisperReportActionID,
                 CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
                 false,
+                sourceTransactionThreadReport,
+                selfDMReport,
             );
 
             sourceTransactionOptimisticData.push(...optimisticData);

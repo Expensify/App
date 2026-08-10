@@ -643,6 +643,7 @@ function buildOnyxDataForTrackExpense({
     return onyxData;
 }
 
+// eslint-disable-next-line @typescript-eslint/max-params
 function getDeleteTrackExpenseInformation(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     transactionID: string | undefined,
@@ -654,6 +655,8 @@ function getDeleteTrackExpenseInformation(
     actionableWhisperReportActionID = '',
     resolution = '',
     shouldRemoveIOUTransaction = true,
+    transactionThread?: OnyxEntry<OnyxTypes.Report>,
+    iouReport?: OnyxEntry<OnyxTypes.Report>,
 ) {
     // STEP 1: Get all collections we're updating
     const transaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -728,6 +731,9 @@ function getDeleteTrackExpenseInformation(
     const cleanUpTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({
         transactionThreadID,
         shouldDeleteTransactionThread,
+        chatReport,
+        transactionThread,
+        iouReport,
         currentUserAccountID,
     });
     optimisticData.push(...cleanUpTransactionThreadReportOnyxData.optimisticData);

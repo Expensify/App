@@ -64,6 +64,8 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
 
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`);
+    const sourceTransactionThreadReportID = getTransactionThreadReportID(sourceTransaction);
+    const [sourceTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sourceTransactionThreadReportID)}`);
     const [targetTransactionThreadParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: personalDetailsLoginSelector(targetTransactionThreadParentReport?.ownerAccountID),
@@ -93,6 +95,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
             targetTransaction,
             sourceTransaction,
             targetTransactionThreadReport,
+            sourceTransactionThreadReport,
             targetTransactionThreadParentReport,
             iouReportOwnerLogin,
             allTransactionViolations,
