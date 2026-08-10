@@ -33,6 +33,7 @@ const defaultSearchQueryActions: SearchQueryActionsValue = {
 
 const defaultSearchResultsContext: SearchResultsContextValue = {
     currentSearchResults: undefined,
+    currentSearchViolations: CONST.EMPTY_OBJECT,
     shouldUseLiveData: false,
     sortedReportIDs: CONST.EMPTY_ARRAY,
     shouldShowFiltersBarLoading: false,
