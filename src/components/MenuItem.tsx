@@ -679,8 +679,9 @@ function MenuItem({
     });
     const shouldDimIconRight = iconRight === icons.ArrowRight || !iconRight;
 
+    const hasIcon = (!!icon || iconType === CONST.ICON_TYPE_WORKSPACE) && !Array.isArray(icon);
     // eslint-disable-next-line no-nested-ternary -- Selects ml2/ml3/empty based on icon presence and avatar size
-    const iconLeftPadding = shouldPutLeftPaddingWhenNoIcon || (icon && !Array.isArray(icon)) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {};
+    const iconLeftPadding = shouldPutLeftPaddingWhenNoIcon || hasIcon ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {};
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
@@ -703,7 +704,7 @@ function MenuItem({
         styles.flex1,
         title ? {} : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
         title ? styles.textLineHeightNormal : StyleUtils.getLineHeightStyle(variables.fontSizeNormalHeight),
-        !descriptionAddon && icon && !Array.isArray(icon) ? styles.ml3 : {},
+        !descriptionAddon && hasIcon ? styles.ml3 : {},
         descriptionAddon ? styles.ml2 : {},
         (descriptionTextStyle as TextStyle) || styles.breakWord,
         isDeleted ? styles.offlineFeedbackDeleted : {},
@@ -712,7 +713,7 @@ function MenuItem({
     const descriptionContainerStyle = StyleUtils.combineStyles<ViewStyle>([
         styles.flexRow,
         styles.alignItemsCenter,
-        descriptionAddon && icon && !Array.isArray(icon) ? styles.ml3 : {},
+        descriptionAddon && hasIcon ? styles.ml3 : {},
         title ? descriptionVerticalMargin : {},
     ]);
 
@@ -955,7 +956,7 @@ function MenuItem({
                                                             ]}
                                                         />
                                                     )}
-                                                    {(!!icon || iconType === CONST.ICON_TYPE_WORKSPACE) && !Array.isArray(icon) && (
+                                                    {hasIcon && (
                                                         <View
                                                             style={[
                                                                 styles.popoverMenuIcon,

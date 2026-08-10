@@ -494,6 +494,7 @@ const translations: TranslationDeepObject<typeof en> = {
         tryAgain: '再試行',
         tagGLCode: 'GL コードにタグを付ける',
         off: 'オフ',
+        commuter: '通勤者',
         noResultsFoundSubtitle: '結果がありません。フィルターや検索キーワードを調整してお試しください',
         unableToDisplayChart: 'グラフを表示できません',
         webGLNotSupported: 'お使いのブラウザは WebGL に対応していません。有効にするか、別のブラウザに切り替えてください。',
@@ -926,6 +927,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '時間に敏感',
             addShippingAddress: {title: '配送先住所が必要です', subtitle: 'Expensify カードを受け取る住所を入力してください。', cta: '住所を追加'},
             addPaymentCard: {title: 'Expensify を引き続きご利用いただくには、支払いカードを追加してください', subtitle: 'アカウント ＞ サブスクリプション', cta: '追加'},
+            addBankAccount: {title: '銀行口座を追加して払い戻しを受け取りましょう'},
             activateCard: {title: 'Expensify カードを有効化する', subtitle: 'カードを認証して支出を始めましょう。', cta: '有効化'},
             reviewCardFraud: {
                 title: 'Expensify カードの不正利用の可能性を確認する',
@@ -4162,6 +4164,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         proofOf: '個人住所の証明',
         enterOneEmail: (companyName: string) => `${companyName} のディレクターのメールアドレスを入力してください`,
         regulationRequiresOneMoreDirector: '規定により、署名者として最低でももう一人の取締役が必要です。',
+        bothSignersMustBeOnIllionReport: '両方の署名者は、会社の illion レポートに取締役として記載されている必要があります。事業に関わる任意の2人であってはなりません。',
+        signerMustBeOnIllionReport: '署名者として追加する取締役は、会社の illion レポートに記載されている必要があります。',
         hangTight: '少々お待ちください…',
         enterTwoEmails: (companyName: string) => `${companyName} の取締役2名のメールアドレスを入力してください`,
         sendReminder: 'リマインダーを送信',
@@ -4172,11 +4176,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         proofOfDirectorsDescription: '例：Oncorp 企業プロフィールまたは企業登録。',
         codiceFiscale: '納税者番号',
         codiceFiscaleDescription: '署名者、権限を付与されたユーザー、および実質的支配者のための納税者番号（Codice Fiscale）。',
-        PDSandFSG: 'PDS と FSG の開示書類',
+        PDSandFSG: 'PDS、FSG + TMD 開示書類',
         PDSandFSGDescription: Str.dedent(`
-            Expensify は Corpay との提携により、API 接続を通じて Corpay の広大な国際銀行パートナーネットワークを活用し、グローバル払い戻し機能を提供しています。オーストラリアの規制に基づき、Corpay の金融サービスガイド（FSG）および商品開示説明書（PDS）をお渡しします。
+            Corpay との提携では API 接続を利用し、Corpay が有する広範な国際銀行ネットワークを活用して、Expensify のグローバル払い戻し機能を提供しています。オーストラリアの規制に従い、Corpay の金融サービスガイド（FSG）、商品開示文書（PDS）、ターゲット市場判定書（TMD）をご提供します。
 
-            FSG と PDS には、Corpay が提供する商品とサービスの詳細および重要な情報が記載されていますので、よくお読みください。今後の参照のため、これらの書類を保管しておいてください。
+            これらの FSG、PDS、TMD の各文書には、Corpay が提供する商品およびサービスの詳細と重要な情報が記載されていますので、必ず注意深くお読みください。今後の参照のために、これらの文書を保管しておいてください。
         `),
         pleaseUpload: 'ビジネスの取締役としての本人確認を行うため、以下に追加の書類をアップロードしてください。',
         enterSignerInfo: '署名者情報を入力',
@@ -4188,6 +4192,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
     },
     agreementsStep: {
+        bankStatement: '銀行取引明細書',
+        bankStatementDescription: '接続するビジネス用銀行口座について、過去3か月以内の日付の最新の銀行取引明細書をご提出ください。',
         agreements: '契約書',
         pleaseConfirm: '以下の規約に同意してください',
         regulationRequiresUs: '法律により、事業の持分を25％超所有するすべての個人の本人確認を行うことが求められています。',
@@ -4196,7 +4202,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         iAcceptTheTermsAndConditions: `私は<a href="https://www.corpay.com/cross-border/terms">利用規約と条件</a>に同意します。`,
         iAcceptTheTermsAndConditionsAccessibility: '利用規約に同意します。',
         accept: '承認して銀行口座を追加',
-        iConsentToThePrivacyNotice: '私は<a href="https://payments.corpay.com/compliance">プライバシー通知</a>に同意します。',
+        iConsentToThePrivacyNotice: '私は<a href="https://www.corpay.com/privacy-policy">プライバシー通知</a>に同意します。',
         iConsentToThePrivacyNoticeAccessibility: 'プライバシー通知に同意します。',
         error: {
             authorized: 'ビジネス用銀行口座を操作する権限を持つ管理責任者である必要があります',
@@ -5591,7 +5597,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     },
                 },
             },
-            exportCompanyCard: {label: '会社カード経費のエクスポート形式', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: 'クレジットカード'}}},
+            exportNonReimbursable: {label: '会社カード経費のエクスポート形式', values: {[CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE]: {label: 'クレジットカード'}}},
             defaultCompanyCardVendor: {label: 'デフォルトの会社カードベンダー', description: '自動的に一致しない経費に使用する既定の Rillet ベンダーを選択してください。'},
             companyCardAccount: {label: '会社カード口座', description: '会社カード取引のエクスポート先を選択してください。'},
             noBankAccountsFound: '銀行口座が見つかりません',
@@ -7158,6 +7164,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>QuickBooks Desktop 連携機能は、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からの Control プランでのみご利用いただけます</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                title: 'Intuit Enterprise Suite',
+                description: `Intuit Enterprise SuiteをExpensifyに接続すると、会計データが自動的に同期され、手入力を減らすことができます。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Intuit Enterprise Suite連携はControlプランでのみ利用でき、料金は<strong>${formattedPrice}</strong>からです（${hasTeam2025Pricing ? `メンバー1人あたり月額。` : `アクティブなメンバー1人あたり月額。`}）</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 title: 'Certinia',
                 description: `Expensify と Certinia の連携で自動同期を活用し、手入力を減らしましょう。経費のコーディングディメンションと税務同期を Certinia の設定に合わせて、財務の可視性を高めます。`,
@@ -8507,27 +8519,17 @@ ${reportName}`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費に「${prohibitedExpense}」を追加しました`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費から「${prohibitedExpense}」を削除しました`,
         commuterExclusions: {
-            changedToFixedDistance: '通勤分の除外方法を、申請ごとの固定距離に変更しました',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'マイル' : 'マイル';
-                } else {
-                    unitLabel = isSingular ? 'キロメートル' : 'キロメートル';
-                }
-                return `1件の経費申請につき固定除外距離を${distance} ${unitLabel}に設定します`;
-            },
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `1件あたりの固定距離除外を${oldDistance} ${unit}から${newDistance} ${unit}に変更しました`,
-            disabled: '距離レートで通勤を除外する設定を無効にしました',
+            changedToFixedDistance: '通勤分を除外する設定を、申請ごとの固定距離に変更しました',
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `請求ごとに固定距離の除外を ${formattedDistance} に設定します`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `1件あたりの固定距離控除を${formattedNewDistance}に変更しました（以前は${formattedOldDistance}）`,
+            disabled: '距離レートの通勤除外を無効にしました',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `精算方法を「${newReimbursementChoice}」（以前は「${oldReimbursementChoice}」）に変更しました`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} ワークスペース参加リクエストの事前承認`,
         updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) => `カスタムレポート名の数式を「${newDefaultTitle}」に変更しました（以前は「${oldDefaultTitle}」）`,
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `${oldOwnerName}（${oldOwnerEmail}）から${policyName}の所有権を引き継ぎました`,
-        updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '有効' : '無効'} の送信を予約しました`,
         updatedIndividualBudgetNotification: (
             budgetAmount: string,
             budgetFrequency: string,
@@ -8685,6 +8687,7 @@ ${reportName}`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から請求書の設定をコピーしました`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から出張設定をコピーしました`,
         },
+        updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '有効' : '無効'} 件の提出`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -9327,6 +9330,7 @@ ${reportName}`,
             title: 'パーソナルカルマを有効にする',
             description: '毎月の支出500ドルごとに1ドルを Expensify.org に寄付します',
             stopDonationsPrompt: 'Expensify.org への寄付をやめてもよろしいですか？',
+            managePreferencesFromWeb: 'Manage your personal karma preferences from web',
         },
         getInTouch: '素晴らしいです！その方の情報を共有していただければ、こちらからご連絡いたします。',
         introSchoolPrincipal: '学校校長への紹介',
@@ -9371,6 +9375,10 @@ ${reportName}`,
         },
         error: {
             selectSuggestedAddress: '候補の住所を選択するか、現在地を使用してください',
+            mapOrGpsDistanceRequired: {
+                title: '地図またはGPSによる距離の入力が必要です',
+                description: 'このワークスペースでは、地図に基づく距離精算または GPS で追跡された距離精算のいずれかが必要です。',
+            },
         },
         odometer: {
             startReading: '読み始める',
@@ -9386,6 +9394,12 @@ ${reportName}`,
             cameraAccessRequired: '写真を撮影するにはカメラへのアクセス権限が必要です。',
             snapPhotoStart: '<muted-text-label>移動を<strong>開始</strong>するときに、走行距離計の写真を撮影してください。</muted-text-label>',
             snapPhotoEnd: '<muted-text-label>走行の<strong>終了時</strong>に、オドメーターの写真を撮影してください。</muted-text-label>',
+        },
+        commuterExclusion: {
+            original: ({formattedDistance}: {formattedDistance: string}) => `元の距離: ${formattedDistance}`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} の通勤${unit}を削除しました`,
+            systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
+                `${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ワークスペースの距離設定</a>` : 'ワークスペース距離設定'} に基づき、通勤距離 ${distance} ${unit} を削除しました。`,
         },
     },
     gps: {

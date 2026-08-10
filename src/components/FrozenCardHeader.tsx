@@ -39,7 +39,7 @@ type FrozenCardHeaderProps = {
 
 function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskToUnfreezePress, canUnfreezeCard, isWorkspaceAdmin, frozenByAccountID, frozenDate}: FrozenCardHeaderProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['FreezeCard']);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -47,7 +47,7 @@ function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskT
     const isCurrentUser = frozenByAccountID === session?.accountID;
 
     const frozenByName = frozenByAccountID ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[frozenByAccountID], translate}) : '';
-    const formattedDate = frozenDate ? DateUtils.formatWithUTCTimeZone(frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
+    const formattedDate = frozenDate ? DateUtils.formatWithUTCTimeZone(frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, dateFnsLocale) : '';
     const adminFrozenTextPrefix = translate('cardPage.frozenByAdminPrefix', {date: formattedDate});
     const frozenNeedsUnfreezePrefix = translate('cardPage.frozenByAdminNeedsUnfreezePrefix');
     const frozenNeedsUnfreezeSuffix = translate('cardPage.frozenByAdminNeedsUnfreezeSuffix');

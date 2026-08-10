@@ -1,3 +1,4 @@
+import useActivePolicy from '@hooks/useActivePolicy';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
@@ -88,6 +89,9 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true, areAllMatchingItemsSelected);
     const {isOffline} = useNetwork();
+    const activePolicy = useActivePolicy();
+    // The server converts search figures to the active policy's currency when the query carries no explicit target.
+    const searchTargetCurrency = activePolicy?.outputCurrency ?? CONST.CURRENCY.USD;
     const [footerCurrencyState, setFooterCurrencyState] = useState<FooterCurrencyState>({
         searchHash: undefined,
         selectedCurrency: undefined,
@@ -377,7 +381,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     ]);
 
     const handleFooterCurrencyChange = useCallback(
-        (currency: string | undefined) => {
+        (currency: string) => {
             setFooterCurrencyState({
                 searchHash: currentSearchHash,
                 selectedCurrency: currency,
@@ -464,7 +468,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             count={footerData.count}
             total={footerData.total}
             currency={footerData.currency}
-            defaultCurrency={effectiveDefaultCurrency}
+            defaultCurrency={searchTargetCurrency}
             isTotalLoading={isFooterTotalLoading}
             onCurrencyChange={handleFooterCurrencyChange}
         />
