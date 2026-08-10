@@ -52,8 +52,6 @@ import SearchTableHeader from './SearchTableHeader';
 const STATIC_LIST_MAX_ITEMS = 10;
 const DEFAULT_COLUMNS: SearchColumnType[] = [];
 
-const PENDING_EXPENSE_REASON_ATTRIBUTES = {context: 'SearchStaticList.PendingExpensePlaceholder'} as const;
-
 type SearchStaticListProps = {
     searchResults: SearchResults | undefined;
     queryJSON: SearchQueryJSON;
@@ -314,8 +312,6 @@ function SearchStaticList({
         onLayoutProp?.();
     };
 
-    const pendingExpenseReasonAttributes = PENDING_EXPENSE_REASON_ATTRIBUTES;
-
     if (sortedData.length === 0 && showPendingExpensePlaceholder) {
         return (
             <View
@@ -326,7 +322,6 @@ function SearchStaticList({
                     shouldAnimate
                     fixedNumItems={1}
                     containerStyle={contentContainerStyle}
-                    reasonAttributes={pendingExpenseReasonAttributes}
                 />
             </View>
         );
@@ -387,7 +382,6 @@ function SearchStaticList({
                             shouldAnimate
                             fixedNumItems={1}
                             isLoadMore
-                            reasonAttributes={pendingExpenseReasonAttributes}
                         />
                     ) : undefined
                 }
