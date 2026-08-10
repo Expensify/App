@@ -148,7 +148,7 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
             </View>
             {isTotalLoading && (
                 <View style={[StyleSheet.absoluteFill, styles.flexRow, styles.alignItemsCenter, styles.ph5, shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd]}>
-                    <SearchPageFooterSkeleton reasonAttributes={{context: 'SearchPageFooter'}} />
+                    <SearchPageFooterSkeleton />
                 </View>
             )}
         </View>
