@@ -744,8 +744,8 @@ function mergeWorkflowMembersWithAvailableMembers(workflowMembers: Member[], all
 type ApprovalWorkflowRulesDiff = Record<string, ApprovalWorkflowRule | null>;
 
 function buildComparison(
-    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>,
     left: ApprovalWorkflowFilterComparison['left'],
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>,
     right: ApprovalWorkflowFilterComparison['right'],
 ): ApprovalWorkflowFilterComparison {
     return {operator, left, right};
@@ -756,11 +756,11 @@ function buildAnd(left: ApprovalWorkflowFilter['left'], right: ApprovalWorkflowF
 }
 
 function buildSubmitterFilter(memberEmails: string[]): ApprovalWorkflowFilterComparison {
-    return buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, [...memberEmails]);
+    return buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, [...memberEmails]);
 }
 
 function buildToComparison(email: string): ApprovalWorkflowFilterComparison {
-    return buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, email);
+    return buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, email);
 }
 
 /** The index-keyed object shape the rules API uses for lists (`['a', 'b'] -> {'0': 'a', '1': 'b'}`). */
@@ -850,8 +850,8 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
                 continue;
             }
 
-            const underAmount = buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, holders.limit);
-            const overAmount = buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, holders.limit);
+            const underAmount = buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, holders.limit);
+            const overAmount = buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, holders.limit);
 
             rulesIntoPosition.push({triggers, filters: buildAnd(source, underAmount), actions: buildForwardActions(holders.underLimitEmail)});
             rulesIntoPosition.push({triggers, filters: buildAnd(source, overAmount), actions: buildForwardActions(holders.overLimitEmail)});
