@@ -483,7 +483,6 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                     Navigation.navigate(
                                         createDynamicRoute(
                                             DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SPLIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID),
-                                            ROUTES.REPORT_WITH_ID.getRoute(reportID),
                                         ),
                                     );
                                 }}
