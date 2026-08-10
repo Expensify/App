@@ -24,12 +24,12 @@ function AvatarNamesTooltip({avatars, children}: AvatarNamesTooltipProps) {
     const areTooltipsDisabled = useAreAvatarTooltipsDisabled();
     const {formatPhoneNumber, translate} = useLocalize();
 
-    // Resolving the names is only worth it once the indicator actually renders with a tooltip, so it happens here rather than in the layouts.
     if (areTooltipsDisabled) {
         return children;
     }
 
-    return <Tooltip text={avatars.map((avatar) => getUserDetailTooltipText(Number(avatar.id), formatPhoneNumber, translate, avatar.name)).join(', ')}>{children}</Tooltip>;
+    const text = avatars.map((avatar) => getUserDetailTooltipText(Number(avatar.id), formatPhoneNumber, translate, avatar.name)).join(', ');
+    return <Tooltip text={text}>{children}</Tooltip>;
 }
 
 export default AvatarNamesTooltip;
