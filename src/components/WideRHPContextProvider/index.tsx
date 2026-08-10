@@ -3,7 +3,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
-import extractPresentNavigationKeys from '@libs/Navigation/helpers/extractPresentNavigationKeys';
+import getPresentNavigationKeys from '@libs/Navigation/helpers/getPresentNavigationKeys';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import type {NavigationRoute} from '@libs/Navigation/types';
 
@@ -291,11 +291,10 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             if (registeredRHPRoutesRef.current.size === 0) {
                 return;
             }
-            const rootState = navigationRef.getRootState();
-            if (!rootState) {
+            const presentKeys = getPresentNavigationKeys();
+            if (!presentKeys) {
                 return;
             }
-            const presentKeys = extractPresentNavigationKeys(rootState);
             for (const route of registeredRHPRoutesRef.current.values()) {
                 if (!route.key || presentKeys.has(route.key)) {
                     continue;

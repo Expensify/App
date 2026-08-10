@@ -1,6 +1,6 @@
 import getRouteReportID from '@components/WideRHPContextProvider/getRouteReportID';
 
-import extractPresentNavigationKeys from '@libs/Navigation/helpers/extractPresentNavigationKeys';
+import getPresentNavigationKeys from '@libs/Navigation/helpers/getPresentNavigationKeys';
 import {navigationRef} from '@libs/Navigation/Navigation';
 
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -32,8 +32,7 @@ function useRHPWidth(width: RHPWidth) {
         // An unmounting effect does not always mean the screen is closing, because <Activity> also unmounts effects
         // when it hides a covered screen. The registration is therefore dropped only once the route has left the
         // navigation state, and a route closed while hidden is deregistered by the listener in WideRHPContextProvider.
-        const rootState = navigationRef.isReady() ? navigationRef.getRootState() : undefined;
-        if (rootState && extractPresentNavigationKeys(rootState).has(route.key)) {
+        if (getPresentNavigationKeys()?.has(route.key)) {
             return;
         }
 
