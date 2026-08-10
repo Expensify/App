@@ -239,8 +239,10 @@ function updateMultipleMoneyRequests({
         if (changes.category !== undefined && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.CATEGORY)) {
             transactionChanges.category = changes.category;
         }
-        if (changes.tag && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.TAG)) {
-            const editedTagIndexes = bulkEditTagChanges ? Object.keys(bulkEditTagChanges) : [];
+        const editedTagIndexes = bulkEditTagChanges ? Object.keys(bulkEditTagChanges) : [];
+        // Enter the tag branch when a per-level edit intent was recorded OR the tag itself is defined, so a
+        // clear-to-empty edit (changes.tag === '') is applied instead of being skipped by a truthy check.
+        if ((changes.tag !== undefined || editedTagIndexes.length > 0) && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.TAG)) {
             if (editedTagIndexes.length > 0) {
                 // Rebuild the tag from THIS transaction's own tag so levels the user didn't touch are
                 // preserved, instead of overwriting every level with one shared common-prefix string.
@@ -302,7 +304,7 @@ function updateMultipleMoneyRequests({
         if (transactionChanges.category !== undefined) {
             updates.category = transactionChanges.category;
         }
-        if (transactionChanges.tag) {
+        if (transactionChanges.tag !== undefined) {
             updates.tag = transactionChanges.tag;
         }
         if (transactionChanges.comment) {
