@@ -395,15 +395,15 @@ function NewChatPage({ref}: NewChatPageProps) {
         }
         KeyboardUtils.dismiss().then(() => {
             singleExecution(() =>
-                navigateToAndOpenReport(
-                    [login],
-                    allPersonalDetails,
+                navigateToAndOpenReport({
+                    userLogins: [login],
+                    personalDetails: allPersonalDetails,
                     currentUserAccountID,
                     introSelected,
-                    guidedSetupAndTourStatus?.isSelfTourViewed,
-                    guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                     betas,
-                ),
+                }),
             )();
         });
     };
