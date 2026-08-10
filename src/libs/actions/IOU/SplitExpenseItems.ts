@@ -204,6 +204,13 @@ function initSplitExpenseItemData(
     } = {},
 ): SplitExpense {
     const transactionDetails = getTransactionDetails(transaction);
+    const sourceCustomUnit = customUnit ?? transaction?.comment?.customUnit;
+    const splitCustomUnit = sourceCustomUnit ? {...sourceCustomUnit} : undefined;
+    if (splitCustomUnit) {
+        delete splitCustomUnit.commuterExclusion;
+        delete splitCustomUnit.reimbursableDistance;
+        delete splitCustomUnit.commuterExclusionMethod;
+    }
 
     return {
         transactionID: transactionID ?? transactionDetails?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID),
@@ -220,7 +227,7 @@ function initSplitExpenseItemData(
         taxCode: transactionDetails?.taxCode,
         taxAmount: taxAmount ?? transactionDetails?.taxAmount,
         taxValue: transactionDetails?.taxValue,
-        customUnit: customUnit ?? transaction?.comment?.customUnit ?? undefined,
+        customUnit: splitCustomUnit,
         waypoints: transaction?.comment?.waypoints ?? undefined,
         odometerStart: transaction?.comment?.odometerStart ?? undefined,
         odometerEnd: transaction?.comment?.odometerEnd ?? undefined,
