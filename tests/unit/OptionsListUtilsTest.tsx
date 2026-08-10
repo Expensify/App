@@ -2434,12 +2434,19 @@ describe('OptionsListUtils', () => {
             expect(deferred.personalDetails.map(hydrateWithMarks)).toEqual(eager.personalDetails);
         });
 
-        it('should preserve the marks getValidOptions wrote on the shell through hydrateWithMarks', () => {
-            // Given a selected contact and bold-by-default off, so both marks differ from the build defaults
+        it.each([false, true])('should preserve selected and bold marks through deferred hydration ($shouldBoldTitleByDefault)', (shouldBoldTitleByDefault) => {
+            // Given a selected contact and an explicit bold-by-default setting
             const lazyList = buildLazyList();
             const selectedLogin = lazyList.personalDetails.at(0)?.login;
             expect(selectedLogin).toBeTruthy();
 
+            const config = {
+                personalDetails: PERSONAL_DETAILS,
+                selectedOptions: [{login: selectedLogin}],
+                includeSelectedOptions: true,
+                shouldBoldTitleByDefault,
+            };
+            const {options: eager} = getValidOptions(buildLazyList(), allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
             const {options: deferred} = getValidOptions(
                 lazyList,
                 allPolicies,
@@ -2449,14 +2456,14 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
-                    personalDetails: PERSONAL_DETAILS,
+                    ...config,
                     deferContactHydration: true as const,
-                    selectedOptions: [{login: selectedLogin}],
-                    includeSelectedOptions: true,
-                    shouldBoldTitleByDefault: false,
                 },
                 translateLocal,
             );
+
+            // Then hydrating the deferred results reproduces the eager results, including both marks
+            expect(deferred.personalDetails.map(hydrateWithMarks)).toEqual(eager.personalDetails);
 
             const selectedShell = deferred.personalDetails.find((option) => option.login === selectedLogin);
             expect(selectedShell).toBeDefined();
@@ -2464,17 +2471,39 @@ describe('OptionsListUtils', () => {
                 return;
             }
             expect(selectedShell.isSelected).toBe(true);
-            expect(selectedShell.isBold).toBe(false);
+            expect(selectedShell.isBold).toBe(shouldBoldTitleByDefault);
 
             // Then hydration carries them onto the built option instead of resetting to the shared build's values
             const hydrated = hydrateWithMarks(selectedShell);
             expect(hydrated.isSelected).toBe(true);
-            expect(hydrated.isBold).toBe(false);
+            expect(hydrated.isBold).toBe(shouldBoldTitleByDefault);
             expect(hydrated.icons).toBeDefined();
 
             // And an unselected contact stays unselected
             const otherShell = deferred.personalDetails.find((option) => option.login !== selectedLogin);
             expect(otherShell ? hydrateWithMarks(otherShell).isSelected : undefined).toBe(false);
+        });
+
+        it('should expose the same current-user option after deferred hydration as the eager path', () => {
+            // Given a list that includes the signed-in user and an explicit request to include that user
+            const config = {personalDetails: PERSONAL_DETAILS, includeCurrentUser: true};
+            const {options: eager} = getValidOptions(buildLazyList(), allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const {options: deferred} = getValidOptions(
+                buildLazyList(),
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {...config, deferContactHydration: true as const},
+                translateLocal,
+            );
+
+            // Then both paths find the same contact, and hydrating the deferred reference reproduces the eager option
+            expect(eager.currentUserOption).toBeDefined();
+            expect(deferred.currentUserOption).toBeDefined();
+            expect(deferred.currentUserOption ? hydrateWithMarks(deferred.currentUserOption) : undefined).toEqual(eager.currentUserOption);
         });
 
         it('should apply the GBR suppression the eager path applies, using the flag recorded on the shell', () => {
@@ -2551,7 +2580,22 @@ describe('OptionsListUtils', () => {
                 isSearching: true,
             });
 
-            // When hydration is deferred
+            // When the same list is run eagerly and with hydration deferred
+            const config = {personalDetails: PERSONAL_DETAILS, shouldShowGBR: true};
+            const {options: eager} = getValidOptions(
+                createFilteredOptionList(PERSONAL_DETAILS, REPORTS, attributesWithGBR, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                    conciergeReportID: undefined,
+                    isSearching: true,
+                }),
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {...config, reportAttributesDerived: attributesWithGBR},
+                translateLocal,
+            );
             const {options: deferred} = getValidOptions(
                 lazyList,
                 allPolicies,
@@ -2560,13 +2604,16 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {personalDetails: PERSONAL_DETAILS, deferContactHydration: true as const, shouldShowGBR: true},
+                {...config, reportAttributesDerived: attributesWithGBR, deferContactHydration: true as const},
                 translateLocal,
             );
 
-            // Then the indicator survives hydration
+            // Then the indicator survives hydration and matches the eager option
+            const eagerDM = eager.personalDetails.find((option) => option.reportID === dmReportID);
             const deferredDM = deferred.personalDetails.find((option) => option.reportID === dmReportID);
-            expect(deferredDM ? hydrateWithMarks(deferredDM).brickRoadIndicator : undefined).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.INFO);
+            expect(eagerDM).toBeDefined();
+            expect(deferredDM).toBeDefined();
+            expect(deferredDM ? hydrateWithMarks(deferredDM) : undefined).toEqual(eagerDM);
         });
     });
 
@@ -11329,6 +11376,8 @@ describe('OptionsListUtils', () => {
             });
 
             expect(results.recentReports.length).toBe(1);
+            expect(results.recentReports.at(0)?.isUnread).toBe(true);
+            expect(results.recentReports.at(0)?.isBold).toBe(true);
         });
     });
 });

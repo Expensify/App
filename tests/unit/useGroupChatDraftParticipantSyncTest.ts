@@ -454,6 +454,22 @@ describe('useGroupDraftRestore', () => {
             expect('shouldShowGBR' in (restored.at(0) ?? {})).toBe(false);
         });
 
+        it('should restore the same participant option from eager and lazy contact lists', () => {
+            // Given the same contacts represented once as full options and once as lazy shells
+            const shells = buildLazyShells();
+            const eagerOptions = shells.map(OptionsListUtilsModule.hydrateLazyPersonalDetailOption);
+            const draftParticipants = [PARTICIPANT_A];
+
+            // When the draft is restored through each representation
+            const eagerRestore = renderRestoreHook({draftParticipants, allPersonalDetailOptions: eagerOptions});
+            const lazyRestore = renderRestoreHook({draftParticipants, allPersonalDetailOptions: shells});
+            const eagerRestored = eagerRestore.setSelectedOptions.mock.calls.at(0)?.at(0) ?? [];
+            const lazyRestored = lazyRestore.setSelectedOptions.mock.calls.at(0)?.at(0) ?? [];
+
+            // Then the selected row is identical; lazy hydration changes how the option is built, not what is restored
+            expect(lazyRestored).toEqual(eagerRestored);
+        });
+
         it('should fall back to getUserToInviteOption for a participant absent from the lazy shells', () => {
             // Given lazy shells that do not contain the drafted participant
             const invited: SelectedParticipant = {accountID: 999, login: 'invited@test.com'};
