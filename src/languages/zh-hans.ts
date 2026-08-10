@@ -8466,7 +8466,7 @@ ${reportName}`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制发票设置`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制出差设置`,
         },
-        updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 报销分类要求`,
+        updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 费用分类要求`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 费用标签要求`,
     },
     roomMembersPage: {
