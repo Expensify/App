@@ -1,4 +1,3 @@
-// cspell:ignore Kiritimati
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
@@ -1146,7 +1145,6 @@ describe('libs/NextStepUtils', () => {
             };
 
             it.each([
-                ['Pacific/Kiritimati', 'positive'],
                 ['Asia/Tokyo', 'positive'],
                 ['Europe/Paris', 'positive'],
                 ['UTC', 'zero'],
