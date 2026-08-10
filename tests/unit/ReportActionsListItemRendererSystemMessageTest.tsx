@@ -10,7 +10,7 @@ import React from 'react';
 const mockReportActionItem = jest.fn<null, [unknown]>(() => null);
 const mockSystemReportActionItem = jest.fn<null, [unknown]>(() => null);
 
-function MockSystemReportActionItem(props: object) {
+function MockSystemReportActionItem(props: Record<string, unknown>) {
     return mockSystemReportActionItem(props);
 }
 
