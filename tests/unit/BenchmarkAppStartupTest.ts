@@ -36,10 +36,11 @@ describe('benchmarkAppStartup', () => {
         const outputPath = join(temporaryDirectory, 'samples.csv');
         const prepareStartup = jest.fn(async () => undefined);
         const launchAndWait = jest.fn(async () => 123);
+        const consoleTable = jest.spyOn(console, 'table').mockImplementation(() => undefined);
 
         try {
             const result = await benchmarkStartups(
-                {name: 'android', prepareStartup, launchAndWait},
+                {name: 'android', appID: 'org.me.mobiexpensifyg', deviceIdentifier: 'emulator-5554', prepareStartup, launchAndWait},
                 {
                     mode: 'process',
                     spanName: 'ManualAppStartupNetworkRequest',
@@ -53,7 +54,22 @@ describe('benchmarkAppStartup', () => {
             expect(launchAndWait).toHaveBeenNthCalledWith(2, 'ManualAppStartupNetworkRequest', 30);
             expect(result.samples).toEqual([123]);
             expect(readFileSync(outputPath, 'utf8')).toBe('run,duration_ms\n1,123\n');
+            expect(consoleTable).toHaveBeenNthCalledWith(1, [
+                {
+                    platform: 'android',
+                    device: 'emulator-5554',
+                    appID: 'org.me.mobiexpensifyg',
+                    span: 'ManualAppStartupNetworkRequest',
+                    mode: 'process',
+                    measuredRuns: 1,
+                    warmUpRuns: 1,
+                    timeoutSeconds: 30,
+                    appPath: 'installed app',
+                    outputPath,
+                },
+            ]);
         } finally {
+            consoleTable.mockRestore();
             rmSync(temporaryDirectory, {recursive: true, force: true});
         }
     });

@@ -114,6 +114,21 @@ async function measureStartup(adapter: NativeAppBenchmarkAdapter, options: Omit<
 }
 
 async function benchmarkStartups(adapter: NativeAppBenchmarkAdapter, options: BenchmarkStartupsOptions): Promise<BenchmarkResult> {
+    console.log('=== Native app startup benchmark ===');
+    console.table([
+        {
+            platform: adapter.name,
+            device: adapter.deviceIdentifier,
+            appID: adapter.appID,
+            span: options.spanName,
+            mode: options.mode,
+            measuredRuns: options.runs,
+            warmUpRuns: 1,
+            timeoutSeconds: options.timeoutSeconds,
+            appPath: options.appPath ?? 'installed app',
+            outputPath: options.outputPath,
+        },
+    ]);
     console.log(`Running one unmeasured ${options.mode === 'cold' ? 'true-cold' : 'cold-process'} warm-up startup for ${options.spanName}.`);
     await measureStartup(adapter, options);
 

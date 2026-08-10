@@ -1,4 +1,4 @@
-// cspell:ignore devicectl
+// cspell:ignore devicectl serialno
 
 import type {TupleToUnion} from 'type-fest';
 
@@ -24,6 +24,8 @@ type BenchmarkLogEvent = {
 };
 type NativeAppBenchmarkAdapter = {
     name: PlatformName;
+    appID: string;
+    deviceIdentifier: string;
     prepareStartup: (mode: StartupMode, appPath?: string) => Promise<void>;
     launchAndWait: (spanName: string, timeoutSeconds: number) => Promise<number>;
 };
@@ -165,13 +167,19 @@ function waitForBenchmarkProcess(rootDirectory: string, command: string, args: s
 
 function createAndroidAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeAppBenchmarkAdapterOptions, 'platform'>): NativeAppBenchmarkAdapter {
     const {capture, run} = createCommandHelpers(rootDirectory);
-    const adbArgs = (args: string[]) => (deviceIdentifier ? ['-s', deviceIdentifier, ...args] : args);
+    const selectedDeviceIdentifier = deviceIdentifier ?? capture('adb', ['get-serialno']).trim();
+    if (!selectedDeviceIdentifier || selectedDeviceIdentifier === 'unknown') {
+        fail('Unable to resolve the Android device serial. Use --device to select one.');
+    }
+    const adbArgs = (args: string[]) => ['-s', selectedDeviceIdentifier, ...args];
     const adb = (args: string[]) => run('adb', adbArgs(args));
     const adbCapture = (args: string[]) => capture('adb', adbArgs(args));
     const activity = `${appID}/org.me.mobiexpensifyg.ExpensifyActivityBase`;
 
     return {
         name: 'android',
+        appID,
+        deviceIdentifier: selectedDeviceIdentifier,
         prepareStartup: async (mode) => {
             adb(['shell', 'am', 'force-stop', appID]);
             if (mode === 'cold') {
@@ -252,6 +260,8 @@ function createIosAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeA
 
     return {
         name: 'ios',
+        appID,
+        deviceIdentifier: device,
         prepareStartup: async (mode, appPath) => {
             terminate();
             if (mode === 'cold') {
