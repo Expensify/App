@@ -40,7 +40,7 @@ node .claude/skills/agent-device/scripts/replay-with-deadline.mjs \
     -e KEY=VALUE
 ```
 
-Tested Agent Device versions 0.20.1 through 0.20.3 accept `replay --timeout` but can leave the daemon request running until a selector timeout. The repository wrapper enforces the wall-clock deadline outside the daemon, exits with code 124, and cleans the dedicated headless daemon. Always use a separate `AGENT_DEVICE_STATE_DIR` for this workflow so timeout cleanup cannot stop an interactive session. Selector waits remain the per-step bounds and produce the useful divergence report.
+Tested Agent Device versions 0.20.1 through 0.20.6 accept `replay --timeout` but can leave the daemon request running until a selector timeout. The repository wrapper enforces the wall-clock deadline outside the daemon, exits with code 124, and cleans the dedicated headless daemon. Always use a separate `AGENT_DEVICE_STATE_DIR` for this workflow so timeout cleanup cannot stop an interactive session. Selector waits remain the per-step bounds and produce the useful divergence report.
 
 `agent-device test` creates an isolated session for each attempt. Use it only for scripts that own `context`, `open`, and cleanup.
 
