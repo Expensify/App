@@ -1,9 +1,10 @@
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
-import CONST from '@src/CONST';
+import {openPersonalBankAccountSetupView} from '@src/libs/actions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 import TimeSensitiveSection from '@src/pages/home/TimeSensitiveSection';
+import useTimeSensitiveAddBankAccount from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddBankAccount';
 import useTimeSensitiveAddPaymentCard from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddPaymentCard';
 
 import type * as NativeNavigation from '@react-navigation/native';
@@ -13,6 +14,9 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Navigation/Navigation');
+jest.mock('@src/libs/actions/BankAccounts', () => ({
+    openPersonalBankAccountSetupView: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
@@ -23,13 +27,13 @@ jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: jest.fn((key: s
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({
-        EnvelopeOpenStar: () => null,
+        Bank: () => null,
     })),
 }));
 
 jest.mock('@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddBankAccount', () =>
     jest.fn(() => ({
-        shouldShowAddBankAccount: false,
+        shouldShowAddBankAccount: true,
     })),
 );
 
@@ -44,9 +48,11 @@ jest.mock('@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveCards', ()
         shouldShowAddShippingAddress: false,
         shouldShowActivateCard: false,
         shouldShowReviewCardFraud: false,
+        shouldShowAddVirtualCardPersonalDetails: false,
         cardsNeedingShippingAddress: [],
         cardsNeedingActivation: [],
         cardsWithFraud: [],
+        virtualCardsNeedingPersonalDetails: [],
     })),
 );
 
@@ -68,7 +74,8 @@ const renderTimeSensitiveSection = () =>
         </OnyxListItemProvider>,
     );
 
-describe('TimeSensitiveSection - ValidateAccount', () => {
+describe('TimeSensitiveSection - AddBankAccount', () => {
+    const mockedUseTimeSensitiveAddBankAccount = jest.mocked(useTimeSensitiveAddBankAccount);
     const mockedUseTimeSensitiveAddPaymentCard = jest.mocked(useTimeSensitiveAddPaymentCard);
 
     beforeAll(() => {
@@ -77,6 +84,9 @@ describe('TimeSensitiveSection - ValidateAccount', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockedUseTimeSensitiveAddBankAccount.mockReturnValue({
+            shouldShowAddBankAccount: true,
+        });
         mockedUseTimeSensitiveAddPaymentCard.mockReturnValue({
             shouldShowAddPaymentCard: false,
         });
@@ -84,54 +94,29 @@ describe('TimeSensitiveSection - ValidateAccount', () => {
         await waitForBatchedUpdates();
     });
 
-    it('shows ValidateAccount widget when account is not validated', async () => {
-        await Onyx.set(ONYXKEYS.ACCOUNT, {validated: false});
-        await Onyx.set(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
-        await waitForBatchedUpdates();
-
-        renderTimeSensitiveSection();
-
-        expect(screen.getByText('homePage.timeSensitiveSection.validateAccount.title')).toBeTruthy();
+    afterEach(async () => {
+        await Onyx.clear();
     });
 
-    it('hides ValidateAccount for anonymous users while keeping time sensitive section visible', async () => {
-        mockedUseTimeSensitiveAddPaymentCard.mockReturnValue({
-            shouldShowAddPaymentCard: true,
-        });
-
-        await Onyx.set(ONYXKEYS.ACCOUNT, {validated: false});
-        await Onyx.set(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+    it('renders when it is the only time-sensitive item and starts setup', async () => {
+        await Onyx.set(ONYXKEYS.ACCOUNT, {validated: true});
         await waitForBatchedUpdates();
 
         renderTimeSensitiveSection();
+        fireEvent.press(screen.getByText('common.add'));
 
         expect(screen.getByText('homePage.timeSensitiveSection.title')).toBeTruthy();
-        expect(screen.getByText('homePage.timeSensitiveSection.addPaymentCard.title')).toBeTruthy();
-        expect(screen.queryByText('homePage.timeSensitiveSection.validateAccount.title')).toBeNull();
+        expect(screen.getByText('homePage.timeSensitiveSection.addBankAccount.title')).toBeTruthy();
+        expect(openPersonalBankAccountSetupView).toHaveBeenCalledWith({isUserValidated: true});
     });
 
-    it('hides ValidateAccount when current login is already validated in login list', async () => {
-        const validatedEmail = 'test@example.com';
-
-        mockedUseTimeSensitiveAddPaymentCard.mockReturnValue({
-            shouldShowAddPaymentCard: true,
-        });
-
+    it('passes the unvalidated state to the setup flow', async () => {
         await Onyx.set(ONYXKEYS.ACCOUNT, {validated: false});
-        await Onyx.set(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT, email: validatedEmail});
-        await Onyx.set(ONYXKEYS.LOGINS, {
-            [`1_${validatedEmail}`]: {
-                partnerID: 1,
-                partnerUserID: validatedEmail,
-                validatedDate: '2026-03-18 00:00:00.000',
-            },
-        });
         await waitForBatchedUpdates();
 
         renderTimeSensitiveSection();
+        fireEvent.press(screen.getByText('common.add'));
 
-        expect(screen.getByText('homePage.timeSensitiveSection.title')).toBeTruthy();
-        expect(screen.getByText('homePage.timeSensitiveSection.addPaymentCard.title')).toBeTruthy();
-        expect(screen.queryByText('homePage.timeSensitiveSection.validateAccount.title')).toBeNull();
+        expect(openPersonalBankAccountSetupView).toHaveBeenCalledWith({isUserValidated: false});
     });
 });
