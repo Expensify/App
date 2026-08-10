@@ -153,7 +153,7 @@ function useDistanceNavigation({
 
     const delegateAccountID = useDelegateAccountID();
     const {formatPhoneNumber} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
 
     const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
@@ -173,6 +173,7 @@ function useDistanceNavigation({
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
         handleMoneyRequestStepDistanceNavigation({
+            getCurrencyDecimals,
             iouType,
             action,
             report,

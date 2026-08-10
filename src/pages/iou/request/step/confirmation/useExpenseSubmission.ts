@@ -198,7 +198,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
     // Localization
     const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
 
     // Permissions
@@ -467,6 +467,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             }
 
             const {iouReport} = requestMoneyIOUActions({
+                getCurrencyDecimals,
                 report,
                 existingIOUReport,
                 optimisticChatReportID,
@@ -573,6 +574,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (isTrackExpense) {
             const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
             submitPerDiemExpenseForSelfDM({
+                getCurrencyDecimals,
                 selfDMReport,
                 policy,
                 transactionParams: {
@@ -612,6 +614,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const activeReportID = isExpenseReport ? report?.reportID : chatReportID;
 
             const result = submitPerDiemExpenseIOUActions({
+                getCurrencyDecimals,
                 report,
                 participantParams: {
                     payeeEmail: currentUserPersonalDetails.login,
@@ -714,6 +717,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
             const email = currentUserPersonalDetails.email ?? '';
             trackExpenseIOUActions({
+                getCurrencyDecimals,
                 report: trackReport,
                 isDraftPolicy,
                 isDraftChatReport,
@@ -817,6 +821,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         const shouldIncludeCommuterExclusionOverrides = hasAppliedCommuterExclusion(transaction);
 
         const {chatReportID: distanceChatReportID, transactionID: distanceTransactionID} = createDistanceRequestIOUActions({
+            getCurrencyDecimals,
             report,
             participants: selectedParticipantsForRequest,
             optimisticChatReportID,
@@ -926,6 +931,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
                     // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
                     startSplitBill({
+                        getCurrencyDecimals,
                         participants: selectedParticipants,
                         currentUserLogin,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -962,6 +968,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (iouType === CONST.IOU.TYPE.SPLIT && !transaction?.isFromGlobalCreate) {
             if (currentUserPersonalDetails.login && !!transaction) {
                 splitBill({
+                    getCurrencyDecimals,
                     participants: splitParticipants,
                     currentUserLogin: currentUserPersonalDetails.login,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -1004,6 +1011,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
             if (currentUserPersonalDetails.login && !!transaction) {
                 splitBillAndOpenReport({
+                    getCurrencyDecimals,
                     participants: splitParticipants,
                     currentUserLogin: currentUserPersonalDetails.login,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -1046,6 +1054,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const invoiceChatReportID = invoiceChatReport ? undefined : reportID;
 
             sendInvoice({
+                getCurrencyDecimals,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 transaction,
                 policyRecentlyUsedCurrencies,
@@ -1156,6 +1165,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         const {optimisticChatReportID, chatReportID} =
             resolvedReportIDs ?? resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
         const sendMoneyParams = {
+            getCurrencyDecimals,
             report,
             quickAction,
             amount: transaction.amount,
