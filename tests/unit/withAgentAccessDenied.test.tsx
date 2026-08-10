@@ -56,6 +56,18 @@ function renderComponent() {
     );
 }
 
+async function signInAsAgent() {
+    const accountID = 1;
+    await TestHelper.signInWithTestUser(accountID, 'testbot_123@expensify.ai');
+    await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        [accountID]: {
+            accountID,
+            login: 'testbot_123@expensify.ai',
+            isCustomAgent: true,
+        },
+    });
+}
+
 describe('withAgentAccessDenied', () => {
     beforeAll(async () => {
         Onyx.init({keys: ONYXKEYS});
@@ -78,7 +90,7 @@ describe('withAgentAccessDenied', () => {
     });
 
     it('redirects agent account to the profile page instead of rendering the wrapped component', async () => {
-        await TestHelper.signInWithTestUser(1, 'agent_123@expensify.ai');
+        await signInAsAgent();
         await waitForBatchedUpdatesWithAct();
 
         renderComponent();
@@ -98,7 +110,7 @@ describe('withAgentAccessDenied', () => {
         // lives in an RHP. Navigating to the tab-nested Profile route while the RHP is focused would be forced
         // to PUSH, so we dismiss the modal first and redirect once it has finished dismissing.
         jest.mocked(Navigation.isTopmostRouteModalScreen).mockReturnValue(true);
-        await TestHelper.signInWithTestUser(1, 'agent_123@expensify.ai');
+        await signInAsAgent();
         await waitForBatchedUpdatesWithAct();
 
         renderComponent();
@@ -120,7 +132,7 @@ describe('withAgentAccessDenied', () => {
 
     it('shows access denied view instead of redirecting when agent is already on the redirect target', async () => {
         jest.mocked(Navigation.isActiveRoute).mockReturnValue(true);
-        await TestHelper.signInWithTestUser(1, 'agent_123@expensify.ai');
+        await signInAsAgent();
         await waitForBatchedUpdatesWithAct();
 
         renderComponent();

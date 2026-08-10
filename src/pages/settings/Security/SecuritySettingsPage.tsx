@@ -11,6 +11,7 @@ import Section from '@components/Section';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useIsAgentAccount from '@hooks/useIsAgentAccount';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -26,7 +27,6 @@ import {deleteAgent} from '@libs/actions/Agent';
 import {disconnect, openSecuritySettingsPage} from '@libs/actions/Delegate';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {useIsAgentAccount} from '@libs/SessionUtils';
 import {hasDeviceManagementError} from '@libs/UserUtils';
 
 import colors from '@styles/theme/colors';

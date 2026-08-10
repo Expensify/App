@@ -1,4 +1,4 @@
-import {useIsAgentAccount} from '@libs/SessionUtils';
+import useIsAgentAccount from '@hooks/useIsAgentAccount';
 
 import React from 'react';
 

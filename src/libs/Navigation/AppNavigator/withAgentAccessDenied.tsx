@@ -1,18 +1,13 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 
-import useOnyx from '@hooks/useOnyx';
+import useIsAgentAccount from '@hooks/useIsAgentAccount';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {isAgentEmail} from '@libs/SessionUtils';
 
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Session} from '@src/types/onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
-
-const sessionEmailSelector = (session: Session | undefined) => session?.email;
 
 function withAgentAccessDenied(getComponent: () => React.ComponentType): () => React.ComponentType {
     let ProtectedComponent: React.ComponentType | undefined;
@@ -20,8 +15,7 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
         if (!ProtectedComponent) {
             const Component = getComponent();
             ProtectedComponent = (props) => {
-                const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: sessionEmailSelector});
-                const isAgent = isAgentEmail(sessionEmail);
+                const isAgent = useIsAgentAccount();
                 const isAlreadyOnRedirectTarget = Navigation.isActiveRoute(ROUTES.SETTINGS_PROFILE.route);
                 const shouldRedirect = isAgent && !isAlreadyOnRedirectTarget;
 

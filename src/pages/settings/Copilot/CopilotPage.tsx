@@ -16,6 +16,7 @@ import TextLink from '@components/TextLink';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useIsAgentAccount from '@hooks/useIsAgentAccount';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -29,7 +30,6 @@ import {getLatestError} from '@libs/ErrorUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
-import {useIsAgentAccount} from '@libs/SessionUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import type {AnchorPosition} from '@styles/index';
