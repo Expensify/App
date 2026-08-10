@@ -40,6 +40,7 @@ import {
     subMinutes,
 } from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
+import {enGB} from 'date-fns/locale/en-GB';
 import throttle from 'lodash/throttle';
 
 import {setCurrentDate} from './actions/CurrentDate';
@@ -561,8 +562,9 @@ const combineDateAndTime = (updatedTime: string, inputDateTime: string): string 
             parsedTime = tempTime;
         }
     } else if (updatedTime.includes(':')) {
-        // it's in "hh:mm a" format
-        const tempTime = parse(updatedTime, 'hh:mm a', new Date());
+        // it's in "hh:mm a" format; the time picker always submits the English AM/PM markers,
+        // so parse with an explicit English locale regardless of the app language
+        const tempTime = parse(updatedTime, 'hh:mm a', new Date(), {locale: enGB});
         if (isValid(tempTime)) {
             parsedTime = tempTime;
         }
@@ -620,7 +622,7 @@ function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {h
         minute: format(parsedTime, 'mm'),
         seconds: isFullFormat ? format(parsedTime, 'ss') : '00',
         milliseconds: isFullFormat ? format(parsedTime, 'SSS') : '000',
-        period: format(parsedTime, 'a').toUpperCase(),
+        period: parsedTime.getHours() >= 12 ? CONST.TIME_PERIOD.PM : CONST.TIME_PERIOD.AM,
     };
 }
 
