@@ -8863,6 +8863,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `paramètres de facturation copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `paramètres de déplacement copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
+        updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'activé' : 'Désactivé'} envois`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
