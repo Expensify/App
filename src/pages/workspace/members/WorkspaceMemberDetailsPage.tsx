@@ -147,7 +147,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const phoneNumber = getPhoneNumber(details);
     const reimburserEmail = getReimburserEmail(policy);
     const isReimburser = !!reimburserEmail && reimburserEmail === memberLogin;
-    // An Authorized Payer (reimburser) must stay an admin, so lock the Role row only once they are already an Admin — every
+    // An Authorized Payer (reimburser) must be either an admin or a payments admin. Lock the Role row only once they are already an Admin — every
     // remaining change would be a demotion that breaks reimbursements. A non-admin payer can still be promoted to Admin.
     const isReimburserAdmin = isReimburser && member?.role === CONST.POLICY.ROLE.ADMIN;
     const {isAccountLocked} = useLockedAccountState();
