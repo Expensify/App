@@ -21,7 +21,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
-import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 Onyx.init({keys: ONYXKEYS});
@@ -52,6 +52,7 @@ describe('libs/NextStepUtils', () => {
         };
         const report = buildOptimisticExpenseReport({
             chatReportID: 'fake-chat-report-id-1',
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             policyID,
             payeeAccountID: 1,
             total: -500,
@@ -849,6 +850,7 @@ describe('libs/NextStepUtils', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-1',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
@@ -878,6 +880,7 @@ describe('libs/NextStepUtils', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-2',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
@@ -949,6 +952,7 @@ describe('libs/NextStepUtils', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-3',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
@@ -1002,6 +1006,7 @@ describe('libs/NextStepUtils', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-4',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
@@ -1153,6 +1158,7 @@ describe('libs/NextStepUtils', () => {
             ({
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-track-intent',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: currentUserAccountID,
                     total: -500,

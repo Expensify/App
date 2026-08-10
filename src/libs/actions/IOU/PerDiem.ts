@@ -1,5 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {CreatePerDiemRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -246,6 +248,7 @@ type PerDiemExpenseInformation = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type PerDiemExpenseInformationParams = {
@@ -271,6 +274,7 @@ type PerDiemExpenseInformationParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type PerDiemExpenseInformationForSelfDM = {
@@ -285,6 +289,7 @@ type PerDiemExpenseInformationForSelfDM = {
     optimisticChatReportID: string;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type PerDiemExpenseInformationForSelfDMResult = {
@@ -330,6 +335,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         formatPhoneNumber,
         delegateAccountID,
         isTrackIntentUser,
+        getCurrencyDecimals,
     } = perDiemExpenseInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -402,8 +408,9 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
                   optimisticIOUReportID: optimisticReportID,
                   reportTransactions,
                   betas,
+                  getCurrencyDecimals,
               })
-            : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
+            : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, getCurrencyDecimals);
     } else if (isPolicyExpenseChat) {
         // Capture the previous reimbursable totals before the mutation so we can apply the diff
         // consistently regardless of whether the freshly tracked field was already populated.
@@ -472,6 +479,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     // Note: The CREATED action for the IOU report must be optimistically generated before the IOU action so there's no chance that it appears after the IOU action in the chat
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
         buildOptimisticMoneyRequestEntities({
+            getCurrencyDecimals,
             iouReport,
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             amount,
@@ -489,9 +497,18 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
 
     if (reportPreviewAction) {
-        reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
+        reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, false, comment, optimisticTransaction);
     } else {
-        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID, delegateAccountID);
+        reportPreviewAction = buildOptimisticReportPreview(
+            chatReport,
+            iouReport,
+            getCurrencyDecimals,
+            comment,
+            optimisticTransaction,
+            undefined,
+            optimisticReportPreviewActionID,
+            delegateAccountID,
+        );
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
         // Generated ReportPreview action is a parent report action of the iou report.
@@ -571,6 +588,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         personalDetails,
         delegateAccountID,
         isTrackIntentUser,
+        getCurrencyDecimals,
     });
 
     return {
@@ -599,8 +617,18 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
  * Gathers all the data needed to submit a per diem expense from self DM.
  */
 function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDiemExpenseInformationForSelfDM): PerDiemExpenseInformationForSelfDMResult {
-    const {dateFnsLocale, selfDMReport, transactionParams, policy, currentUserAccountIDParam, currentUserEmailParam, quickAction, optimisticChatReportID, delegateAccountID} =
-        perDiemExpenseInformation;
+    const {
+        dateFnsLocale,
+        selfDMReport,
+        transactionParams,
+        policy,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        quickAction,
+        optimisticChatReportID,
+        delegateAccountID,
+        getCurrencyDecimals,
+    } = perDiemExpenseInformation;
     const {comment = '', currency, created, category, tag, customUnit, billable, attendees, reimbursable} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
@@ -748,6 +776,7 @@ function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDie
     };
 
     const [, , iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] = buildOptimisticMoneyRequestEntities({
+        getCurrencyDecimals,
         iouReport: chatReport,
         type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
         amount,
@@ -933,6 +962,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         delegateAccountID,
         isTrackIntentUser,
         dateFnsLocale,
+        getCurrencyDecimals,
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
@@ -988,6 +1018,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         formatPhoneNumber,
         delegateAccountID,
         isTrackIntentUser,
+        getCurrencyDecimals,
     });
 
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
@@ -1068,6 +1099,7 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
         optimisticChatReportID,
         delegateAccountID,
         isTrackIntentUser,
+        getCurrencyDecimals,
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, billable, reimbursable} = transactionParams;
 
@@ -1084,6 +1116,7 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
 
     const {chatReport, transaction, iouAction, transactionThreadReportID, createdReportActionIDForThread, onyxData} = getPerDiemExpenseInformationForSelfDM({
         dateFnsLocale,
+        getCurrencyDecimals,
         selfDMReport,
         policy,
         transactionParams,

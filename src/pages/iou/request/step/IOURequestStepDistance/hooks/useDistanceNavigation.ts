@@ -3,6 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestParticipantsPolicyTags from '@hooks/useMoneyRequestParticipantsPolicyTags';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useOnyx from '@hooks/useOnyx';
 
@@ -152,14 +153,28 @@ function useDistanceNavigation({
 
     const delegateAccountID = useDelegateAccountID();
     const {formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
+
+    const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
+        dateFnsLocale,
+        currentUserAccountID,
+        report,
+        policy,
+        personalDetails,
+        conciergeReportID,
+        isArchived,
+        reportAttributesDerived,
+        reportDraft,
+        translate,
+    });
+
     return () => {
         const optimisticTransactionID = rand64();
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
         handleMoneyRequestStepDistanceNavigation({
-            dateFnsLocale,
+            getCurrencyDecimals,
             iouType,
             action,
             report,
@@ -167,7 +182,6 @@ function useDistanceNavigation({
             transaction,
             reportID,
             transactionID,
-            reportAttributesDerived,
             personalDetails,
             waypoints,
             currentUserLogin,
@@ -196,15 +210,15 @@ function useDistanceNavigation({
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
-            conciergeReportID,
             optimisticTransactionID,
             optimisticChatReportID,
-            reportDraft,
             isTrackIntentUser,
             delegateAccountID,
             policyTagList,
             formatPhoneNumber,
             getCurrencySymbol,
+            participants,
+            participantsPolicyTags,
         });
     };
 }

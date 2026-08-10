@@ -224,6 +224,7 @@ function IOURequestStepAmount({
         }
         suppressDiscardPrompt();
         submitAmount({
+            getCurrencyDecimals,
             translate,
             dateFnsLocale,
             report,

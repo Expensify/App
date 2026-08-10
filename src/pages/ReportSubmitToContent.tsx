@@ -6,6 +6,7 @@ import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMembe
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -79,6 +80,7 @@ function ReportSubmitToContent({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare, dateFnsLocale} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {keyboardActiveHeight} = useKeyboardState();
 
@@ -293,6 +295,7 @@ function ReportSubmitToContent({
         }
 
         submitReport({
+            getCurrencyDecimals,
             expenseReport: report,
             policy,
             currentUserAccountIDParam: currentUserDetails.accountID,
@@ -351,6 +354,7 @@ function ReportSubmitToContent({
         canSubmitRef,
         shouldDismissRHPAfterSubmit,
         isTrackIntentUser,
+        getCurrencyDecimals,
     ]);
 
     const onSelectMember = useCallback(

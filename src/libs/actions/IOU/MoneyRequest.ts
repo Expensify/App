@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocalizedTranslate, LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -102,6 +102,20 @@ type CreateTransactionParams = {
     currentUserLocalCurrency: string | undefined;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+};
+
+type SetMoneyRequestCommuterExclusionFieldsParams = {
+    transactionID: string;
+    transaction: OnyxEntry<Transaction>;
+    policy: OnyxEntry<Policy>;
+    customUnitRateID: string;
+    routeDistanceMeters: number;
+    distanceUnit: Unit;
+    translate: LocaleContextProps['translate'];
+    toLocaleDigit: LocaleContextProps['toLocaleDigit'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    personalPolicyOutputCurrency?: string;
 };
 
 function createTransaction({
@@ -132,6 +146,7 @@ function createTransaction({
     currentUserLocalCurrency,
     isTrackIntentUser,
     delegateAccountID,
+    getCurrencyDecimals,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -194,6 +209,7 @@ function createTransaction({
                 currentUserLocalCurrency,
                 delegateAccountID,
                 reportActionsList: undefined,
+                getCurrencyDecimals,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
@@ -240,6 +256,7 @@ function createTransaction({
                 optimisticTransactionID,
                 isTrackIntentUser,
                 delegateAccountID,
+                getCurrencyDecimals,
             });
         }
     }
@@ -783,6 +800,61 @@ function setMoneyRequestDistance(transactionID: string, distanceAsFloat: number,
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {customUnit: {quantity: distanceAsFloat, distanceUnit}}});
 }
 
+function setMoneyRequestCommuterExclusionFields({
+    transactionID,
+    transaction,
+    policy,
+    customUnitRateID,
+    routeDistanceMeters,
+    distanceUnit,
+    translate,
+    toLocaleDigit,
+    getCurrencySymbol,
+    personalPolicyOutputCurrency,
+}: SetMoneyRequestCommuterExclusionFieldsParams) {
+    const fields = DistanceRequestUtils.getTransactionCommuterExclusionData({
+        transaction,
+        policy,
+        customUnit: {
+            ...transaction?.comment?.customUnit,
+            customUnitRateID,
+            routeDistanceMeters,
+            distanceUnit,
+        },
+        translate,
+        toLocaleDigit,
+        getCurrencySymbol,
+        personalPolicyOutputCurrency,
+    });
+
+    if (fields) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+            modifiedAmount: fields.modifiedAmount,
+            modifiedMerchant: fields.modifiedMerchant,
+            comment: {customUnit: fields.customUnit},
+        });
+        return;
+    }
+
+    const customUnit = transaction?.comment?.customUnit;
+    if (!customUnit?.commuterExclusion && !customUnit?.reimbursableDistance && !customUnit?.commuterExclusionType && !customUnit?.commuterExclusionMethod) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        modifiedAmount: null,
+        modifiedMerchant: null,
+        comment: {
+            customUnit: {
+                commuterExclusion: null,
+                reimbursableDistance: null,
+                commuterExclusionType: null,
+                commuterExclusionMethod: null,
+            },
+        },
+    });
+}
+
 /**
  * Remember the most recently selected distance rate for a policy so the rate picker
  * defaults to it on the next distance expense for that workspace.
@@ -1030,6 +1102,7 @@ export {
     resetDraftTransactionsCustomUnit,
     setCustomUnitID,
     setMoneyRequestDistance,
+    setMoneyRequestCommuterExclusionFields,
     setMoneyRequestDistanceRate,
     setMoneyRequestAmount,
     clearMoneyRequestAmount,
