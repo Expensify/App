@@ -2,14 +2,13 @@ import type {EmitterSubscription, ScaledSize} from 'react-native';
 
 import {Dimensions} from 'react-native';
 
-// How long the window stays marked as changing after the last qualifying dimension change. Long enough for the
-// revealed screens to run their layout effects and receive their onLayout callbacks, short enough that they are
-// deprioritized again before the user can navigate to them.
+// How long the window stays marked as changing after the last qualifying dimension change. Long enough for a
+// subscriber to re-render and receive its onLayout callbacks against the new size, short enough that the flag
+// settles right after the change ends.
 const WINDOW_SIZE_CHANGE_DURATION_MS = 250;
 
 let isWindowSizeChanging = false;
 let lastWidth = 0;
-let lastIsPortrait = true;
 let stopTimeoutID: NodeJS.Timeout | undefined;
 let dimensionsSubscription: EmitterSubscription | undefined;
 
@@ -29,25 +28,16 @@ function setIsWindowSizeChanging(value: boolean) {
     notify();
 }
 
-function isPortrait(size: ScaledSize) {
-    return size.height >= size.width;
-}
-
-function rememberWindowSize(size: ScaledSize) {
-    lastWidth = size.width;
-    lastIsPortrait = isPortrait(size);
-}
-
 function handleDimensionsChange({window}: {window: ScaledSize}) {
-    // Only width and orientation changes count as a resize. The soft keyboard changes the window height on Android
-    // (adjustResize) and on mobile web, and reacting to that would remount and clean up the effects of every hidden
-    // screen on each keyboard toggle. A scale only change keeps the same layout size in density independent units,
-    // so it does not count either.
-    if (window.width === lastWidth && isPortrait(window) === lastIsPortrait) {
+    // Only a width change counts. The soft keyboard changes the window height on Android (adjustResize) and on
+    // mobile web, so a height that counted would report a size change on every keyboard toggle. A scale only change
+    // keeps the same size in density independent units, so it does not count either. Rotating a device always
+    // changes the width, which is why there is no separate orientation check.
+    if (window.width === lastWidth) {
         return;
     }
 
-    rememberWindowSize(window);
+    lastWidth = window.width;
     setIsWindowSizeChanging(true);
     clearTimeout(stopTimeoutID);
     stopTimeoutID = setTimeout(() => setIsWindowSizeChanging(false), WINDOW_SIZE_CHANGE_DURATION_MS);
@@ -55,7 +45,7 @@ function handleDimensionsChange({window}: {window: ScaledSize}) {
 
 function subscribe(listener: () => void) {
     if (listeners.size === 0) {
-        rememberWindowSize(Dimensions.get('window'));
+        lastWidth = Dimensions.get('window').width;
         dimensionsSubscription = Dimensions.addEventListener('change', handleDimensionsChange);
     }
     listeners.add(listener);
