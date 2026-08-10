@@ -123,6 +123,18 @@ To accomplish this, include phrases like:
 
 ---
 
+## How to write instructions that export reports to accounting
+
+**Goal:** Exports a report to the workspace's connected accounting integration (QuickBooks, Xero, NetSuite, Sage Intacct, etc.), or marks it as manually exported. Works for expense reports, invoices, and bills. Requires Workspace Admin role, except that the report's current approver (its manager) can export a report submitted to them, and an invoice's owner can export their own invoice.
+
+To accomplish this, include phrases like:
+- Export this report to QuickBooks
+- Send this report to NetSuite
+- Push this invoice to Xero
+- Mark this report as manually exported
+
+---
+
 ## How to write instructions that create new expense reports
 
 **Goal:** Creates a new expense report with a specified name, independent of any currently open report.
@@ -243,4 +255,4 @@ To accomplish this, include phrases like:
 
 ---
 
-*This reference covers all 18 AI Agent capabilities.*
+*This reference covers all 19 AI Agent capabilities.*

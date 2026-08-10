@@ -304,6 +304,14 @@ To react to this event, include phrases like:
 - When a manager or admin removes a receipt from a submitted expense
 - When a receipt is detached from an expense after the report has already been submitted
 
+**SmartScan (receipt OCR) finished reading a receipt on a submitted expense, so the merchant, amount, date, and itemized line items are now available. This is the earliest point at which the contents of a receipt can be checked against a rule — including a receipt that was matched onto an expense imported from a credit card.**
+
+To react to this event, include phrases like:
+- When a receipt finishes scanning on a submitted expense
+- When SmartScan finishes reading an itemized receipt
+- When a scanned receipt is matched onto an existing credit card expense
+- When receipt details need to be checked against workspace rules once the scan completes
+
 **SmartScan (receipt OCR) failed to extract one or more required fields from a receipt image. The expense will need manual data entry.**
 
 To react to this event, include phrases like:
@@ -854,4 +862,4 @@ To react to this event, include phrases like:
 
 ---
 
-*This reference covers all 116 events AI Agents can react to.*
+*This reference covers all 117 events AI Agents can react to.*
