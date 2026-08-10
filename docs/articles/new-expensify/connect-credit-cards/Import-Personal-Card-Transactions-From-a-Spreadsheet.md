@@ -63,7 +63,7 @@ You’ll see an error message and won’t be able to proceed until the issue is 
 
 ## Can I import additional transactions to the same card?
 
-Yes. You can simply repeat the import process.
+Yes. Choose the same card and upload another file. The re-upload reuses the card's original settings—including its **Currency**, **Card display name**, **Transactions are reimbursable** setting, and **Flip amount sign** setting—so you don't need to configure them again, and the new transactions match the ones already imported.
 
 ## Can I delete personal card spreadsheet imports? 
 
