@@ -17,7 +17,7 @@ OXLINT_JSON=/tmp/oxlint-full.json
 ESLINT_JSON=/tmp/eslint-full.json
 
 if [[ "${1:-}" == "--fresh" ]]; then
-    rm -f "$OXLINT_JSON" "$ESLINT_JSON"
+    rm -f "$OXLINT_JSON" "$ESLINT_JSON" "$OXLINT_JSON.time" "$ESLINT_JSON.time"
 fi
 
 if [[ -s "$OXLINT_JSON" ]]; then
@@ -25,7 +25,9 @@ if [[ -s "$OXLINT_JSON" ]]; then
 else
     echo "Running oxlint (full repo, type-aware)..."
     # oxlint exits non-zero when it finds errors — the report is still complete
+    SECONDS=0
     npx oxlint --type-aware --format json >"$OXLINT_JSON" 2>/dev/null || true
+    echo "$SECONDS" >"$OXLINT_JSON.time"
 fi
 
 if [[ -s "$ESLINT_JSON" ]]; then
@@ -36,9 +38,11 @@ else
     # (ERR_WORKER_OUT_OF_MEMORY) even on a 48 GB machine
     # SEATBELT_DISABLE=1: turn off the seatbelt debt suppression so the ~4800
     # grandfathered findings are visible — that's what we compare against
+    SECONDS=0
     SEATBELT_DISABLE=1 NODE_OPTIONS=--max_old_space_size=16384 npx eslint . \
         --no-cache --concurrency=2 --no-warn-ignored \
         --format json -o "$ESLINT_JSON" || true
+    echo "$SECONDS" >"$ESLINT_JSON.time"
 fi
 
 echo

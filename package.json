@@ -52,6 +52,8 @@
     "lint-changed": "./scripts/lintChanged.sh",
     "lint-oxlint": "oxlint .",
     "compare-oxlint": "./oxlint-probe/compareFullRepo.sh",
+    "oxlint-rule-inventory": "python3 oxlint-probe/listAllRules.py --json oxlint-probe/rule-inventory.json",
+    "oxlint-rule-fixtures": "python3 oxlint-probe/port-probe/compareFixtures.py",
     "lint-watch": "onchange '**/*.{js,jsx,ts,tsx,mjs,cjs}' -- ./scripts/lint.sh {{changed}}",
     "eslint-report": "bun scripts/eslint-report.ts",
     "knip": "KNIP=true knip --include dependencies --exclude unlisted --no-exit-code --reporter compact",

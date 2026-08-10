@@ -1,7 +1,7 @@
 {
     "$schema": "./node_modules/oxlint/configuration_schema.json",
     "plugins": ["typescript", "import", "jsx-a11y", "unicorn", "react"],
-    "jsPlugins": ["./oxlint-probe/expensify-rules.mjs", "./config/eslint/plugins/eslint-plugin-report-name-utils.mjs"],
+    "jsPlugins": ["./oxlint-probe/expensify-rules.mjs", "./config/eslint/plugins/eslint-plugin-report-name-utils.mjs", "./oxlint-probe/nrs-plugin.mjs", "./oxlint-probe/rh-plugin.mjs"],
     "categories": {
         "correctness": "off"
     },
@@ -1810,7 +1810,70 @@
         "typescript/no-unsafe-return": "error",
         "typescript/no-unsafe-call": "error",
         "typescript/no-unsafe-member-access": "error",
-        "react/jsx-key": "error"
+        "react/jsx-key": "error",
+        "core/no-restricted-syntax": [
+            "error",
+            {
+                "selector": "TSEnumDeclaration",
+                "message": "Please don't declare enums, use union types instead."
+            },
+            {
+                "selector": "CallExpression[callee.object.name=\"React\"][callee.property.name=\"forwardRef\"]",
+                "message": "forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs"
+            },
+            {
+                "selector": "ImportNamespaceSpecifier[parent.source.value=/^@libs/]",
+                "message": "Namespace imports from @libs are not allowed. Use named imports instead. Example: import { method } from \"@libs/module\""
+            },
+            {
+                "selector": "ImportNamespaceSpecifier[parent.source.value=/^@userActions/]",
+                "message": "Namespace imports from @userActions are not allowed. Use named imports instead. Example: import { action } from \"@userActions/module\""
+            },
+            {
+                "selector": "ImportNamespaceSpecifier[parent.source.value=/^\\.\\./]",
+                "message": "Namespace imports from parent directories are not allowed. Use named imports instead. Example: import { method } from \"../libs/module\""
+            },
+            {
+                "selector": "ImportNamespaceSpecifier[parent.source.value=/^\\./]",
+                "message": "Namespace imports from sibling modules are not allowed. Use named imports instead. Example: import { method } from \"./libs/module\""
+            },
+            {
+                "selector": "JSXElement[openingElement.name.name=/^Pressable(WithoutFeedback|WithFeedback|WithDelayToggle|WithoutFocus)$/]:not(:has(JSXAttribute[name.name=\"sentryLabel\"]))",
+                "message": "All Pressable components must include sentryLabel prop for Sentry tracking. Example: <PressableWithoutFeedback sentryLabel=\"MoreMenu-ExportFile\" />"
+            },
+            {
+                "selector": "LabeledStatement",
+                "message": "Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand."
+            },
+            {
+                "selector": "WithStatement",
+                "message": "`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated."
+            }
+        ],
+        "rh/refs": "error",
+        "rh/set-state-in-effect": "error",
+        "rh/preserve-manual-memoization": "error",
+        "rh/immutability": "error",
+        "rh/static-components": "error",
+        "rh/exhaustive-deps": "error",
+        "no-restricted-exports": [
+            "error",
+            {
+                "restrictedNamedExports": ["default", "then"]
+            }
+        ],
+        "import/export": "error",
+        "react/require-render-return": "error",
+        "rh/component-hook-factories": "error",
+        "rh/config": "error",
+        "rh/error-boundaries": "error",
+        "rh/gating": "error",
+        "rh/globals": "error",
+        "rh/incompatible-library": "error",
+        "rh/purity": "error",
+        "rh/set-state-in-render": "error",
+        "rh/unsupported-syntax": "error",
+        "rh/use-memo": "error"
     },
     "overrides": [
         {
@@ -3111,6 +3174,125 @@
                 "typescript/no-unsafe-return": "off",
                 "typescript/no-unsafe-call": "off",
                 "typescript/no-unsafe-member-access": "off"
+            }
+        },
+        {
+            "files": [".github/**/*", "scripts/**/*", "server/**/*", "tests/**/*"],
+            "rules": {
+                "core/no-restricted-syntax": ["error", "ForInStatement", "LabeledStatement", "WithStatement"]
+            }
+        },
+        {
+            "files": ["src/libs/Navigation/types.ts"],
+            "rules": {
+                "core/no-restricted-syntax": [
+                    "error",
+                    {
+                        "selector": "TSPropertySignature[key.name=\"backTo\"]",
+                        "message": "The `backTo` route param is deprecated. Do not add new `backTo` properties to screen param lists. Please look into the `How to remove backTo from URL` section in contributingGuides/NAVIGATION.md. and use alternative routing methods instead."
+                    }
+                ]
+            }
+        },
+        {
+            "files": ["**/*.ts", "**/*.tsx"],
+            "rules": {
+                "typescript/no-deprecated": [
+                    "error",
+                    {
+                        "allow": ["translateFn"]
+                    }
+                ]
+            }
+        },
+        {
+            "files": [
+                ".github/actions/javascript/checkAndroidStatus/checkAndroidStatus.ts",
+                ".github/actions/javascript/getAndroidRolloutPercentage/getAndroidRolloutPercentage.ts",
+                "__mocks__/reportData/actions.ts",
+                "config/rsbuild/rsbuild.common.ts",
+                "src/hooks/useAccessibilityAnnouncement/index.ts",
+                "src/libs/Parser.ts",
+                "src/libs/actions/Chronos.ts",
+                "src/libs/actions/IOU/DeleteMoneyRequest.ts",
+                "src/libs/actions/IOU/Duplicate.ts",
+                "src/libs/actions/IOU/Hold.ts",
+                "src/libs/actions/IOU/RejectMoneyRequest.ts",
+                "src/libs/actions/IOU/TrackExpense.ts",
+                "src/libs/actions/IOU/UpdateMoneyRequest.ts",
+                "src/libs/actions/Policy/Member.ts",
+                "src/libs/actions/Transaction.ts",
+                "src/pages/inbox/conciergeDraftState.ts",
+                "src/pages/inbox/report/ReportActionsListItemRenderer.tsx",
+                "src/utils/createDummySharedValue.ts",
+                "tests/actions/IOU/CreateDraftTransactionTest.ts",
+                "tests/actions/IOU/RequestMoneyTest.ts",
+                "tests/actions/IOUTest/BulkEditTest.ts",
+                "tests/actions/IOUTest/DeleteMoneyRequestTest.ts",
+                "tests/actions/IOUTest/DuplicateTest.ts",
+                "tests/actions/IOUTest/PayMoneyRequestTest.ts",
+                "tests/actions/IOUTest/SplitTest.ts",
+                "tests/actions/IOUTest/TrackExpenseTest.ts",
+                "tests/actions/IOUTest/UpdateMoneyRequestTest.ts",
+                "tests/actions/MergeTransactionTest.ts",
+                "tests/actions/ReplaceOptimisticReportWithActualReportTest.ts",
+                "tests/actions/ReportTest.ts",
+                "tests/actions/TransactionTest.ts",
+                "tests/ui/ChatActionableButtonsTest.tsx",
+                "tests/ui/DynamicReportDetailsPageTest.tsx",
+                "tests/ui/LHNItemsPresence.tsx",
+                "tests/ui/MoneyRequestReportViewTest.tsx",
+                "tests/ui/RecentlyAddedSectionTest.tsx",
+                "tests/ui/ReportActionItemTest.tsx",
+                "tests/ui/ReportActionsListTest.tsx",
+                "tests/ui/ReportAttachments.tsx",
+                "tests/ui/components/BaseReportActionContextMenuTest.tsx",
+                "tests/ui/components/LHNOptionsListTest.tsx",
+                "tests/unit/AgentRuleChangeLogUtilsTest.ts",
+                "tests/unit/DebugUtilsTest.ts",
+                "tests/unit/DeleteReportTest.ts",
+                "tests/unit/LHNAvatarPipelineTest.ts",
+                "tests/unit/MoneyRequestReportUtilsTest.ts",
+                "tests/unit/NextStepUtilsTest.ts",
+                "tests/unit/OnyxDerived/computeForReportTest.ts",
+                "tests/unit/OnyxDerivedTest.tsx",
+                "tests/unit/OptionsListUtilsTest.tsx",
+                "tests/unit/PolicyChangeLogContentTest.tsx",
+                "tests/unit/ReportActionsUtilsTest.ts",
+                "tests/unit/ReportPrimaryActionUtilsTest.ts",
+                "tests/unit/ReportSecondaryActionUtilsTest.ts",
+                "tests/unit/ReportUtilsTest.ts",
+                "tests/unit/Search/SearchUIUtilsTest.ts",
+                "tests/unit/SidebarUtilsTest.ts",
+                "tests/unit/SpendRuleChangeLogUtilsTest.ts",
+                "tests/unit/TransactionTest.ts",
+                "tests/unit/WhisperContentMentionContextTest.tsx",
+                "tests/unit/components/MoneyReportTransactionThreadContext.test.tsx",
+                "tests/unit/getReportPreviewSenderIDTest.ts",
+                "tests/unit/getSendMessageListWeightTest.ts",
+                "tests/unit/getSendMessageSourceTest.ts",
+                "tests/unit/hooks/useDeleteTransactionsInvoiceOfflineTest.tsx",
+                "tests/unit/hooks/useExpenseActionsInvoiceDeleteTest.tsx",
+                "tests/unit/hooks/useExpenseSubmission.test.ts",
+                "tests/unit/hooks/useOriginalReportID.test.tsx",
+                "tests/unit/hooks/useSelectedTransactionsActions.test.ts",
+                "tests/unit/hooks/useShowNotFoundPageInIOUStep.test.ts",
+                "tests/unit/hooks/useTransactionThreadReportID.test.ts",
+                "tests/unit/inlineEditing/TransactionInlineEdit.test.ts",
+                "tests/unit/isConsecutiveActionMadeByPreviousActorTest.ts",
+                "tests/unit/libs/MoneyRequestReportUtils.ts",
+                "tests/unit/pages/inbox/ConciergeDraftContext.test.tsx",
+                "tests/unit/selectors/ReportActionTest.ts",
+                "tests/unit/useGetExpensifyCardFromReportActionTest.ts",
+                "tests/unit/useOneTransactionThreadReportIDTest.ts",
+                "tests/unit/useReportActionsVisibilityTest.tsx",
+                "tests/utils/LHNTestUtils.tsx",
+                "tests/utils/ReportTestUtils.ts",
+                "tests/utils/collections/reportActions.ts",
+                "tests/utils/createSharedValueMock.ts"
+            ],
+            "rules": {
+                "typescript/no-deprecated": "off"
             }
         }
     ]

@@ -1,0 +1,53 @@
+{
+    "no-unreachable-loop": {
+        "fixture": "fixtures/unreachableLoop.ts",
+        "oxlintRule": "pp/no-unreachable-loop",
+        "expected": 1,
+        "why": "port candidate: oxlint's native port false-positives, so host ESLint's core rule"
+    },
+    "react/jsx-no-bind": {"fixture": "fixtures/jsxNoBind.tsx", "oxlintRule": "pp/jsx-no-bind", "expected": 1, "why": "port candidate: not implemented natively"},
+    "react/function-component-definition": {
+        "fixture": "fixtures/functionComponentDefinition.tsx",
+        "oxlintRule": "pp/function-component-definition",
+        "expected": 1,
+        "why": "port candidate: native port diverges"
+    },
+    "react/jsx-no-constructed-context-values": {
+        "fixture": "fixtures/jsxNoConstructedContextValues.tsx",
+        "oxlintRule": "pp/jsx-no-constructed-context-values",
+        "expected": 1,
+        "why": "port candidate: needs the react-compiler per-file gate"
+    },
+    "import/prefer-default-export": {"fixture": "fixtures/preferDefaultExport.ts", "oxlintRule": "pp/prefer-default-export", "expected": 1, "why": "port candidate: native port diverges"},
+    "import/order": {
+        "fixture": "fixtures/importOrder.ts",
+        "oxlintRule": "pp/order",
+        "expected": 1,
+        "why": "port candidate: not implemented natively (but oxfmt already enforces stricter grouping)"
+    },
+    "jsdoc/no-types": {"fixture": "fixtures/jsdocNoTypes.ts", "oxlintRule": "pp/no-types", "expected": 2, "why": "port candidate: not implemented natively"},
+    "rulesdir/no-inline-useOnyx-selector": {
+        "fixture": "fixtures/inlineUseOnyxSelector.ts",
+        "oxlintRule": "pp/no-inline-useOnyx-selector",
+        "expected": 1,
+        "why": "port candidate: needs the react-compiler per-file gate"
+    },
+    "you-dont-need-lodash-underscore/uniq": {
+        "fixture": "fixtures/youDontNeedLodash.ts",
+        "oxlintRule": "you-dont-need-lodash-underscore/uniq",
+        "expected": 1,
+        "why": "already enabled on both sides, but missing from oxlint's JSON schema -- fixture is the only proof it runs"
+    },
+    "testing-library/no-debugging-utils": {
+        "fixture": "fixtures/testingLibraryDebug.ts",
+        "oxlintRule": "testing-library/no-debugging-utils",
+        "expected": 1,
+        "why": "same: enabled on both sides, absent from oxlint's schema"
+    },
+    "react-native-a11y/has-valid-accessibility-descriptors": {
+        "fixture": "fixtures/reactNativeA11y.tsx",
+        "oxlintRule": "react-native-a11y/has-valid-accessibility-descriptors",
+        "expected": 1,
+        "why": "same: enabled on both sides, absent from oxlint's schema"
+    }
+}

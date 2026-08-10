@@ -1,0 +1,307 @@
+"""Shared rule-name mapping and config readers for the ESLint/Oxlint comparison tooling.
+
+Imported by:
+    oxlint-probe/compareFullRepo.py   -- finding-by-finding parity on the whole repo
+    oxlint-probe/listAllRules.py      -- inventory of every rule either tool enables
+
+Nothing here runs a linter; it only reads configs and static catalogues.
+"""
+
+import json
+import os
+import re
+import subprocess
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# One file per distinct ESLint config scope, so the union of their `--print-config`
+# output covers every rule the repo can apply.
+REPRESENTATIVE_FILES = [
+    'src/App.tsx',
+    'src/libs/actions/Report/index.ts',
+    'tests/ui/ReportActionsListTest.tsx',
+    'scripts/utils/OpenAIUtils.ts',
+    '.github/scripts/createDocsRoutes.ts',
+]
+
+# typescript-eslint "extension rules" that oxlint implements as its (TS-aware) base
+# rule -- @typescript-eslint/no-shadow is covered by oxlint's plain no-shadow, etc.
+TS_EXTENSION_RULES = {
+    'default-param-last', 'max-params', 'no-array-constructor', 'no-dupe-class-members',
+    'no-empty-function', 'no-loop-func', 'no-loss-of-precision', 'no-redeclare',
+    'no-shadow', 'no-unused-expressions', 'no-unused-vars', 'no-use-before-define',
+    'no-useless-constructor',
+}
+
+# Port plan for every rule ESLint enables and the mirrored oxlint config does not.
+# `mechanism` is what closing the gap would take, `effort` is a rough size, and
+# `proven` marks the ones demonstrated end-to-end by oxlint-probe/port-probe.
+# Keep in sync with the "Porting plan" section of OXLINT_MIGRATION_INVESTIGATION.md.
+PORT_PLAN = {
+    # -- structural / infrastructure: no oxlint concept, stays on ESLint --
+    'eslint-seatbelt/configure': {
+        'mechanism': 'none - debt-tracker pseudo-rule driven by an ESLint processor',
+        'effort': 'blocker', 'proven': False,
+        'notes': 'obstacle #1; needs an oxlint-native baseline or a custom differ over oxlint JSON',
+    },
+    'progress/activate': {
+        'mechanism': 'drop - oxlint prints its own progress',
+        'effort': 'none', 'proven': False,
+        'notes': 'ESLint progress-bar plugin, no behaviour to preserve',
+    },
+    # -- proven portable: re-export the ESLint rule through a jsPlugin --
+    'no-unreachable-loop': {
+        'mechanism': 'jsPlugin re-export of the ESLint core rule (builtinRules)',
+        'effort': 'S', 'proven': True,
+        'notes': "oxlint's native port false-positives on src/libs/NavigationFocusReturn/index.ts; the re-export is exact",
+    },
+    'react/jsx-no-bind': {
+        'mechanism': 'jsPlugin re-export from eslint-plugin-react',
+        'effort': 'S', 'proven': True,
+        'notes': 'not implemented natively in oxlint',
+    },
+    'react/function-component-definition': {
+        'mechanism': 'jsPlugin re-export from eslint-plugin-react',
+        'effort': 'S', 'proven': True,
+        'notes': "oxlint's native port diverges (#6); the re-export matches ESLint exactly",
+    },
+    'import/prefer-default-export': {
+        'mechanism': 'jsPlugin re-export from eslint-plugin-import',
+        'effort': 'S', 'proven': True,
+        'notes': "oxlint's native port diverges (#6); the re-export matches ESLint exactly",
+    },
+    'jsdoc/no-types': {
+        'mechanism': 'jsPlugin re-export from eslint-plugin-jsdoc',
+        'effort': 'S', 'proven': True,
+        'notes': 'not implemented natively in oxlint',
+    },
+    'import/order': {
+        'mechanism': 'jsPlugin re-export from eslint-plugin-import',
+        'effort': 'S (or drop)', 'proven': True,
+        'notes': "oxfmt's sortImports already enforces a stricter grouping, so this rule is redundant here",
+    },
+    # -- proven portable, but each needs the react-compiler per-file gate --
+    'react/jsx-no-constructed-context-values': {
+        'mechanism': 'jsPlugin re-export + per-file react-compiler gate',
+        'effort': 'M', 'proven': True,
+        'notes': 'ESLint drops every message from this rule in files both compilers memoize; reuse the rh-plugin gating shim',
+    },
+    'rulesdir/no-inline-useOnyx-selector': {
+        'mechanism': 'enable the existing rulesdir jsPlugin + per-file react-compiler gate',
+        'effort': 'M', 'proven': True,
+        'notes': 'already exposed by oxlint-probe/expensify-rules.mjs; only the gate is missing',
+    },
+    # -- need TypeScript type info, which jsPlugins cannot reach --
+    'rulesdir/prefer-locale-compare-from-context': {
+        'mechanism': 'syntactic rewrite (the type check only asks "is the receiver a string")',
+        'effort': 'M', 'proven': False,
+        'notes': 'localeCompare only exists on strings, so a receiver-agnostic port is near-exact',
+    },
+    'rulesdir/prefer-at': {
+        'mechanism': 'blocked - needs typeChecker.isArrayType to tell arrays from records',
+        'effort': 'blocked', 'proven': False,
+        'notes': 'a syntactic port would fire on every obj[key]; wait for typed jsPlugins or a tsgolint rule',
+    },
+    'rulesdir/boolean-conditional-rendering': {
+        'mechanism': 'blocked - needs the type of the && left operand',
+        'effort': 'blocked', 'proven': False,
+        'notes': 'wait for typed jsPlugins',
+    },
+    '@typescript-eslint/naming-convention': {
+        'mechanism': 'blocked - tsgolint explicitly lists it as not implemented',
+        'effort': 'blocked', 'proven': False,
+        'notes': 'upstream: oxlint-tsgolint README, one of only 2 unimplemented type-aware rules',
+    },
+    '@typescript-eslint/no-unnecessary-type-assertion': {
+        'mechanism': 'implemented in tsgolint, but tsgo (TS7) inference diverges from TS 6.0.2',
+        'effort': 'blocked', 'proven': False,
+        'notes': 'revisit when the repo moves to TS 7',
+    },
+    # -- available in oxlint, held back by a code cleanup rather than tooling --
+    'import/no-cycle': {
+        'mechanism': "enable oxlint's native import/no-cycle",
+        'effort': 'L (cleanup, not porting)', 'proven': False,
+        'notes': "ESLint's copy is silently inert; oxlint finds 529 real cycles",
+    },
+}
+
+# Not implemented in oxlint AND effectively dead weight (deprecated stylistic rules,
+# PropTypes/class-component era, zero findings possible in this codebase).
+KNOWN_NOT_IMPLEMENTED_LOW_VALUE = {
+    'no-invalid-this', 'no-new-object', 'no-octal', 'no-octal-escape', 'no-undef-init',
+    'one-var', 'strict', 'lines-between-class-members',
+    'import/no-import-module-exports', 'import/no-relative-packages', 'import/no-useless-path-segments',
+    'react/default-props-match-prop-types', 'react/forbid-foreign-prop-types', 'react/forbid-prop-types',
+    'react/jsx-uses-react', 'react/jsx-uses-vars', 'react/no-access-state-in-setstate',
+    'react/no-arrow-function-lifecycle', 'react/no-deprecated', 'react/no-invalid-html-attribute',
+    'react/no-typos', 'react/no-unused-class-component-methods', 'react/no-unused-prop-types',
+    'react/no-unused-state', 'react/prefer-exact-props', 'react/prefer-stateless-function',
+    'react/sort-comp', 'react/static-property-placement',
+}
+
+
+def norm_ox(code):
+    """Normalize an oxlint diagnostic code -- `plugin(rule)` -- to the ESLint rule name."""
+    m = re.match(r'^([\w@/.-]+)\((.+)\)$', code)
+    if not m:
+        return code
+    plugin, rule = m.groups()
+    if plugin in ('eslint', 'core'):
+        # 'core' is the jsPlugin alias for re-exported ESLint core rules
+        return rule
+    if plugin == 'typescript':
+        return f'@typescript-eslint/{rule}'
+    if plugin == 'rh' or (plugin == 'react' and rule == 'exhaustive-deps'):
+        # 'rh' is the jsPlugin alias for eslint-plugin-react-hooks
+        return f'react-hooks/{rule}'
+    if plugin == 'jsx_a11y':
+        return f'jsx-a11y/{rule}'
+    return f'{plugin}/{rule}'
+
+
+def norm_es(rid):
+    """Normalize an ESLint message ruleId to a stable rule name."""
+    if rid is None:
+        # ESLint uses a null rule ID for parse errors AND unused-directive notices
+        return '<fatal/unused-directive>'
+    # the stratify processor splits no-deprecated into per-API synthetic IDs
+    if rid.startswith('@typescript-eslint/no-deprecated/'):
+        return '@typescript-eslint/no-deprecated'
+    return rid
+
+
+def norm_ox_config(rule_id):
+    """Map an .oxlintrc.json rule key to its ESLint name."""
+    if rule_id.startswith('typescript/'):
+        return '@typescript-eslint/' + rule_id.split('/', 1)[1]
+    if rule_id.startswith('core/'):
+        return rule_id.split('/', 1)[1]
+    if rule_id.startswith('rh/'):
+        return 'react-hooks/' + rule_id.split('/', 1)[1]
+    if rule_id in ('react/exhaustive-deps', 'react/rules-of-hooks'):
+        return 'react-hooks/' + rule_id.split('/', 1)[1]
+    return rule_id
+
+
+def is_on(value):
+    sev = value[0] if isinstance(value, list) else value
+    return sev not in ('off', 'allow', 0, '0')
+
+
+def oxlint_enabled_rules(config_path=None):
+    """Rule names (ESLint naming) enabled anywhere in .oxlintrc.json -- root or overrides."""
+    path = config_path or os.path.join(ROOT, '.oxlintrc.json')
+    config = json.load(open(path))
+    enabled = set()
+    for scope in [config.get('rules', {})] + [o.get('rules', {}) for o in config.get('overrides', [])]:
+        for rid, val in scope.items():
+            if is_on(val):
+                enabled.add(norm_ox_config(rid))
+    return enabled
+
+
+def eslint_enabled_rules(files=None):
+    """Rule names enabled by the real ESLint config, the union over the representative files.
+
+    typescript-eslint extension rules are folded onto their base name, because that is
+    the rule oxlint runs (its base rules are TS-aware).
+    """
+    enabled = set()
+    for rel in files or REPRESENTATIVE_FILES:
+        path = os.path.join(ROOT, rel)
+        if not os.path.exists(path):
+            continue
+        out = subprocess.run(['npx', 'eslint', '--print-config', path], capture_output=True, text=True, cwd=ROOT).stdout
+        try:
+            config = json.loads(out)
+        except json.JSONDecodeError:
+            print(f'  (could not read ESLint config for {rel} -- skipped)')
+            continue
+        for rid, val in (config.get('rules') or {}).items():
+            sev = val[0] if isinstance(val, list) else val
+            if sev in ('off', 0):
+                continue
+            rid = norm_es(rid)
+            if rid.startswith('@typescript-eslint/') and rid.split('/', 1)[1] in TS_EXTENSION_RULES:
+                rid = rid.split('/', 1)[1]
+            enabled.add(rid)
+    return enabled
+
+
+def oxlint_catalogue():
+    """Rules oxlint implements natively, in ESLint naming, from its JSON schema.
+
+    A miss here does not mean the rule is dead: it may be hosted by a jsPlugin
+    instead (see js_plugin_rules). Rules that are in neither set are silently
+    inert -- oxlint validates root `rules` against loaded plugins but accepts
+    anything inside `overrides`, so only a fixture proves a rule actually runs.
+    """
+    schema_path = os.path.join(ROOT, 'node_modules/oxlint/configuration_schema.json')
+    names = json.load(open(schema_path))['definitions']['DummyRuleMap']['properties']
+    catalogue = set()
+    for name in names:
+        catalogue.add(name)
+        if name.startswith('typescript/'):
+            catalogue.add('@typescript-eslint/' + name.split('/', 1)[1])
+        elif name.startswith('react/') and name.split('/', 1)[1] in ('exhaustive-deps', 'rules-of-hooks'):
+            catalogue.add('react-hooks/' + name.split('/', 1)[1])
+    return catalogue
+
+
+def js_plugin_rules(config_path=None):
+    """Rule name (ESLint naming) -> jsPlugin alias, for every rule the configured jsPlugins host.
+
+    Loads the plugin modules the way oxlint does and reads their meta.name + rule keys,
+    so this stays correct when a plugin gains or loses rules. Covers both the root
+    `jsPlugins` list and the per-override ones -- the migrated config uses overrides to
+    host whole ESLint plugins by bare package name (eslint-plugin-testing-library,
+    eslint-plugin-react-native-a11y, eslint-plugin-you-dont-need-lodash-underscore,
+    eslint-plugin-lodash, @dword-design/eslint-plugin-import-alias).
+    """
+    path = config_path or os.path.join(ROOT, '.oxlintrc.json')
+    config_dir = os.path.dirname(os.path.abspath(path))
+    config = json.load(open(path))
+    plugins = list(config.get('jsPlugins') or [])
+    for override in config.get('overrides', []):
+        plugins.extend(override.get('jsPlugins') or [])
+    plugins = list(dict.fromkeys(plugins))
+    if not plugins:
+        return {}
+    script = (
+        'const out = {};'
+        'for (const spec of process.argv.slice(1)) {'
+        '  try {'
+        '    const mod = await import(spec);'
+        '    const plugin = mod.default ?? mod;'
+        '    out[spec] = {name: plugin.meta?.name ?? null, rules: Object.keys(plugin.rules ?? {})};'
+        '  } catch {'
+        '    out[spec] = {name: null, rules: []};'
+        '  }'
+        '}'
+        'console.log(JSON.stringify(out));'
+    )
+    # relative paths resolve against the config file; bare specifiers are npm packages
+    specs = [os.path.abspath(os.path.join(config_dir, spec)) if spec.startswith('.') else spec for spec in plugins]
+    out = subprocess.run(['node', '--input-type=module', '-e', script, '--', *specs], capture_output=True, text=True, cwd=ROOT)
+    try:
+        hosted = json.loads(out.stdout.strip().splitlines()[-1])
+    except (json.JSONDecodeError, IndexError):
+        return {}
+    mapping = {}
+    for spec, plugin in hosted.items():
+        # oxlint prefixes rules with the plugin's meta.name (or the package name when meta is
+        # missing), always with the eslint-plugin- marker stripped: @scope/eslint-plugin-x -> @scope/x
+        raw = plugin['name'] or (os.path.basename(spec) if spec.startswith('/') else spec)
+        alias = re.sub(r'(^|/)eslint-plugin-', r'\1', raw)
+        for rule in plugin['rules']:
+            mapping[norm_ox_config(f'{alias}/{rule}')] = alias
+    return mapping
+
+
+def tsgolint_rules():
+    """Type-aware rule -> implemented?, parsed from the oxlint-tsgolint README checklist."""
+    readme = os.path.join(ROOT, 'node_modules/oxlint-tsgolint/README.md')
+    if not os.path.exists(readme):
+        return {}
+    rows = re.findall(r'^- \[([ x])\] \[([^\]]+)\]', open(readme).read(), re.M)
+    return {f'@typescript-eslint/{name}': flag == 'x' for flag, name in rows}
