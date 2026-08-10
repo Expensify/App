@@ -12,7 +12,6 @@ const WINDOW_SIZE_CHANGE_DURATION_MS = 250;
 
 let isWindowSizeChanging = false;
 let lastWidth = 0;
-let lastIsPortrait = true;
 let stopTimeoutID: NodeJS.Timeout | undefined;
 let dimensionsSubscription: EmitterSubscription | undefined;
 
@@ -32,23 +31,15 @@ function setIsWindowSizeChanging(value: boolean) {
     notify();
 }
 
-function isPortrait(size: ScaledSize) {
-    return size.height >= size.width;
-}
-
-function rememberWindowSize(size: ScaledSize) {
-    lastWidth = size.width;
-    lastIsPortrait = isPortrait(size);
-}
-
 function handleDimensionsChange({window}: {window: ScaledSize}) {
-    // Only width and orientation changes count, because the soft keyboard changes the window height on Android and
-    // on mobile web, and reacting to that would remount the effects of every hidden screen on each keyboard toggle.
-    if (window.width === lastWidth && isPortrait(window) === lastIsPortrait) {
+    // Only width changes count, which also covers a rotation. The soft keyboard changes the window height on
+    // Android and on mobile web, and reacting to that would remount the effects of every hidden screen on each
+    // keyboard toggle.
+    if (window.width === lastWidth) {
         return;
     }
 
-    rememberWindowSize(window);
+    lastWidth = window.width;
     setIsWindowSizeChanging(true);
     clearTimeout(stopTimeoutID);
     stopTimeoutID = setTimeout(() => setIsWindowSizeChanging(false), WINDOW_SIZE_CHANGE_DURATION_MS);
@@ -56,7 +47,7 @@ function handleDimensionsChange({window}: {window: ScaledSize}) {
 
 function subscribe(listener: () => void) {
     if (listeners.size === 0) {
-        rememberWindowSize(Dimensions.get('window'));
+        lastWidth = Dimensions.get('window').width;
         dimensionsSubscription = Dimensions.addEventListener('change', handleDimensionsChange);
     }
     listeners.add(listener);
