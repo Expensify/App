@@ -2213,13 +2213,12 @@ const CONST = {
         SPAN_GEOLOCATION_WAIT: 'ManualGeolocationWait',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_SEND_MESSAGE_VISIBLE: 'ManualSendMessageVisible',
-        // Sequential phases partitioning a ManualSendMessageVisible span, in the order they run. See
-        // src/libs/telemetry/sendMessageSpans.ts for where each boundary is marked.
+        // Sequential phases partitioning a ManualSendMessageVisible span, in the order they run.
         SPAN_SEND_MESSAGE_PHASE: {
             SUBMIT: 'ManualSendMessageSubmit',
             PROPAGATE: 'ManualSendMessagePropagate',
-            ROW_RENDER: 'ManualSendMessageRowRender',
-            COMMIT_AND_PAINT: 'ManualSendMessageCommitAndPaint',
+            COMMIT: 'ManualSendMessageCommit',
+            PAINT: 'ManualSendMessagePaint',
         },
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_ODOMETER_TO_CONFIRMATION: 'ManualOdometerToConfirmation',

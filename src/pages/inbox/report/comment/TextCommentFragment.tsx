@@ -14,7 +14,7 @@ import hydrateEmojiHtml from '@libs/hydrateEmojiHtml';
 import Parser from '@libs/Parser';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import {endSendMessagePhases, markSendMessageContentRendered} from '@libs/telemetry/sendMessageSpans';
+import {endSendMessagePhases, markSendMessageCommitted} from '@libs/telemetry/sendMessageSpans';
 
 import variables from '@styles/variables';
 
@@ -26,7 +26,7 @@ import type {StyleProp, TextStyle} from 'react-native';
 
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
-import {useEffect} from 'react';
+import {useEffect, useLayoutEffect} from 'react';
 import {View} from 'react-native';
 
 import RenderCommentHTML from './RenderCommentHTML';
@@ -72,11 +72,14 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
 
     const processedTextArray = splitTextWithEmojis(message);
 
-    // Send-message telemetry boundary: the row-render phase ends here, commit-and-paint starts. No-op
-    // unless this exact action has a send in flight still in an earlier phase.
-    markSendMessageContentRendered(reportActionID);
+    useLayoutEffect(() => {
+        if (!reportActionID) {
+            return;
+        }
+        markSendMessageCommitted(reportActionID);
+    }, [reportActionID]);
 
-    // Original effect anchor, kept while the visible variant below is validated against it in Sentry.
+    // Original effect anchor, kept while the visible variant is validated against it in Sentry.
     useEffect(() => {
         if (!reportActionID) {
             return;
@@ -88,8 +91,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
         if (!reportActionID) {
             return;
         }
-        // Sentry drops child spans that are still running when their parent ends, so the phases have to
-        // close before the span they partition does.
+        // Must close before the span they partition, see `endSendMessagePhases`.
         endSendMessagePhases(reportActionID);
         endSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`);
     };

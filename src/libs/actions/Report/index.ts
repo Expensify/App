@@ -1158,9 +1158,6 @@ function addActions({
         failureData,
     });
     endSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.SUBMIT);
-    // `API.write` only enqueues, Onyx defers the merge itself. So everything from here until the sent row
-    // renders is the merge, the derived recomputes it triggers, and React scheduling, none of it
-    // instrumentable from inside. The row closes this phase when it starts rendering.
     startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE);
     notifyNewAction(resolvedNotifyReportID, lastAction, lastAction?.actorAccountID === currentUserAccountID);
 }
