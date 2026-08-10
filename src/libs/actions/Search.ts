@@ -708,6 +708,8 @@ function getOnyxLoadingData(
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
                 errors: null,
+                // The code explains the errors it was stored with, so the two have to be cleared together.
+                search: {responseJsonCode: null},
             },
         },
     ];
@@ -744,7 +746,10 @@ function getOnyxLoadingData(
                 search: {
                     type,
                     ...(isSearchAPI && {isLoading: false}),
-                    ...(isSearchRequest && {hash}),
+                    // 0 stands for "failed with no usable response code", which covers a network-level rejection that
+                    // never reaches the server. A real HTTP failure overwrites it below once the response lands. Every
+                    // write of `errors` carries a code this way, so the error view never has to guess.
+                    ...(isSearchRequest && {hash, responseJsonCode: 0}),
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
@@ -1077,6 +1082,14 @@ function search({
                 // The UI treats a successful response with no snapshot data as an empty result, so record it for diagnosis.
                 if (result?.jsonCode === CONST.JSON_CODE.SUCCESS && response?.data === undefined) {
                     Log.info('[Search] loading_terminal_empty', false, {hash: queryJSON.hash, type: queryJSON.type});
+                }
+
+                // Store the failing code alongside the errors it produced. The snapshot is the only place this
+                // survives a reload, and the error view needs it to tell an invalid query apart from a retryable one.
+                if (typeof result?.jsonCode === 'number' && result.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode: result.jsonCode}}).catch((error: unknown) =>
+                        Log.hmmm('[Search] failed to store the search response code', {error: String(error)}),
+                    );
                 }
 
                 if (shouldUpdateLastSearchParams) {
