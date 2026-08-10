@@ -180,7 +180,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
                 keyForList: optimisticReport.reportID,
                 policyID: policyForMovingExpenses?.id,
             },
-            optimisticReport,
+            {...optimisticReport, transactionCount: 0, unheldNonReimbursableTotal: 0},
         );
     };
 
