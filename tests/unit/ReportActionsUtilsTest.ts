@@ -4380,6 +4380,72 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getWorkspaceCustomUnitUpdatedMessage', () => {
+        it('should return the correct message when the default category is changed', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    updatedField: 'defaultCategory',
+                    oldValue: 'Car',
+                    newValue: 'Travel',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('changed the Distance default category to "Travel" (previously "Car")');
+        });
+
+        it('should return the correct message when the default category is set for the first time', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    updatedField: 'defaultCategory',
+                    oldValue: '',
+                    newValue: 'Travel',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('changed the Distance default category to "Travel" ');
+        });
+
+        it('should return the correct message when tax tracking is enabled', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    updatedField: 'taxEnabled',
+                    oldValue: false,
+                    newValue: true,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('enabled tax tracking on distance rates');
+        });
+
+        it('should return the correct message when another field is changed', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    updatedField: 'unit',
+                    oldValue: 'mi',
+                    newValue: 'km',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('changed the Distance unit to "km" (previously "mi")');
+        });
+    });
+
     describe('didMessageMentionCurrentUser', () => {
         const currentUserEmail = 'currentuser@example.com';
         const otherUserEmail = 'otheruser@example.com';
