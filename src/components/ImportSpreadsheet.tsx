@@ -10,7 +10,7 @@ import {setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Pol
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOFXColumnRoles, parseOFXToSpreadsheetRows} from '@libs/OFXUtils';
+import {getOFXColumnRoles, isOFXStatement, parseOFXToSpreadsheetRows} from '@libs/OFXUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -123,8 +123,7 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
 
         setIsReadingFile(true);
 
-        const ofxExtensions: readonly string[] = CONST.OFX_STATEMENT_EXTENSIONS;
-        if (ofxExtensions.includes(fileExtension.toLowerCase())) {
+        if (isOFXStatement(file.name ?? '')) {
             fetch(fileURI)
                 .then((data) => data.text())
                 .then((text) => {
