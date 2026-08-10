@@ -330,6 +330,7 @@ const translations = {
         miles: 'miles',
         kilometer: 'kilometer',
         kilometers: 'kilometers',
+        commuter: 'commuter',
         recent: 'Recent',
         all: 'All',
         am: 'AM',
@@ -1003,6 +1004,10 @@ const translations = {
                 title: 'Add a payment card to keep using Expensify',
                 subtitle: 'Account > Subscription',
                 cta: 'Add',
+            },
+            addBankAccount: {
+                // @context Home reminder shown to a payment recipient when a reimbursement is waiting for them to add a personal deposit account.
+                title: 'Add a bank account to get reimbursed',
             },
             activateCard: {
                 title: 'Activate your Expensify Card',
@@ -5761,10 +5766,10 @@ const translations = {
                     },
                 },
             },
-            exportCompanyCard: {
+            exportNonReimbursable: {
                 label: 'Export company card expenses as',
                 values: {
-                    [CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {
+                    [CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE]: {
                         label: 'Credit cards',
                     },
                 },
@@ -8705,18 +8710,9 @@ const translations = {
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removed "${prohibitedExpense}" from prohibited expenses`,
         commuterExclusions: {
             changedToFixedDistance: 'changed exclude commutes to a fixed distance per claim',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'mile' : 'miles';
-                } else {
-                    unitLabel = isSingular ? 'kilometer' : 'kilometers';
-                }
-                return `set fixed distance exclusion to ${distance} ${unitLabel} per claim`;
-            },
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `changed fixed distance exclusion to ${newDistance} ${unit} per claim (previously ${oldDistance} ${unit})`,
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `set fixed distance exclusion to ${formattedDistance} per claim`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `changed fixed distance exclusion to ${formattedNewDistance} per claim (previously ${formattedOldDistance})`,
             disabled: 'disabled exclude commutes for distance rates',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
@@ -9657,6 +9653,16 @@ const translations = {
         },
         error: {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
+            mapOrGpsDistanceRequired: {
+                title: 'Map or GPS distance required',
+                description: 'This workspace requires either map-based or GPS-tracked distance expenses.',
+            },
+        },
+        commuterExclusion: {
+            original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Removed ${distance} commuter ${unit}`,
+            systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
+                `Removed ${distance} commuter ${unit} based on ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">workspace distance settings</a>` : 'workspace distance settings'}.`,
         },
         odometer: {
             startReading: 'Start reading',

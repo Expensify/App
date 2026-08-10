@@ -254,6 +254,7 @@ describe('actions/Transaction', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -631,6 +632,7 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -737,6 +739,7 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
 
@@ -809,6 +812,7 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -915,6 +919,7 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
 
@@ -992,6 +997,7 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
 
@@ -1107,6 +1113,7 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
 
@@ -1185,6 +1192,7 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
 
@@ -1321,6 +1329,7 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
 
                 await waitForBatchedUpdates();
