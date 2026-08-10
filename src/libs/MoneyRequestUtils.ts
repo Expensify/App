@@ -8,9 +8,8 @@ import type {ValueOf} from 'type-fest';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import replaceAllDigits from './replaceAllDigits';
 import {isInvoiceReport, isIOUReport} from './ReportUtils';
-import StringUtils from './StringUtils';
 import {doesMoneyRequestDraftHaveUserInput, haveWaypointAddressesChanged, isExpenseUnreported} from './TransactionUtils';
-import {isInvalidMerchantValue} from './ValidationUtils';
+import {getMerchantError} from './ValidationUtils';
 
 /**
  * Strip comma from the amount
@@ -168,29 +167,14 @@ function isTaxAmountInvalid(currentAmount: string, maxTaxAmount: number, decimal
  * @returns Whether the merchant value is valid
  */
 function isValidMerchant(merchant: string | undefined, transaction?: OnyxEntry<Transaction>, report?: OnyxEntry<Report>): boolean {
-    const trimmedMerchant = merchant?.trim() ?? '';
-    const isEmpty = !trimmedMerchant;
-
     // Unreported expenses, IOU requests, and invoices can have empty merchants (allows clearing)
     const isUnreported = transaction ? isExpenseUnreported(transaction) : false;
     const isIOU = !!report && isIOUReport(report);
     const isInvoice = !!report && isInvoiceReport(report);
-    if (isEmpty && (isUnreported || isIOU || isInvoice)) {
-        return true;
-    }
+    const isMerchantRequired = !(isUnreported || isIOU || isInvoice);
 
-    // Reported transactions or non-empty merchants must pass validation
-    if (isEmpty) {
-        return false;
-    }
-
-    // Check if it's an invalid merchant value (PARTIAL or DEFAULT constants)
-    if (isInvalidMerchantValue(trimmedMerchant)) {
-        return false;
-    }
-
-    const valueByteLength = StringUtils.getUTF8ByteLength(trimmedMerchant);
-    return valueByteLength <= CONST.MERCHANT_NAME_MAX_BYTES;
+    // Reuse the same validation rules as the normal merchant edit step (IOURequestStepMerchant)
+    return !getMerchantError(merchant, isMerchantRequired);
 }
 
 type AmountHasUnsavedChangesParams = {
