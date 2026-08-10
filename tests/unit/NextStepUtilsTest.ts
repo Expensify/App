@@ -18,6 +18,7 @@ import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {execFileSync} from 'child_process';
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
@@ -1123,6 +1124,47 @@ describe('libs/NextStepUtils', () => {
 
             const message = buildNextStepMessage(nextStep, translateEta, 999999, formatPhoneNumber);
             expect(message).toBe('<next-step>15th</next-step>');
+        });
+
+        describe('renders a monthly automatic-submit eta on the encoded day of month in every timezone', () => {
+            // `buildNextStepMessage` renders a date-only `eta.dateTime` with date-fns, which uses the ambient system
+            // timezone. Jest is pinned to UTC (`TZ=utc`) and V8 caches that at process start, so we cannot change the
+            // timezone from inside this process — UTC is also the one zone where the bug is invisible, because UTC
+            // midnight and local midnight coincide. To exercise real UTC-negative/positive offsets we run the same
+            // parse+format expression used by buildNextStepMessage (see src/libs/NextStepUtils.ts:86) in a child
+            // `node` process with a real `TZ`. `fixed` mirrors the shipped `parseISO` parsing; `legacy` mirrors the
+            // old `new Date` parsing that caused the regression.
+            const renderEtaDayInTimezone = (timezone: string): {fixed: string; legacy: string} => {
+                const dateOnly = '2026-08-15';
+                // Print the fixed (`parseISO`) and legacy (`new Date`) ordinals space-separated so the parent can read
+                // them back as plain strings without an unsafe cast.
+                const script = `const {format,parseISO}=require('date-fns');process.stdout.write([format(parseISO('${dateOnly}'),'do'),format(new Date('${dateOnly}'),'do')].join(' '));`;
+                const out = execFileSync(process.execPath, ['-e', script], {env: {...process.env, TZ: timezone}, encoding: 'utf8'});
+                const [fixed, legacy] = out.split(' ');
+                return {fixed, legacy};
+            };
+
+            it.each([
+                ['Pacific/Kiritimati', 'positive'],
+                ['Asia/Tokyo', 'positive'],
+                ['Europe/Paris', 'positive'],
+                ['UTC', 'zero'],
+                ['America/New_York', 'negative'],
+                ['America/Los_Angeles', 'negative'],
+                ['Pacific/Honolulu', 'negative'],
+            ])('renders the encoded day (15th) in %s (%s UTC offset)', (timezone, offsetSign) => {
+                const {fixed, legacy} = renderEtaDayInTimezone(timezone);
+
+                // The shipped fix renders the encoded day in every timezone.
+                expect(fixed).toBe('15th');
+
+                // In UTC-negative zones the old `new Date` parsing shifts the day back by one. Asserting it here both
+                // documents the regression and guarantees the child really ran in a UTC-negative zone — otherwise this
+                // would read '15th' and fail loudly instead of the test silently degrading into a UTC-only no-op.
+                if (offsetSign === 'negative') {
+                    expect(legacy).toBe('14th');
+                }
+            });
         });
     });
 
