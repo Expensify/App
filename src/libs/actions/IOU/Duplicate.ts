@@ -1,6 +1,8 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectedReports} from '@components/Search/types';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {MergeDuplicatesParams, ResolveDuplicatesParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -848,6 +850,8 @@ function duplicateExpenseTransaction({
             transactionID: '1',
         },
         isSelfTourViewed,
+        // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
+        conciergeChat: undefined,
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
@@ -947,6 +951,7 @@ type DuplicateReportParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 function duplicateReport({
@@ -973,15 +978,27 @@ function duplicateReport({
     isTrackIntentUser,
     delegateAccountID,
     formatPhoneNumber,
+    getCurrencyDecimals,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
     }
 
     const newReportName = translate('common.copyOfReportName', sourceReportName);
-    const {reportPreviewReportActionID, ...newReport} = createNewReport(ownerPersonalDetails, false, isASAPSubmitBetaEnabled, targetPolicy, betas, isTrackIntentUser, false, undefined, {
-        reportName: newReportName,
-    });
+    const {reportPreviewReportActionID, ...newReport} = createNewReport(
+        ownerPersonalDetails,
+        false,
+        isASAPSubmitBetaEnabled,
+        targetPolicy,
+        betas,
+        isTrackIntentUser,
+        getCurrencyDecimals,
+        false,
+        undefined,
+        {
+            reportName: newReportName,
+        },
+    );
 
     const isCrossWorkspace = !!sourceReport && sourceReport.policyID !== targetPolicy.id;
 
@@ -1062,6 +1079,8 @@ function duplicateReport({
                 transactionID: '1',
             },
             isSelfTourViewed,
+            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
+            conciergeChat: undefined,
             betas,
             personalDetails,
             shouldDeferAutoSubmit: !isLastExpense,
@@ -1280,6 +1299,7 @@ type BulkDuplicateReportsParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 function bulkDuplicateReports({
@@ -1306,6 +1326,7 @@ function bulkDuplicateReports({
     isTrackIntentUser,
     delegateAccountID,
     formatPhoneNumber,
+    getCurrencyDecimals,
 }: BulkDuplicateReportsParams) {
     const allTransactionsMap = getAllTransactions();
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
@@ -1383,6 +1404,7 @@ function bulkDuplicateReports({
             isTrackIntentUser,
             delegateAccountID,
             formatPhoneNumber,
+            getCurrencyDecimals,
         });
     }
 

@@ -4,10 +4,12 @@ import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow/types';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
-import {convertToBackendAmount, getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -32,8 +34,8 @@ import {
     isCurrentUserSubmitter,
     isInvoiceReport,
     isOpenExpenseReport,
+    isOpenReport,
     isProcessingReport,
-    isReportIDApproved,
     isSelfDM,
     isSettled,
     isThread,
@@ -483,6 +485,13 @@ function hasReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boo
     return !!transaction?.receipt?.state || hasEReceipt(transaction);
 }
 
+/**
+ * Whether the transaction already has its receipt stored server-side.
+ */
+function hasUploadedReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boolean {
+    return !!transaction?.receipt?.receiptID;
+}
+
 /** Check if the receipt has the source file */
 function hasReceiptSource(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return !!transaction?.receipt?.source;
@@ -610,6 +619,8 @@ function getUpdatedTransaction({
     policies = undefined,
     isSplitTransaction = false,
     personalPolicyOutputCurrency,
+    getCurrencyDecimals,
+    getCurrencySymbol,
 }: {
     transaction: Transaction;
     transactionChanges: TransactionChanges;
@@ -619,6 +630,8 @@ function getUpdatedTransaction({
     policies?: OnyxCollection<Policy>;
     isSplitTransaction?: boolean;
     personalPolicyOutputCurrency: string | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 }): Transaction {
     const isUnReportedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -735,10 +748,9 @@ function getUpdatedTransaction({
             lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
         }
 
-        if (!isFetchingWaypointsFromServer(transaction)) {
-            // When the waypoints are being fetched from the server, we have no information about the distance, and cannot recalculate the updated amount.
-            // Otherwise, recalculate the fields based on the new rate.
-
+        if (!isFetchingWaypointsFromServer(transaction) || hasLocallyKnownDistance(transaction)) {
+            // When the waypoints are being fetched from the server and we have no local distance, we cannot
+            // recalculate the updated amount. Otherwise, recalculate the fields based on the new rate.
             let updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
 
             // The provided `policy` may not own the new rate, leaving the amount at 0. Fall back to
@@ -806,7 +818,7 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'category') && typeof transactionChanges.category === 'string') {
         updatedTransaction.category = transactionChanges.category;
-        const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy);
+        const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy, getCurrencyDecimals);
         if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
             updatedTransaction.taxCode = categoryTaxCode;
             updatedTransaction.taxAmount = categoryTaxAmount;
@@ -1122,6 +1134,18 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
     return !!transaction?.pendingFields?.waypoints;
 }
 
+/**
+ * Whether the transaction's route distance is already known locally (from a computed route or stored quantity),
+ * so amount/merchant can be recalculated without waiting for the server.
+ *
+ * A waypoint edit whose route is still being computed by the server zeroes the amount but leaves the
+ * quantity/routes of the pre-edit route in place, so a zero amount means the stored distance is stale.
+ */
+function hasLocallyKnownDistance(transaction: OnyxInputOrEntry<Transaction>): boolean {
+    const hasDistanceSource = !!transaction?.comment?.customUnit?.quantity || !!transaction?.routes?.route0?.distance;
+    return hasDistanceSource && !!getAmount(transaction);
+}
+
 // Editing any of these fields makes the server regenerate the distance map receipt. `customUnitRateID`/`distance`
 // aren't typed `pendingFields` keys (they live on the comment), so this is matched by name rather than property access.
 const DISTANCE_RECEIPT_REGENERATION_FIELDS = new Set(['waypoints', 'distance', 'merchant', 'customUnitRateID']);
@@ -1253,6 +1277,10 @@ function getFormattedAttendees(modifiedAttendees?: Attendee[], attendees?: Atten
  */
 function getReimbursable(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return transaction?.reimbursable ?? true;
+}
+
+function hasNonReimbursableTransactions(transactions?: Transaction[]): boolean {
+    return !!transactions?.some((transaction) => !getReimbursable(transaction));
 }
 
 /**
@@ -2345,6 +2373,7 @@ function getDistanceRateTaxUpdates(
     policy: OnyxEntry<Policy>,
     transaction: OnyxEntry<Transaction>,
     customUnitRateID: string,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     distanceUnit?: Unit,
 ): {taxAmount: number; taxCode: string; taxValue: string | undefined} {
     const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
@@ -2610,8 +2639,30 @@ function removeTransactionFromDuplicateTransactionViolation(
     }
 }
 
+/**
+ * Whether a report is still editable for a duplicate merge, i.e. one that Auth's MergeTransactions command would
+ * accept. A report is mergeable when it is open, awaiting first-level approval, or unresolved (unreported expenses
+ * stay editable in Auth). Anything approved, closed (Submit & Close), or reimbursed is rejected server-side.
+ */
+function isReportMergeableForDuplicates(report: OnyxEntry<Report>): boolean {
+    return !report || isOpenReport(report) || isProcessingReport(report);
+}
+
+/**
+ * Keeps only transactions that Auth's MergeTransactions command would accept, so filtering here prevents sending a
+ * merge request that would fail server-side.
+ */
 function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {
-    return transactions.filter((transaction) => !!transaction && !isSettled(transaction?.reportID) && !isReportIDApproved(transaction?.reportID)) as Transaction[];
+    return transactions.filter((transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport(transaction.reportID))) as Transaction[];
+}
+
+/**
+ * Whether a duplicate merge can be submitted. Auth's MergeTransactions rejects the merge when the kept expense's
+ * report is no longer editable or when there are no duplicates left to merge, so callers should block the request
+ * in those cases.
+ */
+function canMergeDuplicates(keptReport: OnyxEntry<Report>, transactionIDList: string[]): boolean {
+    return isReportMergeableForDuplicates(keptReport) && transactionIDList.length > 0;
 }
 
 /**
@@ -2848,7 +2899,7 @@ function buildMergeDuplicatesParams(
     };
 }
 
-function getCategoryTaxDetails(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>) {
+function getCategoryTaxDetails(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']) {
     const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax);
     if (!taxRules || taxRules?.length === 0 || isDistanceRequest(transaction)) {
         return {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
@@ -2987,19 +3038,6 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, origina
         }
         return currentTransaction?.comment?.source === CONST.IOU.TYPE.SPLIT;
     });
-}
-
-/**
- * Determines whether a report should display the expense breakdown.
- */
-function shouldShowExpenseBreakdown(transactions?: Transaction[]): boolean {
-    if (!transactions || transactions.length === 0) {
-        return false;
-    }
-
-    // Show breakdown if there is ANY non-reimbursable expense.
-    // If there are no non-reimbursable expenses (i.e., all are reimbursable), do not show the breakdown.
-    return transactions.some((transaction) => !getReimbursable(transaction));
 }
 
 /**
@@ -3214,6 +3252,7 @@ export {
     getTagForDisplay,
     getTransactionViolations,
     hasReceipt,
+    hasUploadedReceipt,
     hasEReceipt,
     hasRoute,
     isReceiptBeingScanned,
@@ -3229,6 +3268,7 @@ export {
     isOdometerDistanceRequest,
     isDistanceExpenseType,
     isFetchingWaypointsFromServer,
+    hasLocallyKnownDistance,
     hasPendingDistanceReceiptRegeneration,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
@@ -3271,7 +3311,9 @@ export {
     getTransactionID,
     buildNewTransactionAfterReviewingDuplicates,
     buildMergeDuplicatesParams,
+    canMergeDuplicates,
     getReimbursable,
+    hasNonReimbursableTransactions,
     isPayAtEndExpense,
     removeSettledAndApprovedTransactions,
     removeTransactionFromDuplicateTransactionViolation,
@@ -3322,7 +3364,6 @@ export {
     getMCCForDisplay,
     hasDisplayableMCC,
     getConvertedAmount,
-    shouldShowExpenseBreakdown,
     isTimeRequest,
     getExpenseTypeTranslationKey,
     getReceiptTypeTranslationKey,
