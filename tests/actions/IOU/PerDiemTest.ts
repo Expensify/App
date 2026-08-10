@@ -30,7 +30,7 @@ import createRandomPolicyCategories from '../../utils/collections/policyCategory
 import createRandomPolicyTags from '../../utils/collections/policyTags';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {formatPhoneNumber, getGlobalFetchMock} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -338,6 +338,7 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 parentChatReport,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
                 participantParams,
                 recentlyUsedParams: {},
@@ -442,6 +443,7 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 parentChatReport,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
                 participantParams: mockParticipantParams,
                 policyParams: mockPolicyParams,
@@ -545,6 +547,7 @@ describe('PerDiem', () => {
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 parentChatReport: undefined,
                 transactionParams: mockTransactionParams,
                 participantParams: mockParticipantParams,
@@ -663,6 +666,7 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 parentChatReport,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
                 participantParams,
                 recentlyUsedParams: {},
@@ -767,6 +771,7 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 parentChatReport,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
                 participantParams,
                 policyParams: mockPolicyParams,
@@ -846,6 +851,7 @@ describe('PerDiem', () => {
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 hasViolations: false,
@@ -934,6 +940,7 @@ describe('PerDiem', () => {
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 hasViolations: false,
@@ -1037,6 +1044,7 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 parentChatReport,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
                 participantParams,
                 recentlyUsedParams: {},
@@ -1106,6 +1114,7 @@ describe('PerDiem', () => {
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 hasViolations: false,
