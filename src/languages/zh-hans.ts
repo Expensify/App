@@ -8467,6 +8467,9 @@ ${reportName}`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制发票设置`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制出差设置`,
         },
+        updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
+            return `已将“${categoryName}”类别的参与者更改为 ${newValue ? '必填' : '非必填'}（之前为 ${newValue ? '非必填' : '必填'}）`;
+        },
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
