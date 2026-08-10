@@ -8,20 +8,19 @@ import useLocalize from '@hooks/useLocalize';
 import getMatchScore from '@libs/getMatchScore';
 
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 
 import type {CurrencyListItem, CurrencySelectionListProps} from './types';
-
-const EMPTY_SELECTED_CURRENCIES: string[] = [];
 
 function CurrencySelectionList({
     searchInputLabel,
     initiallySelectedCurrencyCode,
     onSelect,
     didScreenTransitionEnd = true,
-    selectedCurrencies = EMPTY_SELECTED_CURRENCIES,
+    selectedCurrencies = getEmptyArray<string>(),
     recentlyUsedCurrencies,
     excludedCurrencies = [],
     ...restProps
@@ -29,7 +28,7 @@ function CurrencySelectionList({
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
     const [searchValue, setSearchValue] = useState('');
-    const selectedCurrencyCodes = [initiallySelectedCurrencyCode, ...selectedCurrencies].filter(Boolean);
+    const selectedCurrencyCodes = useMemo(() => [initiallySelectedCurrencyCode, ...selectedCurrencies].filter(Boolean), [initiallySelectedCurrencyCode, selectedCurrencies]);
     const initiallyPinnedCurrencyCodes = useInitialSelection(selectedCurrencyCodes, {resetOnFocus: true});
     const {translate} = useLocalize();
     const initiallyPinnedCurrencyCodeSet = new Set(initiallyPinnedCurrencyCodes);
