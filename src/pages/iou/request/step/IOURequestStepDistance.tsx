@@ -121,7 +121,6 @@ function IOURequestStepDistance({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const shouldShowMapManualTabs = isEditing || iouType === CONST.IOU.TYPE.TRACK;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const currentTransaction = isEditingSplit && !isEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
 
@@ -170,6 +169,7 @@ function IOURequestStepDistance({
     const isCreatingNewRequest = !(backTo || isEditing);
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const iouRequestType = getRequestType(currentTransaction);
+    const shouldShowMapManualTabs = isEditing || iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
     const customUnitRateID = getRateID(currentTransaction);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
@@ -371,10 +371,8 @@ function IOURequestStepDistance({
             if (isEditingSplit) {
                 iouWaypointType = CONST.IOU.TYPE.SPLIT_EXPENSE;
             }
-            // In the tabbed Map/Manual flow, Navigation.getActiveRoute()
-            // returns a URL with the tab suffix (e.g. "/distance-map") that doesn't match the stack entry
-            // — Navigation.goBack() then REPLACEs instead of POPs and crashes. Build the backTo URL
-            // explicitly there (GH #90037).
+            // In the tabbed flow getActiveRoute() returns a URL with the tab suffix (e.g. "/distance-map") that
+            // doesn't match the stack entry, so goBack() REPLACEs instead of POPs and crashes (GH #90037).
             let waypointBackTo = Navigation.getActiveRoute();
             if (shouldShowMapManualTabs) {
                 waypointBackTo =
@@ -620,9 +618,8 @@ function IOURequestStepDistance({
         const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(value));
 
         if (!isEditing) {
-            // This step can be opened from confirmation (`backTo` is set). Mark the draft as saved
-            // before navigating away so the transaction-backup cleanup does not restore the original
-            // route distance over the manual value.
+            // Without this the backup cleanup restores the original route distance over the manual value
+            // when this step was opened from confirmation.
             transactionWasSaved.current = true;
             setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action, iouType), distanceUnit);
             suppressDiscardPrompt();

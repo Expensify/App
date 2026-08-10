@@ -19,10 +19,18 @@ const mockCleanupAfterExpenseCreate = jest.fn();
 const mockCleanupAndNavigateAfterExpenseCreate = jest.fn();
 const mockResolveChatTargetForSubmitCleanup = jest.fn();
 const mockSendInvoiceAction = jest.fn();
+const mockCreateDistanceRequestAction = jest.fn();
 
 jest.mock('@userActions/IOU/TrackExpense', () => ({
     requestMoney: (...args: unknown[]) => mockRequestMoneyAction(...args),
     trackExpense: (...args: unknown[]) => mockTrackExpenseAction(...args),
+}));
+
+jest.mock('@userActions/IOU/Split', () => ({
+    createDistanceRequest: (...args: unknown[]) => mockCreateDistanceRequestAction(...args),
+    splitBill: jest.fn(),
+    splitBillAndOpenReport: jest.fn(),
+    startSplitBill: jest.fn(),
 }));
 
 jest.mock('@userActions/IOU/PerDiem', () => ({
@@ -155,6 +163,23 @@ function buildPerDiemTransaction(overrides: Partial<Transaction> = {}): Transact
     });
 }
 
+function buildOverriddenMapDistanceTransaction(): Transaction {
+    return buildTransaction({
+        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+        comment: {
+            customUnit: {
+                quantity: 29,
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            },
+            waypoints: {
+                waypoint0: {address: 'San Francisco', lat: 37.7749, lng: -122.4194},
+                waypoint1: {address: 'New York', lat: 40.7128, lng: -74.006},
+            },
+        },
+        routes: {route0: {distance: 2900000, geometry: {coordinates: []}}},
+    });
+}
+
 function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[0]> = {}): Parameters<typeof useExpenseSubmission>[0] {
     const transaction = buildTransaction();
     return {
@@ -197,6 +222,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
         jest.clearAllMocks();
         await Onyx.clear();
         mockRequestMoneyAction.mockReturnValue({iouReport: {reportID: 'iou-1'}});
+        mockCreateDistanceRequestAction.mockReturnValue({chatReportID: REPORT_ID, transactionID: TRANSACTION_ID});
         mockResolveChatTargetForSubmitCleanup.mockReturnValue({report: {reportID: REPORT_ID}, chatReportID: 'fallback-id', optimisticChatReportID: undefined});
     });
 
@@ -387,21 +413,8 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             expect(mockTrackExpenseAction).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: params.transactions.at(0)}));
         });
 
-        it('submits a manually overridden map distance without waypoints so the backend preserves it', async () => {
-            const mapDistance = buildTransaction({
-                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
-                comment: {
-                    customUnit: {
-                        quantity: 29,
-                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
-                    },
-                    waypoints: {
-                        waypoint0: {address: 'San Francisco', lat: 37.7749, lng: -122.4194},
-                        waypoint1: {address: 'New York', lat: 40.7128, lng: -74.006},
-                    },
-                },
-                routes: {route0: {distance: 2900000, geometry: {coordinates: []}}},
-            });
+        it('sends the overridden distance and keeps the waypoints when tracking a map distance expense', async () => {
+            const mapDistance = buildOverriddenMapDistanceTransaction();
             const {result} = renderHook(() =>
                 useExpenseSubmission(
                     buildParams({
@@ -423,7 +436,37 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({
                         distance: 29,
-                        validWaypoints: undefined,
+                        distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                        validWaypoints: mapDistance.comment?.waypoints,
+                    }),
+                }),
+            );
+        });
+
+        it('sends the overridden distance when submitting a map distance expense to a workspace', async () => {
+            const mapDistance = buildOverriddenMapDistanceTransaction();
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transaction: mapDistance,
+                        transactions: [mapDistance],
+                        isDistanceRequest: true,
+                        isPolicyExpenseChat: true,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockCreateDistanceRequestAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        distance: 29,
                         distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
                     }),
                 }),
