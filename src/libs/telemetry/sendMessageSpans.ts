@@ -113,4 +113,3 @@ function endSendMessagePhases(reportActionID: string | undefined) {
 }
 
 export {startSendMessagePhase, endSendMessagePhase, markSendMessageRowRendered, markSendMessageCommitted, endSendMessagePhases};
-export type {SendMessagePhase};
