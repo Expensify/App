@@ -7,7 +7,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoice} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -64,7 +63,7 @@ function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, trans
             avatarID={senderWorkspace?.id}
             shouldShowRightIcon={!isReadOnly && !!canUpdateSenderWorkspace}
             title={senderWorkspace?.name}
-            icon={senderWorkspace?.avatarURL ? senderWorkspace.avatarURL : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
+            icon={senderWorkspace?.avatarURL}
             iconType={CONST.ICON_TYPE_WORKSPACE}
             description={translate('workspace.common.workspace')}
             label={translate('workspace.invoices.sendFrom')}

@@ -184,7 +184,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         isDistance && distance && rate
             ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) * originalSign
             : Math.abs(Number(splitExpenseDraftTransaction?.amount)) * originalSign;
-    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, rate, translate, false, isManualDistance);
+    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, translate, false, isManualDistance);
     const currentRateID = getRateID(splitExpenseDraftTransaction);
     const rates = DistanceRequestUtils.getMileageRates(effectivePolicy, false, currentRateID);
 
@@ -286,15 +286,13 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                     // up the same SPLIT_TRANSACTION_DRAFT this screen reads from (see line 57 above).
                     if (isSelfDMSplit && !effectivePolicy && !hasAnyPaidWorkspace && reportID) {
                         Navigation.navigate(
-                            createDynamicRoute(
-                                DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                    action: CONST.IOU.ACTION.EDIT,
-                                    iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                    transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                    reportID,
-                                    upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
-                                }),
-                            ),
+                            ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                action: CONST.IOU.ACTION.EDIT,
+                                iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                reportID,
+                                upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                            }),
                         );
                         return;
                     }
@@ -363,16 +361,14 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                     );
                                     if (shouldNavigateToUpgradePath) {
                                         Navigation.navigate(
-                                            createDynamicRoute(
-                                                DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                                    action: CONST.IOU.ACTION.EDIT,
-                                                    iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                                    transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                                    reportID,
-                                                    upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                                                    upgradeBackTo: categoryRoute,
-                                                }),
-                                            ),
+                                            ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                                action: CONST.IOU.ACTION.EDIT,
+                                                iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                                reportID,
+                                                upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                                                backTo: categoryRoute,
+                                            }),
                                         );
                                         return;
                                     }

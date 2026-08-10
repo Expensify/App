@@ -951,7 +951,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonCTAIcon: {
-            marginRight: 22,
+            marginRight: 18,
             marginLeft: 8,
             // Align vertically with the Button text
             paddingBottom: 1,
@@ -2151,13 +2151,6 @@ const staticStyles = (theme: ThemeColors) =>
         sidebarLinkTextBold: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             color: theme.heading,
-        },
-
-        sidebarLinkActiveText: {
-            color: theme.textSupporting,
-            fontSize: variables.fontSizeNormal,
-            textDecorationLine: 'none',
-            overflow: 'hidden',
         },
 
         optionItemAvatarNameWrapper: {
@@ -6502,6 +6495,11 @@ const staticStyles = (theme: ThemeColors) =>
         securitySettingsStaticIllustration: {
             width: 112,
             height: 160,
+        },
+        commuterExclusionStaticIllustration: {
+            width: 160,
+            height: 140,
+            alignSelf: 'center',
         },
         helpStaticIllustration: {
             width: 174,
