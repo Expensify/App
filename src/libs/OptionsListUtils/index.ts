@@ -742,12 +742,13 @@ function getLastMessageTextForReport({
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
         // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, convertToDisplayStringUtil, {
+        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, formatPhoneNumberPhoneUtils, convertToDisplayStringUtil, {
             reportOrID: report,
             iouReportAction: lastReportAction,
             shouldConsiderScanningReceiptOrPendingRoute: true,
             policy: null,
             isForListPreview: true,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
         });
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
     } else if (isReportPreviewAction(lastReportAction)) {
@@ -766,7 +767,7 @@ function getLastMessageTextForReport({
             lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
             // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-            const reportPreviewMessage = getReportPreviewMessage(translate, convertToDisplayStringUtil, {
+            const reportPreviewMessage = getReportPreviewMessage(translate, formatPhoneNumberPhoneUtils, convertToDisplayStringUtil, {
                 reportOrID: !isEmptyObject(iouReport) ? iouReport : null,
                 iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
                 shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -774,6 +775,7 @@ function getLastMessageTextForReport({
                 policy: null,
                 isForListPreview: true,
                 originalReportAction: lastReportAction,
+                formatPhoneNumber: formatPhoneNumberPhoneUtils,
             });
             lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
         }
@@ -781,7 +783,13 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils, report});
     } else if (isReimbursementDeQueuedOrCanceledAction(lastReportAction)) {
         // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(translate, lastReportAction, report?.ownerAccountID, convertToDisplayStringUtil);
+        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(
+            translate,
+            formatPhoneNumberPhoneUtils,
+            lastReportAction,
+            report?.ownerAccountID,
+            convertToDisplayStringUtil,
+        );
     } else if (isDeletedParentAction(lastReportAction) && reportUtilsIsChatReport(report)) {
         lastMessageTextFromReport = getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
@@ -1053,12 +1061,13 @@ function getLastMessageTextForReport({
                     formatReportLastMessageText(
                         Parser.htmlToText(
                             // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-                            getReportPreviewMessage(translate, convertToDisplayStringUtil, {
+                            getReportPreviewMessage(translate, formatPhoneNumberPhoneUtils, convertToDisplayStringUtil, {
                                 reportOrID: report,
                                 iouReportAction: lastReportAction,
                                 shouldConsiderScanningReceiptOrPendingRoute: true,
                                 policy: null,
                                 isForListPreview: true,
+                                formatPhoneNumber: formatPhoneNumberPhoneUtils,
                             }),
                         ),
                     ) || lastVisibleMessage?.lastMessageText;

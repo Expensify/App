@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import * as API from '@libs/API';
@@ -122,6 +124,7 @@ type PrepareRejectMoneyRequestDataParams = {
     currentUserLogin: string;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     options?: RejectMoneyRequestOptions;
     shouldUseBulkAction?: boolean;
@@ -136,6 +139,7 @@ function prepareRejectMoneyRequestData({
     currentUserLogin,
     betas,
     delegateAccountID,
+    formatPhoneNumber,
     getCurrencyDecimals,
     options,
     shouldUseBulkAction,
@@ -516,7 +520,17 @@ function prepareRejectMoneyRequestData({
                 delegateAccountIDParam: delegateAccountID,
             });
 
-            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, getCurrencyDecimals, undefined, transaction, undefined, undefined, delegateAccountID);
+            reportPreviewAction = buildOptimisticReportPreview(
+                policyExpenseChat,
+                newExpenseReport,
+                formatPhoneNumber,
+                getCurrencyDecimals,
+                undefined,
+                transaction,
+                undefined,
+                undefined,
+                delegateAccountID,
+            );
             movedTransactionAction = buildOptimisticMovedTransactionAction(childReportID, newExpenseReport.reportID);
             createdIOUReportActionID = iouAction.reportActionID;
             expenseMovedReportActionID = movedTransactionAction.reportActionID;
@@ -940,6 +954,7 @@ function rejectMoneyRequest(
     currentUserLogin: string,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     delegateAccountID: number | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     options?: RejectMoneyRequestOptions,
 ): Route | undefined {
@@ -952,6 +967,7 @@ function rejectMoneyRequest(
         currentUserLogin,
         betas,
         delegateAccountID,
+        formatPhoneNumber,
         getCurrencyDecimals,
         options,
     });

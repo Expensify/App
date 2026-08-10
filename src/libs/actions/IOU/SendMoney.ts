@@ -1,4 +1,5 @@
 import type {PaymentMethodType} from '@components/KYCWall/types';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -83,6 +84,7 @@ function getSendMoneyParams({
     currentUserAccountID,
     delegateAccountID,
     getCurrencyDecimals,
+    formatPhoneNumber,
 }: {
     report: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
@@ -99,6 +101,7 @@ function getSendMoneyParams({
     currentUserAccountID: number;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }): SendMoneyParamsData {
     const recipientEmail = addSMSDomainIfPhoneNumber(recipient.login ?? '');
     const recipientAccountID = Number(recipient.accountID);
@@ -160,7 +163,17 @@ function getSendMoneyParams({
             delegateAccountIDParam: delegateAccountID,
         });
 
-    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport, getCurrencyDecimals, undefined, undefined, undefined, undefined, delegateAccountID);
+    const reportPreviewAction = buildOptimisticReportPreview(
+        chatReport,
+        optimisticIOUReport,
+        formatPhoneNumber,
+        getCurrencyDecimals,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        delegateAccountID,
+    );
 
     // Change the method to set for new reports because it doesn't exist yet, is faster,
     // and we need the data to be available when we navigate to the chat page
@@ -511,6 +524,7 @@ type SendMoneyActionParams = {
     shouldDeferForSearch?: boolean;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function executeSendMoney(
@@ -518,8 +532,22 @@ function executeSendMoney(
     paymentMethodType: typeof CONST.IOU.PAYMENT_TYPE.ELSEWHERE | typeof CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
     writeCommand: typeof WRITE_COMMANDS.SEND_MONEY_ELSEWHERE | typeof WRITE_COMMANDS.SEND_MONEY_WITH_WALLET,
 ) {
-    const {report, quickAction, amount, currency, comment, currentUserAccountID, recipient, created, merchant, receipt, optimisticChatReportID, delegateAccountID, getCurrencyDecimals} =
-        actionParams;
+    const {
+        report,
+        quickAction,
+        amount,
+        currency,
+        comment,
+        currentUserAccountID,
+        recipient,
+        created,
+        merchant,
+        receipt,
+        optimisticChatReportID,
+        delegateAccountID,
+        formatPhoneNumber,
+        getCurrencyDecimals,
+    } = actionParams;
     const {shouldStartTracking = true, shouldDeferForSearch = false} = actionParams;
 
     const {params, optimisticData, successData, failureData} = getSendMoneyParams({
@@ -537,6 +565,7 @@ function executeSendMoney(
         optimisticChatReportID,
         currentUserAccountID,
         delegateAccountID,
+        formatPhoneNumber,
         getCurrencyDecimals,
     });
     if (shouldStartTracking) {
