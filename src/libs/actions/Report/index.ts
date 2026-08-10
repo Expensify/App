@@ -171,6 +171,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {endSendMessagePhase, startSendMessagePhase} from '@libs/telemetry/sendMessageSpans';
 import {
     getAmount,
     getCurrency,
@@ -1151,11 +1152,18 @@ function addActions({
         DateUtils.setTimezoneUpdated();
     }
 
+    endSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.OPTIMISTIC_BUILD);
+    startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.API_WRITE_ENQUEUE);
     API.write(commandName, parameters, {
         optimisticData,
         successData,
         failureData,
     });
+    endSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.API_WRITE_ENQUEUE);
+    // Everything from here until the message appears in the report-actions list is the Onyx merge, the
+    // derived-value recomputes it triggers, and React scheduling — none of which we can instrument from
+    // inside. The list closes this phase when it first renders the action.
+    startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE);
     notifyNewAction(resolvedNotifyReportID, lastAction, lastAction?.actorAccountID === currentUserAccountID);
 }
 
@@ -1244,6 +1252,7 @@ function addComment({
     delegateAccountID,
     conciergeReportID,
 }: AddCommentParams) {
+    startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.OPTIMISTIC_BUILD);
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
