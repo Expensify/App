@@ -28,6 +28,7 @@ const LOADED_METADATA = {status: 'loaded'} as const;
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyIllustrations: () => ({}),
+    useMemoizedLazyExpensifyIcons: () => ({}),
 }));
 
 jest.mock('@hooks/useCardFeedErrors', () => ({
@@ -133,7 +134,7 @@ function buildCompanyCards({
     };
 }
 
-function renderTable(companyCards: UseCompanyCardsResult) {
+function renderTable(companyCards: UseCompanyCardsResult, isSelectionModeEnabled = false) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <WorkspaceCompanyCardsTable
@@ -144,6 +145,7 @@ function renderTable(companyCards: UseCompanyCardsResult) {
                 onAssignCard={jest.fn()}
                 isAssigningCardDisabled={false}
                 canWriteCompanyCards
+                isSelectionModeEnabled={isSelectionModeEnabled}
                 onReloadPage={jest.fn()}
                 onReloadFeed={jest.fn()}
             />
@@ -210,5 +212,29 @@ describe('WorkspaceCompanyCardsTable loading suppression', () => {
 
         expect(screen.queryByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeNull();
         expect(screen.getByTestId('WorkspaceCompanyCardsTable')).toBeTruthy();
+    });
+});
+
+describe('WorkspaceCompanyCardsTable selection mode', () => {
+    beforeEach(async () => {
+        await Onyx.clear();
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+        await waitForBatchedUpdates();
+    });
+
+    it('shows the feed header controls outside selection mode', async () => {
+        renderTable(buildCompanyCards({feedName: FEED_NAME}));
+
+        await waitForBatchedUpdates();
+
+        expect(screen.getByTestId('WorkspaceCompanyCardsTableHeaderButtons')).toBeTruthy();
+    });
+
+    it('hides the feed header controls during narrow-layout selection mode', async () => {
+        renderTable(buildCompanyCards({feedName: FEED_NAME}), true);
+
+        await waitForBatchedUpdates();
+
+        expect(screen.queryByTestId('WorkspaceCompanyCardsTableHeaderButtons')).toBeNull();
     });
 });

@@ -93,6 +93,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
         'QBDSquare',
         'CertiniaSquare',
         'RilletSquare',
+        'DualEntrySquare',
         'GustoSquare',
     ]);
     const {isOffline} = useNetwork();
@@ -325,7 +326,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                                     numberOfLinesTitle={2}
                                     icon={exportMenuItem.shouldShowMenuItemIcon ? getIntegrationIcon(connectedIntegration, expensifyIcons) : undefined}
                                     iconType={CONST.ICON_TYPE_AVATAR}
-                                    avatarSize={CONST.AVATAR_SIZE.SMALLER}
+                                    avatarSize={CONST.AVATAR_SIZE.X_SMALL}
                                     shouldShowRightIcon={canWriteCompanyCards}
                                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(feedName, cardID)))}
                                     interactive={canWriteCompanyCards}

@@ -169,6 +169,7 @@ function updateLegalName(
     legalLastName: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'>,
+    shouldGoBack = true,
 ) {
     const parameters: UpdateLegalNameParams = {legalFirstName, legalLastName};
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
@@ -205,7 +206,9 @@ function updateLegalName(
     API.write(WRITE_COMMANDS.UPDATE_LEGAL_NAME, parameters, {
         optimisticData,
     });
-    Navigation.goBack();
+    if (shouldGoBack) {
+        Navigation.goBack();
+    }
 }
 
 function updateAddress(addresses: Address[], street: string, street2: string, city: string, state: string, zip: string, country: Country | '') {
@@ -670,7 +673,7 @@ function setPersonalDetailsAndRevealExpensifyCard(
         })
             .then((response) => {
                 if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_MAGIC_CODE) {
+                    if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_VALIDATE_CODE) {
                         // eslint-disable-next-line prefer-promise-reject-errors
                         reject('validateCodeForm.error.incorrectSecurityCode');
                         return;

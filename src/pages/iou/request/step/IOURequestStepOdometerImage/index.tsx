@@ -163,13 +163,6 @@ function IOURequestStepOdometerImage({
         capturePhotoWithFlash(getScreenshot);
     };
 
-    const cameraLoadingReasonAttributes = {
-        context: 'IOURequestStepOdometerImage',
-        cameraPermissionState,
-        isQueriedPermissionState,
-        hasVideoConstraints: !isEmptyObject(videoConstraints),
-    };
-
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
@@ -178,7 +171,6 @@ function IOURequestStepOdometerImage({
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
                         color={theme.textSupporting}
-                        reasonAttributes={cameraLoadingReasonAttributes}
                     />
                 )}
                 {cameraPermissionState !== 'granted' && isQueriedPermissionState && (
