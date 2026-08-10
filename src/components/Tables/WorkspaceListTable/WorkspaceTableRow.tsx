@@ -55,11 +55,12 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
 
     const formattedOwnerName = item.ownerName ?? '';
     const formattedWorkspaceType = getUserFriendlyWorkspaceType(item.type, translate);
+    const displayTitle = item.isArchived ? `${item.title} (${translate('workspace.common.archived')})` : item.title;
     const narrowWorkspaceLabel = `${translate('common.owner')}: ${formattedOwnerName} • ${formattedWorkspaceType}`;
     const itemDeletedStyles = item.isDeleted ? [styles.offlineFeedbackDeleted] : [{}];
 
     const accessibilityLabel = [
-        `${translate('workspace.common.workspaceName')}: ${item.title}`,
+        `${translate('workspace.common.workspaceName')}: ${displayTitle}`,
         item.isDefault ? translate('common.default') : '',
         item.isJoinRequestPending ? translate('workspace.common.requested') : '',
         item.ownerName ? `${translate('workspace.common.workspaceOwner')}: ${item.ownerName}` : '',
@@ -138,7 +139,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                             <View style={[styles.flex1, styles.gap1]}>
                                 <TextWithTooltip
                                     shouldShowTooltip
-                                    text={item.title}
+                                    text={displayTitle}
                                     style={itemDeletedStyles}
                                 />
 
@@ -182,7 +183,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                 <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1]}>
                                     <TextWithTooltip
                                         shouldShowTooltip
-                                        text={item.title}
+                                        text={displayTitle}
                                         style={[itemDeletedStyles, styles.flexShrink1]}
                                     />
                                     {item.isDefault && DefaultWorkspaceBadge}
