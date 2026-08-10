@@ -1200,6 +1200,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 function recalculateOptimisticReportName(
     iouReport: OnyxTypes.Report,
     policy: OnyxEntry<OnyxTypes.Policy>,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     optimisticTransactions: Record<string, OnyxTypes.Transaction> = {},
 ): string | undefined {
     if (!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]) {
@@ -1220,7 +1221,7 @@ function recalculateOptimisticReportName(
         transactionsRecord[id] = transaction;
     }
 
-    const result = computeOptimisticReportNameWithMetadata(iouReport, policy, iouReport.policyID, transactionsRecord);
+    const result = computeOptimisticReportNameWithMetadata(iouReport, policy, iouReport.policyID, transactionsRecord, getCurrencyDecimals);
     if (!result || result.hasUnresolvedTokens) {
         return undefined;
     }
@@ -1230,6 +1231,7 @@ function recalculateOptimisticReportName(
 function maybeUpdateReportNameForFormulaTitle(
     iouReport: OnyxTypes.Report,
     policy: OnyxEntry<OnyxTypes.Policy>,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     optimisticTransactions: Record<string, OnyxTypes.Transaction> = {},
 ): OnyxTypes.Report {
     const allReportNameValuePairs = getAllReportNameValuePairs();
@@ -1241,7 +1243,7 @@ function maybeUpdateReportNameForFormulaTitle(
         return iouReport;
     }
 
-    const updatedReportName = recalculateOptimisticReportName(iouReport, policy, optimisticTransactions);
+    const updatedReportName = recalculateOptimisticReportName(iouReport, policy, getCurrencyDecimals, optimisticTransactions);
     if (!updatedReportName) {
         return iouReport;
     }
@@ -1586,7 +1588,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     // Runs after STEP 3 so the optimistic transaction is in the formula context; the gate skips
     // total-stale cases where the formula would bake in a wrong `{report:total}`.
     if (!shouldCreateNewMoneyRequestReport && isPolicyExpenseChat && didUpdateOptimisticTotal) {
-        iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy, {[optimisticTransaction.transactionID]: optimisticTransaction});
+        iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy, getCurrencyDecimals, {[optimisticTransaction.transactionID]: optimisticTransaction});
     }
 
     // STEP 4: Build optimistic reportActions. We need:
@@ -1789,6 +1791,7 @@ function getUpdatedMoneyRequestReportData(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
     isTransactionOnHold: boolean,
     policy: OnyxEntry<OnyxTypes.Policy>,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     actorAccountID?: number,
     transactionChanges?: TransactionChanges,
     // Overlaid on Onyx in the formula context — search snapshots, prior bulk-edit iterations, etc.
@@ -1853,7 +1856,7 @@ function getUpdatedMoneyRequestReportData(
             if (updatedTransaction?.transactionID) {
                 optimisticTransactions[updatedTransaction.transactionID] = updatedTransaction;
             }
-            updatedMoneyRequestReport = maybeUpdateReportNameForFormulaTitle(updatedMoneyRequestReport, policy, optimisticTransactions);
+            updatedMoneyRequestReport = maybeUpdateReportNameForFormulaTitle(updatedMoneyRequestReport, policy, getCurrencyDecimals, optimisticTransactions);
         }
     } else {
         updatedMoneyRequestReport = updateIOUOwnerAndTotal(iouReport, actorAccountID ?? CONST.DEFAULT_NUMBER_ID, diff, getCurrency(transaction), false, true, isTransactionOnHold);

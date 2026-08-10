@@ -1260,10 +1260,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         accountID,
                         getLoginByAccountID(itemReport?.ownerAccountID, personalDetails),
                         doesPersonalDetailExistSelector(itemReport?.ownerAccountID)(personalDetails),
+                        getCurrencyDecimals,
                         reportTransactions,
                     );
                     if (!invite?.policyExpenseChatReportID) {
-                        moveIOUReportToPolicy(itemReport, adminPolicy, reportPreviewAction, false, reportTransactions);
+                        moveIOUReportToPolicy(itemReport, adminPolicy, reportPreviewAction, getCurrencyDecimals, false, reportTransactions);
                     }
                 }
             }
