@@ -1940,6 +1940,7 @@ const CONST = {
         DEFAULT_EXPENSE_REPORT_NAME: 'New Report',
         PERMISSIONS: {
             READ: 'read',
+            COMMENT: 'comment',
             WRITE: 'write',
             SHARE: 'share',
             OWN: 'own',
