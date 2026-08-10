@@ -2121,14 +2121,14 @@ describe('actions/Duplicate', () => {
                     },
                     waypoints: {
                         waypoint0: {
-                            lat: 34.3553515,
-                            lng: 62.1925936,
-                            address: '954R+5XR, Behzad Ave, Herat 300502, Afghanistan',
+                            lat: 41.3275,
+                            lng: 19.8189,
+                            address: 'Main Square, Albania',
                         },
                         waypoint1: {
-                            lat: 34.354473,
-                            lng: 62.192255,
-                            address: '953R+PRW, Herat 300501, Afghanistan',
+                            lat: 41.3186,
+                            lng: 19.8216,
+                            address: 'Central Park, Albania',
                         },
                     },
                 },
@@ -2447,7 +2447,7 @@ describe('actions/Duplicate', () => {
         });
 
         it('should duplicate a GPS distance expense as manual distance when no targetPolicy is provided', async () => {
-            const transactionID = 'gps-selfdm-1';
+            const transactionID = 'gps-personal-chat-1';
             const mockGPSDistanceTransaction = {
                 ...mockTransaction,
                 transactionID,
@@ -2463,14 +2463,14 @@ describe('actions/Duplicate', () => {
                     },
                     waypoints: {
                         waypoint0: {
-                            lat: 34.3553515,
-                            lng: 62.1925936,
-                            address: '954R+5XR, Behzad Ave, Herat 300502, Afghanistan',
+                            lat: 41.3275,
+                            lng: 19.8189,
+                            address: 'Main Square, Albania',
                         },
                         waypoint1: {
-                            lat: 34.354473,
-                            lng: 62.192255,
-                            address: '953R+PRW, Herat 300501, Afghanistan',
+                            lat: 41.3186,
+                            lng: 19.8216,
+                            address: 'Central Park, Albania',
                         },
                     },
                 },
