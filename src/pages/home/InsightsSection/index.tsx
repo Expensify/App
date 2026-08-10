@@ -7,20 +7,20 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 
-import SpendOverTimeSectionContent from './SpendOverTimeSectionContent';
+import InsightsSectionContent from './InsightsSectionContent';
 
-function SpendOverTimeSection() {
+function InsightsSection() {
     const {login} = useCurrentUserPersonalDetails();
-    const [isAnyPolicyEligibleForSpendOverTime] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+    const [isAnyPolicyEligibleForInsights] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: (policies) => Object.values(policies ?? {}).some((policy) => !!policy && isPolicyEligibleForSpendOverTime(policy, login)),
     });
 
     // The widget is only shown for workspace admins/auditors/approvers.
-    if (!isAnyPolicyEligibleForSpendOverTime) {
+    if (!isAnyPolicyEligibleForInsights) {
         return null;
     }
 
-    return <SpendOverTimeSectionContent />;
+    return <InsightsSectionContent />;
 }
 
-export default SpendOverTimeSection;
+export default InsightsSection;

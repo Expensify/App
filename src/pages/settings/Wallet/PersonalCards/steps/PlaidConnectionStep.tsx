@@ -14,7 +14,6 @@ import {setAddNewPersonalCardStepAndData} from '@libs/actions/PersonalCards';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import Navigation from '@navigation/Navigation';
 
@@ -63,16 +62,9 @@ function PlaidLinkContent({plaidLinkToken, plaidDataErrorMessage, plaidData, onS
         return <Text style={[styles.formError, styles.mh5]}>{plaidDataErrorMessage}</Text>;
     }
     if (plaidData?.isLoading) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'PersonalCardPlaidConnectionStep.renderPlaidLink',
-            isPlaidDataLoading: plaidData?.isLoading,
-        };
         return (
             <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={reasonAttributes}
-                />
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
             </View>
         );
     }
