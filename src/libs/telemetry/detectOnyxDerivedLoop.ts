@@ -12,13 +12,21 @@ const WINDOW_MS = 10_000;
 // Hand-tuned flat rate (5/s); make it per-key if one config needs a looser bound.
 const RECOMPUTE_THRESHOLD = 50;
 
+/** A single recompute of a derived key: when it happened and which dependency keys triggered it. */
 type RecomputeEntry = {
+    /** Timestamp of the recompute, in ms. */
     at: number;
+
+    /** Dependency keys whose change triggered this recompute. */
     triggeredKeys: Set<OnyxKey>;
 };
 
+/** Rolling detection state for one derived key. */
 type KeyState = {
+    /** Recomputes within the last `WINDOW_MS`, oldest first. */
     window: RecomputeEntry[];
+
+    /** Whether this key already reported a loop; latched so each key reports at most once per session. */
     hasReported: boolean;
 };
 
