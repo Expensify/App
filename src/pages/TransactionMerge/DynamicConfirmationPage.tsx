@@ -27,6 +27,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
+import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {findSelfDMReportID} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -139,7 +140,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
                         sourceTransaction.transactionID,
                         targetReportTransactionsCollection,
                         currentSearchResults?.data,
-                        Object.values(targetReportActions ?? {}),
+                        getFilteredReportActionsForReportView(Object.values(targetReportActions ?? {})),
                         isOffline,
                     );
 
