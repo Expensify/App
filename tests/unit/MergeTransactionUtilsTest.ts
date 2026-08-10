@@ -25,6 +25,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
+import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
@@ -1696,17 +1697,17 @@ describe('MergeTransactionUtils', () => {
             // Given a report with the target and a sibling whose IOU action was deleted while its transaction row lingers in Onyx
             const target = buildTransaction('target', REPORT_ID);
             const deletedRow = buildTransaction('deletedRow', REPORT_ID);
-            const buildIOUAction = (transactionID: string, message: Array<{html: string; type: string; text: string}>): ReportAction =>
-                ({
-                    reportActionID: `action_${transactionID}`,
-                    reportID: REPORT_ID,
-                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                    created: '2024-01-01 00:00:00.000',
-                    message,
-                    originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: transactionID},
-                }) as unknown as ReportAction;
+            const buildIOUAction = (index: number, transactionID: string, isDeleted: boolean): ReportAction => ({
+                ...createRandomReportAction(index),
+                reportActionID: `action_${transactionID}`,
+                reportID: REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                // An empty message marks the action as a deleted comment; a populated one keeps it live.
+                message: isDeleted ? [] : [{type: 'COMMENT', html: 'expense', text: 'expense'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: transactionID},
+            });
             // The target keeps a live action; the sibling's action is a deleted comment (empty message).
-            const reportActions = [buildIOUAction('target', [{html: 'expense', type: 'COMMENT', text: 'expense'}]), buildIOUAction('deletedRow', [])];
+            const reportActions = [buildIOUAction(0, 'target', false), buildIOUAction(1, 'deletedRow', true)];
 
             // When we check after the merge, counting exactly what the Search report renders
             const result = willReportBecomeOneTransactionReportAfterMerge(REPORT_ID, 'source', toCollection([target, deletedRow]), undefined, reportActions, false);
