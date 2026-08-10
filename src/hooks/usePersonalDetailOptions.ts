@@ -1,6 +1,5 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
-import memoize, {equivalentArgsComparator} from '@libs/memoize';
 import {createOptionList} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData, PrivateIsArchivedMap} from '@libs/PersonalDetailOptionsListUtils/types';
 import {isOneOnOneChat, isSelfDM} from '@libs/ReportUtils';
@@ -106,16 +105,6 @@ const filterReportAttributes = (reportAttributes: OnyxEntry<ReportAttributesDeri
 };
 
 /**
- * Building an option per personal details entry is the expensive step of this hook and depends only on Onyx values.
- * Arguments are compared one level deep because the maps are rebuilt each render from those same unchanged values.
- */
-const memoizedCreateOptionList = memoize(createOptionList, {
-    maxSize: 1,
-    equality: equivalentArgsComparator,
-    monitoringName: 'usePersonalDetailOptions.createOptionList',
-});
-
-/**
  * Hook that provides options list for personal details.
  *
  * Benefits over OptionListContextProvider:
@@ -140,37 +129,35 @@ function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFil
     const {accountID} = useCurrentUserPersonalDetails();
     const {formatPhoneNumber, translate} = useLocalize();
     const [reports, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
+    const reportIDsSet = (() => {
+        if (!reports) {
+            return new Set<string>();
+        }
+        const validReportIDs = new Set<string>();
+        for (const report of Object.values(reports)) {
+            if (report) {
+                validReportIDs.add(report.reportID);
+            }
+        }
+        return validReportIDs;
+    })();
+
     const [reportAttributes, reportAttributesMetadata] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [reportNameValuePairs, reportNameValuePairsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const personalDetails = usePersonalDetails();
 
     const isLoading = !enabled || isLoadingOnyxValue(reportsMetadata, reportAttributesMetadata, reportNameValuePairsMetadata);
 
-    // The whole derivation chain is skipped while loading (or disabled), so a consumer that only holds the Onyx
-    // subscriptions (e.g. PersonalDetailOptionsKeepWarm) doesn't rebuild these maps on every collection update.
-    const optionsData = (() => {
-        if (isLoading) {
-            return undefined;
-        }
+    const accountIDToReportIDMap = generateAccountIDToReportIDMap(reports, accountID);
+    const privateIsArchivedMap = filterRNVPs(reportNameValuePairs, reportIDsSet);
+    const filteredReportAttributes = filterReportAttributes(reportAttributes, reportIDsSet);
 
-        const reportIDsSet = new Set<string>();
-        if (reports) {
-            for (const report of Object.values(reports)) {
-                if (report) {
-                    reportIDsSet.add(report.reportID);
-                }
-            }
-        }
-
-        const accountIDToReportIDMap = generateAccountIDToReportIDMap(reports, accountID);
-        const privateIsArchivedMap = filterRNVPs(reportNameValuePairs, reportIDsSet);
-        const filteredReportAttributes = filterReportAttributes(reportAttributes, reportIDsSet);
-
-        return memoizedCreateOptionList(accountID, personalDetails, accountIDToReportIDMap, reports, filteredReportAttributes, privateIsArchivedMap, formatPhoneNumber, translate, {
-            shouldStoreReportErrors,
-            shouldShowBrickRoadIndicator,
-        });
-    })();
+    const optionsData = !isLoading
+        ? createOptionList(accountID, personalDetails, accountIDToReportIDMap, reports, filteredReportAttributes, privateIsArchivedMap, formatPhoneNumber, translate, {
+              shouldStoreReportErrors,
+              shouldShowBrickRoadIndicator,
+          })
+        : undefined;
 
     return {
         options: optionsData?.options,

@@ -26,8 +26,6 @@ type SearchAdvancedFiltersContentProps = {
     baseFilterKey: SearchFilter['key'];
     values: Partial<SearchAdvancedFiltersForm> | undefined;
     ready?: boolean;
-    /** Whether this filter is the one the advanced filters popover currently shows */
-    isActive?: boolean;
     components: {
         Text: React.ComponentType<TextInputFilterContentWrapperProps>;
         Amount: React.ComponentType<AmountFilterContentWrapperProps>;
@@ -38,7 +36,7 @@ type SearchAdvancedFiltersContentProps = {
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function SearchAdvancedFiltersContent({baseFilterKey, values, ready, isActive, components, onChange}: SearchAdvancedFiltersContentProps) {
+function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components, onChange}: SearchAdvancedFiltersContentProps) {
     if (isAmountFilterKey(baseFilterKey)) {
         const AmountFilter = components.Amount;
         return (
@@ -119,7 +117,6 @@ function SearchAdvancedFiltersContent({baseFilterKey, values, ready, isActive, c
             type={values?.type}
             policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, values)}
             ready={ready}
-            isActive={isActive}
             isNegated={isNegated}
             onChange={(newValue, negated) => onChange(getFilterFormValues(baseFilterKey, newValue, negated))}
         />

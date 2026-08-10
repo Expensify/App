@@ -4,7 +4,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailOptions from '@hooks/usePersonalDetailOptions';
 
-import memoize, {equivalentArgsComparator} from '@libs/memoize';
 import {filterOption, getValidOptions} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
@@ -149,29 +148,6 @@ const defaultListOptions = {
 };
 
 /**
- * Filtering the whole option list is a pure derivation of its inputs, so remounting consumers reuse the previous result.
- * The cache is sized to the number of mounted filter contents so lists rendered next to each other don't evict each other.
- */
-const memoizedGetValidOptions = memoize(getValidOptions, {
-    maxSize: CONST.SEARCH.MAX_MOUNTED_FILTER_CONTENTS,
-    equality: equivalentArgsComparator,
-    monitoringName: 'usePersonalDetailSearchSelector.getValidOptions',
-});
-
-/** Marks the options matching the selected accountIDs, so the copy of the list is reused while the inputs are unchanged. */
-const buildSelectedOptions = (options: OptionData[], selectedAccountIDs: Set<string>) =>
-    options.map((option) => ({
-        ...option,
-        isSelected: selectedAccountIDs.has(option.accountID.toString()),
-    }));
-
-const memoizedBuildSelectedOptions = memoize(buildSelectedOptions, {
-    maxSize: CONST.SEARCH.MAX_MOUNTED_FILTER_CONTENTS,
-    equality: equivalentArgsComparator,
-    monitoringName: 'usePersonalDetailSearchSelector.buildSelectedOptions',
-});
-
-/**
  * Base hook that provides search functionality with selection logic for option lists.
  * This contains the core logic without platform-specific dependencies.
  */
@@ -215,17 +191,11 @@ function usePersonalDetailSearchSelectorBase({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
 
-    // With nothing selected the options already carry the right state, so the list is passed through without copying,
-    // keeping its reference stable for the memoized filtering below.
-    const transformedOptions: OptionData[] = (() => {
-        if (!optionsWithContacts) {
-            return [];
-        }
-        if (selectedAccountIDs.size === 0) {
-            return optionsWithContacts;
-        }
-        return memoizedBuildSelectedOptions(optionsWithContacts, selectedAccountIDs);
-    })();
+    const transformedOptions: OptionData[] =
+        optionsWithContacts?.map((option) => ({
+            ...option,
+            isSelected: selectedAccountIDs.has(option.accountID.toString()),
+        })) ?? [];
 
     const selectedOptions = (() => {
         const options: OptionData[] = [];
@@ -244,7 +214,7 @@ function usePersonalDetailSearchSelectorBase({
 
     const optionsList = !areOptionsInitialized
         ? defaultListOptions
-        : memoizedGetValidOptions(transformedOptions, currentUserEmail, formatPhoneNumber, countryCode, loginList, {
+        : getValidOptions(transformedOptions, currentUserEmail, formatPhoneNumber, countryCode, loginList, {
               excludeLogins,
               excludeFromSuggestionsOnly,
               includeSelectedOptions: shouldKeepSelectedInAvailableOptions,
@@ -263,19 +233,13 @@ function usePersonalDetailSearchSelectorBase({
     const currentUserSearchTerms = [translate('common.you'), translate('common.me')];
     const filteredCurrentUserOption = (() => {
         const newOption = filterOption(currentOption, debouncedSearchTerm, currentUserSearchTerms);
-        if (!newOption) {
-            return newOption;
+        if (newOption) {
+            return {
+                ...newOption,
+                isSelected: selectedAccountIDs.has(newOption.accountID.toString()),
+            };
         }
-        const isSelected = selectedAccountIDs.has(newOption.accountID.toString());
-        // The original reference is kept when the selection state already matches, so consumers building memoized
-        // lists on top of this option keep hitting their caches across remounts.
-        if ((newOption.isSelected ?? false) === isSelected) {
-            return newOption;
-        }
-        return {
-            ...newOption,
-            isSelected,
-        };
+        return newOption;
     })();
 
     const existingAccountIDs = new Set(optionsWithContacts?.map((option) => option.accountID.toString()));

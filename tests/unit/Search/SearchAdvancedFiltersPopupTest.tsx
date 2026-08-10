@@ -6,6 +6,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
@@ -21,15 +22,12 @@ const mockHoverableFilterKeys: string[] = [FILTER_KEYS.TYPE, FILTER_KEYS.FROM, F
 /** Called once per mounted filter content instance, so a remount shows up as a second call for the same key. */
 const mockOnContentCreated = jest.fn<void, [string]>();
 
+/** The advanced filters form value served by the useOnyx mock. Reassigned by tests simulating filter value changes. */
+let mockFiltersForm: Partial<SearchAdvancedFiltersForm> | undefined;
+
 jest.mock('@components/SafeTriangle', () => ({
     __esModule: true,
     default: ({children}: {children: React.ReactNode}) => <MockView>{children}</MockView>,
-}));
-
-// Only holds Onyx subscriptions (which need providers not present here) and renders nothing.
-jest.mock('@components/Search/FilterComponents/PersonalDetailOptionsKeepWarm', () => ({
-    __esModule: true,
-    default: () => null,
 }));
 
 // Stand-in for the filter list: one pressable per filter that reports a hover on the row.
@@ -71,7 +69,7 @@ jest.mock('@components/Search/hooks/useUpdateFilterQuery', () => ({
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
-    default: () => [undefined, {status: 'loaded'}],
+    default: () => [mockFiltersForm, {status: 'loaded'}],
 }));
 
 // The popover exists on web only (index.native.tsx renders nothing), and jest-expo's RN resolver prefers the native variant.
@@ -98,6 +96,7 @@ function hoverAndRest(filterKey: string) {
 beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockFiltersForm = undefined;
 });
 
 afterEach(() => {
@@ -135,6 +134,20 @@ describe('SearchAdvancedFiltersPopup', () => {
         expect(mockOnContentCreated.mock.calls.filter(([filterKey]) => filterKey === FILTER_KEYS.FROM)).toHaveLength(1);
     });
 
+    it('remounts a kept content when the filters form changed while it was away', () => {
+        render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
+
+        hoverAndRest(FILTER_KEYS.FROM);
+
+        // The form changes (e.g. a value was picked) and the cursor moves on to another filter.
+        mockFiltersForm = {type: CONST.SEARCH.DATA_TYPES.EXPENSE};
+        hoverAndRest(FILTER_KEYS.TO);
+
+        // Returning to the filter now gets a fresh content instance instead of the one from before the change.
+        hoverAndRest(FILTER_KEYS.FROM);
+        expect(mockOnContentCreated.mock.calls.filter(([filterKey]) => filterKey === FILTER_KEYS.FROM)).toHaveLength(2);
+    });
+
     it('keeps only the most recently used contents mounted', () => {
         render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
 
@@ -142,7 +155,7 @@ describe('SearchAdvancedFiltersPopup', () => {
         hoverAndRest(FILTER_KEYS.FROM);
         hoverAndRest(FILTER_KEYS.TO);
         hoverAndRest(FILTER_KEYS.ATTENDEE);
-        expect(screen.queryByTestId(`filter-content-${FILTER_KEYS.TYPE}`)).toBeNull();
+        expect(screen.queryByTestId(`filter-content-${FILTER_KEYS.TYPE}`, {includeHiddenElements: true})).toBeNull();
 
         // Returning to an evicted filter mounts a fresh content instance for it.
         hoverAndRest(FILTER_KEYS.TYPE);
