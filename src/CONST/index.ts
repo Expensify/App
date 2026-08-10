@@ -2257,6 +2257,7 @@ const CONST = {
         ATTRIBUTE_ROUTE_FROM: 'route_from',
         ATTRIBUTE_ROUTE_TO: 'route_to',
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
+        ATTRIBUTE_FAILED: 'failed',
         ATTRIBUTE_IS_WARM: 'is_warm',
         ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN: 'lazy_tab_fallback_shown',
         // Stamped on the navigate-to-inbox-tab span: wide-layout navigations mount the central report
