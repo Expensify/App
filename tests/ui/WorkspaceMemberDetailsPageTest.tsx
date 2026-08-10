@@ -67,6 +67,8 @@ describe('WorkspaceMemberDetailsPage', () => {
     const primaryAccountID = 7777;
     const primaryEmail = 'primary@example.com';
     const secondaryEmail = 'secondary@example.com';
+    const adminPayerAccountID = 8888;
+    const adminPayerEmail = 'adminpayer@example.com';
 
     const policy = {
         ...LHNTestUtils.getFakePolicy(),
@@ -83,6 +85,7 @@ describe('WorkspaceMemberDetailsPage', () => {
             [invitedEmail]: {email: invitedEmail, role: CONST.POLICY.ROLE.USER},
             [phoneLogin]: {email: phoneLogin, role: CONST.POLICY.ROLE.USER},
             [primaryEmail]: {email: primaryEmail, role: CONST.POLICY.ROLE.USER},
+            [adminPayerEmail]: {email: adminPayerEmail, role: CONST.POLICY.ROLE.ADMIN},
         },
     };
 
@@ -102,6 +105,7 @@ describe('WorkspaceMemberDetailsPage', () => {
                 [invitedAccountID]: TestHelper.buildPersonalDetails(invitedEmail, invitedAccountID, 'Invited'),
                 [phoneAccountID]: TestHelper.buildPersonalDetails(phoneLogin, phoneAccountID, 'Phone'),
                 [primaryAccountID]: TestHelper.buildPersonalDetails(primaryEmail, primaryAccountID, 'Primary'),
+                [adminPayerAccountID]: TestHelper.buildPersonalDetails(adminPayerEmail, adminPayerAccountID, 'AdminPayer'),
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
         });
@@ -218,6 +222,54 @@ describe('WorkspaceMemberDetailsPage', () => {
             expect(screen.getByText(TestHelper.translateLocal('workspace.rules.agentRules.unableToRemoveTitle'))).toBeOnTheScreen();
         });
         expect(screen.queryByText(TestHelper.translateLocal('workspace.people.removeMemberTitle'))).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should not lock the Role field for a non-admin Authorized Payer so they can be promoted to Admin', async () => {
+        // Make the invited member (a plain USER) the workspace Authorized Payer.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                reimburser: invitedEmail,
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
+        });
+
+        // The locked hint must NOT be shown — a non-admin payer can still be promoted to Admin.
+        expect(screen.queryByText(/Role can/)).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should lock the Role field for an Authorized Payer who is already an Admin', async () => {
+        // The admin member is the workspace Authorized Payer — every remaining role change would be a demotion.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                reimburser: adminPayerEmail,
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(adminPayerAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
+        });
+
+        // The locked hint IS shown — an admin payer cannot be demoted while they remain the payer.
+        await waitFor(() => {
+            expect(screen.getByText(/Role can/)).toBeOnTheScreen();
+        });
 
         unmount();
         await waitForBatchedUpdatesWithAct();

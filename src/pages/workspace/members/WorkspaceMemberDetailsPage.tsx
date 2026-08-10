@@ -147,6 +147,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const phoneNumber = getPhoneNumber(details);
     const reimburserEmail = getReimburserEmail(policy);
     const isReimburser = !!reimburserEmail && reimburserEmail === memberLogin;
+    // An Authorized Payer (reimburser) must stay an admin, so lock the Role row only once they are already an Admin — every
+    // remaining change would be a demotion that breaks reimbursements. A non-admin payer can still be promoted to Admin.
+    const isReimburserAdmin = isReimburser && member?.role === CONST.POLICY.ROLE.ADMIN;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
@@ -380,9 +383,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             <MenuItemWithTopDescription
                                 disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser || !canManageSelectedMemberRole}
                                 title={translate(`workspace.common.roleName`, member?.role)}
-                                interactive={!isReimburser && canManageSelectedMemberRole}
+                                interactive={!isReimburserAdmin && canManageSelectedMemberRole}
                                 description={translate('common.role')}
-                                shouldShowRightIcon={!isReimburser && canManageSelectedMemberRole}
+                                shouldShowRightIcon={!isReimburserAdmin && canManageSelectedMemberRole}
                                 pressableTestID="member-role-menu-item"
                                 onPress={() => {
                                     if (
@@ -397,7 +400,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     }
                                     Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));
                                 }}
-                                hintText={isReimburser ? translate('common.roleCannotBeChanged', workspaceWorkflowsPageURL) : undefined}
+                                hintText={isReimburserAdmin ? translate('common.roleCannotBeChanged', workspaceWorkflowsPageURL) : undefined}
                                 shouldRenderHintAsHTML
                             />
                             {isControlPolicy(policy) && (

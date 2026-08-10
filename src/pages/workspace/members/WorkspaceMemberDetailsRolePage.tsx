@@ -11,7 +11,7 @@ import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberAssignRole} from '@libs/PolicyUtils';
+import {canMemberAssignRole, getReimburserEmail} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -40,6 +40,10 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
+    // The Authorized Payer (reimburser) must remain an admin, so they may only be promoted to Admin — never demoted to another role.
+    const reimburserEmail = getReimburserEmail(policy);
+    const isReimburser = !!reimburserEmail && reimburserEmail === memberLogin;
+    const allowedRoles = isReimburser ? [CONST.POLICY.ROLE.ADMIN] : undefined;
     useRedirectSubmitWorkspaceFeatureUpgrade({
         policy,
         backTo: ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID),
@@ -51,6 +55,10 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
             return;
         }
         if (!canMemberAssignRole(policy, currentUserLogin, value)) {
+            return;
+        }
+        // Guard the direct-navigation path: a reimburser can only be promoted to Admin, so reject any demotion.
+        if (isReimburser && value !== CONST.POLICY.ROLE.ADMIN) {
             return;
         }
         if (value !== CONST.POLICY.ROLE.ADMIN && isRuleBotEnforcingRules(accountID, policy)) {
@@ -76,6 +84,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
                     role={member?.role}
                     policy={policy}
                     onSelectRole={changeRole}
+                    allowedRoles={allowedRoles}
                     navigateBackTo={ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)}
                 />
             </ScreenWrapper>
