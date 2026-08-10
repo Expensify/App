@@ -4,6 +4,7 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -67,6 +68,7 @@ function SearchTransactionsChangeReport() {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const firstTransactionKey = selectedTransactionsKeys.at(0);
     const firstTransactionReportID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.reportID : undefined;
@@ -157,6 +159,7 @@ function SearchTransactionsChangeReport() {
             policyForMovingExpenses,
             betas,
             isTrackIntentUser,
+            getCurrencyDecimals,
             false,
             shouldDismissEmptyReportsConfirmation,
             {managedCardTransactionID},
@@ -182,6 +185,7 @@ function SearchTransactionsChangeReport() {
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
+                getCurrencyDecimals,
             });
             clearSelectedTransactions();
         });
@@ -267,6 +271,7 @@ function SearchTransactionsChangeReport() {
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
+            getCurrencyDecimals,
         });
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
@@ -289,6 +294,7 @@ function SearchTransactionsChangeReport() {
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
+            getCurrencyDecimals,
         });
         clearSelectedTransactions();
         Navigation.goBack();

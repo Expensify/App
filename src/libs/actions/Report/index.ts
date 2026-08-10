@@ -1,5 +1,7 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
@@ -445,6 +447,7 @@ type MergeReportsProps = {
     isTrackIntentUser: boolean | undefined;
     personalPolicyOutputCurrency: string | undefined;
     selfDMReportActions: OnyxEntry<ReportActions>;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
@@ -2359,6 +2362,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
         betas,
+        hasReportActions: false,
     });
     return optimisticTransactionThread;
 }
@@ -2700,6 +2704,7 @@ function createChildReport(
             isNewThread: true,
             betas,
             isSelfTourViewed,
+            hasReportActions: false,
             currentUserAccountID,
         });
     } else {
@@ -3616,6 +3621,20 @@ function updateRoomVisibility(reportID: string, previousValue: RoomVisibility | 
     API.write(WRITE_COMMANDS.UPDATE_ROOM_VISIBILITY, parameters, {optimisticData, failureData});
 }
 
+type ToggleSubscribeToChildReportParams = {
+    childReportID: string | undefined;
+    currentUserAccountID: number;
+    parentReportAction: ReportAction;
+    parentReport: OnyxEntry<Report>;
+    introSelected: OnyxEntry<IntroSelected>;
+    isSelfTourViewed: boolean | undefined;
+    hasCompletedGuidedSetupFlow: boolean | undefined;
+    betas: OnyxEntry<Beta[]>;
+    prevNotificationPreference: NotificationPreference | undefined;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    hasReportActions: boolean;
+};
+
 /**
  * This will subscribe to an existing thread, or create a new one and then subscribe to it if necessary
  *
@@ -3624,20 +3643,21 @@ function updateRoomVisibility(reportID: string, previousValue: RoomVisibility | 
  * @param parentReport The parent report
  * @param prevNotificationPreference The previous notification preference for the child report
  */
-function toggleSubscribeToChildReport(
-    childReportID: string | undefined,
-    currentUserAccountID: number,
-    parentReportAction: ReportAction,
-    parentReport: OnyxEntry<Report>,
-    introSelected: OnyxEntry<IntroSelected>,
-    isSelfTourViewed: boolean | undefined,
-    hasCompletedGuidedSetupFlow: boolean | undefined,
-    betas: OnyxEntry<Beta[]>,
-    prevNotificationPreference: NotificationPreference | undefined,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-) {
+function toggleSubscribeToChildReport({
+    childReportID,
+    currentUserAccountID,
+    parentReportAction,
+    parentReport,
+    introSelected,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
+    betas,
+    prevNotificationPreference,
+    personalDetails,
+    hasReportActions,
+}: ToggleSubscribeToChildReportParams) {
     if (childReportID) {
-        openReport({reportID: childReportID, introSelected, betas, isSelfTourViewed, hasCompletedGuidedSetupFlow, currentUserAccountID});
+        openReport({reportID: childReportID, introSelected, betas, isSelfTourViewed, hasCompletedGuidedSetupFlow, hasReportActions, currentUserAccountID});
         const parentReportActionID = parentReportAction.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(
@@ -3684,6 +3704,7 @@ function toggleSubscribeToChildReport(
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
             betas,
+            hasReportActions: false,
             currentUserAccountID,
         });
         const notificationPreference = isHiddenForCurrentUser(prevNotificationPreference) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
@@ -4113,18 +4134,33 @@ function navigateToConciergeChat(
     }
 }
 
-function buildNewReportOptimisticData(
-    policy: OnyxEntry<Policy>,
-    reportID: string,
-    reportActionID: string,
-    ownerPersonalDetails: CurrentUserPersonalDetails,
-    reportPreviewReportActionID: string,
-    hasViolationsParam: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    betas: OnyxEntry<Beta[]>,
-    isTrackIntentUser: boolean | undefined,
-    reportName?: string,
-) {
+type BuildNewReportOptimisticDataParams = {
+    policy: OnyxEntry<Policy>;
+    reportID: string;
+    reportActionID: string;
+    ownerPersonalDetails: CurrentUserPersonalDetails;
+    reportPreviewReportActionID: string;
+    hasViolationsParam: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    betas: OnyxEntry<Beta[]>;
+    isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    reportName?: string;
+};
+
+function buildNewReportOptimisticData({
+    policy,
+    reportID,
+    reportActionID,
+    ownerPersonalDetails,
+    reportPreviewReportActionID,
+    hasViolationsParam,
+    isASAPSubmitBetaEnabled,
+    betas,
+    isTrackIntentUser,
+    getCurrencyDecimals,
+    reportName,
+}: BuildNewReportOptimisticDataParams) {
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
@@ -4163,7 +4199,7 @@ function buildNewReportOptimisticData(
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
-    const message = getReportPreviewReportActionMessage({reportOrID: optimisticReportData});
+    const message = getReportPreviewReportActionMessage({reportOrID: optimisticReportData}, getCurrencyDecimals);
     const createReportActionMessage = [
         {
             html: message,
@@ -4352,6 +4388,7 @@ function createNewReport(
     policy: OnyxEntry<Policy>,
     betas: OnyxEntry<Beta[]>,
     isTrackIntentUser: boolean | undefined,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
     options: {managedCardTransactionID?: string; reportName?: string} = {},
@@ -4361,9 +4398,9 @@ function createNewReport(
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
 
-    const {parentReportID, reportPreviewAction, optimisticData, successData, failureData, optimisticReportData} = buildNewReportOptimisticData(
+    const {parentReportID, reportPreviewAction, optimisticData, successData, failureData, optimisticReportData} = buildNewReportOptimisticData({
         policy,
-        optimisticReportID,
+        reportID: optimisticReportID,
         reportActionID,
         ownerPersonalDetails,
         reportPreviewReportActionID,
@@ -4371,8 +4408,9 @@ function createNewReport(
         isASAPSubmitBetaEnabled,
         betas,
         isTrackIntentUser,
+        getCurrencyDecimals,
         reportName,
-    );
+    });
 
     if (shouldDismissEmptyReportsConfirmation) {
         Onyx.merge(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, true);
@@ -8211,6 +8249,7 @@ function mergeReports({
     isTrackIntentUser,
     personalPolicyOutputCurrency,
     selfDMReportActions,
+    getCurrencyDecimals,
 }: MergeReportsProps) {
     const reports = allReportsParam ?? allReports;
     const destinationReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
@@ -8239,6 +8278,7 @@ function mergeReports({
         isTrackIntentUser,
         personalPolicyOutputCurrency,
         selfDMReportActions,
+        getCurrencyDecimals,
     });
 
     const {
