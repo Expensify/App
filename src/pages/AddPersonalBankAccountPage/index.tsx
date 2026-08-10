@@ -212,7 +212,7 @@ function AddPersonalBankAccountPage() {
     }, [error]);
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'AddPersonalBankAccountPage', isRedirecting}} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

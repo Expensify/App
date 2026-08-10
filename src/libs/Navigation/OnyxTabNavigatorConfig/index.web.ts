@@ -1,4 +1,5 @@
 import type {TabRouterOptions} from '@react-navigation/native';
+import type {ViewStyle} from 'react-native';
 
 const defaultScreenOptions = {
     animation: 'none',
@@ -10,4 +11,6 @@ const defaultScreenOptions = {
  */
 const backBehavior: NonNullable<TabRouterOptions['backBehavior']> = 'none';
 
-export {defaultScreenOptions, backBehavior};
+const pagerContainerStyle: ViewStyle = {overflow: 'clip'};
+
+export {defaultScreenOptions, backBehavior, pagerContainerStyle};
