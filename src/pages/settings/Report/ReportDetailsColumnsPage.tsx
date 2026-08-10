@@ -5,12 +5,13 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnyx from '@hooks/useOnyx';
 
 import {setReportDetailsColumns} from '@libs/actions/ReportLayout';
-import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {isIOUReport} from '@libs/ReportUtils';
 import {getColumnsToShow} from '@libs/SearchUIUtils';
+import {hasNonReimbursableTransactions} from '@libs/TransactionUtils';
 
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 

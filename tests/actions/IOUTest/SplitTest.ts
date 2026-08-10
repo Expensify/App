@@ -8143,7 +8143,7 @@ describe('initSplitExpenseItemData', () => {
         expect(splitExpense.reportID).toBe('456');
     });
 
-    it('should use provided parameters over transaction data', () => {
+    it('should use provided parameters without inheriting commuter exclusion data', () => {
         const transaction: Transaction = {
             transactionID: '123',
             amount: -100,
@@ -8167,6 +8167,9 @@ describe('initSplitExpenseItemData', () => {
             customUnitRateID: 'rate-123',
             distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
             quantity: 50,
+            commuterExclusion: 2,
+            reimbursableDistance: 48,
+            commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
         };
 
         const transactionReport: Report = {
@@ -8190,7 +8193,13 @@ describe('initSplitExpenseItemData', () => {
         expect(splitExpense.reportID).toBe('888');
         expect(splitExpense.created).toBe('2024-01-01');
         expect(splitExpense.merchant).toBe('Custom Merchant');
-        expect(splitExpense.customUnit).toEqual(customUnit);
+        expect(splitExpense.customUnit).toEqual({
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            customUnitID: 'distance-unit',
+            customUnitRateID: 'rate-123',
+            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            quantity: 50,
+        });
     });
 
     it('should handle transaction with waypoints and odometer readings', () => {
