@@ -16,7 +16,7 @@ type RenderPhaseSpan = {
  * Registers spans during the first render instead of from an effect, which is both too late and order-dependent:
  *
  * - React flushes a descendant's effect before its parent's (reconciler behaviour, not a documented contract),
- *   so a descendant can end the span before it was ever registered — the end no-ops and the span leaks. Render
+ *   so a descendant can end the span before it was ever registered. The end then no-ops and the span leaks. Render
  *   provably precedes every effect, so registering here doesn't depend on flush order at all.
  * - The span has to cover the subtree's own render and commit, which an effect-time start excludes entirely.
  *
