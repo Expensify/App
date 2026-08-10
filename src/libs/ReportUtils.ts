@@ -28,7 +28,6 @@ import type {
     BankAccountList,
     Beta,
     BillingGraceEndPeriod,
-    CurrencyList,
     IntroSelected,
     OnyxInputOrEntry,
     OutstandingReportsByPolicyIDDerivedValue,
