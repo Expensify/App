@@ -84,6 +84,32 @@ type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = Child
 
 const TopTab = createMaterialTopTabNavigator<ParamListBase, string>();
 
+const DISMISS_KEYBOARD_BEFORE_TAB_SWITCH_TIMEOUT_MS = CONST.MAX_TRANSITION_DURATION_MS;
+
+/**
+ * Waits for the keyboard to be fully hidden before resolving, but never blocks for longer than
+ * `DISMISS_KEYBOARD_BEFORE_TAB_SWITCH_TIMEOUT_MS`. `KeyboardUtils.dismiss` only settles once `keyboardDidHide` fires,
+ * so without this fallback a missed event would leave the tab press swallowed by `preventDefault` and the tab would
+ * never change. A rejection is caught rather than left to lose the race, for the same reason.
+ */
+function dismissKeyboardBeforeTabSwitch(): Promise<void> {
+    let timeoutID: ReturnType<typeof setTimeout> | undefined;
+
+    return Promise.race([
+        KeyboardUtils.dismiss().catch((error: unknown) => {
+            Log.warn('[OnyxTabNavigator] Failed to dismiss the keyboard before switching tabs', {error});
+        }),
+        new Promise<void>((resolve) => {
+            timeoutID = setTimeout(() => {
+                Log.warn('[OnyxTabNavigator] Timed out waiting for the keyboard to hide before switching tabs');
+                resolve();
+            }, DISMISS_KEYBOARD_BEFORE_TAB_SWITCH_TIMEOUT_MS);
+        }),
+    ]).finally(() => {
+        clearTimeout(timeoutID);
+    });
+}
+
 // The TabFocusTrapContext is to collect the focus trap container element of each tab screen.
 // This provider is placed in the OnyxTabNavigator component and the consumer is in the TabScreenWithFocusTrapWrapper component.
 const TabFocusTrapContext = React.createContext<(tabName: string, containerElement: HTMLElement | null) => void>(() => {});
@@ -161,6 +187,8 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     // Tab-switch discard guards, keyed by tab name. Tab screens register via `useDiscardChangesConfirmation`.
     const guardsRef = useRef<Map<string, TabSwitchGuard>>(new Map());
     const isDiscardModalOpenRef = useRef(false);
+    // Set while a tab switch is waiting on the keyboard, so repeated taps can't queue competing jumps.
+    const isTabSwitchPendingRef = useRef(false);
 
     const registerTabGuard: RegisterTabSwitchGuard = (guard) => {
         guardsRef.current.set(guard.tabName, guard);
@@ -173,8 +201,25 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
         };
     };
 
+    const runAfterKeyboardDismiss = (callback: () => void) => {
+        if (!shouldDismissKeyboardBeforeTabSwitch) {
+            callback();
+            return;
+        }
+
+        isTabSwitchPendingRef.current = true;
+        dismissKeyboardBeforeTabSwitch()
+            .then(callback)
+            .catch((error: unknown) => {
+                Log.warn('[OnyxTabNavigator] Failed to switch tabs after dismissing the keyboard', {error});
+            })
+            .finally(() => {
+                isTabSwitchPendingRef.current = false;
+            });
+    };
+
     const handleTabPress = (navigation: NavigationProp<ParamListBase>, event: EventArg<'tabPress', true, undefined>) => {
-        if (isDiscardModalOpenRef.current) {
+        if (isDiscardModalOpenRef.current || isTabSwitchPendingRef.current) {
             event.preventDefault();
             return;
         }
@@ -185,17 +230,10 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
         if (!targetRoute || targetRoute.name === currentRouteName) {
             return;
         }
-        // `KeyboardUtils.dismiss` resolves on `keyboardDidHide`, so the tab only changes once the keyboard is fully
-        // gone. A fire-and-forget dismiss loses the race: the tab switches mid hide-animation and the incoming tab
-        // lays out while the keyboard still occupies the screen. Resolves immediately when no keyboard is shown.
+        // The tab only changes once the keyboard is fully gone. A fire-and-forget dismiss loses the race: the tab
+        // switches mid hide-animation and the incoming tab lays out while the keyboard still occupies the screen.
         const jumpToTargetTab = () => {
-            if (!shouldDismissKeyboardBeforeTabSwitch) {
-                navigation.dispatch(TabActions.jumpTo(targetRoute.name));
-                return;
-            }
-            KeyboardUtils.dismiss().then(() => {
-                navigation.dispatch(TabActions.jumpTo(targetRoute.name));
-            });
+            runAfterKeyboardDismiss(() => navigation.dispatch(TabActions.jumpTo(targetRoute.name)));
         };
         if (!guard || !guard.getHasUnsavedChanges()) {
             if (!shouldDismissKeyboardBeforeTabSwitch) {

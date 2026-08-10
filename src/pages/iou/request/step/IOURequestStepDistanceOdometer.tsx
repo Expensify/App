@@ -106,8 +106,9 @@ function IOURequestStepDistanceOdometer({
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['GalleryPlus']);
 
-    // `keyboardActiveHeight` is used rather than `keyboardHeight` because it is set from `keyboardWillShow`, so the
-    // buttons start moving with the keyboard instead of jumping once it has already finished animating.
+    // `keyboardActiveHeight` is used rather than `keyboardHeight` because it is set from `keyboardWillShow` rather than
+    // `keyboardDidShow`, so the padding is applied as the keyboard starts animating instead of a beat after it has
+    // settled. It is applied in a single step at its final value, so the buttons do not follow the keyboard's easing.
     const {isKeyboardActive, keyboardActiveHeight} = useKeyboardState();
     const {bottom: bottomSafeAreaInset} = useSafeAreaInsets();
 

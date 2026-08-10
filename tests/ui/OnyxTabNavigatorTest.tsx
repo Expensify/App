@@ -4,6 +4,9 @@ import ComposerFocusManager from '@libs/ComposerFocusManager';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
 
+import CONST from '@src/CONST';
+import KeyboardUtils from '@src/utils/keyboard';
+
 import React from 'react';
 
 type MockNavigation = {
@@ -26,6 +29,7 @@ type MockScreenListeners = (args: {navigation: MockNavigation}) => {
 
 const mockShowConfirmModal = jest.fn(() => new Promise<never>(() => {}));
 const mockOnDiscard = jest.fn();
+const mockDispatch = jest.fn();
 let mockScreenListeners: MockScreenListeners | undefined;
 
 jest.mock('@hooks/useConfirmModal', () => ({
@@ -46,6 +50,11 @@ jest.mock('@hooks/useThemeStyles', () => ({
 }));
 
 jest.mock('@userActions/Tab', () => ({setSelectedTab: jest.fn()}));
+
+jest.mock('@src/utils/keyboard', () => ({
+    __esModule: true,
+    default: {dismiss: jest.fn(() => Promise.resolve())},
+}));
 
 jest.mock('@react-navigation/material-top-tabs', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
@@ -70,12 +79,13 @@ function TabGuard({hasUnsavedChanges}: {hasUnsavedChanges: boolean}) {
     return null;
 }
 
-function renderTabNavigator(hasUnsavedChanges: boolean) {
+function renderTabNavigator(hasUnsavedChanges: boolean, shouldDismissKeyboardBeforeTabSwitch = false) {
     render(
         <OnyxTabNavigator
             id="test-tab-navigator"
             defaultSelectedTab={CURRENT_TAB}
             tabBar={() => null}
+            shouldDismissKeyboardBeforeTabSwitch={shouldDismissKeyboardBeforeTabSwitch}
         >
             <TopTab.Screen name={CURRENT_TAB}>{() => <TabGuard hasUnsavedChanges={hasUnsavedChanges} />}</TopTab.Screen>
             <TopTab.Screen name={TARGET_TAB}>{() => null}</TopTab.Screen>
@@ -96,7 +106,7 @@ function pressTargetTab() {
                 {key: `${TARGET_TAB}-key`, name: TARGET_TAB},
             ],
         }),
-        dispatch: jest.fn(),
+        dispatch: mockDispatch,
     };
     const event: MockTabPressEvent = {
         target: `${TARGET_TAB}-key`,
@@ -139,5 +149,92 @@ describe('OnyxTabNavigator tab discard input blur', () => {
         expect(event.preventDefault).not.toHaveBeenCalled();
         expect(blurActiveInputSpy).not.toHaveBeenCalled();
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
+    });
+});
+
+describe('OnyxTabNavigator keyboard dismissal before tab switch', () => {
+    const mockedKeyboardUtils = jest.mocked(KeyboardUtils);
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockScreenListeners = undefined;
+        mockedKeyboardUtils.dismiss.mockImplementation(() => Promise.resolve());
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+        jest.restoreAllMocks();
+    });
+
+    it('waits for the keyboard to hide before jumping to the target tab', async () => {
+        let resolveDismiss: () => void = () => {};
+        mockedKeyboardUtils.dismiss.mockImplementation(
+            () =>
+                new Promise<void>((resolve) => {
+                    resolveDismiss = resolve;
+                }),
+        );
+        renderTabNavigator(false, true);
+
+        const event = pressTargetTab();
+
+        // The default jump is blocked and nothing is dispatched while the keyboard is still hiding.
+        expect(event.preventDefault).toHaveBeenCalledTimes(1);
+        expect(mockDispatch).not.toHaveBeenCalled();
+
+        await act(async () => {
+            resolveDismiss();
+        });
+
+        expect(mockDispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('still switches tabs when the keyboard never reports that it hid', async () => {
+        jest.useFakeTimers();
+        // `keyboardDidHide` never fires, so the dismissal promise never settles.
+        mockedKeyboardUtils.dismiss.mockImplementation(() => new Promise<void>(() => {}));
+        renderTabNavigator(false, true);
+
+        pressTargetTab();
+        expect(mockDispatch).not.toHaveBeenCalled();
+
+        await act(async () => {
+            jest.advanceTimersByTime(CONST.MAX_TRANSITION_DURATION_MS);
+        });
+
+        expect(mockDispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores repeated taps while a tab switch is already waiting on the keyboard', async () => {
+        let resolveDismiss: () => void = () => {};
+        mockedKeyboardUtils.dismiss.mockImplementation(
+            () =>
+                new Promise<void>((resolve) => {
+                    resolveDismiss = resolve;
+                }),
+        );
+        renderTabNavigator(false, true);
+
+        pressTargetTab();
+        pressTargetTab();
+        pressTargetTab();
+
+        expect(mockedKeyboardUtils.dismiss).toHaveBeenCalledTimes(1);
+
+        await act(async () => {
+            resolveDismiss();
+        });
+
+        expect(mockDispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not defer the tab switch when the caller has not opted in', () => {
+        renderTabNavigator(false);
+
+        const event = pressTargetTab();
+
+        expect(event.preventDefault).not.toHaveBeenCalled();
+        expect(mockedKeyboardUtils.dismiss).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalled();
     });
 });
