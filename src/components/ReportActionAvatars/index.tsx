@@ -86,11 +86,8 @@ type ReportActionAvatarsProps = {
     /** Display name used as a fallback for avatar tooltip */
     fallbackDisplayName?: string;
 
-    /** Invited emails to account IDs */
+    /** Invited emails to account IDs. Also seeds a deterministic fallback avatar for each invited account */
     invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
-
-    /** Whether to use custom fallback avatar */
-    shouldUseCustomFallbackAvatar?: boolean;
 
     /** chatReportID needed for the avatars logic. When provided, this will be used as a fallback if the snapshot is undefined */
     chatReportID?: string;
@@ -128,7 +125,6 @@ function ReportActionAvatars({
     isInReportAction = false,
     fallbackDisplayName,
     invitedEmailsToAccountIDs,
-    shouldUseCustomFallbackAvatar = false,
     chatReportID,
     shouldUseRealActor = false,
 }: ReportActionAvatarsProps) {
@@ -168,7 +164,6 @@ function ReportActionAvatars({
         policy: policyProp,
         fallbackDisplayName,
         invitedEmailsToAccountIDs,
-        shouldUseCustomFallbackAvatar,
         chatReportID,
         shouldUseRealActor,
     });

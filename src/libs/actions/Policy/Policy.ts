@@ -1,6 +1,7 @@
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type PolicyData from '@hooks/usePolicyData/types';
 
 import * as API from '@libs/API';
@@ -225,6 +226,7 @@ type CreateWorkspaceFromIOUPaymentOptions = {
     localeTranslate: LocalizedTranslate;
     reportActionsList: OnyxCollection<ReportActions>;
     doesEmployeePersonalDetailExist: boolean;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type PolicyCashExpenseMode = ValueOf<typeof CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES>;
@@ -4305,6 +4307,7 @@ function createWorkspaceFromIOUPayment({
     localeTranslate,
     reportActionsList,
     doesEmployeePersonalDetailExist,
+    getCurrencyDecimals,
 }: CreateWorkspaceFromIOUPaymentOptions): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
     if (!iouReport || !ReportUtils.isIOUReportUsingReport(iouReport)) {
@@ -4707,7 +4710,7 @@ function createWorkspaceFromIOUPayment({
                     message: [
                         {
                             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                            text: ReportUtils.getReportPreviewReportActionMessage({reportOrID: expenseReport, policy: newWorkspace}),
+                            text: ReportUtils.getReportPreviewReportActionMessage({reportOrID: expenseReport, policy: newWorkspace}, getCurrencyDecimals),
                         },
                     ],
                     created: DateUtils.getDBTime(),
