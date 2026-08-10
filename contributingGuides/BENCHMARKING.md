@@ -38,12 +38,12 @@ nr benchmark-app-startup -- ios 20 30 --span ManualAppStartup --device "Develope
 
 The positional arguments are platform, measured run count, and timeout in seconds. Use `--span` to measure any other span included in `EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS`, `--app-id` for a nonstandard Android application ID or iOS bundle identifier, and `--output` to select another CSV path.
 
-The script also exports `benchmarkAppStartups` and `benchmarkStartups`. Other local tooling, such as the PGO workflow, can install an artifact and invoke the same benchmark implementation. The lower-level Android and iOS process tooling lives in `scripts/lib/nativeAppBenchmark.ts` so callers do not need to duplicate `adb` or `xcrun devicectl` behavior.
+The script runs with Bun and also exports `benchmarkAppStartups` and `benchmarkStartups`. Other local tooling, such as the PGO workflow, can install an artifact and invoke the same benchmark implementation. The lower-level Android and iOS process tooling lives in `scripts/lib/nativeAppBenchmark.ts` so callers do not need to duplicate `adb` or `xcrun devicectl` behavior.
 
 For example, a PGO script can install each artifact and call `benchmarkAppStartups` with its platform, device, bundle identifier, output path, and span name. This keeps artifact building and installation in the PGO workflow while sharing all startup measurement and platform-device behavior.
 
 ```ts
-import {benchmarkAppStartups} from '#benchmark-app-startup';
+import {benchmarkAppStartups} from '../benchmarkAppStartup';
 
 await benchmarkAppStartups({
     platform: 'android',

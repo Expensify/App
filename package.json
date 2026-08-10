@@ -9,10 +9,6 @@
   "workspaces": [
     "server/victory-chart-renderer"
   ],
-  "imports": {
-    "#benchmark-app-startup": "./scripts/benchmarkAppStartup.ts",
-    "#native-app-benchmark": "./scripts/lib/nativeAppBenchmark.ts"
-  },
   "scripts": {
     "i-standalone": "STANDALONE_NEW_DOT=true npm i",
     "install-standalone": "STANDALONE_NEW_DOT=true npm install",

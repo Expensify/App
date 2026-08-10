@@ -1,14 +1,13 @@
-#!/usr/bin/env -S node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON
-// cspell:ignore TYPELESS
+#!/usr/bin/env bun
 
 import CLI from 'expensify-common/CLI';
 import {mkdirSync, writeFileSync} from 'node:fs';
 import {dirname, join, resolve} from 'node:path';
 import process from 'node:process';
 
-import type {NativeAppBenchmarkAdapter, PlatformName, StartupMode} from '#native-app-benchmark';
+import type {NativeAppBenchmarkAdapter, PlatformName, StartupMode} from './lib/nativeAppBenchmark';
 
-import {PLATFORM_NAMES, createNativeAppBenchmarkAdapter, findBenchmarkDuration, parseBenchmarkLogEvents} from '#native-app-benchmark';
+import {PLATFORM_NAMES, createNativeAppBenchmarkAdapter, findBenchmarkDuration, parseBenchmarkLogEvents} from './lib/nativeAppBenchmark';
 
 const DEFAULT_SPAN_NAME = 'ManualAppStartup';
 const DEFAULT_RUNS = 20;
