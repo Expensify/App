@@ -241,38 +241,59 @@ function buildOptimisticTransactions(transactionList: TransactionFromCSV[], card
 }
 
 /**
+ * Builds the import settings to use when adding transactions to a card that was already created by a CSV import.
+ * Re-uploading a file skips the settings step, so the card's current configuration is reused instead of the
+ * defaults that apply to a brand new card.
+ *
+ * @param card - The existing CSV imported card the transactions are added to
+ * @param savedLayout - The saved column layout for that card, which holds the currency and amount sign settings picked on the first import
+ * @param customCardName - The name of the card in the custom card names NVP, if the card was renamed
+ */
+function getExistingCardImportSettings(card: Card | undefined, savedLayout: SavedCSVColumnLayoutData | undefined, customCardName: string | undefined): ImportTransactionSettings {
+    const settings: ImportTransactionSettings = {};
+
+    const cardDisplayName = customCardName ?? card?.nameValuePairs?.cardTitle ?? card?.cardName ?? savedLayout?.name;
+    if (cardDisplayName) {
+        settings.cardDisplayName = cardDisplayName;
+    }
+
+    const currency = savedLayout?.accountDetails?.currency;
+    if (currency) {
+        settings.currency = currency;
+    }
+
+    const isReimbursable = card?.reimbursable ?? savedLayout?.reimbursable;
+    if (isReimbursable !== undefined) {
+        settings.isReimbursable = isReimbursable;
+    }
+
+    if (savedLayout?.flipAmountSign !== undefined) {
+        settings.flipAmountSign = savedLayout.flipAmountSign;
+    }
+
+    return settings;
+}
+
+/**
  * Import transactions from a CSV spreadsheet
  * @param spreadsheet - The imported spreadsheet data
  * @param accountID - The current (importing) user's accountID, used as the cardholder for a new optimistic card
  * @param existingCardID - Optional cardID to add transactions to an existing card instead of creating a new one
- * @param previouslySavedLayout - Optional previous saved layout, used to fall back to the settings of the last import and to restore on failure
- * @param currentCardSettings - Optional current values of the card being imported into, which win over the saved layout
+ * @param previouslySavedLayout - Optional previous saved layout to restore on failure
+ * @param existingCardSettings - Optional settings of the existing card, which take precedence over the settings collected during the import flow
  */
 async function importTransactionsFromCSV(
     spreadsheet: ImportedSpreadsheet,
     accountID: number,
     existingCardID?: number,
     previouslySavedLayout?: SavedCSVColumnLayoutData,
-    currentCardSettings?: Pick<ImportTransactionSettings, 'cardDisplayName' | 'isReimbursable'>,
+    existingCardSettings?: ImportTransactionSettings,
 ): Promise<ImportFinalModal> {
-    const settings = spreadsheet.importTransactionSettings ?? {};
-
-    // Uploading another file to an existing card skips the import settings page, so the first upload's settings are
-    // no longer in Onyx. That card's saved layout still holds them, so prefer it over the hard defaults.
-    // The name and the reimbursable flag can also be changed from the card itself afterwards, and those edits never
-    // reach the saved layout, so the card's current values win over it. Currency and the sign flip have no such
-    // control, which leaves the saved layout authoritative for them.
-    // Required<> keeps this exhaustive: a new import setting will not compile until it is given a fallback here.
-    const resolvedSettings: Required<ImportTransactionSettings> = {
-        cardDisplayName: settings.cardDisplayName ?? currentCardSettings?.cardDisplayName ?? previouslySavedLayout?.name ?? 'Imported Card',
-        currency: settings.currency ?? previouslySavedLayout?.accountDetails?.currency ?? CONST.CURRENCY.USD,
-        isReimbursable: settings.isReimbursable ?? currentCardSettings?.isReimbursable ?? previouslySavedLayout?.reimbursable ?? true,
-        flipAmountSign: settings.flipAmountSign ?? previouslySavedLayout?.flipAmountSign ?? false,
-    };
-    const {cardDisplayName, currency, isReimbursable, flipAmountSign} = resolvedSettings;
+    const settings = {...spreadsheet.importTransactionSettings, ...existingCardSettings};
+    const {cardDisplayName = 'Imported Card', currency = CONST.CURRENCY.USD, isReimbursable = true, flipAmountSign = false} = settings;
 
     // Build transaction list from spreadsheet
-    const transactionList = buildTransactionListFromSpreadsheet(spreadsheet, resolvedSettings);
+    const transactionList = buildTransactionListFromSpreadsheet(spreadsheet, settings);
 
     if (transactionList.length === 0) {
         return {
@@ -394,5 +415,5 @@ async function importTransactionsFromCSV(
     }
 }
 
-export {getColumnIndexes, buildColumnLayout, buildTransactionListFromSpreadsheet};
+export {getColumnIndexes, buildColumnLayout, buildTransactionListFromSpreadsheet, getExistingCardImportSettings};
 export default importTransactionsFromCSV;

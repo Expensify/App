@@ -1,9 +1,10 @@
 import {applyCompanyCardSavedColumnMappings, applySavedColumnMappings, getImportFinalModalOnyxData} from '@libs/actions/ImportSpreadsheet';
-import importTransactionsFromCSV, {buildColumnLayout, buildTransactionListFromSpreadsheet, getColumnIndexes} from '@libs/actions/ImportTransactions';
+import importTransactionsFromCSV, {buildColumnLayout, buildTransactionListFromSpreadsheet, getColumnIndexes, getExistingCardImportSettings} from '@libs/actions/ImportTransactions';
 import * as API from '@libs/API';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Card} from '@src/types/onyx';
 import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
 
@@ -924,84 +925,6 @@ describe('ImportTransactions', () => {
             expect(optimisticData).not.toEqual(expect.arrayContaining([expect.objectContaining({key: ONYXKEYS.CARD_LIST})]));
         });
 
-        it('falls back to the settings of the previously saved layout when importing into an existing card', async () => {
-            const existingCardID = 987654321;
-            const previouslySavedLayout = createMock<SavedCSVColumnLayoutData>({
-                name: 'My Bank Card',
-                flipAmountSign: true,
-                reimbursable: false,
-                accountDetails: {
-                    bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV,
-                    currency: 'EUR',
-                    accountID: 'My Bank Card',
-                },
-            });
-
-            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID, existingCardID, previouslySavedLayout);
-
-            const [, params, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
-            expect(params.cardName).toBe('My Bank Card');
-            expect(params.currency).toBe('EUR');
-            expect(params.reimbursable).toBe(false);
-            // The saved layout flips the sign, so the parsed 5.50 and 25.00 amounts import as negative
-            expect(JSON.parse(String(params.transactionList))).toEqual([expect.objectContaining({amount: -550}), expect.objectContaining({amount: -2500})]);
-            expect(JSON.parse(String(params.columnMappings))).toEqual(expect.objectContaining({name: 'My Bank Card', flipAmountSign: true, reimbursable: false}));
-            expect(getRequiredOnyxUpdates(onyxData, 'optimisticData')).toEqual(
-                expect.arrayContaining([expect.objectContaining({value: expect.objectContaining({amount: -550, currency: 'EUR', reimbursable: false})})]),
-            );
-        });
-
-        it('prefers the current card name and reimbursable value over the previously saved layout', async () => {
-            const existingCardID = 987654321;
-            const previouslySavedLayout = createMock<SavedCSVColumnLayoutData>({
-                name: 'My Bank Card',
-                flipAmountSign: true,
-                reimbursable: false,
-                accountDetails: {
-                    bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV,
-                    currency: 'EUR',
-                    accountID: 'My Bank Card',
-                },
-            });
-
-            // Renaming a card and toggling its reimbursable setting never reach the saved layout, so those edits
-            // would otherwise be reverted by this import.
-            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID, existingCardID, previouslySavedLayout, {
-                cardDisplayName: 'Renamed On The Card',
-                isReimbursable: true,
-            });
-
-            const [, params] = getRequiredWriteCall(writeSpy.mock.calls, 0);
-            expect(params.cardName).toBe('Renamed On The Card');
-            expect(params.reimbursable).toBe(true);
-            // The saved layout still owns the settings that have no control on the card itself
-            expect(params.currency).toBe('EUR');
-            expect(JSON.parse(String(params.transactionList))).toEqual([expect.objectContaining({amount: -550}), expect.objectContaining({amount: -2500})]);
-        });
-
-        it('falls back to the previously saved layout when the current card has no reimbursable value set', async () => {
-            const existingCardID = 987654321;
-            const previouslySavedLayout = createMock<SavedCSVColumnLayoutData>({
-                name: 'My Bank Card',
-                flipAmountSign: true,
-                reimbursable: false,
-                accountDetails: {
-                    bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV,
-                    currency: 'EUR',
-                    accountID: 'My Bank Card',
-                },
-            });
-
-            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID, existingCardID, previouslySavedLayout, {
-                cardDisplayName: undefined,
-                isReimbursable: undefined,
-            });
-
-            const [, params] = getRequiredWriteCall(writeSpy.mock.calls, 0);
-            expect(params.cardName).toBe('My Bank Card');
-            expect(params.reimbursable).toBe(false);
-        });
-
         it('uses the hard defaults when importing a new card that has no saved layout', async () => {
             await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID);
 
@@ -1012,30 +935,56 @@ describe('ImportTransactions', () => {
             expect(JSON.parse(String(params.transactionList))).toEqual([expect.objectContaining({amount: 550}), expect.objectContaining({amount: 2500})]);
         });
 
-        it('keeps the settings chosen on the import settings page over the previously saved layout', async () => {
+        it('sends the existing card settings instead of the defaults when re-uploading to a card', async () => {
             const existingCardID = 987654321;
-            const previouslySavedLayout = createMock<SavedCSVColumnLayoutData>({
-                name: 'My Bank Card',
-                flipAmountSign: true,
-                reimbursable: false,
-                accountDetails: {
-                    bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV,
-                    currency: 'EUR',
-                    accountID: 'My Bank Card',
-                },
-            });
-            const spreadsheetWithSettings = {
-                ...validSpreadsheet,
-                importTransactionSettings: {cardDisplayName: 'Renamed Card', currency: 'GBP', isReimbursable: true, flipAmountSign: false},
-            };
+            const existingCardSettings = {cardDisplayName: 'Aussie Card', currency: 'AUD', isReimbursable: false, flipAmountSign: true};
 
-            await importTransactionsFromCSV(spreadsheetWithSettings, CURRENT_USER_ACCOUNT_ID, existingCardID, previouslySavedLayout);
+            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID, existingCardID, undefined, existingCardSettings);
 
             const [, params] = getRequiredWriteCall(writeSpy.mock.calls, 0);
-            expect(params.cardName).toBe('Renamed Card');
-            expect(params.currency).toBe('GBP');
-            expect(params.reimbursable).toBe(true);
-            expect(JSON.parse(String(params.transactionList))).toEqual([expect.objectContaining({amount: 550}), expect.objectContaining({amount: 2500})]);
+            expect(params.cardName).toBe('Aussie Card');
+            expect(params.currency).toBe('AUD');
+            expect(params.reimbursable).toBe(false);
+            expect(params.columnMappings).toBe(JSON.stringify(buildColumnLayout(validSpreadsheet, 'Aussie Card', 'AUD', false, true)));
+        });
+    });
+
+    describe('getExistingCardImportSettings', () => {
+        const savedLayout = createMock<SavedCSVColumnLayoutData>({
+            name: 'Layout Card',
+            flipAmountSign: true,
+            reimbursable: false,
+            accountDetails: {
+                bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV,
+                currency: 'AUD',
+                accountID: 'Layout Card',
+            },
+        });
+
+        it('returns the currency and amount sign from the saved layout', () => {
+            const result = getExistingCardImportSettings(undefined, savedLayout, undefined);
+
+            expect(result).toEqual({cardDisplayName: 'Layout Card', currency: 'AUD', isReimbursable: false, flipAmountSign: true});
+        });
+
+        it('prefers the card values over the saved layout ones', () => {
+            const card = createMock<Card>({cardName: 'Backend Card', reimbursable: true, nameValuePairs: {cardTitle: 'Card Title'}});
+
+            const result = getExistingCardImportSettings(card, savedLayout, undefined);
+
+            expect(result).toEqual({cardDisplayName: 'Card Title', currency: 'AUD', isReimbursable: true, flipAmountSign: true});
+        });
+
+        it('prefers the custom card name over every other name', () => {
+            const card = createMock<Card>({cardName: 'Backend Card', nameValuePairs: {cardTitle: 'Card Title'}});
+
+            const result = getExistingCardImportSettings(card, savedLayout, 'Custom Name');
+
+            expect(result.cardDisplayName).toBe('Custom Name');
+        });
+
+        it('returns no settings when there is nothing to restore', () => {
+            expect(getExistingCardImportSettings(undefined, undefined, undefined)).toEqual({});
         });
     });
 });

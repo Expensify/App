@@ -5,6 +5,7 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
 import useLocalize from '@hooks/useLocalize';
@@ -115,7 +116,6 @@ type SearchProps = {
     handleSearch: (value: SearchParams) => void;
     onSortPressedCallback?: () => void;
     isMobileSelectionModeEnabled: boolean;
-    searchRequestResponseStatusCode?: number | null;
     onContentReady?: () => void;
 
     /** Callback from the parent (SearchPageNarrow) to end submit-expense navigation spans.
@@ -134,7 +134,6 @@ function Search({
     handleSearch,
     isMobileSelectionModeEnabled,
     onSortPressedCallback,
-    searchRequestResponseStatusCode,
     onContentReady,
     onDestinationVisible,
 }: SearchProps) {
@@ -189,6 +188,7 @@ function Search({
 
     const previousReportActions = usePrevious(reportActions);
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const searchListRef = useRef<SelectionListHandle<SearchListItem> | null>(null);
 
     const savedSearchSelector = useCallback((searches: OnyxEntry<SaveSearch>) => searches?.[hash], [hash]);
@@ -340,7 +340,10 @@ function Search({
     // so we never fall through to the empty-state check with stale zero-length data.
     const isDeferringHeavyWork = !isOffline && shouldDeferHeavySearchWork;
     const isSearchLoadingWithNoResults = isSearchPending(searchResults) && Array.isArray(searchResults?.data) && searchResults.data.length === 0;
-    const hasUnresolvedErrors = hasErrors && searchRequestResponseStatusCode === null;
+    // Every write of `errors` stores the response code next to them, so a reload keeps the classification
+    // that component state would have lost. `null` means no response has been recorded for this query yet.
+    const responseStatusCode = searchResults?.search?.responseJsonCode ?? null;
+    const hasUnresolvedErrors = hasErrors && responseStatusCode === null;
     const isWaitingForInitialData = !shouldUseLiveData && !isOffline && (!isDataLoaded || isSearchLoadingWithNoResults || hasUnresolvedErrors || isCardFeedsLoading);
     const shouldShowLoadingState = isDeferringHeavyWork || isWaitingForInitialData;
     const shouldShowRowSkeleton = (!skeletonWasDisplayed || shouldShowLoadingState) && showPendingExpensePlaceholder && !hasErrors;
@@ -529,6 +532,7 @@ function Search({
                 const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
                 const shouldOpenTransactionThreadInNewTab = shouldOpenTransactionThread && isModifiedMousePress(event);
                 const targetReportID = createAndOpenSearchTransactionThread({
+                    getCurrencyDecimals,
                     item,
                     introSelected,
                     backTo,
@@ -590,6 +594,7 @@ function Search({
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
                         createAndOpenSearchTransactionThread({
+                            getCurrencyDecimals,
                             item: firstTransaction,
                             introSelected,
                             backTo,
@@ -603,7 +608,7 @@ function Search({
                             shouldNavigate: false,
                         });
                     } else {
-                        setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, firstTransaction?.reportAction?.childReportID);
+                        setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, getCurrencyDecimals, firstTransaction?.reportAction?.childReportID);
                     }
                 }
 
@@ -658,7 +663,7 @@ function Search({
             markReportRHPWidth(reportID, 'wide');
 
             if (isTransactionItem && transactionPreviewData) {
-                setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, transactionItem?.reportAction?.childReportID);
+                setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, getCurrencyDecimals, transactionItem?.reportAction?.childReportID);
             }
 
             const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
@@ -683,6 +688,7 @@ function Search({
             searchResults?.search?.hasMoreResults,
             currentSearchKey,
             filteredData,
+            getCurrencyDecimals,
         ],
     );
 
@@ -942,7 +948,7 @@ function Search({
     }
 
     if (hasErrors) {
-        const isInvalidQuery = searchRequestResponseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
+        const isInvalidQuery = responseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
         cancelNavigationSpans();
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.flex1]}>

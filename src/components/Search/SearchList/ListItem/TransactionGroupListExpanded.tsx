@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -80,6 +81,7 @@ function TransactionGroupListExpandedImpl({
     const {windowWidth} = useWindowDimensions();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -198,6 +200,7 @@ function TransactionGroupListExpandedImpl({
             if (!transactionItem?.reportAction?.childReportID) {
                 if (isModifiedMousePress(event)) {
                     const targetReportID = createAndOpenSearchTransactionThread({
+                        getCurrencyDecimals,
                         item: transactionItem,
                         introSelected,
                         backTo,
@@ -215,6 +218,7 @@ function TransactionGroupListExpandedImpl({
                     return;
                 }
                 createAndOpenSearchTransactionThread({
+                    getCurrencyDecimals,
                     item: transactionItem,
                     introSelected,
                     backTo,
