@@ -50,7 +50,10 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM> = {};
-            const inputValue = values[fieldKey].trim();
+            // Validate the same value we submit: handleSubmit squashes line breaks to spaces before saving, so
+            // normalize here too. Otherwise a formula like `{field:Client\nName}` would be validated as a reference
+            // to `Client\nName` but saved as `{field:Client Name}`, letting a circular reference slip past this check.
+            const inputValue = StringUtils.lineBreaksToSpaces(values[fieldKey]).trim();
 
             if (isRequired && inputValue === '') {
                 errors[fieldKey] = translate('common.error.fieldRequired');
