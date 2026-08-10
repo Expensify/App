@@ -24,7 +24,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
-import {markActivePopoverLauncherDeactivated, resolvePopoverLauncherElement, setActivePopoverLauncher} from '@libs/LauncherStack';
 import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicyByType} from '@libs/PolicyUtils';
 import {canCreateTaskInReport, getPayeeName, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
@@ -468,15 +467,6 @@ function AttachmentPickerWithMenuItems({
                                                 }
                                                 onAddActionPressed();
 
-                                                // Register before the blur below — FocusTrapForModal.onActivate only reads
-                                                // document.activeElement, which is body once we blur, so without this
-                                                // NavigationFocusReturn has no launcher to restore on Back.
-                                                if (!isMenuVisible) {
-                                                    const launcher = resolvePopoverLauncherElement(actionButtonRef);
-                                                    if (launcher) {
-                                                        setActivePopoverLauncher(launcher);
-                                                    }
-                                                }
                                                 // Drop focus to avoid blue focus ring.
                                                 actionButtonRef.current?.blur();
                                                 setMenuVisibility(!isMenuVisible);
@@ -523,15 +513,6 @@ function AttachmentPickerWithMenuItems({
                                     close(() => {
                                         triggerAttachmentPicker();
                                     });
-                                }
-                            }}
-                            onModalHide={() => {
-                                // The create button registers itself as the launcher before opening this menu. Deactivating on hide
-                                // lets the entry expire when the menu closes without navigating, so it can't be picked up as a stale
-                                // launcher later.
-                                const launcher = resolvePopoverLauncherElement(actionButtonRef);
-                                if (launcher) {
-                                    markActivePopoverLauncherDeactivated(launcher);
                                 }
                             }}
                             anchorPosition={popoverAnchorPosition ?? {horizontal: 0, vertical: 0}}

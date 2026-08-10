@@ -2,32 +2,14 @@
  * Stack of popover/modal launcher elements — the element that opened a focus trap. Top is the most recent.
  * pickLauncher prefers the topmost active entry, else the most recent deactivated-within-LAUNCHER_CLEAR_DELAY_MS.
  */
-import type {RefObject} from 'react';
-
 import {LAUNCHER_CLEAR_DELAY_MS, LAUNCHER_STACK_MAX} from './focusReturnTimings';
 
 // deactivatedAt is set on trap close; entry lives LAUNCHER_CLEAR_DELAY_MS so deferred-nav popovers can still consume it.
 type LauncherEntry = {element: HTMLElement; deactivatedAt?: number};
 
-/** Trigger refs come in RN (`View`, `Text`) and DOM flavors depending on the component, so stay agnostic and let the resolver narrow. */
-type PopoverLauncherRef = RefObject<unknown>;
-
 // Stack (not slot) so nested + sequential traps retain correct launcher context.
 const launcherStack: LauncherEntry[] = [];
 let hasWarnedAboutOverflow = false;
-
-/** Resolve a RN View ref to its web host node for LauncherStack registration. No-op on native. */
-function resolvePopoverLauncherElement(ref: PopoverLauncherRef | null | undefined): HTMLElement | null {
-    if (typeof document === 'undefined' || !ref?.current) {
-        return null;
-    }
-    // On web, RN View refs are DOM nodes; instanceof avoids an unsafe cast.
-    const node = ref.current;
-    if (!(node instanceof HTMLElement) || !document.contains(node)) {
-        return null;
-    }
-    return node;
-}
 
 // Two passes so nested traps resolve to the outer (active) launcher, not the just-closed inner.
 function pickLauncher(): HTMLElement | null {
@@ -65,6 +47,14 @@ function pickLauncher(): HTMLElement | null {
         return entry.element;
     }
     return null;
+}
+
+/**
+ * Whether `element` is still tracked. A forward navigation consumes its launcher (see captureTriggerForRoute), so a
+ * missing entry means navigation already claimed this launcher and owns the focus restore from here on.
+ */
+function hasLauncher(element: HTMLElement): boolean {
+    return launcherStack.some((entry) => entry.element === element);
 }
 
 function consumeLauncher(element: HTMLElement): void {
@@ -115,4 +105,4 @@ function resetLauncherStackForTests(): void {
     hasWarnedAboutOverflow = false;
 }
 
-export {pickLauncher, consumeLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests, resolvePopoverLauncherElement};
+export {pickLauncher, consumeLauncher, hasLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests};

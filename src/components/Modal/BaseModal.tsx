@@ -66,6 +66,7 @@ function BaseModal({
     modalId,
     shouldEnableNewFocusManagement = false,
     shouldReturnFocus,
+    launcherRef,
     restoreFocusType,
     shouldUseModalPaddingStyle = true,
     initialFocus = false,
@@ -371,6 +372,7 @@ function BaseModal({
                         shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
                         supportedOrientations={['portrait', 'portrait-upside-down', 'landscape', 'landscape-left', 'landscape-right']}
                         shouldReturnFocus={shouldReturnFocus}
+                        launcherRef={launcherRef}
                     >
                         <Animated.View
                             onLayout={onViewLayout}

@@ -1,11 +1,11 @@
 // Typed require with explicit .ts path — matches the project's test-file convention.
-const {pickLauncher, consumeLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests, resolvePopoverLauncherElement} = require<{
+const {pickLauncher, consumeLauncher, hasLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests} = require<{
     pickLauncher: () => HTMLElement | null;
     consumeLauncher: (element: HTMLElement) => void;
+    hasLauncher: (element: HTMLElement) => boolean;
     setActivePopoverLauncher: (element: HTMLElement) => void;
     markActivePopoverLauncherDeactivated: (element?: HTMLElement) => void;
     resetLauncherStackForTests: () => void;
-    resolvePopoverLauncherElement: (ref: {current: unknown} | null | undefined) => HTMLElement | null;
 }>('../../src/libs/LauncherStack.ts');
 
 function appendButton(): HTMLButtonElement {
@@ -181,25 +181,26 @@ describe('LauncherStack', () => {
         });
     });
 
-    describe('resolvePopoverLauncherElement', () => {
-        it('returns the host node for an attached ref', () => {
-            const button = appendButton();
-            expect(resolvePopoverLauncherElement({current: button})).toBe(button);
+    describe('hasLauncher', () => {
+        it('is true for a registered launcher, active or deactivated', () => {
+            const a = appendButton();
+            setActivePopoverLauncher(a);
+            expect(hasLauncher(a)).toBe(true);
+            markActivePopoverLauncherDeactivated(a);
+            expect(hasLauncher(a)).toBe(true);
         });
 
-        it('returns null for an empty or missing ref', () => {
-            expect(resolvePopoverLauncherElement(null)).toBeNull();
-            expect(resolvePopoverLauncherElement(undefined)).toBeNull();
-            expect(resolvePopoverLauncherElement({current: null})).toBeNull();
+        it('is false for an element that was never registered', () => {
+            expect(hasLauncher(appendButton())).toBe(false);
         });
 
-        it('returns null for a detached node — a launcher outside the document can never receive focus', () => {
-            const detached = document.createElement('button');
-            expect(resolvePopoverLauncherElement({current: detached})).toBeNull();
-        });
-
-        it('returns null for a non-DOM ref value (native View instance)', () => {
-            expect(resolvePopoverLauncherElement({current: {measure: () => {}}})).toBeNull();
+        // This is the signal FocusTrapForModal uses to tell "closed in place" from "closed because we navigated":
+        // captureTriggerForRoute consumes the launcher on a forward nav and owns the Back restore from then on.
+        it('is false once a forward navigation has consumed the launcher', () => {
+            const a = appendButton();
+            setActivePopoverLauncher(a);
+            consumeLauncher(a);
+            expect(hasLauncher(a)).toBe(false);
         });
     });
 });

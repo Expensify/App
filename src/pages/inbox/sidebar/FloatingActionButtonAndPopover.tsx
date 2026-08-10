@@ -2,7 +2,6 @@ import useDragoverDismiss from '@hooks/useDragoverDismiss';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {resolvePopoverLauncherElement, setActivePopoverLauncher} from '@libs/LauncherStack';
 import {generateReportID} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -39,13 +38,6 @@ function FloatingActionButtonAndPopover() {
     const showCreateMenu = () => {
         if (!isFocused && shouldUseNarrowLayout) {
             return;
-        }
-        // The FAB blurs itself before opening, so FocusTrapForModal.onActivate only ever sees document.body and can't
-        // infer the launcher. Register it here — gated on the menu actually opening — so NavigationFocusReturn has
-        // something to restore on Back. FABPopoverMenu deactivates the entry again on hide.
-        const launcher = resolvePopoverLauncherElement(fabRef);
-        if (launcher) {
-            setActivePopoverLauncher(launcher);
         }
         setIsCreateMenuActive(true);
     };
