@@ -150,15 +150,16 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
                             return;
                         }
 
+                        // The target's report is underneath but another thread may sit on top, so dismiss to that shared
+                        // report to clear the stale thread, then open the merged expense's thread over it.
+                        Navigation.dismissToSuperWideRHP();
+
                         // Without a thread to open, searchReportIDToOpen falls back to the report we just revealed,
                         // so navigating would stack it on top of itself.
                         if (searchReportIDToOpen === targetTransaction.reportID) {
                             return;
                         }
 
-                        // The target's report is underneath but another thread may sit on top, so dismiss to that shared
-                        // report to clear the stale thread, then open the merged expense's thread over it.
-                        Navigation.dismissToSuperWideRHP();
                         Navigation.setNavigationActionToMicrotaskQueue(() => {
                             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: searchReportIDToOpen}));
                         });
