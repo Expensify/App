@@ -51,6 +51,10 @@ function HelpPage() {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
 
+    // Remove the row's accessibility grouping so native (iOS/Android) screen readers can announce the nested
+    // Book a call button as its own element; on web this prop is a no-op and the button is reached via keyboard Tab instead
+    const shouldBeAccessibleWithBookCallButton = (calendarLink: string | undefined) => !calendarLink;
+
     const partnerManagerCalendarLink = account?.partnerManagerCalendarLink;
     const partnerManagerItem = partnerManagerDetails
         ? {
@@ -71,9 +75,7 @@ function HelpPage() {
                   ),
               shouldShowRightIcon: !partnerManagerCalendarLink,
               shouldShowRightComponent: !!partnerManagerCalendarLink,
-
-              // Remove the row's accessibility grouping so native (iOS/Android) screen readers can announce the nested Book a call button as its own element; on web this prop is a no-op and the button is reached via keyboard Tab instead
-              shouldBeAccessible: !partnerManagerCalendarLink,
+              shouldBeAccessible: shouldBeAccessibleWithBookCallButton(partnerManagerCalendarLink),
               rightComponent: partnerManagerCalendarLink ? (
                   <BookCallButton
                       calendarLink={partnerManagerCalendarLink}
@@ -105,9 +107,7 @@ function HelpPage() {
                   ),
               shouldShowRightIcon: !guideCalendarLink,
               shouldShowRightComponent: !!guideCalendarLink,
-
-              // Remove the row's accessibility grouping so native (iOS/Android) screen readers can announce the nested Book a call button as its own element; on web this prop is a no-op and the button is reached via keyboard Tab instead
-              shouldBeAccessible: !guideCalendarLink,
+              shouldBeAccessible: shouldBeAccessibleWithBookCallButton(guideCalendarLink),
               rightComponent: guideCalendarLink ? (
                   <BookCallButton
                       calendarLink={guideCalendarLink}
@@ -139,9 +139,7 @@ function HelpPage() {
                   ),
               shouldShowRightIcon: !accountManagerCalendarLink,
               shouldShowRightComponent: !!accountManagerCalendarLink,
-
-              // Remove the row's accessibility grouping so native (iOS/Android) screen readers can announce the nested Book a call button as its own element; on web this prop is a no-op and the button is reached via keyboard Tab instead
-              shouldBeAccessible: !accountManagerCalendarLink,
+              shouldBeAccessible: shouldBeAccessibleWithBookCallButton(accountManagerCalendarLink),
               rightComponent: accountManagerCalendarLink ? (
                   <BookCallButton
                       calendarLink={accountManagerCalendarLink}

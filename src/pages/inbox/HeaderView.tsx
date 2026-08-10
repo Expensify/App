@@ -221,10 +221,11 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL;
 
-    const accountManagerAccountID = bookCallDetails?.accountManagerAccountID;
+    const accountManagerAccountID = bookCallDetails?.accountManagerAccountID ? Number(bookCallDetails.accountManagerAccountID) : undefined;
     const partnerManagerAccountID = bookCallDetails?.partnerManagerAccountID;
-    // The guide book-call button is only shown before an account manager has been assigned, mirroring the #admins onboarding flow's guide-then-AM handoff
     const guideAccountID = accountGuideDetails?.email ? getPersonalDetailByEmail(accountGuideDetails.email)?.accountID : undefined;
+
+    // The guide book-call button is only shown before an account manager has been assigned, mirroring the #admins onboarding flow's guide-then-AM handoff
     const isGuideEligibleForBooking =
         !accountManagerAccountID &&
         !!accountGuideDetails?.calendarLink &&
@@ -233,31 +234,23 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL;
 
     // Show the "Book a call" button in the 1:1 DM with the assigned support person, or in the Concierge chat
-    const getBookCallVisibility = (supportAccountID: string | number | undefined, calendarLink: string | undefined) => {
+    const getBookCallVisibility = (supportAccountID: number | undefined, calendarLink: string | undefined) => {
         const canBookCall = !!supportAccountID && !!calendarLink;
         return {
-            inDM: canBookCall && isOneOnOneChat(report) && !!report?.participants?.[Number(supportAccountID)] && !!canUserPerformWriteAction(report, isReportArchived) && !isChatThread,
+            inDM: canBookCall && isOneOnOneChat(report) && !!report?.participants?.[supportAccountID] && !!canUserPerformWriteAction(report, isReportArchived) && !isChatThread,
             inConcierge: canBookCall && isConciergeChat,
         };
     };
 
-    const {inDM: shouldShowAccountManagerBookCallInDM, inConcierge: shouldShowAccountManagerBookCallInConcierge} = getBookCallVisibility(
-        accountManagerAccountID,
-        bookCallDetails?.accountManagerCalendarLink,
-    );
-    const shouldShowAccountManagerBookCall = shouldShowAccountManagerBookCallInDM || shouldShowAccountManagerBookCallInConcierge;
+    const bookCallVisibility = {
+        accountManager: getBookCallVisibility(accountManagerAccountID, bookCallDetails?.accountManagerCalendarLink),
+        partnerManager: getBookCallVisibility(partnerManagerAccountID, bookCallDetails?.partnerManagerCalendarLink),
+        guide: getBookCallVisibility(isGuideEligibleForBooking ? guideAccountID : undefined, accountGuideDetails?.calendarLink),
+    };
 
-    const {inDM: shouldShowPartnerManagerBookCallInDM, inConcierge: shouldShowPartnerManagerBookCallInConcierge} = getBookCallVisibility(
-        partnerManagerAccountID,
-        bookCallDetails?.partnerManagerCalendarLink,
-    );
-    const shouldShowPartnerManagerBookCall = shouldShowPartnerManagerBookCallInDM || shouldShowPartnerManagerBookCallInConcierge;
-
-    const {inDM: shouldShowGuideBookCallInDM, inConcierge: shouldShowGuideBookCallInConcierge} = getBookCallVisibility(
-        isGuideEligibleForBooking ? guideAccountID : undefined,
-        accountGuideDetails?.calendarLink,
-    );
-    const shouldShowGuideBookCall = shouldShowGuideBookCallInDM || shouldShowGuideBookCallInConcierge;
+    const shouldShowAccountManagerBookCall = bookCallVisibility.accountManager.inDM || bookCallVisibility.accountManager.inConcierge;
+    const shouldShowPartnerManagerBookCall = bookCallVisibility.partnerManager.inDM || bookCallVisibility.partnerManager.inConcierge;
+    const shouldShowGuideBookCall = bookCallVisibility.guide.inDM || bookCallVisibility.guide.inConcierge;
 
     const shouldShowBookCall = shouldShowAccountManagerBookCall || shouldShowPartnerManagerBookCall || shouldShowGuideBookCall;
 
@@ -265,16 +258,17 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const shouldStackBookCall = shouldUseNarrowLayout || isInSidePanel;
 
     // A single 1:1 chat can only match one of these roles, and in Concierge only one button is shown at a time, so precedence (account manager, then partner manager, then guide) resolves any overlap
-    let bookCallCalendarLink = accountGuideDetails?.calendarLink;
+    let bookCallCalendarLink: string | undefined;
     let bookCallAvatarAccountID: string | undefined;
     if (shouldShowAccountManagerBookCall) {
         bookCallCalendarLink = bookCallDetails?.accountManagerCalendarLink;
-        bookCallAvatarAccountID = shouldShowAccountManagerBookCallInConcierge ? accountManagerAccountID : undefined;
+        bookCallAvatarAccountID = bookCallVisibility.accountManager.inConcierge ? String(accountManagerAccountID) : undefined;
     } else if (shouldShowPartnerManagerBookCall) {
         bookCallCalendarLink = bookCallDetails?.partnerManagerCalendarLink;
-        bookCallAvatarAccountID = shouldShowPartnerManagerBookCallInConcierge ? String(partnerManagerAccountID) : undefined;
-    } else if (shouldShowGuideBookCallInConcierge) {
-        bookCallAvatarAccountID = String(guideAccountID);
+        bookCallAvatarAccountID = bookCallVisibility.partnerManager.inConcierge ? String(partnerManagerAccountID) : undefined;
+    } else if (shouldShowGuideBookCall) {
+        bookCallCalendarLink = accountGuideDetails?.calendarLink;
+        bookCallAvatarAccountID = bookCallVisibility.guide.inConcierge ? String(guideAccountID) : undefined;
     }
 
     const bookCallButton = (
