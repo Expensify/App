@@ -8,7 +8,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -54,8 +53,7 @@ function EnableTravel({route}: EnableTravelProps) {
     }, [isUserValidated, accountMetadata, policyID]);
 
     if (isLoadingOnyxValue(privatePersonalDetailsMetadata, accountMetadata) || !isUserValidated || (isMidFlowMount && isLoadingOnyxValue(travelProvisioningMetadata))) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'EnableTravel'};
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
