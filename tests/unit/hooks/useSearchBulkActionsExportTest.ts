@@ -536,8 +536,9 @@ describe('useSearchBulkActions - export options', () => {
          * When: Current view is selected.
          *
          * Then: the request is a current-view export (not a basic one) carrying the view's default expense
-         *       columns - including From, whose absence is the reported bug. The columns cannot come from the
-         *       data-presence pass in getColumnsToShow, because a grouped snapshot has no transactions to see.
+         *       columns - including From, whose absence is the reported bug, and Type, which the table always
+         *       shows first. The columns cannot come from the data-presence pass in getColumnsToShow, because a
+         *       grouped snapshot has no transactions to see.
          */
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
 
@@ -553,15 +554,15 @@ describe('useSearchBulkActions - export options', () => {
             expect(exportSearchItemsToCSV).toHaveBeenCalled();
         });
 
-        const defaultExpenseColumns: string[] = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE);
+        const expectedColumns: string[] = [CONST.SEARCH.TABLE_COLUMNS.TYPE, ...Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE)];
         const {isBasicExport, query, columnLabels} = getLastCSVExportParameters();
         expect(isBasicExport).toBe(false);
-        expect(defaultExpenseColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.FROM);
-        expect(query).toEqual(expect.objectContaining({columns: defaultExpenseColumns}));
+        expect(expectedColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.FROM);
+        expect(query).toEqual(expect.objectContaining({columns: expectedColumns}));
 
         // translate and the column translation key are both mocked as the identity here, so every column
         // carries a label of its own name - what matters is that a label is sent for each one.
-        expect(columnLabels).toEqual(Object.fromEntries(defaultExpenseColumns.map((column) => [column, column])));
+        expect(columnLabels).toEqual(Object.fromEntries(expectedColumns.map((column) => [column, column])));
     });
 
     it('exports the current view of a grouped search with the configured expense columns in order', async () => {
@@ -570,8 +571,8 @@ describe('useSearchBulkActions - export options', () => {
          *
          * When: Current view is selected.
          *
-         * Then: only the expense columns are requested, in the order the user arranged them, since the group
-         *       summary block keeps its own fixed columns.
+         * Then: only the expense columns are requested, in the order the user arranged them and led by Type,
+         *       since the group summary block keeps its own fixed columns.
          */
         await Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {
             columns: [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, CONST.SEARCH.TABLE_COLUMNS.TAG, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.FROM],
@@ -594,7 +595,7 @@ describe('useSearchBulkActions - export options', () => {
         expect(isBasicExport).toBe(false);
         expect(query).toEqual(
             expect.objectContaining({
-                columns: [CONST.SEARCH.TABLE_COLUMNS.TAG, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.FROM],
+                columns: [CONST.SEARCH.TABLE_COLUMNS.TYPE, CONST.SEARCH.TABLE_COLUMNS.TAG, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.FROM],
             }),
         );
     });
