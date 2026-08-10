@@ -396,7 +396,9 @@ function SuggestionMention({
                     return false;
                 }
                 const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, translate, formatPhoneNumber});
-                const displayText = displayName === formatPhoneNumber(detail.login) ? displayName : `${displayName} ${detail.login}`;
+                // The display name of a phone contact is the formatted number, so the raw login has to stay in the search text
+                // for unformatted digits to match. Only skip appending it when it is already identical to the display name.
+                const displayText = displayName === detail.login ? displayName : `${displayName} ${detail.login}`;
                 if (searchValue && !displayText.toLowerCase().includes(searchValue.toLowerCase())) {
                     return false;
                 }
