@@ -3508,7 +3508,7 @@ const CONST = {
         EXPORTER: 'exporter',
         EXPORT_DATE: 'exportDate',
         REIMBURSABLE: 'reimbursable',
-        COMPANY_CARD: 'companyCard',
+        NON_REIMBURSABLE: 'nonReimbursable',
         DEFAULT_VENDORID: 'defaultVendorID',
         CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
@@ -3533,8 +3533,8 @@ const CONST = {
         VENDOR_BILL: 'VENDOR_BILL',
     },
 
-    RILLET_EXPORT_COMPANY_CARD: {
-        CREDIT_CARD: 'CREDIT_CARD',
+    RILLET_EXPORT_NON_REIMBURSABLE: {
+        CREDIT_CARD_CHARGE: 'CREDIT_CARD_CHARGE',
     },
 
     RILLET_EXPORT_DATE: {
