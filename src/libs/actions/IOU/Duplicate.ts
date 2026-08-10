@@ -785,6 +785,8 @@ type DuplicateExpenseTransactionParams = {
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'];
+    participantsPolicyTags?: OnyxTypes.ParticipantsPolicyTags;
 };
 
 function duplicateExpenseTransaction({

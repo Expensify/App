@@ -2160,6 +2160,8 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2502,6 +2504,8 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
