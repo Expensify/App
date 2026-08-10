@@ -1161,7 +1161,7 @@ describe('actions/IOU/BulkEdit', () => {
                 transactionIDs: [firstTransactionID, secondTransactionID],
                 // The bulk-edit page pre-computes a common-prefix display string (parent only)...
                 changes: {tag: 'CostCenterB'},
-                // ...but apply time uses the resolved per-level edit intent (index 0 -> CostCenterB) to
+                // ...but apply time uses the resolved per-level edit intent (index 0 maps to CostCenterB) to
                 // merge into each expense's own tag. Build the index-keyed map programmatically because
                 // numeric-string object-literal keys trip the naming-convention lint rule.
                 bulkEditTagChanges: Object.fromEntries([[0, 'CostCenterB']]),
@@ -1181,7 +1181,7 @@ describe('actions/IOU/BulkEdit', () => {
                 getCurrencySymbol,
             });
 
-            // Each transaction keeps its OWN Indication/Phase; only the shared parent level changed.
+            // Each transaction keeps its OWN Indication/Phase. Only the shared parent level changed.
             expect(getBulkEditUpdates(writeSpy, 0).tag).toBe('CostCenterB:IndicationX:PhaseP');
             expect(getBulkEditUpdates(writeSpy, 1).tag).toBe('CostCenterB:IndicationY:PhaseQ');
 
@@ -1267,7 +1267,7 @@ describe('actions/IOU/BulkEdit', () => {
                 getCurrencySymbol,
             });
 
-            // Parent (CostCenter) preserved; the edited Indication level updated; dependent Phase cleared.
+            // Parent (CostCenter) is preserved. The edited Indication level is updated. The dependent Phase level is cleared.
             expect(getBulkEditUpdates(writeSpy, 0).tag).toBe('CostCenterA:IndicationZ');
 
             writeSpy.mockRestore();
