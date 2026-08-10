@@ -2898,6 +2898,13 @@ function getValidOptions(
         const isSelfDMChat = (report: SearchOption<Report>) => shouldSeparateSelfDMChat && report.isSelfDM && !report.private_isArchived;
 
         const isSearchTermsFound = (report: SearchOption<Report>) => {
+            // Keep the pre-filter a superset of filterReports(). In particular, use the canonical matcher first
+            // so apostrophes, hyphens, zero-width characters, diacritics, and dotless email searches are not
+            // discarded before filterAndOrderOptions gets a chance to apply the final report filtering.
+            if (filterReports([report], searchTerms).length > 0) {
+                return true;
+            }
+
             let searchText = `${report.text ?? ''}${report.login ?? ''}`;
             if (report.isThread) {
                 searchText += report.alternateText ?? '';
@@ -3621,33 +3628,7 @@ function filterUserToInvite(
 }
 
 function filterSelfDMChat(report: SearchOptionData, searchTerms: string[]): SearchOptionData | undefined {
-    const isMatch = searchTerms.every((term) => {
-        const values: string[] = [];
-
-        if (report.text) {
-            values.push(report.text);
-        }
-        if (report.login) {
-            values.push(report.login);
-            values.push(report.login.replace(CONST.EMAIL_SEARCH_REGEX, ''));
-        }
-        if (report.isThread) {
-            if (report.alternateText) {
-                values.push(report.alternateText);
-            }
-        } else if (!!report.isChatRoom || !!report.isPolicyExpenseChat) {
-            if (report.subtitle) {
-                values.push(report.subtitle);
-            }
-        }
-
-        // Remove duplicate values and check if the term matches any value
-        return uniqFast(values)
-            .map((val) => val.toLocaleLowerCase())
-            .some((value) => value.includes(term.toLocaleLowerCase()));
-    });
-
-    return isMatch ? report : undefined;
+    return filterReports([report], searchTerms).at(0);
 }
 
 function filterOptions<T extends SearchOptionData>(

@@ -1814,6 +1814,74 @@ describe('OptionsListUtils', () => {
             expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
         });
 
+        it.each([
+            {
+                description: 'an apostrophe',
+                reportText: "Don't forget",
+                searchText: 'dont',
+            },
+            {
+                description: 'a hyphen',
+                reportText: 'Project-ABC',
+                searchText: 'projectabc',
+            },
+            {
+                description: 'diacritics',
+                // cspell:disable-next-line
+                reportText: 'Café München',
+                searchText: 'cafe munchen',
+            },
+            {
+                description: 'a zero-width character',
+                reportText: 'Project\u200BABC',
+                searchText: 'projectabc',
+            },
+            {
+                description: 'dots omitted from an email address',
+                reportText: 'Test User',
+                reportLogin: 'test.user@example.com',
+                searchText: 'testuser@example.com',
+            },
+            {
+                description: 'a formatted phone number',
+                reportText: 'Phone Contact',
+                reportLogin: '+12345678901',
+                searchText: '+1 (234) 567-8901',
+            },
+        ])('should preserve a report match through the pre-filter and final filter for $description', ({reportText, reportLogin, searchText}) => {
+            // Given a report option with a search-sensitive display value
+            const sourceReport = OPTIONS.reports.find((report) => !!report.login);
+            expect(sourceReport).toBeDefined();
+            if (!sourceReport) {
+                return;
+            }
+
+            const report = {
+                ...sourceReport,
+                text: reportText,
+                login: reportLogin ?? sourceReport.login,
+            };
+
+            // When getValidOptions receives the NewChat-style normalized search value and the result is
+            // filtered again with the raw search value, as it is in NewChatPage
+            const searchString = getSearchValueForPhoneOrEmail(searchText, COUNTRY_CODE);
+            const {options} = getValidOptions(
+                {reports: [report], personalDetails: []},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {searchString, includeP2P: true},
+                translateLocal,
+            );
+            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+
+            // Then the report must survive both filtering stages
+            expect(filteredOptions.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({reportID: report.reportID, text: reportText})]));
+        });
+
         it('should keep every shell filter and sort field identical to the hydrated option', () => {
             // Given lightweight shells from createFilteredOptionList
             const {eagerList, lazyList} = buildOptionLists();
@@ -4965,6 +5033,59 @@ describe('OptionsListUtils', () => {
 
             // Then the returned value should match the search term
             expect(filteredReports).toEqual(reports);
+        });
+
+        it.each([
+            {
+                description: 'an apostrophe',
+                reportText: "Don't forget",
+                searchText: 'dont',
+            },
+            {
+                description: 'a hyphen',
+                reportText: 'Project-ABC',
+                searchText: 'projectabc',
+            },
+            {
+                description: 'a zero-width character',
+                reportText: 'Project\u200BABC',
+                searchText: 'projectabc',
+            },
+        ])('should match report text containing $description', ({reportText, searchText}) => {
+            // Given a report whose display text contains characters normalized by report search
+            const report: OptionData = {text: reportText, reportID: 'normalized', keyForList: 'normalized'};
+
+            // When the report is filtered with the normalized search value
+            const filteredReports = filterReports([report], [searchText]);
+
+            // Then the report should remain in the results
+            expect(filteredReports).toEqual([report]);
+        });
+
+        it('should match a report by email when dots are omitted from the search', () => {
+            const report: OptionData = {
+                text: 'Test User',
+                login: 'test.user@example.com',
+                reportID: 'email',
+                keyForList: 'email',
+            };
+
+            const filteredReports = filterReports([report], ['testuser@example.com']);
+
+            expect(filteredReports).toEqual([report]);
+        });
+
+        it('should match a report by its normalized phone number', () => {
+            const report: OptionData = {
+                text: 'Phone Contact',
+                login: '+12345678901',
+                reportID: 'phone',
+                keyForList: 'phone',
+            };
+
+            const filteredReports = filterReports([report], [getSearchValueForPhoneOrEmail('+1 (234) 567-8901', COUNTRY_CODE)]);
+
+            expect(filteredReports).toEqual([report]);
         });
     });
 
