@@ -7497,8 +7497,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
         },
         exportAgainModal: {
             title: 'Προσοχή!',
-            description: (reportName, connectionName) =>
-                `Οι παρακάτω αναφορές έχουν ήδη εξαχθεί στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Είστε βέβαιοι ότι θέλετε να τις εξαγάγετε ξανά;
+            description: (
+                reportName,
+                connectionName,
+            ) => `Οι παρακάτω αναφορές έχουν ήδη εξαχθεί στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Είστε βέβαιοι ότι θέλετε να τις εξαγάγετε ξανά;
 
 ${reportName}`,
             confirmText: 'Ναι, εξαγωγή ξανά',
@@ -8807,7 +8809,7 @@ ${reportName}`,
         updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) =>
             `άλλαξε τον προεπιλεγμένο τύπο ονόματος προσαρμοσμένης αναφοράς σε «${newDefaultTitle}» (προηγουμένως «${oldDefaultTitle}»)`,
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `ανέλαβε την κυριότητα του ${policyName} από τον/την ${oldOwnerName} (${oldOwnerEmail})`,
-        updatedAutoHarvesting: (enabled: boolean) => `προγραμματισμένη υποβολή ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`,
+        updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} υποβολές`,
         updatedIndividualBudgetNotification: (
             budgetAmount: string,
             budgetFrequency: string,
