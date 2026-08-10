@@ -89,7 +89,11 @@ agent-device replay <flow>.ad -e EMAIL=other@example.com
 - **No fixed-duration `wait` calls.** Guard every asynchronous transition with `wait "<selector>" <timeoutMs>`, which polls until the selector resolves. A bare `wait <ms>` only burns wall clock.
 - **No command flags in a flow body.** The `.ad` parser only reads flags for `press`, `fill`, `click`, and a few capture commands; for `is`, `wait`, and `find` it treats `--first` and friends as positionals. Disambiguate with a tighter selector instead.
 - **Durable selectors.** Prefer `id=...` first, then `role=... label=...`, with `||` fallbacks. For shared navigation controls, put the iOS role selector before the Android `label=... hittable=true` fallback. Avoid `@eN` refs.
-- **Every flow declares `@desc` and `@pre`.** Scenarios enforce every `@pre` before mutation and every `@post` before success. Utility macros (for example `go-back`) may omit `@post`. Add `@tag` when applicable.
+- **Every flow declares `@desc` and `@pre`.** Scenarios also declare at least one `@post`. Utility macros (for example `go-back`) may omit `@post`. Add `@tag` when applicable.
+- **Assertion order decides whether a pass means anything.** Enforce every `@pre` before the first mutation and every `@post` after the last one. An assertion on the wrong side of a mutation lets a flow report success from the screen it started on.
+- **No `find <selector> "click"`.** It resolves at runtime and hides which element was hit. Press an exact selector instead.
+- **A bare `label=` alternative must carry `hittable=true`.** Without it the match can land on an off-screen or non-interactive node and the press silently does nothing.
+- **One canonical owner per Sentry tag.** When several scenarios carry the same `sentry-<spanName>` tag, exactly one declares `@measure canonical` so measurement picks a single flow.
 - **Choose directory intentionally.** Put reusable setup/navigation steps in `flows/macros/`; put outcome verification scenarios in `flows/scenarios/`.
 - **Keep scope coherent, not artificially tiny.** Flows can span multiple screens when that sequence is the reusable intent (for example "create and submit manual expense").
 - **Peers share `@pre` and differ on `@post`.** One flow per narrow outcome is better than a mega-flow with conditional branches.
@@ -122,4 +126,4 @@ agent-device replay .claude/skills/agent-device/flows/<kind>/<name>.ad --session
 
 Every divergence carries ranked selector suggestions. Apply them yourself: `replay --update`/`-u` no longer rewrites the `.ad` file. Editing by hand also keeps `${KEY}` placeholders intact. Re-verify `@pre`/`@post` still hold, then commit. Keep runtime inputs in `@param` + `-e`/`AD_VAR_*`; do not reintroduce in-file `env` directives.
 
-Run `node .claude/skills/agent-device/scripts/validate-flows.mjs` after editing scenarios. It checks assertion order, selector specificity, reset paths, canonical ownership of duplicate Sentry tags, and guarded floating action menu transitions.
+After editing a scenario, re-read the authoring rules above and replay the flow from a matching start state. A green replay plus enforced `@pre`/`@post` is the check.
