@@ -106,6 +106,7 @@ function ReportFetchHandler() {
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
     const [reportDraftOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDFromRoute}`);
+    const [isPromotedForPreMount] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportIDFromRoute}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.chatReportID}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
@@ -190,6 +191,14 @@ function ReportFetchHandler() {
         // 403 "Report not found" and merge an errorFields.notFound stub into REPORT, shadowing the draft. It's persisted
         // later by the confirmation's AddTrackedExpenseToPolicy request, so never openReport it here.
         if (!reportOnyx?.reportID && !!reportDraftOnyx?.reportID) {
+            return;
+        }
+
+        // promoteDraftReportForPreMount (see Report/index.ts) copies that same draft into COLLECTION.REPORT so the
+        // pre-mounted screen can render immediately, which makes the guard above stop protecting it - reportOnyx?.reportID
+        // is now truthy even though the row is still speculative. The promotion marker stays set until the real submit
+        // confirms or the caller backs out, so gate on it here too.
+        if (isPromotedForPreMount) {
             return;
         }
 
