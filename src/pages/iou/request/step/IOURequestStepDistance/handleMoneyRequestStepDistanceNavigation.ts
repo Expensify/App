@@ -1,5 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import {buildParticipantsPolicyTags} from '@libs/actions/IOU';
 import {
     getMoneyRequestParticipantOptions,
@@ -11,7 +13,6 @@ import {
 } from '@libs/actions/IOU/MoneyRequest';
 import {createDistanceRequest, resetSplitShares} from '@libs/actions/IOU/Split';
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -22,7 +23,7 @@ import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getValidWaypoints} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getValidWaypoints, hasAppliedCommuterExclusion} from '@libs/TransactionUtils';
 
 import {setTransactionReport} from '@userActions/Transaction';
 
@@ -87,6 +88,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     selfDMReport: OnyxEntry<Report>;
     gpsCoordinates?: string;
     gpsDistance?: number;
+    gpsModifiedDistance?: number;
     odometerStart?: number;
     odometerEnd?: number;
     odometerDistance?: number;
@@ -108,6 +110,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     delegateAccountID: number | undefined;
     policyTagList: PolicyTagLists;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 
 /** Amount + merchant for a manual-distance submit; pending placeholders otherwise (waypoint/GPS distance is computed server-side). */
@@ -119,6 +122,7 @@ function buildDistanceAmountAndMerchant({
     policy,
     translate,
     personalPolicyOutputCurrency,
+    getCurrencySymbol,
 }: {
     isManualDistance: boolean;
     distance: number | undefined;
@@ -127,6 +131,7 @@ function buildDistanceAmountAndMerchant({
     policy: OnyxEntry<Policy>;
     translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string;
     personalPolicyOutputCurrency: string | undefined;
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 }): {amount: number; merchant: string} {
     if (!isManualDistance || distance === undefined || !unit) {
         return {amount: 0, merchant: translate('iou.fieldPending')};
@@ -184,6 +189,7 @@ function handleMoneyRequestStepDistanceNavigation({
     selfDMReport,
     gpsCoordinates,
     gpsDistance,
+    gpsModifiedDistance,
     policyForMovingExpenses,
     odometerStart,
     odometerEnd,
@@ -206,6 +212,7 @@ function handleMoneyRequestStepDistanceNavigation({
     delegateAccountID,
     policyTagList,
     formatPhoneNumber,
+    getCurrencySymbol,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -273,11 +280,13 @@ function handleMoneyRequestStepDistanceNavigation({
                 policy,
                 translate,
                 personalPolicyOutputCurrency: personalOutputCurrency,
+                getCurrencySymbol,
             });
             setMoneyRequestMerchant(transactionID, merchant, false);
             const distanceDefaultTaxCode = getDefaultTaxCode(policy, transaction);
             const distanceTaxCode = (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '';
             const distanceTaxAmount = transaction?.taxAmount ?? 0;
+            const shouldIncludeCommuterExclusionOverrides = hasAppliedCommuterExclusion(transaction);
 
             if (isCreatingTrackExpense && participant) {
                 submitWithDismissFirst({
@@ -298,6 +307,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             transactionParams: {
                                 amount,
                                 distance,
+                                modifiedDistance: gpsModifiedDistance,
                                 currency: transaction?.currency ?? 'USD',
                                 created: transaction?.created ?? '',
                                 merchant,
@@ -324,6 +334,8 @@ function handleMoneyRequestStepDistanceNavigation({
                             isASAPSubmitBetaEnabled,
                             currentUser: {accountID: currentUserAccountID, email: currentUserLogin ?? ''},
                             introSelected,
+                            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
+                            conciergeChat: undefined,
                             quickAction,
                             draftTransactionIDs,
                             recentWaypoints,
@@ -372,7 +384,10 @@ function handleMoneyRequestStepDistanceNavigation({
                         existingTransaction: transaction,
                         transactionParams: {
                             amount,
+                            ...(shouldIncludeCommuterExclusionOverrides && typeof transaction?.modifiedAmount === 'number' && {modifiedAmount: transaction.modifiedAmount}),
+                            ...(shouldIncludeCommuterExclusionOverrides && transaction?.modifiedMerchant && {modifiedMerchant: transaction.modifiedMerchant}),
                             distance,
+                            modifiedDistance: gpsModifiedDistance,
                             comment: '',
                             created: transaction?.created ?? '',
                             currency: transaction?.currency ?? 'USD',
