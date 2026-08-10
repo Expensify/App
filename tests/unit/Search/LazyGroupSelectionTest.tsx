@@ -183,6 +183,33 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
     });
 
+    it('narrows a group selected before its children loaded once shift+click shrinks the range', async () => {
+        const {result} = renderSelection();
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given a group selected while it was still collapsed, whose children have since loaded and been registered
+        await act(async () => {
+            result.current.toggle(categoryGroup, []);
+            result.current.registerGroupChildren(GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a shift+click covers both children and a second one shrinks the range back to the first
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the second child drops out, rather than staying selected through the group
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']).toBeUndefined();
+    });
+
     it('selects every child of a group that was not already selected once its children loaded', async () => {
         const {result} = renderSelection();
 

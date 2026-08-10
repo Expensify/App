@@ -507,15 +507,8 @@ function SearchWriteActionsProvider({
             if (isTransactionGroupListItemType(item) && item.transactions.length > 0) {
                 return item.transactions.some((transaction) => selected[transaction.keyForList]?.isSelected);
             }
-            if (!item.keyForList) {
-                return false;
-            }
-            if (selected[item.keyForList]?.isSelected) {
-                return true;
-            }
-            // A child of a group selected before its children loaded has no entry of its own, but it renders (and counts) as selected.
-            const parentGroupKey = groupKeyByChildKey.get(item.keyForList);
-            return !!(parentGroupKey && selected[parentGroupKey]?.isSelected);
+            // A child selected only through its group key is deliberately not counted, so it stays paintable and a later shift+click can narrow the group.
+            return !!(item.keyForList && selected[item.keyForList]?.isSelected);
         },
         // Pending-delete rows (kept rendered offline) can't be toggled, so they can't anchor or join a range either.
         isDisabledItem: (item) => (isTransactionListItemType(item) ? isTransactionPendingDelete(item) : item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
