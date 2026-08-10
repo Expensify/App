@@ -1700,17 +1700,17 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             bulkSubtitle: 'これらのレポートの承認者を変更する方法を選択してください。',
             delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
-                `このレポートは、あなた（休暇代理人）ではなく、あなたがこのレポートのポリシーのメンバーではないため、代わりに <mention-user>@${originalManager}</mention-user> に送信されました`,
+                `このレポートは、あなた（休暇代理人）ではなく、あなたの代わりに <mention-user>@${originalManager}</mention-user> に送信されました。あなたはこのレポートのポリシーのメンバーではないためです。`,
             delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
-                `このレポートは、このレポートのポリシーのメンバーではないため、休暇代理人の <mention-user>@${delegate}</mention-user> ではなく、あなたに送信されました`,
+                `このレポートは、休暇代理人の <mention-user>@${delegate}</mention-user> ではなくあなたに送信されました。このレポートのポリシーに、その代理人がメンバーとして参加していないためです。`,
             delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
-                `このレポートは、このレポートのポリシーのメンバーではないため、休暇代理人の <mention-user>@${delegate}</mention-user> ではなく、<mention-user>@${originalManager}</mention-user> に送信されました`,
+                `このレポートは、このレポートのポリシーのメンバーではないため、本来の休暇代理人である <mention-user>@${delegate}</mention-user> ではなく、<mention-user>@${originalManager}</mention-user> に送信されました`,
             delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string, delegate: string) =>
-                `このレポートは、<mention-user>@${delegate}</mention-user> さんがご自身のレポートを承認できないため、承認のために <mention-user>@${originalManager}</mention-user> さんに送信されました`,
+                `<mention-user>@${delegate}</mention-user> さんはご自身のレポートを承認できないため、このレポートは承認のために <mention-user>@${originalManager}</mention-user> さんに送信されました`,
             delegateSubmitCannotApproveOwnReportAsOriginalManager: (originalManager: string, delegate: string) =>
-                `このレポートは、休暇代理人である <mention-user>@${delegate}</mention-user> さんは自分のレポートを承認できないため、承認のためにあなたに送信されました`,
+                `このレポートは、休暇代理人の <mention-user>@${delegate}</mention-user> さんが自分のレポートを承認できないため、承認のためにあなたに送信されました`,
             delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
-                `このレポートは、休暇中の代理人である <mention-user>@${delegate}</mention-user> さんは自分のレポートを承認できないため、承認のために <mention-user>@${originalManager}</mention-user> さんに送信されました`,
+                `このレポートは、休暇代理人である <mention-user>@${delegate}</mention-user> さんは自分のレポートを承認できないため、承認のために <mention-user>@${originalManager}</mention-user> さんに送信されました`,
         },
         chooseWorkspace: 'ワークスペースを選択',
         routedDueToDEW: (to: string, reason?: string) => `レポートは ${to}${reason ? ` ${reason} のため` : ''} に回覧されました`,

@@ -1657,17 +1657,17 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             bulkSubtitle: '选择一个选项来更改这些报表的审批人。',
             delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
-                `由于你不是此报表所属政策的成员，该报表已发送给 <mention-user>@${originalManager}</mention-user>，而不是发送给你（其休假代理）`,
+                `此报销单已发送给 <mention-user>@${originalManager}</mention-user>，而不是发送给你（其休假代理），因为你不是此报销单所属政策的成员`,
             delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
-                `此报表被发送给了你，而不是你的休假代理人 <mention-user>@${delegate}</mention-user>，因为他们不是此报表所属政策的成员`,
+                `由于你的休假代理人 <mention-user>@${delegate}</mention-user> 不是此报销单所属政策的成员，这份报销单被发送给了你本人`,
             delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
-                `此报表已发送给 <mention-user>@${originalManager}</mention-user>，而不是他们的休假代理人 <mention-user>@${delegate}</mention-user>，因为他们不是此报表所属政策的成员`,
+                `此报表已发送给 <mention-user>@${originalManager}</mention-user>，而非他们的休假代理人 <mention-user>@${delegate}</mention-user>，因为他们不是此报表所属政策的成员`,
             delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string, delegate: string) =>
-                `由于 <mention-user>@${delegate}</mention-user> 无法审批自己的报销单，此报销单已发送给 <mention-user>@${originalManager}</mention-user> 进行审批`,
+                `此报表已发送给 <mention-user>@${originalManager}</mention-user> 进行审批，因为 <mention-user>@${delegate}</mention-user> 不能审批自己的报表`,
             delegateSubmitCannotApproveOwnReportAsOriginalManager: (originalManager: string, delegate: string) =>
-                `由于您的休假代理人 <mention-user>@${delegate}</mention-user> 无法审批自己的报销单，此报销单已发送给您进行审批`,
+                `此报表已发送给您审批，因为您的休假代理人 <mention-user>@${delegate}</mention-user> 无法审批自己的报表`,
             delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
-                `由于审批人的休假代理人 <mention-user>@${delegate}</mention-user> 无法审批自己的报销单，此报销单已发送给 <mention-user>@${originalManager}</mention-user> 审批`,
+                `由于其休假代理人 <mention-user>@${delegate}</mention-user> 无法审批自己的报销报告，此报销报告已发送给 <mention-user>@${originalManager}</mention-user> 审批`,
         },
         chooseWorkspace: '选择工作区',
         routedDueToDEW: (to: string, reason?: string) => `报销单已转交给 ${to}${reason ? ` 因为 ${reason}` : ''}`,

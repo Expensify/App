@@ -320,7 +320,6 @@ const translations: TranslationDeepObject<typeof en> = {
         automatic: 'Αυτόματο',
         showing: 'Εμφανίζονται',
         of: 'του',
-        // @context Carousel pagination counter showing the current item's position out of the total (e.g. "3 of 50").
         currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} από ${total}`,
         default: 'Προεπιλογή',
         update: 'Ενημέρωση',
@@ -1762,17 +1761,17 @@ const translations: TranslationDeepObject<typeof en> = {
             changedApproverMessage: (managerID: number) => `άλλαξε τον εγκρίνοντα σε <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `ανέθεσε εκ νέου τον εγκρίνοντα στον/στην <mention-user accountID="${managerID}"/> μέσω ενημέρωσης ροής εργασίας`,
             delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
-                `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> αντί σε εσάς (τον Αντιπρόσωπο Άδειας του) επειδή δεν είστε μέλος της πολιτικής αυτής της αναφοράς`,
+                `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> αντί σε εσάς (τον/την αναπληρωτή/αναπληρώτριά τους κατά τις διακοπές) επειδή δεν είστε μέλος της πολιτικής αυτής της αναφοράς`,
             delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
-                `Αυτή η αναφορά στάλθηκε σε εσάς αντί στον Αντιπρόσωπο Άδειας σας <mention-user>@${delegate}</mention-user> επειδή δεν είναι μέλος της πολιτικής αυτής της αναφοράς`,
+                `Αυτή η αναφορά σας στάλθηκε αντί για τον αναπληρωτή σας διακοπών <mention-user>@${delegate}</mention-user>, επειδή δεν είναι μέλος της πολιτικής αυτής της αναφοράς`,
             delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
-                `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> αντί στον Αντιπρόσωπο Άδειας του/της <mention-user>@${delegate}</mention-user> επειδή δεν είναι μέλος της πολιτικής αυτής της αναφοράς`,
+                `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> αντί για τον/την αναπληρωτή/τριά τους για διακοπές <mention-user>@${delegate}</mention-user>, επειδή δεν είναι μέλος της πολιτικής αυτής της αναφοράς`,
             delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string, delegate: string) =>
-                `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> για έγκριση επειδή ο/η <mention-user>@${delegate}</mention-user> δεν μπορεί να εγκρίνει τις δικές του/της αναφορές`,
+                `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> για έγκριση, επειδή ο/η <mention-user>@${delegate}</mention-user> δεν μπορεί να εγκρίνει τις δικές του/της αναφορές`,
             delegateSubmitCannotApproveOwnReportAsOriginalManager: (originalManager: string, delegate: string) =>
-                `Αυτή η αναφορά στάλθηκε σε εσάς για έγκριση επειδή ο Αντιπρόσωπος Άδειας σας, <mention-user>@${delegate}</mention-user>, δεν μπορεί να εγκρίνει τις δικές του/της αναφορές`,
+                `Αυτή η αναφορά σας στάλθηκε για έγκριση, επειδή ο Αντικαταστάτης Διακοπών σας, <mention-user>@${delegate}</mention-user>, δεν μπορεί να εγκρίνει τις δικές του αναφορές`,
             delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
-                `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> για έγκριση επειδή ο Αντιπρόσωπος Άδειας του/της, <mention-user>@${delegate}</mention-user>, δεν μπορεί να εγκρίνει τις δικές του/της αναφορές`,
+                `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> για έγκριση, καθώς ο/η αναπληρωτής/αναπληρώτριά τους για άδεια, <mention-user>@${delegate}</mention-user>, δεν μπορεί να εγκρίνει τις δικές του/της αναφορές`,
             actions: {
                 addApprover: 'Προσθήκη εγκρίνων',
                 addApproverSubtitle: 'Προσθέστε έναν επιπλέον εγκρίνοντα στην υπάρχουσα ροή έγκρισης.',
@@ -7509,8 +7508,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
         },
         exportAgainModal: {
             title: 'Προσοχή!',
-            description: (reportName, connectionName) =>
-                `Οι παρακάτω αναφορές έχουν ήδη εξαχθεί στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Είστε βέβαιοι ότι θέλετε να τις εξαγάγετε ξανά;
+            description: (
+                reportName,
+                connectionName,
+            ) => `Οι παρακάτω αναφορές έχουν ήδη εξαχθεί στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Είστε βέβαιοι ότι θέλετε να τις εξαγάγετε ξανά;
 
 ${reportName}`,
             confirmText: 'Ναι, εξαγωγή ξανά',

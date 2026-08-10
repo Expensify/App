@@ -1720,13 +1720,13 @@ const translations: TranslationDeepObject<typeof en> = {
             delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
                 `Este informe se envió a <mention-user>@${originalManager}</mention-user> en lugar de a ti (su delegado de vacaciones) porque no eres miembro de la política de este informe`,
             delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
-                `Este informe se envió a ti en lugar de a tu sustituto de vacaciones <mention-user>@${delegate}</mention-user> porque no es miembro de la política de este informe`,
+                `Este informe se te envió a ti en lugar de a tu delegado de vacaciones <mention-user>@${delegate}</mention-user> porque no es miembro de la política de este informe`,
             delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
                 `Este informe se envió a <mention-user>@${originalManager}</mention-user> en lugar de a su delegado de vacaciones <mention-user>@${delegate}</mention-user> porque no es miembro de la política de este informe`,
             delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string, delegate: string) =>
-                `Este informe se envió a <mention-user>@${originalManager}</mention-user> para su aprobación, ya que <mention-user>@${delegate}</mention-user> no puede aprobar sus propios informes`,
+                `Este informe se envió a <mention-user>@${originalManager}</mention-user> para su aprobación ya que <mention-user>@${delegate}</mention-user> no puede aprobar tus propios informes`,
             delegateSubmitCannotApproveOwnReportAsOriginalManager: (originalManager: string, delegate: string) =>
-                `Este informe se envió a ti para su aprobación, ya que tu delegado de vacaciones, <mention-user>@${delegate}</mention-user>, no puede aprobar sus propios informes`,
+                `Este informe se te ha enviado para aprobación porque tu sustituto de vacaciones, <mention-user>@${delegate}</mention-user>, no puede aprobar sus propios informes`,
             delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
                 `Este informe se envió a <mention-user>@${originalManager}</mention-user> para su aprobación, ya que su delegado de vacaciones, <mention-user>@${delegate}</mention-user>, no puede aprobar sus propios informes`,
         },
