@@ -35,6 +35,7 @@ import {
     getDeleteExpenseTitle,
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
+    hasAppliedCommuterExclusion,
     isDistanceRequest,
     isPerDiemRequest,
     isTransactionPendingDelete,
@@ -102,7 +103,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const {isProduction} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
@@ -128,6 +129,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             nonPendingDeleteTransactions.push(transaction);
         }
     }
+    const hasCommuterExclusionDistanceRequest = nonPendingDeleteTransactions.some(hasAppliedCommuterExclusion);
 
     const currentTransaction = transactions.at(0);
     const splitEffectivePolicy = useSplitEffectivePolicy(moneyRequestReport, undefined, currentTransaction);
@@ -324,7 +326,17 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 if (transactions.length !== 1) {
                     return;
                 }
-                initSplitExpense(currentTransaction, moneyRequestReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, {isProduction});
+                initSplitExpense(
+                    currentTransaction,
+                    moneyRequestReport,
+                    splitEffectivePolicy,
+                    selfDMReportID,
+                    restrictedActionPolicyID,
+                    personalPolicy?.outputCurrency,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
+                    {isProduction},
+                );
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MERGE]: {
@@ -441,6 +453,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     isTrackIntentUser,
                     delegateAccountID,
                     formatPhoneNumber,
+                    getCurrencyDecimals,
                 });
             },
         },
@@ -449,7 +462,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             icon: expensifyIcons.Buildings,
             value: CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.CHANGE_WORKSPACE,
-            shouldShow: transactions.length === 0 || nonPendingDeleteTransactions.length > 0,
+            shouldShow: (transactions.length === 0 || nonPendingDeleteTransactions.length > 0) && !hasCommuterExclusionDistanceRequest,
             onSelected: () => {
                 if (!moneyRequestReport) {
                     return;
@@ -472,13 +485,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     return;
                 }
                 Navigation.navigate(
-                    ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(
-                        CONST.IOU.ACTION.EDIT,
-                        CONST.IOU.TYPE.SUBMIT,
-                        moneyRequestReport.reportID,
-                        true,
-                        Navigation.getActiveRoute(),
-                        transactionToMove.transactionID,
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SUBMIT, moneyRequestReport.reportID, true, transactionToMove.transactionID),
                     ),
                 );
             },
@@ -536,6 +544,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                             iouReport,
                             chatIOUReport,
                             isChatIOUReportArchived,
+                            getCurrencyDecimals,
                             false,
                         );
                         const deleteNavigateBackUrl = goBackRoute ?? backTo ?? Navigation.getActiveRoute();

@@ -35,6 +35,7 @@ import {accountIDSelector} from '@src/selectors/Session';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
+import {pendingDeleteMemberAccountIDsSelector} from '@selectors/ReportMetaData';
 import React, {useEffect, useState} from 'react';
 
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -52,6 +53,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
     const [participantLogins = getEmptyArray<string>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: personalDetailsLoginsSelector(getParticipantsAccountIDsForDisplay(report, false, true)),
     });
+    const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingDeleteMemberAccountIDsSelector});
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
@@ -123,7 +125,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         toggleSelection(option);
     };
 
-    const reportName = getGroupChatName(formatPhoneNumber, translate, undefined, true, report);
+    const reportName = getGroupChatName(formatPhoneNumber, translate, undefined, true, report, pendingDeleteMemberAccountIDs);
 
     const goBack = () => {
         Navigation.goBack(backPath);

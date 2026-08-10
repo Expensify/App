@@ -58,7 +58,6 @@ function useReceiptScanDrop() {
             parentReport: undefined,
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             currentDate,
-            currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
             draftTransactionIDs,
         });
@@ -72,7 +71,6 @@ function useReceiptScanDrop() {
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
                           initialTransaction: initialTransaction as Partial<Transaction>,
-                          currentUserPersonalDetails,
                           reportID: newReportID,
                       });
             const transactionID = transaction.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;

@@ -126,7 +126,6 @@ function SettlementButton({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyID, conciergeReportID) : false;
@@ -448,7 +447,7 @@ function SettlementButton({
                             navigateToBankAccountRoute({policyID: getPolicyID()});
                         } else {
                             clearPersonalBankAccount();
-                            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
+                            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute());
                         }
                     },
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -513,7 +512,6 @@ function SettlementButton({
                     currentUserEmailParam: email ?? '',
                     hasViolations,
                     isASAPSubmitBetaEnabled,
-                    expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                     betas,
                     userBillingGracePeriodEnds,
                     amountOwed,
@@ -521,6 +519,7 @@ function SettlementButton({
                     ownerLogin,
                     full: false,
                     delegateEmail,
+                    delegateAccountID,
                     isTrackIntentUser,
                 });
             }
