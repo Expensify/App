@@ -103,4 +103,3 @@ function AccountAvatars({
 }
 
 export default AccountAvatars;
-export type {AccountAvatarsProps};
