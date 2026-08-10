@@ -4276,6 +4276,9 @@ ${amount} για ${merchant} - ${date}`,
         proofOf: 'Απόδειξη προσωπικής διεύθυνσης',
         enterOneEmail: (companyName: string) => `Εισαγάγετε το email ενός διευθυντή στην ${companyName}`,
         regulationRequiresOneMoreDirector: 'Η νομοθεσία απαιτεί τουλάχιστον έναν ακόμη διευθυντή ως υπογράφοντα.',
+        bothSignersMustBeOnIllionReport:
+            'Και οι δύο υπογράφοντες πρέπει να αναφέρονται ως διευθυντές στην αναφορά illion της εταιρείας. Δεν μπορούν να είναι οποιοιδήποτε δύο άτομα στην επιχείρηση.',
+        signerMustBeOnIllionReport: 'Ο διευθυντής που προσθέτετε ως υπογράφοντα πρέπει να αναγράφεται στην αναφορά illion της εταιρείας.',
         hangTight: 'Μισό λεπτό...',
         enterTwoEmails: (companyName: string) => `Εισαγάγετε τα email δύο διευθυντών στην ${companyName}`,
         sendReminder: 'Αποστολή υπενθύμισης',
@@ -4286,11 +4289,11 @@ ${amount} για ${merchant} - ${date}`,
         proofOfDirectorsDescription: 'Παραδείγματα: εταιρικό προφίλ Oncorp ή καταχώριση επιχείρησης.',
         codiceFiscale: 'Κωδικός Φορολογικού Μητρώου',
         codiceFiscaleDescription: 'Codice Fiscale για υπογράφοντες, εξουσιοδοτημένους χρήστες και πραγματικούς δικαιούχους.',
-        PDSandFSG: 'Έγγραφα γνωστοποίησης PDS + FSG',
+        PDSandFSG: 'Έγγραφα γνωστοποίησης PDS, FSG και TMD',
         PDSandFSGDescription: Str.dedent(`
-            Η συνεργασία μας με την Corpay χρησιμοποιεί σύνδεση API ώστε να αξιοποιήσει το εκτεταμένο δίκτυο διεθνών τραπεζικών συνεργατών της για να υποστηρίξει τις Παγκόσμιες Αποζημιώσεις στην Expensify. Σύμφωνα με την αυστραλιανή νομοθεσία, σας παρέχουμε τον Οδηγό Χρηματοοικονομικών Υπηρεσιών (Financial Services Guide, FSG) και τη Δήλωση Αποκάλυψης Προϊόντος (Product Disclosure Statement, PDS) της Corpay.
+            Η συνεργασία μας με την Corpay χρησιμοποιεί σύνδεση API για να αξιοποιήσει το εκτεταμένο δίκτυο διεθνών τραπεζικών συνεργατών της, ώστε να υποστηρίξει τις παγκόσμιες επιστροφές χρημάτων στο Expensify. Σύμφωνα με τους κανονισμούς της Αυστραλίας, σάς παρέχουμε τον Οδηγό Χρηματοοικονομικών Υπηρεσιών (FSG), το Έγγραφο Γνωστοποίησης Προϊόντος (PDS) και τον Καθορισμό Στόχου Αγοράς (TMD) της Corpay.
 
-            Παρακαλούμε διαβάστε προσεκτικά τα έγγραφα FSG και PDS, καθώς περιέχουν πλήρεις λεπτομέρειες και σημαντικές πληροφορίες για τα προϊόντα και τις υπηρεσίες που προσφέρει η Corpay. Διατηρήστε αυτά τα έγγραφα για μελλοντική αναφορά.
+            Παρακαλούμε διαβάστε προσεκτικά τα έγγραφα FSG, PDS και TMD, καθώς περιέχουν πλήρεις λεπτομέρειες και σημαντικές πληροφορίες σχετικά με τα προϊόντα και τις υπηρεσίες που προσφέρει η Corpay. Κρατήστε αυτά τα έγγραφα για μελλοντική αναφορά.
         `),
         pleaseUpload: 'Παρακαλούμε ανεβάστε επιπλέον έγγραφα παρακάτω, ώστε να μας βοηθήσετε να επαληθεύσουμε την ταυτότητά σας ως διευθυντή της επιχείρησης.',
         enterSignerInfo: 'Εισαγάγετε τα στοιχεία υπογράφοντα',
@@ -4302,6 +4305,9 @@ ${amount} για ${merchant} - ${date}`,
         },
     },
     agreementsStep: {
+        bankStatement: 'Απόσπασμα κίνησης λογαριασμού',
+        bankStatementDescription:
+            'Παρακαλούμε προσκομίστε ένα πρόσφατο αντίγραφο κίνησης τραπεζικού λογαριασμού, εκδοθέν μέσα στους τελευταίους τρεις μήνες, για τον επαγγελματικό τραπεζικό λογαριασμό που συνδέετε.',
         agreements: 'Συμφωνίες',
         pleaseConfirm: 'Παρακαλούμε επιβεβαιώστε τις παρακάτω συμφωνίες',
         regulationRequiresUs: 'Οι κανονισμοί απαιτούν να επαληθεύουμε την ταυτότητα κάθε ατόμου που κατέχει πάνω από 25% της επιχείρησης.',
@@ -4310,7 +4316,7 @@ ${amount} για ${merchant} - ${date}`,
         iAcceptTheTermsAndConditions: `Αποδέχομαι τους <a href="https://www.corpay.com/cross-border/terms">όρους και τις προϋποθέσεις</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'Αποδέχομαι τους όρους και τις προϋποθέσεις.',
         accept: 'Αποδοχή και προσθήκη τραπεζικού λογαριασμού',
-        iConsentToThePrivacyNotice: 'Συναινώ στην <a href="https://payments.corpay.com/compliance">ειδοποίηση απορρήτου</a>.',
+        iConsentToThePrivacyNotice: 'Συναινώ με την <a href="https://www.corpay.com/privacy-policy">ειδοποίηση απορρήτου</a>.',
         iConsentToThePrivacyNoticeAccessibility: 'Συναινώ στην ειδοποίηση απορρήτου.',
         error: {
             authorized: 'Πρέπει να είστε υπεύθυνος αξιωματούχος με εξουσιοδότηση να διαχειρίζεστε τον επαγγελματικό τραπεζικό λογαριασμό',
@@ -5779,10 +5785,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     },
                 },
             },
-            exportCompanyCard: {
+            exportNonReimbursable: {
                 label: 'Εξαγωγή εξόδων εταιρικής κάρτας ως',
                 values: {
-                    [CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {
+                    [CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE]: {
                         label: 'Πιστωτικές κάρτες',
                     },
                 },
@@ -7497,8 +7503,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
         },
         exportAgainModal: {
             title: 'Προσοχή!',
-            description: (reportName, connectionName) =>
-                `Οι παρακάτω αναφορές έχουν ήδη εξαχθεί στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Είστε βέβαιοι ότι θέλετε να τις εξαγάγετε ξανά;
+            description: (
+                reportName,
+                connectionName,
+            ) => `Οι παρακάτω αναφορές έχουν ήδη εξαχθεί στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Είστε βέβαιοι ότι θέλετε να τις εξαγάγετε ξανά;
 
 ${reportName}`,
             confirmText: 'Ναι, εξαγωγή ξανά',
@@ -8807,7 +8815,7 @@ ${reportName}`,
         updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) =>
             `άλλαξε τον προεπιλεγμένο τύπο ονόματος προσαρμοσμένης αναφοράς σε «${newDefaultTitle}» (προηγουμένως «${oldDefaultTitle}»)`,
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `ανέλαβε την κυριότητα του ${policyName} από τον/την ${oldOwnerName} (${oldOwnerEmail})`,
-        updatedAutoHarvesting: (enabled: boolean) => `προγραμματισμένη υποβολή ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`,
+        updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} υποβολές`,
         updatedIndividualBudgetNotification: (
             budgetAmount: string,
             budgetFrequency: string,
