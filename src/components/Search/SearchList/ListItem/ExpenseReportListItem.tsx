@@ -333,6 +333,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         showConfirmModal,
         translate,
         convertToDisplayString,
+        getCurrencyDecimals,
         currentUserAccountID,
         currentUserLogin,
         introSelected,

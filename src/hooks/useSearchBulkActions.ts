@@ -1344,6 +1344,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const payChatReportID = shouldUseB2BInvoiceReport ? existingB2BInvoiceReport.reportID : chatReport.reportID;
 
                     payInvoice({
+                        getCurrencyDecimals,
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
                         chatReport,
                         invoiceReport: iouReport,
@@ -1371,6 +1372,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 payMoneyRequest({
+                    getCurrencyDecimals,
                     paymentType: paymentItem.paymentType as PaymentMethodType,
                     chatReport,
                     iouReport,
@@ -1438,6 +1440,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             delegateAccountID,
             isTrackIntentUser,
             conciergeChat,
+            getCurrencyDecimals,
         ],
     );
 

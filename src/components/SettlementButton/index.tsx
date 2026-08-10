@@ -449,7 +449,7 @@ function SettlementButton({
                             navigateToBankAccountRoute({policyID: getPolicyID()});
                         } else {
                             clearPersonalBankAccount();
-                            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
+                            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute());
                         }
                     },
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,

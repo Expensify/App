@@ -926,7 +926,7 @@ describe('SidebarUtils', () => {
                     participantAccountIDs: [actorAccountID],
                 },
             };
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, '', transaction);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, '', transaction);
 
             await act(async () => {
                 await Onyx.set(ONYXKEYS.SESSION, {accountID: 55555});

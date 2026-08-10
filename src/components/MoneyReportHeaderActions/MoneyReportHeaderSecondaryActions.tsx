@@ -196,6 +196,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         } else if (isInvoiceReport) {
             startAnimation();
             payInvoice({
+                getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: moneyRequestReport,
@@ -219,6 +220,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         } else {
             startAnimation();
             payMoneyRequest({
+                getCurrencyDecimals,
                 paymentType: type,
                 chatReport,
                 iouReport: moneyRequestReport,

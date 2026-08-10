@@ -187,6 +187,7 @@ function useSelectionModePayment({
 
         if (isInvoiceReport) {
             payInvoice({
+                getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: moneyRequestReport,
@@ -209,6 +210,7 @@ function useSelectionModePayment({
             });
         } else {
             payMoneyRequest({
+                getCurrencyDecimals,
                 paymentType: type,
                 chatReport,
                 iouReport: moneyRequestReport,

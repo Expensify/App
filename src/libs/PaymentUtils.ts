@@ -271,6 +271,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 delegateEmail,
                 delegateAccountID,
                 isTrackIntentUser,
+                getCurrencyDecimals,
             });
         }
         return;

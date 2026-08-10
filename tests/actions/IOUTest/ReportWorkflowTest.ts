@@ -209,6 +209,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
                             report: chatReport,
                             participantParams: {
@@ -359,6 +360,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
                             report: chatReport,
                             participantParams: {
@@ -441,6 +443,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
                                 report: chatReport,
                                 participantParams: {
@@ -490,6 +493,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
                                 report: chatReport,
                                 participantParams: {
@@ -716,6 +720,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
                                 report: chatReport,
                                 participantParams: {
@@ -765,6 +770,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
                                 report: chatReport,
                                 participantParams: {
@@ -960,6 +966,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
                             report: chatReport,
                             participantParams: {
@@ -1170,6 +1177,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             if (chatReport) {
                 requestMoney({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {

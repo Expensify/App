@@ -748,6 +748,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             isApprovalFlow: true,
             betas,
             delegateAccountID,
+            getCurrencyDecimals,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);

@@ -313,7 +313,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         CONST.IOU.REPORT_ACTION_TYPE.PAY,
                         () => {
                             startAnimation();
-                            markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser);
+                            markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser, getCurrencyDecimals);
                         },
                         CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     );
@@ -321,7 +321,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 }
 
                 startAnimation();
-                markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser);
+                markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser, getCurrencyDecimals);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {

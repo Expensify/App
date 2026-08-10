@@ -105,6 +105,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
             });
         } else if (currentChatReport && paymentType) {
             payMoneyRequest({
+                getCurrencyDecimals,
                 paymentType,
                 chatReport: currentChatReport,
                 iouReport: currentMoneyRequestReport,
