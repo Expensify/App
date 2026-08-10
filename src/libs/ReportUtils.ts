@@ -224,7 +224,6 @@ import {
     isMovedAction,
     isOlderReportAction,
     isPendingRemove,
-    isReimbursementQueuedAction,
     isReopenedAction,
     isReportActionVisible,
     isReportPreviewAction,
@@ -935,7 +934,7 @@ type Ancestor = {
     shouldDisplayNewMarker: boolean;
 };
 
-type MissingPaymentMethod = 'bankAccount' | 'wallet';
+type MissingPaymentMethod = ValueOf<typeof CONST.MISSING_PAYMENT_METHODS>;
 
 type OutstandingChildRequest = {
     hasOutstandingChildRequest?: boolean;
@@ -1798,7 +1797,7 @@ function getBankAccountRoute(report: OnyxEntry<Report>, areInvoicesEnabled: bool
         }
     }
 
-    return ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route;
+    return ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute();
 }
 
 /**
@@ -1909,8 +1908,8 @@ function getReportNotificationPreference(report: OnyxEntry<Report>, currentUserA
 /**
  * Only returns true if this is our main 1:1 DM report with Concierge.
  */
-function isConciergeChatReport(report: OnyxInputOrEntry<Report>, conciergeReportID?: string): boolean {
-    return !!report && report?.reportID === (conciergeReportID ?? conciergeReportIDOnyxConnect);
+function isConciergeChatReport(report: OnyxInputOrEntry<Report>, conciergeReportID: string | undefined): boolean {
+    return !!report && !!conciergeReportID && report.reportID === conciergeReportID;
 }
 
 function findSelfDMReportID(reports?: OnyxCollection<Report>): string | undefined {
@@ -11531,22 +11530,34 @@ function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAcco
 /**
  * What missing payment method does this report action indicate, if any?
  */
+function getMissingPaymentMethodForQueuedPayment(
+    userWalletTierName: string | undefined,
+    reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>,
+    bankAccountList: OnyxEntry<BankAccountList>,
+): MissingPaymentMethod | undefined {
+    const paymentType = getOriginalMessage(reportAction)?.paymentType;
+    if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+        return !userWalletTierName || userWalletTierName === CONST.WALLET.TIER_NAME.SILVER ? CONST.MISSING_PAYMENT_METHODS.WALLET : undefined;
+    }
+
+    return !hasCreditBankAccount(bankAccountList) ? CONST.MISSING_PAYMENT_METHODS.BANK_ACCOUNT : undefined;
+}
+
+/**
+ * What missing payment method does this action indicate for the current report submitter, if any?
+ */
 function getIndicatedMissingPaymentMethod(
     userWalletTierName: string | undefined,
     reportId: string | undefined,
-    reportAction: ReportAction,
+    reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>,
     bankAccountList: OnyxEntry<BankAccountList>,
 ): MissingPaymentMethod | undefined {
-    const isSubmitterOfUnsettledReport = reportId && isCurrentUserSubmitter(getReport(reportId, deprecatedAllReports)) && !isSettled(reportId);
-    if (!reportId || !isSubmitterOfUnsettledReport || !isReimbursementQueuedAction(reportAction)) {
+    const isSubmitterOfUnsettledReport = !!reportId && isCurrentUserSubmitter(getReport(reportId, deprecatedAllReports)) && !isSettled(reportId);
+    if (!isSubmitterOfUnsettledReport) {
         return undefined;
     }
-    const paymentType = getOriginalMessage(reportAction)?.paymentType;
-    if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-        return !userWalletTierName || userWalletTierName === CONST.WALLET.TIER_NAME.SILVER ? 'wallet' : undefined;
-    }
 
-    return !hasCreditBankAccount(bankAccountList) ? 'bankAccount' : undefined;
+    return getMissingPaymentMethodForQueuedPayment(userWalletTierName, reportAction, bankAccountList);
 }
 
 /**
@@ -13206,6 +13217,7 @@ function getChatListItemReportName(
     action: ReportAction & {reportName?: string},
     report: Report | undefined,
     conciergeReportID: string | undefined,
+    linkedTransactions: Transaction[],
     translate: LocalizedTranslate,
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
 ): string {
@@ -13214,7 +13226,7 @@ function getChatListItemReportName(
         // Search snapshots of invoice reports may only carry `parentReportID` as the invoice room ID, so fall back to it
         // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` resolves the NewDot title.
         const invoiceReport = reportForHeader.chatReportID ? reportForHeader : {...reportForHeader, chatReportID: reportForHeader.parentReportID};
-        return getInvoiceReportName(invoiceReport, translate, personalDetailsList);
+        return getInvoiceReportName(invoiceReport, linkedTransactions, translate, personalDetailsList);
     }
 
     if (action?.reportName) {
@@ -14034,6 +14046,7 @@ export {
     sortIconsByName,
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
+    getMissingPaymentMethodForQueuedPayment,
     getLastVisibleMessage,
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,

@@ -10,6 +10,7 @@ import ParticipantPicker from '@components/ParticipantPicker';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -60,7 +61,6 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import {cancelTracking, getPendingSubmitFollowUpAction, isTracking} from '@libs/telemetry/submitFollowUpAction';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
     getRequestType,
     hasReceipt,
@@ -263,6 +263,11 @@ function IOURequestStepConfirmation({
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
+    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        policyID: policy?.id,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+    });
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
@@ -386,6 +391,10 @@ function IOURequestStepConfirmation({
                 return;
             }
             const selectedParticipant = participantsList.at(0);
+            const selectedPolicyID = selectedParticipant?.policyID ?? (selectedParticipant?.reportID ? getReportOrDraftReport(selectedParticipant.reportID)?.policyID : undefined);
+            if (blockManualOrOdometerDistanceRequestIfNeeded(selectedPolicyID)) {
+                return;
+            }
             // P2P chats don't support negative amounts. When a negative amount was entered before a participant
             // was selected (e.g. "Submit it to someone" from a self DM), assigning it to a P2P participant would
             // fail at submit, so keep the expense on the self DM (its default) instead of assigning the P2P
@@ -482,6 +491,7 @@ function IOURequestStepConfirmation({
             lastSelectedDistanceRates,
             transaction,
             personalPolicy?.outputCurrency,
+            blockManualOrOdometerDistanceRequestIfNeeded,
             mappedPolicies,
             getCurrencyDecimals,
             policyID,
@@ -800,11 +810,7 @@ function IOURequestStepConfirmation({
     };
 
     if (isLoadingTransaction) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'IOURequestStepConfirmation',
-            isLoadingTransaction,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     const showNextTransaction = () => {
@@ -932,15 +938,7 @@ function IOURequestStepConfirmation({
                             ) : null}
                         </HeaderWithBackButton>
                     )}
-                    {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && (
-                        <FullScreenLoadingIndicator
-                            reasonAttributes={{
-                                context: 'IOURequestStepConfirmation',
-                                isLoading,
-                                isScanRequestWithNoReceipts: isScanRequest(transaction) && !Object.values(receiptFiles).length,
-                            }}
-                        />
-                    )}
+                    {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && <FullScreenLoadingIndicator />}
                     {PDFValidationComponent}
                     <DragAndDropConsumer onDrop={handleDroppingReceipt}>
                         <DropZoneUI
@@ -1031,6 +1029,7 @@ function IOURequestStepConfirmation({
                             // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
                             // matching standard RHP behavior, not just close the stacked participant picker.
                             onBackdropPress={() => Navigation.dismissModal()}
+                            shouldBlockParticipantSelection={blockManualOrOdometerDistanceRequestIfNeeded}
                         />
                     )}
                 </View>

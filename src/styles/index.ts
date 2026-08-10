@@ -951,7 +951,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonCTAIcon: {
-            marginRight: 22,
+            marginRight: 18,
             marginLeft: 8,
             // Align vertically with the Button text
             paddingBottom: 1,
@@ -6469,6 +6469,11 @@ const staticStyles = (theme: ThemeColors) =>
         securitySettingsStaticIllustration: {
             width: 112,
             height: 160,
+        },
+        commuterExclusionStaticIllustration: {
+            width: 160,
+            height: 140,
+            alignSelf: 'center',
         },
         helpStaticIllustration: {
             width: 174,

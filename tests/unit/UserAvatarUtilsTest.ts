@@ -7,6 +7,7 @@ import useDefaultAvatars from '@hooks/useDefaultAvatars';
 
 import CONST from '@src/CONST';
 import * as UserAvatarUtils from '@src/libs/UserAvatarUtils';
+import type {PersonalDetailsList} from '@src/types/onyx';
 
 describe('UserAvatarUtils', () => {
     describe('getAccountIDFromAvatarID', () => {
@@ -488,6 +489,80 @@ describe('UserAvatarUtils', () => {
                 avatarURL: 'https://example.com/default-avatar_20.png',
             });
             expect(name).toBe('default-avatar_20');
+        });
+    });
+
+    describe('buildUserIcon', () => {
+        const ACCOUNT_ID = 42;
+        const AVATAR_URL = 'https://example.com/uploaded-avatar.png';
+        const personalDetails: PersonalDetailsList = {
+            [ACCOUNT_ID]: {
+                accountID: ACCOUNT_ID,
+                login: 'john@example.com',
+                displayName: 'John Doe',
+                avatar: AVATAR_URL,
+            },
+        };
+
+        it('should resolve the avatar and login from personal details when available', () => {
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const icon = UserAvatarUtils.buildUserIcon({accountID: ACCOUNT_ID, personalDetails, defaultAvatars: avatars.current});
+
+            expect(icon).toEqual({
+                id: ACCOUNT_ID,
+                type: CONST.ICON_TYPE_AVATAR,
+                source: AVATAR_URL,
+                name: 'john@example.com',
+                fallbackIcon: undefined,
+            });
+        });
+
+        it.each([
+            ['the account has no avatar', {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: 'john@example.com'}}],
+            ['the account is missing from personal details', {}],
+        ])('should fall back to the default fallback avatar when %s', (_case, details: PersonalDetailsList) => {
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const icon = UserAvatarUtils.buildUserIcon({accountID: ACCOUNT_ID, personalDetails: details, defaultAvatars: avatars.current});
+
+            expect(icon.source).toBe(avatars.current.FallbackAvatar);
+        });
+
+        it.each([
+            ['the login by default', personalDetails, {}, 'john@example.com'],
+            ['the passed name when one is given', personalDetails, {name: 'John Doe'}, 'John Doe'],
+            ['nothing when the passed name is blank, rather than falling back to the login', personalDetails, {name: ''}, ''],
+            ['the invited email when the account has no personal details', {}, {invitedEmail: 'invited@example.com'}, 'invited@example.com'],
+            ['an empty string when nothing is known about the account', {}, {}, ''],
+        ])('should name the icon after %s', (_case, details: PersonalDetailsList, options: {invitedEmail?: string; name?: string}, expectedName: string) => {
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const icon = UserAvatarUtils.buildUserIcon({accountID: ACCOUNT_ID, personalDetails: details, defaultAvatars: avatars.current, ...options});
+
+            expect(icon.name).toBe(expectedName);
+        });
+
+        it('should not compute a custom fallback icon for a registered account', () => {
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const icon = UserAvatarUtils.buildUserIcon({accountID: ACCOUNT_ID, personalDetails, defaultAvatars: avatars.current});
+
+            expect(icon.fallbackIcon).toBeUndefined();
+        });
+
+        it('should compute a deterministic custom fallback icon for an invited account', () => {
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const icon = UserAvatarUtils.buildUserIcon({
+                accountID: ACCOUNT_ID,
+                personalDetails: {},
+                defaultAvatars: avatars.current,
+                invitedEmail: 'invited@example.com',
+            });
+
+            expect(icon.fallbackIcon).toBe(
+                UserAvatarUtils.getDefaultAvatar({
+                    accountID: ACCOUNT_ID,
+                    accountEmail: 'invited@example.com',
+                    defaultAvatars: avatars.current,
+                }),
+            );
         });
     });
 
