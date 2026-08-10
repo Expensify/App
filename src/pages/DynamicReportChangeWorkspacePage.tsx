@@ -73,7 +73,6 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const reportPreviewAction = useParentReportAction(report);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: changePolicyTrainingModalDismissedSelector});
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
@@ -149,7 +148,6 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 isASAPSubmitBetaEnabled,
                 employeeList,
                 isReportLastVisibleArchived,
-                reportNextStep,
                 reportActionsList: filteredReportActions,
                 reportPreviewAction,
                 isTrackIntentUser,
@@ -168,7 +166,6 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             hasViolationsParam: hasViolations,
             isChangePolicyTrainingModalDismissed: shouldSkipChangePolicyTrainingModal,
             isASAPSubmitBetaEnabled,
-            reportNextStep,
             isReportLastVisibleArchived,
             reportPreviewAction,
             isTrackIntentUser,
@@ -219,10 +216,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                     />
                     {shouldShowLoadingIndicator ? (
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
-                            <ActivityIndicator
-                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                reasonAttributes={{context: 'DynamicReportChangeWorkspacePage', isLoadingApp: isAppLoadPending}}
-                            />
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                         </View>
                     ) : (
                         <SelectionList<WorkspaceListItemType>

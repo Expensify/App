@@ -25,7 +25,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {findSelfDMReportID} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -66,7 +65,6 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`);
     const [targetTransactionThreadParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
-    const [targetTransactionThreadParentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: personalDetailsLoginSelector(targetTransactionThreadParentReport?.ownerAccountID),
     });
@@ -96,7 +94,6 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
             sourceTransaction,
             targetTransactionThreadReport,
             targetTransactionThreadParentReport,
-            targetTransactionThreadParentReportNextStep,
             iouReportOwnerLogin,
             allTransactionViolations,
             policy: targetTransactionPolicy,
@@ -134,11 +131,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     };
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'TransactionMerge.ConfirmationPage',
-            isLoadingMergeTransaction: isLoadingOnyxValue(mergeTransactionMetadata),
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

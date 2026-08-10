@@ -1,10 +1,10 @@
-import {useSearchQueryContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getActions, getPrimaryAction, getViolationsFromSearchData} from '@libs/SearchUIUtils';
+import {getActions, getPrimaryAction} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,6 +49,7 @@ type UseLiveRowCapabilitiesParams<T> = {
 function useLiveRowCapabilities<T extends LiveRowItem>(params: UseLiveRowCapabilitiesParams<T>): T {
     const {item, reportID, itemKey, snapshotData, snapshotActions, enabled} = params;
     const {currentSearchKey} = useSearchQueryContext();
+    const {currentSearchViolations} = useSearchResultsContext();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [liveReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`);
     const [liveReportMetadata] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(reportID)}`);
@@ -61,7 +62,7 @@ function useLiveRowCapabilities<T extends LiveRowItem>(params: UseLiveRowCapabil
     const liveActionsArray = liveReportActions ? (Object.values(liveReportActions) as ReportAction[]) : snapshotActions;
     const liveAllActions = getActions(
         snapshotData,
-        getViolationsFromSearchData(snapshotData),
+        currentSearchViolations,
         itemKey,
         currentSearchKey ?? CONST.SEARCH.SEARCH_KEYS.EXPENSES,
         currentUserDetails.email ?? '',
