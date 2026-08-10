@@ -95,6 +95,8 @@ const isOptimisticPersonalDetailSelector =
 const newAccountIDsAndLoginsSelector = (invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
     getNewAccountIDsAndLogins(invitedEmailsToAccountIDs, personalDetailsList);
 
+const displayNameSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.displayName;
+
 export {
     avatarStyleColorSelector,
     personalDetailsSelector,
@@ -109,4 +111,5 @@ export {
     isOptimisticPersonalDetailSelector,
     createDisplayDetailsByAccountIDsSelector,
     newAccountIDsAndLoginsSelector,
+    displayNameSelector,
 };

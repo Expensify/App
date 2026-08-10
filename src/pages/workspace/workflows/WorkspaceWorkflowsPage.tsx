@@ -29,6 +29,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
@@ -210,14 +211,15 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
     const policyReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
+    const policyReimburserDetails = usePersonalDetailByLogin(policyReimburserEmail);
     const displayNameForAuthorizedPayer = useMemo(
         () =>
             temporaryGetDisplayNameOrDefault({
-                passedPersonalDetails: getPersonalDetailByEmail(policyReimburserEmail ?? ''),
+                passedPersonalDetails: policyReimburserDetails,
                 defaultValue: policyReimburserEmail,
                 translate,
             }),
-        [policyReimburserEmail, translate],
+        [policyReimburserDetails, policyReimburserEmail, translate],
     );
 
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
