@@ -30,11 +30,13 @@ import {View} from 'react-native';
 
 import useBrokenDirectCompanyCardFeedsForAdmin from './hooks/useBrokenDirectCompanyCardFeedsForAdmin';
 import useTimeSensitiveAddPaymentCard from './hooks/useTimeSensitiveAddPaymentCard';
+import useTimeSensitiveBankAccountAddress from './hooks/useTimeSensitiveBankAccountAddress';
 import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
 import useTimeSensitiveLockedBankAccount from './hooks/useTimeSensitiveLockedBankAccount';
 import useTimeSensitiveSignerInfo from './hooks/useTimeSensitiveSignerInfo';
 import ActivateCard from './items/ActivateCard';
+import AddBankAccountAddress from './items/AddBankAccountAddress';
 import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
 import AddVirtualCardPersonalDetails from './items/AddVirtualCardPersonalDetails';
@@ -106,6 +108,7 @@ function TimeSensitiveSection() {
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {lockedBankAccounts} = useTimeSensitiveLockedBankAccount(adminPolicies);
+    const {bankAccountsMissingAddress} = useTimeSensitiveBankAccountAddress(adminPolicies);
     const {shouldShowEnterSignerInfo, pendingSignerInfo} = useTimeSensitiveSignerInfo();
 
     // Get card feed errors for company card connections (Release 4)
@@ -162,6 +165,7 @@ function TimeSensitiveSection() {
     // must be reflected here to avoid showing an empty "Time sensitive" section.
     const hasAnyTimeSensitiveContent =
         lockedBankAccounts.length > 0 ||
+        bankAccountsMissingAddress.length > 0 ||
         shouldShowEnterSignerInfo ||
         shouldShowValidateAccount ||
         shouldShowFixFailedBilling ||
@@ -186,11 +190,12 @@ function TimeSensitiveSection() {
     // 5. Broken bank connections (company cards)
     // 6. Broken bank connections (personal cards)
     // 7. Locked bank accounts (workspace VBAs and personal)
-    // 8. Enter signer info for global bank accounts
-    // 9. Broken policy connections (accounting + HR)
-    // 10. Expensify card shipping
-    // 11. Expensify card activation
-    // 12. Virtual Expensify card needs personal details
+    // 8. Bank accounts missing address (MTL compliance)
+    // 9. Enter signer info for global bank accounts
+    // 10. Broken policy connections (accounting + HR)
+    // 11. Expensify card shipping
+    // 12. Expensify card activation
+    // 13. Virtual Expensify card needs personal details
     const items: React.ReactNode[] = [];
 
     // Priority 1: Validate account
@@ -257,7 +262,19 @@ function TimeSensitiveSection() {
             />,
         );
     }
-    // Priority 8: Enter signer info for global bank accounts
+    // Priority 8: Bank accounts missing address (MTL compliance)
+    for (const bankAccountMissingAddress of bankAccountsMissingAddress) {
+        items.push(
+            <AddBankAccountAddress
+                key={bankAccountMissingAddress.key}
+                bankAccountID={bankAccountMissingAddress.bankAccountID}
+                isPersonalAccount={bankAccountMissingAddress.isPersonalAccount}
+                policyID={bankAccountMissingAddress.policyID}
+                policyName={bankAccountMissingAddress.policyName}
+            />,
+        );
+    }
+    // Priority 9: Enter signer info for global bank accounts
     for (const item of pendingSignerInfo) {
         items.push(
             <EnterSignerInfo
@@ -268,7 +285,7 @@ function TimeSensitiveSection() {
             />,
         );
     }
-    // Priority 9: Broken policy connections (accounting + HR)
+    // Priority 10: Broken policy connections (accounting + HR)
     for (const connection of brokenPolicyConnections) {
         items.push(
             <FixPolicyConnection
@@ -280,7 +297,7 @@ function TimeSensitiveSection() {
             />,
         );
     }
-    // Priority 10: Expensify card shipping
+    // Priority 11: Expensify card shipping
     if (shouldShowAddShippingAddress) {
         for (const card of cardsNeedingShippingAddress) {
             items.push(
@@ -291,7 +308,7 @@ function TimeSensitiveSection() {
             );
         }
     }
-    // Priority 11: Expensify card activation
+    // Priority 12: Expensify card activation
     if (shouldShowActivateCard) {
         for (const card of cardsNeedingActivation) {
             items.push(
@@ -302,7 +319,7 @@ function TimeSensitiveSection() {
             );
         }
     }
-    // Priority 11: Virtual Expensify card needs personal details before reveal
+    // Priority 13: Virtual Expensify card needs personal details before reveal
     if (shouldShowAddVirtualCardPersonalDetails) {
         for (const card of virtualCardsNeedingPersonalDetails) {
             items.push(
