@@ -25,7 +25,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type Rule from '@src/types/onyx/Rule';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -292,8 +291,8 @@ type SetApprovalWorkflowRulesParams = {
      */
     rulesDiff: ApprovalWorkflowRulesDiff;
 
-    /** Snapshot of the policy's rules taken before applying `rulesDiff`. Used to roll back on failure. */
-    previousRules: Record<string, ApprovalWorkflowRule>;
+    /** The rules as currently stored in Onyx, which `rulesDiff` is applied on top of. Used to roll back on failure. */
+    previousRules: OnyxCollection<Rule>;
 };
 
 /**
@@ -312,13 +311,9 @@ function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetAppro
 
     for (const [ruleID, rule] of Object.entries(rulesDiff)) {
         const ruleKey = `${ONYXKEYS.COLLECTION.RULE}${ruleID}` as const;
-        const previousRule = previousRules[ruleID];
+        const previousRule = previousRules?.[ruleKey];
         const restore: OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE> = previousRule
-            ? {
-                  onyxMethod: Onyx.METHOD.SET,
-                  key: ruleKey,
-                  value: {...previousRule, scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID, pendingAction: null, errors: genericError},
-              }
+            ? {onyxMethod: Onyx.METHOD.SET, key: ruleKey, value: {...previousRule, pendingAction: null, errors: genericError}}
             : {onyxMethod: Onyx.METHOD.SET, key: ruleKey, value: null};
 
         if (rule === null) {
@@ -368,7 +363,7 @@ function createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprov
 
     const rulesDiff = {...removeDiff, ...createDiff};
 
-    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: existingRules});
+    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: rules});
 
     if (
         addExpenseApprovalsTaskReport &&
@@ -411,7 +406,7 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
 
     const rulesDiff = {...removeFromOthersDiff, ...memberDiff, ...chainDiff};
 
-    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: existingRules});
+    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: rules});
 }
 
 /**
@@ -430,7 +425,7 @@ function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy:
         return false;
     }
 
-    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: existingRules});
+    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: rules});
     return true;
 }
 
