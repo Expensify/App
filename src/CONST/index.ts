@@ -215,6 +215,9 @@ const CONST = {
         '667479706d696631', // 'ftypmif1' - Multi-Image Format part of HEIF, broader usage
     ],
     RECENT_WAYPOINTS_NUMBER: 20,
+    // Validate-code action errorFields key the missing-personal-details ship-card flow writes its incorrect-magic-code
+    // error under, and the ValidateCodeForm reads it back from, so the action and the page stay in sync.
+    MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD: 'personalDetails',
     DEFAULT_DB_NAME: 'OnyxDB',
     DEFAULT_TABLE_NAME: 'keyvaluepairs',
     DEFAULT_ONYX_DUMP_FILE_NAME: 'onyx-state.txt',
@@ -516,6 +519,7 @@ const CONST = {
         RILLET: 'Rillet',
         BILLCOM: 'Bill.com',
         ZENEFITS: 'Zenefits',
+        DUALENTRY: 'DualEntry',
     },
 
     REVERSED_TRANSACTION_ATTRIBUTE: 'is-reversed-transaction',
@@ -1003,11 +1007,14 @@ const CONST = {
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
         RILLET: 'rillet',
+        DUALENTRY: 'dualEntry',
+        INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
+        NETSUITE_OAUTH: 'netSuiteOAuth',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1622,6 +1629,7 @@ const CONST = {
                 HOLD_COMMENT: 'HOLDCOMMENT',
                 INTEGRATION_SYNC_FAILED: 'INTEGRATIONSYNCFAILED',
                 COMPANY_CARD_CONNECTION_BROKEN: 'COMPANYCARDCONNECTIONBROKEN',
+                COMMUTER_EXCLUSION: 'COMMUTEREXCLUSION',
                 PLAID_BALANCE_FAILURE: 'PLAIDBALANCEFAILURE',
                 IOU: 'IOU',
                 INTEGRATIONS_MESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
@@ -1978,7 +1986,6 @@ const CONST = {
             WAITING_TO_FIX_ISSUES: 'waitingToFixIssues',
             WAITING_TO_APPROVE: 'waitingToApprove',
             WAITING_TO_PAY: 'waitingToPay',
-            WAITING_FOR_POLICY_BANK_ACCOUNT: 'waitingForPolicyBankAccount',
             WAITING_FOR_PAYMENT: 'waitingForPayment',
             WAITING_TO_EXPORT: 'waitingToExport',
             SUBMITTING_TO_SELF: 'submittingToSelf',
@@ -1988,7 +1995,6 @@ const CONST = {
             HOURGLASS: 'hourglass',
             CHECKMARK: 'checkmark',
             STOPWATCH: 'stopwatch',
-            DOT_INDICATOR: 'dotIndicator',
         },
         ETA_KEY: {
             SHORTLY: 'shortly',
@@ -2203,10 +2209,10 @@ const CONST = {
         SPAN_SUBMIT_EXPENSE: 'ManualCreateExpenseSubmit',
         SPAN_SUBMIT_TO_DESTINATION_VISIBLE: 'ManualSubmitToDestinationVisible',
         SPAN_EXPENSE_SERVER_RESPONSE: 'ManualCreateExpenseServerResponse',
+        SPAN_RECONNECT_SERVER_RESPONSE: 'ManualReconnectServerResponse',
         SPAN_GEOLOCATION_WAIT: 'ManualGeolocationWait',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
-        SPAN_SKELETON: 'ManualSkeleton',
         SPAN_ODOMETER_TO_CONFIRMATION: 'ManualOdometerToConfirmation',
         SPAN_ODOMETER_IMAGE_STITCH: 'ManualOdometerImageStitch',
         SPAN_ODOMETER_IMAGE_CAPTURE: 'ManualOdometerImageCapture',
@@ -2250,7 +2256,6 @@ const CONST = {
         ATTRIBUTE_CANCELED_BY_SKELETON: 'canceled_by_skeleton',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
         ATTRIBUTE_ROUTE_TO: 'route_to',
-        ATTRIBUTE_MIN_DURATION: 'min_duration',
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
         ATTRIBUTE_IS_WARM: 'is_warm',
         ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN: 'lazy_tab_fallback_shown',
@@ -2261,7 +2266,6 @@ const CONST = {
         // report list, so durations that include the openApp wait can be excluded from render measurements.
         ATTRIBUTE_SKELETON_SHOWN: 'skeleton_shown',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
-        ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
         ATTRIBUTE_SCENARIO: 'scenario',
         // Start type stamped on the navigate-to-reports spans: cold, warm_first, or warm_subsequent.
         ATTRIBUTE_START_TYPE: 'start_type',
@@ -2276,6 +2280,9 @@ const CONST = {
         ATTRIBUTE_FAST_PATH_HANDLER: 'fast_path_handler',
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_JSON_CODE: 'json_code',
+        ATTRIBUTE_UPDATE_ID_FROM: 'update_id_from',
+        ATTRIBUTE_UPDATE_ID_TO: 'update_id_to',
+        ATTRIBUTE_RESPONSE_ADVANCED: 'response_advanced',
         ATTRIBUTE_COLD_START: 'cold_start',
         ATTRIBUTE_TRIGGER: 'trigger',
         ATTRIBUTE_PLATFORM: 'platform',
@@ -2376,10 +2383,7 @@ const CONST = {
             WARM_SUBSEQUENT: 'warm_subsequent',
             UNKNOWN: 'unknown',
         },
-        // Event names
-        EVENT_SKELETON_ATTRIBUTES_UPDATE: 'skeleton_attributes_updated',
         CONFIG: {
-            SKELETON_MIN_DURATION: 10_000,
             MEMORY_TRACKING_INTERVAL: 2 * 60 * 1000,
 
             // Web Memory Thresholds (% of jsHeapSizeLimit)
@@ -2823,6 +2827,7 @@ const CONST = {
         FILE_TOO_LARGE: 'fileTooLarge',
         FILE_TOO_SMALL: 'fileTooSmall',
         FILE_CORRUPTED: 'fileCorrupted',
+        HEIC_CONVERSION_FAILED: 'heicConversionFailed',
         PROTECTED_FILE: 'protectedFile',
         HEIC_OR_HEIF_IMAGE: 'heicOrHeifImage',
         IMAGE_DIMENSIONS_TOO_LARGE: 'imageDimensionsTooLarge',
@@ -3228,12 +3233,15 @@ const CONST = {
         CUSTOM_FORM_ID_OPTIONS: 'customFormIDOptions',
         TOKEN_INPUT: {
             STEP_INDEX_LIST: ['1', '2', '3', '4'],
+            OAUTH_STEP_INDEX_LIST: ['1', '2', '3', '4'],
             PAGE_NAME: {
                 INSTALL: 'install',
                 AUTHENTICATION: 'authentication',
                 SOAP: 'soap',
                 ACCESS_TOKEN: 'access-token',
                 CREDENTIALS: 'credentials',
+                OAUTH: 'enable-oauth',
+                REST: 'enable-rest',
             },
             STEP_KEYS: {
                 install: 'installBundle',
@@ -3241,6 +3249,8 @@ const CONST = {
                 soap: 'enableSoapServices',
                 'access-token': 'createAccessToken',
                 credentials: 'enterCredentials',
+                'enable-oauth': 'enableOAuth',
+                'enable-rest': 'enableRestWebServices',
             },
         },
         IMPORT_CUSTOM_FIELDS: {
@@ -3549,6 +3559,54 @@ const CONST = {
         CREDIT_CARD: 'Credit Card',
     },
 
+    DUALENTRY_CONFIG: {
+        SUBSIDIARY_ID: 'subsidiaryID',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        SYNC_TAX_RATES: 'syncTaxRates',
+        EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
+        REIMBURSABLE: 'reimbursable',
+        NON_REIMBURSABLE: 'nonReimbursable',
+        CREDIT_CARD_ACCOUNT_ID: 'creditCardAccountID',
+        EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
+        DEFAULT_VENDORID: 'defaultVendorID',
+        TRAVEL_INVOICING_PAYABLE_ACCOUNT_ID: 'travelInvoicingPayableAccountID',
+        ACCOUNTING_METHOD: 'accountingMethod',
+        AUTO_SYNC: 'autoSync',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+        BILL_PAYMENT_ACCOUNT_ID: 'billPaymentAccountID',
+        SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
+        SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
+        SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
+        TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
+        FIELD_MAPPING_PREFIX: 'fieldMapping_',
+        CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
+    },
+
+    DUALENTRY_MAPPING_VALUE: {
+        NONE: 'NONE',
+        TAG: 'TAG',
+    },
+
+    DUALENTRY_EXPORT_REIMBURSABLE: {
+        VENDOR_BILL: 'VENDOR_BILL',
+    },
+
+    DUALENTRY_EXPORT_NON_REIMBURSABLE: {
+        DIRECT_EXPENSE: 'DIRECT_EXPENSE',
+    },
+
+    DUALENTRY_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
+    },
+
+    DUALENTRY_TAX_TYPE: {
+        VAT: 'VAT',
+        GST: 'GST',
+    },
+
     UPDATE_PERSONAL_BANK_ACCOUNT: {
         PAGE_NAME: {
             LEGAL_NAME: 'legal-name',
@@ -3813,6 +3871,12 @@ const CONST = {
     PAYMENT_METHOD_ID_KEYS: {
         DEBIT_CARD: 'fundID',
         BANK_ACCOUNT: 'bankAccountID',
+    },
+
+    /** The payment method a payee still has to set up before a queued payment can settle */
+    MISSING_PAYMENT_METHODS: {
+        BANK_ACCOUNT: 'bankAccount',
+        WALLET: 'wallet',
     },
 
     IOU: {
@@ -4286,6 +4350,9 @@ const CONST = {
             },
         },
         CONNECTIONS: {
+            ACCOUNTING_INTEGRATION_ALIASES: {
+                INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
+            },
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
@@ -4295,6 +4362,7 @@ const CONST = {
                 SAGE_INTACCT: 'intacct',
                 CERTINIA: 'financialforce',
                 RILLET: 'rillet',
+                DUALENTRY: 'dualEntry',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -4311,6 +4379,7 @@ const CONST = {
                 QBD: 'quickbooks-desktop',
                 CERTINIA: 'certinia',
                 RILLET: 'rillet',
+                DUALENTRY: 'dualentry',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge-hr',
@@ -4323,6 +4392,7 @@ const CONST = {
                 intacct: 'Sage Intacct',
                 financialforce: 'Certinia',
                 rillet: 'Rillet',
+                dualEntry: 'DualEntry',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -4333,7 +4403,7 @@ const CONST = {
                 other: 'Other',
             },
             get ACCOUNTING_CONNECTION_NAMES() {
-                return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA, this.NAME.RILLET] as const;
+                return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA, this.NAME.RILLET, this.NAME.DUALENTRY] as const;
             },
             get HR_CONNECTION_NAMES() {
                 return [this.NAME.GUSTO, this.NAME.ZENEFITS, this.NAME.MERGE_HR] as const;
@@ -4436,6 +4506,9 @@ const CONST = {
                 RILLET_SYNC_TITLE: 'rilletSyncTitle',
                 RILLET_SYNC_CONNECTION: 'rilletSyncConnection',
                 RILLET_SYNC_IMPORT_DATA: 'rilletSyncImportData',
+                DUALENTRY_SYNC_TITLE: 'dualEntrySyncTitle',
+                DUALENTRY_SYNC_CONNECTION: 'dualEntrySyncConnection',
+                DUALENTRY_SYNC_IMPORT_DATA: 'dualEntrySyncImportData',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -4887,6 +4960,11 @@ const CONST = {
              * Name of Card NVP for Rillet custom export accounts
              */
             NVP_RILLET_EXPORT_ACCOUNT: 'rillet_export_account',
+
+            /**
+             * Name of Card NVP for DualEntry custom export accounts
+             */
+            NVP_DUALENTRY_EXPORT_ACCOUNT: 'dualentry_export_account',
         },
         EXPORT_CARD_POLICY_TYPES: {
             /**
@@ -4934,6 +5012,11 @@ const CONST = {
              * Name of Card NVP for Rillet custom export accounts
              */
             NVP_RILLET_EXPORT_ACCOUNT_POLICY_ID: 'rillet_export_account_policy_id',
+
+            /**
+             * Name of Card NVP for DualEntry custom export accounts
+             */
+            NVP_DUALENTRY_EXPORT_ACCOUNT_POLICY_ID: 'dualentry_export_account_policy_id',
         },
     },
     AVATAR_ROW_SIZE: {
@@ -5081,6 +5164,8 @@ const CONST = {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         ALPHABETIC_AND_LATIN_CHARS: /^[\p{Script=Latin} ]*$/u,
+        // Matches complete tags like <script> or <123a>; lone < or > are allowed.
+        NAME_ON_CARD_INVALID_CHARS: /<[^>]*>/,
         NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^\p{Script=Latin}]/gu,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         PMB: /\b(?:p\.?\s*m\.?\s*b|private\s*mail\s*?box)\.?\s*#?\s*(\d+)\b/i,
@@ -6910,6 +6995,11 @@ const CONST = {
                     reportView: true,
                 },
                 TAG: {column: this.TABLE_COLUMNS.TAG, search: true, reportView: true},
+                VIOLATIONS: {
+                    column: this.TABLE_COLUMNS.VIOLATIONS,
+                    search: false,
+                    reportView: false,
+                },
                 TAG_GL_CODE: {
                     column: this.TABLE_COLUMNS.TAG_GL_CODE,
                     search: true,
@@ -7077,6 +7167,8 @@ const CONST = {
                     BANK_ACCOUNT: this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
                     WITHDRAWAL_ID: this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    AMOUNT_DEBITED: this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+                    AMOUNT_REIMBURSED: this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
                 CATEGORY: {
@@ -7155,6 +7247,8 @@ const CONST = {
                     this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
                     this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
                     this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+                    this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
                     this.TABLE_COLUMNS.GROUP_TOTAL,
                 ],
                 CATEGORY: [this.TABLE_COLUMNS.GROUP_CATEGORY, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
@@ -7221,6 +7315,7 @@ const CONST = {
             TO: 'to',
             CATEGORY: 'category',
             TAG: 'tag',
+            VIOLATIONS: 'violations',
             ORIGINAL_AMOUNT: 'originalamount',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
@@ -7275,6 +7370,8 @@ const CONST = {
             GROUP_YEAR: 'groupyear',
             GROUP_QUARTER: 'groupquarter',
             GROUP_WITHDRAWAL_STATUS: 'groupWithdrawalStatus',
+            GROUP_AMOUNT_DEBITED: 'groupAmountDebited',
+            GROUP_AMOUNT_REIMBURSED: 'groupAmountReimbursed',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -7452,6 +7549,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.TO]: 'to',
                 [this.TABLE_COLUMNS.CATEGORY]: 'category',
                 [this.TABLE_COLUMNS.TAG]: 'tag',
+                [this.TABLE_COLUMNS.VIOLATIONS]: 'violations',
                 [this.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'purchase-amount',
                 [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
                 [this.TABLE_COLUMNS.BILLABLE]: 'billable',
@@ -7500,6 +7598,8 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_YEAR]: 'group-year',
                 [this.TABLE_COLUMNS.GROUP_QUARTER]: 'group-quarter',
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'group-withdrawal-status',
+                [this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: 'group-amount-debited',
+                [this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: 'group-amount-reimbursed',
             };
         },
         NOT_PREFIX: '-',
@@ -7550,6 +7650,7 @@ const CONST = {
             TOP_CATEGORIES: 'topCategories',
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
+            VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
         },
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
@@ -7735,6 +7836,15 @@ const CONST = {
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.QBD}.description` as const,
                 icon: 'QBDSquare',
             },
+            [this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                id: this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE,
+                alias: 'intuit-enterprise-suite',
+                name: 'Intuit Enterprise Suite',
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE}.description` as const,
+                icon: 'QBOSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
+            },
             [this.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 id: this.POLICY.CONNECTIONS.NAME.CERTINIA,
                 alias: 'certinia',
@@ -7750,6 +7860,14 @@ const CONST = {
                 title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.RILLET}.title` as const,
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.RILLET}.description` as const,
                 icon: 'RilletSquare',
+            },
+            [this.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                id: this.POLICY.CONNECTIONS.NAME.DUALENTRY,
+                alias: 'dualentry',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.dualEntry,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.DUALENTRY}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.DUALENTRY}.description` as const,
+                icon: 'DualEntrySquare',
             },
             approvals: {
                 id: 'approvals' as const,

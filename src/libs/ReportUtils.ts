@@ -122,7 +122,7 @@ import {removeDraftTransactionsByIDs} from './actions/TransactionEdit';
 import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
 import {convertAttendeesToArray} from './AttendeeUtils';
 import {getCategoryGLCode} from './CategoryUtils';
-import {convertToDisplayString as convertToDisplayStringUtil} from './CurrencyUtils';
+import {convertToDisplayString as convertToDisplayStringUtil, convertToDisplayStringEnLocale, getCurrencyDecimals as getCurrencyDecimalsUtil} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import getEnvironment from './Environment/getEnvironment';
@@ -224,7 +224,6 @@ import {
     isMovedAction,
     isOlderReportAction,
     isPendingRemove,
-    isReimbursementQueuedAction,
     isReopenedAction,
     isReportActionVisible,
     isReportPreviewAction,
@@ -935,7 +934,7 @@ type Ancestor = {
     shouldDisplayNewMarker: boolean;
 };
 
-type MissingPaymentMethod = 'bankAccount' | 'wallet';
+type MissingPaymentMethod = ValueOf<typeof CONST.MISSING_PAYMENT_METHODS>;
 
 type OutstandingChildRequest = {
     hasOutstandingChildRequest?: boolean;
@@ -1713,6 +1712,14 @@ function getInvoiceReceiverPolicyID(report: OnyxEntry<Report>): string | undefin
     return report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? report.invoiceReceiver.policyID : undefined;
 }
 
+/**
+ * Returns the personal details of the invoice receiver when the receiver is an individual, otherwise undefined.
+ */
+function getInvoiceReceiverPersonalDetail(report: OnyxEntry<Report>, personalDetailsList: OnyxEntry<PersonalDetailsList>): OnyxEntry<PersonalDetails> | null {
+    const invoiceReceiver = report?.invoiceReceiver;
+    return invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL ? personalDetailsList?.[invoiceReceiver.accountID] : undefined;
+}
+
 // TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
 function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>, currentUserAccountID?: number): boolean {
     if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
@@ -1790,7 +1797,7 @@ function getBankAccountRoute(report: OnyxEntry<Report>, areInvoicesEnabled: bool
         }
     }
 
-    return ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route;
+    return ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute();
 }
 
 /**
@@ -1901,8 +1908,8 @@ function getReportNotificationPreference(report: OnyxEntry<Report>, currentUserA
 /**
  * Only returns true if this is our main 1:1 DM report with Concierge.
  */
-function isConciergeChatReport(report: OnyxInputOrEntry<Report>, conciergeReportID?: string): boolean {
-    return !!report && report?.reportID === (conciergeReportID ?? conciergeReportIDOnyxConnect);
+function isConciergeChatReport(report: OnyxInputOrEntry<Report>, conciergeReportID: string | undefined): boolean {
+    return !!report && !!conciergeReportID && report.reportID === conciergeReportID;
 }
 
 function findSelfDMReportID(reports?: OnyxCollection<Report>): string | undefined {
@@ -5863,7 +5870,7 @@ function getReportPreviewMessage(
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (translatePhraseKey === 'iou.businessBankAccount') {
             const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
-            const crossBorderMessage = originalMessage ? getCrossBorderReimbursedMessage(translate, originalMessage, last4Digits) : undefined;
+            const crossBorderMessage = originalMessage ? getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits) : undefined;
             if (crossBorderMessage) {
                 return crossBorderMessage;
             }
@@ -5938,7 +5945,7 @@ function getReportPreviewMessage(
  * IMPORTANT: keep the English strings here in sync with the `iou.*` entries in `en.ts` and with the branching
  * in {@link getReportPreviewMessage}.
  */
-function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBaseParams): string {
+function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBaseParams, getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']): string {
     const {reportOrID, iouReportAction = null, shouldConsiderScanningReceiptOrPendingRoute = false, isPreviewMessageForParentChatReport = false, policy, isForListPreview = false} = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
@@ -5970,7 +5977,7 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
             }
 
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
-            const formattedAmount = convertToDisplayStringUtil(amount, getCurrency(linkedTransaction)) ?? '';
+            const formattedAmount = convertToDisplayStringEnLocale(amount, getCurrency(linkedTransaction), getCurrencyDecimals) ?? '';
             const comment = getMerchantOrDescription(linkedTransaction);
             return `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`;
         }
@@ -5986,7 +5993,7 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
             const comment = originalMessage?.comment;
 
             if (amount && currency) {
-                const formattedAmount = convertToDisplayStringUtil(amount, currency);
+                const formattedAmount = convertToDisplayStringEnLocale(amount, currency, getCurrencyDecimals);
                 return `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`;
             }
 
@@ -6003,7 +6010,7 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
             }
 
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
-            const formattedAmount = convertToDisplayStringUtil(amount, getCurrency(linkedTransaction)) ?? '';
+            const formattedAmount = convertToDisplayStringEnLocale(amount, getCurrency(linkedTransaction), getCurrencyDecimals) ?? '';
 
             const merchantOrComment = getMerchantOrDescription(linkedTransaction);
 
@@ -6020,7 +6027,7 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
         ? policyName
         : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils});
 
-    const formattedAmount = convertToDisplayStringUtil(totalAmount, report.currency);
+    const formattedAmount = convertToDisplayStringEnLocale(totalAmount, report.currency, getCurrencyDecimals);
 
     const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
@@ -6084,7 +6091,7 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
 
             // This variant returns raw English to match the surrounding non-localized preview strings.
             if (originalMessage?.creditedAmount && originalMessage.creditedCurrency) {
-                const creditedAmountDisplay = convertToDisplayStringUtil(originalMessage.creditedAmount, originalMessage.creditedCurrency);
+                const creditedAmountDisplay = convertToDisplayStringEnLocale(originalMessage.creditedAmount, originalMessage.creditedCurrency, getCurrencyDecimals);
                 return `paid ${creditedAmountDisplay} from account ${originalMessage.debitBankAccountLast4 ?? last4Digits} to account ${originalMessage.creditBankAccountLast4 ?? ''}`;
             }
             return `paid with bank account ${last4Digits}`;
@@ -6132,7 +6139,7 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
 
     // if we have the amount in the originalMessage and lastActorID, we can use that to display the preview message for the latest expense
     if (amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
-        const amountToDisplay = convertToDisplayStringUtil(Math.abs(amount), currency);
+        const amountToDisplay = convertToDisplayStringEnLocale(Math.abs(amount), currency, getCurrencyDecimals);
 
         // We only want to show the actor name in the preview if it's not the current user who took the action
         const requestorName =
@@ -6285,7 +6292,8 @@ function getReportSubtitlePrefix(report: OnyxEntry<Report>, currentUserEmail?: s
     const currentUserLogin = currentUserEmail ?? deprecatedCurrentUserEmail;
     let policyCount = 0;
     for (const policy of policiesArray) {
-        if (!shouldShowPolicy(policy, false, currentUserLogin)) {
+        // Archived policies count here because their rooms remain visible in the LHN and still need the workspace-name prefix to disambiguate them.
+        if (!shouldShowPolicy(policy, false, currentUserLogin, true)) {
             continue;
         }
 
@@ -6361,6 +6369,19 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
 }
 
 /**
+ * Returns the account IDs that have a pending DELETE action.
+ * Preserves the original inline behavior (an account is included if any entry marks it DELETE).
+ * The result is not deduplicated, callers that need unique IDs should handle it (getGroupChatName already builds a Set).
+ */
+function getPendingDeleteMemberAccountIDs(pendingChatMembers: PendingChatMember[] | undefined): string[] {
+    if (!pendingChatMembers?.length) {
+        return [];
+    }
+
+    return pendingChatMembers.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((member) => member.accountID);
+}
+
+/**
  * Gets the parent navigation subtitle for the report
  */
 function getParentNavigationSubtitle(
@@ -6398,7 +6419,8 @@ function getParentNavigationSubtitle(
         const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(parentReport);
         const invoiceReceiverPolicy = invoiceReceiverPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
         const isCurrentUserReceiver = isCurrentUserInvoiceReceiver(parentReport);
-        const invoicePayerName = getInvoicePayerName(parentReport, translate, invoiceReceiverPolicy);
+        const invoiceReceiverPersonalDetail = getInvoiceReceiverPersonalDetail(parentReport, allPersonalDetails);
+        const invoicePayerName = getInvoicePayerName(parentReport, translate, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
 
         let reportName = senderWorkspaceName;
         if (!isCurrentUserReceiver && invoicePayerName) {
@@ -7352,6 +7374,7 @@ function getIOUReportActionMessage(
     total: number,
     comment: string,
     currency: string,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     paymentType = '',
     isSettlingUp = false,
     bankAccountID?: number | undefined,
@@ -7359,10 +7382,12 @@ function getIOUReportActionMessage(
 ): Message[] {
     const report = getReportOrDraftReport(iouReportID);
     const isInvoice = isInvoiceReport(report);
+    // Formatted with the `en` locale because this message is stored on the report action and must be
+    // in English regardless of the viewer's locale.
     const amount =
         type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isEmptyObject(report)
-            ? convertToDisplayStringUtil(getMoneyRequestSpendBreakdown(report).totalDisplaySpend, currency)
-            : convertToDisplayStringUtil(total, currency);
+            ? convertToDisplayStringEnLocale(getMoneyRequestSpendBreakdown(report).totalDisplaySpend, currency, getCurrencyDecimals)
+            : convertToDisplayStringEnLocale(total, currency, getCurrencyDecimals);
 
     let paymentMethodMessage;
     switch (paymentType) {
@@ -7538,7 +7563,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
             },
         ],
         avatar: getCurrentUserAvatar(),
-        message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp, bankAccountID, payAsBusiness),
+        message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, getCurrencyDecimalsUtil, paymentType, isSettlingUp, bankAccountID, payAsBusiness),
     };
 
     return iouReportAction;
@@ -7568,7 +7593,7 @@ function buildOptimisticApprovedReportAction(
         avatar: getCurrentUserAvatar(),
         isAttachmentOnly: false,
         originalMessage,
-        message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
+        message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency, getCurrencyDecimalsUtil),
         person: [
             {
                 style: 'strong',
@@ -7600,7 +7625,7 @@ function buildOptimisticUnapprovedReportAction(amount: number, currency: string,
             currency,
             expenseReportID,
         },
-        message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED, Math.abs(amount), '', currency),
+        message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED, Math.abs(amount), '', currency, getCurrencyDecimalsUtil),
         person: [
             {
                 style: 'strong',
@@ -7837,7 +7862,7 @@ function buildOptimisticSubmittedReportAction(
         avatar: getCurrentUserAvatar(),
         isAttachmentOnly: false,
         originalMessage,
-        message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, Math.abs(amount), '', currency),
+        message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, Math.abs(amount), '', currency, getCurrencyDecimalsUtil),
         person: [
             {
                 style: 'strong',
@@ -7872,7 +7897,7 @@ function buildOptimisticReportPreview(
     delegateAccountIDParam: number | undefined = undefined,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = hasReceiptTransactionUtils(transaction);
-    const message = getReportPreviewReportActionMessage({reportOrID: iouReport});
+    const message = getReportPreviewReportActionMessage({reportOrID: iouReport}, getCurrencyDecimalsUtil);
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     // Falls back to module-level delegateEmail (from Onyx.connect) for callers not yet migrated; will be removed in https://github.com/Expensify/App/issues/66425
@@ -8063,7 +8088,7 @@ function updateReportPreview(
         }
     }
 
-    const message = getReportPreviewReportActionMessage({reportOrID: iouReport, iouReportAction: reportPreviewAction});
+    const message = getReportPreviewReportActionMessage({reportOrID: iouReport, iouReportAction: reportPreviewAction}, getCurrencyDecimalsUtil);
     const originalMessage = getOriginalMessage(reportPreviewAction);
     return {
         ...reportPreviewAction,
@@ -11009,7 +11034,7 @@ function getIOUReportActionDisplayMessage(
     if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, reportPolicy);
-        const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, last4Digits);
+        const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
 
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
@@ -11505,22 +11530,34 @@ function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAcco
 /**
  * What missing payment method does this report action indicate, if any?
  */
+function getMissingPaymentMethodForQueuedPayment(
+    userWalletTierName: string | undefined,
+    reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>,
+    bankAccountList: OnyxEntry<BankAccountList>,
+): MissingPaymentMethod | undefined {
+    const paymentType = getOriginalMessage(reportAction)?.paymentType;
+    if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+        return !userWalletTierName || userWalletTierName === CONST.WALLET.TIER_NAME.SILVER ? CONST.MISSING_PAYMENT_METHODS.WALLET : undefined;
+    }
+
+    return !hasCreditBankAccount(bankAccountList) ? CONST.MISSING_PAYMENT_METHODS.BANK_ACCOUNT : undefined;
+}
+
+/**
+ * What missing payment method does this action indicate for the current report submitter, if any?
+ */
 function getIndicatedMissingPaymentMethod(
     userWalletTierName: string | undefined,
     reportId: string | undefined,
-    reportAction: ReportAction,
+    reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>,
     bankAccountList: OnyxEntry<BankAccountList>,
 ): MissingPaymentMethod | undefined {
-    const isSubmitterOfUnsettledReport = reportId && isCurrentUserSubmitter(getReport(reportId, deprecatedAllReports)) && !isSettled(reportId);
-    if (!reportId || !isSubmitterOfUnsettledReport || !isReimbursementQueuedAction(reportAction)) {
+    const isSubmitterOfUnsettledReport = !!reportId && isCurrentUserSubmitter(getReport(reportId, deprecatedAllReports)) && !isSettled(reportId);
+    if (!isSubmitterOfUnsettledReport) {
         return undefined;
     }
-    const paymentType = getOriginalMessage(reportAction)?.paymentType;
-    if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-        return !userWalletTierName || userWalletTierName === CONST.WALLET.TIER_NAME.SILVER ? 'wallet' : undefined;
-    }
 
-    return !hasCreditBankAccount(bankAccountList) ? 'bankAccount' : undefined;
+    return getMissingPaymentMethodForQueuedPayment(userWalletTierName, reportAction, bankAccountList);
 }
 
 /**
@@ -11874,16 +11911,15 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         }
         if (filteredPoliciesCount === 0 || filteredPoliciesCount > 1) {
             Navigation.navigate(
-                createDynamicRoute(
-                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: actionName,
-                        iouType: CONST.IOU.TYPE.SUBMIT,
-                        transactionID,
-                        reportID,
-                        upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
-                        shouldSubmitExpense: true,
-                    }),
-                ),
+                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                    action: actionName,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    transactionID,
+                    reportID,
+                    backTo: '',
+                    upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
+                    shouldSubmitExpense: true,
+                }),
             );
             return;
         }
@@ -11908,7 +11944,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     }
 
     if (actionName === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID)));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, Navigation.getActiveRoute()));
         return;
     }
 
@@ -12908,7 +12944,9 @@ function getSourceIDFromReportAction(reportAction: OnyxEntry<ReportAction>): str
 
 function getIntegrationIcon(
     connectionName?: ConnectionName,
-    expensifyIcons?: Record<'XeroSquare' | 'QBOSquare' | 'NetSuiteSquare' | 'IntacctSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'GustoSquare', IconAsset> | undefined,
+    expensifyIcons?:
+        | Record<'XeroSquare' | 'QBOSquare' | 'NetSuiteSquare' | 'IntacctSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'DualEntrySquare' | 'GustoSquare', IconAsset>
+        | undefined,
 ) {
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
         return expensifyIcons?.XeroSquare;
@@ -12930,6 +12968,9 @@ function getIntegrationIcon(
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.RILLET) {
         return expensifyIcons?.RilletSquare;
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY) {
+        return expensifyIcons?.DualEntrySquare;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
         return expensifyIcons?.GustoSquare;
@@ -13172,13 +13213,20 @@ function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, po
     return chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled;
 }
 
-function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined, conciergeReportID: string | undefined, translate: LocalizedTranslate): string {
+function getChatListItemReportName(
+    action: ReportAction & {reportName?: string},
+    report: Report | undefined,
+    conciergeReportID: string | undefined,
+    linkedTransactions: Transaction[],
+    translate: LocalizedTranslate,
+    personalDetailsList: OnyxEntry<PersonalDetailsList>,
+): string {
     const reportForHeader = getReportForHeader(report);
     if (reportForHeader && isInvoiceReport(reportForHeader)) {
         // Search snapshots of invoice reports may only carry `parentReportID` as the invoice room ID, so fall back to it
         // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` resolves the NewDot title.
         const invoiceReport = reportForHeader.chatReportID ? reportForHeader : {...reportForHeader, chatReportID: reportForHeader.parentReportID};
-        return getInvoiceReportName(invoiceReport, translate);
+        return getInvoiceReportName(invoiceReport, linkedTransactions, translate, personalDetailsList);
     }
 
     if (action?.reportName) {
@@ -13978,6 +14026,7 @@ export {
     getAvailableReportFields,
     getBankAccountRoute,
     getInvoiceReceiverPolicyID,
+    getInvoiceReceiverPersonalDetail,
     getChatByParticipants,
     getChatRoomSubtitle,
     getChildReportNotificationPreference,
@@ -13997,6 +14046,7 @@ export {
     sortIconsByName,
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
+    getMissingPaymentMethodForQueuedPayment,
     getLastVisibleMessage,
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
@@ -14010,6 +14060,7 @@ export {
     getParticipantsAccountIDsForDisplay,
     getParticipantsList,
     getPendingChatMembers,
+    getPendingDeleteMemberAccountIDs,
     getPersonalDetailsForAccountID,
     getPolicyDescriptionText,
     getPolicyExpenseChat,

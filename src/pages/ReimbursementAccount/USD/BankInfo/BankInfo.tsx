@@ -107,10 +107,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
             default:
                 return (
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={{context: 'BankInfo'}}
-                        />
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                     </View>
                 );
         }
