@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import ReceiptCropView from '@components/ReceiptCropView';
 import type {CropRect} from '@components/ReceiptCropView';
@@ -266,9 +266,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
      * Detach the receipt and close the modal.
      */
     const deleteReceiptAndClose = useCallback(() => {
-        detachReceipt(transaction, policy, policyTagList, transactionViolations, policyCategories);
+        detachReceipt(transaction, policy, policyTagList, transactionViolations, transactionReport, policyCategories);
         navigation.goBack();
-    }, [transaction, policy, policyTagList, transactionViolations, policyCategories, navigation]);
+    }, [transaction, policy, policyTagList, transactionViolations, transactionReport, policyCategories, navigation]);
 
     /**
      * Remove odometer image and close the modal.
@@ -313,12 +313,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         transactionPolicy: policy,
                         transactionPolicyTagList: policyTagList,
                         transactionViolations,
+                        transactionReport,
                         ...(isSameReceipt ? {state: transaction?.receipt?.state, isSameReceipt: true} : {}),
                     });
                 }
             });
         },
-        [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy, policyTagList, transactionViolations],
+        [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy, policyTagList, transactionViolations, transactionReport],
     );
 
     const rotateReceipt = useCallback(() => {
@@ -506,19 +507,21 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
                     <Button
                         onPress={exitCropMode}
-                        text={translate('common.cancel')}
-                        icon={expensifyIcons.Close}
                         style={styles.transactionReceiptButton}
-                    />
+                    >
+                        <Button.Icon src={expensifyIcons.Close} />
+                        <Button.Text>{translate('common.cancel')}</Button.Text>
+                    </Button>
                     <Button
-                        success
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={saveCrop}
-                        text={translate('common.save')}
                         isLoading={isCropSaving}
                         isDisabled={!cropRect || isCropSaving}
-                        icon={expensifyIcons.Checkmark}
                         style={styles.transactionReceiptButton}
-                    />
+                    >
+                        <Button.Icon src={expensifyIcons.Checkmark} />
+                        <Button.Text>{translate('common.save')}</Button.Text>
+                    </Button>
                 </View>
             );
         }
@@ -531,33 +534,35 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
                 {!!shouldShowRotateAndCropReceiptButton && (
                     <Button
-                        icon={expensifyIcons.Rotate}
                         onPress={rotateReceipt}
-                        text={translate('common.rotate')}
                         isLoading={isRotating}
                         isDisabled={isRotating}
                         style={styles.transactionReceiptButton}
-                    />
+                    >
+                        <Button.Icon src={expensifyIcons.Rotate} />
+                        <Button.Text>{translate('common.rotate')}</Button.Text>
+                    </Button>
                 )}
                 {!!shouldShowRotateAndCropReceiptButton && (
                     <Button
-                        icon={expensifyIcons.Crop}
                         onPress={enterCropMode}
-                        text={translate('receipt.crop')}
                         style={styles.transactionReceiptButton}
-                    />
+                    >
+                        <Button.Icon src={expensifyIcons.Crop} />
+                        <Button.Text>{translate('receipt.crop')}</Button.Text>
+                    </Button>
                 )}
                 {isPDF && !isNative && (
                     <Button
-                        icon={expensifyIcons.Rotate}
                         onPress={() => setPdfRotation((prev) => ((prev + 270) % 360) as RotationDegrees)}
-                        text={translate('common.rotate')}
                         style={styles.transactionReceiptButton}
-                    />
+                    >
+                        <Button.Icon src={expensifyIcons.Rotate} />
+                        <Button.Text>{translate('common.rotate')}</Button.Text>
+                    </Button>
                 )}
                 {(shouldShowReplaceReceiptButton || isOdometerImage) && (
                     <Button
-                        icon={expensifyIcons.Camera}
                         onPress={() => {
                             const getDestinationRoute = () => {
                                 return isOdometerImage
@@ -575,9 +580,11 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                                 afterTransition: () => Navigation.navigate(getDestinationRoute()),
                             });
                         }}
-                        text={translate('common.replace')}
                         style={styles.transactionReceiptButton}
-                    />
+                    >
+                        <Button.Icon src={expensifyIcons.Camera} />
+                        <Button.Text>{translate('common.replace')}</Button.Text>
+                    </Button>
                 )}
             </View>
         );

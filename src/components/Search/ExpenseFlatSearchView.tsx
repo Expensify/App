@@ -101,6 +101,7 @@ function ExpenseFlatSearchView({
             <AnimatedExitRow
                 shouldApplyAnimation={shouldApplyAnimation}
                 hasItemsBeingRemoved={hasItemsBeingRemoved}
+                isRowExiting={isDisabled}
             >
                 <TransactionListItem
                     showTooltip
