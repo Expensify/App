@@ -907,6 +907,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '时间敏感',
             addShippingAddress: {title: '我们需要您的收货地址', subtitle: '请提供一个地址以接收您的 Expensify 卡。', cta: '添加地址'},
             addPaymentCard: {title: '添加支付卡以继续使用 Expensify', subtitle: '账户 ＞ 订阅', cta: '添加'},
+            addBankAccount: {title: '添加银行账户以接收报销'},
             activateCard: {title: '激活你的 Expensify 卡', subtitle: '验证您的银行卡并开始消费。', cta: '启用'},
             reviewCardFraud: {
                 title: '审查您 Expensify 卡上的潜在欺诈交易',
@@ -6984,6 +6985,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>我们的 QuickBooks Desktop 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                title: 'Intuit Enterprise Suite',
+                description: `将Intuit Enterprise Suite连接到Expensify，即可自动同步会计数据并减少手动录入。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Intuit Enterprise Suite集成仅适用于Control套餐，起价为每${hasTeam2025Pricing ? `位成员` : `位活跃成员`}每月<strong>${formattedPrice}</strong>。</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 title: 'Certinia',
                 description: `通过 Expensify 与 Certinia 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Certinia 配置对齐，以获得更清晰的财务可见性。`,
@@ -9086,6 +9093,7 @@ ${reportName}`,
             title: '启用个人 Karma',
             description: '您每月每消费 500 美元，就向 Expensify.org 捐赠 1 美元',
             stopDonationsPrompt: '确定要停止向 Expensify.org 捐款吗？',
+            managePreferencesFromWeb: 'Manage your personal karma preferences from web',
         },
         getInTouch: '太好了！请分享他们的联系方式，以便我们与他们取得联系。',
         introSchoolPrincipal: '向你们学校校长的介绍',

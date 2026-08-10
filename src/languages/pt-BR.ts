@@ -934,6 +934,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Urgente',
             addShippingAddress: {title: 'Precisamos do seu endereço de entrega', subtitle: 'Informe um endereço para receber seu Cartão Expensify.', cta: 'Adicionar endereço'},
             addPaymentCard: {title: 'Adicione um cartão de pagamento para continuar usando o Expensify', subtitle: 'Conta > Assinatura', cta: 'Adicionar'},
+            addBankAccount: {title: 'Adicione uma conta bancária para ser reembolsado'},
             activateCard: {title: 'Ative seu Cartão Expensify', subtitle: 'Valide seu cartão e comece a gastar.', cta: 'Ativar'},
             reviewCardFraud: {
                 title: 'Analisar possível fraude no seu Cartão Expensify',
@@ -7224,6 +7225,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Nossa integração com o QuickBooks Desktop está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                title: 'Intuit Enterprise Suite',
+                description: `Conecte o Intuit Enterprise Suite ao Expensify para sincronizar automaticamente seus dados contábeis e reduzir lançamentos manuais.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Nossa integração com o Intuit Enterprise Suite está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 title: 'Certinia',
                 description: `Aproveite a sincronização automática e reduza lançamentos manuais com a integração Expensify + Certinia. Alinhe dimensões de categorização de despesas e a sincronização de impostos à sua configuração Certinia para maior visibilidade financeira.`,
@@ -9414,6 +9421,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             title: 'Ativar Karma pessoal',
             description: 'Doe US$ 1 para Expensify.org a cada US$ 500 que você gastar por mês',
             stopDonationsPrompt: 'Tem certeza de que deseja parar de doar para Expensify.org?',
+            managePreferencesFromWeb: 'Manage your personal karma preferences from web',
         },
         getInTouch: 'Excelente! Compartilhe as informações deles para que possamos entrar em contato.',
         introSchoolPrincipal: 'Apresentação ao diretor da sua escola',

@@ -1004,6 +1004,10 @@ const translations = {
                 subtitle: 'Account > Subscription',
                 cta: 'Add',
             },
+            addBankAccount: {
+                // @context Home reminder shown to a payment recipient when a reimbursement is waiting for them to add a personal deposit account.
+                title: 'Add a bank account to get reimbursed',
+            },
             activateCard: {
                 title: 'Activate your Expensify Card',
                 subtitle: 'Validate your card and start spending.',
@@ -7457,6 +7461,12 @@ const translations = {
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Our QuickBooks Desktop integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                title: 'Intuit Enterprise Suite',
+                description: `Connect Intuit Enterprise Suite to Expensify to automatically sync your accounting data and reduce manual entries.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Our Intuit Enterprise Suite integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 title: 'Certinia',
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + Certinia integration. Align expense coding dimensions and tax sync with your Certinia setup for clearer financial visibility.`,
@@ -9605,6 +9615,7 @@ const translations = {
             title: 'Enable Personal Karma',
             description: 'Donate $1 to Expensify.org for every $500 you spend each month',
             stopDonationsPrompt: 'Are you sure you want to stop donating to Expensify.org?',
+            managePreferencesFromWeb: 'Manage your personal karma preferences from web',
         },
         getInTouch: 'Excellent! Please share their information so we can get in touch with them.',
         introSchoolPrincipal: 'Intro to your school principal',

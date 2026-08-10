@@ -2208,6 +2208,7 @@ const CONST = {
         SPAN_SUBMIT_EXPENSE: 'ManualCreateExpenseSubmit',
         SPAN_SUBMIT_TO_DESTINATION_VISIBLE: 'ManualSubmitToDestinationVisible',
         SPAN_EXPENSE_SERVER_RESPONSE: 'ManualCreateExpenseServerResponse',
+        SPAN_RECONNECT_SERVER_RESPONSE: 'ManualReconnectServerResponse',
         SPAN_GEOLOCATION_WAIT: 'ManualGeolocationWait',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
@@ -2278,6 +2279,9 @@ const CONST = {
         ATTRIBUTE_FAST_PATH_HANDLER: 'fast_path_handler',
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_JSON_CODE: 'json_code',
+        ATTRIBUTE_UPDATE_ID_FROM: 'update_id_from',
+        ATTRIBUTE_UPDATE_ID_TO: 'update_id_to',
+        ATTRIBUTE_RESPONSE_ADVANCED: 'response_advanced',
         ATTRIBUTE_COLD_START: 'cold_start',
         ATTRIBUTE_TRIGGER: 'trigger',
         ATTRIBUTE_PLATFORM: 'platform',
@@ -3866,6 +3870,12 @@ const CONST = {
     PAYMENT_METHOD_ID_KEYS: {
         DEBIT_CARD: 'fundID',
         BANK_ACCOUNT: 'bankAccountID',
+    },
+
+    /** The payment method a payee still has to set up before a queued payment can settle */
+    MISSING_PAYMENT_METHODS: {
+        BANK_ACCOUNT: 'bankAccount',
+        WALLET: 'wallet',
     },
 
     IOU: {
@@ -7824,6 +7834,15 @@ const CONST = {
                 title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.QBD}.title` as const,
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.QBD}.description` as const,
                 icon: 'QBDSquare',
+            },
+            [this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                id: this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE,
+                alias: 'intuit-enterprise-suite',
+                name: 'Intuit Enterprise Suite',
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE}.description` as const,
+                icon: 'QBOSquare',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             [this.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 id: this.POLICY.CONNECTIONS.NAME.CERTINIA,

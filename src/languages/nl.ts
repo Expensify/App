@@ -934,6 +934,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Tijdgevoelig',
             addShippingAddress: {title: 'We hebben je verzendadres nodig', subtitle: 'Geef een adres op om je Expensify Kaart te ontvangen.', cta: 'Adres toevoegen'},
             addPaymentCard: {title: 'Voeg een betaalkaart toe om Expensify te blijven gebruiken', subtitle: 'Account > Abonnement', cta: 'Toevoegen'},
+            addBankAccount: {title: 'Voeg een bankrekening toe om je terugbetaling te ontvangen'},
             activateCard: {title: 'Activeer je Expensify Kaart', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
             reviewCardFraud: {
                 title: 'Controleer mogelijk misbruik van je Expensify Kaart',
@@ -7227,6 +7228,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Onze QuickBooks Desktop-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                title: 'Intuit Enterprise Suite',
+                description: `Koppel Intuit Enterprise Suite aan Expensify om je boekhoudgegevens automatisch te synchroniseren en handmatige invoer te verminderen.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Onze Intuit Enterprise Suite-integratie is alleen beschikbaar met het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 title: 'Certinia',
                 description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + Certinia-integratie. Stem uitgavendimensies en belastingsynchronisatie af op je Certinia-configuratie voor helderder financieel inzicht.`,
@@ -9421,6 +9428,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             title: 'Persoonlijke karma inschakelen',
             description: 'Doneer $1 aan Expensify.org voor elke $500 die je elke maand uitgeeft',
             stopDonationsPrompt: 'Weet je zeker dat je wilt stoppen met doneren aan Expensify.org?',
+            managePreferencesFromWeb: 'Manage your personal karma preferences from web',
         },
         getInTouch: 'Uitstekend! Deel hun gegevens zodat we contact met hen kunnen opnemen.',
         introSchoolPrincipal: 'Introductie bij je schooldirecteur',
