@@ -966,7 +966,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addHomeAddress: {
                 title: 'Ajouter une adresse personnelle',
                 subtitle:
-                    'Votre administrateur a activé des exclusions de trajet domicile-travail pour les dépenses de distance. Ajoutez une adresse de domicile afin que nous puissions les appliquer à vos demandes.',
+                    'Votre administrateur a activé les exclusions de trajets domicile-travail pour les dépenses de distance. Ajoutez une adresse de domicile pour que nous puissions les appliquer à vos demandes.',
                 cta: 'Ajouter une adresse',
             },
             fixFailedBilling: {title: 'Nous n’avons pas pu débiter votre carte enregistrée', subtitle: 'Abonnement'},
@@ -1247,9 +1247,9 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'L’adresse du domicile est obligatoire',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Avant de suivre une distance, vous devez ajouter votre adresse personnelle à votre profil privé. ${workspaceName} utilise cette adresse pour les déductions de frais de déplacement domicile-travail.`
+                    ? `Avant de suivre une distance, vous devez ajouter votre adresse personnelle à votre profil privé. ${workspaceName} utilise cette adresse pour les déductions liées aux trajets domicile-travail.`
                     : 'Avant de suivre une distance, vous devez ajouter votre adresse personnelle à votre profil privé. Cet espace de travail utilise cette adresse pour les déductions liées aux trajets domicile-travail.',
-            cta: 'Ajouter une adresse personnelle',
+            cta: 'Ajouter une adresse de domicile',
         },
         amount: 'Montant',
         percent: 'Pourcentage',
@@ -7136,16 +7136,17 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 summaryDisabled: 'Pas d’exclusion du trajet domicile-travail',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Exclure ${distance} ${unit} par demande`,
                 optionDisabledTitle: 'Ne pas exclure les trajets domicile-travail',
-                optionDisabledHelp: 'Aucun trajet domicile-travail n’est supprimé des déclarations.',
+                optionDisabledHelp: 'Aucun trajet domicile-travail n’est retiré des demandes.',
                 optionFixedDistanceTitle: 'Exclure une distance fixe par demande',
                 optionFixedDistanceHelp: 'Soustraire la même distance de trajet domicile-travail de chaque demande. Idéal pour les membres qui soumettent une demande par jour de travail.',
                 distanceLabel: 'Distance',
-                summaryHomeAndOffice: 'Utiliser les emplacements domicile et bureau',
+                summaryHomeAndOffice: 'Utiliser les adresses domicile et bureau',
                 optionHomeAndOfficeTitle: 'Calculer par domicile et bureau',
-                optionHomeAndOfficeHelp: 'Utilise l’adresse du domicile du membre, son mode de travail et son affectation de bureau pour calculer les exclusions de trajet domicile-travail.',
+                optionHomeAndOfficeHelp:
+                    'Utilisez l’adresse du domicile du membre, son mode de travail et son affectation de bureau pour calculer les exclusions de trajet domicile-travail.',
                 workspaceAddressRequired: {
                     title: 'Pas si vite…',
-                    promptStart: 'Vous ne pouvez pas activer le paramètre de calcul domicile-bureau avant d’ajouter d’abord un lieu de bureau dans',
+                    promptStart: 'Vous ne pouvez pas activer le paramètre de calcul domicile-bureau tant que vous n’avez pas ajouté un lieu de bureau dans l’',
                     linkText: 'Aperçu',
                     promptEnd: '.',
                     cta: 'Compris',

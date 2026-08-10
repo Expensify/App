@@ -964,7 +964,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addHomeAddress: {
                 title: 'Aggiungi un indirizzo di casa',
                 subtitle:
-                    'Il tuo amministratore ha abilitato le esclusioni per i tragitti casa-lavoro nelle spese chilometriche. Aggiungi un indirizzo di casa così potremo applicarle alle tue richieste di rimborso.',
+                    'Il tuo amministratore ha attivato le esclusioni per i tragitti casa-lavoro nelle spese chilometriche. Aggiungi un indirizzo di casa così potremo applicarle alle tue richieste di rimborso.',
                 cta: 'Aggiungi indirizzo',
             },
             fixFailedBilling: {title: 'Non abbiamo potuto addebitare la carta salvata nel profilo', subtitle: 'Abbonamento'},
@@ -1239,11 +1239,11 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         homeAddressRequired: {
-            title: "L'indirizzo di casa è obbligatorio",
+            title: 'L’indirizzo di casa è obbligatorio',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Prima di tracciare la distanza, devi aggiungere il tuo indirizzo di casa al tuo profilo privato. ${workspaceName} usa questo indirizzo per le detrazioni per i pendolari.`
-                    : 'Prima di tracciare la distanza, devi aggiungere il tuo indirizzo di casa al tuo profilo privato. Questo spazio di lavoro usa questo indirizzo per le detrazioni per pendolari.',
+                    ? `Prima di tenere traccia della distanza, devi aggiungere il tuo indirizzo di casa al tuo profilo privato. ${workspaceName} usa questo indirizzo per le detrazioni per pendolarismo.`
+                    : 'Prima di tenere traccia della distanza, devi aggiungere il tuo indirizzo di casa al tuo profilo privato. Questo spazio di lavoro usa questo indirizzo per le detrazioni per pendolarismo.',
             cta: 'Aggiungi indirizzo di casa',
         },
         amount: 'Importo',
@@ -7079,16 +7079,16 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                 summaryDisabled: 'Nessuna esclusione per il tragitto',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Escludi ${distance} ${unit} per rimborso`,
                 optionDisabledTitle: 'Non escludere gli spostamenti casa-lavoro',
-                optionDisabledHelp: 'Nessuno spostamento casa-lavoro viene rimosso dalle richieste.',
+                optionDisabledHelp: 'Nessun tragitto casa-lavoro viene rimosso dalle richieste.',
                 optionFixedDistanceTitle: 'Escludi una distanza fissa per richiesta',
                 optionFixedDistanceHelp: 'Detrai la stessa distanza del tragitto casa-lavoro da ogni richiesta. Ideale per chi invia una richiesta per ogni giorno lavorativo.',
                 distanceLabel: 'Distanza',
-                summaryHomeAndOffice: 'Usa le posizioni di casa e ufficio',
+                summaryHomeAndOffice: 'Usa gli indirizzi di casa e ufficio',
                 optionHomeAndOfficeTitle: 'Calcola per casa e ufficio',
                 optionHomeAndOfficeHelp: 'Usa l’indirizzo di casa del membro, la modalità di lavoro e l’assegnazione all’ufficio per calcolare le esclusioni sul tragitto casa-lavoro.',
                 workspaceAddressRequired: {
                     title: 'Non così in fretta...',
-                    promptStart: "Non puoi abilitare l'impostazione per calcolare in base a casa e ufficio finché non aggiungi prima una sede dell'ufficio in",
+                    promptStart: 'Non puoi attivare l’impostazione “Calcola per casa e ufficio” finché non aggiungi prima una sede dell’ufficio in ',
                     linkText: 'Panoramica',
                     promptEnd: '.',
                     cta: 'Capito',

@@ -1240,8 +1240,8 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Endereço residencial é obrigatório',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Antes de registrar a distância, você precisa adicionar seu endereço residencial ao seu perfil privado. ${workspaceName} usa esse endereço para deduções de deslocamento.`
-                    : 'Antes de registrar a distância, você precisa adicionar seu endereço residencial ao seu perfil privado. Este workspace usa esse endereço para deduções de deslocamento.',
+                    ? `Antes de registrar distâncias, você precisa adicionar seu endereço residencial ao seu perfil privado. ${workspaceName} usa esse endereço para deduções de deslocamento.`
+                    : 'Antes de registrar distâncias, você precisa adicionar seu endereço residencial ao seu perfil privado. Este workspace usa esse endereço para deduções de deslocamento.',
             cta: 'Adicionar endereço residencial',
         },
         amount: 'Valor',
@@ -7066,16 +7066,16 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 summaryDisabled: 'Sem exclusão de deslocamento',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Excluir ${distance} ${unit} por solicitação`,
                 optionDisabledTitle: 'Não excluir deslocamentos de casa para o trabalho',
-                optionDisabledHelp: 'Nenhum trajeto de deslocamento é removido das solicitações.',
+                optionDisabledHelp: 'Nenhum deslocamento é removido das solicitações.',
                 optionFixedDistanceTitle: 'Excluir uma distância fixa por solicitação',
                 optionFixedDistanceHelp: 'Remova a mesma distância de deslocamento de cada reembolso. Ideal para membros que enviam um reembolso por dia de trabalho.',
                 distanceLabel: 'Distância',
-                summaryHomeAndOffice: 'Usar endereços de casa e do trabalho',
+                summaryHomeAndOffice: 'Usar endereços de casa e do escritório',
                 optionHomeAndOfficeTitle: 'Calcular por casa e escritório',
-                optionHomeAndOfficeHelp: 'Use o endereço residencial, o regime de trabalho e a alocação de escritório da pessoa colaboradora para calcular as exclusões de deslocamento.',
+                optionHomeAndOfficeHelp: 'Use o endereço residencial do membro, o regime de trabalho e a designação de escritório para calcular as exclusões de deslocamento.',
                 workspaceAddressRequired: {
                     title: 'Calma lá...',
-                    promptStart: 'Você não pode ativar a configuração de cálculo por casa e escritório até primeiro adicionar um endereço de escritório em',
+                    promptStart: 'Você não pode ativar a configuração de cálculo por casa e escritório até adicionar primeiro um endereço de escritório em ',
                     linkText: 'Visão geral',
                     promptEnd: '.',
                     cta: 'Entendi',

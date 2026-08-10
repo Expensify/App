@@ -955,9 +955,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Validar',
             },
             addHomeAddress: {
-                title: 'Añade una dirección de domicilio',
-                subtitle:
-                    'Tu administrador habilitó exclusiones de desplazamientos para los gastos de distancia. Añade una dirección de casa para que podamos aplicarlas a tus reclamaciones.',
+                title: 'Añade una dirección de casa',
+                subtitle: 'Tu administrador habilitó exclusiones de desplazamiento para los gastos de distancia. Añade una dirección de casa para que podamos aplicarlas a tus solicitudes.',
                 cta: 'Añade dirección',
             },
             fixFailedBilling: {
@@ -1238,7 +1237,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         homeAddressRequired: {
-            title: 'La dirección particular es obligatoria',
+            title: 'La dirección de casa es obligatoria',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
                     ? `Antes de registrar distancias, tienes que añadir tu dirección de casa a tu perfil privado. ${workspaceName} utiliza esta dirección para las deducciones por desplazamiento al trabajo.`
@@ -7075,15 +7074,15 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Excluir ${distance} ${unit} por reclamación`,
                 summaryHomeAndOffice: 'Usar ubicaciones de casa y oficina',
                 optionDisabledTitle: 'No excluir los desplazamientos al trabajo',
-                optionDisabledHelp: 'Ningún desplazamiento se elimina de las solicitudes.',
+                optionDisabledHelp: 'No se elimina ningún desplazamiento de las solicitudes.',
                 optionFixedDistanceTitle: 'Excluir una distancia fija por reclamación',
                 optionFixedDistanceHelp: 'Resta la misma distancia de desplazamiento de cada solicitud. Ideal para personas que envían una solicitud por día laborable.',
                 optionHomeAndOfficeTitle: 'Calcular por casa y oficina',
-                optionHomeAndOfficeHelp: 'Utiliza la dirección de casa del miembro, su modalidad de trabajo y la asignación de oficina para calcular las exclusiones de desplazamiento.',
+                optionHomeAndOfficeHelp: 'Usa la dirección de casa del miembro, su modalidad de trabajo y la asignación de oficina para calcular las exclusiones de desplazamiento.',
                 distanceLabel: 'Distancia',
                 workspaceAddressRequired: {
                     title: 'No tan rápido...',
-                    promptStart: 'No puedes habilitar el ajuste de calcular por casa y oficina hasta que primero añadas una ubicación de oficina en',
+                    promptStart: 'No puedes habilitar el ajuste de cálculo por casa y oficina hasta que primero añadas una ubicación de oficina en ',
                     linkText: 'Resumen',
                     promptEnd: '.',
                     cta: 'Entendido',
