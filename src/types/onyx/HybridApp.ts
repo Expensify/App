@@ -62,6 +62,10 @@ type HybridApp = {
 
     /** Indicates if user pressed the "Try New Expensify" button */
     pressedTryNewExpensify?: boolean;
+
+    /** Bumped by OldDot each time the user deliberately flips its staging server toggle. Lets NewDot tell such a
+     * change apart from the ambient value OldDot sends on every transition. */
+    stagingToggleGeneration?: number;
 };
 
 export default HybridApp;

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/naming-convention -- `tag_name` mirrors the GitHub release API response */
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- global.fetch is swapped for a plain jest.fn mock */
 /**
  * Covers the Android beta check, which decides whether a native build talks to staging or production.
  *
