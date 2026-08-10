@@ -13745,8 +13745,12 @@ function getInvoiceReportFieldsFromReportNameValuePairs(reportNameValuePairs: On
 /**
  * Get both field values map and fields-by-name map in a single pass
  */
-function getReportFieldMaps(report: OnyxEntry<Report>, fieldList: Record<string, PolicyReportField>): {fieldValues: Record<string, string>; fieldsByName: Record<string, PolicyReportField>} {
-    const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
+function getReportFieldMaps(
+    report: OnyxEntry<Report>,
+    fieldList: Record<string, PolicyReportField>,
+    reportNameValuePairsParam?: OnyxEntry<ReportNameValuePairs>,
+): {fieldValues: Record<string, string>; fieldsByName: Record<string, PolicyReportField>} {
+    const reportNameValuePairs = reportNameValuePairsParam ?? allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
     const availableFields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
     const invoiceReportFields = report?.type === CONST.REPORT.TYPE.INVOICE ? getInvoiceReportFieldsFromReportNameValuePairs(reportNameValuePairs) : [];
     const fieldsMatchingReport = [...availableFields, ...invoiceReportFields].filter((field) => isReportFieldTargetMatchingReport(report, field));

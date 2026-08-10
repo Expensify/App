@@ -2,10 +2,12 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearReportFieldKeyErrors} from '@libs/actions/Report';
 import {resolveReportFieldValue} from '@libs/Formula';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {
@@ -22,6 +24,7 @@ import {
 import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, PolicyReportField, Report, ReportViolationName} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -87,9 +90,10 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
 function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequestViewReportFieldsProps) {
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.reportID)}`);
 
     const sortedPolicyReportFields = useMemo<EnrichedPolicyReportField[]>((): EnrichedPolicyReportField[] => {
-        const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {});
+        const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
         const fields = Object.values(fieldsByName);
 
         return fields
@@ -114,7 +118,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
                     violationTranslation,
                 };
             });
-    }, [policy, report, currentUserAccountID]);
+    }, [policy, report, currentUserAccountID, reportNameValuePairs]);
 
     // `sortedPolicyReportFields` already excludes fields hidden by `shouldHideSingleReportField`, including the title field.
     // If no displayable custom fields remain, the early return below hides the section.
