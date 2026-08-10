@@ -1605,6 +1605,7 @@ describe('actions/Duplicate', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1673,6 +1674,7 @@ describe('actions/Duplicate', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1733,6 +1735,7 @@ describe('actions/Duplicate', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1786,6 +1789,7 @@ describe('actions/Duplicate', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1839,6 +1843,7 @@ describe('actions/Duplicate', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1895,6 +1900,7 @@ describe('actions/Duplicate', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1961,6 +1967,7 @@ describe('actions/Duplicate', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2012,6 +2019,7 @@ describe('actions/Duplicate', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2057,6 +2065,7 @@ describe('actions/Duplicate', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2105,6 +2114,7 @@ describe('actions/Duplicate', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2159,6 +2169,7 @@ describe('actions/Duplicate', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2228,6 +2239,7 @@ describe('actions/Duplicate', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2298,6 +2310,7 @@ describe('actions/Duplicate', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2351,6 +2364,7 @@ describe('actions/Duplicate', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2415,6 +2429,7 @@ describe('actions/Duplicate', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2594,6 +2609,7 @@ describe('actions/Duplicate', () => {
             delegateAccountID: undefined,
             formatPhoneNumber,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            participantsPolicyTags: {},
             ...overrides,
         });
 
@@ -3166,6 +3182,7 @@ describe('actions/Duplicate', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();

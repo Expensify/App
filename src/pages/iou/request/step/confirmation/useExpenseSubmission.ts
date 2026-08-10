@@ -48,6 +48,7 @@ import {
     getRateID,
     getTaxValue,
     getValidWaypoints,
+    hasAppliedCommuterExclusion,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
@@ -817,6 +818,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         // Otherwise the builder mints a different ID and the screen hangs waiting on a report that never materializes.
         const isBrandNewP2PRecipient = !report && !participant.isPolicyExpenseChat && !participant.reportID;
         const optimisticChatReportID = isBrandNewP2PRecipient && !!transaction.reportID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? transaction.reportID : undefined;
+        const shouldIncludeCommuterExclusionOverrides = hasAppliedCommuterExclusion(transaction);
 
         const {chatReportID: distanceChatReportID, transactionID: distanceTransactionID} = createDistanceRequestIOUActions({
             getCurrencyDecimals,
@@ -836,6 +838,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             },
             transactionParams: {
                 amount: transaction.amount,
+                ...(shouldIncludeCommuterExclusionOverrides && typeof transaction.modifiedAmount === 'number' && {modifiedAmount: transaction.modifiedAmount}),
+                ...(shouldIncludeCommuterExclusionOverrides && transaction.modifiedMerchant && {modifiedMerchant: transaction.modifiedMerchant}),
                 comment: trimmedComment,
                 distance: originalTransactionDistance,
                 modifiedDistance: modifiedTransactionDistance,
