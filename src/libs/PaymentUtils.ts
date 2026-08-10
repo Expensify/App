@@ -255,7 +255,6 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
             confirmApproval();
         } else {
             approveMoneyRequest({
-                getCurrencyDecimals,
                 expenseReport: iouReport,
                 expenseReportPolicy,
                 currentUserAccountIDParam: currentAccountID,
