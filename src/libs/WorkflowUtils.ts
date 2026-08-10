@@ -909,37 +909,37 @@ function isSubmitterFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilter
     return isComparisonLeaf(node) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && node.left === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
 }
 
-/** Walk a filter tree and call `callback` on every submitter filter (the `from` leaf) in it. */
-function forEachSubmitterFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined, callback: (filter: ApprovalWorkflowFilterComparison) => void): void {
+/** Return the first comparison leaf in the filter tree whose `left` field matches. */
+function getFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined, leftKey: string): ApprovalWorkflowFilterComparison | undefined {
     if (!node) {
-        return;
+        return undefined;
     }
     if (isComparisonLeaf(node)) {
-        if (isSubmitterFilter(node)) {
-            callback(node);
-        }
-        return;
+        return node.left === leftKey ? node : undefined;
     }
-    forEachSubmitterFilter(node.left, callback);
-    forEachSubmitterFilter(node.right, callback);
+    return getFilter(node.left, leftKey) ?? getFilter(node.right, leftKey);
 }
 
-/** Extract the union of email values across every `from` leaf in a rule. */
+/** Rebuild a filter tree, replacing every comparison leaf with the result of `mapLeaf`. */
+function mapFilters(
+    node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison,
+    mapLeaf: (leaf: ApprovalWorkflowFilterComparison) => ApprovalWorkflowFilterComparison,
+): ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison {
+    if (isComparisonLeaf(node)) {
+        return mapLeaf(node);
+    }
+    return {...node, left: mapFilters(node.left, mapLeaf), right: mapFilters(node.right, mapLeaf)};
+}
+
+/** The emails a rule's `from` filter lists. */
 function extractSubmitterEmails(rule: ApprovalWorkflowRule): string[] {
-    const emails = new Set<string>();
-    forEachSubmitterFilter(rule.filters, (filter) => {
-        const right = filter.right;
-        if (Array.isArray(right)) {
-            for (const email of right) {
-                if (typeof email === 'string') {
-                    emails.add(email);
-                }
-            }
-        } else if (typeof right === 'string') {
-            emails.add(right);
-        }
-    });
-    return Array.from(emails);
+    const submitterFilter = getFilter(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
+    if (!submitterFilter || !isSubmitterFilter(submitterFilter)) {
+        return [];
+    }
+
+    const emails = Array.isArray(submitterFilter.right) ? submitterFilter.right : [submitterFilter.right];
+    return Array.from(new Set(emails.filter((email): email is string => typeof email === 'string')));
 }
 
 /**
@@ -998,17 +998,7 @@ function structuralFingerprint(rule: ApprovalWorkflowRule): string {
 
 /** Replace the `right` value on every `from` leaf with `newEmails`. */
 function replaceSubmitterEmails(rule: ApprovalWorkflowRule, newEmails: string[]): ApprovalWorkflowRule {
-    const rewrite = (node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison => {
-        if (isComparisonLeaf(node)) {
-            return isSubmitterFilter(node) ? {...node, right: [...newEmails]} : node;
-        }
-        return {
-            ...node,
-            left: rewrite(node.left),
-            right: rewrite(node.right),
-        };
-    };
-    return {...rule, filters: rewrite(rule.filters)};
+    return {...rule, filters: mapFilters(rule.filters, (leaf) => (isSubmitterFilter(leaf) ? {...leaf, right: [...newEmails]} : leaf))};
 }
 
 /** Merge `emailsToAdd` into `existingEmails`, preserving the order of `existingEmails` and dropping duplicates. */
@@ -1206,21 +1196,6 @@ function applyApprovalWorkflowRulesDiff(existingRules: Record<string, ApprovalWo
     return result;
 }
 
-/** Return the first comparison leaf in the filter tree whose `left` field matches. */
-function findComparisonByLeft(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined, leftKey: string): ApprovalWorkflowFilterComparison | undefined {
-    if (!node) {
-        return undefined;
-    }
-    if (isComparisonLeaf(node)) {
-        return node.left === leftKey ? node : undefined;
-    }
-    const fromLeft = findComparisonByLeft(node.left, leftKey);
-    if (fromLeft) {
-        return fromLeft;
-    }
-    return findComparisonByLeft(node.right, leftKey);
-}
-
 /** The triggers of a rule as a flat list. */
 function getRuleTriggers(rule: ApprovalWorkflowRule): Array<ValueOf<typeof CONST.RULES.APPROVAL_WORKFLOW.TRIGGER>> {
     return Object.values(rule.triggers ?? {});
@@ -1298,7 +1273,7 @@ function resolvePositionHolders(submitter: string, rules: Record<string, Approva
             continue;
         }
 
-        const toLeaf = findComparisonByLeft(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO);
+        const toLeaf = getFilter(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO);
         if (isFromSubmission ? !!toLeaf : toLeaf?.right !== sourceApprover) {
             continue;
         }
@@ -1310,7 +1285,7 @@ function resolvePositionHolders(submitter: string, rules: Record<string, Approva
             continue;
         }
 
-        const amountLeaf = findComparisonByLeft(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT);
+        const amountLeaf = getFilter(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT);
         const isOverLimitBranch =
             !!amountLeaf && (amountLeaf.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO || amountLeaf.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN);
 
