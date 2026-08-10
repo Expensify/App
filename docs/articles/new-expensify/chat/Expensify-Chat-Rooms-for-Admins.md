@@ -22,6 +22,7 @@ To allow only admins to post in the #announce room:
 2. Click the room header.
 3. Click **Settings**.
 4. Under **Who can post**, select **Admins only**.
+5. Click **Save**.
 
 🔒 **Note:** Anyone in the workspace can read messages in the #announce room, but only Admins can post if this setting is enabled.
 

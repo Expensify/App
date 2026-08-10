@@ -1,4 +1,5 @@
 import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 
@@ -850,6 +851,7 @@ describe('MoneyRequest', () => {
                 backTo,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
 
             expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
@@ -861,6 +863,7 @@ describe('MoneyRequest', () => {
                 backTo,
                 draftTransactionIDs: undefined,
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
 
             expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
@@ -880,6 +883,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
 
             expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction, undefined, undefined, 1);
@@ -893,6 +897,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
 
             expect(Split.resetSplitShares).not.toHaveBeenCalled();
@@ -921,6 +926,38 @@ describe('MoneyRequest', () => {
             expect(Split.createDistanceRequest).not.toHaveBeenCalled();
         });
 
+        it.each([
+            ['omits stale', 0, false],
+            ['forwards commuter exclusion', 2, true],
+        ])('%s modified fields when creating a distance request', (_description, commuterExclusion, shouldForwardModifiedFields) => {
+            const transaction = {
+                ...fakeTransaction,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                modifiedAmount: 80,
+                modifiedMerchant: '8 mi @ $0.50 / mi',
+                comment: {comment: '', customUnit: {commuterExclusion, reimbursableDistance: 8, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}},
+            };
+
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                transaction,
+                manualDistance: 10,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
+                getCurrencySymbol,
+            });
+
+            const transactionParams = jest.mocked(Split.createDistanceRequest).mock.calls.at(-1)?.at(0)?.transactionParams;
+            if (shouldForwardModifiedFields) {
+                expect(transactionParams).toEqual(expect.objectContaining({modifiedAmount: 80, modifiedMerchant: '8 mi @ $0.50 / mi'}));
+            } else {
+                expect(transactionParams).not.toHaveProperty('modifiedAmount');
+                expect(transactionParams).not.toHaveProperty('modifiedMerchant');
+            }
+        });
+
         it('should pass the existing tracked transaction ID (not the optimistic id) to cleanup for a move-from-track distance submission', async () => {
             const EXISTING_TRACKED_TRANSACTION_ID = 'tracked-transaction-88';
             const linkedTrackedExpenseReportAction = {
@@ -947,6 +984,7 @@ describe('MoneyRequest', () => {
                 optimisticTransactionID: 'optimistic-should-be-ignored',
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
 
             await waitForBatchedUpdates();
@@ -969,6 +1007,7 @@ describe('MoneyRequest', () => {
                 optimisticTransactionID: 'optimistic-should-be-ignored',
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
 
             await waitForBatchedUpdates();
@@ -1014,6 +1053,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
 
             await waitForBatchedUpdates();
@@ -1080,6 +1120,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
 
             expect(Split.createDistanceRequest).toHaveBeenCalledWith(
@@ -1123,6 +1164,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
 
             expect(Split.createDistanceRequest).toHaveBeenCalledWith(
@@ -1165,6 +1207,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
 
             await waitForBatchedUpdates();
@@ -1202,6 +1245,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.CREATE,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
             await waitForBatchedUpdates();
 
@@ -1244,6 +1288,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.CREATE,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
             await waitForBatchedUpdates();
 
@@ -1257,6 +1302,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.CREATE,
                 draftTransactionIDs: [baseParams.transactionID],
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
@@ -1270,6 +1316,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.CREATE,
                 amountOwed: 8010,
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
@@ -1285,6 +1332,7 @@ describe('MoneyRequest', () => {
                 amountOwed: 100,
                 ownerBillingGracePeriodEnd: pastDate,
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
@@ -1297,6 +1345,7 @@ describe('MoneyRequest', () => {
                 defaultExpensePolicy: fakePolicy,
                 iouType: CONST.IOU.TYPE.CREATE,
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
 
             const lastCallArgs = jest.mocked(shouldUseDefaultExpensePolicy).mock.calls.at(-1) ?? [];
@@ -1313,6 +1362,7 @@ describe('MoneyRequest', () => {
                 draftTransactionIDs: [baseParams.transactionID],
                 conciergeReportID,
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
 
             // When report exists and iouType is not CREATE, the function calls getMoneyRequestParticipantOptions
@@ -1330,6 +1380,7 @@ describe('MoneyRequest', () => {
                 draftTransactionIDs: [baseParams.transactionID],
                 conciergeReportID: undefined,
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
 
             await waitForBatchedUpdates();
@@ -1349,6 +1400,7 @@ describe('MoneyRequest', () => {
                     capturedParticipants = participants;
                 },
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
 
             await waitForBatchedUpdates();
@@ -1369,6 +1421,7 @@ describe('MoneyRequest', () => {
                     capturedParticipants = participants;
                 },
                 delegateAccountID: undefined,
+                getCurrencySymbol,
             });
 
             await waitForBatchedUpdates();
@@ -1390,6 +1443,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
+                getCurrencySymbol,
             });
 
             expect(Split.resetSplitShares).not.toHaveBeenCalled();
@@ -1405,6 +1459,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
+                getCurrencySymbol,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
@@ -1429,6 +1484,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
+                getCurrencySymbol,
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
@@ -1451,6 +1507,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
+                getCurrencySymbol,
             });
 
             expect(Split.createDistanceRequest).toHaveBeenCalledWith(
@@ -1472,6 +1529,7 @@ describe('MoneyRequest', () => {
                 defaultExpensePolicy: undefined,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 draftTransactionIDs: [baseParams.transactionID],
+                getCurrencySymbol,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, baseParams.transactionID, baseParams.reportID));
