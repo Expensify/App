@@ -264,6 +264,7 @@ describe('getMoneyRequestInformation', () => {
         };
 
         const result = getMoneyRequestInformation({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             ...baseParams,
             existingTransaction,
             isSplitExpense: true,

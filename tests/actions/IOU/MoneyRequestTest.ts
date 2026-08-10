@@ -902,6 +902,7 @@ describe('MoneyRequest', () => {
             };
 
             handleMoneyRequestStepDistanceNavigation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 transaction,
                 manualDistance: 10,
