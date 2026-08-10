@@ -81,7 +81,6 @@ import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getAllReports} from './index';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {getMoneyRequestInformation, getReportPreviewAction} from './MoneyRequestBuilder';
-import {addPendingNewTransactionIDs} from './PendingNewTransactions';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
 import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
 
@@ -110,9 +109,10 @@ type UpdateSplitTransactionsParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isFromSplitExpensesFlow?: boolean;
+    /** Keeps the new splits off the highlight rail, for flows that never open the expense report */
+    shouldSkipReportHighlightRail?: boolean;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
     expenseReport: OnyxEntry<OnyxTypes.Report>;
@@ -191,8 +191,8 @@ function updateSplitTransactions({
     transactionViolations,
     quickAction,
     policyRecentlyUsedCurrencies,
-    iouReportNextStep,
     isFromSplitExpensesFlow,
+    shouldSkipReportHighlightRail,
     betas,
     personalDetails,
     transactionReport,
@@ -757,7 +757,7 @@ function updateSplitTransactions({
             participantParams,
             parentChatReport,
             policyParams: {...policyParams, policyTagList},
-            transactionParams,
+            transactionParams: {...transactionParams, shouldSkipReportHighlightRail},
             moneyRequestReportID: moneyRequestReportIDForSplit,
             existingTransaction,
             existingTransactionID,
@@ -867,7 +867,6 @@ function updateSplitTransactions({
                     currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
                     currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
                     isASAPSubmitBetaEnabled,
-                    iouReportNextStep,
                     isSplitTransaction: true,
                     isSelfDMSplit,
                     isOffline,
@@ -2047,7 +2046,8 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         popReportsSplitNavigatorToReport(selfDMReportID);
         Navigation.dismissModal();
         requestAnimationFrame(() => {
-            updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
+            // Navigates to selfDM, not the expense report - nothing mounts to consume the highlight rail.
+            updateSplitTransactions({...params, isFromSplitExpensesFlow: true, shouldSkipReportHighlightRail: true});
         });
         params?.searchContext?.clearSelectedTransactions?.(true);
         return;
@@ -2093,7 +2093,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
         registerSearchRouteHighlight();
-        updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
+        // Returns to Search, not the expense report, so rail flags would sit unconsumed and highlight stale rows the
+        // next time that report is opened from the Inbox. registerSearchRouteHighlight above covers this page instead.
+        updateSplitTransactions({...params, isFromSplitExpensesFlow: true, shouldSkipReportHighlightRail: true});
 
         if (!isSelfDMSplit) {
             Navigation.navigateBackToLastSuperWideRHPScreen();
@@ -2116,7 +2118,8 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // (dismissToSuperWideRHP + goBack) instead of dismissModalWithReport. This naturally pops
     // stale screens from the stack instead of leaving them behind.
     if (isLastTransactionInReport && fallbackReportID) {
-        updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
+        // Navigates to the fallback report, not the expense report - nothing mounts to consume the highlight rail.
+        updateSplitTransactions({...params, isFromSplitExpensesFlow: true, shouldSkipReportHighlightRail: true});
 
         const backRoute = ROUTES.REPORT_WITH_ID.getRoute(fallbackReportID);
         navigateBackOnDeleteTransaction(backRoute);
@@ -2130,17 +2133,6 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         });
 
         return;
-    }
-
-    // Register newly created split transaction IDs so they briefly highlight in the expense list.
-    // This only runs on the path that opens the expense report (dismissModalWithReport), so the highlight
-    // flags are consumed and cleared on mount. We skip existing transactions (already in allChildTransactions)
-    // and reverse splits (no new transactions are created). The Search/Spend page and last-transaction cases
-    // return earlier above, so they never pollute REPORT_METADATA with flags that would never be cleared.
-    if (params.expenseReport?.reportID && !isReverseSplitOperation && !isLastTransactionInReport) {
-        for (const transactionID of getNewSplitTransactionIDs()) {
-            addPendingNewTransactionIDs(targetReportID, transactionID);
-        }
     }
 
     if (isTracking()) {

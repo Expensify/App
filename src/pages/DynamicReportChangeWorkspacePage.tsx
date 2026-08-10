@@ -6,6 +6,7 @@ import SelectionList from '@components/SelectionList';
 import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -37,6 +38,7 @@ import {
     isWorkspaceEligibleForReportChange,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {hasAppliedCommuterExclusion, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,7 +75,6 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const reportPreviewAction = useParentReportAction(report);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: changePolicyTrainingModalDismissedSelector});
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
@@ -99,11 +100,21 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const navigateBackFromChangeWorkspacePath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_WORKSPACE.path);
+    const hasCommuterExclusionDistanceRequest = reportTransactions.some((transaction) => hasAppliedCommuterExclusion(transaction));
+    const hasManualDistanceRequest = reportTransactions.some((transaction) => isManualDistanceRequest(transaction));
+    const hasOdometerDistanceRequest = reportTransactions.some((transaction) => isOdometerDistanceRequest(transaction));
+    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        isManualDistanceRequest: hasManualDistanceRequest,
+        isOdometerDistanceRequest: hasOdometerDistanceRequest,
+    });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const selectPolicy = (policyID?: string) => {
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
         if (!policyID || !policy) {
+            return;
+        }
+        if (blockManualOrOdometerDistanceRequestIfNeeded(policyID)) {
             return;
         }
         if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed, currentUserPersonalDetails.accountID)) {
@@ -149,10 +160,10 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 isASAPSubmitBetaEnabled,
                 employeeList,
                 isReportLastVisibleArchived,
-                reportNextStep,
                 reportActionsList: filteredReportActions,
                 reportPreviewAction,
                 isTrackIntentUser,
+                reportTransactions,
             });
             return;
         }
@@ -168,10 +179,10 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             hasViolationsParam: hasViolations,
             isChangePolicyTrainingModalDismissed: shouldSkipChangePolicyTrainingModal,
             isASAPSubmitBetaEnabled,
-            reportNextStep,
             isReportLastVisibleArchived,
             reportPreviewAction,
             isTrackIntentUser,
+            reportTransactions,
         });
     };
 
@@ -199,7 +210,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
     };
 
-    if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report)) {
+    if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report) || hasCommuterExclusionDistanceRequest) {
         return <NotFoundPage />;
     }
 
@@ -219,10 +230,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                     />
                     {shouldShowLoadingIndicator ? (
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
-                            <ActivityIndicator
-                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                reasonAttributes={{context: 'DynamicReportChangeWorkspacePage', isLoadingApp: isAppLoadPending}}
-                            />
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                         </View>
                     ) : (
                         <SelectionList<WorkspaceListItemType>

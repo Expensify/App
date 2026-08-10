@@ -58,7 +58,6 @@ import {getTransactionDetails, isReportApproved, isSelfDM, isSettled as isSettle
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
 import {computeSplitSaveErrorMessage, computeSplitWarningMessage} from '@libs/SplitExpenseUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {getChildTransactions, getExpenseTypeTranslationKey, getTransactionType, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 
@@ -218,7 +217,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         (action) => action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
-    const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(iouReport?.reportID)}`);
 
     const isPercentageMode = (selectedTab as string) === CONST.TAB.SPLIT.PERCENTAGE;
     const isDateMode = (selectedTab as string) === CONST.TAB.SPLIT.DATE;
@@ -394,7 +392,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             transactionViolations,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             quickAction,
-            iouReportNextStep,
             betas,
             personalDetails,
             transactionReport: draftTransactionReport,
@@ -578,16 +575,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     };
 
     if (isLoadingDraftTransaction) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'SplitExpensePage',
-            isLoadingDraftTransaction,
-        };
-        return (
-            <FullScreenLoadingIndicator
-                style={[styles.opacity1]}
-                reasonAttributes={reasonAttributes}
-            />
-        );
+        return <FullScreenLoadingIndicator style={[styles.opacity1]} />;
     }
 
     const collapsibleHeaderOffset = isInitialSplit ? TAB_NAVIGATOR_HEIGHT_LANDSCAPE : 0;
