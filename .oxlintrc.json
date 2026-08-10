@@ -1,7 +1,22 @@
 {
+    // Mirrors config/eslint/eslint.config.mjs rule for rule. Every `"off"` in this file carries a
+    // comment saying which of three things it means, because "no findings today" is never the
+    // reason a rule is off here:
+    //   OFF, shadowed not dropped -- ESLint's own rule runs instead under a jsPlugin alias
+    //                               (core/, rh/, hosted/) because oxlint's native port diverges.
+    //   OFF, mirrors ESLint       -- ESLint has it off in the same scope; parity, not a gap.
+    //   OFF, coverage gap         -- we want the rule, something specific blocks it. The reason is
+    //                               on the line, and machine-readable in oxlint-probe/ruleMap.py
+    //                               (PORT_PLAN); `npm run oxlint-rule-availability` prints them.
     "$schema": "./node_modules/oxlint/configuration_schema.json",
     "plugins": ["typescript", "import", "jsx-a11y", "unicorn", "react"],
-    "jsPlugins": ["./oxlint-probe/expensify-rules.mjs", "./config/eslint/plugins/eslint-plugin-report-name-utils.mjs", "./oxlint-probe/nrs-plugin.mjs", "./oxlint-probe/rh-plugin.mjs"],
+    "jsPlugins": [
+        "./oxlint-probe/expensify-rules.mjs",
+        "./config/eslint/plugins/eslint-plugin-report-name-utils.mjs",
+        "./oxlint-probe/core-rules.mjs",
+        "./oxlint-probe/hosted-rules.mjs",
+        "./oxlint-probe/rh-plugin.mjs"
+    ],
     "categories": {
         "correctness": "off"
     },
@@ -1440,11 +1455,16 @@
             }
         ],
         "import/newline-after-import": "error",
+        // OFF, shadowed not dropped: oxlint's native port anchors its reports on a different line
+        // than ESLint's, so ESLint's own rule runs instead as `hosted/prefer-default-export`.
         "import/prefer-default-export": "off",
         "import/no-absolute-path": "error",
         "import/no-webpack-loader-syntax": "error",
         "import/no-named-default": "error",
         "import/no-self-import": "error",
+        // OFF, coverage gap, not a rejection: oxlint's rule works and finds 529 real import cycles,
+        // while ESLint's copy is silently inert (0 findings). Turning it on is a code-cleanup
+        // project, so it waits for that cleanup rather than for tooling.
         "import/no-cycle": "off",
         "rulesdir/context-provider-split-values": "error",
         "rulesdir/no-acc-spread-in-reduce": "error",
@@ -1482,6 +1502,21 @@
         "rulesdir/require-a11y-disable-justification": "error",
         "rulesdir/require-live-region-for-status-updates": "error",
         "rulesdir/use-double-negation-instead-of-boolean": "error",
+        // The four rulesdir rules below are listed as OFF on purpose rather than left out: a rule
+        // missing from this file is indistinguishable from an oversight. Each is still wanted — the
+        // reason it cannot run yet is on its own line, and the machine-readable copy lives in
+        // oxlint-probe/ruleMap.py (PORT_PLAN), printed by `npm run oxlint-rule-availability`.
+        // OFF, blocked upstream: needs the type of the `&&` left operand; jsPlugins get no type info.
+        "rulesdir/boolean-conditional-rendering": "off",
+        // OFF, blocked upstream: needs typeChecker.isArrayType to tell arrays from records, so a
+        // syntactic port would fire on every obj[key].
+        "rulesdir/prefer-at": "off",
+        // OFF, portable: the type check only asks "is the receiver a string", and only strings have
+        // localeCompare, so a receiver-agnostic rewrite is near-exact. Not written yet.
+        "rulesdir/prefer-locale-compare-from-context": "off",
+        // OFF, needs the React Compiler gate: ESLint's processor drops every message from this rule
+        // in files both compilers memoize. The per-file gating shim exists in rh-plugin.mjs.
+        "rulesdir/no-inline-useOnyx-selector": "off",
         "no-array-constructor": "error",
         "no-bitwise": "error",
         "no-lonely-if": "error",
@@ -1668,7 +1703,12 @@
             ]
         ],
         "react/jsx-no-useless-fragment": "error",
+        // OFF, shadowed not dropped: oxlint's native port also fires inside Jest mock factories,
+        // where ESLint's does not. ESLint's own rule runs as `hosted/function-component-definition`.
         "react/function-component-definition": "off",
+        // OFF, needs the React Compiler gate: ESLint's processor drops every message from this rule
+        // in files both compilers memoize, so enabling it now reports findings ESLint never shows.
+        // The rule itself is fixture-proven; the per-file gating shim exists in rh-plugin.mjs.
         "react/jsx-no-constructed-context-values": "off",
         "react/no-unstable-nested-components": "error",
         "react/no-namespace": "error",
@@ -1798,6 +1838,9 @@
         "jsx-a11y/scope": "error",
         "jsx-a11y/tabindex-no-positive": "error",
         "react/rules-of-hooks": "error",
+        // OFF, shadowed not dropped: the real eslint-plugin-react-hooks rule runs as
+        // `rh/exhaustive-deps`, wrapped in the lazy React Compiler gate that replicates ESLint's
+        // per-message suppression. Leaving the native port on would double-report.
         "react/exhaustive-deps": "off",
         "typescript/dot-notation": [
             "error",
@@ -1864,6 +1907,12 @@
         ],
         "import/export": "error",
         "react/require-render-return": "error",
+        "core/no-unreachable-loop": ["error", {"ignore": []}],
+        "hosted/jsx-no-bind": ["error", {"ignoreRefs": true, "allowArrowFunctions": true, "allowFunctions": false, "allowBind": false, "ignoreDOMComponents": true}],
+        "hosted/function-component-definition": ["error", {"namedComponents": "function-declaration", "unnamedComponents": "arrow-function"}],
+        "hosted/prefer-default-export": "error",
+        "hosted/order": ["error", {"groups": [["builtin", "external", "internal"]], "distinctGroup": true, "sortTypesGroup": false, "named": false, "warnOnUnassignedImports": false}],
+        "hosted/no-types": "error",
         "rh/component-hook-factories": "error",
         "rh/config": "error",
         "rh/error-boundaries": "error",
@@ -1944,6 +1993,9 @@
                 "typescript/no-redundant-type-constituents": "error",
                 "typescript/no-require-imports": "error",
                 "typescript/no-this-alias": "error",
+                // OFF, coverage gap, not a rejection: tsgolint implements the rule, but tsgo's TS7
+                // inference disagrees with the repo's TS 6.0.2 on which assertions are unnecessary.
+                // Revisit on the TS 7 upgrade; ESLint keeps covering it until then.
                 "typescript/no-unnecessary-type-assertion": "off",
                 "typescript/no-unnecessary-type-constraint": "error",
                 "typescript/no-unsafe-declaration-merging": "error",
@@ -2139,6 +2191,8 @@
             "plugins": ["jsdoc"]
         },
         {
+            // Every rule below is OFF only to mirror ESLint: typescript-eslint switches its typed
+            // rules off for plain-JS files, so these are parity, not coverage gaps.
             "files": ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
             "rules": {
                 "typescript/await-thenable": "off",
@@ -3293,6 +3347,18 @@
             ],
             "rules": {
                 "typescript/no-deprecated": "off"
+            }
+        },
+        {
+            "files": ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
+            "rules": {
+                "hosted/no-types": "off"
+            }
+        },
+        {
+            "files": ["**/*.d.ts", "**/*.d.tsx"],
+            "rules": {
+                "core/no-unreachable-loop": "off"
             }
         }
     ]

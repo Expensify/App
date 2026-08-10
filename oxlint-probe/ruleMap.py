@@ -49,37 +49,6 @@ PORT_PLAN = {
         'effort': 'none', 'proven': False,
         'notes': 'ESLint progress-bar plugin, no behaviour to preserve',
     },
-    # -- proven portable: re-export the ESLint rule through a jsPlugin --
-    'no-unreachable-loop': {
-        'mechanism': 'jsPlugin re-export of the ESLint core rule (builtinRules)',
-        'effort': 'S', 'proven': True,
-        'notes': "oxlint's native port false-positives on src/libs/NavigationFocusReturn/index.ts; the re-export is exact",
-    },
-    'react/jsx-no-bind': {
-        'mechanism': 'jsPlugin re-export from eslint-plugin-react',
-        'effort': 'S', 'proven': True,
-        'notes': 'not implemented natively in oxlint',
-    },
-    'react/function-component-definition': {
-        'mechanism': 'jsPlugin re-export from eslint-plugin-react',
-        'effort': 'S', 'proven': True,
-        'notes': "oxlint's native port diverges (#6); the re-export matches ESLint exactly",
-    },
-    'import/prefer-default-export': {
-        'mechanism': 'jsPlugin re-export from eslint-plugin-import',
-        'effort': 'S', 'proven': True,
-        'notes': "oxlint's native port diverges (#6); the re-export matches ESLint exactly",
-    },
-    'jsdoc/no-types': {
-        'mechanism': 'jsPlugin re-export from eslint-plugin-jsdoc',
-        'effort': 'S', 'proven': True,
-        'notes': 'not implemented natively in oxlint',
-    },
-    'import/order': {
-        'mechanism': 'jsPlugin re-export from eslint-plugin-import',
-        'effort': 'S (or drop)', 'proven': True,
-        'notes': "oxfmt's sortImports already enforces a stricter grouping, so this rule is redundant here",
-    },
     # -- proven portable, but each needs the react-compiler per-file gate --
     'react/jsx-no-constructed-context-values': {
         'mechanism': 'jsPlugin re-export + per-file react-compiler gate',
@@ -140,6 +109,17 @@ KNOWN_NOT_IMPLEMENTED_LOW_VALUE = {
 }
 
 
+# oxlint-probe/hosted-rules.mjs re-exports these under the `hosted/` alias, because oxlint
+# reserves the real plugin names (react, import, jsdoc) for its own implementations.
+HOSTED_RULE_ORIGIN = {
+    'jsx-no-bind': 'react',
+    'function-component-definition': 'react',
+    'prefer-default-export': 'import',
+    'order': 'import',
+    'no-types': 'jsdoc',
+}
+
+
 def norm_ox(code):
     """Normalize an oxlint diagnostic code -- `plugin(rule)` -- to the ESLint rule name."""
     m = re.match(r'^([\w@/.-]+)\((.+)\)$', code)
@@ -154,6 +134,8 @@ def norm_ox(code):
     if plugin == 'rh' or (plugin == 'react' and rule == 'exhaustive-deps'):
         # 'rh' is the jsPlugin alias for eslint-plugin-react-hooks
         return f'react-hooks/{rule}'
+    if plugin == 'hosted':
+        return f'{HOSTED_RULE_ORIGIN[rule]}/{rule}'
     if plugin == 'jsx_a11y':
         return f'jsx-a11y/{rule}'
     return f'{plugin}/{rule}'
@@ -178,6 +160,9 @@ def norm_ox_config(rule_id):
         return rule_id.split('/', 1)[1]
     if rule_id.startswith('rh/'):
         return 'react-hooks/' + rule_id.split('/', 1)[1]
+    if rule_id.startswith('hosted/'):
+        rule = rule_id.split('/', 1)[1]
+        return f'{HOSTED_RULE_ORIGIN[rule]}/{rule}'
     if rule_id in ('react/exhaustive-deps', 'react/rules-of-hooks'):
         return 'react-hooks/' + rule_id.split('/', 1)[1]
     return rule_id
@@ -188,10 +173,34 @@ def is_on(value):
     return sev not in ('off', 'allow', 0, '0')
 
 
+def load_jsonc(path):
+    """json.load for oxlint configs, which are JSONC.
+
+    The comments are not decoration: every `"off"` in .oxlintrc.json carries the reason it is off
+    on the line above it, so the parser has to tolerate them.
+    """
+    text = open(path).read()
+    out, index, end = [], 0, len(text)
+    while index < end:
+        if text[index] == '"':
+            close = index + 1
+            while close < end and (text[close] != '"' or text[close - 1] == '\\'):
+                close += 1
+            out.append(text[index : close + 1])
+            index = close + 1
+        elif text.startswith('//', index):
+            while index < end and text[index] != '\n':
+                index += 1
+        else:
+            out.append(text[index])
+            index += 1
+    return json.loads(''.join(out))
+
+
 def oxlint_enabled_rules(config_path=None):
     """Rule names (ESLint naming) enabled anywhere in .oxlintrc.json -- root or overrides."""
     path = config_path or os.path.join(ROOT, '.oxlintrc.json')
-    config = json.load(open(path))
+    config = load_jsonc(path)
     enabled = set()
     for scope in [config.get('rules', {})] + [o.get('rules', {}) for o in config.get('overrides', [])]:
         for rid, val in scope.items():
@@ -200,11 +209,33 @@ def oxlint_enabled_rules(config_path=None):
     return enabled
 
 
-def eslint_enabled_rules(files=None):
+def oxlint_disabled_rules(config_path=None):
+    """Rule name (ESLint naming) -> where it is switched off, for rules nothing re-enables.
+
+    Separates a deliberate `"off"` (reason in a comment next to it, and in PORT_PLAN) from a rule
+    that is merely absent, which reads the same in a diff but means something else entirely.
+    """
+    path = config_path or os.path.join(ROOT, '.oxlintrc.json')
+    config = load_jsonc(path)
+    enabled = oxlint_enabled_rules(path)
+    disabled = {}
+    scopes = [('root', config.get('rules', {}))]
+    scopes += [('an override', override.get('rules', {})) for override in config.get('overrides', [])]
+    for where, scope in scopes:
+        for rid, val in scope.items():
+            name = norm_ox_config(rid)
+            if not is_on(val) and name not in enabled:
+                disabled.setdefault(name, where)
+    return disabled
+
+
+def eslint_enabled_rules(files=None, fold_extension_rules=True):
     """Rule names enabled by the real ESLint config, the union over the representative files.
 
-    typescript-eslint extension rules are folded onto their base name, because that is
-    the rule oxlint runs (its base rules are TS-aware).
+    With `fold_extension_rules` (the default) a typescript-eslint extension rule is reported
+    under its base name, because that is the rule oxlint runs (its base rules are TS-aware).
+    Pass False for the ids exactly as ESLint uses them -- needed by callers that list both the
+    extension rule and the base rule as separate rows and must not count one rule twice.
     """
     enabled = set()
     for rel in files or REPRESENTATIVE_FILES:
@@ -222,7 +253,7 @@ def eslint_enabled_rules(files=None):
             if sev in ('off', 0):
                 continue
             rid = norm_es(rid)
-            if rid.startswith('@typescript-eslint/') and rid.split('/', 1)[1] in TS_EXTENSION_RULES:
+            if fold_extension_rules and rid.startswith('@typescript-eslint/') and rid.split('/', 1)[1] in TS_EXTENSION_RULES:
                 rid = rid.split('/', 1)[1]
             enabled.add(rid)
     return enabled
@@ -260,7 +291,7 @@ def js_plugin_rules(config_path=None):
     """
     path = config_path or os.path.join(ROOT, '.oxlintrc.json')
     config_dir = os.path.dirname(os.path.abspath(path))
-    config = json.load(open(path))
+    config = load_jsonc(path)
     plugins = list(config.get('jsPlugins') or [])
     for override in config.get('overrides', []):
         plugins.extend(override.get('jsPlugins') or [])
@@ -296,6 +327,47 @@ def js_plugin_rules(config_path=None):
         for rule in plugin['rules']:
             mapping[norm_ox_config(f'{alias}/{rule}')] = alias
     return mapping
+
+
+def eslint_installed_rules():
+    """Every rule the installed ESLint + its registered plugins *expose*, enabled or not.
+
+    Rule name -> source ('core' or the plugin prefix). Read by loading the real flat config
+    and walking each config object's `plugins` map, so it covers exactly what this repo has
+    installed -- not what some published rule list claims.
+    """
+    script = (
+        "const mod = await import('./eslint.config.mjs');"
+        'const flat = (Array.isArray(mod.default) ? mod.default : [mod.default]).flat(Infinity);'
+        'const out = {};'
+        "const {builtinRules} = await import('eslint/use-at-your-own-risk');"
+        "for (const name of builtinRules.keys()) out[name] = 'core';"
+        'for (const config of flat) {'
+        '  for (const [prefix, plugin] of Object.entries(config?.plugins ?? {})) {'
+        '    for (const rule of Object.keys(plugin?.rules ?? {})) out[`${prefix}/${rule}`] = prefix;'
+        '  }'
+        '}'
+        'console.log(JSON.stringify(out));'
+    )
+    out = subprocess.run(['node', '--input-type=module', '-e', script], capture_output=True, text=True, cwd=ROOT)
+    try:
+        return json.loads(out.stdout.strip().splitlines()[-1])
+    except (json.JSONDecodeError, IndexError):
+        print(f'  (could not enumerate installed ESLint rules: {out.stderr.strip()[:200]})')
+        return {}
+
+
+def oxlint_available_rules():
+    """Every rule this oxlint install can run, in ESLint naming.
+
+    Rule name -> source ('native' or 'js:<alias>'). Native rules come from oxlint's JSON
+    schema because `oxlint --rules` prints nothing in 1.77; hosted rules come from the
+    jsPlugins the config loads, which is where the ESLint plugin rules live.
+    """
+    available = {name: 'native' for name in oxlint_catalogue()}
+    for rule, alias in js_plugin_rules().items():
+        available.setdefault(rule, f'js:{alias}')
+    return available
 
 
 def tsgolint_rules():

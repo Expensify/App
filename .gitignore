@@ -186,6 +186,11 @@ bun.lock
 
 # Oxlint migration investigation: generated rule inventory (npm run oxlint-rule-inventory)
 oxlint-probe/rule-inventory.json
+oxlint-probe/rule-availability.json
+
+# Oxlint migration investigation: raw no-deprecated report dumps from the obstacle #4 probe
+oxlint-probe/dep-cmp.json
+oxlint-probe/dep-only-api.json
 
 # Python caches from the oxlint-probe comparison scripts
 __pycache__/

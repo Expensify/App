@@ -1,36 +1,41 @@
 {
     "no-unreachable-loop": {
         "fixture": "fixtures/unreachableLoop.ts",
-        "oxlintRule": "pp/no-unreachable-loop",
+        "oxlintRule": "core/no-unreachable-loop",
         "expected": 1,
-        "why": "port candidate: oxlint's native port false-positives, so host ESLint's core rule"
+        "why": "WIRED 2026-08-10 as core/no-unreachable-loop; oxlint's native port false-positives, so ESLint's core rule is hosted instead"
     },
-    "react/jsx-no-bind": {"fixture": "fixtures/jsxNoBind.tsx", "oxlintRule": "pp/jsx-no-bind", "expected": 1, "why": "port candidate: not implemented natively"},
+    "react/jsx-no-bind": {"fixture": "fixtures/jsxNoBind.tsx", "oxlintRule": "hosted/jsx-no-bind", "expected": 1, "why": "WIRED 2026-08-10; not implemented natively in oxlint"},
     "react/function-component-definition": {
         "fixture": "fixtures/functionComponentDefinition.tsx",
-        "oxlintRule": "pp/function-component-definition",
+        "oxlintRule": "hosted/function-component-definition",
         "expected": 1,
-        "why": "port candidate: native port diverges"
+        "why": "WIRED 2026-08-10; oxlint's native port diverges, so the hosted rule shadows it"
     },
     "react/jsx-no-constructed-context-values": {
         "fixture": "fixtures/jsxNoConstructedContextValues.tsx",
         "oxlintRule": "pp/jsx-no-constructed-context-values",
         "expected": 1,
-        "why": "port candidate: needs the react-compiler per-file gate"
+        "why": "still a candidate: needs the per-file react-compiler gate"
     },
-    "import/prefer-default-export": {"fixture": "fixtures/preferDefaultExport.ts", "oxlintRule": "pp/prefer-default-export", "expected": 1, "why": "port candidate: native port diverges"},
+    "import/prefer-default-export": {
+        "fixture": "fixtures/preferDefaultExport.ts",
+        "oxlintRule": "hosted/prefer-default-export",
+        "expected": 1,
+        "why": "WIRED 2026-08-10; oxlint's native port diverges, so the hosted rule shadows it"
+    },
     "import/order": {
         "fixture": "fixtures/importOrder.ts",
-        "oxlintRule": "pp/order",
+        "oxlintRule": "hosted/order",
         "expected": 1,
-        "why": "port candidate: not implemented natively (but oxfmt already enforces stricter grouping)"
+        "why": "WIRED 2026-08-10; not implemented natively (oxfmt also enforces a stricter grouping)"
     },
-    "jsdoc/no-types": {"fixture": "fixtures/jsdocNoTypes.ts", "oxlintRule": "pp/no-types", "expected": 2, "why": "port candidate: not implemented natively"},
+    "jsdoc/no-types": {"fixture": "fixtures/jsdocNoTypes.ts", "oxlintRule": "hosted/no-types", "expected": 2, "why": "WIRED 2026-08-10; not implemented natively in oxlint"},
     "rulesdir/no-inline-useOnyx-selector": {
         "fixture": "fixtures/inlineUseOnyxSelector.ts",
-        "oxlintRule": "pp/no-inline-useOnyx-selector",
+        "oxlintRule": "rulesdir/no-inline-useOnyx-selector",
         "expected": 1,
-        "why": "port candidate: needs the react-compiler per-file gate"
+        "why": "still a candidate: needs the per-file react-compiler gate"
     },
     "you-dont-need-lodash-underscore/uniq": {
         "fixture": "fixtures/youDontNeedLodash.ts",

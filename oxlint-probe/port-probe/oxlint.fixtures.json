@@ -1,23 +1,26 @@
 {
     "$schema": "../../node_modules/oxlint/configuration_schema.json",
-    "jsPlugins": ["./port-plugin.mjs"],
+    // The production plugins are loaded directly, so a fixture failure means the shipped
+    // config regressed — not that a probe copy drifted. ./port-plugin.mjs holds only the
+    // rules that are still candidates.
+    "jsPlugins": ["../core-rules.mjs", "../hosted-rules.mjs", "../expensify-rules.mjs", "./port-plugin.mjs"],
     "categories": {},
     "rules": {
-        "pp/no-unreachable-loop": ["error", {"ignore": []}],
-        "pp/jsx-no-bind": ["error", {"ignoreRefs": true, "allowArrowFunctions": true, "allowFunctions": false, "allowBind": false, "ignoreDOMComponents": true}],
-        "pp/function-component-definition": ["error", {"namedComponents": "function-declaration", "unnamedComponents": "arrow-function"}],
-        "pp/jsx-no-constructed-context-values": "error",
-        "pp/prefer-default-export": "error",
-        "pp/order": ["error", {"groups": [["builtin", "external", "internal"]]}],
-        "pp/no-types": "error",
-        "pp/no-inline-useOnyx-selector": "error"
+        "core/no-unreachable-loop": ["error", {"ignore": []}],
+        "hosted/jsx-no-bind": ["error", {"ignoreRefs": true, "allowArrowFunctions": true, "allowFunctions": false, "allowBind": false, "ignoreDOMComponents": true}],
+        "hosted/function-component-definition": ["error", {"namedComponents": "function-declaration", "unnamedComponents": "arrow-function"}],
+        "hosted/prefer-default-export": "error",
+        "hosted/order": ["error", {"groups": [["builtin", "external", "internal"]], "distinctGroup": true, "sortTypesGroup": false, "named": false, "warnOnUnassignedImports": false}],
+        "hosted/no-types": "error",
+        "rulesdir/no-inline-useOnyx-selector": "error",
+        "pp/jsx-no-constructed-context-values": "error"
     },
     "overrides": [
         {
             // These three are ESLint plugins hosted by oxlint's JS sidecar, exactly as the
             // production config does it: `jsPlugins` accepts bare npm package specifiers, and the
-            // rule prefix is then the plugin's own meta.name. Declaring the rules in the root
-            // `rules` block instead fails with "Plugin '<name>' not found".
+            // rule prefix is then the plugin's own meta.name minus the eslint-plugin- marker.
+            // Declaring them in the root `rules` block instead fails with "Plugin '<name>' not found".
             "files": ["**/*.ts", "**/*.tsx"],
             "jsPlugins": ["eslint-plugin-you-dont-need-lodash-underscore", "eslint-plugin-testing-library", "eslint-plugin-react-native-a11y"],
             "rules": {
