@@ -27,7 +27,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import variables from '@styles/variables';
 
@@ -161,13 +160,7 @@ function DynamicConfirmationPage() {
         (reviewDuplicatesResult.status === 'loaded' && (!newTransaction?.transactionID || !doesTransactionBelongToReport));
 
     if (isLoadingOnyxValue(reviewDuplicatesResult, reportResult) || !newTransaction?.transactionID) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'TransactionDuplicate.Confirmation',
-            isLoadingReviewDuplicates: isLoadingOnyxValue(reviewDuplicatesResult),
-            isLoadingReport: isLoadingOnyxValue(reportResult),
-            hasNewTransaction: !!newTransaction?.transactionID,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
