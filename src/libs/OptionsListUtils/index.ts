@@ -3849,7 +3849,6 @@ export type {
     Options,
     PersonalDetailFilterRankFields,
     PersonalDetailOptionOrShell,
-    PersonalDetailShell,
     SearchOption,
     SearchOptionData,
 } from './types';
