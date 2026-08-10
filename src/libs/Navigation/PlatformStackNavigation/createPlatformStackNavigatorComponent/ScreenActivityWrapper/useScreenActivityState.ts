@@ -1,11 +1,10 @@
 import useDeferVisibleUntilFocusTransitionEnd from '@hooks/useDeferVisibleUntilFocusTransitionEnd';
+import useIsWindowSizeChanging from '@hooks/useIsWindowSizeChanging';
 
 import type {ActivityProps} from 'react';
 
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useState} from 'react';
-
-import useIsWindowSizeChanging from './useIsWindowSizeChanging';
 
 // requestAnimationFrame never fires in a background app or a hidden browser tab, where a screen that mounts would
 // otherwise keep rendering at full priority. Whichever fires first wins.
