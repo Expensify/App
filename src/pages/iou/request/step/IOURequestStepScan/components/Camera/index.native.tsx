@@ -164,10 +164,11 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         const path = getReceiptsUploadFolderPath();
 
         captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode})
-            .then((photo: PhotoFile) => ReceiptStorage.adopt(photo.path))
-            .then((durableName) => {
+            .then((photo: PhotoFile) => {
                 endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
-
+                return ReceiptStorage.adopt(photo.path);
+            })
+            .then((durableName) => {
                 if (isMultiScanEnabled) {
                     isCapturingPhoto.current = false;
                 } else {
