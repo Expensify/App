@@ -2104,6 +2104,90 @@ describe('actions/Duplicate', () => {
             expect(Navigation.dismissModal).not.toHaveBeenCalled();
         });
 
+        it('should duplicate a GPS distance expense as manual distance when a target workspace is provided', async () => {
+            const transactionID = 'gps-workspace-1';
+            const mockGPSDistanceTransaction = {
+                ...mockTransaction,
+                transactionID,
+                amount: -108,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
+                receipt: {source: 'receipt-generic.png', state: CONST.IOU.RECEIPT_STATE.OPEN},
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 0.1,
+                    },
+                    waypoints: {
+                        waypoint0: {
+                            lat: 34.3553515,
+                            lng: 62.1925936,
+                            address: '954R+5XR, Behzad Ave, Herat 300502, Afghanistan',
+                        },
+                        waypoint1: {
+                            lat: 34.354473,
+                            lng: 62.192255,
+                            address: '953R+PRW, Herat 300501, Afghanistan',
+                        },
+                    },
+                },
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                transaction: mockGPSDistanceTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                existingTransactionDraft: undefined,
+                personalDetails: mockPersonalDetails,
+                betas: [CONST.BETAS.ALL],
+                recentWaypoints,
+                targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+            });
+
+            await waitForBatchedUpdates();
+
+            const distanceCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST));
+            expect(distanceCall).toBeDefined();
+            expect(distanceCall?.[1]).toEqual(
+                expect.objectContaining({
+                    distance: 0.1,
+                    distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                    gpsCoordinates: undefined,
+                    waypoints: 'null',
+                }),
+            );
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t && t.transactionID !== transactionID);
+                },
+            });
+
+            expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
+            expect(duplicatedTransaction?.comment?.customUnit?.quantity).toBe(0.1);
+            expect(duplicatedTransaction?.comment?.waypoints).toBeUndefined();
+        });
+
         it('should not corrupt modifiedCreated or leak top-level Transaction fields when duplicating a distance expense', async () => {
             const transactionID = 'distance-shim-shape';
             const mockDistanceTransaction = {
@@ -2360,6 +2444,90 @@ describe('actions/Duplicate', () => {
 
             expect(duplicatedTransaction).toBeDefined();
             expect(duplicatedTransaction?.transactionID).not.toBe(mockCashExpenseTransaction.transactionID);
+        });
+
+        it('should duplicate a GPS distance expense as manual distance when no targetPolicy is provided', async () => {
+            const transactionID = 'gps-selfdm-1';
+            const mockGPSDistanceTransaction = {
+                ...mockTransaction,
+                transactionID,
+                amount: -108,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
+                receipt: {source: 'receipt-generic.png', state: CONST.IOU.RECEIPT_STATE.OPEN},
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 0.1,
+                    },
+                    waypoints: {
+                        waypoint0: {
+                            lat: 34.3553515,
+                            lng: 62.1925936,
+                            address: '954R+5XR, Behzad Ave, Herat 300502, Afghanistan',
+                        },
+                        waypoint1: {
+                            lat: 34.354473,
+                            lng: 62.192255,
+                            address: '953R+PRW, Herat 300501, Afghanistan',
+                        },
+                    },
+                },
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                transaction: mockGPSDistanceTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy: undefined,
+                targetPolicyCategories: undefined,
+                targetReport: undefined,
+                existingTransactionDraft: undefined,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: {},
+                recentWaypoints,
+                targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+            });
+
+            await waitForBatchedUpdates();
+
+            const trackExpenseCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE));
+            expect(trackExpenseCall).toBeDefined();
+            expect(trackExpenseCall?.[1]).toEqual(
+                expect.objectContaining({
+                    distance: 0.1,
+                    distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                    gpsCoordinates: undefined,
+                    waypoints: undefined,
+                }),
+            );
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t && t.transactionID !== transactionID);
+                },
+            });
+
+            expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
+            expect(duplicatedTransaction?.comment?.customUnit?.quantity).toBe(0.1);
+            expect(duplicatedTransaction?.comment?.waypoints).toBeUndefined();
         });
 
         it('should preserve all transaction fields when duplicating Cash expense', async () => {
@@ -2903,7 +3071,7 @@ describe('actions/Duplicate', () => {
 
         it('should preserve waypoints for non-split distance expenses', async () => {
             const distanceTx = createCashTransaction('dist1', {
-                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
@@ -2926,6 +3094,7 @@ describe('actions/Duplicate', () => {
             const waypoints = distanceCall?.[1]?.waypoints;
             expect(waypoints).toBeDefined();
             expect(waypoints).not.toBe('null');
+            expect(distanceCall?.[1]).toEqual(expect.objectContaining({distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP}));
         });
 
         it('should correctly route a report with mixed cash, distance, and per diem transactions', async () => {
