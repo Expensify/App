@@ -1,6 +1,5 @@
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
-import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptImage from '@components/ReceiptImage';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -15,6 +14,7 @@ import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
+import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -25,6 +25,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -37,6 +38,7 @@ import {clearOdometerDraft, getOdometerHasUnsavedChanges, removeMoneyRequestOdom
 import {restoreOriginalTransactionFromBackupWithImageCleanup} from '@libs/actions/TransactionEdit';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import getKeyboardHeight from '@libs/getKeyboardHeight';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -64,7 +66,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useIsFocused} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -87,25 +89,6 @@ function isFocusableTextInputRef(ref: BaseTextInputRef): ref is AnimatedTextInpu
     return 'isFocused' in ref;
 }
 
-const isWeb = Platform.OS === 'web';
-const OdometerContainer = isWeb ? View : KeyboardAvoidingView;
-
-function getOdometerContainerConfig(isWebPlatform: boolean, isCreatingNewRequest: boolean, isFocused: boolean) {
-    let key = 'editing';
-    if (!isWebPlatform && isCreatingNewRequest) {
-        key = isFocused ? 'focused' : 'unfocused';
-    }
-    const props = isWebPlatform
-        ? // Web's KeyboardAvoidingView ignores `enabled`, so the parent ScreenWrapper still applies the iOS 26 Safari compensation.
-          {}
-        : {
-              behavior: 'padding' as const,
-              enabled: isCreatingNewRequest,
-          };
-
-    return {key, props};
-}
-
 function IOURequestStepDistanceOdometer({
     report,
     route: {
@@ -122,6 +105,11 @@ function IOURequestStepDistanceOdometer({
     const StyleUtils = useStyleUtils();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['GalleryPlus']);
+
+    // `keyboardActiveHeight` is used rather than `keyboardHeight` because it is set from `keyboardWillShow`, so the
+    // buttons start moving with the keyboard instead of jumping once it has already finished animating.
+    const {isKeyboardActive, keyboardActiveHeight} = useKeyboardState();
+    const {bottom: bottomSafeAreaInset} = useSafeAreaInsets();
 
     const startReadingInputRef = useRef<BaseTextInputRef | null>(null);
     const endReadingInputRef = useRef<BaseTextInputRef | null>(null);
@@ -168,6 +156,9 @@ function IOURequestStepDistanceOdometer({
     const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const isEditingConfirmation = routeName !== SCREENS.MONEY_REQUEST.DISTANCE_CREATE && !isEditing;
     const isCreatingNewRequest = !isEditingConfirmation && !isEditing;
+    // Only the create flow needs this. The edit flow gets keyboard avoidance from the ScreenWrapper that
+    // StepScreenWrapper renders for it.
+    const keyboardPaddingBottom = isCreatingNewRequest && isKeyboardActive ? getKeyboardHeight(keyboardActiveHeight, bottomSafeAreaInset) : 0;
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
@@ -619,9 +610,6 @@ function IOURequestStepDistanceOdometer({
         Navigation.closeRHPFlow();
     }, [fromLocaleDigit, startReading, endReading, odometerStartImage, odometerEndImage, translate, setFormError]);
 
-    // Remount the native create-flow avoider when tab focus changes so stale keyboard padding is cleared.
-    const {key: odometerContainerKey, props: odometerContainerProps} = getOdometerContainerConfig(isWeb, isCreatingNewRequest, isFocused);
-
     return (
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
@@ -631,10 +619,16 @@ function IOURequestStepDistanceOdometer({
             shouldShowWrapper={!isCreatingNewRequest}
             includeSafeAreaPaddingBottom
         >
-            <OdometerContainer
-                {...odometerContainerProps}
-                key={odometerContainerKey}
-                style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}
+            {/*
+                The create flow renders this step without its own ScreenWrapper (`shouldShowWrapper` is false), and the
+                shared tab ScreenWrapper keeps keyboard avoidance off so its offset cannot leak into the other tabs, so
+                the bottom padding is applied here. It comes from `useKeyboardState`, which is plain React state reset
+                to 0 on `keyboardDidHide`. A KeyboardAvoidingView is deliberately not used: its offset is written by a
+                Reanimated worklet that can leave the last keyboard height applied after the keyboard is already gone,
+                which strands these buttons in the middle of the page.
+            */}
+            <View
+                style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5, !!keyboardPaddingBottom && {paddingBottom: keyboardPaddingBottom}]}
             >
                 <View>
                     {/* Start Reading */}
@@ -772,7 +766,7 @@ function IOURequestStepDistanceOdometer({
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_ODOMETER_NEXT_BUTTON}
                     />
                 </View>
-            </OdometerContainer>
+            </View>
         </StepScreenWrapper>
     );
 }
@@ -785,5 +779,4 @@ const IOURequestStepDistanceOdometerWithWritableReportOrNotFound = withWritableR
 
 const IOURequestStepDistanceOdometerWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDistanceOdometerWithWritableReportOrNotFound);
 
-export {getOdometerContainerConfig};
 export default IOURequestStepDistanceOdometerWithFullTransactionOrNotFound;

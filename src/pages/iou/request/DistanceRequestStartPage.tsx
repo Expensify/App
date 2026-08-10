@@ -139,6 +139,9 @@ function DistanceRequestStartPage({
                         onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                         onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
                         lazyLoadEnabled
+                        // The Odometer tab has text inputs, and Android keeps the keyboard up after the focused input
+                        // goes away, so without this the next tab lays out while the keyboard still occupies the screen.
+                        shouldDismissKeyboardBeforeTabSwitch
                     >
                         <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MAP}>
                             {() => (

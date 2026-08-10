@@ -14,7 +14,7 @@ import TabSwitchGuardContext from '@libs/Navigation/TabSwitchGuardContext';
 import type {RegisterTabSwitchGuard, TabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 
-import IOURequestStepDistanceOdometer, {getOdometerContainerConfig} from '@pages/iou/request/step/IOURequestStepDistanceOdometer';
+import IOURequestStepDistanceOdometer from '@pages/iou/request/step/IOURequestStepDistanceOdometer';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -160,18 +160,6 @@ function renderCreateFlow(register: RegisterTabSwitchGuard) {
 }
 
 const odometerInput = (labelKey: string) => screen.getAllByLabelText(labelKey).find((element) => 'value' in element.props)!;
-
-describe('getOdometerContainerConfig', () => {
-    it.each([
-        ['native create flow while focused', false, true, true, {key: 'focused', props: {behavior: 'padding', enabled: true}}],
-        ['native create flow while unfocused', false, true, false, {key: 'unfocused', props: {behavior: 'padding', enabled: true}}],
-        ['native edit flow', false, false, true, {key: 'editing', props: {behavior: 'padding', enabled: false}}],
-        ['web create flow while focused', true, true, true, {key: 'editing', props: {}}],
-        ['web create flow while unfocused', true, true, false, {key: 'editing', props: {}}],
-    ] as const)('returns the expected config for %s', (_description, isWebPlatform, isCreatingNewRequest, isFocused, expectedConfig) => {
-        expect(getOdometerContainerConfig(isWebPlatform, isCreatingNewRequest, isFocused)).toEqual(expectedConfig);
-    });
-});
 
 describe('IOURequestStepDistanceOdometer - create-flow discard guard (no stored user-edit marks)', () => {
     beforeAll(() => {

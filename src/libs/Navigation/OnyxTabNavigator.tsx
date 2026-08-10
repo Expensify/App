@@ -20,6 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import KeyboardUtils from '@src/utils/keyboard';
 
 import type {MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
 import type {EventArg, EventMapCore, NavigationProp, NavigationState, ParamListBase, ScreenListeners} from '@react-navigation/native';
@@ -72,6 +73,13 @@ type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = Child
 
     /** Whether tabs should have equal width */
     equalWidth?: boolean;
+
+    /**
+     * Whether to wait for the keyboard to be fully hidden before switching tabs. Opt in from tab screens that hold a
+     * text input next to tabs whose layout reacts to the keyboard, otherwise the tab changes while the keyboard is
+     * still up and the incoming tab lays out inside a container that is still reserving space for it.
+     */
+    shouldDismissKeyboardBeforeTabSwitch?: boolean;
 };
 
 const TopTab = createMaterialTopTabNavigator<ParamListBase, string>();
@@ -114,6 +122,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     lazyLoadEnabled = false,
     onTabSelect,
     equalWidth = false,
+    shouldDismissKeyboardBeforeTabSwitch = false,
     ...rest
 }: OnyxTabNavigatorProps<TTabName>) {
     const styles = useThemeStyles();
@@ -172,11 +181,30 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
         const navState = navigation.getState();
         const currentRouteName = navState.routes.at(navState.index)?.name;
         const guard = currentRouteName ? guardsRef.current.get(currentRouteName) : undefined;
-        if (!guard || !guard.getHasUnsavedChanges()) {
-            return;
-        }
         const targetRoute = navState.routes.find((tabRoute) => tabRoute.key === event.target);
         if (!targetRoute || targetRoute.name === currentRouteName) {
+            return;
+        }
+        // `KeyboardUtils.dismiss` resolves on `keyboardDidHide`, so the tab only changes once the keyboard is fully
+        // gone. A fire-and-forget dismiss loses the race: the tab switches mid hide-animation and the incoming tab
+        // lays out while the keyboard still occupies the screen. Resolves immediately when no keyboard is shown.
+        const jumpToTargetTab = () => {
+            if (!shouldDismissKeyboardBeforeTabSwitch) {
+                navigation.dispatch(TabActions.jumpTo(targetRoute.name));
+                return;
+            }
+            KeyboardUtils.dismiss().then(() => {
+                navigation.dispatch(TabActions.jumpTo(targetRoute.name));
+            });
+        };
+        if (!guard || !guard.getHasUnsavedChanges()) {
+            if (!shouldDismissKeyboardBeforeTabSwitch) {
+                return;
+            }
+            // No unsaved changes means no modal is shown, but the input can still be focused with the keyboard up. Take
+            // the jump over from react-navigation so it waits for the keyboard instead of switching straight away.
+            event.preventDefault();
+            jumpToTargetTab();
             return;
         }
         event.preventDefault();
@@ -199,7 +227,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
                     Growl.error(translate('common.genericErrorMessage'));
                 })
                 .then(() => {
-                    navigation.dispatch(TabActions.jumpTo(targetRoute.name));
+                    jumpToTargetTab();
                 });
         });
     };
