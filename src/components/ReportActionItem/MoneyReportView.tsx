@@ -30,10 +30,10 @@ import {
     getReportFieldMaps,
     hasUpdatedTotal,
     isClosedExpenseReportWithNoExpenses as isClosedExpenseReportWithNoExpensesReportUtils,
-    isGroupPolicyExpenseReport as isGroupPolicyExpenseReportUtils,
-    isInvoiceReport as isInvoiceReportUtils,
     isReportFieldDisabledForUser,
+    isReportFieldTargetMatchingReport,
     isSettled as isSettledReportUtils,
+    shouldDisplayReportFields as shouldDisplayReportFieldsUtils,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -139,17 +139,15 @@ function MoneyReportView({
     const {sortedPolicyReportFields, fieldValues, fieldsByName} = useMemo(() => {
         const {fieldValues: values, fieldsByName: byName} = getReportFieldMaps(report, policy?.fieldList ?? {});
         const sorted = Object.values(byName)
-            .filter((field) => field.target === report?.type)
+            .filter((field) => isReportFieldTargetMatchingReport(report, field))
             .sort(({orderWeight: a}, {orderWeight: b}) => a - b);
         return {sortedPolicyReportFields: sorted, fieldValues: values, fieldsByName: byName};
     }, [policy?.fieldList, report]);
 
     const isOnlyTitleFieldEnabled = sortedPolicyReportFields.every(shouldHideSingleReportField);
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
-    const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report, policy?.type);
-    const isInvoiceReport = isInvoiceReportUtils(report);
-
-    const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && (isGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled && !isOnlyTitleFieldEnabled;
+    const shouldDisplayReportFields = shouldDisplayReportFieldsUtils(report, policy);
+    const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && shouldDisplayReportFields && !isOnlyTitleFieldEnabled;
 
     const hasPendingAction = transactions.some(getTransactionPendingAction);
 
@@ -176,8 +174,7 @@ function MoneyReportView({
                 {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
-                        {(isGroupPolicyExpenseReport || isInvoiceReport) &&
-                            !!policy?.areReportFieldsEnabled &&
+                        {shouldDisplayReportFields &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
                                 if (shouldHideSingleReportField(reportField)) {

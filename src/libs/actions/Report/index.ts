@@ -3819,13 +3819,21 @@ function updateReportField({
         isTrackIntentUser,
     });
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS>> = [
+    const isInvoiceField = report.type === CONST.REPORT.TYPE.INVOICE && reportField.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+    const optimisticReportFieldValue = isInvoiceField ? null : reportField;
+    const failureReportFieldValue = isInvoiceField ? null : previousReportField;
+
+    const optimisticData: Array<
+        OnyxUpdate<
+            typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 fieldList: {
-                    [fieldKey]: reportField,
+                    [fieldKey]: optimisticReportFieldValue,
                 },
                 nextStep: optimisticNextStep,
                 pendingFields: {
@@ -3843,6 +3851,17 @@ function updateReportField({
         },
     ];
 
+    if (isInvoiceField) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            value: {
+                [fieldKey]: reportField,
+                [reportField.fieldID]: reportField,
+            },
+        });
+    }
+
     if (reportField.type === 'dropdown' && reportField.value) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3853,13 +3872,17 @@ function updateReportField({
         });
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS>> = [
+    const failureData: Array<
+        OnyxUpdate<
+            typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 fieldList: {
-                    [fieldKey]: previousReportField,
+                    [fieldKey]: failureReportFieldValue,
                 },
                 nextStep: report.nextStep ?? null,
                 pendingFields: {
@@ -3882,6 +3905,17 @@ function updateReportField({
         },
     ];
 
+    if (isInvoiceField) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            value: {
+                [fieldKey]: previousReportField,
+                [reportField.fieldID]: previousReportField,
+            },
+        });
+    }
+
     if (reportField.type === 'dropdown') {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3892,7 +3926,7 @@ function updateReportField({
         });
     }
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -3916,6 +3950,21 @@ function updateReportField({
             },
         },
     ];
+
+    if (isInvoiceField) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            value: {
+                [fieldKey]: {
+                    pendingAction: null,
+                },
+                [reportField.fieldID]: {
+                    pendingAction: null,
+                },
+            },
+        });
+    }
 
     const parameters = {
         reportID,
