@@ -54,6 +54,7 @@ function PlaidBankAccountStep({onNext, isEditing}: SubPageProps) {
                 plaidData={plaidData}
                 defaultValue={bankAccountPersonalDetails?.selectedPlaidAccountID}
                 isDisplayedInWalletFlow
+                isPersonalBankAccount
                 onExitPlaid={Navigation.goBack}
                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                 selectedPlaidAccountID={bankAccountPersonalDetails?.selectedPlaidAccountID ?? selectedPlaidAccountId}

@@ -14,9 +14,9 @@ import Onyx from 'react-native-onyx';
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
  */
-function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
+function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number, isPersonalBankAccount = false) {
     // redirect_uri needs to be in kebab case convention because that's how it's passed to the backend
-    const {redirectURI, androidPackage} = getPlaidLinkTokenParameters();
+    const {redirectURI, androidPackage} = getPlaidLinkTokenParameters(isPersonalBankAccount);
 
     const params: OpenPlaidBankLoginParams = {
         redirectURI,

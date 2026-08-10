@@ -5,6 +5,6 @@ type PlaidLinkTokenParameters = {
     bankAccountID?: number;
 };
 
-type GetPlaidLinkTokenParameters = () => PlaidLinkTokenParameters;
+type GetPlaidLinkTokenParameters = (isPersonalBankAccount?: boolean) => PlaidLinkTokenParameters;
 
 export default GetPlaidLinkTokenParameters;

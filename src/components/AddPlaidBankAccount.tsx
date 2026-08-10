@@ -60,6 +60,9 @@ type AddPlaidBankAccountProps = {
     /** Is displayed in new enable wallet flow */
     isDisplayedInWalletFlow?: boolean;
 
+    /** Whether this is the Personal Bank Account flow, which needs the personal Plaid redirect URI */
+    isPersonalBankAccount?: boolean;
+
     /** Text to display on error message */
     errorText?: string;
 
@@ -80,6 +83,7 @@ function AddPlaidBankAccount({
     errorText = '',
     onInputChange = () => {},
     isDisplayedInWalletFlow = false,
+    isPersonalBankAccount = false,
 }: AddPlaidBankAccountProps) {
     const styles = useThemeStyles();
     const plaidBankAccounts = plaidData?.bankAccounts ?? [];
@@ -151,7 +155,7 @@ function AddPlaidBankAccount({
         if (isAuthenticatedWithPlaid()) {
             return unsubscribeToNavigationShortcuts;
         }
-        openPlaidBankLogin(allowDebit, bankAccountID);
+        openPlaidBankLogin(allowDebit, bankAccountID, isPersonalBankAccount);
         return unsubscribeToNavigationShortcuts;
 
         // disabling this rule, as we want this to run only on the first render
@@ -162,10 +166,10 @@ function AddPlaidBankAccount({
         // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
         // previousNetworkState.current also makes sure that this doesn't run on the first render.
         if (previousNetworkState.current && !isOffline && !isAuthenticatedWithPlaid()) {
-            openPlaidBankLogin(allowDebit, bankAccountID);
+            openPlaidBankLogin(allowDebit, bankAccountID, isPersonalBankAccount);
         }
         previousNetworkState.current = isOffline;
-    }, [allowDebit, bankAccountID, isAuthenticatedWithPlaid, isOffline]);
+    }, [allowDebit, bankAccountID, isAuthenticatedWithPlaid, isOffline, isPersonalBankAccount]);
 
     useEffect(() => {
         // We had a Plaid session and lost it (e.g. openReimbursementAccountPage reset plaidData on reconnect).
@@ -173,8 +177,8 @@ function AddPlaidBankAccount({
         if (!prevIsAuthenticated || isAuthenticated || isOffline) {
             return;
         }
-        openPlaidBankLogin(allowDebit, bankAccountID);
-    }, [prevIsAuthenticated, isAuthenticated, isOffline, allowDebit, bankAccountID]);
+        openPlaidBankLogin(allowDebit, bankAccountID, isPersonalBankAccount);
+    }, [prevIsAuthenticated, isAuthenticated, isOffline, allowDebit, bankAccountID, isPersonalBankAccount]);
 
     const token = getPlaidLinkToken();
     const options = plaidBankAccounts.map((account) => ({
