@@ -24,7 +24,7 @@ type BookCallButtonProps = {
     calendarLink: string;
 
     /** When provided, this account's avatar is displayed instead of a phone icon */
-    avatarAccountID?: string;
+    avatarAccountID?: number;
 
     /** Whether this button is nested inside another pressable element */
     isNested?: boolean;

@@ -110,7 +110,7 @@ type Account = {
     adminsRoomReportID?: string;
 
     /** The Account ID of the account manager */
-    accountManagerAccountID?: string;
+    accountManagerAccountID?: number;
 
     /** The Report ID of the account manager */
     accountManagerReportID?: string;

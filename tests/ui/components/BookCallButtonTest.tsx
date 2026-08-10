@@ -22,9 +22,9 @@ jest.mock('@libs/actions/Link', () => ({
 const mockOpenExternalLink = jest.mocked(openExternalLink);
 
 const CALENDAR_LINK = 'https://calendly.com/account-manager/expensify';
-const AVATAR_ACCOUNT_ID = '42';
+const AVATAR_ACCOUNT_ID = 42;
 
-function renderButton(props: {calendarLink: string; avatarAccountID?: string}) {
+function renderButton(props: {calendarLink: string; avatarAccountID?: number}) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <BookCallButton

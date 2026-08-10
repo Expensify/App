@@ -221,7 +221,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL;
 
-    const accountManagerAccountID = bookCallDetails?.accountManagerAccountID ? Number(bookCallDetails.accountManagerAccountID) : undefined;
+    const accountManagerAccountID = bookCallDetails?.accountManagerAccountID;
     const partnerManagerAccountID = bookCallDetails?.partnerManagerAccountID;
     const guideAccountID = accountGuideDetails?.email ? getPersonalDetailByEmail(accountGuideDetails.email)?.accountID : undefined;
 
@@ -259,16 +259,16 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     // A single 1:1 chat can only match one of these roles, and in Concierge only one button is shown at a time, so precedence (account manager, then partner manager, then guide) resolves any overlap
     let bookCallCalendarLink: string | undefined;
-    let bookCallAvatarAccountID: string | undefined;
+    let bookCallAvatarAccountID: number | undefined;
     if (shouldShowAccountManagerBookCall) {
         bookCallCalendarLink = bookCallDetails?.accountManagerCalendarLink;
-        bookCallAvatarAccountID = bookCallVisibility.accountManager.inConcierge ? String(accountManagerAccountID) : undefined;
+        bookCallAvatarAccountID = bookCallVisibility.accountManager.inConcierge ? accountManagerAccountID : undefined;
     } else if (shouldShowPartnerManagerBookCall) {
         bookCallCalendarLink = bookCallDetails?.partnerManagerCalendarLink;
-        bookCallAvatarAccountID = bookCallVisibility.partnerManager.inConcierge ? String(partnerManagerAccountID) : undefined;
+        bookCallAvatarAccountID = bookCallVisibility.partnerManager.inConcierge ? partnerManagerAccountID : undefined;
     } else if (shouldShowGuideBookCall) {
         bookCallCalendarLink = accountGuideDetails?.calendarLink;
-        bookCallAvatarAccountID = bookCallVisibility.guide.inConcierge ? String(guideAccountID) : undefined;
+        bookCallAvatarAccountID = bookCallVisibility.guide.inConcierge ? guideAccountID : undefined;
     }
 
     const bookCallButton = (
