@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -122,12 +122,13 @@ function ConfirmationFooterContent({
         <>
             {expensesNumber > 1 && (
                 <Button
-                    large
-                    text={translate('iou.removeThisExpense')}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={showRemoveExpenseConfirmModal}
                     style={styles.mb3}
                     sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_REMOVE_EXPENSE_BUTTON}
-                />
+                >
+                    <Button.Text>{translate('iou.removeThisExpense')}</Button.Text>
+                </Button>
             )}
             <EducationalTooltip
                 shouldRender={shouldShowProductTrainingTooltip}

@@ -24,7 +24,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {doesContainReservedWord, getAgeRequirementError, isRequiredFulfilled, isValidDisplayName, isValidPhoneNumber} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -226,15 +225,8 @@ function PrivatePersonalDetailsPage() {
         Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE);
     };
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'PrivatePersonalDetailsPage', isLoadingApp};
-
     if (isLoadingApp) {
-        return (
-            <FullScreenLoadingIndicator
-                reasonAttributes={reasonAttributes}
-                shouldUseGoBackButton
-            />
-        );
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     return (

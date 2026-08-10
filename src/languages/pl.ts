@@ -294,6 +294,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: 'Fakturowalne',
         nonBillable: 'Nierozliczalne',
         tag: 'Tag',
+        violations: 'Naruszenia',
         receipt: 'Paragon',
         verified: 'Zweryfikowano',
         replace: 'Zastąp',
@@ -487,11 +488,13 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Poprzedni rok',
         nextYear: 'W przyszłym roku',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} z ${total}`,
         editor: 'Edytor',
         restrictions: 'Ograniczenia',
         tryAgain: 'Spróbuj ponownie',
         tagGLCode: 'Oznacz kod GL',
         off: 'Wyłączone',
+        commuter: 'dojazdy do pracy',
         noResultsFoundSubtitle: 'Brak wyników. Spróbuj zmienić filtry lub zapytanie wyszukiwania',
         unableToDisplayChart: 'Nie można wyświetlić wykresu',
         webGLNotSupported: 'Twoja przeglądarka nie obsługuje WebGL. Włącz ją albo zmień przeglądarkę.',
@@ -543,6 +546,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentError: 'Błąd załącznika',
         errorWhileSelectingAttachment: 'Wystąpił błąd podczas wybierania załącznika. Spróbuj ponownie.',
         errorWhileSelectingCorruptedAttachment: 'Wystąpił błąd podczas wybierania uszkodzonego załącznika. Spróbuj użyć innego pliku.',
+        errorWhileConvertingHeic: 'Nie udało nam się przetworzyć tego obrazu. Spróbuj ponownie lub prześlij zdjęcie w innym formacie.',
         takePhoto: 'Zrób zdjęcie',
         chooseFromGallery: 'Wybierz z galerii',
         chooseDocument: 'Wybierz plik',
@@ -933,6 +937,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Wymaga szybkiej reakcji',
             addShippingAddress: {title: 'Potrzebujemy Twojego adresu wysyłki', subtitle: 'Podaj adres, na który mamy wysłać twoją Kartę Expensify.', cta: 'Dodaj adres'},
             addPaymentCard: {title: 'Dodaj kartę płatniczą, żeby dalej korzystać z Expensify', subtitle: 'Konto > Subskrypcja', cta: 'Dodaj'},
+            addBankAccount: {title: 'Dodaj konto bankowe, aby otrzymać zwrot'},
             activateCard: {title: 'Aktywuj swoją Kartę Expensify', subtitle: 'Zatwierdź swoją kartę i zacznij wydawać.', cta: 'Aktywuj'},
             reviewCardFraud: {
                 title: 'Sprawdź potencjalne oszustwo na swojej Karcie Expensify',
@@ -1083,6 +1088,7 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateTitle: 'Brak ostatnich wydatków',
             emptyStateMessage: 'Utwórz jeden lub przeciągnij tu paragon',
         },
+        insightsSection: {chartUnavailable: 'Wykres niedostępny', notEnoughData: 'Nie mamy jeszcze wystarczającej ilości danych, żeby wypełnić ten wykres'},
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -2192,6 +2198,18 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Wyloguj się',
         restoreStashed: 'Przywróć zapisane logowanie',
         signOutConfirmationText: 'Utracisz wszystkie zmiany w trybie offline, jeśli się wylogujesz.',
+        saveReceiptsConfirmation: {
+            title: 'Zapisać paragony?',
+            prompt: ({count}: {count: number}) =>
+                `${count === 1 ? 'Nadal przesyłany jest 1 paragon' : `Nadal przesyłane są paragony (${count})`}. Jeśli wylogujesz się teraz, zapiszemy ${count === 1 ? 'go' : 'je'} w Twoich zdjęciach, abyś ${count === 1 ? 'mógł go dodać' : 'mógł je dodać'} później do nowego wydatku.`,
+            confirm: 'Zapisz i wyloguj',
+        },
+        saveReceiptsAndSignOutConfirmation: {
+            title: 'Zapisać paragony?',
+            prompt: ({count}: {count: number}) =>
+                `${count === 1 ? 'Nadal przesyłany jest 1 paragon' : `Nadal przesyłane są paragony (${count})`}. Jeśli wylogujesz się teraz, zapiszemy ${count === 1 ? 'go' : 'je'} w Twoich zdjęciach, abyś ${count === 1 ? 'mógł go dodać' : 'mógł je dodać'} później do nowego wydatku. Utracisz wszystkie pozostałe zmiany w trybie offline.`,
+            confirm: 'Zapisz i wyloguj',
+        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Przeczytaj <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Warunki korzystania z usługi</a> i <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Politykę prywatności</a>.`,
         help: 'Pomoc',
@@ -5665,6 +5683,16 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 },
             },
         },
+        dualEntry: {
+            dualEntrySetup: 'Konfiguracja DualEntry',
+            enterCredentials: 'Wpisz swój klucz API DualEntry',
+            howToFindAPIKey:
+                '<strong>Znajdowanie klucza API.</strong><ol><li>Zaloguj się do DualEntry</li><li>Przejdź do [nazwa organizacji] -> Ustawienia -> Dostęp deweloperski -> Klucze API</li><li>Utwórz klucz API</li><li>Wklej klucz API poniżej</li></ol>',
+            subsidiary: 'Spółka zależna',
+            subsidiarySelectDescription: 'Wybierz jednostkę zależną w DualEntry, z której chcesz zaimportować dane.',
+            noCompaniesFound: 'Nie znaleziono firm',
+            noCompaniesFoundDescription: 'Dodaj proszę firmę w DualEntry i zsynchronizuj połączenie ponownie',
+        },
         type: {
             free: 'Darmowy',
             control: 'Sterowanie',
@@ -6675,6 +6703,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             rillet: 'Rillet',
+            dualEntry: 'DualEntry',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6694,6 +6723,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
+                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+                        return 'DualEntry';
                     default: {
                         return '';
                     }
@@ -6902,6 +6933,12 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'rilletSyncConnection':
                             return 'Inicjowanie połączenia z Rillet';
                         case 'rilletSyncImportData':
+                            return 'Wczytywanie danych';
+                        case 'dualEntrySyncTitle':
+                            return 'Synchronizowanie danych DualEntry';
+                        case 'dualEntrySyncConnection':
+                            return 'Inicjowanie połączenia z DualEntry';
+                        case 'dualEntrySyncImportData':
                             return 'Wczytywanie danych';
                         default: {
                             return `Brak tłumaczenia dla etapu: ${stage}`;
@@ -7171,6 +7208,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Nasza integracja z QuickBooks Desktop jest dostępna wyłącznie w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                title: 'Intuit Enterprise Suite',
+                description: `Połącz Intuit Enterprise Suite z Expensify, aby automatycznie synchronizować dane księgowe i ograniczyć ręczne wpisywanie danych.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Integracja Intuit Enterprise Suite jest dostępna tylko w planie Control, od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 title: 'Certinia',
                 description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + Certinia. Dopasuj wymiary kategoryzacji wydatków i synchronizację podatków do konfiguracji Certinia, aby uzyskać lepszą widoczność finansową.`,
@@ -7182,6 +7225,12 @@ ${reportName}`,
                 description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + Rillet. Dopasuj wymiary kategoryzacji wydatków i synchronizację podatków do konfiguracji Rillet, aby uzyskać lepszą widoczność finansową.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Integracja z Rillet jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                title: 'DualEntry',
+                description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + DualEntry. Dopasuj wymiary kategoryzacji wydatków i synchronizację podatków do konfiguracji DualEntry, aby uzyskać lepszą widoczność finansową.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Integracja z DualEntry jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Zaawansowane zatwierdzanie',
@@ -8526,20 +8575,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `dodano „${prohibitedExpense}” do zabronionych wydatków`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `usunięto „${prohibitedExpense}” z wydatków zabronionych`,
         commuterExclusions: {
-            changedToFixedDistance: 'zmienił wykluczanie dojazdów na stały dystans na zgłoszenie',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'mile' : 'mile';
-                } else {
-                    unitLabel = isSingular ? 'kilometr' : 'kilometry';
-                }
-                return `ustaw stałe wykluczenie dystansu na ${distance} ${unitLabel} na zgłoszenie`;
-            },
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `zmienił stałe wykluczenie dystansu na ${newDistance} ${unit} na zgłoszenie (wcześniej ${oldDistance} ${unit})`,
-            disabled: 'wyłączono wykluczanie dojazdów dla stawek za odległość',
+            changedToFixedDistance: 'zmieniono wykluczanie dojazdów na stałą odległość na zgłoszenie',
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `ustaw stałe wyłączenie dystansu na ${formattedDistance} na zgłoszenie`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `zmieniono stałe wykluczenie odległości na ${formattedNewDistance} na zgłoszenie (wcześniej ${formattedOldDistance})`,
+            disabled: 'wyłączono wykluczanie dojazdów dla stawek za przejechany dystans',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `zmieniono metodę zwrotu kosztów na „${newReimbursementChoice}” (wcześniej „${oldReimbursementChoice}”)`,
@@ -9042,6 +9082,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             topSpenders: 'Najwięksi wydający',
             topCategories: 'Najpopularniejsze kategorie',
             topMerchants: 'Najważniejsi sprzedawcy',
+            violationsBySubmitter: 'Naruszenia przez osobę składającą wniosek',
         },
     },
     genericErrorPage: {
@@ -9356,6 +9397,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             title: 'Włącz osobistą karmę',
             description: 'Przekaż 1 USD na Expensify.org za każde 500 USD wydane w miesiącu',
             stopDonationsPrompt: 'Czy na pewno chcesz przestać przekazywać darowizny na rzecz Expensify.org?',
+            managePreferencesFromWeb: 'Manage your personal karma preferences from web',
         },
         getInTouch: 'Świetnie! Udostępnij ich dane kontaktowe, abyśmy mogli się z nimi skontaktować.',
         introSchoolPrincipal: 'Wprowadzenie dla dyrektora szkoły',
@@ -9401,6 +9443,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         error: {
             selectSuggestedAddress: 'Wybierz sugerowany adres lub użyj bieżącej lokalizacji',
+            mapOrGpsDistanceRequired: {
+                title: 'Wymagana odległość z mapy lub GPS',
+                description: 'W tym obszarze roboczym wymagane są wydatki za przejazdy oparte na mapie lub śledzone za pomocą GPS.',
+            },
         },
         odometer: {
             startReading: 'Zacznij czytać',
@@ -9416,6 +9462,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             cameraAccessRequired: 'Aby robić zdjęcia, wymagany jest dostęp do aparatu.',
             snapPhotoStart: '<muted-text-label>Zrób zdjęcie licznika kilometrów na <strong>początku</strong> podróży.</muted-text-label>',
             snapPhotoEnd: '<muted-text-label>Zrób zdjęcie licznika kilometrów na <strong>koniec</strong> swojej podróży.</muted-text-label>',
+        },
+        commuterExclusion: {
+            original: ({formattedDistance}: {formattedDistance: string}) => `Oryginał: ${formattedDistance}`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Usunięto ${distance} dojazdów (${unit})`,
+            systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
+                `Usunięto ${distance} dojazdowych ${unit} na podstawie ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ustawienia odległości w przestrzeni roboczej</a>` : 'ustawienia odległości w przestrzeni roboczej'}.`,
         },
     },
     gps: {
@@ -9701,6 +9753,53 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Stawka jest ważna tylko od ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Stawka jest ważna tylko do ${endDate}`,
         cannotMergeDuplicates: 'Możesz łączyć wydatki tylko w szkicach lub otwartych raportach. Wycofaj go i spróbuj ponownie.',
+        shortName: {
+            allTagLevelsRequired: 'Wymagane są wszystkie tagi',
+            autoReportedRejectedExpense: 'Wydatek odrzucony',
+            billableExpense: 'Element fakturowany już nieaktualny',
+            cashExpenseWithNoReceipt: 'Wymagany paragon',
+            categoryOutOfPolicy: 'Kategoria jest już nieprawidłowa',
+            companyCardRequired: 'Wymagana karta firmowa',
+            conversionSurcharge: 'Zastosowano dopłatę za przewalutowanie',
+            customUnitOutOfPolicy: 'Stawka nie jest prawidłowa dla tego workspace’a',
+            customUnitRateOutOfDateRange: 'Stawka poza obowiązującymi datami',
+            duplicatedTransaction: 'Potencjalny duplikat',
+            fieldRequired: 'Pole raportu jest wymagane',
+            futureDate: 'Data z przyszłości jest niedozwolona',
+            hold: 'Wydatek wstrzymany',
+            inactiveVendor: 'Dostawca już nie jest ważny',
+            increasedDistance: 'Dystans przekracza trasę',
+            invoiceMarkup: 'Faktura oznaczona',
+            itemizedReceiptRequired: 'Wymagany paragon z wyszczególnieniem pozycji',
+            maxAge: 'Wydatek zbyt stary',
+            missingAttendees: 'Wymagani uczestnicy',
+            missingCategory: 'Brak kategorii',
+            missingComment: 'Opis wymagany',
+            missingTag: 'Brakujący tag',
+            modifiedAmount: 'Kwota zmieniona',
+            modifiedDate: 'Data modyfikacji',
+            noRoute: 'Brak poprawnej trasy',
+            nonExpensiworksExpense: 'Wydatek spoza Expensiworks',
+            overAutoApprovalLimit: 'Powyżej limitu automatycznej akceptacji',
+            overCategoryLimit: 'Poza limitem kategorii',
+            overLimit: 'Poza limitem',
+            overTripLimit: 'Przekroczono limit podróży',
+            perDayLimit: 'Przekroczono dzienny limit',
+            prohibitedExpense: 'Zabroniony wydatek',
+            receiptGeneratedWithAI: 'Możliwy paragon wygenerowany przez AI',
+            receiptNotSmartScanned: 'Paragon dodany ręcznie',
+            receiptRequired: 'Wymagany paragon',
+            rter: 'Oczekiwanie na dopasowanie karty',
+            smartscanFailed: 'Skanowanie paragonu nie powiodło się',
+            someTagLevelsRequired: 'Tag jest wymagany',
+            tagOutOfPolicy: 'Tag jest już nieważny',
+            overLimitAttendee: 'Przekroczono limit osób',
+            customRules: 'Naruszenie niestandardowej reguły',
+            taxAmountChanged: 'Kwota podatku zmodyfikowana',
+            taxOutOfPolicy: 'Stawka podatku nie jest już ważna',
+            taxRateChanged: 'Zmieniono stawkę podatku',
+            taxRequired: 'Brak stawki podatku',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `Pole ${fieldName} jest wymagane`,
