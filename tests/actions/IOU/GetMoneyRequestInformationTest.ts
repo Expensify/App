@@ -2,7 +2,7 @@ import {getMoneyRequestInformation} from '@libs/actions/IOU/MoneyRequestBuilder'
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, PolicyTagLists, Report} from '@src/types/onyx';
+import type {Beta, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -229,5 +229,48 @@ describe('getMoneyRequestInformation', () => {
                 expect.arrayContaining([expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[newTxID]: true})})})]),
             );
         });
+    });
+
+    it('does not copy commuter exclusion data to an optimistic split', () => {
+        const customUnit = {
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            customUnitID: 'distance-unit',
+            customUnitRateID: 'rate-123',
+            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            quantity: 2.24,
+        } as const;
+        const existingTransaction: Transaction = {
+            transactionID: 'original-transaction',
+            reportID: 'expense-report',
+            amount: -280,
+            currency: CONST.CURRENCY.USD,
+            created: '2024-01-01',
+            merchant: '4.48 mi @ $0.625 / mi',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            comment: {
+                customUnit: {
+                    ...customUnit,
+                    quantity: 6.48,
+                    commuterExclusion: 2,
+                    reimbursableDistance: 4.48,
+                    commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                },
+            },
+        };
+
+        const result = getMoneyRequestInformation({
+            ...baseParams,
+            existingTransaction,
+            isSplitExpense: true,
+            transactionParams: {
+                ...baseParams.transactionParams,
+                amount: 140,
+                modifiedAmount: 140,
+                originalTransactionID: existingTransaction.transactionID,
+                customUnit,
+            },
+        });
+
+        expect(result.transaction.comment?.customUnit).toEqual(customUnit);
     });
 });
