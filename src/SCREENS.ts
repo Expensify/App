@@ -38,6 +38,7 @@ const SCREENS = {
         WORKSPACE_CONFIRMATION: 'Travel_WorkspaceConfirmation',
         TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
         VERIFY_ACCOUNT: 'Travel_VerifyAccount',
+        MISSING_PERSONAL_DETAILS: 'Travel_MissingPersonalDetails',
         ENABLE: 'Travel_Enable',
         MISSING_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE: 'Travel_MissingPersonalDetails_ConfirmValidateCode',
     },

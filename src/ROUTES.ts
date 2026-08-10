@@ -3830,6 +3830,11 @@ const ROUTES = {
 
         getRoute: (domain?: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(getUrlWithParams(`travel/${VERIFY_ACCOUNT}`, {domain, policyID}), backTo),
     },
+    TRAVEL_MISSING_PERSONAL_DETAILS: {
+        route: 'travel/missing-personal-details',
+
+        getRoute: () => 'travel/missing-personal-details' as const,
+    },
     TRAVEL_ENABLE: {
         route: 'travel/enable/:policyID/:subPage?/:action?',
         getRoute: (policyID: string, subPage?: string, action?: 'edit') => {

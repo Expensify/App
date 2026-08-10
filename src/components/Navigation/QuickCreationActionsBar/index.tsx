@@ -18,7 +18,7 @@ import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspa
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
-import {getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, isPaidGroupPolicy, isPolicyAccessible, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
@@ -77,7 +77,9 @@ function QuickCreationActionsBar() {
 
     const shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy = useShouldShowEmptyReportConfirmation(defaultChatEnabledPolicyID);
 
-    const travelEnabledPolicy = useMemo(() => Object.values(allPolicies ?? {}).find((policy) => !!policy?.isTravelEnabled), [allPolicies]);
+    // Scope the lookup with the same accessibility predicate the travel pages enforce, so the button never
+    // targets a workspace whose pages would render NotFound for this user.
+    const travelEnabledPolicy = useMemo(() => Object.values(allPolicies ?? {}).find((policy) => !!policy?.isTravelEnabled && isPolicyAccessible(policy, email ?? '')), [allPolicies, email]);
 
     const shouldShowBookTravel = !!travelEnabledPolicy;
 

@@ -15,7 +15,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
-import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy, isPolicyAdmin, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {getSearchParamFromPath} from '@libs/Url';
 
 import colors from '@styles/theme/colors';
@@ -139,7 +139,24 @@ function BookTravelButton({
         // TravelDot on an already-enabled workspace, and the legacy request-access path below.
         if (!willUseEnablementStepper && areTravelPersonalDetailsMissing(privatePersonalDetails)) {
             shouldResumeBookingRef.current = true;
-            Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS.getRoute(policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)));
+            // Open the legal-name form inside the Travel RHP. The workspace-scoped route mounts over the
+            // ADMIN-gated workspace Settings > Travel central screen, which renders NotFound for non-admins.
+            Navigation.navigate(ROUTES.TRAVEL_MISSING_PERSONAL_DETAILS.getRoute());
+            return;
+        }
+
+        // Everything below is admin-only workspace setup (domain checks, provisioning, the enablement stepper).
+        // A non-admin can't run any of it, but the backend still issues them a Spotnana token when the workspace
+        // is provisioned - so validate the account first (GenerateSpotnanaToken 401s for unvalidated users), then
+        // go straight to TravelDot and surface a failure inline instead of dead-ending in an admin flow.
+        // This must stay above the adminDomains check: a member can't see the admins' private domains, so that
+        // check would wrongly send them to the public-domain error page.
+        if (!isPolicyAdmin(policy, primaryContactMethod)) {
+            if (!isUserValidated) {
+                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute()));
+                return;
+            }
+            openTravelDotLink(policy?.id, undefined, undefined, undefined, () => setErrorMessage(translate('travel.errorMessage')));
             return;
         }
 
