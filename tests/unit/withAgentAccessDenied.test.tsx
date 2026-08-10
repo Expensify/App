@@ -1,7 +1,9 @@
 import {act, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 
 import withAgentAccessDenied from '@libs/Navigation/AppNavigator/withAgentAccessDenied';
@@ -50,7 +52,7 @@ const getProtectedComponent = withAgentAccessDenied(() => ProtectedContent);
 function renderComponent() {
     const Component = getProtectedComponent();
     return render(
-        <ComposeProviders components={[LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider]}>
             <Component />
         </ComposeProviders>,
     );
