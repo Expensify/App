@@ -685,6 +685,22 @@ function IOURequestStepConfirmation({
         shouldPreservePreInsertedRouteOnUnmount: () => formHasBeenSubmitted.current,
     });
 
+    // Wraps createTransaction so the promotion marker is cleared at the exact moment the real optimistic write
+    // fires, not merely when submit intent is set. Both intent and this unmount effect react to the same
+    // transition-end event as createTransaction, so their relative order is a race - clearing here instead of in
+    // the cleanup below means the marker only drops once the real write has actually run.
+    const createTransactionAndClearPromotionMarker = useCallback(
+        (locationPermissionGranted?: boolean, shouldHandleNavigation?: boolean) => {
+            const promotedReportID = promotedDraftReportIDRef.current;
+            if (promotedReportID) {
+                promotedDraftReportIDRef.current = undefined;
+                clearPromotedDraftReportPreMountMarker(promotedReportID);
+            }
+            return createTransaction(locationPermissionGranted, shouldHandleNavigation);
+        },
+        [createTransaction],
+    );
+
     // Register this after usePreMountDestination so its route cleanup removes the pre-mounted screen first. Only
     // then is it safe to remove the speculative report row that screen may have been reading.
     useEffect(() => {
@@ -696,16 +712,15 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            promotedDraftReportIDRef.current = undefined;
-
             // eslint-disable-next-line react-hooks/exhaustive-deps
             if (hasSubmitIntent || formHasBeenSubmitted.current) {
-                // Submission owns the REPORT row from here - only drop the now-irrelevant promotion marker so
-                // startup cleanup does not mistake this now-real report for an interrupted speculative one.
-                clearPromotedDraftReportPreMountMarker(promotedReportID);
+                // createTransactionAndClearPromotionMarker owns clearing the marker once the real write runs - it may
+                // race this cleanup, so leave both the ref and the marker alone here. Clearing early would leave the
+                // speculative row unmarked if the app dies before that write actually happens.
                 return;
             }
 
+            promotedDraftReportIDRef.current = undefined;
             clearPromotedDraftReportForPreMount(promotedReportID);
         };
     }, [preMountDestinationReportID, formHasBeenSubmitted]);
@@ -1020,7 +1035,7 @@ function IOURequestStepConfirmation({
                     </DragAndDropConsumer>
                     {ErrorModal}
                     <SubmitExpenseOrchestrator
-                        createTransaction={createTransaction}
+                        createTransaction={createTransactionAndClearPromotionMarker}
                         destinationReportID={destinationReportID}
                         isFromGlobalCreate={isFromGlobalCreate}
                         iouType={iouType}
