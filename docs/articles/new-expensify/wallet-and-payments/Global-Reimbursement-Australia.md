@@ -21,9 +21,11 @@ If your company’s business bank account is located in Australia, you can enabl
 
 * ✅ Address verification document
 * ✅ Bank statement for direct debit setup
+* ✅ Recent bank statement (dated within the last three months) for the business bank account you're connecting
 * ✅ Proof of Beneficial Ownership
 * ✅ Certified ID & Proof of Address for all signatories
 * ✅ Entity ownership chart signed by a CPA, lawyer, or notary
+* ✅ Directors added as signers must be listed on the company's illion report
 
 Accepted file types: PDF, PNG, JPEG. Each file must be 2 MB or less.
 
@@ -68,11 +70,21 @@ Accepted file types: PDF, PNG, JPEG. Each file must be 2 MB or less.
 
 **Note:** For global reimbursements, Expensify requires information from at least two Directors or Senior Officers for Australian companies.
 
+**Note:** Both signers must be listed as directors on the company's illion report. They can't be any two people at the business.
+
 **Note:** Each designated Director or Senior Officer will also see a **Signer info needed** task in the **Time sensitive** section of their **Home** page. They can select **Begin** to enter their information directly from there.
 
 ---
 
-# Step 3: Confirm Test Transactions
+# Step 3: Review the Disclosure Paperwork and Provide a Bank Statement
+
+As per Australian regulation, Expensify provides Corpay's **Financial Services Guide (FSG)**, **Product Disclosure Statement (PDS)**, and **Target Market Determination (TMD)** during setup. Read these documents carefully as they contain full details and important information on the products and services Corpay offers, and retain them for future reference.
+
+You'll also be asked to provide a recent bank statement, dated within the last three months, for the business bank account you're connecting.
+
+---
+
+# Step 4: Confirm Test Transactions
 
 1. Expensify will send test deposits to your bank account. Once you see those transactions, contact Concierge support to confirm that you received them.
 2. After you confirm the receipt of those test transactions, Expensify will complete the bank account verification.
@@ -80,7 +92,7 @@ Accepted file types: PDF, PNG, JPEG. Each file must be 2 MB or less.
 
 ---
 
-# Step 4: Start Sending Global Reimbursements
+# Step 5: Start Sending Global Reimbursements
 
 ⏳**Timeline:** After submitting all required documentation, your account can be approved within 2–4 weeks. Once verified, you can start reimbursing within 2 business days.
 
