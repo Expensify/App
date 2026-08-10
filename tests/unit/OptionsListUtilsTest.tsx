@@ -1322,6 +1322,64 @@ describe('OptionsListUtils', () => {
             expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
         });
 
+        it.each([
+            {
+                description: 'Vietnamese diacritics',
+                // cspell:disable-next-line
+                displayName: 'Trần Hải',
+                searchString: 'tran',
+            },
+            {
+                description: 'Vietnamese extended diacritics',
+                // cspell:disable-next-line
+                displayName: 'Nguyễn Văn A',
+                searchString: 'nguyen',
+            },
+            {
+                description: 'a zero-width space',
+                displayName: 'Jo\u200Bhn',
+                searchString: 'john',
+            },
+        ])('should preserve a contact when the canonical matcher finds $description', ({displayName, searchString}) => {
+            const accountID = 1003;
+            const personalDetails: PersonalDetailsList = {
+                [accountID]: {
+                    accountID,
+                    displayName,
+                    login: 'contact1003@example.com',
+                    keyForList: 'contact1003@example.com',
+                    reportID: '',
+                },
+            };
+            const optionList = createFilteredOptionList(personalDetails, {}, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                conciergeReportID: undefined,
+                isSearching: true,
+            });
+
+            const {options: preFilteredOptions} = getValidOptions(
+                optionList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {
+                    includeRecentReports: false,
+                    personalDetails,
+                    searchString,
+                },
+                translateLocal,
+            );
+
+            // The contact must survive getValidOptions' pre-filter so the final filter can return it.
+            expect(preFilteredOptions.personalDetails).toEqual(expect.arrayContaining([expect.objectContaining({login: 'contact1003@example.com'})]));
+
+            const filteredOptions = filterAndOrderOptions(preFilteredOptions, searchString, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, personalDetails);
+
+            expect(filteredOptions.personalDetails).toEqual([expect.objectContaining({login: 'contact1003@example.com'})]);
+        });
+
         it('should exclude Concierge when excludedLogins is specified', () => {
             // Given a set of reports and personalDetails that includes Concierge and a config object that excludes Concierge
             // When we call getValidOptions()

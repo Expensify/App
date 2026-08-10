@@ -3100,6 +3100,14 @@ function getValidOptions(
             if (personalDetailLoginsToExclude[personalDetail.login]) {
                 return false;
             }
+
+            // Keep this pre-filter a superset of filterPersonalDetails(). The canonical matcher normalizes
+            // diacritics and zero-width characters consistently with the final filter, while the fallback below
+            // preserves the existing matching behavior for fields that are only available on the option itself.
+            if (searchTerms.length > 0 && filterPersonalDetails([personalDetail], searchTerms, currentUserAccountID).length > 0) {
+                return true;
+            }
+
             return searchTerms.every((term) =>
                 doesPersonalDetailMatchSearchTerm(personalDetail, currentUserAccountID, term, {
                     useLocaleLowerCase: true,
