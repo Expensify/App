@@ -451,6 +451,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     isTrackIntentUser,
                     delegateAccountID,
                     formatPhoneNumber,
+                    getCurrencyDecimals,
                 });
             },
         },
