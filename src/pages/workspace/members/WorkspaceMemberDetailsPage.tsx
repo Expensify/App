@@ -16,7 +16,6 @@ import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -114,7 +113,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const {accountID: currentUserAccountID, login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const {environmentURL} = useEnvironment();
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
@@ -142,14 +140,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate})) ?? policy?.owner ?? '';
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
-    const workspaceWorkflowsPageURL = `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}`;
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
     const reimburserEmail = getReimburserEmail(policy);
     const isReimburser = !!reimburserEmail && reimburserEmail === memberLogin;
-    // An Authorized Payer (reimburser) must be either an admin or a payments admin. Lock the Role row only once they are already an Admin — every
-    // remaining change would be a demotion that breaks reimbursements. A non-admin payer can still be promoted to Admin.
-    const isReimburserAdmin = isReimburser && member?.role === CONST.POLICY.ROLE.ADMIN;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
@@ -383,9 +377,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             <MenuItemWithTopDescription
                                 disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser || !canManageSelectedMemberRole}
                                 title={translate(`workspace.common.roleName`, member?.role)}
-                                interactive={!isReimburserAdmin && canManageSelectedMemberRole}
+                                interactive={canManageSelectedMemberRole}
                                 description={translate('common.role')}
-                                shouldShowRightIcon={!isReimburserAdmin && canManageSelectedMemberRole}
+                                shouldShowRightIcon={canManageSelectedMemberRole}
                                 pressableTestID="member-role-menu-item"
                                 onPress={() => {
                                     if (
@@ -400,8 +394,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     }
                                     Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));
                                 }}
-                                hintText={isReimburserAdmin ? translate('common.roleCannotBeChanged', workspaceWorkflowsPageURL) : undefined}
-                                shouldRenderHintAsHTML
                             />
                             {isControlPolicy(policy) && (
                                 <>

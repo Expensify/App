@@ -250,8 +250,8 @@ describe('WorkspaceMemberDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should lock the Role field for an Authorized Payer who is already an Admin', async () => {
-        // The admin member is the workspace Authorized Payer — every remaining role change would be a demotion.
+    it('should not lock the Role field for an Authorized Payer who is already an Admin so they can be changed to Payments Admin', async () => {
+        // The admin member is the workspace Authorized Payer — Payments Admin is also a valid payer, so a lateral change is allowed.
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
@@ -266,10 +266,8 @@ describe('WorkspaceMemberDetailsPage', () => {
             expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
         });
 
-        // The locked hint IS shown — an admin payer cannot be demoted while they remain the payer.
-        await waitFor(() => {
-            expect(screen.getByText(/Role can/)).toBeOnTheScreen();
-        });
+        // The locked hint must NOT be shown — an admin payer can still be changed to Payments Admin, another valid payer role.
+        expect(screen.queryByText(/Role can/)).not.toBeOnTheScreen();
 
         unmount();
         await waitForBatchedUpdatesWithAct();

@@ -40,10 +40,10 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
-    // The Authorized Payer (reimburser) must remain an admin, so they may only be promoted to Admin — never demoted to another role.
+    // The Authorized Payer (reimburser) must stay a valid payer, so restrict them to Admin or Payments Admin — the two roles that can pay.
     const reimburserEmail = getReimburserEmail(policy);
     const isReimburser = !!reimburserEmail && reimburserEmail === memberLogin;
-    const allowedRoles = isReimburser ? [CONST.POLICY.ROLE.ADMIN] : undefined;
+    const allowedRoles = isReimburser ? [CONST.POLICY.ROLE.ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN] : undefined;
     useRedirectSubmitWorkspaceFeatureUpgrade({
         policy,
         backTo: ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID),
@@ -57,8 +57,8 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
         if (!canMemberAssignRole(policy, currentUserLogin, value)) {
             return;
         }
-        // Guard the direct-navigation path: a reimburser can only be promoted to Admin, so reject any demotion.
-        if (isReimburser && value !== CONST.POLICY.ROLE.ADMIN) {
+        // Guard the direct-navigation path: a reimburser must stay a valid payer, so reject any role other than Admin or Payments Admin.
+        if (isReimburser && value !== CONST.POLICY.ROLE.ADMIN && value !== CONST.POLICY.ROLE.PAYMENTS_ADMIN) {
             return;
         }
         if (value !== CONST.POLICY.ROLE.ADMIN && isRuleBotEnforcingRules(accountID, policy)) {
