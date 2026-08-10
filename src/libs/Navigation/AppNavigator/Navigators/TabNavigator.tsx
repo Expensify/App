@@ -48,10 +48,7 @@ function LazyFallback({tabSpanName}: LazyFallbackProps) {
 
     return (
         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.appBG]}>
-            <ActivityIndicator
-                size="large"
-                reasonAttributes={{context: 'TabNavigator.LazyTab'}}
-            />
+            <ActivityIndicator size="large" />
         </View>
     );
 }

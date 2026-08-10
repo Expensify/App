@@ -23,7 +23,7 @@ import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getValidWaypoints} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getValidWaypoints, hasAppliedCommuterExclusion} from '@libs/TransactionUtils';
 
 import {setTransactionReport} from '@userActions/Transaction';
 
@@ -286,6 +286,7 @@ function handleMoneyRequestStepDistanceNavigation({
             const distanceDefaultTaxCode = getDefaultTaxCode(policy, transaction);
             const distanceTaxCode = (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '';
             const distanceTaxAmount = transaction?.taxAmount ?? 0;
+            const shouldIncludeCommuterExclusionOverrides = hasAppliedCommuterExclusion(transaction);
 
             if (isCreatingTrackExpense && participant) {
                 submitWithDismissFirst({
@@ -383,6 +384,8 @@ function handleMoneyRequestStepDistanceNavigation({
                         existingTransaction: transaction,
                         transactionParams: {
                             amount,
+                            ...(shouldIncludeCommuterExclusionOverrides && typeof transaction?.modifiedAmount === 'number' && {modifiedAmount: transaction.modifiedAmount}),
+                            ...(shouldIncludeCommuterExclusionOverrides && transaction?.modifiedMerchant && {modifiedMerchant: transaction.modifiedMerchant}),
                             distance,
                             modifiedDistance: gpsModifiedDistance,
                             comment: '',

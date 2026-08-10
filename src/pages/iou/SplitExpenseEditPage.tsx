@@ -184,7 +184,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         isDistance && distance && rate
             ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) * originalSign
             : Math.abs(Number(splitExpenseDraftTransaction?.amount)) * originalSign;
-    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, rate, translate, false, isManualDistance);
+    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, translate, false, isManualDistance);
     const currentRateID = getRateID(splitExpenseDraftTransaction);
     const rates = DistanceRequestUtils.getMileageRates(effectivePolicy, false, currentRateID);
 
