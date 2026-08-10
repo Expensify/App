@@ -510,6 +510,30 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['b', 'c'], toDeselect: ['d', 'e']});
         });
 
+        it('collapses rows that read as selected but are not protected, while still anchoring from them', () => {
+            const onApplyRange = makeApplyMock();
+            // Rows b..e read as selected (so they can anchor a cold shift+click) but none of them were picked on their own.
+            const {result} = renderHook(() =>
+                useShiftRangeSelection<Row>(
+                    makeParams({
+                        isItemSelected: (row) => row.keyForList !== 'a',
+                        isItemProtected: () => false,
+                        onApplyRange,
+                    }),
+                ),
+            );
+            act(() => {
+                result.current.applyShiftClick(ROW_D, true);
+            });
+            // The anchor came from the first row reading as selected, not from the top of the list.
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd'], toDeselect: []});
+            act(() => {
+                result.current.applyShiftClick(ROW_C, true);
+            });
+            // Unprotected rows were painted, so shrinking the range collapses them.
+            expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['b', 'c'], toDeselect: ['d']});
+        });
+
         it('selects on a cold shift+click even when every row is already selected', () => {
             const onApplyRange = makeApplyMock();
             const {isItemSelected} = makeSelection('a', 'b', 'c', 'd', 'e');

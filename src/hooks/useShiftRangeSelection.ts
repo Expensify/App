@@ -4,9 +4,9 @@ import {useEffect, useRef, useState} from 'react';
 
 type Params<TItem> = {
     items: TItem[];
-    // Keys must be unique within items; a null/undefined key keeps the row out of ranges.
     getItemKey: (item: TItem) => string | null | undefined;
     isItemSelected: (item: TItem) => boolean;
+    isItemProtected?: (item: TItem) => boolean;
     isHeaderItem?: (item: TItem) => boolean;
     isDisabledItem?: (item: TItem) => boolean;
     onApplyRange?: (batch: ShiftRangeBatch<TItem>) => void;
@@ -20,8 +20,10 @@ type Api<TItem> = {
     clearAnchor: () => void;
 };
 
-// Shift+click always selects — a deselect mode left Shift looking dead. painted: keys the session selected, tracked by key so re-sorts and removals can't misattribute the collapse.
-// Selected rows the session didn't paint are protected from collapse (derived per click, see protectedKeys); a seeded session paints its whole span, so Select All still collapses.
+/**
+ * Shift+click only ever selects, so the session has no mode to get stuck in. `painted` is the set of rows this session
+ * selected, held by key so reordering the list cannot confuse it, and shrinking a range gives back only those rows.
+ */
 type SessionState = {kind: 'idle'} | {kind: 'anchored'; anchor: string} | {kind: 'ranging'; anchor: string; painted: ReadonlySet<string>};
 
 const IDLE: SessionState = {kind: 'idle'};
@@ -123,9 +125,10 @@ function seedRangeState<TItem>(params: Params<TItem>, isIncluded: (key: string) 
 /** Selected keys the session didn't paint — derived fresh each click so protection tracks the live selection; the session never deselects these. */
 function protectedKeys<TItem>(params: Params<TItem>, painted: ReadonlySet<string>): ReadonlySet<string> {
     const keys = new Set<string>();
+    const isProtected = params.isItemProtected ?? params.isItemSelected;
     for (const row of params.items) {
         const key = keyOf(params, row);
-        if (key != null && !painted.has(key) && params.isItemSelected(row)) {
+        if (key != null && !painted.has(key) && isProtected(row)) {
             keys.add(key);
         }
     }

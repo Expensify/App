@@ -498,19 +498,29 @@ function SearchWriteActionsProvider({
         );
     };
 
+    // A report row stores its selection under its child transactions, so it counts as selected when any child is.
+    const isRowSelectedOnItsOwn = (item: SearchData[number]) => {
+        const selected = getSelectedTransactions();
+        if (isTransactionGroupListItemType(item) && item.transactions.length > 0) {
+            return item.transactions.some((transaction) => selected[transaction.keyForList]?.isSelected);
+        }
+        return !!(item.keyForList && selected[item.keyForList]?.isSelected);
+    };
+
+    // A group selected before its children loaded is stored under the group key alone, so its children have no entry of their own.
+    const isRowSelectedViaGroup = (item: SearchData[number]) => {
+        if (!item.keyForList) {
+            return false;
+        }
+        const parentGroupKey = groupKeyByChildKey.get(item.keyForList);
+        return !!(parentGroupKey && getSelectedTransactions()[parentGroupKey]?.isSelected);
+    };
+
     const rangeApi = useShiftRangeSelection<SearchData[number]>({
         items: flattenedShiftRangeItems,
         getItemKey: (item) => item.keyForList,
-        // A report row stores its selection under its child transactions, so it counts as selected when any child is.
-        isItemSelected: (item) => {
-            const selected = getSelectedTransactions();
-            if (isTransactionGroupListItemType(item) && item.transactions.length > 0) {
-                return item.transactions.some((transaction) => selected[transaction.keyForList]?.isSelected);
-            }
-            // A child selected only through its group key is deliberately not counted, so it stays paintable and a later shift+click can narrow the group.
-            return !!(item.keyForList && selected[item.keyForList]?.isSelected);
-        },
-        // Pending-delete rows (kept rendered offline) can't be toggled, so they can't anchor or join a range either.
+        isItemSelected: (item) => isRowSelectedOnItsOwn(item) || isRowSelectedViaGroup(item),
+        isItemProtected: isRowSelectedOnItsOwn,
         isDisabledItem: (item) => (isTransactionListItemType(item) ? isTransactionPendingDelete(item) : item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
         onApplyRange: applyShiftRangeBatch,
         isHeaderItem: isShiftRangeHeaderItem,

@@ -55,6 +55,50 @@ const loadedChildren = [
     {transactionID: '2', keyForList: '2', currency: 'USD', amount: -642, report: {reportID: '11'}},
 ] as unknown as TransactionListItemType[];
 
+const EARLIER_GROUP_KEY = 'Office';
+
+/** A group rendered above `categoryGroup`, used to prove a range does not start from the top of the list. */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only the fields the selection logic reads are needed
+const earlierGroup = {
+    groupedBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+    category: 'Office',
+    formattedCategory: 'Office',
+    count: 2,
+    total: -1284,
+    currency: 'USD',
+    transactions: [],
+    transactionsQueryJSON: buildSearchQueryJSON('type:expense category:Office'),
+    keyForList: EARLIER_GROUP_KEY,
+} as unknown as TransactionCategoryGroupListItemType;
+
+/** The earlier group's children, expanded and loaded. */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only the fields the selection logic reads are needed
+const earlierChildren = [
+    {transactionID: '3', keyForList: '3', currency: 'USD', amount: -642, report: {reportID: '11'}},
+    {transactionID: '4', keyForList: '4', currency: 'USD', amount: -642, report: {reportID: '11'}},
+] as unknown as TransactionListItemType[];
+
+function TwoGroupWrapper({children}: {children: React.ReactNode}) {
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={[earlierGroup, categoryGroup]}
+                renderedData={[earlierGroup, categoryGroup]}
+                totalSelectableItemsCount={4}
+                searchResults={undefined}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                areItemsGrouped
+                isExpenseReportType={false}
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
+
 function Wrapper({children}: {children: React.ReactNode}) {
     return (
         <SearchContextProvider>
@@ -76,14 +120,14 @@ function Wrapper({children}: {children: React.ReactNode}) {
     );
 }
 
-const renderSelection = () =>
+const renderSelection = (wrapper: React.ComponentType<{children: React.ReactNode}> = Wrapper) =>
     renderHook(
         () => ({
             ...useSearchSelectionContext(),
             ...useSearchRowSelectionActions(),
             ...useSearchShiftRangeChildren(),
         }),
-        {wrapper: Wrapper},
+        {wrapper},
     );
 
 describe('Lazily loaded group selection', () => {
@@ -208,6 +252,31 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
         expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
         expect(result.current.selectedTransactions['2']).toBeUndefined();
+    });
+
+    it('anchors inside the selected group rather than at the top of the list, with an expanded group above it', async () => {
+        const {result} = renderSelection(TwoGroupWrapper);
+        const [, secondChild] = loadedChildren;
+
+        // Given an expanded, unselected group above a group that was selected while it was still collapsed
+        await act(async () => {
+            result.current.registerGroupChildren(EARLIER_GROUP_KEY, earlierChildren);
+            result.current.toggle(categoryGroup, []);
+            result.current.registerGroupChildren(GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When shift+click lands on the second child of the selected group
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the range stays inside that group and never reaches the group above
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['3']).toBeUndefined();
+        expect(result.current.selectedTransactions['4']).toBeUndefined();
     });
 
     it('selects every child of a group that was not already selected once its children loaded', async () => {
