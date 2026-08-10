@@ -40,8 +40,7 @@ function ReportPreviewHeader() {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow']);
     const {iouReportID, iouReport, action, transactions} = useReportPreviewData();
-    const {previewMessageStyle, shouldShowSkeleton, showStatusAndSkeleton, skeletonReasonAttributes, shouldShowEmptyPlaceholder, shouldShowAccessPlaceHolder, shouldShowCarouselArrows} =
-        useReportPreviewUIState();
+    const {previewMessageStyle, shouldShowSkeleton, showStatusAndSkeleton, shouldShowEmptyPlaceholder, shouldShowAccessPlaceHolder, shouldShowCarouselArrows} = useReportPreviewUIState();
     const {isPreviousDisabled, isNextDisabled} = useReportPreviewCarouselState();
     const {goToPrevious, goToNext} = useReportPreviewActions();
     const numberOfRequests = transactions.length;
@@ -66,6 +65,9 @@ function ReportPreviewHeader() {
             }),
         [translate, numberOfRequests],
     );
+
+    // A cancelled payment is a report level event and it isn't surfaced by the status badge, so we show it next to the expense count.
+    const supportingText = iouReport?.isCancelledIOU ? `${translate('iou.canceled')} ${CONST.DOT_SEPARATOR} ${expenseCount}` : expenseCount;
 
     const reportStateNum = iouReport?.stateNum ?? action?.childStateNum;
     const reportStatusNum = iouReport?.statusNum ?? action?.childStatusNum;
@@ -109,7 +111,7 @@ function ReportPreviewHeader() {
                         </Animated.View>
                     </View>
                     {showStatusAndSkeleton && shouldShowSkeleton ? (
-                        <MoneyReportHeaderStatusBarSkeleton reasonAttributes={skeletonReasonAttributes} />
+                        <MoneyReportHeaderStatusBarSkeleton />
                     ) : (
                         (!shouldShowEmptyPlaceholder || shouldShowAccessPlaceHolder) &&
                         (shouldShowReportStatus || !shouldShowAccessPlaceHolder) && (
@@ -123,7 +125,7 @@ function ReportPreviewHeader() {
                                         tooltipText={reportStatusTooltip}
                                     />
                                 )}
-                                {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>}
+                                {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting, styles.lh16]}>{supportingText}</Text>}
                             </View>
                         )
                     )}
