@@ -411,6 +411,9 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
 
 /**
  * Delete an approval workflow using the rules-based backend structure.
+ *
+ * Returns false without calling the API when this policy has no rules covering the workflow's members, so the
+ * caller can fall back to the `employeeList` path.
  */
 function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>): boolean {
     if (!policy) {

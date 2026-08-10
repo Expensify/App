@@ -1699,8 +1699,8 @@ describe('WorkflowUtils', () => {
             });
 
             it('Should route an over-limit report to the over-limit approver instead of the limited one, then continue the chain', () => {
-                // Hola Dola approves up to 100.00; above that "a a" receives the report instead. Either way it carries
-                // on to the second approver afterwards.
+                // 1@example.com approves up to 100.00; above that 3@example.com receives the report instead. Either way
+                // it carries on to 4@example.com afterwards.
                 const workflow: ApprovalWorkflow = {
                     members: [buildMember(2)],
                     approvers: [buildApprover(1, {approvalLimit: 10000, overLimitForwardsTo: '3@example.com'}), buildApprover(4)],
