@@ -86,9 +86,7 @@ function IOURequestStepOdometerImage({
         askForPermissions,
         tapGesture,
         cameraFocusIndicatorAnimatedStyle,
-        cameraLoadingReasonAttributes,
     } = useNativeCamera({
-        context: 'IOURequestStepOdometerImage',
         onFocusCleanup: () => {
             cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
         },
@@ -290,7 +288,6 @@ function IOURequestStepOdometerImage({
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.flex1]}
                             color={theme.textSupporting}
-                            reasonAttributes={cameraLoadingReasonAttributes}
                         />
                     </View>
                 )}

@@ -42,6 +42,7 @@ function splitState(value: SearchStateContextValue): {
         results: {
             currentSearchResults: value.currentSearchResults,
             currentSearchTransactionsByReportID: value.currentSearchTransactionsByReportID,
+            currentSearchViolations: value.currentSearchViolations,
             shouldUseLiveData: value.shouldUseLiveData,
             sortedReportIDs: value.sortedReportIDs,
             shouldShowFiltersBarLoading: value.shouldShowFiltersBarLoading,

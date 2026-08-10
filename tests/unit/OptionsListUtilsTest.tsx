@@ -97,7 +97,7 @@ import {createRandomReport, createRegularChat} from '../utils/collections/report
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
-import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@rnmapbox/maps', () => {
@@ -4967,14 +4967,17 @@ describe('OptionsListUtils', () => {
                     [iouAction.reportActionID]: iouAction,
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                const reportPreviewMessage = getReportPreviewReportActionMessage({
-                    reportOrID: iouReport,
-                    iouReportAction: iouAction,
-                    shouldConsiderScanningReceiptOrPendingRoute: true,
-                    policy: null,
-                    isForListPreview: true,
-                    originalReportAction: reportPreviewAction,
-                });
+                const reportPreviewMessage = getReportPreviewReportActionMessage(
+                    {
+                        reportOrID: iouReport,
+                        iouReportAction: iouAction,
+                        shouldConsiderScanningReceiptOrPendingRoute: true,
+                        policy: null,
+                        isForListPreview: true,
+                        originalReportAction: reportPreviewAction,
+                    },
+                    getCurrencyDecimalsLocal,
+                );
                 const formattedMessage = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
                 expect(formattedMessage).toBe('$1.00 for A A A');
             });
@@ -6443,11 +6446,7 @@ describe('OptionsListUtils', () => {
                     currentUserLogin: '',
                 });
 
-                expect(lastMessage).toBe(
-                    translateLocal('reportArchiveReasons.policyDeleted', {
-                        policyName: policy.name,
-                    }),
-                );
+                expect(lastMessage).toBe(translateLocal('reportArchiveReasons.policyDeleted', {policyName: policy.name}));
             });
 
             it('should use the passed policy name for REMOVED_FROM_POLICY archive reason', async () => {
@@ -6488,12 +6487,7 @@ describe('OptionsListUtils', () => {
                     currentUserLogin: '',
                 });
 
-                expect(lastMessage).toBe(
-                    translateLocal('reportArchiveReasons.removedFromPolicy', {
-                        displayName: 'Hidden',
-                        policyName: policy.name,
-                    }),
-                );
+                expect(lastMessage).toBe(translateLocal('reportArchiveReasons.removedFromPolicy', {displayName: 'Hidden', policyName: policy.name}));
             });
 
             it('resolves the workspace-unavailable fallback through the provided translate function when the archived policy is unavailable', async () => {
@@ -7210,6 +7204,36 @@ describe('OptionsListUtils', () => {
             expect(option.text).toBe('Test Workspace');
             expect(option.alternateText).toBe(translateLocal('workspace.common.workspace'));
             expect(option.isSelected).toBe(undefined);
+        });
+
+        it('should title a self DM with "<display name> (you)" even when the derived report name is empty', async () => {
+            // The report-attributes derivation has not populated the self DM's name yet on a cold load, so the option
+            // has to resolve the title itself instead of rendering only the "Your space" subtitle. See #96559.
+            const reportID = '109';
+            const ownerAccountID = 7777;
+            const report: Report = {
+                reportID,
+                reportName: '',
+                ownerAccountID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                // A self DM's own participant entry is excluded from the display list (the backend sends an empty
+                // notificationPreference, which isHiddenForCurrentUser treats the same as HIDDEN), so createOption has
+                // no personal details to build a name from and has to fall back to the report name.
+                participants: {[ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
+            };
+            const selfPersonalDetails = {
+                [ownerAccountID]: {accountID: ownerAccountID, displayName: 'Test', login: 'test@test.com'},
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: ownerAccountID, email: 'test@test.com'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const option = getReportOption({reportID}, undefined, undefined, selfPersonalDetails, undefined, undefined, undefined, ownerAccountID, translateLocal);
+
+            expect(option.text).toBe(`Test (${translateLocal('common.you').toLowerCase()})`);
+            expect(option.alternateText).toBe(translateLocal('reportActionsView.yourSpace'));
         });
 
         it('should show submits to info when policy has approval workflow', async () => {
@@ -9235,6 +9259,44 @@ describe('OptionsListUtils', () => {
 
             expect(result).toBeDefined();
             expect(result.reportID).toBe('1');
+        });
+
+        it('should keep the room name for a chat room unless showPersonalDetails is enabled', async () => {
+            const report: Report = {
+                reportID: '20',
+                reportName: '#admins',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                policyID,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    1: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+            const reportAction = createRandomReportAction(1);
+            const sortedActions = {[report.reportID]: [reportAction]};
+
+            // The participant's display name is resolved from Onyx, so seed it to keep the assertion below deterministic.
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+
+            const roomOption = createOptionFromReport({report, personalDetails: PERSONAL_DETAILS, privateIsArchived: undefined, policy: POLICY, sortedActions, conciergeReportID: undefined});
+            const personalDetailsOption = createOptionFromReport({
+                report,
+                personalDetails: PERSONAL_DETAILS,
+                privateIsArchived: undefined,
+                policy: POLICY,
+                sortedActions,
+                conciergeReportID: undefined,
+                config: {showPersonalDetails: true},
+            });
+
+            expect(roomOption.text).toBe('#admins');
+            // With showPersonalDetails the option is named after the other participant (account 1 in PERSONAL_DETAILS).
+            expect(personalDetailsOption.text).toBe('Mister Fantastic');
         });
     });
 
