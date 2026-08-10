@@ -211,9 +211,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
     const policyReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
-    const displayNameForAuthorizedPayer = usePersonalDetailByLogin(policyReimburserEmail, (personalDetails) =>
+    const displayNameForAuthorizedPayer = usePersonalDetailByLogin(policyReimburserEmail, (details) =>
         temporaryGetDisplayNameOrDefault({
-            passedPersonalDetails: personalDetails,
+            passedPersonalDetails: details,
             defaultValue: policyReimburserEmail,
             translate,
         }),
