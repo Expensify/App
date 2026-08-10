@@ -211,6 +211,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                             pendingPaymentAdditionalDataRef.current = data;
                                         },
                                         currentUserAccountID: currentUserPersonalDetails.accountID,
+                                        isOffline,
                                     })
                                 }
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -255,6 +256,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                             pendingPaymentAdditionalDataRef.current = data;
                                         },
                                         currentUserAccountID: currentUserPersonalDetails.accountID,
+                                        isOffline,
                                     })
                                 }
                                 isSplitButton={false}
