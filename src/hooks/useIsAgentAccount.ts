@@ -4,15 +4,14 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useCallback} from 'react';
-
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 
 function useIsAgentAccount(): boolean | undefined {
     const accountID = useCurrentUserPersonalDetails().accountID;
-    const isCustomAgentSelector = useCallback((personalDetails: OnyxEntry<PersonalDetailsList>) => (accountID ? personalDetails?.[accountID]?.isCustomAgent : undefined), [accountID]);
-    const [isCustomAgent, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: isCustomAgentSelector});
+    const [isCustomAgent, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetails: OnyxEntry<PersonalDetailsList>) => (accountID ? personalDetails?.[accountID]?.isCustomAgent : undefined),
+    });
     const [isLoadingApp, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     if (isLoadingApp === true || isLoadingOnyxValue(personalDetailsMetadata, isLoadingAppMetadata)) {
