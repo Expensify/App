@@ -30,19 +30,26 @@ jest.mock('@components/SafeTriangle', () => ({
     default: ({children}: {children: React.ReactNode}) => <MockView>{children}</MockView>,
 }));
 
-// Stand-in for the filter list: one pressable per filter that reports a hover on the row.
+// Stand-in for the filter list: per filter, one pressable reporting a hover on the row and one reporting focus on it.
 jest.mock('@components/Search/FilterComponents/AdvancedFilters/FilterList', () => ({
     __esModule: true,
-    default: ({onHoverIn}: {onHoverIn: (filterKey: string) => void}) => (
+    default: ({onHoverIn, onFocus}: {onHoverIn: (filterKey: string) => void; onFocus: (filterKey: string) => void}) => (
         <MockView>
             {mockHoverableFilterKeys.map((filterKey) => (
-                <MockPressable
-                    key={filterKey}
-                    testID={`hover-${filterKey}`}
-                    accessibilityLabel={filterKey}
-                    role="menuitem"
-                    onPress={() => onHoverIn(filterKey)}
-                />
+                <MockView key={filterKey}>
+                    <MockPressable
+                        testID={`hover-${filterKey}`}
+                        accessibilityLabel={filterKey}
+                        role="menuitem"
+                        onPress={() => onHoverIn(filterKey)}
+                    />
+                    <MockPressable
+                        testID={`focus-${filterKey}`}
+                        accessibilityLabel={filterKey}
+                        role="menuitem"
+                        onPress={() => onFocus(filterKey)}
+                    />
+                </MockView>
             ))}
         </MockView>
     ),
@@ -91,6 +98,11 @@ function hoverAndRest(filterKey: string) {
     act(() => {
         jest.advanceTimersByTime(CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
     });
+}
+
+/** Moves the keyboard focus onto a filter row. */
+function focus(filterKey: string) {
+    fireEvent.press(screen.getByTestId(`focus-${filterKey}`));
 }
 
 beforeEach(() => {
@@ -146,6 +158,30 @@ describe('SearchAdvancedFiltersPopup', () => {
         // Returning to the filter now gets a fresh content instance instead of the one from before the change.
         hoverAndRest(FILTER_KEYS.FROM);
         expect(mockOnContentCreated.mock.calls.filter(([filterKey]) => filterKey === FILTER_KEYS.FROM)).toHaveLength(2);
+    });
+
+    it('shows the content of a row focused with the keyboard without waiting for the hover intent delay', () => {
+        render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
+
+        focus(FILTER_KEYS.FROM);
+
+        // No timer is advanced: moving focus is deliberate, so its content follows in the same frame.
+        expect(mockOnContentCreated).toHaveBeenCalledWith(FILTER_KEYS.FROM);
+        expect(screen.getByTestId(`filter-content-${FILTER_KEYS.FROM}`)).toBeTruthy();
+    });
+
+    it('does not let a pending hover replace the content of the row focused after it', () => {
+        render(<SearchAdvancedFiltersPopup queryJSON={queryJSON} />);
+
+        // The cursor passes over a row and the keyboard moves focus elsewhere before the delay elapses.
+        hover(FILTER_KEYS.TO);
+        focus(FILTER_KEYS.FROM);
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
+        });
+
+        expect(mockOnContentCreated).not.toHaveBeenCalledWith(FILTER_KEYS.TO);
+        expect(screen.getByTestId(`filter-content-${FILTER_KEYS.FROM}`)).toBeTruthy();
     });
 
     it('keeps only the most recently used contents mounted', () => {

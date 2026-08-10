@@ -2,6 +2,7 @@ import type NonPartial from '@src/types/utils/NonPartial';
 import type TakeFirst from '@src/types/utils/TupleOperations';
 
 import {shallowEqual} from 'fast-equals';
+import lodashIsPlainObject from 'lodash/isPlainObject';
 
 import type {Callable, ClientOptions, Constructable, IsomorphicFn, IsomorphicParameters, IsomorphicReturnType, MemoizedFn, Stats} from './types';
 
@@ -118,13 +119,7 @@ function memoize<Fn extends IsomorphicFn, MaxArgs extends number = NonPartial<Is
  * The two-level fallback below reads arguments through `Object.keys`, which only describes plain objects - for other
  * types (Set, Map, Date, class instances) it returns an empty list and any two instances would look identical.
  */
-const isPlainObject = (value: unknown): value is Record<string, unknown> => {
-    if (typeof value !== 'object' || value === null) {
-        return false;
-    }
-    const prototype = Object.getPrototypeOf(value) as unknown;
-    return prototype === Object.prototype || prototype === null;
-};
+const isPlainObject = (value: unknown): value is Record<string, unknown> => lodashIsPlainObject(value);
 
 /**
  * Two arguments are equivalent when they are shallowly equal, or are plain objects with the same keys whose values are

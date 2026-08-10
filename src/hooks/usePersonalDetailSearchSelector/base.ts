@@ -7,6 +7,7 @@ import usePersonalDetailOptions from '@hooks/usePersonalDetailOptions';
 import memoize, {equivalentArgsComparator} from '@libs/memoize';
 import {filterOption, getValidOptions} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
+import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -169,6 +170,13 @@ const memoizedBuildSelectedOptions = memoize(buildSelectedOptions, {
     maxSize: CONST.SEARCH.MAX_MOUNTED_FILTER_CONTENTS,
     equality: equivalentArgsComparator,
     monitoringName: 'usePersonalDetailSearchSelector.buildSelectedOptions',
+});
+
+// Both caches hold option lists built for the signed-in account, so release them on sign-out
+// rather than holding them until later calls evict the entries.
+registerSessionCleanupCallback(() => {
+    memoizedGetValidOptions.cache.clear();
+    memoizedBuildSelectedOptions.cache.clear();
 });
 
 /**

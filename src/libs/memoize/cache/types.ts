@@ -15,6 +15,8 @@ type Cache<K, V> = {
      * @returns The value for the key
      */
     getSet: (key: K, valueProducer: () => V) => BoxedValue<V>;
+    /** Drops every entry, so values built for a signed-out user do not stay in memory */
+    clear: () => void;
     snapshot: {
         keys: () => K[];
         values: () => V[];

@@ -4,6 +4,7 @@ import memoize, {equivalentArgsComparator} from '@libs/memoize';
 import {createOptionList} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData, PrivateIsArchivedMap} from '@libs/PersonalDetailOptionsListUtils/types';
 import {isOneOnOneChat, isSelfDM} from '@libs/ReportUtils';
+import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAttributesDerivedValue, ReportNameValuePairs} from '@src/types/onyx';
@@ -114,6 +115,10 @@ const memoizedCreateOptionList = memoize(createOptionList, {
     equality: equivalentArgsComparator,
     monitoringName: 'usePersonalDetailOptions.createOptionList',
 });
+
+// The cached options describe the signed-in account's contacts, so release them on sign-out
+// rather than holding them until the next call evicts the entry.
+registerSessionCleanupCallback(() => memoizedCreateOptionList.cache.clear());
 
 /**
  * Hook that provides options list for personal details.
