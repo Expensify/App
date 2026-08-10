@@ -328,6 +328,7 @@ function MapViewImpl({
                 <Directions
                     directionCoordinates={directionCoordinatesProp}
                     alternateDirection={alternateDirection}
+                    setIsAlternateDirectionSelected={setIsAlternateDirectionSelected}
                     distanceInMeters={distanceInMeters}
                     unit={unit}
                     waypoints={waypoints}
