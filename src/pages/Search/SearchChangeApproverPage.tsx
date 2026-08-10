@@ -278,12 +278,7 @@ function SearchChangeApproverPage() {
         );
 
     if (!isOffline && isLoadingBulkChangeApproverPage) {
-        return (
-            <FullScreenLoadingIndicator
-                shouldUseGoBackButton
-                reasonAttributes={{context: 'SearchChangeApproverPage'}}
-            />
-        );
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     return (

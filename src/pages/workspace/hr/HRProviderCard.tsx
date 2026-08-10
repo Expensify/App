@@ -164,12 +164,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
             </Button>
         );
     } else if (card.isSyncInProgress) {
-        rightInset = (
-            <ActivityIndicator
-                style={[styles.popoverMenuIcon, styles.alignSelfCenter]}
-                reasonAttributes={{context: `HRProviderCard.${card.key}Sync`}}
-            />
-        );
+        rightInset = <ActivityIndicator style={[styles.popoverMenuIcon, styles.alignSelfCenter]} />;
     } else {
         rightInset = (
             <ThreeDotsMenu

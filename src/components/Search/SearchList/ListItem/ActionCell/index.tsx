@@ -91,7 +91,6 @@ function ActionCell({
                 policyID={policyID}
                 reportID={reportID}
                 hash={hash}
-                extraSmall={extraSmall}
                 shouldDisablePointerEvents={shouldDisablePointerEvents}
                 chatReport={chatReport}
             />

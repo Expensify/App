@@ -294,6 +294,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: 'Faturável',
         nonBillable: 'Não faturável',
         tag: 'Etiqueta',
+        violations: 'Violações',
         receipt: 'Recibo',
         verified: 'Verificado',
         replace: 'Substituir',
@@ -486,11 +487,13 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Ano anterior',
         nextYear: 'Ano que vem',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         editor: 'Editor',
         restrictions: 'Restrições',
         tryAgain: 'Tentar novamente',
         tagGLCode: 'Marcar código GL',
         off: 'Desligado',
+        commuter: 'usuário de transporte coletivo',
         noResultsFoundSubtitle: 'Nenhum resultado. Tente ajustar seus filtros ou termo de pesquisa',
         unableToDisplayChart: 'Não foi possível exibir o gráfico',
         webGLNotSupported: 'Seu navegador não é compatível com WebGL. Ative-o ou mude de navegador.',
@@ -542,6 +545,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentError: 'Erro de anexo',
         errorWhileSelectingAttachment: 'Ocorreu um erro ao selecionar um anexo. Tente novamente.',
         errorWhileSelectingCorruptedAttachment: 'Ocorreu um erro ao selecionar um anexo corrompido. Tente outro arquivo.',
+        errorWhileConvertingHeic: 'Não foi possível processar esta imagem. Tente novamente ou envie a foto em um formato diferente.',
         takePhoto: 'Tirar foto',
         chooseFromGallery: 'Escolher da galeria',
         chooseDocument: 'Escolher arquivo',
@@ -931,6 +935,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Urgente',
             addShippingAddress: {title: 'Precisamos do seu endereço de entrega', subtitle: 'Informe um endereço para receber seu Cartão Expensify.', cta: 'Adicionar endereço'},
             addPaymentCard: {title: 'Adicione um cartão de pagamento para continuar usando o Expensify', subtitle: 'Conta > Assinatura', cta: 'Adicionar'},
+            addBankAccount: {title: 'Adicione uma conta bancária para ser reembolsado'},
             activateCard: {title: 'Ative seu Cartão Expensify', subtitle: 'Valide seu cartão e comece a gastar.', cta: 'Ativar'},
             reviewCardFraud: {
                 title: 'Analisar possível fraude no seu Cartão Expensify',
@@ -1085,6 +1090,7 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateTitle: 'Nenhuma despesa recente',
             emptyStateMessage: 'Crie um ou arraste um recibo aqui',
         },
+        insightsSection: {chartUnavailable: 'Gráfico indisponível', notEnoughData: 'Ainda não temos dados suficientes para preencher este gráfico'},
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -2185,6 +2191,18 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Sair',
         restoreStashed: 'Restaurar login armazenado',
         signOutConfirmationText: 'Você perderá quaisquer alterações offline se sair.',
+        saveReceiptsConfirmation: {
+            title: 'Salvar seus recibos?',
+            prompt: ({count}: {count: number}) =>
+                `${count === 1 ? 'Ainda há 1 recibo' : `Ainda há ${count} recibos`} sendo enviado. Se você sair agora, ${count === 1 ? 'nós o salvaremos' : 'nós os salvaremos'} nas suas fotos para que você possa ${count === 1 ? 'adicioná-lo' : 'adicioná-los'} a uma nova despesa mais tarde.`,
+            confirm: 'Salvar e sair',
+        },
+        saveReceiptsAndSignOutConfirmation: {
+            title: 'Salvar seus recibos?',
+            prompt: ({count}: {count: number}) =>
+                `${count === 1 ? 'Ainda há 1 recibo' : `Ainda há ${count} recibos`} sendo enviado. Se você sair agora, ${count === 1 ? 'nós o salvaremos' : 'nós os salvaremos'} nas suas fotos para que você possa ${count === 1 ? 'adicioná-lo' : 'adicioná-los'} a uma nova despesa mais tarde. Você perderá quaisquer outras alterações offline.`,
+            confirm: 'Salvar e sair',
+        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Leia os <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termos de Serviço</a> e a <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Política de Privacidade</a>.`,
         help: 'Ajuda',
@@ -5675,6 +5693,16 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 },
             },
         },
+        dualEntry: {
+            dualEntrySetup: 'Configuração do DualEntry',
+            enterCredentials: 'Insira sua chave de API DualEntry',
+            howToFindAPIKey:
+                '<strong>Encontrando sua chave de API.</strong><ol><li>Faça login no DualEntry</li><li>Navegue até [organization name] -> Settings -> Developer access -> API keys</li><li>Crie uma chave de API</li><li>Cole a chave de API abaixo</li></ol>',
+            subsidiary: 'Filial',
+            subsidiarySelectDescription: 'Escolha a subsidiária no DualEntry da qual você gostaria de importar dados.',
+            noCompaniesFound: 'Nenhuma empresa encontrada',
+            noCompaniesFoundDescription: 'Adicione uma empresa no DualEntry e sincronize a conexão novamente',
+        },
         type: {
             free: 'Grátis',
             control: 'Controle',
@@ -6689,6 +6717,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             rillet: 'Rillet',
+            dualEntry: 'DualEntry',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6708,6 +6737,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
+                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+                        return 'DualEntry';
                     default: {
                         return '';
                     }
@@ -6916,6 +6947,12 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'rilletSyncConnection':
                             return 'Inicializando conexão com Rillet';
                         case 'rilletSyncImportData':
+                            return 'Carregando dados';
+                        case 'dualEntrySyncTitle':
+                            return 'Sincronizando dados DualEntry';
+                        case 'dualEntrySyncConnection':
+                            return 'Inicializando conexão com o DualEntry';
+                        case 'dualEntrySyncImportData':
                             return 'Carregando dados';
                         default: {
                             return `Tradução ausente para o estágio: ${stage}`;
@@ -7185,6 +7222,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Nossa integração com o QuickBooks Desktop está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                title: 'Intuit Enterprise Suite',
+                description: `Conecte o Intuit Enterprise Suite ao Expensify para sincronizar automaticamente seus dados contábeis e reduzir lançamentos manuais.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Nossa integração com o Intuit Enterprise Suite está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 title: 'Certinia',
                 description: `Aproveite a sincronização automática e reduza lançamentos manuais com a integração Expensify + Certinia. Alinhe dimensões de categorização de despesas e a sincronização de impostos à sua configuração Certinia para maior visibilidade financeira.`,
@@ -7196,6 +7239,12 @@ ${reportName}`,
                 description: `Aproveite a sincronização automática e reduza lançamentos manuais com a integração Expensify + Rillet. Alinhe dimensões de categorização de despesas e a sincronização de impostos à sua configuração Rillet para maior visibilidade financeira.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Nossa integração com a Rillet está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                title: 'DualEntry',
+                description: `Aproveite a sincronização automática e reduza lançamentos manuais com a integração Expensify + DualEntry. Alinhe dimensões de categorização de despesas e a sincronização de impostos à sua configuração DualEntry para maior visibilidade financeira.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Nossa integração com a DualEntry está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Aprovações Avançadas',
@@ -8536,20 +8585,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `adicionou "${prohibitedExpense}" às despesas proibidas`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removeu "${prohibitedExpense}" das despesas proibidas`,
         commuterExclusions: {
-            changedToFixedDistance: 'alterou "excluir trajetos casa-trabalho" para uma distância fixa por solicitação',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'milha' : 'milhas';
-                } else {
-                    unitLabel = isSingular ? 'quilômetro' : 'quilômetros';
-                }
-                return `definir exclusão de distância fixa de ${distance} ${unitLabel} por solicitação`;
-            },
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `alterou a exclusão de distância fixa para ${newDistance} ${unit} por solicitação (antes ${oldDistance} ${unit})`,
-            disabled: 'excluiu deslocamentos diários para tarifas por distância',
+            changedToFixedDistance: 'alterou a exclusão de deslocamentos para uma distância fixa por solicitação',
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `definir exclusão de distância fixa para ${formattedDistance} por solicitação`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `alterou a exclusão de distância fixa para ${formattedNewDistance} por reembolso (antes ${formattedOldDistance})`,
+            disabled: 'desativado excluir trajetos de deslocamento para taxas por distância',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `alterou o método de reembolso para "${newReimbursementChoice}" (antes "${oldReimbursementChoice}")`,
@@ -9053,6 +9093,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             topSpenders: 'Maiores gastadores',
             topCategories: 'Principais categorias',
             topMerchants: 'Principais estabelecimentos',
+            violationsBySubmitter: 'Violações por quem enviou',
         },
     },
     genericErrorPage: {
@@ -9368,6 +9409,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             title: 'Ativar Karma pessoal',
             description: 'Doe US$ 1 para Expensify.org a cada US$ 500 que você gastar por mês',
             stopDonationsPrompt: 'Tem certeza de que deseja parar de doar para Expensify.org?',
+            managePreferencesFromWeb: 'Manage your personal karma preferences from web',
         },
         getInTouch: 'Excelente! Compartilhe as informações deles para que possamos entrar em contato.',
         introSchoolPrincipal: 'Apresentação ao diretor da sua escola',
@@ -9413,6 +9455,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         error: {
             selectSuggestedAddress: 'Selecione um endereço sugerido ou use a localização atual',
+            mapOrGpsDistanceRequired: {
+                title: 'Distância de mapa ou GPS obrigatória',
+                description: 'Este espaço de trabalho exige despesas de distância baseadas em mapa ou rastreadas por GPS.',
+            },
         },
         odometer: {
             startReading: 'Começar a ler',
@@ -9428,6 +9474,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             cameraAccessRequired: 'É necessário acessar a câmera para tirar fotos.',
             snapPhotoStart: '<muted-text-label>Tire uma foto do odômetro no <strong>início</strong> da sua viagem.</muted-text-label>',
             snapPhotoEnd: '<muted-text-label>Tire uma foto do odômetro no <strong>final</strong> da sua viagem.</muted-text-label>',
+        },
+        commuterExclusion: {
+            original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Removeu ${distance} deslocamento ${unit}`,
+            systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
+                `Removidos ${distance} ${unit} de deslocamento diário com base em ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">configurações de distância do workspace</a>` : 'configurações de distância do workspace'}.`,
         },
     },
     gps: {
@@ -9717,6 +9769,53 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `A tarifa só é válida a partir de ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `A tarifa só é válida até ${endDate}`,
         cannotMergeDuplicates: 'Você só pode mesclar despesas em relatórios rascunho ou pendentes. Retraia o relatório e tente novamente.',
+        shortName: {
+            allTagLevelsRequired: 'Todas as tags são obrigatórias',
+            autoReportedRejectedExpense: 'Despesa rejeitada',
+            billableExpense: 'Faturável não é mais válido',
+            cashExpenseWithNoReceipt: 'Recibo obrigatório',
+            categoryOutOfPolicy: 'Categoria não é mais válida',
+            companyCardRequired: 'Cartão corporativo obrigatório',
+            conversionSurcharge: 'Sobretaxa de conversão aplicada',
+            customUnitOutOfPolicy: 'Tarifa inválida para o espaço de trabalho',
+            customUnitRateOutOfDateRange: 'Tarifa fora das datas válidas',
+            duplicatedTransaction: 'Possível duplicado',
+            fieldRequired: 'Campo de relatório obrigatório',
+            futureDate: 'Data futura não permitida',
+            hold: 'Despesa em espera',
+            inactiveVendor: 'Fornecedor não é mais válido',
+            increasedDistance: 'A distância excede a rota',
+            invoiceMarkup: 'Fatura marcada',
+            itemizedReceiptRequired: 'Recibo detalhado obrigatório',
+            maxAge: 'Despesa muito antiga',
+            missingAttendees: 'Participantes obrigatórios',
+            missingCategory: 'Categoria ausente',
+            missingComment: 'Descrição obrigatória',
+            missingTag: 'Tag ausente',
+            modifiedAmount: 'Valor modificado',
+            modifiedDate: 'Data de modificação',
+            noRoute: 'Nenhuma rota válida',
+            nonExpensiworksExpense: 'Despesa fora do Expensiworks',
+            overAutoApprovalLimit: 'Acima do limite de aprovação automática',
+            overCategoryLimit: 'Acima do limite da categoria',
+            overLimit: 'Acima do limite',
+            overTripLimit: 'Acima do limite da viagem',
+            perDayLimit: 'Acima do limite diário',
+            prohibitedExpense: 'Despesa proibida',
+            receiptGeneratedWithAI: 'Recibo possivelmente gerado por IA',
+            receiptNotSmartScanned: 'Recibo adicionado manualmente',
+            receiptRequired: 'Recibo obrigatório',
+            rter: 'Aguardando correspondência de cartão',
+            smartscanFailed: 'Falha ao digitalizar o recibo',
+            someTagLevelsRequired: 'Etiqueta obrigatória',
+            tagOutOfPolicy: 'Tag não é mais válida',
+            overLimitAttendee: 'Acima do limite de pessoas',
+            customRules: 'Violação de regra personalizada',
+            taxAmountChanged: 'Valor do imposto modificado',
+            taxOutOfPolicy: 'Alíquota de imposto não é mais válida',
+            taxRateChanged: 'Alíquota de imposto modificada',
+            taxRequired: 'Taxa de imposto ausente',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} é obrigatório`,
