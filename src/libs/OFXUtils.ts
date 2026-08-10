@@ -42,9 +42,9 @@ function normalizeSeparators(transactionAmount: string): string {
         return transactionAmount;
     }
 
-    // A period is the separator the spec defines, so it always marks the decimal point, however many digits
-    // follow. A comma only marks it when it is right-most with one or two digits after it, otherwise it groups.
-    if (rightMost !== lastPeriod && !/,\d{1,2}$/.test(transactionAmount)) {
+    // A period is the separator the spec defines, so it always marks the decimal point. A trailing comma
+    // group is only grouping at exactly three digits, the one width a decimal amount is never written in.
+    if (rightMost !== lastPeriod && /,\d{3}$/.test(transactionAmount)) {
         return transactionAmount.replaceAll(/[,.]/g, '');
     }
     return `${transactionAmount.slice(0, rightMost).replaceAll(/[,.]/g, '')}.${transactionAmount.slice(rightMost + 1)}`;
