@@ -525,6 +525,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'QBDSquare',
         'CertiniaSquare',
         'RilletSquare',
+        'DualEntrySquare',
         'GustoSquare',
         'Pencil',
         'Workflows',
@@ -1004,6 +1005,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 !!expenseReport.policyID && shouldRestrictUserBillableActions(reportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID);
 
             approveMoneyRequest({
+                getCurrencyDecimals,
                 expenseReport,
                 expenseReportPolicy: reportPolicy,
                 currentUserAccountIDParam: accountID,
@@ -1060,6 +1062,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isTrackIntentUser,
         personalDetails,
         delegateAccountID,
+        getCurrencyDecimals,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
@@ -1387,6 +1390,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const payChatReportID = shouldUseB2BInvoiceReport ? existingB2BInvoiceReport.reportID : chatReport.reportID;
 
                     payInvoice({
+                        getCurrencyDecimals,
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
                         chatReport,
                         invoiceReport: iouReport,
@@ -1414,6 +1418,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 payMoneyRequest({
+                    getCurrencyDecimals,
                     paymentType: paymentItem.paymentType as PaymentMethodType,
                     chatReport,
                     iouReport,
@@ -1481,6 +1486,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             delegateAccountID,
             isTrackIntentUser,
             conciergeChat,
+            getCurrencyDecimals,
         ],
     );
 
@@ -1747,10 +1753,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     if (areAnyReportsExported) {
                         showConfirmModal({
                             title: translate('workspace.exportAgainModal.title'),
-                            prompt: translate('workspace.exportAgainModal.description', {
-                                connectionName: connectedIntegration,
-                                reportName: exportedReportNames.join('\n'),
-                            }),
+                            prompt: translate('workspace.exportAgainModal.description', exportedReportNames.join('\n'), connectedIntegration),
                             confirmText: translate('workspace.exportAgainModal.confirmText'),
                             cancelText: translate('workspace.exportAgainModal.cancelText'),
                             shouldEnablePromptScroll: true,
@@ -1886,50 +1889,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                   subMenuItems,
               };
 
-        // Move-eligibility (single owner + every expense has `canChangeReport`) only sees the loaded page, so for a
-        // "select all matching" selection this gate is best-effort — the backend enforces it on the full set
-        const moveOwnerAccountIDs = new Set<number>();
-        let moveHasUnknownOwner = false;
-        for (const id of selectedTransactionsKeys) {
-            const transactionEntry = selectedTransactions[id];
-            if (!transactionEntry) {
-                continue;
-            }
-            const ownerAccountID =
-                transactionEntry.ownerAccountID ??
-                getReportOrDraftReport(transactionEntry.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionEntry.reportID}`])?.ownerAccountID;
-            if (typeof ownerAccountID === 'number') {
-                moveOwnerAccountIDs.add(ownerAccountID);
-                if (moveOwnerAccountIDs.size > 1) {
-                    break;
-                }
-            } else {
-                moveHasUnknownOwner = true;
-            }
-        }
-        const moveHasMultipleOwners = moveOwnerAccountIDs.size > 1 || (moveHasUnknownOwner && (moveOwnerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
-        // `every` is vacuously true on an empty selection, and the destination page bails out when nothing is selected
-        const canAllTransactionsBeMoved = selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
-        const canMoveExpenses = canAllTransactionsBeMoved && !moveHasMultipleOwners && !isExpenseReportType;
-
-        const moveExpensesOption: DropdownOption<SearchHeaderOptionValue> = {
-            text: translate('iou.moveExpenses'),
-            icon: expensifyIcons.DocumentMerge,
-            value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
-            shouldCloseModalOnSelect: true,
-            onSelected: () => {
-                // A queued all-matching move would carry a query that is stale by the time it is sent, so ask the
-                // user to reconnect instead, the same way the all-matching export does
-                if (areAllMatchingItemsSelected && isOffline) {
-                    setIsOfflineModalVisible(true);
-                    return;
-                }
-                Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.getRoute());
-            },
-        };
-
         if (areAllMatchingItemsSelected) {
-            return canMoveExpenses ? [exportButtonOption, moveExpensesOption] : [exportButtonOption];
+            return [exportButtonOption];
         }
 
         if (allSelectedAreDeleted) {
@@ -2304,14 +2265,55 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         text: translate('common.merge'),
                         icon: expensifyIcons.ArrowCollapse,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, getCurrencyDecimals, reports, false, true),
+                        onSelected: () =>
+                            setupMergeTransactionDataAndNavigate(
+                                transactionID,
+                                searchedTransactions,
+                                localeCompare,
+                                getCurrencyDecimals,
+                                reports,
+                                false,
+                                true,
+                                undefined,
+                                accountID,
+                                personalDetails,
+                            ),
                     });
                 }
             }
         }
 
-        if (canMoveExpenses) {
-            options.push(moveExpensesOption);
+        const ownerAccountIDs = new Set<number>();
+        let hasUnknownOwner = false;
+        for (const id of selectedTransactionsKeys) {
+            const transactionEntry = selectedTransactions[id];
+            if (!transactionEntry) {
+                continue;
+            }
+            const ownerAccountID =
+                transactionEntry.ownerAccountID ??
+                getReportOrDraftReport(transactionEntry.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionEntry.reportID}`])?.ownerAccountID;
+            if (typeof ownerAccountID === 'number') {
+                ownerAccountIDs.add(ownerAccountID);
+                if (ownerAccountIDs.size > 1) {
+                    break;
+                }
+            } else {
+                hasUnknownOwner = true;
+            }
+        }
+        const hasMultipleOwners = ownerAccountIDs.size > 1 || (hasUnknownOwner && (ownerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
+
+        const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
+
+        if (canAllTransactionsBeMoved && !hasMultipleOwners && !isExpenseReportType) {
+            options.push({
+                text: translate('iou.moveExpenses'),
+                icon: expensifyIcons.DocumentMerge,
+                value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.getRoute()),
+            });
         }
 
         const firstTransactionKey = selectedTransactionsKeys.at(0);
