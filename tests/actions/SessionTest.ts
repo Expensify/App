@@ -778,7 +778,6 @@ describe('Session', () => {
 
     describe('validateTwoFactorAuth', () => {
         test('forced onboarding path updates auth token before clearing Onyx without openApp', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- spy setup for asserts below
             const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({
                 authToken: 'newAuthToken',
                 encryptedAuthToken: 'newEncryptedAuthToken',
@@ -786,7 +785,6 @@ describe('Session', () => {
             const setAuthTokenSpy = jest.spyOn(NetworkStore, 'setAuthToken');
             const multiSetSpy = jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
             const clearSpy = jest.spyOn(Onyx, 'clear').mockResolvedValue(undefined);
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- assert openApp (API.write) was not chained
             const writeWithNoDuplicatesSpy = jest.spyOn(API, 'writeWithNoDuplicatesConflictAction').mockResolvedValue(undefined);
 
             SessionUtil.validateTwoFactorAuth('123456', false, {shouldKeepTwoFactorAuthFlowOpen: true});
