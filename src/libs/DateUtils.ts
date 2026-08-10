@@ -463,7 +463,9 @@ function extractTime12Hour(dateTimeString: string, isFullFormat = false): string
         return '';
     }
     const date = new Date(dateTimeString);
-    // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- the AM/PM marker is parsed back by get12HourTimeObjectFromDate, so producer and parser must agree on one language.
+    // get12HourTimeObjectFromDate parses this back into TimePicker state, whose period is compared against the English
+    // CONST.TIME_PERIOD, so the marker has to stay English. That leaves StatusClearAfterPage showing an English AM/PM.
+    // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- see above
     return format(date, isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a');
 }
 
@@ -471,13 +473,12 @@ function extractTime12Hour(dateTimeString: string, isFullFormat = false): string
  * param {string} dateTimeString
  * returns {string} example: 2023-05-16 11:10 PM
  */
-function formatDateTimeTo12Hour(dateTimeString: string): string {
+function formatDateTimeTo12Hour(dateTimeString: string, dateFnsLocale: DateFnsLocale | undefined): string {
     if (!dateTimeString) {
         return '';
     }
     const date = new Date(dateTimeString);
-    // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- the AM/PM marker is parsed back by get12HourTimeObjectFromDate, so producer and parser must agree on one language.
-    return format(date, 'yyyy-MM-dd hh:mm a');
+    return format(date, 'yyyy-MM-dd hh:mm a', {locale: dateFnsLocale});
 }
 
 /**
@@ -505,7 +506,7 @@ function getDateFromStatusType(type: CustomStatusTypes): string {
  * param {string} data - either a value from CONST.CUSTOM_STATUS_TYPES or a dateTime string in the format YYYY-MM-DD HH:mm
  * returns {string} example: 2023-05-16 11:10 PM or 'Today'
  */
-function getLocalizedTimePeriodDescription(translate: LocalizedTranslate, data: string): string {
+function getLocalizedTimePeriodDescription(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, data: string): string {
     switch (data) {
         case getEndOfToday():
             return translate('statusPage.timePeriods.afterToday');
@@ -513,7 +514,7 @@ function getLocalizedTimePeriodDescription(translate: LocalizedTranslate, data: 
         case '':
             return translate('statusPage.timePeriods.never');
         default:
-            return formatDateTimeTo12Hour(data);
+            return formatDateTimeTo12Hour(data, dateFnsLocale);
     }
 }
 
@@ -638,7 +639,7 @@ function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {h
         minute: format(parsedTime, 'mm'),
         seconds: isFullFormat ? format(parsedTime, 'ss') : '00',
         milliseconds: isFullFormat ? format(parsedTime, 'SSS') : '000',
-        // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- pairs with the format above; the value is compared against CONST.TIME_PERIOD, not shown as-is.
+        // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- this is TimePicker state compared against the English CONST.TIME_PERIOD, not text shown to the user.
         period: format(parsedTime, 'a').toUpperCase(),
     };
 }
