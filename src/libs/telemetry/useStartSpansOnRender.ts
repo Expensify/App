@@ -13,15 +13,6 @@ type RenderPhaseSpan = {
 };
 
 /**
- * Runs `callback` once, during the first render.
- *
- * A ref gate would read better, but React Compiler rejects refs in render and rejects `useMemo` for a void callback.
- */
-function useOnFirstRender(callback: () => void): void {
-    useState(() => callback());
-}
-
-/**
  * Registers spans during the first render instead of from an effect, which is both too late and order-dependent:
  *
  * - React flushes a descendant's effect before its parent's (reconciler behaviour, not a documented contract),
@@ -30,9 +21,11 @@ function useOnFirstRender(callback: () => void): void {
  * - The span has to cover the subtree's own render and commit, which an effect-time start excludes entirely.
  *
  * Same approach as Sentry's `Profiler`: span created in the constructor, ended in `componentDidMount`.
+ *
+ * `useState` (not a ref) because React Compiler rejects refs in render and rejects `useMemo` for a void callback.
  */
 function useStartSpansOnRender(spansToStart: RenderPhaseSpan[]): void {
-    useOnFirstRender(() => {
+    useState(() => {
         for (const {spanId, options} of spansToStart) {
             startSpan(spanId, options);
         }
