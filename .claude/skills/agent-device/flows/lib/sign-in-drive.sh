@@ -35,6 +35,8 @@ fi
 
 # --- selector constants (one source of truth for .ad fallback, classifiers, waits) ---
 readonly SEL_LOGIN_FIELD='id="username" || role="textfield" label="Phone or email" || label="Phone or email"'
+# Mirrors the fill selector in sign-in.ad. Waiting on SEL_LOGIN_FIELD only proves the field exists, and the macro fills it requiring editable=true, so the replay could start against a field that had rendered but was not yet interactive.
+readonly SEL_LOGIN_FIELD_EDITABLE='id="username" editable=true || role="textfield" label="Phone or email" editable=true || label="Phone or email" editable=true'
 readonly SEL_CONTINUE='role="button" label="Continue" || label="Continue"'
 readonly SEL_NAME_FIELD='label="First name" || label="Full name" || role="textfield"'
 # Web wait-union markers. Apostrophe-free substrings dodge the straight-vs-curly
@@ -177,7 +179,7 @@ wait_for_login_field() {
   local budget_secs="${MELVIN_LOGIN_WAIT_SECS:-40}"
   mkdir -p "${GITHUB_WORKSPACE:-/tmp}/artifacts"
   if [[ "$PLATFORM" = web ]]; then
-    agent-device wait "$SEL_LOGIN_FIELD || $WAIT_ONBOARDING" $((budget_secs * 1000)) \
+    agent-device wait "$SEL_LOGIN_FIELD_EDITABLE || $WAIT_ONBOARDING" $((budget_secs * 1000)) \
       --platform "$PLATFORM" --session "$SESSION" >/dev/null 2>&1 || return 1
     take_snap
     if snap_login_field; then
