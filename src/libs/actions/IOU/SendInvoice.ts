@@ -1,5 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {SendInvoiceParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -90,6 +92,7 @@ type SendInvoiceOptions = {
     senderPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -636,6 +639,7 @@ function getSendInvoiceInformation({
     senderPolicyTags,
     formatPhoneNumber,
     delegateAccountID,
+    getCurrencyDecimals,
 }: SendInvoiceOptions): SendInvoiceInformation {
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
@@ -669,6 +673,7 @@ function getSendInvoiceInformation({
         receiver.displayName ?? (receiverParticipant as Participant)?.login ?? '',
         amount,
         currency,
+        getCurrencyDecimals,
     );
 
     // STEP 3: Build optimistic receipt and transaction
@@ -718,6 +723,7 @@ function getSendInvoiceInformation({
         chatReport,
         optimisticInvoiceReport,
         formatPhoneNumber,
+        getCurrencyDecimals,
         trimmedComment,
         optimisticTransaction,
         undefined,
@@ -728,6 +734,7 @@ function getSendInvoiceInformation({
     chatReport.lastVisibleActionCreated = reportPreviewAction.created;
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
         buildOptimisticMoneyRequestEntities({
+            getCurrencyDecimals,
             iouReport: optimisticInvoiceReport,
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             amount,
@@ -795,6 +802,7 @@ function sendInvoice({
     senderPolicyTags,
     formatPhoneNumber,
     delegateAccountID,
+    getCurrencyDecimals,
 }: SendInvoiceOptions) {
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
@@ -831,6 +839,7 @@ function sendInvoice({
         senderPolicyTags: senderPolicyTags ?? {},
         formatPhoneNumber,
         delegateAccountID,
+        getCurrencyDecimals,
     });
 
     const parameters: SendInvoiceParams = {
