@@ -7277,6 +7277,14 @@ function getMovedActionMessage(translate: LocalizedTranslate, action: ReportActi
     }
     const {toPolicyID, newParentReportID, movedReportID} = movedActionOriginalMessage;
     const toPolicyName = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${toPolicyID}`]?.name ?? '';
+
+    // The destination policy may not be in Onyx for everyone (e.g. a participant who isn't a member of the
+    // workspace the report was moved to), which would make toPolicyName empty and render a blank workspace name.
+    // In that case fall back to the workspace name already baked into the action's stored message.
+    if (!toPolicyName) {
+        return getReportActionHtml(action) || getReportActionText(action);
+    }
+
     return translate('iou.movedAction', !isDM(report), getReportURLForCurrentContext(movedReportID), getReportURLForCurrentContext(newParentReportID), toPolicyName);
 }
 
