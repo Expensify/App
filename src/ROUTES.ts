@@ -1214,11 +1214,11 @@ const DYNAMIC_ROUTES = {
     },
     MONEY_REQUEST_STEP_SEND_FROM: {
         path: 'send-from',
-        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION],
+        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION, SCREENS.MONEY_REQUEST.CREATE],
     },
     MONEY_REQUEST_STEP_COMPANY_INFO: {
         path: 'company-info',
-        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION],
+        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION, SCREENS.MONEY_REQUEST.CREATE],
     },
     PRIVATE_NOTES_LIST: {
         path: 'notes',
@@ -1483,6 +1483,8 @@ const DYNAMIC_ROUTES = {
         path: 'taxRate',
         entryScreens: [
             SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
+            SCREENS.MONEY_REQUEST.CREATE,
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
@@ -1496,6 +1498,8 @@ const DYNAMIC_ROUTES = {
         path: 'taxAmount',
         entryScreens: [
             SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
+            SCREENS.MONEY_REQUEST.CREATE,
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
@@ -1509,6 +1513,8 @@ const DYNAMIC_ROUTES = {
         path: 'attendees',
         entryScreens: [
             SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
+            SCREENS.MONEY_REQUEST.CREATE,
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
@@ -4471,6 +4477,18 @@ const ROUTES = {
     POLICY_ACCOUNTING_RILLET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/rillet/advanced/travel-invoicing-settlement-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/travel-invoicing-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_SETUP: {
+        route: 'workspaces/:policyID/accounting/dualentry/setup',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/setup` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/accounting/dualentry/existing-connections',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/existing-connections` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_COMPANY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/dualentry/company-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/company-selector` as const,
     },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',

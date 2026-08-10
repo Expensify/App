@@ -8,7 +8,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -111,11 +110,7 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
     }, []);
 
     if (isEditing && isLoadingApp) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'withWritableReportOrNotFound',
-            isLoadingApp,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     if (iouTypeParamIsInvalid || !canUserPerformWriteAction(report ?? {reportID: ''}, isReportArchived)) {
