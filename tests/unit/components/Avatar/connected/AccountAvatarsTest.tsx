@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 
 import AccountAvatars from '@components/Avatar/connected/AccountAvatars';
 
@@ -17,8 +17,9 @@ function MockFallbackAvatar() {
     return null;
 }
 
-// Captures the props handed to the layout primitive, which is the whole contract of this component.
+// Captures the props handed to the layout primitives, which is the whole contract of this component.
 let mockCapturedHorizontalAvatarsProps: Record<string, unknown> = {};
+let mockCapturedSingleAvatarProps: Record<string, unknown> = {};
 
 // `sortIconsByName` has its own tests — here it only has to be observable, so it reverses.
 const mockSortIconsByName = jest.fn((icons: Icon[]) => [...icons].reverse());
@@ -52,6 +53,15 @@ jest.mock('@components/Avatar/layouts/HorizontalAvatars', () => {
     };
 });
 
+jest.mock('@components/Avatar/layouts/SingleAvatar', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return (props: Record<string, unknown>) => {
+        mockCapturedSingleAvatarProps = props;
+        return <View testID="MockedSingleAvatar" />;
+    };
+});
+
 /** Builds the `toEqual` shape for a list of icons in a known order, so the assertions never poke at the captured props. */
 function iconsForAccountsInOrder(...accountIDs: number[]) {
     return accountIDs.map((accountID) => expect.objectContaining({id: accountID}));
@@ -61,6 +71,7 @@ describe('AccountAvatars (connected)', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockCapturedHorizontalAvatarsProps = {};
+        mockCapturedSingleAvatarProps = {};
         mockPersonalDetails = {
             [FIRST_ACCOUNT_ID]: {accountID: FIRST_ACCOUNT_ID, login: 'carol@example.com'},
             [SECOND_ACCOUNT_ID]: {accountID: SECOND_ACCOUNT_ID, login: 'alice@example.com'},
@@ -87,7 +98,9 @@ describe('AccountAvatars (connected)', () => {
         ])('should render one placeholder avatar for %s, so the slot keeps its size', (_case, accountIDs) => {
             render(<AccountAvatars accountIDs={accountIDs} />);
 
-            expect(mockCapturedHorizontalAvatarsProps.icons).toEqual(iconsForAccountsInOrder(CONST.DEFAULT_NUMBER_ID));
+            expect(mockCapturedSingleAvatarProps.avatar).toEqual(expect.objectContaining({id: CONST.DEFAULT_NUMBER_ID}));
+            // The lone placeholder must not go through the stack, which would draw the overlap border around it
+            expect(screen.queryByTestId('MockedHorizontalAvatars')).toBeNull();
         });
     });
 

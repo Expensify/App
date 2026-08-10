@@ -95,7 +95,7 @@ function UserListItemContent<TItem extends ListItem>({
             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
         >
             {(!!reportExists || !!itemAccountID || !!policyID) &&
-                (!reportExists && !!itemAccountID ? (
+                (!reportExists && !policyID && !!itemAccountID ? (
                     <AccountAvatar
                         accountID={itemAccountID}
                         shouldShowTooltip={showTooltip}
@@ -112,6 +112,7 @@ function UserListItemContent<TItem extends ListItem>({
                             isHovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                         ]}
                         reportID={reportExists ? item.reportID : undefined}
+                        accountIDs={!reportExists && !!itemAccountID ? [itemAccountID] : []}
                         policyID={!reportExists && !!policyID ? policyID : undefined}
                         singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
                         fallbackDisplayName={item.text ?? item.alternateText ?? undefined}

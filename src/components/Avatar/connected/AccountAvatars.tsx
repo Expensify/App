@@ -1,5 +1,6 @@
 import HorizontalAvatars from '@components/Avatar/layouts/HorizontalAvatars';
 import type {HorizontalStackingOptions} from '@components/Avatar/layouts/HorizontalAvatars';
+import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useLocalize from '@hooks/useLocalize';
@@ -21,7 +22,7 @@ import useAccountIcons from './useAccountIcons';
 type SortingOptions = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
 
 type AccountAvatarsProps = {
-    /** Account IDs to display avatars for. Entries equal to `CONST.DEFAULT_NUMBER_ID` are dropped; when none remain, one placeholder avatar renders so the slot keeps its size. */
+    /** Account IDs to display avatars for. Entries equal to `CONST.DEFAULT_NUMBER_ID` are dropped; when none remain, a single placeholder avatar renders so the slot keeps its size. */
     accountIDs: number[];
 
     /** Options for the horizontal stack */
@@ -86,9 +87,23 @@ function AccountAvatars({
     const {localeCompare} = useLocalize();
 
     const filteredAccountIDs = accountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
+    const hasAccountsToRender = filteredAccountIDs.length > 0;
     // When no account resolves, render one placeholder avatar instead of collapsing the slot,
     // matching the fallback ReportActionAvatars renders for an empty account list.
-    const icons = useAccountIcons(filteredAccountIDs.length > 0 ? filteredAccountIDs : [CONST.DEFAULT_NUMBER_ID], invitedEmailsToAccountIDs);
+    const icons = useAccountIcons(hasAccountsToRender ? filteredAccountIDs : [CONST.DEFAULT_NUMBER_ID], invitedEmailsToAccountIDs);
+    const placeholderIcon = icons.at(0);
+
+    if (!hasAccountsToRender && placeholderIcon) {
+        return (
+            <SingleAvatar
+                avatar={placeholderIcon}
+                size={size}
+                containerStyles={[]}
+                shouldShowTooltip={shouldShowTooltip}
+                fallbackDisplayName={fallbackDisplayName}
+            />
+        );
+    }
 
     return (
         <HorizontalAvatars
