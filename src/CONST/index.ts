@@ -1630,6 +1630,7 @@ const CONST = {
                 HOLD_COMMENT: 'HOLDCOMMENT',
                 INTEGRATION_SYNC_FAILED: 'INTEGRATIONSYNCFAILED',
                 COMPANY_CARD_CONNECTION_BROKEN: 'COMPANYCARDCONNECTIONBROKEN',
+                COMMUTER_EXCLUSION: 'COMMUTEREXCLUSION',
                 PLAID_BALANCE_FAILURE: 'PLAIDBALANCEFAILURE',
                 IOU: 'IOU',
                 INTEGRATIONS_MESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
@@ -3871,6 +3872,12 @@ const CONST = {
     PAYMENT_METHOD_ID_KEYS: {
         DEBIT_CARD: 'fundID',
         BANK_ACCOUNT: 'bankAccountID',
+    },
+
+    /** The payment method a payee still has to set up before a queued payment can settle */
+    MISSING_PAYMENT_METHODS: {
+        BANK_ACCOUNT: 'bankAccount',
+        WALLET: 'wallet',
     },
 
     IOU: {
