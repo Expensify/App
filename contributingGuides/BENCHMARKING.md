@@ -1,3 +1,5 @@
+<!-- cspell:ignore devicectl -->
+
 # Native app benchmarks
 
 The native release bundle can emit structured completion events for selected manual Sentry spans. Benchmark logging is disabled unless a developer explicitly configures span names in the git-ignored root `.env` file.
@@ -25,16 +27,36 @@ The benchmark runs one unmeasured warm-up followed by 20 measured cold-process l
 Android:
 
 ```shell
-nr benchmark-app-startup -- android ManualAppStartup 20 30 --device emulator-5554
+nr benchmark-app-startup -- android 20 30 --span ManualAppStartup --device emulator-5554
 ```
 
 iOS physical device:
 
 ```shell
-nr benchmark-app-startup -- ios ManualAppStartup 20 30 --device "Developer's iPhone"
+nr benchmark-app-startup -- ios 20 30 --span ManualAppStartup --device "Developer's iPhone"
 ```
 
-The positional arguments are platform, span name, measured run count, and timeout in seconds. Use `--app-id` for a nonstandard Android application ID or iOS bundle identifier, and `--output` to select another CSV path.
+The positional arguments are platform, measured run count, and timeout in seconds. Use `--span` to measure any other span included in `EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS`, `--app-id` for a nonstandard Android application ID or iOS bundle identifier, and `--output` to select another CSV path.
+
+The script also exports `benchmarkAppStartups` and `benchmarkStartups`. Other local tooling, such as the PGO workflow, can install an artifact and invoke the same benchmark implementation. The lower-level Android and iOS process tooling lives in `scripts/lib/nativeAppBenchmark.ts` so callers do not need to duplicate `adb` or `xcrun devicectl` behavior.
+
+For example, a PGO script can install each artifact and call `benchmarkAppStartups` with its platform, device, bundle identifier, output path, and span name. This keeps artifact building and installation in the PGO workflow while sharing all startup measurement and platform-device behavior.
+
+```ts
+import {benchmarkAppStartups} from '#benchmark-app-startup';
+
+await benchmarkAppStartups({
+    platform: 'android',
+    rootDirectory,
+    deviceIdentifier,
+    appID: 'org.me.mobiexpensifyg',
+    mode: 'process',
+    spanName: 'ManualAppStartup',
+    runs,
+    timeoutSeconds,
+    outputPath,
+});
+```
 
 ### True-cold mode
 
@@ -43,13 +65,13 @@ By default, each run terminates and relaunches the existing app process without 
 On Android, true-cold mode clears package data and resets compiled package state with `cmd package compile --reset`:
 
 ```shell
-nr benchmark-app-startup -- android ManualAppStartup --cold --device emulator-5554
+nr benchmark-app-startup -- android --span ManualAppStartup --cold --device emulator-5554
 ```
 
 On iOS, clearing app data requires uninstalling and reinstalling the signed app, so `--app-path` is required:
 
 ```shell
-nr benchmark-app-startup -- ios ManualAppStartup --cold --device "Developer's iPhone" --app-path /path/to/Expensify.app
+nr benchmark-app-startup -- ios --span ManualAppStartup --cold --device "Developer's iPhone" --app-path /path/to/Expensify.app
 ```
 
 True-cold runs start with no authenticated account or persisted application state. Cold-process runs are usually more suitable for benchmarking authenticated startup flows.

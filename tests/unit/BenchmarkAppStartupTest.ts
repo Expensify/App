@@ -1,4 +1,8 @@
-import {benchmarkStats, findBenchmarkDuration, parseBenchmarkLogEvents, percentile} from '@scripts/benchmarkAppStartup';
+import {benchmarkStartups, benchmarkStats, findBenchmarkDuration, parseBenchmarkLogEvents, percentile} from '@scripts/benchmarkAppStartup';
+
+import {mkdtempSync, readFileSync, rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 
 describe('benchmarkAppStartup', () => {
     it('parses structured benchmark logs among platform output', () => {
@@ -25,5 +29,32 @@ describe('benchmarkAppStartup', () => {
             min: 100,
             max: 300,
         });
+    });
+
+    it('measures the configured span through a reusable adapter', async () => {
+        const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-test-'));
+        const outputPath = join(temporaryDirectory, 'samples.csv');
+        const prepareStartup = jest.fn(async () => undefined);
+        const launchAndWait = jest.fn(async () => 123);
+
+        try {
+            const result = await benchmarkStartups(
+                {name: 'android', prepareStartup, launchAndWait},
+                {
+                    mode: 'process',
+                    spanName: 'ManualAppStartupNetworkRequest',
+                    runs: 1,
+                    timeoutSeconds: 30,
+                    outputPath,
+                },
+            );
+
+            expect(launchAndWait).toHaveBeenNthCalledWith(1, 'ManualAppStartupNetworkRequest', 30);
+            expect(launchAndWait).toHaveBeenNthCalledWith(2, 'ManualAppStartupNetworkRequest', 30);
+            expect(result.samples).toEqual([123]);
+            expect(readFileSync(outputPath, 'utf8')).toBe('run,duration_ms\n1,123\n');
+        } finally {
+            rmSync(temporaryDirectory, {recursive: true, force: true});
+        }
     });
 });
