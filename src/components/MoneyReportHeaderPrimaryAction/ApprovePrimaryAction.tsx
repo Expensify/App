@@ -77,7 +77,8 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
     const isBlockSubmitDueToPreventSelfApproval = isSubmitterSameAsNextApprover && expenseReportPolicy?.preventSelfApproval;
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
-    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(Object.values(reportTransactions));
+    const transactions = Object.values(reportTransactions);
+    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
     const canIOUBePaid = canIOUBePaidAction(
         iouReport,
         chatReport,
@@ -130,6 +131,7 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
             }}
             moneyRequestReport={iouReport}
+            transactions={transactions}
             shouldShowPayButton={shouldShowPayButton}
             shouldShowMarkAsDoneCopy={shouldUseMarkAsDoneCopy}
             isDisabled={isBlockSubmitDueToPreventSelfApproval}

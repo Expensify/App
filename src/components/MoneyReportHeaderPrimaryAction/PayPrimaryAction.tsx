@@ -151,6 +151,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
               shouldShowPayButton,
               illustrations: approveIllustrations,
               transactions,
+              convertToDisplayString,
           })
         : undefined;
     const approveSubMenuHeaderText = hasOnlyHeldExpenses ? translate('iou.confirmApprovalAllHoldAmount') : translate('iou.confirmApprovalWithHeldAmount');

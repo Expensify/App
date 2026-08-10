@@ -20,6 +20,11 @@ jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
     __esModule: true,
     default: (callback: () => void) => callback(),
 }));
+const mockApproveMoneyRequest = jest.fn();
+jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({
+    ...jest.requireActual<typeof import('@libs/actions/IOU/ReportWorkflow')>('@libs/actions/IOU/ReportWorkflow'),
+    approveMoneyRequest: (...args: unknown[]) => mockApproveMoneyRequest(...args),
+}));
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
@@ -351,7 +356,6 @@ describe('handleActionButtonPress', () => {
             ownerBillingGracePeriodEnd: undefined,
             amountOwed: undefined,
             userBillingGracePeriodEnds: undefined,
-            onHoldMenuOpen: jest.fn(),
             policy: snapshotPolicy as Policy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
@@ -361,8 +365,9 @@ describe('handleActionButtonPress', () => {
         expect(goToItem).not.toHaveBeenCalled();
     });
 
-    test('Should open the hold menu when the report has one transaction on hold and action is approve', () => {
-        const onHoldMenuOpen = jest.fn();
+    // The partial/full choice is surfaced up front by ApproveActionCell's dropdown, so reaching this path means the
+    // full report was chosen. It must approve directly instead of opening the hold menu, which is now pay-only.
+    test('Should approve the full report when the report has one transaction on hold and action is approve', () => {
         handleActionButtonPress({
             conciergeChat: undefined,
             hash: searchHash,
@@ -376,7 +381,6 @@ describe('handleActionButtonPress', () => {
             userBillingGracePeriodEnds: undefined,
             ownerBillingGracePeriodEnd: undefined,
             amountOwed: undefined,
-            onHoldMenuOpen,
             policy: snapshotPolicy as Policy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
@@ -384,7 +388,7 @@ describe('handleActionButtonPress', () => {
             isTrackIntentUser: false,
         });
 
-        expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
+        expect(mockApproveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({full: true}));
     });
 
     test('Should not navigate to item when the hold is removed', () => {

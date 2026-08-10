@@ -45,6 +45,7 @@ function ApproveActionButton() {
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
             moneyRequestReport={iouReport}
+            transactions={transactions}
             shouldShowPayButton={shouldShowPayButton}
         />
     );

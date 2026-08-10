@@ -3,7 +3,6 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
 
@@ -11,8 +10,11 @@ import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
@@ -21,7 +23,7 @@ import type {LocaleContextProps} from './LocaleContextProvider';
 import Button from './ButtonComposed';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 
-type ExpenseHeaderApprovalButtonProps = {
+type ExpenseHeaderApprovalButtonProps = WithSentryLabel & {
     /** Whether any transaction is on hold */
     isAnyTransactionOnHold: boolean;
 
@@ -37,6 +39,9 @@ type ExpenseHeaderApprovalButtonProps = {
     /** The money request report */
     moneyRequestReport?: OnyxEntry<Report>;
 
+    /** The report's transactions, used to derive the held/unheld approval amounts */
+    transactions: Transaction[];
+
     /** Whether to show the pay button */
     shouldShowPayButton: boolean;
 
@@ -45,6 +50,27 @@ type ExpenseHeaderApprovalButtonProps = {
 
     /** Whether to show the Mark as Done */
     shouldShowMarkAsDoneCopy?: boolean;
+
+    /** Whether the button should show a loading spinner */
+    isLoading?: boolean;
+
+    /** The size of the button */
+    size?: ValueOf<typeof CONST.BUTTON_SIZE>;
+
+    /** Whether the dropdown button should use its compact inline form */
+    shouldUseShortForm?: boolean;
+
+    /** Whether the button is rendered inside another pressable, since nesting buttons isn't valid html */
+    isNested?: boolean;
+
+    /** Whether the button should stay visually normal even when disabled */
+    stayNormalOnDisable?: boolean;
+
+    /** Additional styles to add to the button */
+    style?: StyleProp<ViewStyle>;
+
+    /** Additional styles to add to the dropdown button's wrapper */
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 type ApprovalOption = {
@@ -113,9 +139,18 @@ function ExpenseHeaderApprovalButton({
     onApprove,
     anchorAlignment,
     moneyRequestReport,
+    transactions,
     shouldShowPayButton,
     isDisabled,
     shouldShowMarkAsDoneCopy,
+    isLoading,
+    size,
+    shouldUseShortForm,
+    isNested,
+    stayNormalOnDisable,
+    style,
+    wrapperStyle,
+    sentryLabel = CONST.SENTRY_LABEL.REPORT_PREVIEW.APPROVE_BUTTON,
 }: ExpenseHeaderApprovalButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -124,8 +159,6 @@ function ExpenseHeaderApprovalButton({
 
     const shouldShowDropdown = isAnyTransactionOnHold && !isDelegateAccessRestricted;
 
-    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
-    const transactions = Object.values(reportTransactions);
     if (shouldShowDropdown) {
         const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
         const approvalOptions = getApprovalDropdownOptions({
@@ -156,7 +189,13 @@ function ExpenseHeaderApprovalButton({
                 // edge — the menu would otherwise be clamped to the window edge and cover the header. Flip instead.
                 shouldSwitchPositionIfOverflow
                 isDisabled={isDisabled}
-                sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.APPROVE_BUTTON}
+                isLoading={isLoading}
+                size={size}
+                shouldUseShortForm={shouldUseShortForm}
+                stayNormalOnDisable={stayNormalOnDisable}
+                style={style}
+                wrapperStyle={wrapperStyle}
+                sentryLabel={sentryLabel}
             />
         );
     }
@@ -165,8 +204,13 @@ function ExpenseHeaderApprovalButton({
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => onApprove(true)}
-            sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.APPROVE_BUTTON}
+            sentryLabel={sentryLabel}
             isDisabled={isDisabled}
+            isLoading={isLoading}
+            size={size}
+            isNested={isNested}
+            stayNormalOnDisable={stayNormalOnDisable}
+            style={style}
         >
             <Button.Text>{shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve')}</Button.Text>
         </Button>

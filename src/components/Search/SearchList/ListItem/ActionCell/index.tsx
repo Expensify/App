@@ -20,6 +20,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
 import actionTranslationsMap from './actionTranslationsMap';
+import ApproveActionCell from './ApproveActionCell';
 import PayActionCell from './PayActionCell';
 
 type ActionCellProps = {
@@ -79,6 +80,20 @@ function ActionCell({
                 shouldUseDefaultHover={!isChildListItem}
                 isNested
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_VIEW}
+            />
+        );
+    }
+
+    if (action === CONST.SEARCH.ACTION_TYPES.APPROVE) {
+        return (
+            <ApproveActionCell
+                isLoading={isLoading}
+                policyID={policyID}
+                reportID={reportID}
+                hash={hash}
+                extraSmall={extraSmall}
+                shouldDisablePointerEvents={shouldDisablePointerEvents}
+                chatReport={chatReport}
             />
         );
     }

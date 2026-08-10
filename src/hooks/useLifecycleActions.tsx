@@ -41,6 +41,7 @@ import type {ActionHandledType} from './useHoldMenuSubmit';
 
 import useConfirmModal from './useConfirmModal';
 import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
@@ -99,6 +100,8 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const delegateAccountID = useDelegateAccountID();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+
+    const {convertToDisplayString} = useCurrencyListActions();
 
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
@@ -220,6 +223,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
               shouldShowPayButton,
               illustrations: expensifyIcons,
               transactions,
+              convertToDisplayString,
           })
         : undefined;
     const approvalOptionsHeaderText = hasOnlyHeldExpenses ? translate('iou.confirmApprovalAllHoldAmount') : translate('iou.confirmApprovalWithHeldAmount');
@@ -236,6 +240,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
               shouldShowPayButton,
               illustrations: expensifyIcons,
               transactions,
+              convertToDisplayString,
           })
         : undefined;
 

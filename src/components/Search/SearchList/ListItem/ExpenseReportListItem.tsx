@@ -16,7 +16,6 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHoldMenuModal from '@hooks/useHoldMenuModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -31,10 +30,10 @@ import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
-import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasVisibleViolations} from '@libs/SearchUIUtils';
 import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
-import {isOnHold, isViolationDismissed, shouldShowViolation, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {isViolationDismissed, shouldShowViolation, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -214,7 +213,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {showConfirmModal} = useConfirmModal();
-    const {showHoldMenu} = useHoldMenuModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
     const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
@@ -258,30 +256,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
-            onHoldMenuOpen: (holdItem, requestType, paymentType) => {
-                // Search rows render from a snapshot; the report may not exist in the main
-                // collection yet. Fall back to the snapshot so the modal can submit.
-                const moneyRequestReport = parentReport ?? snapshotReport;
-                const transactionsForHoldMenu = liveReportTransactions.length > 0 ? liveReportTransactions : holdItem.transactions;
-                const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(
-                    moneyRequestReport,
-                    holdItem.canPay ?? false,
-                    transactionsForHoldMenu,
-                    convertToDisplayString,
-                );
-                const hasNonHeldExpenses = transactionsForHoldMenu.some((t) => !isOnHold(t));
-                showHoldMenu({
-                    reportID: holdItem.reportID,
-                    chatReportID: holdItem.parentReportID,
-                    moneyRequestReport,
-                    chatReport,
-                    paymentType,
-                    nonHeldAmount: hasNonHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
-                    fullAmount,
-                    hasNonHeldExpenses,
-                    transactionCount: transactionsForHoldMenu.length > 0 ? transactionsForHoldMenu.length : (holdItem.transactionCount ?? 0),
-                });
-            },
             ownerBillingGracePeriodEnd,
             amountOwed,
             openReportSubmitToPopover,
@@ -314,15 +288,12 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         snapshotPolicy,
         submitterLogin,
         parentPolicy,
-        parentReport,
         lastPaymentMethod,
         userBillingGracePeriodEnds,
         personalPolicyID,
         currentSearchKey,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
-        showHoldMenu,
-        liveReportTransactions,
         ownerBillingGracePeriodEnd,
         amountOwed,
         openReportSubmitToPopover,
@@ -330,7 +301,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         consumeIgnoreNextSearchSubmitPress,
         showConfirmModal,
         translate,
-        convertToDisplayString,
         currentUserAccountID,
         currentUserLogin,
         introSelected,
