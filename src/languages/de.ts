@@ -5980,6 +5980,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             settlementFrequencyDescription: 'Wählen Sie, wie oft Sie den Saldo Ihrer Expensify Karte begleichen.',
             settlementFrequencyInfo:
                 'Wenn du zur monatlichen Abrechnung wechseln möchtest, musst du dein Bankkonto über Plaid verbinden und eine positive Kontohistorie der letzten 90 Tage haben.',
+            monthlySettlementDate: (date) => `Abrechnung am ${date} jedes Monats.`,
             applyCashbackToBill: 'Cashback auf meine Expensify-Rechnung anwenden',
             applyCashbackToBillDescription: 'Das Cashback von der Expensify-Karte wird zur Begleichung deiner Expensify-Rechnung verwendet.',
             frequency: {
