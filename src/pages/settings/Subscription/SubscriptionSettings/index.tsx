@@ -33,7 +33,6 @@ import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getSubscriptionPrice, isSubscriptionTypeOfInvoicing, shouldUseSimplifiedCollectSubscriptionUI} from '@libs/SubscriptionUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import Navigation from '@navigation/Navigation';
 
@@ -231,8 +230,7 @@ function SubscriptionSettings() {
     }
 
     if (!privateSubscription) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SubscriptionSettings', privateSubscriptionLoaded: false};
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
