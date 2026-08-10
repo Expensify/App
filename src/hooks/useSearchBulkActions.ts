@@ -406,7 +406,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     } = usePaymentContext();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const selfDMReport = useSelfDMReport();
@@ -489,6 +488,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'QBDSquare',
         'CertiniaSquare',
         'RilletSquare',
+        'DualEntrySquare',
         'GustoSquare',
         'Pencil',
         'Workflows',
@@ -952,7 +952,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             const reportPolicy = getPolicyFromSearchSnapshot(expenseReport.policyID, searchData, policies);
-            const nextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`];
             const hasViolations = hasViolationsReportUtils(reportID, allTransactionViolations, accountID, email ?? '');
             const policyToUpgrade = reportPolicy;
             const wouldNavigateToUpgrade = isSubmitPolicy(policyToUpgrade) && !!policyToUpgrade?.id;
@@ -966,7 +965,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 currentUserEmailParam: email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: nextStep,
                 betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
@@ -1009,7 +1007,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         email,
         searchResults?.data,
         allReports,
-        allNextSteps,
         allTransactionViolations,
         isBetaEnabled,
         betas,
@@ -1328,7 +1325,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                 const chatReportPolicy = getPolicyFromSearchSnapshot(chatReport.policyID, searchData, policies);
                 const reportPolicy = workspacePayPolicy ?? getPolicyFromSearchSnapshot(item.policyID, searchData, policies);
-                const nextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.reportID}`];
                 const additionalOnyxData = getSearchPayOnyxData(hash, item.reportID, currentSearchKey);
                 const isItemInvoice = isInvoiceReport(item.reportID);
 
@@ -1349,7 +1345,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
                         chatReport,
                         invoiceReport: iouReport,
-                        invoiceReportCurrentNextStepDeprecated: nextStep,
                         introSelected,
                         currentUserAccountIDParam: accountID,
                         currentUserEmailParam: email ?? '',
@@ -1378,7 +1373,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     chatReport,
                     iouReport,
                     introSelected,
-                    iouReportCurrentNextStepDeprecated: nextStep,
                     currentUserAccountID: accountID,
                     currentUserLogin: currentUserLogin ?? '',
                     activePolicy,
@@ -1420,7 +1414,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             showDelegateNoAccessModal,
             allReports,
             allReportActions,
-            allNextSteps,
             personalPolicyID,
             lastPaymentMethods,
             allTransactions,
@@ -1702,10 +1695,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     if (areAnyReportsExported) {
                         showConfirmModal({
                             title: translate('workspace.exportAgainModal.title'),
-                            prompt: translate('workspace.exportAgainModal.description', {
-                                connectionName: connectedIntegration,
-                                reportName: exportedReportNames.join('\n'),
-                            }),
+                            prompt: translate('workspace.exportAgainModal.description', exportedReportNames.join('\n'), connectedIntegration),
                             confirmText: translate('workspace.exportAgainModal.confirmText'),
                             cancelText: translate('workspace.exportAgainModal.cancelText'),
                             shouldEnablePromptScroll: true,
@@ -2217,7 +2207,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         text: translate('common.merge'),
                         icon: expensifyIcons.ArrowCollapse,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, getCurrencyDecimals, reports, false, true),
+                        onSelected: () =>
+                            setupMergeTransactionDataAndNavigate(
+                                transactionID,
+                                searchedTransactions,
+                                localeCompare,
+                                getCurrencyDecimals,
+                                reports,
+                                false,
+                                true,
+                                undefined,
+                                accountID,
+                                personalDetails,
+                            ),
                     });
                 }
             }
