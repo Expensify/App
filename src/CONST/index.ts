@@ -3873,6 +3873,12 @@ const CONST = {
         BANK_ACCOUNT: 'bankAccountID',
     },
 
+    /** The payment method a payee still has to set up before a queued payment can settle */
+    MISSING_PAYMENT_METHODS: {
+        BANK_ACCOUNT: 'bankAccount',
+        WALLET: 'wallet',
+    },
+
     IOU: {
         MAX_RECENT_REPORTS_TO_SHOW: 5,
         MAX_RECENT_ATTENDEES: 40,
