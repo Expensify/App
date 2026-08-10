@@ -23,8 +23,8 @@ function HomeAddressRequiredContent({action}: HomeAddressRequiredContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    // The prompt is resolved once the member saves a home address; the backend clears the actionable state and
-    // stamps a resolution, so hide the CTA to avoid pointing at an already-completed task.
+    // The prompt is resolved once the member saves a home address. The backend clears the actionable state
+    // and stamps a resolution, so hide the CTA to avoid pointing at a task that is already done.
     const isResolved = !!getOriginalMessage(action)?.resolution;
 
     return (

@@ -580,7 +580,7 @@ function setPolicyCommuterExclusions(
         ],
     };
 
-    // Only send distance when the server actually needs it; homeAndOffice ignores the field.
+    // Only send distance when the server actually needs it. HomeAndOffice ignores the field.
     const parameters: SetPolicyCommuterExclusionsParams =
         method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE ? {policyID, commuterExclusionMethod: method, distance: fixedDistance} : {policyID, commuterExclusionMethod: method};
     API.write(WRITE_COMMANDS.SET_POLICY_COMMUTER_EXCLUSIONS, parameters, onyxData);
