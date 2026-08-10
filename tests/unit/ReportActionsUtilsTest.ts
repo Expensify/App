@@ -53,6 +53,7 @@ import {
     getSendMoneyFlowAction,
     getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
+    getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     hasNextActionMadeBySameActor,
@@ -3991,6 +3992,38 @@ describe('ReportActionsUtils', () => {
             } as ReportAction;
             const result = getUnassignedCompanyCardMessage(translateLocal, action);
             expect(result).toBe('unassigned user@example.com "US Bank" company card ending in 5678');
+        });
+    });
+
+    describe('getUpdatedAutoHarvestingMessage', () => {
+        it('should return enabled message when submissions is enabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    value: true,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getUpdatedAutoHarvestingMessage(translateLocal, action);
+            expect(result).toBe('enabled submissions');
+        });
+
+        it('should return disabled message when submissions is disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    value: false,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getUpdatedAutoHarvestingMessage(translateLocal, action);
+            expect(result).toBe('disabled submissions');
         });
     });
 

@@ -52,8 +52,6 @@ import SearchTableHeader from './SearchTableHeader';
 const STATIC_LIST_MAX_ITEMS = 10;
 const DEFAULT_COLUMNS: SearchColumnType[] = [];
 
-const PENDING_EXPENSE_REASON_ATTRIBUTES = {context: 'SearchStaticList.PendingExpensePlaceholder'} as const;
-
 type SearchStaticListProps = {
     searchResults: SearchResults | undefined;
     queryJSON: SearchQueryJSON;
@@ -79,7 +77,7 @@ function SearchStaticList({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const session = useSession();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
@@ -142,6 +140,7 @@ function SearchStaticList({
             // They're only used for guided-setup onboarding data, which is gated behind introSelected/onboarding checks
             // that won't apply here - the user has already completed onboarding if they're submitting expenses.
             createAndOpenSearchTransactionThread({
+                getCurrencyDecimals,
                 item,
                 introSelected: undefined,
                 backTo,
@@ -314,8 +313,6 @@ function SearchStaticList({
         onLayoutProp?.();
     };
 
-    const pendingExpenseReasonAttributes = PENDING_EXPENSE_REASON_ATTRIBUTES;
-
     if (sortedData.length === 0 && showPendingExpensePlaceholder) {
         return (
             <View
@@ -326,7 +323,6 @@ function SearchStaticList({
                     shouldAnimate
                     fixedNumItems={1}
                     containerStyle={contentContainerStyle}
-                    reasonAttributes={pendingExpenseReasonAttributes}
                 />
             </View>
         );
@@ -387,7 +383,6 @@ function SearchStaticList({
                             shouldAnimate
                             fixedNumItems={1}
                             isLoadMore
-                            reasonAttributes={pendingExpenseReasonAttributes}
                         />
                     ) : undefined
                 }

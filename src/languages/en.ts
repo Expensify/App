@@ -321,6 +321,7 @@ const translations = {
         billable: 'Billable',
         nonBillable: 'Non-billable',
         tag: 'Tag',
+        violations: 'Violations',
         receipt: 'Receipt',
         verified: 'Verified',
         replace: 'Replace',
@@ -330,6 +331,7 @@ const translations = {
         miles: 'miles',
         kilometer: 'kilometer',
         kilometers: 'kilometers',
+        commuter: 'commuter',
         recent: 'Recent',
         all: 'All',
         am: 'AM',
@@ -346,6 +348,8 @@ const translations = {
         automatic: 'Automatic',
         showing: 'Showing',
         of: 'of',
+        // @context Carousel pagination counter showing the current item's position out of the total (e.g. "3 of 50").
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} of ${total}`,
         default: 'Default',
         update: 'Update',
         member: 'Member',
@@ -574,6 +578,7 @@ const translations = {
         attachmentError: 'Attachment error',
         errorWhileSelectingAttachment: 'An error occurred while selecting an attachment. Please try again.',
         errorWhileSelectingCorruptedAttachment: 'An error occurred while selecting a corrupted attachment. Please try another file.',
+        errorWhileConvertingHeic: "We couldn't process this image. Please try again, or upload the photo in a different format.",
         takePhoto: 'Take photo',
         chooseFromGallery: 'Choose from gallery',
         chooseDocument: 'Choose file',
@@ -1001,6 +1006,10 @@ const translations = {
                 subtitle: 'Account > Subscription',
                 cta: 'Add',
             },
+            addBankAccount: {
+                // @context Home reminder shown to a payment recipient when a reimbursement is waiting for them to add a personal deposit account.
+                title: 'Add a bank account to get reimbursed',
+            },
             activateCard: {
                 title: 'Activate your Expensify Card',
                 subtitle: 'Validate your card and start spending.',
@@ -1151,6 +1160,10 @@ const translations = {
                 other: (count: number) => `In ${count} days`,
             }),
             today: 'Today',
+        },
+        insightsSection: {
+            chartUnavailable: 'Chart unavailable',
+            notEnoughData: 'We don’t have enough data to populate this chart yet',
         },
     },
     allSettingsScreen: {
@@ -2295,6 +2308,18 @@ const translations = {
         signOut: 'Sign out',
         restoreStashed: 'Restore stashed login',
         signOutConfirmationText: "You'll lose any offline changes if you sign out.",
+        saveReceiptsConfirmation: {
+            title: 'Save your receipts?',
+            prompt: ({count}: {count: number}) =>
+                `You have ${count} ${count === 1 ? 'receipt' : 'receipts'} still uploading. Sign out now and we'll save ${count === 1 ? 'it' : 'them'} to your photos so you can add ${count === 1 ? 'it' : 'them'} to a new expense later.`,
+            confirm: 'Save and sign out',
+        },
+        saveReceiptsAndSignOutConfirmation: {
+            title: 'Save your receipts?',
+            prompt: ({count}: {count: number}) =>
+                `You have ${count} ${count === 1 ? 'receipt' : 'receipts'} still uploading. Sign out now and we'll save ${count === 1 ? 'it' : 'them'} to your photos so you can add ${count === 1 ? 'it' : 'them'} to a new expense later. You'll lose any other offline changes.`,
+            confirm: 'Save and sign out',
+        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Read the <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Terms of Service</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.`,
         help: 'Help',
@@ -4289,6 +4314,8 @@ const translations = {
         proofOf: 'Proof of personal address',
         enterOneEmail: (companyName: string) => `Enter the email of a director at ${companyName}`,
         regulationRequiresOneMoreDirector: 'Regulation requires at least one more director as a signer.',
+        bothSignersMustBeOnIllionReport: "Both signers must be listed as directors on the company's illion report. They can't be any two people at the business.",
+        signerMustBeOnIllionReport: "The director you add as a signer must be listed on the company's illion report.",
         hangTight: 'Hang tight...',
         enterTwoEmails: (companyName: string) => `Enter the emails of two directors at ${companyName}`,
         sendReminder: 'Send a reminder',
@@ -4299,11 +4326,11 @@ const translations = {
         proofOfDirectorsDescription: 'Examples: Oncorp Corporate Profile or Business Registration.',
         codiceFiscale: 'Codice Fiscale',
         codiceFiscaleDescription: 'Codice Fiscale for Signatories, Authorized Users and Beneficial Owners.',
-        PDSandFSG: 'PDS + FSG disclosure paperwork',
+        PDSandFSG: 'PDS, FSG + TMD disclosure paperwork',
         PDSandFSGDescription: Str.dedent(`
-            Our partnership with Corpay utilizes an API connection to take advantage of their vast network of international banking partners to power Global Reimbursements in Expensify. As per Australian regulation we are providing you with Corpay's Financial Services Guide (FSG) and Product Disclosure Statement (PDS).
+            Our partnership with Corpay utilizes an API connection to take advantage of their vast network of international banking partners to power Global Reimbursements in Expensify. As per Australian regulation we are providing you with Corpay's Financial Services Guide (FSG), Product Disclosure Statement (PDS) and Target Market Determination (TMD).
 
-            Please read the FSG and PDS documents carefully as they contain full details and important information on the products and services Corpay offers. Retain these documents for future reference.
+            Please read the FSG, PDS and TMD documents carefully as they contain full details and important information on the products and services Corpay offers. Retain these documents for future reference.
         `),
         pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a director of the business.',
         enterSignerInfo: 'Enter signer info',
@@ -4315,6 +4342,8 @@ const translations = {
         },
     },
     agreementsStep: {
+        bankStatement: 'Bank statement',
+        bankStatementDescription: "Please provide a recent bank statement, dated within the last three months, for the business bank account you're connecting.",
         agreements: 'Agreements',
         pleaseConfirm: 'Please confirm the agreements below',
         regulationRequiresUs: 'Regulation requires us to verify the identity of any individual who owns more than 25% of the business.',
@@ -4323,7 +4352,7 @@ const translations = {
         iAcceptTheTermsAndConditions: `I accept the <a href="https://www.corpay.com/cross-border/terms">terms and conditions</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'I accept the terms and conditions.',
         accept: 'Accept and add bank account',
-        iConsentToThePrivacyNotice: 'I consent to the <a href="https://payments.corpay.com/compliance">privacy notice</a>.',
+        iConsentToThePrivacyNotice: 'I consent to the <a href="https://www.corpay.com/privacy-policy">privacy notice</a>.',
         iConsentToThePrivacyNoticeAccessibility: 'I consent to the privacy notice.',
         error: {
             authorized: 'You must be a controlling officer with authorization to operate the business bank account',
@@ -5743,10 +5772,10 @@ const translations = {
                     },
                 },
             },
-            exportCompanyCard: {
+            exportNonReimbursable: {
                 label: 'Export company card expenses as',
                 values: {
-                    [CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {
+                    [CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE]: {
                         label: 'Credit cards',
                     },
                 },
@@ -5817,6 +5846,16 @@ const translations = {
                 label: 'Travel Invoicing settlement account',
                 description: "Choose your settlement account and we'll create the payment in Rillet.",
             },
+        },
+        dualEntry: {
+            dualEntrySetup: 'DualEntry setup',
+            enterCredentials: 'Enter your DualEntry API key',
+            howToFindAPIKey:
+                '<strong>Finding your API key.</strong><ol><li>Log in to DualEntry</li><li>Navigate to [organization name] -> Settings -> Developer access -> API keys</li><li>Create API key</li><li>Paste the API key below</li></ol>',
+            subsidiary: 'Subsidiary',
+            subsidiarySelectDescription: "Choose the subsidiary in DualEntry that you'd like to import data from.",
+            noCompaniesFound: 'No companies found',
+            noCompaniesFoundDescription: 'Please add a company in DualEntry and sync the connection again',
         },
         type: {
             free: 'Free',
@@ -6836,6 +6875,7 @@ const translations = {
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             rillet: 'Rillet',
+            dualEntry: 'DualEntry',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6855,6 +6895,8 @@ const translations = {
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
+                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+                        return 'DualEntry';
                     default: {
                         return '';
                     }
@@ -7064,6 +7106,12 @@ const translations = {
                         case 'rilletSyncConnection':
                             return 'Initializing connection to Rillet';
                         case 'rilletSyncImportData':
+                            return 'Loading data';
+                        case 'dualEntrySyncTitle':
+                            return 'Syncing DualEntry data';
+                        case 'dualEntrySyncConnection':
+                            return 'Initializing connection to DualEntry';
+                        case 'dualEntrySyncImportData':
                             return 'Loading data';
                         default: {
                             return `Translation missing for stage: ${stage}`;
@@ -7420,6 +7468,12 @@ const translations = {
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Our QuickBooks Desktop integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                title: 'Intuit Enterprise Suite',
+                description: `Connect Intuit Enterprise Suite to Expensify to automatically sync your accounting data and reduce manual entries.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Our Intuit Enterprise Suite integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 title: 'Certinia',
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + Certinia integration. Align expense coding dimensions and tax sync with your Certinia setup for clearer financial visibility.`,
@@ -7431,6 +7485,12 @@ const translations = {
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + Rillet integration. Align expense coding dimensions and tax sync with your Rillet setup for clearer financial visibility.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Our Rillet integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                title: 'DualEntry',
+                description: `Enjoy automated syncing and reduce manual entries with the Expensify + DualEntry integration. Align expense coding dimensions and tax sync with your DualEntry setup for clearer financial visibility.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Our DualEntry integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Advanced Approvals',
@@ -8656,18 +8716,9 @@ const translations = {
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removed "${prohibitedExpense}" from prohibited expenses`,
         commuterExclusions: {
             changedToFixedDistance: 'changed exclude commutes to a fixed distance per claim',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'mile' : 'miles';
-                } else {
-                    unitLabel = isSingular ? 'kilometer' : 'kilometers';
-                }
-                return `set fixed distance exclusion to ${distance} ${unitLabel} per claim`;
-            },
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `changed fixed distance exclusion to ${newDistance} ${unit} per claim (previously ${oldDistance} ${unit})`,
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `set fixed distance exclusion to ${formattedDistance} per claim`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `changed fixed distance exclusion to ${formattedNewDistance} per claim (previously ${formattedOldDistance})`,
             disabled: 'disabled exclude commutes for distance rates',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
@@ -8677,7 +8728,7 @@ const translations = {
         updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) => `changed custom report name formula to "${newDefaultTitle}" (previously "${oldDefaultTitle}")`,
 
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `took over ownership of ${policyName} from ${oldOwnerName} (${oldOwnerEmail})`,
-        updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'enabled' : 'disabled'} scheduled submit`,
+        updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'enabled' : 'disabled'} submissions`,
 
         // This function requires 11 params to match the budget notification data model; reducing further would hurt readability
         // eslint-disable-next-line @typescript-eslint/max-params
@@ -8976,6 +9027,7 @@ const translations = {
             topSpenders: 'Top spenders',
             topCategories: 'Top categories',
             topMerchants: 'Top merchants',
+            violationsBySubmitter: 'Violations by submitter',
         },
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
@@ -9561,6 +9613,7 @@ const translations = {
             title: 'Enable Personal Karma',
             description: 'Donate $1 to Expensify.org for every $500 you spend each month',
             stopDonationsPrompt: 'Are you sure you want to stop donating to Expensify.org?',
+            managePreferencesFromWeb: 'Manage your personal karma preferences from web',
         },
         getInTouch: 'Excellent! Please share their information so we can get in touch with them.',
         introSchoolPrincipal: 'Intro to your school principal',
@@ -9606,6 +9659,16 @@ const translations = {
         },
         error: {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
+            mapOrGpsDistanceRequired: {
+                title: 'Map or GPS distance required',
+                description: 'This workspace requires either map-based or GPS-tracked distance expenses.',
+            },
+        },
+        commuterExclusion: {
+            original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Removed ${distance} commuter ${unit}`,
+            systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
+                `Removed ${distance} commuter ${unit} based on ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">workspace distance settings</a>` : 'workspace distance settings'}.`,
         },
         odometer: {
             startReading: 'Start reading',
@@ -9926,6 +9989,57 @@ const translations = {
         resolvedDuplicates: 'resolved the duplicate',
         companyCardRequired: 'Company card purchases required',
         noRoute: 'Please select a valid address',
+        /**
+         * Parameter-free labels for submitted violations shown in Search table columns.
+         * Prefer these over sibling `violations.*` keys when violation data/context is unavailable.
+         */
+        shortName: {
+            allTagLevelsRequired: 'All tags required',
+            autoReportedRejectedExpense: 'Expense rejected',
+            billableExpense: 'Billable no longer valid',
+            cashExpenseWithNoReceipt: 'Receipt required',
+            categoryOutOfPolicy: 'Category no longer valid',
+            companyCardRequired: 'Company card required',
+            conversionSurcharge: 'Conversion surcharge applied',
+            customUnitOutOfPolicy: 'Rate not valid for workspace',
+            customUnitRateOutOfDateRange: 'Rate outside valid dates',
+            duplicatedTransaction: 'Potential duplicate',
+            fieldRequired: 'Report field required',
+            futureDate: 'Future date not allowed',
+            hold: 'Expense on hold',
+            inactiveVendor: 'Vendor no longer valid',
+            increasedDistance: 'Distance exceeds route',
+            invoiceMarkup: 'Invoice marked up',
+            itemizedReceiptRequired: 'Itemized receipt required',
+            maxAge: 'Expense too old',
+            missingAttendees: 'Attendees required',
+            missingCategory: 'Missing category',
+            missingComment: 'Description required',
+            missingTag: 'Missing tag',
+            modifiedAmount: 'Amount modified',
+            modifiedDate: 'Date modified',
+            noRoute: 'No valid route',
+            nonExpensiworksExpense: 'Non-Expensiworks expense',
+            overAutoApprovalLimit: 'Over auto-approval limit',
+            overCategoryLimit: 'Over category limit',
+            overLimit: 'Over limit',
+            overTripLimit: 'Over trip limit',
+            perDayLimit: 'Over daily limit',
+            prohibitedExpense: 'Prohibited expense',
+            receiptGeneratedWithAI: 'Possible AI-generated receipt',
+            receiptNotSmartScanned: 'Receipt added manually',
+            receiptRequired: 'Receipt required',
+            rter: 'Awaiting card match',
+            smartscanFailed: 'Receipt scanning failed',
+            someTagLevelsRequired: 'Tag required',
+            tagOutOfPolicy: 'Tag no longer valid',
+            overLimitAttendee: 'Over person limit',
+            customRules: 'Custom rule violation',
+            taxAmountChanged: 'Tax amount modified',
+            taxOutOfPolicy: 'Tax rate no longer valid',
+            taxRateChanged: 'Tax rate modified',
+            taxRequired: 'Missing tax rate',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is required`,

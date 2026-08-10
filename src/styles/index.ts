@@ -951,7 +951,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonCTAIcon: {
-            marginRight: 22,
+            marginRight: 18,
             marginLeft: 8,
             // Align vertically with the Button text
             paddingBottom: 1,
@@ -2153,13 +2153,6 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.heading,
         },
 
-        sidebarLinkActiveText: {
-            color: theme.textSupporting,
-            fontSize: variables.fontSizeNormal,
-            textDecorationLine: 'none',
-            overflow: 'hidden',
-        },
-
         optionItemAvatarNameWrapper: {
             minWidth: 0,
             flex: 1,
@@ -2806,6 +2799,17 @@ const staticStyles = (theme: ThemeColors) =>
 
         htmlTableLastRow: {
             borderBottomWidth: 0,
+        },
+
+        // A step past the hover background the surrounding comment uses, so a hovered row stays distinguishable
+        // while the whole comment is also highlighted.
+        htmlTableRowHovered: {
+            backgroundColor: theme.activeComponentBG,
+        },
+
+        htmlTableChevronCell: {
+            width: variables.htmlTableChevronColumnWidth,
+            alignItems: 'flex-end',
         },
 
         htmlTableCell: {
@@ -6476,6 +6480,11 @@ const staticStyles = (theme: ThemeColors) =>
         securitySettingsStaticIllustration: {
             width: 112,
             height: 160,
+        },
+        commuterExclusionStaticIllustration: {
+            width: 160,
+            height: 140,
+            alignSelf: 'center',
         },
         helpStaticIllustration: {
             width: 174,
