@@ -333,7 +333,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
@@ -438,7 +438,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
@@ -543,7 +543,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
@@ -661,7 +661,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
@@ -766,7 +766,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
@@ -847,7 +847,7 @@ describe('PerDiem', () => {
                 betas,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
@@ -936,7 +936,7 @@ describe('PerDiem', () => {
                 betas,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
@@ -1039,7 +1039,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
@@ -1110,7 +1110,7 @@ describe('PerDiem', () => {
                 betas,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
