@@ -1,3 +1,4 @@
+// cspell:ignore Kiritimati
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
