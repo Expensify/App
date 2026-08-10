@@ -79,6 +79,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
             afterTransition: () => {
                 if (report && isIOUReport(report)) {
                     convertBulkTrackedExpensesToIOU({
+                        getCurrencyDecimals,
                         transactions,
                         iouReport: report,
                         chatReport,

@@ -1604,6 +1604,8 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1671,6 +1673,8 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1730,6 +1734,8 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1782,6 +1788,8 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1834,6 +1842,8 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1889,6 +1899,8 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -1954,6 +1966,8 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2004,6 +2018,8 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2048,6 +2064,8 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2095,6 +2113,8 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2148,6 +2168,8 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2216,6 +2238,8 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2285,6 +2309,8 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2337,6 +2363,8 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2400,6 +2428,8 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -2428,7 +2458,7 @@ describe('actions/Duplicate', () => {
     describe('resolveDuplicate', () => {
         test('Resolving duplicates of two transaction by keeping one of them should properly set the other one on hold even if the transaction thread reports do not exist in onyx', () => {
             // Given two duplicate transactions
-            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal);
             const transaction1 = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -2457,6 +2487,7 @@ describe('actions/Duplicate', () => {
                         comment: '',
                         participants: [],
                         transactionID: transaction.transactionID,
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
                     }),
                 );
             }
@@ -2578,6 +2609,7 @@ describe('actions/Duplicate', () => {
             delegateAccountID: undefined,
             formatPhoneNumber,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            participantsPolicyTags: {},
             ...overrides,
         });
 
@@ -3149,6 +3181,8 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();

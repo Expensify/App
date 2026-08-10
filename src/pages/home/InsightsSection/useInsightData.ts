@@ -83,6 +83,8 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
             isOffline,
             isLoading: false,
             shouldUpdateLastSearchParams: false,
+            // The query is a static canned search, so it doesn't need anything OpenApp delivers. Don't sit behind it.
+            skipWaitForWrites: true,
         });
     };
 
