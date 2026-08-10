@@ -39,8 +39,23 @@ const LOCALIZED_TOKENS = [
     {token: 'a', label: 'a (AM/PM)'},
 ];
 
-/** date-fns entry points that take a format string and accept a `locale` option. */
-const FORMATTERS = new Set(['format', 'formatInTimeZone', 'formatInTimeZoneWithFallback', 'tzFormat', 'formatDate', 'dateFnsFormat']);
+/** Marks a format this rule cannot resolve but must still treat as localized. */
+const UNKNOWN_LOCALIZED = '\u0000unknown-localized';
+
+/** date-fns exports that take a format string and accept a `locale` option, mapped to the index of the format argument. */
+const FORMATTER_FORMAT_ARG_INDEX = {format: 1, formatInTimeZone: 2};
+
+/** Local wrappers around those exports, which keep the same argument order. */
+const LOCAL_FORMATTER_FORMAT_ARG_INDEX = {formatInTimeZoneWithFallback: 2};
+
+/** date-fns modules whose `format` exports this rule follows through import aliases. */
+const DATE_FNS_MODULES = new Set(['date-fns', 'date-fns-tz']);
+
+/**
+ * `CONST.DATE.*` formats with no language-dependent tokens. Anything else in `CONST.DATE` is treated as localized, so a
+ * newly added format is guarded by default rather than silently escaping this rule.
+ */
+const MACHINE_DATE_CONSTANTS = new Set(['FNS_FORMAT_STRING', 'FNS_DATE_TIME_FORMAT_STRING', 'FNS_DB_FORMAT_STRING', 'FNS_TIMEZONE_FORMAT_STRING', 'YEAR_MONTH_FORMAT', 'SHORT_DATE_FORMAT']);
 
 /**
  * Strips the single-quoted escaped literals date-fns supports (e.g. the "T" in `yyyy-MM-dd'T'HH:mm`)
@@ -79,27 +94,27 @@ function findLocalizedTokens(pattern) {
  * Returns null when the pattern cannot be determined statically.
  *
  * @param {import('estree').Node} node
- * @param {Record<string, string>} dateConstants
  * @returns {string | null}
  */
-function resolvePattern(node, dateConstants) {
+function resolvePattern(node) {
     if (!node) {
         return null;
     }
     if (node.type === 'Literal' && typeof node.value === 'string') {
         return node.value;
     }
-    // `CONST.DATE.MONTH_DAY_YEAR_FORMAT`
+    // `CONST.DATE.MONTH_DAY_YEAR_FORMAT`. Unknown names fall through to UNKNOWN_LOCALIZED so that a format added to
+    // CONST.DATE later is guarded by default rather than silently skipped.
     if (node.type === 'MemberExpression' && !node.computed && node.property.type === 'Identifier') {
         const {object} = node;
         if (object.type === 'MemberExpression' && !object.computed && object.property.type === 'Identifier' && object.property.name === 'DATE') {
-            return dateConstants[node.property.name] ?? null;
+            return MACHINE_DATE_CONSTANTS.has(node.property.name) ? '' : UNKNOWN_LOCALIZED;
         }
     }
     // `isPastYear ? A : B` — flag if either branch is localized.
     if (node.type === 'ConditionalExpression') {
-        const consequent = resolvePattern(node.consequent, dateConstants);
-        const alternate = resolvePattern(node.alternate, dateConstants);
+        const consequent = resolvePattern(node.consequent);
+        const alternate = resolvePattern(node.alternate);
         if (consequent === null && alternate === null) {
             return null;
         }
@@ -109,13 +124,20 @@ function resolvePattern(node, dateConstants) {
 }
 
 /**
+ * Whether an argument at or after the format position supplies a locale. Arguments before it are the date and time
+ * zone, so a variable merely named like a locale there must not count as one.
+ *
  * @param {import('estree').Node[]} args
- * @returns {boolean} whether any argument supplies a `locale`
+ * @param {number} formatArgIndex
+ * @returns {boolean}
  */
-function hasLocaleOption(args) {
-    return args.some((arg) => {
+function hasLocaleOption(args, formatArgIndex) {
+    return args.slice(formatArgIndex + 1).some((arg) => {
         if (arg.type === 'ObjectExpression') {
-            return arg.properties.some((property) => property.type === 'Property' && !property.computed && property.key.type === 'Identifier' && property.key.name === 'locale');
+            return arg.properties.some(
+                (property) =>
+                    (property.type === 'Property' && !property.computed && property.key.type === 'Identifier' && property.key.name === 'locale') || property.type === 'SpreadElement',
+            );
         }
         // A DateUtils helper takes the locale positionally, e.g. formatWithUTCTimeZone(date, format, dateFnsLocale).
         return arg.type === 'Identifier' && /locale/i.test(arg.name);
@@ -129,45 +151,51 @@ function hasLocaleOption(args) {
  * @returns {import('eslint').Rule.RuleListener}
  */
 function create(context) {
-    // CONST.DATE values are resolved from the settings so the rule can follow named formats.
-    const dateConstants = context.options.at(0)?.dateConstants ?? {
-        MONTH_FORMAT: 'MMMM',
-        WEEKDAY_TIME_FORMAT: 'eeee',
-        MONTH_DAY_ABBR_FORMAT: 'MMM d',
-        MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
-        MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
-        LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
-        MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
-        LOCAL_TIME_FORMAT: 'h:mm a',
-        ORDINAL_DAY_OF_MONTH: 'do',
-    };
+    // Local name -> index of the format argument, resolved from the imports so that aliases such as
+    // `import {format as timezoneFormat}` are still checked.
+    const formatters = new Map(Object.entries(LOCAL_FORMATTER_FORMAT_ARG_INDEX));
 
     return {
+        ImportDeclaration(node) {
+            if (!DATE_FNS_MODULES.has(node.source.value)) {
+                return;
+            }
+            for (const specifier of node.specifiers) {
+                if (specifier.type !== 'ImportSpecifier') {
+                    continue;
+                }
+                const formatArgIndex = FORMATTER_FORMAT_ARG_INDEX[specifier.imported.name];
+                if (formatArgIndex === undefined) {
+                    continue;
+                }
+                formatters.set(specifier.local.name, formatArgIndex);
+            }
+        },
         CallExpression(node) {
             const {callee} = node;
             let calleeName = null;
             if (callee.type === 'Identifier') {
                 calleeName = callee.name;
             } else if (callee.type === 'MemberExpression' && callee.property.type === 'Identifier') {
-                calleeName = callee.property.name;
+                // Member calls can only be the local wrappers; date-fns itself is imported by name.
+                calleeName = LOCAL_FORMATTER_FORMAT_ARG_INDEX[callee.property.name] === undefined ? null : callee.property.name;
             }
 
-            if (!calleeName || !FORMATTERS.has(calleeName)) {
+            const formatArgIndex = calleeName === null ? undefined : formatters.get(calleeName);
+            if (formatArgIndex === undefined) {
                 return;
             }
 
-            if (hasLocaleOption(node.arguments)) {
+            if (hasLocaleOption(node.arguments, formatArgIndex)) {
                 return;
             }
 
-            // The format string is the 2nd argument, except for formatInTimeZone(date, timeZone, format).
-            const isTimeZoneFormatter = calleeName === 'formatInTimeZone' || calleeName === 'formatInTimeZoneWithFallback';
-            const pattern = resolvePattern(node.arguments.at(isTimeZoneFormatter ? 2 : 1), dateConstants);
+            const pattern = resolvePattern(node.arguments.at(formatArgIndex));
             if (pattern === null) {
                 return;
             }
 
-            const tokens = findLocalizedTokens(pattern);
+            const tokens = pattern === UNKNOWN_LOCALIZED ? ['a format from CONST.DATE that may be localized'] : findLocalizedTokens(pattern);
             if (tokens.length === 0) {
                 return;
             }
