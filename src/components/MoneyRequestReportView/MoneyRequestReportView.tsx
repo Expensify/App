@@ -24,7 +24,6 @@ import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID} 
 import {getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import Navigation from '@navigation/Navigation';
 
@@ -52,8 +51,6 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 import {Animated, ScrollView, View} from 'react-native';
 
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
-
-const loadingAppReasonAttributes: SkeletonSpanReasonAttributes = {context: 'MoneyRequestReportView.isLoadingApp'};
 
 type MoneyRequestReportViewProps = {
     /** The report */
@@ -99,17 +96,14 @@ function goBackFromSearchMoneyRequest(options?: {afterTransition?: () => void}) 
     Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}), options);
 }
 
-function InitialLoadingSkeleton({styles, onLayout, reasonAttributes}: {styles: ThemeStyles; onLayout?: (event: LayoutChangeEvent) => void; reasonAttributes: SkeletonSpanReasonAttributes}) {
+function InitialLoadingSkeleton({styles, onLayout}: {styles: ThemeStyles; onLayout?: (event: LayoutChangeEvent) => void}) {
     return (
         <View
             style={[styles.flex1]}
             onLayout={onLayout}
         >
             <View style={[styles.appContentHeader, styles.borderBottom]}>
-                <ReportHeaderSkeletonView
-                    onBackButtonPress={() => {}}
-                    reasonAttributes={reasonAttributes}
-                />
+                <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
             </View>
             <ReportActionsSkeletonView />
         </View>
@@ -214,17 +208,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     useMarkOpenReportEndOnSkeleton(report, shouldShowOpenReportLoadingSkeleton);
 
     if (shouldShowOpenReportLoadingSkeleton) {
-        const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'MoneyRequestReportView.InitialLoadingSkeleton',
-            isReportLoadPending,
-            shouldWaitForTransactions,
-        };
-        return (
-            <InitialLoadingSkeleton
-                styles={styles}
-                reasonAttributes={skeletonReasonAttributes}
-            />
-        );
+        return <InitialLoadingSkeleton styles={styles} />;
     }
 
     if (reportActions.length === 0) {
@@ -238,7 +222,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     if (isAppLoadPending) {
         return (
             <View style={styles.flex1}>
-                <ReportHeaderSkeletonView reasonAttributes={loadingAppReasonAttributes} />
+                <ReportHeaderSkeletonView />
                 <ReportActionsSkeletonView />
                 {shouldDisplayReportFooter ? <ReportFooter /> : null}
             </View>
