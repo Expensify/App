@@ -13,7 +13,6 @@ import useTodoCounts from '@hooks/useTodoCounts';
 import {setHasSeenForYouTodo} from '@libs/actions/Todos';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import colors from '@styles/theme/colors';
 
@@ -40,7 +39,7 @@ function ForYouSection() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    const {shouldShowSkeleton: isInitialLoad, isAppLoadPending, hasLoadedApp, isLoadingHasLoadedApp, isColdRestartRecoveryFallback} = useAppLoadSkeletonState({isLoadingReportData});
+    const {shouldShowSkeleton: isInitialLoad} = useAppLoadSkeletonState({isLoadingReportData});
     const isFocused = useIsFocused();
     const {counts: reportCounts, singleReportIDs} = useTodoCounts(isFocused);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
@@ -188,15 +187,7 @@ function ForYouSection() {
 
     const renderContent = () => {
         if (isInitialLoad) {
-            const reasonAttributes: SkeletonSpanReasonAttributes = {
-                context: 'ForYouSection.ForYouSkeleton',
-                isAppLoadPending,
-                isLoadingReportData,
-                hasLoadedApp,
-                isLoadingHasLoadedApp,
-                isColdRestartRecoveryFallback,
-            };
-            return <ForYouSkeleton reasonAttributes={reasonAttributes} />;
+            return <ForYouSkeleton />;
         }
 
         return hasAnyTodos ? renderTodoItems() : <EmptyState />;

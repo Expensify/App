@@ -525,6 +525,8 @@ const WRITE_COMMANDS = {
     UPDATE_RILLET_SETTLEMENTS_ACCOUNT: 'UpdateRilletSettlementsAccount',
     UPDATE_RILLET_SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'UpdateRilletSyncTravelInvoicingSettlements',
     UPDATE_RILLET_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT: 'UpdateRilletTravelInvoicingSettlementsAccount',
+    CONNECT_POLICY_TO_DUALENTRY: 'ConnectPolicyToDualEntry',
+    UPDATE_DUALENTRY_SUBSIDIARY: 'UpdateDualEntrySubsidiary',
 
     SET_PROMO_CODE: 'User_SetPromoCode',
     REQUEST_TAX_EXEMPTION: 'RequestTaxExemption',
@@ -1155,6 +1157,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_RILLET_SYNC_TRAVEL_INVOICING_SETTLEMENTS]: Parameters.UpdateRilletSyncTravelInvoicingSettlementsParams;
     [WRITE_COMMANDS.UPDATE_RILLET_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateRilletTravelInvoicingSettlementsAccountParams;
 
+    [WRITE_COMMANDS.CONNECT_POLICY_TO_DUALENTRY]: Parameters.ConnectPolicyToDualEntryParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_SUBSIDIARY]: Parameters.UpdateDualEntrySubsidiaryParams;
+
     [WRITE_COMMANDS.UPGRADE_TO_CORPORATE]: Parameters.UpgradeToCorporateParams;
     [WRITE_COMMANDS.DOWNGRADE_TO_TEAM]: Parameters.DowngradeToTeamParams;
     [WRITE_COMMANDS.UPGRADE_SUBMIT]: Parameters.UpgradeSubmitParams;
@@ -1346,6 +1351,7 @@ const READ_COMMANDS = {
     GET_CORPAY_BANK_ACCOUNT_FIELDS: 'GetCorpayBankAccountFields',
     CONNECT_POLICY_TO_QUICKBOOKS_ONLINE: 'ConnectPolicyToQuickbooksOnline',
     CONNECT_POLICY_TO_XERO: 'ConnectPolicyToXero',
+    CONNECT_POLICY_TO_NETSUITE_OAUTH: 'ConnectPolicyToNetSuiteOAuth',
     CONNECT_POLICY_TO_GUSTO: 'ConnectPolicyToGusto',
     CONNECT_POLICY_TO_ZENEFITS: 'ConnectPolicyToZenefits',
     CONNECT_POLICY_TO_MERGE: 'ConnectPolicyToMerge',
@@ -1358,6 +1364,7 @@ const READ_COMMANDS = {
     SYNC_POLICY_TO_ZENEFITS: 'SyncPolicyToZenefits',
     SYNC_POLICY_TO_FINANCIAL_FORCE: 'SyncPolicyToFinancialForce',
     SYNC_POLICY_TO_RILLET: 'SyncPolicyToRillet',
+    SYNC_POLICY_TO_DUALENTRY: 'SyncPolicyToDualEntry',
     CONNECT_POLICY_TO_FINANCIAL_FORCE: 'ConnectPolicyToFinancialForce',
     OPEN_REIMBURSEMENT_ACCOUNT_PAGE: 'OpenReimbursementAccountPage',
     OPEN_WORKSPACE_VIEW: 'OpenWorkspaceView',
@@ -1454,6 +1461,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE]: null;
     [READ_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_ONLINE]: Parameters.ConnectPolicyToAccountingIntegrationParams;
     [READ_COMMANDS.CONNECT_POLICY_TO_XERO]: Parameters.ConnectPolicyToAccountingIntegrationParams;
+    [READ_COMMANDS.CONNECT_POLICY_TO_NETSUITE_OAUTH]: Parameters.ConnectPolicyToNetSuiteOAuthParams;
     [READ_COMMANDS.CONNECT_POLICY_TO_GUSTO]: Parameters.ConnectPolicyToGustoParams;
     [READ_COMMANDS.CONNECT_POLICY_TO_ZENEFITS]: Parameters.ConnectPolicyToZenefitsParams;
     [READ_COMMANDS.CONNECT_POLICY_TO_MERGE]: Parameters.ConnectPolicyToMergeParams;
@@ -1467,6 +1475,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.SYNC_POLICY_TO_ZENEFITS]: Parameters.SyncPolicyToZenefitsParams;
     [READ_COMMANDS.SYNC_POLICY_TO_FINANCIAL_FORCE]: Parameters.SyncPolicyToFinancialForceParams;
     [READ_COMMANDS.SYNC_POLICY_TO_RILLET]: Parameters.SyncPolicyToRilletParams;
+    [READ_COMMANDS.SYNC_POLICY_TO_DUALENTRY]: Parameters.SyncPolicyToDualEntryParams;
     [READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE]: Parameters.OpenReimbursementAccountPageParams;
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: Parameters.OpenWorkspaceViewParams;
     [READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN]: null;
