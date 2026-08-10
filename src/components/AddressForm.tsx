@@ -76,6 +76,14 @@ type AddressFormProps = {
 
     /** Whether PO boxes and mail drops are rejected on address lines */
     shouldValidatePhysicalAddress?: boolean;
+
+    /**
+     * Whether the form should apply its own bottom safe-area padding. Defaults to true for the common case of a
+     * screen whose own ScreenWrapper has delegated bottom safe-area handling to this form (edge-to-edge mode).
+     * Set to false when the parent already applies it (e.g. a ScreenWrapper using the legacy, non-edge-to-edge
+     * default), otherwise the inset is padded twice, visible as extra bottom padding on iOS.
+     */
+    addBottomSafeAreaPadding?: boolean;
 };
 
 function AddressForm({
@@ -94,6 +102,7 @@ function AddressForm({
     enabledWhenOffline: enabledWhenOfflineProp = true,
     shouldRequireZip = false,
     shouldValidatePhysicalAddress = false,
+    addBottomSafeAreaPadding = true,
 }: AddressFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -197,7 +206,7 @@ function AddressForm({
             onSubmit={onSubmit}
             submitButtonText={submitButtonText}
             enabledWhenOffline={enabledWhenOfflineProp}
-            addBottomSafeAreaPadding
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         >
             <View>
                 <InputWrapper

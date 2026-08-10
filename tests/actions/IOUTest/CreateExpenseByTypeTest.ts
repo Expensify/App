@@ -127,6 +127,7 @@ describe('actions/IOU/createExpenseByType', () => {
             existingTransactionDraft: undefined,
             draftTransactionIDs: [],
             isSelfTourViewed: false,
+            conciergeChat: undefined,
             betas: undefined,
             personalDetails: {},
             delegateAccountID: undefined,
@@ -148,6 +149,7 @@ describe('actions/IOU/createExpenseByType', () => {
             recentWaypoints: undefined,
             isTrackIntentUser: undefined,
             formatPhoneNumber: (phoneNumber: string) => phoneNumber,
+            participantsPolicyTags: {},
             ...overrides,
         });
     }

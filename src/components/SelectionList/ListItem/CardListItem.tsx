@@ -106,7 +106,6 @@ function CardListItem<TItem extends ListItem>({
                                 >
                                     <View>
                                         <Avatar
-                                            containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT))}
                                             source={ownersAvatar.source}
                                             name={ownersAvatar.name}
                                             avatarID={ownersAvatar.id}
@@ -154,7 +153,7 @@ function CardListItem<TItem extends ListItem>({
                             text={Str.removeSMSDomain(item.text ?? '')}
                             style={[
                                 styles.optionDisplayName,
-                                isFocusVisible ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                styles.sidebarLinkText,
                                 item.isBold !== false && styles.sidebarLinkTextBold,
                                 styles.pre,
                                 item.alternateText ? styles.mb1 : null,
