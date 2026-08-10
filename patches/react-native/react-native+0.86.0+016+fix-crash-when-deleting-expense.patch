@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
-index 9224e19..eb0b519 100644
+index 9e53dc8..61f6971 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
-@@ -324,6 +324,7 @@ internal constructor(
+@@ -372,6 +372,7 @@ internal constructor(
        // thus prevent the RemoveDeleteTree worker from deleting this
        // View in the future.
        if (viewParent is ViewGroup) {

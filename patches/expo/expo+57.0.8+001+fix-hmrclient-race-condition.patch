@@ -1,5 +1,5 @@
 diff --git a/node_modules/expo/src/async-require/hmr.ts b/node_modules/expo/src/async-require/hmr.ts
-index c0ea71e..811f667 100644
+index bd226af..d816c76 100644
 --- a/node_modules/expo/src/async-require/hmr.ts
 +++ b/node_modules/expo/src/async-require/hmr.ts
 @@ -92,9 +92,12 @@ const HMRClient = {

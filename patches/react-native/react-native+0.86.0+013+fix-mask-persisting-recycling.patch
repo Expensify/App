@@ -1,13 +1,13 @@
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
-index 8ffdd57..4c91353 100644
+index e9d532c..7455807 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
-@@ -1677,7 +1677,7 @@ static NSString *RCTRecursiveAccessibilityLabel(UIView *view)
+@@ -719,6 +719,8 @@ - (void)prepareForRecycle
  
- - (BOOL)canBecomeFirstResponder
- {
--  return YES;
-+  return ReactNativeFeatureFlags::enableImperativeFocus();
- }
+   self.autoresizingMask = UIViewAutoresizingNone;
  
- - (void)handleCommand:(const NSString *)commandName args:(const NSArray *)args
++  self.layer.mask = nil;
++
+   _propKeysManagedByAnimated_DO_NOT_USE_THIS_IS_BROKEN = nil;
+   _eventEmitter.reset();
+   _isJSResponder = NO;
