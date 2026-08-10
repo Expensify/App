@@ -36,6 +36,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
+import {downloadMembersCSV} from '@libs/actions/Policy/Member';
 import {
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
@@ -161,7 +162,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const illustrations = useMemoizedLazyIllustrations(['Workflows']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Info', 'Plus', 'Table']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Info', 'Plus', 'Table', 'Download']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -354,6 +355,32 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_IMPORT.getRoute(route.params.policyID));
     }, [isAccountLocked, showLockedAccountModal, isOffline, showConfirmModal, translate, route.params.policyID, canAccessSubmit2026Features, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
+    // The Workflows CSV export reuses the Members export command so the downloaded file is identical to Members > Download CSV.
+    const downloadWorkflowsAction = useCallback(() => {
+        if (isOffline) {
+            showConfirmModal({
+                title: translate('common.youAppearToBeOffline'),
+                prompt: translate('common.thisFeatureRequiresInternet'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                shouldHandleNavigationBack: true,
+            });
+            return;
+        }
+        downloadMembersCSV(
+            route.params.policyID,
+            () => {
+                showConfirmModal({
+                    title: translate('common.downloadFailedTitle'),
+                    prompt: translate('common.downloadFailedDescription'),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                });
+            },
+            translate,
+        );
+    }, [isOffline, showConfirmModal, translate, route.params.policyID]);
+
     const approvalSecondaryActions = useMemo<Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>>>(
         () => [
             {
@@ -362,8 +389,14 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 onSelected: importWorkflowsAction,
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
             },
+            {
+                icon: expensifyIcons.Download,
+                text: translate('spreadsheet.downloadWorkflows'),
+                onSelected: downloadWorkflowsAction,
+                value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+            },
         ],
-        [expensifyIcons.Table, translate, importWorkflowsAction],
+        [expensifyIcons.Table, expensifyIcons.Download, translate, importWorkflowsAction, downloadWorkflowsAction],
     );
 
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
