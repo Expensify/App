@@ -292,20 +292,6 @@ function ProfilePage({route}: ProfilePageProps) {
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(Navigation.getActiveRoute()))}
                             />
                         )}
-                        {!!accountID && !isAnonymousUserSession() && (
-                            <MenuItem
-                                shouldShowRightIcon
-                                title={translate(isAgentEmail(login) ? 'profilePage.searchThisAgent' : 'profilePage.searchThisUser')}
-                                icon={expensifyIcons.MagnifyingGlass}
-                                onPress={() => {
-                                    const query = buildQueryStringFromFilterFormValues({
-                                        type: CONST.SEARCH.DATA_TYPES.CHAT,
-                                        from: [String(accountID)],
-                                    });
-                                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
-                                }}
-                            />
-                        )}
                         {isOwnedAgent && (
                             <OfflineWithFeedback
                                 errors={agentPrompt?.promptErrors}
@@ -325,6 +311,20 @@ function ProfilePage({route}: ProfilePageProps) {
                                 title={translate('profilePage.copilotIntoAccount')}
                                 icon={expensifyIcons.UserPlus}
                                 onPress={callFunctionIfActionIsAllowed(() => switchToDelegator(login))}
+                            />
+                        )}
+                        {!!accountID && !isAnonymousUserSession() && (
+                            <MenuItem
+                                shouldShowRightIcon
+                                title={translate(isAgentEmail(login) ? 'profilePage.searchThisAgent' : 'profilePage.searchThisUser')}
+                                icon={expensifyIcons.MagnifyingGlass}
+                                onPress={() => {
+                                    const query = buildQueryStringFromFilterFormValues({
+                                        type: CONST.SEARCH.DATA_TYPES.CHAT,
+                                        from: [String(accountID)],
+                                    });
+                                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
+                                }}
                             />
                         )}
                         {shouldShowNotificationPreference && (
