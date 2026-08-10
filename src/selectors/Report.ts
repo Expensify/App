@@ -211,7 +211,7 @@ function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
 }
 
 const policyExpenseChatSelector = (ownerAccountID: number | undefined, policyID: string | undefined) => (reports: OnyxCollection<Report>) =>
-    getPolicyExpenseChat(ownerAccountID, policyID, reports);
+    getPolicyExpenseChat(ownerAccountID, policyID, reports ?? {});
 
 export {
     getArchiveReason,
