@@ -27,7 +27,6 @@ import {getMCardNumberString, getMonthFromExpirationDateString, getYearFromExpir
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {addSubscriptionPaymentCard, clearPaymentCardFormErrorAndSubmit} from '@userActions/PaymentMethods';
 
@@ -84,8 +83,6 @@ function AddPaymentCard() {
 
     useNavigateToCardAuthenticationOnLink();
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddPaymentCard', isVerifyingSetupIntent: !!isVerifyingSetupIntent};
-
     useEffect(() => {
         clearPaymentCardFormErrorAndSubmit();
 
@@ -133,10 +130,7 @@ function AddPaymentCard() {
                     <View style={styles.containerWithSpaceBetween}>
                         {!!isVerifyingSetupIntent && (
                             <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-                                <ActivityIndicator
-                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                    reasonAttributes={reasonAttributes}
-                                />
+                                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                             </View>
                         )}
                         <PaymentCardForm
