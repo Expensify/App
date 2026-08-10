@@ -562,8 +562,8 @@ const combineDateAndTime = (updatedTime: string, inputDateTime: string): string 
             parsedTime = tempTime;
         }
     } else if (updatedTime.includes(':')) {
-        // it's in "hh:mm a" format; the time picker always submits the English AM/PM markers,
-        // so parse with an explicit English locale regardless of the app language
+        // it's in "hh:mm a" format
+        // The picker always submits English AM/PM markers, which the app's active date-fns locale may not parse.
         const tempTime = parse(updatedTime, 'hh:mm a', new Date(), {locale: enGB});
         if (isValid(tempTime)) {
             parsedTime = tempTime;
