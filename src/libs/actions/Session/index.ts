@@ -685,7 +685,6 @@ function setupNewDotAfterTransitionFromOldDot(
     hybridAppSettings: HybridAppSettings,
     tryNewDot: TryNewDot | undefined,
     credentialsParam: Credentials | undefined,
-    shouldUseStagingServer: boolean | undefined,
     lastAcceptedStagingToggleGeneration: number | undefined,
 ) {
     const {hybridApp, ...newDotOnyxValues} = hybridAppSettings;
@@ -818,10 +817,11 @@ function setupNewDotAfterTransitionFromOldDot(
             }
 
             for (const [key, value] of Object.entries(newDotOnyxValues)) {
-                // OldDot sends its staging flag on every transition; merging it over NewDot's preserved value would
-                // reset the toggle on every cold start. Take it only while NewDot has none (first-transition seed)
-                // or when it carries a deliberate OldDot toggle change we haven't applied yet.
-                if (key === ONYXKEYS.SHOULD_USE_STAGING_SERVER && shouldUseStagingServer !== undefined && !hasNewOldDotStagingToggleChange) {
+                // OldDot sends its staging flag on every transition, but it is production on every release binary
+                // (staging builds are the same binary promoted later), so merging it would both reset a preserved
+                // NewDot preference and plant an explicit false that overrides the env default for staging builds.
+                // Take it only when it carries a deliberate OldDot toggle change we haven't applied yet.
+                if (key === ONYXKEYS.SHOULD_USE_STAGING_SERVER && !hasNewOldDotStagingToggleChange) {
                     continue;
                 }
 

@@ -18,16 +18,15 @@ function HybridAppHandler() {
     const {setSplashScreenState} = useSplashScreenActions();
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [shouldUseStagingServer, shouldUseStagingServerMetadata] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
     const [lastAcceptedStagingToggleGeneration, lastAcceptedStagingToggleGenerationMetadata] = useOnyx(ONYXKEYS.LAST_ACCEPTED_OLD_DOT_STAGING_TOGGLE_GENERATION);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const isLoadingCredentials = isLoadingOnyxValue(credentialsMetadata);
-    const isLoadingShouldUseStagingServer = isLoadingOnyxValue(shouldUseStagingServerMetadata) || isLoadingOnyxValue(lastAcceptedStagingToggleGenerationMetadata);
+    const isLoadingStagingToggleGeneration = isLoadingOnyxValue(lastAcceptedStagingToggleGenerationMetadata);
 
     const finalizeTransitionFromOldDot = (hybridAppSettings: HybridAppSettings) => {
         const loggedOutFromOldDot = !!hybridAppSettings.hybridApp.loggedOutFromOldDot;
 
-        setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot, credentials, shouldUseStagingServer, lastAcceptedStagingToggleGeneration).then(() => {
+        setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot, credentials, lastAcceptedStagingToggleGeneration).then(() => {
             if (loggedOutFromOldDot) {
                 endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
                 endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
@@ -39,7 +38,7 @@ function HybridAppHandler() {
     };
 
     useEffect(() => {
-        if (!CONFIG.IS_HYBRID_APP || isLoadingTryNewDot || isLoadingCredentials || isLoadingShouldUseStagingServer) {
+        if (!CONFIG.IS_HYBRID_APP || isLoadingTryNewDot || isLoadingCredentials || isLoadingStagingToggleGeneration) {
             return;
         }
 
@@ -78,7 +77,7 @@ function HybridAppHandler() {
 
             finalizeTransitionFromOldDot(hybridAppSettings);
         });
-    }, [finalizeTransitionFromOldDot, isLoadingTryNewDot, isLoadingCredentials, isLoadingShouldUseStagingServer, setSplashScreenState]);
+    }, [finalizeTransitionFromOldDot, isLoadingTryNewDot, isLoadingCredentials, isLoadingStagingToggleGeneration, setSplashScreenState]);
 
     return null;
 }
