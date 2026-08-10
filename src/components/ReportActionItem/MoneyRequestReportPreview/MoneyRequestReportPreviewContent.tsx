@@ -24,7 +24,9 @@ function MoneyRequestReportPreviewContent({
     invoiceReceiverPolicy,
     iouReport,
     transactions,
-    allReportTransactions,
+    transactionsWithReceipts,
+    hasNonReimbursableTransactions,
+    areAllRequestsBeingSmartScanned,
     policy,
     invoiceReceiverPersonalDetail,
     lastTransactionViolations,
@@ -46,7 +48,9 @@ function MoneyRequestReportPreviewContent({
             iouReport={iouReport}
             chatReport={chatReport}
             transactions={transactions}
-            allReportTransactions={allReportTransactions}
+            transactionsWithReceipts={transactionsWithReceipts}
+            hasNonReimbursableTransactions={hasNonReimbursableTransactions}
+            areAllRequestsBeingSmartScanned={areAllRequestsBeingSmartScanned}
             policy={policy}
             invoiceReceiverPolicy={invoiceReceiverPolicy}
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}

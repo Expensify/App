@@ -23,9 +23,9 @@ import {
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
-import {isIOUReport} from '@libs/ReportUtils';
+import {areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils, getTransactionsWithReceipts, isIOUReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
-import {isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {hasNonReimbursableTransactions as hasNonReimbursableTransactionsTransactionUtils, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -34,11 +34,12 @@ import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContex
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {hasOnceLoadedReportActionsSelector, pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
-import type {Transaction} from '@src/types/onyx';
+import {hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector, pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
+import type {ReportActions, Transaction} from '@src/types/onyx';
 
 import type {ListRenderItem} from '@shopify/flash-list';
 import type {LayoutChangeEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -46,6 +47,9 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MoneyRequestReportPreviewProps} from './types';
 
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
+
+// How many actions the IOU report has loaded. Only the count matters — a deferred press retries when it changes.
+const reportActionCountSelector = (reportActions: OnyxEntry<ReportActions>) => Object.keys(reportActions ?? {}).length;
 
 // Delay (ms) before the pressed expense opens on top of the report's wide RHP. Letting the report settle
 // into the wide RHP first makes the two panels open as a cascade rather than appearing at once.
@@ -79,7 +83,8 @@ function MoneyRequestReportPreview({
     const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
     const {isOffline} = useNetwork();
     // Full set of the report's transactions (matches ReportUtils' `getReportTransactions`). Used for the receipt/scan/
-    // reimbursable derivations so they include optimistically-deleted rows, exactly as before the decomposition.
+    // reimbursable derivations below so they include optimistically-deleted rows, exactly as before the decomposition.
+    // Kept local to this component rather than passed down, so children only receive the derived values they need.
     const allReportTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
     const transactions = allReportTransactions.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     // The transactions in the order the carousel renders them, reported back by it as that order changes.
@@ -92,22 +97,15 @@ function MoneyRequestReportPreview({
     // different sequence from the one on screen — pressing next on the last card could jump to the first.
     // Offline-deleted rows stay visible in the preview (above) but their threads are gone, so they must not be
     // reachable through the arrows either — same filter every other seeder in the tree applies.
-    const getOpenableTransactionIDs = useCallback(
-        () =>
-            (orderedTransactionsRef.current.length > 0 ? orderedTransactionsRef.current : transactions)
-                .filter((transaction) => !isTransactionPendingDelete(transaction))
-                .map((transaction) => transaction.transactionID),
-        [transactions],
-    );
     // Tracks how many actions the IOU report has loaded so a deferred expense press can be retried once
     // the actions arrive (they may be missing right after a cache clear).
     const [iouReportActionCount] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
-        selector: (reportActions) => Object.keys(reportActions ?? {}).length,
+        selector: reportActionCountSelector,
     });
     // Whether the deferred press's openReport fetch is still in flight. The true -> false flip re-runs the drain
     // effect below, so a deferred press settles even when the fetch returns the actions we already had.
     const [isLoadingInitialIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(iouReportID)}`, {
-        selector: (loadingState) => !!loadingState?.isLoadingInitialReportActions,
+        selector: isLoadingInitialReportActionsSelector,
     });
     // Holds a pressed transaction whose thread report could not be resolved yet, so the expense can be
     // opened once the IOU report's actions have loaded instead of falling back to the parent report.
@@ -120,6 +118,9 @@ function MoneyRequestReportPreview({
     // Without this a second press within the delay lets the first press's timer open the wrong expense and then run
     // its cleanup over the expense that is actually on screen.
     const cascadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, allReportTransactions);
+    const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(allReportTransactions);
+    const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(iouReportID, action, allReportTransactions);
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
@@ -248,7 +249,9 @@ function MoneyRequestReportPreview({
 
             // Read once per press. The cascade's abort compares this exact array against what is seeded, so it has to
             // be the same reference throughout this call.
-            const openableTransactionIDs = getOpenableTransactionIDs();
+            const openableTransactionIDs = (orderedTransactionsRef.current.length > 0 ? orderedTransactionsRef.current : transactions)
+                .filter((pressedTransaction) => !isTransactionPendingDelete(pressedTransaction))
+                .map((pressedTransaction) => pressedTransaction.transactionID);
 
             if (isSmallScreenWidth && iouReportID) {
                 // Narrow layouts open the report first and then the pressed expense on top of it, so back returns to
@@ -330,7 +333,7 @@ function MoneyRequestReportPreview({
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: Navigation.getActiveRoute()}));
             });
         },
-        [isSmallScreenWidth, iouReportID, markReportRHPWidth, unmarkReportRHPWidth, getOpenableTransactionIDs],
+        [isSmallScreenWidth, iouReportID, markReportRHPWidth, unmarkReportRHPWidth, transactions],
     );
 
     const openTransactionFromPreview = useCallback(
@@ -476,7 +479,9 @@ function MoneyRequestReportPreview({
             onPaymentOptionsShow={onPaymentOptionsShow}
             onPaymentOptionsHide={onPaymentOptionsHide}
             transactions={transactions}
-            allReportTransactions={allReportTransactions}
+            transactionsWithReceipts={transactionsWithReceipts}
+            hasNonReimbursableTransactions={hasNonReimbursableTransactions}
+            areAllRequestsBeingSmartScanned={areAllRequestsBeingSmartScanned}
             policy={policy}
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
             invoiceReceiverPolicy={invoiceReceiverPolicy}

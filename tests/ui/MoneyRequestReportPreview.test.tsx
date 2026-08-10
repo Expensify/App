@@ -239,14 +239,15 @@ const renderPage = ({isWhisper = false, isHovered = false}: Partial<MoneyRequest
     );
 };
 
-const getTransactionDisplayAmountAndHeaderText = (transaction: Transaction) => {
+const getTransactionDisplayAmountAndMetadataText = (transaction: Transaction) => {
     const created = getFormattedCreated(transaction);
     const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
     const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
-    const cashOrCard = isTransactionMadeWithCard ? TestHelper.translateLocal('iou.card') : TestHelper.translateLocal('iou.cash');
-    const transactionHeaderText = `${date} ${CONST.DOT_SEPARATOR} ${cashOrCard}`;
+    // The date leads the supporting line, which can also carry the category and the report status.
+    const transactionSupportingText = new RegExp(`^${date}`);
+    const transactionTypeText = isTransactionMadeWithCard ? TestHelper.translateLocal('iou.card') : TestHelper.translateLocal('iou.cash');
     const transactionDisplayAmount = TestHelper.convertToDisplayString(-transaction.amount, transaction.currency);
-    return {transactionHeaderText, transactionDisplayAmount};
+    return {transactionSupportingText, transactionTypeText, transactionDisplayAmount};
 };
 
 const setCurrentWidth = () => {
@@ -337,10 +338,11 @@ describe('MoneyRequestReportPreview', () => {
         expect(screen.getByText(getReportName(mockIOUReport))).toBeOnTheScreen();
 
         for (const transaction of arrayOfTransactions) {
-            const {transactionDisplayAmount, transactionHeaderText} = getTransactionDisplayAmountAndHeaderText(transaction);
+            const {transactionDisplayAmount, transactionSupportingText, transactionTypeText} = getTransactionDisplayAmountAndMetadataText(transaction);
 
             expect(screen.getAllByText(transactionDisplayAmount).length).toBeGreaterThan(0);
-            expect(screen.getAllByText(transactionHeaderText)).toHaveLength(arrayOfTransactions.length);
+            expect(screen.getAllByText(transactionSupportingText)).toHaveLength(arrayOfTransactions.length);
+            expect(screen.getAllByText(transactionTypeText)).toHaveLength(arrayOfTransactions.length);
             expect(screen.getAllByText(transaction.merchant)).toHaveLength(arrayOfTransactions.length);
         }
     });
@@ -503,7 +505,7 @@ describe('MoneyRequestReportPreview', () => {
         };
 
         const pressSecondTransaction = async () => {
-            const {transactionDisplayAmount} = getTransactionDisplayAmountAndHeaderText(mockSecondTransaction);
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndMetadataText(mockSecondTransaction);
             fireEvent.press(screen.getByText(transactionDisplayAmount));
             await waitForBatchedUpdatesWithAct();
         };
@@ -721,7 +723,7 @@ describe('MoneyRequestReportPreview', () => {
             await renderAndPopulateCarousel();
 
             // Press the first card — it defers, waiting on the report's actions.
-            const {transactionDisplayAmount} = getTransactionDisplayAmountAndHeaderText(mockTransaction);
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndMetadataText(mockTransaction);
             const [firstCard] = screen.getAllByText(transactionDisplayAmount);
             fireEvent.press(firstCard);
             await waitForBatchedUpdatesWithAct();
@@ -775,7 +777,7 @@ describe('MoneyRequestReportPreview', () => {
 
             // Issue #26939: deleting an expense offline must leave the preview VISIBLE (greyed out) rather than
             // collapsing it. v2 only makes that row non-navigable — it must not disappear, so both cards still render.
-            const {transactionDisplayAmount} = getTransactionDisplayAmountAndHeaderText(mockTransaction);
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndMetadataText(mockTransaction);
             expect(screen.getAllByText(transactionDisplayAmount).length).toBeGreaterThanOrEqual(2);
         });
 
@@ -794,7 +796,7 @@ describe('MoneyRequestReportPreview', () => {
             );
 
             await renderAndPopulateCarousel();
-            const {transactionDisplayAmount} = getTransactionDisplayAmountAndHeaderText(mockTransaction);
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndMetadataText(mockTransaction);
             const [liveRow] = screen.getAllByText(transactionDisplayAmount);
             fireEvent.press(liveRow);
             await waitForBatchedUpdatesWithAct();
@@ -1032,7 +1034,7 @@ describe('MoneyRequestReportPreview', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            fireEvent.press(screen.getByText(getTransactionDisplayAmountAndHeaderText(olderTransaction).transactionDisplayAmount));
+            fireEvent.press(screen.getByText(getTransactionDisplayAmountAndMetadataText(olderTransaction).transactionDisplayAmount));
             await waitForBatchedUpdatesWithAct();
 
             expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith([olderTransaction.transactionID, newerTransaction.transactionID]);
@@ -1053,7 +1055,7 @@ describe('MoneyRequestReportPreview', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            const {transactionDisplayAmount} = getTransactionDisplayAmountAndHeaderText(mockTransaction);
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndMetadataText(mockTransaction);
             fireEvent.press(screen.getByText(transactionDisplayAmount));
             await waitForBatchedUpdatesWithAct();
 

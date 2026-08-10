@@ -12,7 +12,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FlagCommentNavigatorParamList, SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {canAccessReport} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -86,12 +85,7 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
     const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas, isReportArchived));
 
     if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'withReportAndReportActionOrNotFound',
-            isLoadingReport,
-            isLoadingReportAction,
-        };
-        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullscreenLoadingIndicator />;
     }
 
     // Perform the access/not found checks
