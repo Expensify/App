@@ -58,7 +58,7 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
             const currentParams = paramsRef.current;
             const key = keyOf(currentParams, item);
             // A row a range can't reach would leave an anchor the next shift+click has to re-resolve from the top, so the last reachable one is kept.
-            if (key == null || !isAnchorable(currentParams, key)) {
+            if (key == null || !canAnchor(currentParams, key)) {
                 return;
             }
             sessionRef.current = {kind: 'anchored', anchor: key};
@@ -223,7 +223,7 @@ function keyOf<TItem>(params: Params<TItem>, item: TItem | null | undefined): st
 }
 
 /** Whether a key belongs to a row that is currently in the list and free to take part in a range. Matched by key: callers pass clones. */
-function isAnchorable<TItem>(params: Params<TItem>, key: string): boolean {
+function canAnchor<TItem>(params: Params<TItem>, key: string): boolean {
     return params.items.some((row) => keyOf(params, row) === key && !isExcluded(params, row));
 }
 
