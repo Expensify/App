@@ -1,3 +1,4 @@
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 
 import useOnyx from '@hooks/useOnyx';
@@ -10,6 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getMatchingVendorByID, getMatchingVendors, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -53,7 +55,7 @@ function AddVendorPage({route}: AddVendorPageProps) {
     // requiring connections is opened. Prefetch it here, gated on the beta alone (not hasVendorFeature,
     // which itself depends on the connection data — a chicken-and-egg) so the picker becomes available and
     // resolves the selected vendor once connections hydrate.
-    usePolicyConnectionsPrefetch(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    const {isFetchNeeded, isLoadingFetchedFlag} = usePolicyConnectionsPrefetch(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
 
     const selectedVendorItem = getSelectedVendorItem(policy, form?.vendorID);
 
@@ -64,6 +66,14 @@ function AddVendorPage({route}: AddVendorPageProps) {
     const saveVendor = (value?: string) => {
         updateDraftMerchantRule({vendorID: value});
     };
+
+    // While the prefetch is in flight, show a loading indicator instead of falling through to the NotFoundPage
+    // gate below. On a deep-link cold-load policy.connections is empty until the fetch lands, so hasVendorFeature
+    // would briefly return false and flash NotFoundPage before the picker appears.
+    if (isFetchNeeded || isLoadingFetchedFlag) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddVendorPage', isFetchNeeded, isLoadingFetchedFlag};
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    }
 
     // Gate direct/deeplink access behind the same predicate that hides the "Set vendor to" row, so the beta can't be
     // bypassed by opening this picker's URL directly (which would otherwise write vendorID into the draft and save it).

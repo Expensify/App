@@ -44,6 +44,22 @@ const buildQBOPolicy = (vendors: Array<{id: string; name: string; currency: stri
         }),
     });
 
+/**
+ * QBO policy whose non-reimbursable export destination is Vendor Bill (not Credit Card), so QBO is no longer
+ * the active vendor-matching source even though its vendor list is still populated. Reproduces the state a
+ * workspace lands in after an admin switches export mode away from vendor-matching mode.
+ */
+const buildQBOWithVendorBillExportPolicy = (vendors: Array<{id: string; name: string; currency: string}>): Policy =>
+    createMock<Policy>({
+        ...createRandomPolicy(0),
+        connections: createMock<Connections>({
+            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL},
+                data: {vendors},
+            },
+        }),
+    });
+
 /** Xero policy whose supplier list scopes vendor matching to Xero (label flips vendor -> supplier). */
 const buildXeroPolicy = (contacts: Record<string, {id: string; name: string; email: string}>): Policy =>
     createMock<Policy>({
@@ -144,6 +160,15 @@ describe('Vendor matching on merchant rules', () => {
             const description = buildTableData(policy).at(0)?.ruleDescription;
             expect(description).toContain('Update vendor to "Vendor unavailable"');
             expect(description).not.toContain('Stale Xero Vendor');
+        });
+
+        it('resolves the historical vendor name when the workspace has switched its export mode away from vendor-matching mode', () => {
+            // Reproduces the reviewer-flagged case: rule was authored while QBO's non-reimbursable export was Credit Card
+            // (vendor-matching active). Admin later switches to Vendor Bill, so QBO is no longer the active vendor-matching
+            // source. The rule summary must still render the vendor's name — not the raw external ID — because the vendor
+            // list is still known via the connection data.
+            const policy = withCodingRules(buildQBOWithVendorBillExportPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]), {rule1: buildVendorRule('v-1')});
+            expect(buildTableData(policy).at(0)?.ruleDescription).toContain('Update vendor to "Acme Co"');
         });
 
         it('uses "supplier" wording and "Supplier unavailable" on Xero workspaces', () => {
