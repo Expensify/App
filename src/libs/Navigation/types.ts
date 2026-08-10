@@ -988,6 +988,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TOKEN_INPUT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SETUP]: {
+        policyID: string;
+        accountID?: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT]: {
         policyID: string;
     };
@@ -1275,6 +1279,15 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_SETUP]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXISTING_CONNECTIONS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_COMPANY_SELECTOR]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
@@ -2752,6 +2765,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
         reportID: string;
         reportActionID?: string;
+        anchorTransactionID?: string;
         shouldReplaceWithExpenseReportRHP?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
