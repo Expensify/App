@@ -433,7 +433,6 @@ const iouCreateAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
     reportID: previewIOUReportID,
     childReportID: transactionThreadReportID,
     created: '2025-03-05 16:34:27',
-    // An action with an empty message array is treated as a legacy deleted comment by isDeletedAction()
     message: [{type: 'COMMENT', html: 'Expense', text: 'Expense'}],
     originalMessage: {
         IOUReportID: previewIOUReportID,
