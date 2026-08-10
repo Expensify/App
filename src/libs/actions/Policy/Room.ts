@@ -8,8 +8,8 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-function openPolicyRoomsPage(policyID: string) {
-    const params: OpenPolicyRoomsPageParams = {policyID};
+function openPolicyRoomsPage(policyID: string, clientReportIDs: string[] = []) {
+    const params: OpenPolicyRoomsPageParams = {policyID, clientReportIDs: JSON.stringify(clientReportIDs)};
 
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ARE_POLICY_ROOMS_LOADED>> = [
         {
