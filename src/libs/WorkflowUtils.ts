@@ -1021,11 +1021,6 @@ function removeEmails(existingEmails: string[], emailsToRemove: string[]): strin
     return existingEmails.filter((email) => !removalSet.has(email));
 }
 
-/** True when any of `emails` is in `set` — i.e. a rule's submitters overlap a workflow's members. */
-function containsAnyEmail(emails: string[], set: Set<string>): boolean {
-    return emails.some((email) => set.has(email));
-}
-
 /** Fold `memberEmails` into a rule's `from` list (union), returning the updated rule. */
 function addMembersToRule(rule: ApprovalWorkflowRule, memberEmails: string[]): ApprovalWorkflowRule {
     return replaceSubmitterEmails(rule, mergeEmails(extractSubmitterEmails(rule), memberEmails));
@@ -1082,7 +1077,7 @@ function reconcileApprovalWorkflowRulesForEdit(newRules: ApprovalWorkflowRule[],
     // Pass 1: walk existing rules that belong (at least partially) to this workflow.
     for (const [ruleID, existingRule] of Object.entries(context.existingRules)) {
         const ruleEmails = extractSubmitterEmails(existingRule);
-        if (!containsAnyEmail(ruleEmails, memberSet)) {
+        if (!ruleEmails.some((email) => memberSet.has(email))) {
             continue;
         }
 
@@ -1117,7 +1112,7 @@ function reconcileApprovalWorkflowRulesForEdit(newRules: ApprovalWorkflowRule[],
                 return false;
             }
             // "Different workflow" => no overlap with our members.
-            return !containsAnyEmail(extractSubmitterEmails(existing), memberSet);
+            return !extractSubmitterEmails(existing).some((email) => memberSet.has(email));
         });
 
         if (foreignMatch) {
@@ -1143,7 +1138,7 @@ function reconcileApprovalWorkflowRulesForRemove(memberEmails: string[], context
 
     for (const [ruleID, existingRule] of Object.entries(context.existingRules)) {
         const ruleEmails = extractSubmitterEmails(existingRule);
-        if (!containsAnyEmail(ruleEmails, memberSet)) {
+        if (!ruleEmails.some((email) => memberSet.has(email))) {
             continue;
         }
 
@@ -1166,7 +1161,7 @@ function reconcileApprovalWorkflowRulesForMembersChange(previousMemberEmails: st
 
     for (const [ruleID, existingRule] of Object.entries(context.existingRules)) {
         const ruleEmails = extractSubmitterEmails(existingRule);
-        if (!containsAnyEmail(ruleEmails, previousSet)) {
+        if (!ruleEmails.some((email) => previousSet.has(email))) {
             continue;
         }
 
