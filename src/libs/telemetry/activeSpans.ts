@@ -6,8 +6,11 @@ import {SPAN_STATUS_OK} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import {AppState} from 'react-native';
 
+import logBenchmarkSpanEnd from './logBenchmarkSpanEnd';
+
 type ActiveSpanEntry = {
     span: ReturnType<typeof Sentry.startInactiveSpan>;
+    spanName: string;
     startTimeForLog: number;
 };
 
@@ -33,7 +36,7 @@ function startSpan(spanId: string, options: StartSpanOptions) {
         startTimeForLog = performance.now();
     }
 
-    activeSpans.set(spanId, {span, startTimeForLog});
+    activeSpans.set(spanId, {span, spanName: options.name, startTimeForLog});
 
     return span;
 }
@@ -44,10 +47,14 @@ function endSpan(spanId: string) {
     if (!entry) {
         return;
     }
-    const {span, startTimeForLog} = entry;
+    const {span, spanName, startTimeForLog} = entry;
     const now = performance.now();
     const durationMs = Math.round(now - startTimeForLog);
-    console.debug(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, {spanId, durationMs, timestamp: now, attributes: Sentry.spanToJSON(span).data});
+    const attributes = Sentry.spanToJSON(span).data ?? {};
+    console.debug(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, {spanId, durationMs, timestamp: now, attributes});
+    if (attributes[CONST.TELEMETRY.ATTRIBUTE_CANCELED] !== true) {
+        logBenchmarkSpanEnd(spanName, durationMs);
+    }
     span.setStatus({code: SPAN_STATUS_OK});
 
     span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_FINISHED_MANUALLY, true);
