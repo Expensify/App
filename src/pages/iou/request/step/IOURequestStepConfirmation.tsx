@@ -29,6 +29,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreMountDestination from '@hooks/usePreMountDestination';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
+import useRelevantSortedActions from '@hooks/useRelevantSortedActions';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSelfDMReport from '@hooks/useSelfDMReport';
@@ -176,6 +177,8 @@ function IOURequestStepConfirmation({
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
+    const participantReportIDs = useMemo(() => transaction?.participants?.map((participant) => participant.reportID).filter(Boolean) ?? [], [transaction?.participants]);
+    const sortedActions = useRelevantSortedActions(participantReportIDs);
 
     const selectedWorkspacePolicyID =
         initialTransaction?.participants?.find((participant) => participant?.isSender)?.policyID ??
@@ -314,17 +317,18 @@ function IOURequestStepConfirmation({
                 // any participant without a reportID to getParticipantsOption instead.
                 return participant.accountID || !participant.reportID
                     ? getParticipantsOption(participant, personalDetails, translate)
-                    : getReportOption(
+                    : getReportOption({
                           participant,
                           privateIsArchived,
-                          participantPolicy,
+                          policy: participantPolicy,
                           personalDetails,
                           conciergeReportID,
                           reportAttributesDerived,
-                          participantReportDraft,
-                          currentUserPersonalDetails.accountID,
+                          reportDraft: participantReportDraft,
+                          currentUserAccountID: currentUserPersonalDetails.accountID,
                           translate,
-                      );
+                          sortedActions,
+                      });
             }) ?? [],
         [
             transaction?.participants,
@@ -337,6 +341,7 @@ function IOURequestStepConfirmation({
             conciergeReportID,
             reportDrafts,
             translate,
+            sortedActions,
             currentUserPersonalDetails.accountID,
         ],
     );

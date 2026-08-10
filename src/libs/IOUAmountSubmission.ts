@@ -245,17 +245,17 @@ function buildReportParticipants(args: SubmitAmountArgs) {
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
             ? getParticipantsOption(participant, allPersonalDetails, translate)
-            : getReportOption(
+            : getReportOption({
                   participant,
                   privateIsArchived,
                   policy,
-                  allPersonalDetails,
+                  personalDetails: allPersonalDetails,
                   conciergeReportID,
-                  reportAttributesReports,
+                  reportAttributesDerived: reportAttributesReports,
                   reportDraft,
-                  currentUserPersonalDetails.accountID,
+                  currentUserAccountID: currentUserPersonalDetails.accountID,
                   translate,
-              );
+              });
     });
 }
 

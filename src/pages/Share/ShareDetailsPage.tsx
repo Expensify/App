@@ -14,6 +14,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRelevantSortedActions from '@hooks/useRelevantSortedActions';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
@@ -78,13 +79,27 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const report: OnyxEntry<ReportType> = useReportOrReportDraft(reportOrAccountID);
+    const reportIDs = useMemo(() => [report?.reportID], [report?.reportID]);
+    const sortedActions = useRelevantSortedActions(reportIDs);
     const privateIsArchived = useReportIsArchived(report?.reportID);
     const ancestors = useAncestors(report);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const currentUserAccountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const displayReport = useMemo(
-        () => getReportDisplayOption({report, unknownUserDetails, personalDetails, privateIsArchived, policy, conciergeReportID, translate, currentUserAccountID, reportAttributesDerived}),
-        [report, unknownUserDetails, personalDetails, privateIsArchived, policy, conciergeReportID, translate, currentUserAccountID, reportAttributesDerived],
+        () =>
+            getReportDisplayOption({
+                report,
+                unknownUserDetails,
+                personalDetails,
+                privateIsArchived,
+                policy,
+                conciergeReportID,
+                translate,
+                currentUserAccountID,
+                reportAttributesDerived,
+                sortedActions,
+            }),
+        [report, unknownUserDetails, personalDetails, privateIsArchived, policy, conciergeReportID, translate, currentUserAccountID, reportAttributesDerived, sortedActions],
     );
 
     const shouldShowAttachment = !isTextShared;
