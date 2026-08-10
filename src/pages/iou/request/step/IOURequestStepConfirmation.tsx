@@ -36,7 +36,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@libs/actions/IOU/MoneyRequest';
-import {clearPromotedDraftReportForPreMount, promoteDraftReportForPreMount} from '@libs/actions/Report';
+import {clearPromotedDraftReportForPreMount, clearPromotedDraftReportPreMountMarker, promoteDraftReportForPreMount} from '@libs/actions/Report';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -681,13 +681,21 @@ function IOURequestStepConfirmation({
             const promotedReportID = promotedDraftReportIDRef.current;
             // Read the latest submission state at cleanup time because submission can start or finish after this effect runs.
             const hasSubmitIntent = !!getPendingSubmitFollowUpAction();
+            if (!promotedReportID || promotedReportID !== preMountDestinationReportID || Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+                return;
+            }
+
+            promotedDraftReportIDRef.current = undefined;
+
             // eslint-disable-next-line react-hooks/exhaustive-deps
-            if (!promotedReportID || promotedReportID !== preMountDestinationReportID || hasSubmitIntent || formHasBeenSubmitted.current || Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+            if (hasSubmitIntent || formHasBeenSubmitted.current) {
+                // Submission owns the REPORT row from here - only drop the now-irrelevant promotion marker so
+                // startup cleanup does not mistake this now-real report for an interrupted speculative one.
+                clearPromotedDraftReportPreMountMarker(promotedReportID);
                 return;
             }
 
             clearPromotedDraftReportForPreMount(promotedReportID);
-            promotedDraftReportIDRef.current = undefined;
         };
     }, [preMountDestinationReportID, formHasBeenSubmitted]);
 

@@ -3090,6 +3090,15 @@ async function clearPromotedDraftReportForPreMount(reportID: string) {
 }
 
 /**
+ * Clears only the promotion marker left by `promoteDraftReportForPreMount`, once the caller has handed off to the
+ * real submission for this reportID. The REPORT row is left alone - it is no longer speculative, and the real
+ * submission's own optimistic/success data owns it from here.
+ */
+function clearPromotedDraftReportPreMountMarker(reportID: string) {
+    return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportID}`, null);
+}
+
+/**
  * Saves the comment left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
  * When empty string or null is passed, it will delete the draft comment from Onyx store.
@@ -8564,6 +8573,7 @@ export {
     saveReportDraft,
     promoteDraftReportForPreMount,
     clearPromotedDraftReportForPreMount,
+    clearPromotedDraftReportPreMountMarker,
     moveIOUReportToPolicy,
     moveIOUReportToPolicyAndInviteSubmitter,
     convertIOUReportToExpenseReport,
