@@ -1,7 +1,7 @@
 ---
 title: Set Distance Rates
 description: Set and manage distance rates for mileage reimbursement in your Expensify workspace.
-keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates]
+keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates, exclude commutes, commuter exclusion, fixed distance exclusion]
 ---
 
 # Set Distance Rates
@@ -67,6 +67,35 @@ To prevent members from using a Distance rate, you can either disable it or dele
 
 ---
 
+## How to exclude commuter miles from distance expenses
+
+Commute exclusion removes a fixed commute distance from every distance expense on the workspace, so members are only reimbursed for the business portion of a trip.
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name]**.
+2. Click **Distance rates**.
+3. Click **Settings**.
+4. Click **Exclude commutes**.
+5. Select an option:
+   - **Do not exclude commutes** — no commute distance is removed.
+   - **Exclude a fixed distance per claim** — removes the same commute distance from each claim. Best for members who submit one claim per workday.
+6. If you selected **Exclude a fixed distance per claim**, enter the commute distance in the **Distance** field. It must be a positive whole number.
+7. Click **Save**.
+
+The commute distance is removed using the workspace unit (miles or kilometers) set under **Distance rates > Settings > Unit**.
+
+---
+
+## What members see when commuter miles are excluded
+
+When a fixed commute distance is set, members creating a distance expense on that workspace see:
+
+- A breakdown under the Distance row showing the **Original** distance, the **Removed** commute distance, and the reimbursable distance. The expense amount is calculated from the reimbursable distance.
+- A system message on the submitted expense, for example: **Removed 1.00 commuter miles based on workspace distance settings.**
+
+Because the commute distance is removed from a measured route, members can only add these expenses using a map-based or GPS-tracked route. If a member tries to enter distance manually or with an odometer reading on a workspace that excludes commutes, a **Map or GPS distance required** message appears explaining that the workspace requires either a map-based or GPS-tracked distance expense.
+
+---
+
 # FAQ
 
 ## Can I create multiple Distance rates?
@@ -96,6 +125,14 @@ No. Updating a Distance rate only affects future Distance expenses. Existing exp
 ## Do I need at least one Distance rate?
 
 Yes. When **Distance Rates** is enabled, the Workspace must always have at least one active Distance rate.
+
+## Why can't members enter distance manually when commute exclusion is on?
+
+When a workspace excludes a fixed commute distance, the commute is removed from a measured route, so members must add distance expenses using a map-based or GPS-tracked route. Manual entry and odometer readings are not available on workspaces that exclude commutes, and members see a **Map or GPS distance required** message if they try.
+
+## Does commute exclusion change existing distance expenses?
+
+No. Updating the commute exclusion setting only affects future distance expenses. Existing expenses keep the values that were applied when they were created.
 
 ---
 
