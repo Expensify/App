@@ -4534,7 +4534,7 @@ function getDynamicExternalWorkflowRoutedMessage(
     translate: LocaleContextProps['translate'],
 ) {
     const originalMessage = getOriginalMessage(action);
-    return translate('iou.routedDueToDEW', originalMessage?.to ?? '', originalMessage?.message ?? '');
+    return translate('iou.routedDueToDEW', originalMessage?.to ?? '');
 }
 
 function getSettlementAccountLockedMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {

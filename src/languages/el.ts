@@ -1774,7 +1774,7 @@ const translations: TranslationDeepObject<typeof en> = {
             bulkSubtitle: 'Επιλέξτε μια επιλογή για να αλλάξετε το άτομο που εγκρίνει αυτές τις αναφορές.',
         },
         chooseWorkspace: 'Επιλέξτε ένα χώρο εργασίας',
-        routedDueToDEW: (to: string, reason?: string) => `η αναφορά προωθήθηκε σε ${to}${reason ? `επειδή ${reason}` : ''}`,
+        routedDueToDEW: (to: string) => `η αναφορά προωθήθηκε σε ${to}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'ώρα' : 'ώρες'} @ ${rate} / ώρα`,
             hrs: 'ώρες',
