@@ -15,7 +15,6 @@ import useWebCamera from '@hooks/useWebCamera';
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import HapticFeedback from '@libs/HapticFeedback';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
 import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/WebCamera';
@@ -149,13 +148,6 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.flex1]}
                             color={theme.textSupporting}
-                            reasonAttributes={
-                                {
-                                    context: 'CameraCapture',
-                                    cameraPermissionState,
-                                    isQueriedPermissionState,
-                                } satisfies SkeletonSpanReasonAttributes
-                            }
                         />
                     )}
                     {cameraPermissionState !== 'granted' && isQueriedPermissionState && (

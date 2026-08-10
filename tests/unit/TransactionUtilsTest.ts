@@ -512,6 +512,165 @@ describe('TransactionUtils', () => {
             });
         });
 
+        it('recalculates amount/merchant on a rate change when waypoints are pending but the distance is known locally', () => {
+            // Given: a policy with two mileage rates
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rate1: {customUnitRateID: 'rate1', currency: CONST.CURRENCY.USD, rate: 1},
+                            rate2: {customUnitRateID: 'rate2', currency: CONST.CURRENCY.USD, rate: 2},
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            // And: a freshly created (not-yet-confirmed) waypoint expense — waypoints are pending on the server,
+            // but the route distance is already known locally (quantity).
+            const transaction = generateTransaction({
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+                pendingFields: {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            });
+
+            // When: changing the rate while waypoints are still pending
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {customUnitRateID: 'rate2'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            // Then: the amount/merchant are recalculated locally against the new rate (10 mi × rate2), not deferred to the server
+            expect(updatedTransaction.comment?.customUnit?.customUnitRateID).toBe('rate2');
+            expect(updatedTransaction.modifiedAmount).toBe(20);
+            expect(updatedTransaction.modifiedMerchant).toContain('mi');
+        });
+
+        it('defers amount/merchant recalculation on a rate change when waypoints are pending and no distance is known locally', () => {
+            // Given: a policy with two mileage rates
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rate1: {customUnitRateID: 'rate1', currency: CONST.CURRENCY.USD, rate: 1},
+                            rate2: {customUnitRateID: 'rate2', currency: CONST.CURRENCY.USD, rate: 2},
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            // And: waypoint addresses were just edited — the server is computing the route, so there is no
+            // local distance (no quantity, no routes) to recalculate from.
+            const transaction = generateTransaction({
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+                pendingFields: {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            });
+
+            // When: changing the rate while waypoints are still pending
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {customUnitRateID: 'rate2'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            // Then: the rate id updates, but amount/merchant recalculation is deferred to the server (no valid local mileage data)
+            expect(updatedTransaction.comment?.customUnit?.customUnitRateID).toBe('rate2');
+            expect(updatedTransaction.modifiedAmount).not.toBe(20);
+        });
+
+        it('defers amount/merchant recalculation on a rate change when the pending waypoint edit invalidated the amount', () => {
+            // Given: a policy with two mileage rates
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rate1: {customUnitRateID: 'rate1', currency: CONST.CURRENCY.USD, rate: 1},
+                            rate2: {customUnitRateID: 'rate2', currency: CONST.CURRENCY.USD, rate: 2},
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            // And: the waypoints of an existing distance expense were just edited, so the amount/merchant were
+            // zeroed out while the server computes the new route. The quantity/routes left over from the
+            // pre-edit route are stale and must not be used to recalculate.
+            const transaction = generateTransaction({
+                amount: CONST.IOU.DEFAULT_AMOUNT,
+                modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+                routes: {
+                    route0: {
+                        distance: 16093,
+                        geometry: {
+                            coordinates: [
+                                [0, 0],
+                                [1, 1],
+                            ],
+                            type: 'LineString',
+                        },
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+                pendingFields: {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            });
+
+            // When: changing the rate before the new route arrives
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {customUnitRateID: 'rate2'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            // Then: the rate id updates, but the stale distance is not turned into an amount/merchant
+            expect(updatedTransaction.comment?.customUnit?.customUnitRateID).toBe('rate2');
+            expect(updatedTransaction.modifiedAmount).toBe(CONST.IOU.DEFAULT_AMOUNT);
+        });
+
         it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
             // A P2P distance expense (FAKE_P2P_ID) has no policy rate, so the mileage currency comes from the
             // resolved personal-policy currency that getUpdatedTransaction forwards to getRate. getRateForP2P only
@@ -2030,28 +2189,30 @@ describe('TransactionUtils', () => {
         });
     });
 
-    describe('shouldShowExpenseBreakdown', () => {
-        it('should return false when transactions array is undefined', () => {
-            expect(TransactionUtils.shouldShowExpenseBreakdown(undefined)).toBe(false);
+    describe('hasNonReimbursableTransactions', () => {
+        it('returns false when transactions array is undefined', () => {
+            expect(TransactionUtils.hasNonReimbursableTransactions(undefined)).toBe(false);
         });
 
-        it('should return false when transactions array is empty', () => {
-            expect(TransactionUtils.shouldShowExpenseBreakdown([])).toBe(false);
+        it('returns false when transactions array is empty', () => {
+            expect(TransactionUtils.hasNonReimbursableTransactions([])).toBe(false);
         });
 
-        it('should return false when all transactions are reimbursable', () => {
-            const transactions = [generateTransaction({reimbursable: true}), generateTransaction({reimbursable: true})];
-            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(false);
+        it('returns false when all transactions are reimbursable by default', () => {
+            const t1 = generateTransaction({reimbursable: undefined});
+            const t2 = generateTransaction({reimbursable: true});
+            expect(TransactionUtils.hasNonReimbursableTransactions([t1, t2])).toBe(false);
         });
 
-        it('should return true when all transactions are non-reimbursable', () => {
+        it('returns true when all transactions are non-reimbursable', () => {
             const transactions = [generateTransaction({reimbursable: false}), generateTransaction({reimbursable: false})];
-            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(true);
+            expect(TransactionUtils.hasNonReimbursableTransactions(transactions)).toBe(true);
         });
 
-        it('should return true when there are both reimbursable and non-reimbursable transactions', () => {
-            const transactions = [generateTransaction({reimbursable: true}), generateTransaction({reimbursable: false})];
-            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(true);
+        it('returns true when any transaction is non-reimbursable', () => {
+            const reimbursable = generateTransaction({reimbursable: true});
+            const nonReimbursable = generateTransaction({reimbursable: false});
+            expect(TransactionUtils.hasNonReimbursableTransactions([reimbursable, nonReimbursable])).toBe(true);
         });
     });
 

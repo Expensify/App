@@ -283,6 +283,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: 'Facturable',
         nonBillable: 'No facturable',
         tag: 'Etiqueta',
+        violations: 'Infracciones',
         receipt: 'Recibo',
         verified: 'Verificado',
         replace: 'Sustituir',
@@ -473,6 +474,7 @@ const translations: TranslationDeepObject<typeof en> = {
         goToConcierge: 'Ir a Concierge',
         allSet: '¡Todo listo!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} de ${total}`,
         apiKey: 'Clave API',
         editor: 'Editor',
         restrictions: 'Restricciones',
@@ -534,6 +536,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentError: 'Error al adjuntar archivo',
         errorWhileSelectingAttachment: 'Se ha producido un error al seleccionar un archivo adjunto. Por favor, inténtalo de nuevo.',
         errorWhileSelectingCorruptedAttachment: 'Se ha producido un error al seleccionar un archivo adjunto corrupto. Por favor, inténtalo con otro archivo.',
+        errorWhileConvertingHeic: 'No hemos podido procesar esta imagen. Inténtalo de nuevo o sube la foto en un formato diferente.',
         takePhoto: 'Hacer una foto',
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir un archivo',
@@ -933,6 +936,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Cuenta > Suscripción',
                 cta: 'Añadir',
             },
+            addBankAccount: {title: 'Añade una cuenta bancaria para recibir el reembolso'},
             activateCard: {
                 title: 'Activa tu Tarjeta Expensify',
                 subtitle: 'Valida tu tarjeta y empieza a gastar.',
@@ -1081,6 +1085,7 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateTitle: 'No hay gastos recientes',
             emptyStateMessage: 'Crea uno o arrastra un recibo aquí',
         },
+        insightsSection: {chartUnavailable: 'Gráfico no disponible', notEnoughData: 'Todavía no tenemos suficientes datos para completar este gráfico'},
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -2125,6 +2130,18 @@ const translations: TranslationDeepObject<typeof en> = {
         restoreStashed: 'Restablecer login guardado',
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
+        saveReceiptsConfirmation: {
+            title: '¿Guardar tus recibos?',
+            prompt: ({count}: {count: number}) =>
+                `Tienes ${count} ${count === 1 ? 'recibo' : 'recibos'} subiéndose todavía. Si cierras sesión ahora, ${count === 1 ? 'lo guardaremos' : 'los guardaremos'} en tus fotos para que ${count === 1 ? 'puedas añadirlo' : 'puedas añadirlos'} a un nuevo gasto más tarde.`,
+            confirm: 'Guardar y cerrar sesión',
+        },
+        saveReceiptsAndSignOutConfirmation: {
+            title: '¿Guardar tus recibos?',
+            prompt: ({count}: {count: number}) =>
+                `Tienes ${count} ${count === 1 ? 'recibo' : 'recibos'} subiéndose todavía. Si cierras sesión ahora, ${count === 1 ? 'lo guardaremos' : 'los guardaremos'} en tus fotos para que ${count === 1 ? 'puedas añadirlo' : 'puedas añadirlos'} a un nuevo gasto más tarde. Perderás los demás cambios hechos mientras estabas desconectado.`,
+            confirm: 'Guardar y cerrar sesión',
+        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Leer los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a> y <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidad</a>.`,
         help: 'Ayuda',
@@ -5601,6 +5618,16 @@ ${amount} para ${merchant} - ${date}`,
                 },
             },
         },
+        dualEntry: {
+            dualEntrySetup: 'Configuración de DualEntry',
+            enterCredentials: 'Introduce tu clave de API de DualEntry',
+            howToFindAPIKey:
+                '<strong>Encontrar tu clave de API.</strong><ol><li>Inicia sesión en DualEntry</li><li>Ve a [organization name] -> Settings -> Developer access -> API keys</li><li>Crea una clave de API</li><li>Pega la clave de API abajo</li></ol>',
+            subsidiary: 'Filial',
+            subsidiarySelectDescription: 'Elige la filial en DualEntry de la que te gustaría importar datos.',
+            noCompaniesFound: 'No se han encontrado empresas',
+            noCompaniesFoundDescription: 'Por favor, añade una empresa en DualEntry y sincroniza la conexión de nuevo',
+        },
         type: {
             free: 'Gratis',
             control: 'Controlar',
@@ -6549,6 +6576,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             rillet: 'Rillet',
+            dualEntry: 'DualEntry',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6568,6 +6596,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
+                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+                        return 'DualEntry';
                     default: {
                         return '';
                     }
@@ -6777,6 +6807,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'rilletSyncConnection':
                             return 'Iniciando conexión con Rillet';
                         case 'rilletSyncImportData':
+                            return 'Cargando datos';
+                        case 'dualEntrySyncTitle':
+                            return 'Sincronizando datos de DualEntry';
+                        case 'dualEntrySyncConnection':
+                            return 'Iniciando conexión con DualEntry';
+                        case 'dualEntrySyncImportData':
                             return 'Cargando datos';
                         default: {
                             return `Translation missing for stage: ${stage}`;
@@ -7209,6 +7245,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Nuestra integración con QuickBooks Desktop solo está disponible en el plan Controlar, que comienza en <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                title: 'Intuit Enterprise Suite',
+                description: `Conecta Intuit Enterprise Suite con Expensify para sincronizar automáticamente tus datos contables y reducir las entradas manuales.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Nuestra integración con Intuit Enterprise Suite solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 title: 'Certinia',
                 description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + Certinia. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de Certinia para una visibilidad financiera más clara.`,
@@ -7220,6 +7262,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + Rillet. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de Rillet para una visibilidad financiera más clara.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Nuestra integración con Rillet solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                title: 'DualEntry',
+                description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + DualEntry. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de DualEntry para una visibilidad financiera más clara.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Nuestra integración con DualEntry solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Aprobaciones anticipadas',
@@ -8697,6 +8745,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             topSpenders: 'Mayores gastadores',
             topCategories: 'Categorías principales',
             topMerchants: 'Principales comerciantes',
+            violationsBySubmitter: 'Infracciones por remitente',
         },
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
         viewResults: 'Ver resultados',
@@ -9717,6 +9766,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             title: 'Activar Karma personal',
             description: 'Dona $1 a Expensify.org por cada $500 que gastes cada mes',
             stopDonationsPrompt: '¿Seguro que quieres dejar de donar a Expensify.org?',
+            managePreferencesFromWeb: 'Manage your personal karma preferences from web',
         },
         getInTouch: '¡Excelente! Por favor, comparte tu información para que podamos ponernos en contacto con ellos.',
         introSchoolPrincipal: 'Introducción al director del colegio',
@@ -9984,6 +10034,53 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `La tasa solo es válida desde ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `La tasa solo es válida hasta ${endDate}`,
         cannotMergeDuplicates: 'Solo puedes combinar gastos en informes en borrador o pendientes. Retíralo e inténtalo de nuevo.',
+        shortName: {
+            allTagLevelsRequired: 'Todas las etiquetas obligatorias',
+            autoReportedRejectedExpense: 'Gasto rechazado',
+            billableExpense: 'Facturable ya no es válido',
+            cashExpenseWithNoReceipt: 'Recibo obligatorio',
+            categoryOutOfPolicy: 'La categoría ya no es válida',
+            companyCardRequired: 'Se requiere tarjeta de la empresa',
+            conversionSurcharge: 'Recargo por conversión aplicado',
+            customUnitOutOfPolicy: 'La tasa no es válida para el espacio de trabajo',
+            customUnitRateOutOfDateRange: 'Tasa fuera de fechas válidas',
+            duplicatedTransaction: 'Posible duplicado',
+            fieldRequired: 'Campo de informe obligatorio',
+            futureDate: 'No se permite una fecha futura',
+            hold: 'Gasto retenido',
+            inactiveVendor: 'El proveedor ya no es válido',
+            increasedDistance: 'La distancia supera la ruta',
+            invoiceMarkup: 'Factura con recargo',
+            itemizedReceiptRequired: 'Se requiere recibo detallado',
+            maxAge: 'Gasto demasiado antiguo',
+            missingAttendees: 'Asistentes obligatorios',
+            missingCategory: 'Falta la categoría',
+            missingComment: 'Descripción obligatoria',
+            missingTag: 'Etiqueta faltante',
+            modifiedAmount: 'Importe modificado',
+            modifiedDate: 'Fecha de modificación',
+            noRoute: 'Ruta no válida',
+            nonExpensiworksExpense: 'Gasto fuera de Expensiworks',
+            overAutoApprovalLimit: 'Límite de autoaprobación superado',
+            overCategoryLimit: 'Límite de categoría superado',
+            overLimit: 'Límite superado',
+            overTripLimit: 'Límite de viaje superado',
+            perDayLimit: 'Por encima del límite diario',
+            prohibitedExpense: 'Gasto prohibido',
+            receiptGeneratedWithAI: 'Posible recibo generado por IA',
+            receiptNotSmartScanned: 'Recibo añadido manualmente',
+            receiptRequired: 'Recibo obligatorio',
+            rter: 'En espera de coincidencia de tarjeta',
+            smartscanFailed: 'Error al escanear el recibo',
+            someTagLevelsRequired: 'Etiqueta obligatoria',
+            tagOutOfPolicy: 'Etiqueta ya no válida',
+            overLimitAttendee: 'Límite de personas superado',
+            customRules: 'Infracción de regla personalizada',
+            taxAmountChanged: 'Importe de impuesto modificado',
+            taxOutOfPolicy: 'La tasa de impuestos ya no es válida',
+            taxRateChanged: 'Tasa de impuesto modificada',
+            taxRequired: 'Falta la tasa de impuestos',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName) => `${fieldName} es obligatorio`,
