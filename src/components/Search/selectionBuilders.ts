@@ -316,7 +316,7 @@ function resolveGroupChildren(group: TransactionGroupListItemType, groupChildren
 
 /**
  * Flattened source (each group header followed by its children, in visual order) that shift-range ranges over. Flattens only in
- * group-by views — children come from `groupChildrenByKey` (else `group.transactions`); expense-report and flat views pass through.
+ * group-by views, where children come from `groupChildrenByKey`, falling back to `group.transactions`. Expense-report and flat views pass through.
  */
 function buildShiftRangeItems(sortedData: SearchListItem[], groupChildrenByKey: Record<string, TransactionListItemType[]>, groupsAreHeaders: boolean): SearchListItem[] {
     if (!groupsAreHeaders || !isGroupedItemArray(sortedData)) {

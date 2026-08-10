@@ -37,7 +37,7 @@ function getSnapshotTransactionRows(snapshotData: GetSectionsArgs['data'] | unde
         return [];
     }
     const [sectionData] = getSections({...args, data: snapshotData});
-    // With type EXPENSE every row is a transaction; the guard narrows getSections' union return without a cast.
+    // With type EXPENSE every row is a transaction. The guard narrows getSections' union return without a cast.
     const rows: SearchListItem[] = sectionData;
     return rows.filter(isTransactionListItemType);
 }
@@ -91,7 +91,7 @@ function useGroupChildrenForShiftRange({
     // A group selected before its children were fetched is stored under the group key, since no transaction IDs were known yet.
     const isGroupSelected = !!selectedTransactions[groupKey]?.isSelected;
 
-    // Stamp the live selection onto each row for the checkbox; expense-report rows already carry it.
+    // Stamp the live selection onto each row for the checkbox. Expense-report rows already carry it.
     const transactions: TransactionListItemType[] = isExpenseReportType
         ? rangeChildren
         : rangeChildren.map((transactionItem) => ({...transactionItem, isSelected: isGroupSelected || selectedTransactionIDsSet.has(transactionItem.transactionID)}));

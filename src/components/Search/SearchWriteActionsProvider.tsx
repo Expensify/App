@@ -414,7 +414,7 @@ function SearchWriteActionsProvider({
         });
     };
 
-    // Expense-report rows are the selectable unit; only group-by rows are headers whose children flatten in.
+    // Expense-report rows are the selectable unit. Only group-by rows are headers whose children flatten in.
     const hasValidGroupBy = areItemsGrouped && !isExpenseReportType;
     const flattenedShiftRangeItems = buildShiftRangeItems(renderedData, groupChildrenByKey, hasValidGroupBy);
     // Built from the rows the range spans, so a row can't be ranged under one parent and stored under another.
@@ -545,7 +545,7 @@ function SearchWriteActionsProvider({
                 rangeApi.seedRangeFromSelection(new Set(groupTransactions.map((child) => child.keyForList).filter(Boolean)));
             }
         } else if (!isShiftRangeHeaderItem(item)) {
-            // Seed the anchor so a later shift+click continues from here; the hook ignores rows a range can't reach.
+            // Seed the anchor so a later shift+click continues from here. The hook ignores rows a range can't reach.
             rangeApi.notifyAnchor(item);
         }
 

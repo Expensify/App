@@ -95,9 +95,11 @@ describe('buildShiftRangeItems', () => {
     });
 
     it('resolves each group independently, mixing registry children and group.transactions, preserving order', () => {
-        const groupA = makeGroup('groupA'); // empty transactions, resolved from the registry
+        // Empty transactions, so this one resolves from the registry
+        const groupA = makeGroup('groupA');
         const ownChild = makeChild(1, 'own2');
-        const groupB = makeGroup('groupB', [ownChild]); // not in the registry, resolved from its own transactions
+        // Not in the registry, so this one resolves from its own transactions
+        const groupB = makeGroup('groupB', [ownChild]);
         const regChild1 = makeChild(2, 'reg1a');
         const regChild2 = makeChild(3, 'reg1b');
         const filteredData: SearchData = [groupA, groupB];

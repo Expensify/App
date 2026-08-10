@@ -300,7 +300,7 @@ function TransactionGroupListItemImpl({
         onLongPressRow?.(transaction as ListItem);
     };
 
-    // Forward shiftKey so Shift+click on an expanded child applies the range; group headers never send it (they ignore Shift).
+    // Forward shiftKey so Shift+click on an expanded child applies the range. Group headers never send it because they ignore Shift.
     const handleSelectionButtonPress = (val: ListItem, _itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => {
         onSelectionButtonPress?.(val, isExpenseReportType ? undefined : transactions, shiftKey);
     };
