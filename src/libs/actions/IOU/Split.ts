@@ -2008,6 +2008,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         taxValue,
         merchant,
         modifiedAmount,
+        modifiedMerchant,
         billable,
         reimbursable,
         validWaypoints,
@@ -2147,6 +2148,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             },
             transactionParams: {
                 amount,
+                modifiedAmount,
+                modifiedMerchant,
                 distance: modifiedDistance ?? distance,
                 currency,
                 comment,
