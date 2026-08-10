@@ -344,6 +344,7 @@ const KEYS_TO_PRESERVE_SUPPORTAL = [
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
     ONYXKEYS.NETWORK,
     ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    ONYXKEYS.BETA_BUILD_VERSION,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
 
     // Preserve IS_USING_IMPORTED_STATE so that when transitioning to/from supportal,
@@ -679,7 +680,12 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
     });
 }
 
-function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettings, tryNewDot: TryNewDot | undefined, credentialsParam: Credentials | undefined) {
+function setupNewDotAfterTransitionFromOldDot(
+    hybridAppSettings: HybridAppSettings,
+    tryNewDot: TryNewDot | undefined,
+    credentialsParam: Credentials | undefined,
+    shouldUseStagingServer: boolean | undefined,
+) {
     const {hybridApp, ...newDotOnyxValues} = hybridAppSettings;
 
     const clearOnyxIfSigningIn = () => {
@@ -792,6 +798,12 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
             ];
 
             for (const [key, value] of Object.entries(newDotOnyxValues)) {
+                // OldDot sends its staging flag on every transition; merging it over NewDot's preserved value would
+                // reset the toggle on every cold start. Take it only while NewDot has none (first-transition seed).
+                if (key === ONYXKEYS.SHOULD_USE_STAGING_SERVER && shouldUseStagingServer !== undefined) {
+                    continue;
+                }
+
                 onyxUpdates.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key,
