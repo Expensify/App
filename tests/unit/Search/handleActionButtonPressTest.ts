@@ -1,5 +1,6 @@
 import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 
+import type * as ReportWorkflow from '@libs/actions/IOU/ReportWorkflow';
 import {handleActionButtonPress, handleBulkPayItemSelected} from '@libs/actions/Search';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,8 +23,10 @@ jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
 }));
 const mockApproveMoneyRequest = jest.fn();
 jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({
-    ...jest.requireActual<typeof import('@libs/actions/IOU/ReportWorkflow')>('@libs/actions/IOU/ReportWorkflow'),
-    approveMoneyRequest: (...args: unknown[]) => mockApproveMoneyRequest(...args),
+    ...jest.requireActual<typeof ReportWorkflow>('@libs/actions/IOU/ReportWorkflow'),
+    approveMoneyRequest: (...args: Parameters<typeof ReportWorkflow.approveMoneyRequest>) => {
+        mockApproveMoneyRequest(...args);
+    },
 }));
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -616,7 +619,10 @@ describe('handleBulkPayItemSelected', () => {
         });
 
         expect(baseParams.triggerKYCFlow).not.toHaveBeenCalled();
-        expect(baseParams.confirmPayment).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.VBBA, {bankAccountID, paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT});
+        expect(baseParams.confirmPayment).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.VBBA, {
+            bankAccountID,
+            paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+        });
     });
 
     it('should trigger the KYC flow when the selected business bank account is not open', async () => {
@@ -637,7 +643,11 @@ describe('handleBulkPayItemSelected', () => {
                 [bankAccountID]: {
                     bankCurrency: CONST.CURRENCY.USD,
                     bankCountry: CONST.COUNTRY.US,
-                    accountData: {bankAccountID, type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.LOCKED},
+                    accountData: {
+                        bankAccountID,
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.LOCKED,
+                    },
                 },
             },
             item: {
