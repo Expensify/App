@@ -56,6 +56,7 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
     const receiptFilename = transaction?.receipt?.filename;
     const fallbackSource = !transaction?.receipt?.source && receiptFilename ? constructReceiptSourceFromFilename(receiptFilename) : undefined;
     const storedPath = errors?.source ?? transaction?.receipt?.source ?? fallbackSource ?? receiptPath ?? '';
+
     // resolve returns undefined for a require() asset id, which distance and per diem use as their receipt source.
     const path = ReceiptStorage.resolve(storedPath) ?? storedPath;
     // filename of uploaded image or last part of remote URI
