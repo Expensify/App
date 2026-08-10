@@ -1,4 +1,5 @@
 import AttachmentPicker from '@components/AttachmentPicker';
+import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -7,7 +8,6 @@ import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import ReceiptHoverZoom from '@components/ReceiptHoverZoom';
-import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 
 import useActiveRoute from '@hooks/useActiveRoute';
@@ -215,7 +215,7 @@ function MoneyRequestReceiptView({
     const addButtonRef = useRef<View | null>(null);
     const [isPickerOpen, setIsPickerOpen] = useState(false);
     const deviceHasHoverSupport = hasHoverSupport();
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus', 'Copy']);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);
 
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     // Browsers don't fire mouseenter when an element mounts under the cursor
@@ -700,21 +700,16 @@ function MoneyRequestReceiptView({
                                                 onLoadFailure={() => setIsLoading(false)}
                                             />
                                             {canShowDistanceEReceipt && isHovering && !!displayedTransaction && <HoveredDistanceEReceipt transaction={displayedTransaction} />}
-                                            {shouldShowReceiptPageCount && (
-                                                <View style={[styles.receiptPageCountBadge, styles.pointerEventsNone]}>
-                                                    <Icon
-                                                        src={lazyIcons.Copy}
-                                                        fill={theme.white}
-                                                        width={variables.iconSizeExtraSmall}
-                                                        height={variables.iconSizeExtraSmall}
-                                                    />
-                                                    <Text style={styles.receiptPageCountBadgeText}>{translate('receipt.pageCount', {pageCount: receiptPageCount})}</Text>
-                                                </View>
-                                            )}
                                         </>
                                     )}
                                 </ReceiptHoverZoom>
                             </View>
+                            {shouldShowReceiptPageCount && (
+                                <Badge
+                                    text={translate('receipt.pageCount', {pageCount: receiptPageCount})}
+                                    badgeStyles={[styles.receiptPageCountBadge, styles.pointerEventsNone]}
+                                />
+                            )}
                             {canShowReceiptActions && (
                                 <View style={[styles.receiptActionButtonsContainer, styles.pointerEventsBoxNone, !hovered && !isPickerOpen && deviceHasHoverSupport && styles.opacity0]}>
                                     <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>

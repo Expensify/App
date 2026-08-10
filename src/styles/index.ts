@@ -4027,24 +4027,13 @@ const staticStyles = (theme: ThemeColors) =>
         // Sits bottom-left because the receipt action buttons occupy the top-right corner.
         // The background is the same translucent dark used for controls over video, so the badge
         // stays legible over any receipt content in either theme.
+        // Floats over the receipt rather than sitting inside it, so hover-zoom magnifies the receipt
+        // and leaves the badge alone. Badge applies its own left margin, which is cleared here.
         receiptPageCountBadge: {
             position: 'absolute',
             bottom: 16,
             left: 16,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
-            paddingHorizontal: 8,
-            paddingVertical: 4,
-            borderRadius: variables.componentBorderRadiusSmall,
-            backgroundColor: theme.videoPlayerBG,
-        },
-
-        receiptPageCountBadgeText: {
-            color: theme.white,
-            fontSize: variables.fontSizeSmall,
-            fontWeight: FontUtils.fontWeight.bold,
-            lineHeight: variables.lineHeightSmall,
+            marginLeft: 0,
         },
 
         receiptActionButton: {
