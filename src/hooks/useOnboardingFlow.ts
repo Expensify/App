@@ -131,9 +131,9 @@ function useOnboardingFlowRouter() {
                 // Explicitly start the onboarding flow when onboarding is not completed.
                 // We use startOnboardingFlow (which calls resetRoot) instead of Navigation.navigate because
                 // navigate goes through the router where OnboardingGuard would block the navigation.
-                // waitForProtectedRoutes ensures navigation is ready, which is critical during fresh login.
+                // isNavigationReady ensures navigation is ready, which is critical during fresh login.
                 if (isOnboardingCompleted === false) {
-                    Navigation.waitForProtectedRoutes().then(() => {
+                    Navigation.isNavigationReady().then(() => {
                         startOnboardingFlow(buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath));
                     });
                 }
