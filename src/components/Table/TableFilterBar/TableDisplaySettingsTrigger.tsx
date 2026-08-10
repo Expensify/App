@@ -24,6 +24,11 @@ type ShouldShowTableDisplaySettingsTriggerParams = {
     narrowLayoutSortColumn: string | undefined;
 };
 
+const DISPLAY_POPOVER_ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+} as const;
+
 // On narrow layouts, tables with a narrowLayoutSortColumn ignore user sorting entirely, so a sort control would be a no-op.
 function shouldShowTableDisplaySettingsTrigger({columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn}: ShouldShowTableDisplaySettingsTriggerParams): boolean {
     const hasSortableColumns = columns.some((column) => column.sortable);
@@ -56,6 +61,7 @@ export default function TableDisplaySettingsTrigger() {
         return (
             <FilterPopupButton
                 PopoverComponent={renderTableDisplaySettingsPopover}
+                popoverAnchorAlignment={DISPLAY_POPOVER_ANCHOR_ALIGNMENT}
                 renderButton={({ref, onPress}) => (
                     <PressableWithFeedback
                         ref={ref}
@@ -84,6 +90,7 @@ export default function TableDisplaySettingsTrigger() {
             value={null}
             wrapperStyle={styles.mt0Half}
             PopoverComponent={renderTableDisplaySettingsPopover}
+            popoverAnchorAlignment={DISPLAY_POPOVER_ANCHOR_ALIGNMENT}
         />
     );
 }
