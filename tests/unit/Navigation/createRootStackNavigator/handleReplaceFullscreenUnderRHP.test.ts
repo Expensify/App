@@ -285,13 +285,11 @@ describe('handleReplaceFullscreenUnderRHP / handleRemoveFullscreenUnderRHP — s
         mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
         const insertResult = handleReplaceFullscreenUnderRHP(makeExistingState(undefined), makeAction(true), CONFIG_OPTIONS, stackRouter);
         expect(getBufferRoute(insertResult)).not.toBeUndefined();
+        if (!insertResult) {
+            throw new Error('Expected handleReplaceFullscreenUnderRHP to return a state.');
+        }
 
-        const removeResult = handleRemoveFullscreenUnderRHP(
-            insertResult as StackNavigationState<ParamListBase>,
-            makeRemoveAction(NAVIGATORS.WORKSPACE_NAVIGATOR),
-            CONFIG_OPTIONS,
-            stackRouter,
-        );
+        const removeResult = handleRemoveFullscreenUnderRHP(insertResult, makeRemoveAction(NAVIGATORS.WORKSPACE_NAVIGATOR), CONFIG_OPTIONS, stackRouter);
 
         expect(getBufferRoute(removeResult)).toBeUndefined();
         expect(removeResult?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
