@@ -1763,13 +1763,13 @@ const translations: TranslationDeepObject<typeof en> = {
             reassignedApproverMessage: (managerID: number) => `ανέθεσε εκ νέου τον εγκρίνοντα στον/στην <mention-user accountID="${managerID}"/> μέσω ενημέρωσης ροής εργασίας`,
             delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
                 `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> αντί σε εσάς (τον Αντιπρόσωπο Άδειας του) επειδή δεν είστε μέλος της πολιτικής αυτής της αναφοράς`,
-            delegateSubmitNotOnPolicyAsOriginalManager: (_originalManager: string, delegate: string) =>
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
                 `Αυτή η αναφορά στάλθηκε σε εσάς αντί στον Αντιπρόσωπο Άδειας σας <mention-user>@${delegate}</mention-user> επειδή δεν είναι μέλος της πολιτικής αυτής της αναφοράς`,
             delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
                 `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> αντί στον Αντιπρόσωπο Άδειας του/της <mention-user>@${delegate}</mention-user> επειδή δεν είναι μέλος της πολιτικής αυτής της αναφοράς`,
             delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string, delegate: string) =>
                 `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> για έγκριση επειδή ο/η <mention-user>@${delegate}</mention-user> δεν μπορεί να εγκρίνει τις δικές του/της αναφορές`,
-            delegateSubmitCannotApproveOwnReportAsOriginalManager: (_originalManager: string, delegate: string) =>
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (originalManager: string, delegate: string) =>
                 `Αυτή η αναφορά στάλθηκε σε εσάς για έγκριση επειδή ο Αντιπρόσωπος Άδειας σας, <mention-user>@${delegate}</mention-user>, δεν μπορεί να εγκρίνει τις δικές του/της αναφορές`,
             delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
                 `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> για έγκριση επειδή ο Αντιπρόσωπος Άδειας του/της, <mention-user>@${delegate}</mention-user>, δεν μπορεί να εγκρίνει τις δικές του/της αναφορές`,
