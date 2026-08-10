@@ -1,6 +1,8 @@
 import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPolicyExpenseChat} from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 
 import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
@@ -60,6 +62,17 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
 }));
+
+jest.mock('@libs/ReportUtils', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- requireActual can't be typed without a restricted wildcard import of this module
+    const actualReportUtils = jest.requireActual('@libs/ReportUtils');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actualReportUtils,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+        getPolicyExpenseChat: jest.fn(actualReportUtils.getPolicyExpenseChat),
+    };
+});
 
 // Pass-through spy so behavior is unchanged but the call args (incl. currentUserAccountID) can be asserted.
 jest.mock('@libs/shouldUseDefaultExpensePolicy', () => {
@@ -784,7 +797,6 @@ describe('MoneyRequest', () => {
             transaction: fakeTransaction,
             reportID: '1',
             transactionID: '121',
-            reportAttributesDerived: {},
             personalDetails: {},
             waypoints: {},
             currentUserLogin: 'test@test.com',
@@ -809,14 +821,14 @@ describe('MoneyRequest', () => {
             amountOwed: 0,
             draftTransactionIDs: undefined,
             userBillingGracePeriodEnds: undefined,
-            conciergeReportID: undefined,
             action: CONST.IOU.ACTION.CREATE,
-            reportDraft: undefined,
             currentUserLocalCurrency: undefined,
             policyTagList: {},
             isTrackIntentUser: false,
             formatPhoneNumber,
             delegateAccountID: undefined,
+            participants: getMoneyRequestParticipantOptions(1, fakeReport, fakePolicy, {}, undefined, false, {}, undefined, translateLocal),
+            participantsPolicyTags: {},
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -926,6 +938,38 @@ describe('MoneyRequest', () => {
             expect(Split.createDistanceRequest).not.toHaveBeenCalled();
         });
 
+        it.each([
+            ['omits stale', 0, false],
+            ['forwards commuter exclusion', 2, true],
+        ])('%s modified fields when creating a distance request', (_description, commuterExclusion, shouldForwardModifiedFields) => {
+            const transaction = {
+                ...fakeTransaction,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                modifiedAmount: 80,
+                modifiedMerchant: '8 mi @ $0.50 / mi',
+                comment: {comment: '', customUnit: {commuterExclusion, reimbursableDistance: 8, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}},
+            };
+
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                transaction,
+                manualDistance: 10,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
+                getCurrencySymbol,
+            });
+
+            const transactionParams = jest.mocked(Split.createDistanceRequest).mock.calls.at(-1)?.at(0)?.transactionParams;
+            if (shouldForwardModifiedFields) {
+                expect(transactionParams).toEqual(expect.objectContaining({modifiedAmount: 80, modifiedMerchant: '8 mi @ $0.50 / mi'}));
+            } else {
+                expect(transactionParams).not.toHaveProperty('modifiedAmount');
+                expect(transactionParams).not.toHaveProperty('modifiedMerchant');
+            }
+        });
+
         it('should pass the existing tracked transaction ID (not the optimistic id) to cleanup for a move-from-track distance submission', async () => {
             const EXISTING_TRACKED_TRANSACTION_ID = 'tracked-transaction-88';
             const linkedTrackedExpenseReportAction = {
@@ -1020,6 +1064,19 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
                 draftTransactionIDs: [baseParams.transactionID],
+                // getMoneyRequestParticipantOptions resolves reports via ReportUtils' internal Onyx cache, which isn't
+                // populated in this bare unit-test harness, so provide the policy-expense-chat participant directly.
+                participants: [
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal OptionData fixture, only the fields the assertions below check are needed
+                    {
+                        accountID: 0,
+                        selected: true,
+                        isSelected: true,
+                        allReportErrors: {},
+                        brickRoadIndicator: null,
+                        isPolicyExpenseChat: true,
+                    } as OptionData,
+                ],
                 delegateAccountID: undefined,
                 getCurrencySymbol,
             });
@@ -1205,6 +1262,10 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
+            // getPolicyExpenseChat resolves reports via ReportUtils' internal Onyx cache, which isn't populated
+            // in this bare unit-test harness, so return the policy expense chat report directly.
+            jest.mocked(getPolicyExpenseChat).mockReturnValueOnce(fakeReport);
+
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 report: undefined,
@@ -1320,50 +1381,31 @@ describe('MoneyRequest', () => {
             expect(lastCallArgs.at(5)).toBe(baseParams.currentUserAccountID);
         });
 
-        it('should pass conciergeReportID through to getMoneyRequestParticipantOptions when report exists', async () => {
-            const conciergeReportID = 'concierge789';
+        it('should call setDistanceRequestData with the provided participants when report exists', async () => {
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 shouldSkipConfirmation: false,
                 isArchivedExpenseReport: false,
                 draftTransactionIDs: [baseParams.transactionID],
-                conciergeReportID,
-                delegateAccountID: undefined,
-                getCurrencySymbol,
-            });
-
-            // When report exists and iouType is not CREATE, the function calls getMoneyRequestParticipantOptions
-            // with conciergeReportID, sets distance request data, and then navigates to confirmation page
-            await waitForBatchedUpdates();
-            expect(baseParams.setDistanceRequestData).toHaveBeenCalled();
-        });
-
-        it('should set distance request data when conciergeReportID is undefined', async () => {
-            handleMoneyRequestStepDistanceNavigation({
-                ...baseParams,
-                iouType: CONST.IOU.TYPE.SUBMIT,
-                shouldSkipConfirmation: false,
-                isArchivedExpenseReport: false,
-                draftTransactionIDs: [baseParams.transactionID],
-                conciergeReportID: undefined,
                 delegateAccountID: undefined,
                 getCurrencySymbol,
             });
 
             await waitForBatchedUpdates();
-            expect(baseParams.setDistanceRequestData).toHaveBeenCalled();
+            expect(baseParams.setDistanceRequestData).toHaveBeenCalledWith(baseParams.participants);
         });
 
-        it('should pass reportDraft to getMoneyRequestParticipantOptions and mark participant as disabled', async () => {
-            let capturedParticipants: Participant[] = [];
+        it('should forward a participant marked as disabled to setDistanceRequestData', async () => {
+            let capturedParticipants: Array<Participant | OptionData> = [];
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 shouldSkipConfirmation: false,
                 isArchivedExpenseReport: false,
                 draftTransactionIDs: [baseParams.transactionID],
-                reportDraft: fakeReport,
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test fixture forwarding the real OptionData baseParams.participants already produced, with isDisabled overridden
+                participants: [{...baseParams.participants.at(0), isDisabled: true} as OptionData],
                 setDistanceRequestData: (participants) => {
                     capturedParticipants = participants;
                 },
@@ -1376,15 +1418,16 @@ describe('MoneyRequest', () => {
             expect(capturedParticipants.at(0)).toMatchObject({isDisabled: true});
         });
 
-        it('should not mark participant as disabled when reportDraft is undefined', async () => {
-            let capturedParticipants: Participant[] = [];
+        it('should forward a participant not marked as disabled to setDistanceRequestData', async () => {
+            let capturedParticipants: Array<Participant | OptionData> = [];
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 shouldSkipConfirmation: false,
                 isArchivedExpenseReport: false,
                 draftTransactionIDs: [baseParams.transactionID],
-                reportDraft: undefined,
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test fixture forwarding the real OptionData baseParams.participants already produced, with isDisabled overridden
+                participants: [{...baseParams.participants.at(0), isDisabled: false} as OptionData],
                 setDistanceRequestData: (participants) => {
                     capturedParticipants = participants;
                 },
