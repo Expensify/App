@@ -147,13 +147,16 @@ function ExpenseGroupedSearchView({
         previouslyExpandedGroupsRef.current = expandedGroups;
     }, [expandedGroups, unregisterGroupChildren]);
 
-    // A layout switch hands these groups to the other render path, so drop their registrations while leaving open what the user opened.
+    // Only leaving the split layout strands registrations, since those rows unmount without cleaning up.
     const wasSplitRef = useRef(shouldSplit);
     useEffect(() => {
         if (wasSplitRef.current === shouldSplit) {
             return;
         }
         wasSplitRef.current = shouldSplit;
+        if (shouldSplit) {
+            return;
+        }
         for (const key of expandedGroups) {
             unregisterGroupChildren(key);
         }
