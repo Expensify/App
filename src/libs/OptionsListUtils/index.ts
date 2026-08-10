@@ -1845,7 +1845,7 @@ function hydrateLazyPersonalDetailOption(option: PersonalDetailOptionOrShell): H
  * Hydrates a contact option that getValidOptions left as a shell (see `deferContactHydration`), re-applying the
  * marks it wrote before the display fields existed. Screens that defer must call this instead of
  * hydrateLazyPersonalDetailOption: the memoized build is shared by every caller, so it cannot carry one screen's
- * selection state, and dropping the marks would render every row unselected and unbolded.
+ * selection state, and dropping the marks would render every row unselected and not bold.
  *
  * `selected` (the legacy duplicate of isSelected) is deliberately not re-applied: getValidOptions never writes
  * it, so the shell's value and the build's are both the `false` createOption assigns, and copying it would only
@@ -2899,7 +2899,7 @@ function getValidOptions(
 
         const isSearchTermsFound = (report: SearchOption<Report>) => {
             // Keep the pre-filter a superset of filterReports(). In particular, use the canonical matcher first
-            // so apostrophes, hyphens, zero-width characters, diacritics, and dotless email searches are not
+            // so apostrophes, hyphens, zero-width characters, diacritics, and email searches without dots are not
             // discarded before filterAndOrderOptions gets a chance to apply the final report filtering.
             if (filterReports([report], searchTerms).length > 0) {
                 return true;

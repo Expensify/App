@@ -1779,7 +1779,7 @@ describe('OptionsListUtils', () => {
             // Given an option list from createFilteredOptionList
             const {lazyList} = buildOptionLists();
 
-            // Then every contact option is a lightweight one: it is unhydrated and skips expensive fields like icons
+            // Then every contact option is a lightweight one: it is not hydrated and skips expensive fields like icons
             expect(lazyList.personalDetails.length).toBeGreaterThan(0);
             expect(lazyList.personalDetails.every((option) => !option.isHydrated)).toBe(true);
             expect(lazyList.personalDetails.every((option) => !('icons' in option))).toBe(true);
@@ -1822,19 +1822,19 @@ describe('OptionsListUtils', () => {
             },
             {
                 description: 'a hyphen',
-                reportText: 'Project-ABC',
-                searchText: 'projectabc',
+                reportText: 'Foo-Bar',
+                searchText: 'foobar',
             },
             {
                 description: 'diacritics',
                 // cspell:disable-next-line
-                reportText: 'Café München',
-                searchText: 'cafe munchen',
+                reportText: 'Café Zürich',
+                searchText: 'cafe zurich',
             },
             {
                 description: 'a zero-width character',
-                reportText: 'Project\u200BABC',
-                searchText: 'projectabc',
+                reportText: 'Foo\u200BBar',
+                searchText: 'foobar',
             },
             {
                 description: 'dots omitted from an email address',
@@ -2391,7 +2391,7 @@ describe('OptionsListUtils', () => {
             });
         };
 
-        it('should leave surviving contacts unhydrated so only the caller-rendered page is ever built', () => {
+        it('should leave surviving contacts without hydration so only the caller-rendered page is ever built', () => {
             // Given an option list with more contacts than a screen renders at once
             const lazyList = buildLazyList();
             const config = {personalDetails: PERSONAL_DETAILS, deferContactHydration: true as const};
@@ -5090,13 +5090,13 @@ describe('OptionsListUtils', () => {
             },
             {
                 description: 'a hyphen',
-                reportText: 'Project-ABC',
-                searchText: 'projectabc',
+                reportText: 'Foo-Bar',
+                searchText: 'foobar',
             },
             {
                 description: 'a zero-width character',
-                reportText: 'Project\u200BABC',
-                searchText: 'projectabc',
+                reportText: 'Foo\u200BBar',
+                searchText: 'foobar',
             },
         ])('should match report text containing $description', ({reportText, searchText}) => {
             // Given a report whose display text contains characters normalized by report search

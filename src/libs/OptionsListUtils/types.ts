@@ -327,7 +327,7 @@ type GetOptionsConfig = {
      * none of the display fields. Pass each one through hydrateWithMarks before rendering it; the
      * PersonalDetailOptionOrShell element type is threaded through filterAndOrderOptions so forgetting to is a
      * compile error at the render site. That covers `currentUserOption` as well — it is picked out of the same
-     * contact array, so `Options` parameterizes it on the same element type.
+     * contact array, so `Options` is generic over the same element type.
      */
     deferContactHydration?: boolean;
     /** TODO: Should be required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
@@ -377,7 +377,7 @@ type SelectionListSections = Array<SelectionListSection<OptionWithKey>>;
  * render, where hydrateWithMarks turns it back into a display option. Every other caller gets the default and
  * is unaffected.
  *
- * It parameterizes `currentUserOption` too: that is an element of `personalDetails` (getValidOptions picks it
+ * The same generic applies to `currentUserOption` too: that is an element of `personalDetails` (getValidOptions picks it
  * out of the same array), so with hydration deferred it is a shell and must be hydrated before it is rendered.
  */
 type Options<TPersonalDetail extends SearchOptionData = SearchOptionData> = {
