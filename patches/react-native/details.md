@@ -333,3 +333,10 @@
 - Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/57556
 - PR introducing patch: https://github.com/Expensify/App/pull/94332
+
+### [react-native+0.85.3+040+fix-find-shadow-node-uaf-APP-HNA.patch](react-native+0.85.3+040+fix-find-shadow-node-uaf-APP-HNA.patch)
+
+- Reason: Fixes a fatal Android HybridApp crash (APP-HNA) — a SIGSEGV in `findShadowNodeByTagRecursively` reached via `FabricUIManagerBinding::findNextFocusableElement` during focus navigation (D-pad / hardware-keyboard Tab / accessibility focus) inside a scroll view. `UIManager::findShadowNodeByTag_DEPRECATED` has two paths gated on RN's `fixFindShadowNodeByTagRaceCondition` feature flag: the safe path holds the root node alive via a `shared_ptr` for the entire traversal, while the flag-off path grabs a raw root pointer via `tryCommit` (immediately cancelled) that keeps nothing alive. The flag defaults to `false`, so a concurrent commit/unmount on the background thread can free the shadow subtree mid-traversal, leaving a dangling `shared_ptr` that segfaults at `ShadowNode::getTag()`. This patch removes the flag gate and unconditionally uses the safe `shared_ptr`-holding path. Upstream removed the flag (making the safe path the default) in RN 0.87.0, so this patch can be dropped once we upgrade to RN >= 0.87.0.
+- Upstream PR/issue: https://github.com/facebook/react-native/pull/55751 (introduced the fix behind the `fixFindShadowNodeByTagRaceCondition` flag) and https://github.com/facebook/react-native/pull/56850 (removed the flag in RN 0.87.0)
+- E/App issue: https://github.com/Expensify/App/issues/97471
+- PR introducing patch: https://github.com/Expensify/App/pull/97496

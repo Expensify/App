@@ -1,6 +1,7 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectedReports} from '@components/Search/types';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import {getPolicyTagsSelector} from '@hooks/useParticipantsPolicyTags';
 
 import * as API from '@libs/API';
@@ -954,6 +955,7 @@ type DuplicateReportParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
 };
 
@@ -981,6 +983,7 @@ function duplicateReport({
     isTrackIntentUser,
     delegateAccountID,
     formatPhoneNumber,
+    getCurrencyDecimals,
     participantsPolicyTags,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
@@ -988,9 +991,20 @@ function duplicateReport({
     }
 
     const newReportName = translate('common.copyOfReportName', sourceReportName);
-    const {reportPreviewReportActionID, ...newReport} = createNewReport(ownerPersonalDetails, false, isASAPSubmitBetaEnabled, targetPolicy, betas, isTrackIntentUser, false, undefined, {
-        reportName: newReportName,
-    });
+    const {reportPreviewReportActionID, ...newReport} = createNewReport(
+        ownerPersonalDetails,
+        false,
+        isASAPSubmitBetaEnabled,
+        targetPolicy,
+        betas,
+        isTrackIntentUser,
+        getCurrencyDecimals,
+        false,
+        undefined,
+        {
+            reportName: newReportName,
+        },
+    );
 
     const isCrossWorkspace = !!sourceReport && sourceReport.policyID !== targetPolicy.id;
 
@@ -1295,6 +1309,7 @@ type BulkDuplicateReportsParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 function bulkDuplicateReports({
@@ -1321,6 +1336,7 @@ function bulkDuplicateReports({
     isTrackIntentUser,
     delegateAccountID,
     formatPhoneNumber,
+    getCurrencyDecimals,
 }: BulkDuplicateReportsParams) {
     const allTransactionsMap = getAllTransactions();
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
@@ -1401,6 +1417,7 @@ function bulkDuplicateReports({
             isTrackIntentUser,
             delegateAccountID,
             formatPhoneNumber,
+            getCurrencyDecimals,
             participantsPolicyTags,
         });
     }
