@@ -9,7 +9,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {getAllPolicyValues, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,14 +70,12 @@ function CategorySelector({value = [], policyID, selectionListTextInputStyle, se
     );
 
     if (isLoadingInitialCategories) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SearchFiltersCategoryPage'};
         return (
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <ActivityIndicator
                     color={theme.spinner}
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     style={[styles.pl3]}
-                    reasonAttributes={reasonAttributes}
                 />
             </View>
         );
