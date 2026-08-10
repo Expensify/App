@@ -4,7 +4,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MergeTransaction, Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
+import type {MergeTransaction, Policy, Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -17,6 +17,7 @@ import type {TransactionDetails} from './ReportUtils';
 
 import {getDecodedLeafCategoryName} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
+import {getAllNonDeletedTransactions} from './MoneyRequestReportUtils';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {constructReceiptSourceFromFilename} from './ReceiptUtils';
@@ -30,7 +31,6 @@ import {
     getAttendeesListDisplayString,
     getCurrency,
     getReimbursable,
-    getSupersededPendingCardTransactionIDs,
     getTaxName,
     getWaypoints,
     hasValidModifiedAmount,
@@ -369,6 +369,7 @@ function willReportBecomeOneTransactionReportAfterMerge(
     sourceTransactionID: string | undefined,
     reportTransactionsCollection: OnyxCollection<Transaction>,
     searchResultsData: SearchResults['data'] | undefined,
+    reportActions: ReportAction[],
     isOffline: boolean,
 ): boolean {
     if (!reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID || reportID === CONST.REPORT.SPLIT_REPORT_ID) {
@@ -380,38 +381,28 @@ function willReportBecomeOneTransactionReportAfterMerge(
         typeof value === 'object' && value !== null && 'transactionID' in value && typeof value.transactionID === 'string';
 
     // Merge both sources by transactionID; Onyx overrides the snapshot so the optimistic values win over stale rows.
-    const transactionsByID = new Map<string, Transaction>();
+    const transactionsByID: Record<string, Transaction> = {};
     for (const value of Object.values(searchResultsData ?? {})) {
-        if (!isSearchResultTransaction(value)) {
+        if (!isSearchResultTransaction(value) || value.reportID !== reportID) {
             continue;
         }
-        transactionsByID.set(value.transactionID, value);
+        transactionsByID[value.transactionID] = value;
     }
     for (const transaction of Object.values(reportTransactionsCollection ?? {})) {
-        if (!transaction) {
+        if (!transaction || transaction.reportID !== reportID) {
             continue;
         }
-        transactionsByID.set(transaction.transactionID, transaction);
+        transactionsByID[transaction.transactionID] = transaction;
     }
 
-    // A stale pending card auth is hidden once its posted counterpart exists, so it must not keep the report open.
-    const reportTransactions = [...transactionsByID.values()].filter((transaction) => transaction.reportID === reportID);
-    const supersededPendingCardTransactionIDs = getSupersededPendingCardTransactionIDs(reportTransactions);
+    // Count exactly what SearchMoneyRequestReportPage renders: getAllNonDeletedTransactions drops rows whose IOU action
+    // was deleted (a deleted expense can leave its transaction behind) and hides superseded pending card auths, then we
+    // apply the same online-only pending-delete filter the page uses for its visible transactions.
+    const visibleTransactions = getAllNonDeletedTransactions(transactionsByID, reportActions).filter(
+        (transaction) => transaction.transactionID !== sourceTransactionID && (isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+    );
 
-    let remainingTransactions = 0;
-    for (const transaction of reportTransactions) {
-        // Skip the source, superseded card auths, and (online only) siblings being deleted, matching the Search report.
-        if (
-            transaction.transactionID === sourceTransactionID ||
-            supersededPendingCardTransactionIDs.has(transaction.transactionID) ||
-            (!isOffline && isTransactionPendingDelete(transaction))
-        ) {
-            continue;
-        }
-        remainingTransactions += 1;
-    }
-
-    return remainingTransactions <= 1;
+    return visibleTransactions.length <= 1;
 }
 
 /**

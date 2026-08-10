@@ -69,6 +69,8 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
     // Expenses already in the target report, used to tell if only one will be left after merging.
     const targetReportTransactionsCollection = useReportTransactionsCollection(targetTransaction?.reportID);
+    // Report actions of the target report, so the remaining-expense count ignores rows whose IOU action was deleted.
+    const [targetReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(targetTransaction?.reportID)}`);
     // Reports opened from Search may not be in Onyx yet, so we also read the expenses from the Search snapshot.
     const {currentSearchResults} = useSearchResultsContext();
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`);
@@ -137,6 +139,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
                         sourceTransaction.transactionID,
                         targetReportTransactionsCollection,
                         currentSearchResults?.data,
+                        Object.values(targetReportActions ?? {}),
                         isOffline,
                     );
 
