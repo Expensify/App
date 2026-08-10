@@ -880,7 +880,7 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
     // Different approvers may share an `overLimitForwardsTo`, which would emit identical terminal rules.
     const seen = new Set<string>();
     return rules.filter((rule) => {
-        const fingerprint = JSON.stringify(rule);
+        const fingerprint = canonicalFingerprint(rule);
         if (seen.has(fingerprint)) {
             return false;
         }
@@ -970,6 +970,11 @@ function canonicalize(value: unknown): unknown {
  * stripped and keys canonicalized. Two rules with the same fingerprint differ only in their submitters,
  * which is what we look for when deciding whether to merge two workflows into a shared rule.
  */
+/** A string that is equal for two values that mean the same thing, regardless of the order their keys were built in. */
+function canonicalFingerprint(value: unknown): string {
+    return JSON.stringify(canonicalize(value));
+}
+
 function structuralFingerprint(rule: ApprovalWorkflowRule): string {
     const stripFromValues = (node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined): unknown => {
         if (!node) {
@@ -984,13 +989,11 @@ function structuralFingerprint(rule: ApprovalWorkflowRule): string {
         return {operator: node.operator, left: stripFromValues(node.left), right: stripFromValues(node.right)};
     };
 
-    return JSON.stringify(
-        canonicalize({
-            triggers: rule.triggers,
-            filters: stripFromValues(rule.filters),
-            actions: rule.actions,
-        }),
-    );
+    return canonicalFingerprint({
+        triggers: rule.triggers,
+        filters: stripFromValues(rule.filters),
+        actions: rule.actions,
+    });
 }
 
 /** Replace the `right` value on every `from` leaf with `newEmails`. */
