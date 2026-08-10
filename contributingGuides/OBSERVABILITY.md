@@ -37,17 +37,6 @@ Minimum set of parameters required to create a span:
 
 **Span configuration**: Set of parameters passed to `Sentry.startInteractiveSpan`. See the [Sentry docs](https://docs.sentry.io/platforms/react-native/tracing/instrumentation/custom-instrumentation/#starting-inactive-spans-startinactivespan) for more details.
 
-Additional parameters can be added as a config object (third parameter):
-
-**Minimum Duration**: what's the minimum duration of a span. Spans shorter than this duration are discarded.
-
-```typescript
-startSpan(CONST.TELEMETRY.SPAN_SKELETON, {
-    name: CONST.TELEMETRY.SPAN_SKELETON,
-    op: CONST.TELEMETRY.SPAN_SKELETON,
-}, {minDuration: CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION});
-```
-
 #### Finishing a Span
 
 There are two ways to finish a span:
@@ -72,7 +61,7 @@ Defined in `src/CONST/index.ts` under `CONST.TELEMETRY`:
 - Span names: `SPAN_OPEN_REPORT`, `SPAN_SEND_MESSAGE`
 - Tag names: `TAGS.ACTIVE_POLICY`, `TAGS.AUTHENTICATION_ERROR_TYPE`
 - Attribute names: `ATTRIBUTE_REPORT_ID`, `ATTRIBUTE_MESSAGE_LENGTH`
-- Configuration: `CONFIG.SKELETON_MIN_DURATION`
+- Configuration: `CONFIG.MEMORY_TRACKING_INTERVAL`
 
 #### Naming Conventions
 
@@ -86,7 +75,7 @@ Defined in `src/CONST/index.ts` under `CONST.TELEMETRY`:
 ### Middleware
 
 Process events before sending to Sentry:
-- **minDurationFilter** - Discards spans shorter than a specified duration
+- **maxDurationFilter** - Discards spans longer than a specified duration
 - **scopeTagsEnricher** - Adds cohort and policy tags
 - **emailDomainFilter** - Removes accounts we don't want to send telemetry for
 
@@ -115,7 +104,6 @@ Error conditions tracked for trend analysis:
 
 - **ANRs**: number of "Application Not Responding" errors
 - **404 pages**: number of user actions other than deep links that result in 404
-- **Infinite skeletons**: Skeleton visible 10+ seconds
 - **Authentication failures**: number of authentication errors other than wrong credentials 
 
 ### Feature Health
