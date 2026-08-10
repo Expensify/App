@@ -398,7 +398,7 @@ function willReportBecomeOneTransactionReportAfterMerge(
     // Count exactly what SearchMoneyRequestReportPage renders: getAllNonDeletedTransactions drops rows whose IOU action
     // was deleted (a deleted expense can leave its transaction behind) and hides superseded pending card auths, then we
     // apply the same online-only pending-delete filter the page uses for its visible transactions.
-    const visibleTransactions = getAllNonDeletedTransactions(transactionsByID, reportActions).filter(
+    const visibleTransactions = getAllNonDeletedTransactions(transactionsByID, reportActions, isOffline, true).filter(
         (transaction) => transaction.transactionID !== sourceTransactionID && (isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
     );
 
