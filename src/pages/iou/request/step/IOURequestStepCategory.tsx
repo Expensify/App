@@ -34,7 +34,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {hasAccountingConnections, isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getRequestType} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -93,7 +92,6 @@ function IOURequestStepCategory({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -150,11 +148,6 @@ function IOURequestStepCategory({
     const isLoading = !isOffline && policyCategories === undefined;
     const shouldShowEmptyState = policyCategories !== undefined && !shouldShowCategory;
     const shouldShowOfflineView = policyCategories === undefined && isOffline;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'IOURequestStepCategory',
-        isLoading,
-        isOffline,
-    };
 
     useEffect(() => {
         fetchData();
@@ -188,7 +181,6 @@ function IOURequestStepCategory({
                     transactionThreadReport: report,
                     parentReport,
                     iouReportOwnerLogin,
-                    parentReportNextStep,
                     category: updatedCategory,
                     policy,
                     policyTagList: policyTags,
@@ -236,7 +228,6 @@ function IOURequestStepCategory({
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     style={[styles.flex1]}
-                    reasonAttributes={reasonAttributes}
                 />
             )}
             {shouldShowOfflineView && <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>}
