@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -122,7 +122,7 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SUBSCRIPTION_DOWNGRADE_BLOCKED.path));
                 return;
             }
-            Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute(policyID));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_DOWNGRADE.path));
             return;
         }
 
@@ -144,10 +144,7 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                 <HeaderWithBackButton title={translate('workspace.common.planType')} />
                 {policy?.isLoading ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={{context: 'WorkspaceOverviewPlanTypePage'}}
-                        />
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                     </View>
                 ) : (
                     <>
@@ -184,12 +181,13 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                             addBottomSafeAreaPadding
                             footerContent={
                                 <Button
-                                    success
-                                    large
-                                    text={isPlanTypeLocked ? translate('common.buttonConfirm') : translate('common.save')}
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                    size={CONST.BUTTON_SIZE.LARGE}
                                     style={styles.mt6}
                                     onPress={handleUpdatePlan}
-                                />
+                                >
+                                    <Button.Text>{isPlanTypeLocked ? translate('common.buttonConfirm') : translate('common.save')}</Button.Text>
+                                </Button>
                             }
                         />
                     </>

@@ -16,13 +16,14 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {setCompanyCardExportAccount} from '@libs/actions/CompanyCards';
 import {getCompanyCardFeed, getDomainOrWorkspaceAccountID, isExpensifyCard as isExpensifyCardUtil} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getConnectedIntegration, getCurrentConnectionName} from '@libs/PolicyUtils';
+import {getConnectedIntegration} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 
 import variables from '@styles/variables';
 
@@ -55,12 +56,11 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
     // See https://github.com/Expensify/App/issues/72352 for more details.
     const activeRoute = Navigation.getActiveRoute();
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, styles, policy, card, activeRoute);
-    const currentConnectionName = getCurrentConnectionName(policy);
+    const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const shouldShowTextInput = (exportMenuItem?.data?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
     const defaultVendor = translate('workspace.accounting.defaultVendor');
     const defaultAccount = translate('workspace.accounting.defaultAccount');
-    const isXeroConnection = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const [cardFeeds] = useCardFeeds(policyID);
@@ -109,15 +109,11 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
                         {!!exportMenuItem?.description && (
                             <View style={[styles.renderHTML, styles.flexRow]}>
                                 <RenderHTML
-                                    html={
-                                        isXeroConnection
-                                            ? translate('workspace.moreFeatures.companyCards.integrationExportTitleXero', exportMenuItem.description)
-                                            : translate(
-                                                  'workspace.moreFeatures.companyCards.integrationExportTitle',
-                                                  exportMenuItem.description,
-                                                  `${environmentURL}/${exportMenuItem.exportPageLink}`,
-                                              )
-                                    }
+                                    html={translate(
+                                        'workspace.moreFeatures.companyCards.integrationExportTitle',
+                                        exportMenuItem.description,
+                                        exportMenuItem.exportPageLink ? `${environmentURL}/${exportMenuItem.exportPageLink}` : undefined,
+                                    )}
                                 />
                             </View>
                         )}

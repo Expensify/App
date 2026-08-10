@@ -9,7 +9,6 @@ import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -23,16 +22,12 @@ type DynamicMergeTransactionsListPageProps = PlatformStackScreenProps<MergeTrans
 
 function DynamicMergeTransactionsListPage({route}: DynamicMergeTransactionsListPageProps) {
     const {translate} = useLocalize();
-    const {transactionID, isOnSearch} = route.params;
+    const {transactionID} = route.params;
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'TransactionMerge.MergeTransactionsListPage',
-            isLoadingMergeTransaction: isLoadingOnyxValue(mergeTransactionMetadata),
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
@@ -51,7 +46,6 @@ function DynamicMergeTransactionsListPage({route}: DynamicMergeTransactionsListP
                 <MergeTransactionsListContent
                     transactionID={transactionID}
                     mergeTransaction={mergeTransaction}
-                    isOnSearch={isOnSearch}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

@@ -32,7 +32,7 @@ import {createOptionFromReport} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {isHiddenForCurrentUser} from '@libs/ReportUtils';
+import {isHiddenForCurrentUser, isOneOnOneChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
 import {buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
@@ -86,6 +86,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
@@ -155,7 +156,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     // The input text that was last used for autocomplete; needed for the SearchAutocompleteList when browsing list via arrow keys
     const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(initialQuery);
     const [selection, setSelection] = useState({start: initialQuery.length, end: initialQuery.length});
-    const navigationSuggestions = useNavigationSuggestions(textInputValue);
 
     useEffect(() => {
         clearPendingRouterState();
@@ -164,6 +164,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const textInputRef = useRef<AnimatedTextInputRef>(null);
 
     const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
+    // Only watch for reports awaiting approval while the router is active as a popover or full-screen page.
+    const navigationSuggestions = useNavigationSuggestions(textInputValue, !!isSearchRouterDisplayed || isSearchRouterScreen);
 
     const contextualReport = useReportOrReportDraft(contextualReportID);
     const [contextualReportNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${contextualReportID}`, {
@@ -212,20 +214,19 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     return undefined;
                 }
 
-                const option = createOptionFromReport(
-                    contextualReport,
+                const option = createOptionFromReport({
+                    report: contextualReport,
                     personalDetails,
-                    contextualReportNVP,
-                    contextualReportPolicy,
+                    privateIsArchived: contextualReportNVP,
+                    policy: contextualReportPolicy,
                     sortedActions,
-                    undefined,
-                    {
-                        showPersonalDetails: true,
+                    conciergeReportID,
+                    reportAttributesDerived: reportAttributes,
+                    config: {
+                        showPersonalDetails: isOneOnOneChat(contextualReport),
                     },
-                    undefined,
-                    undefined,
                     isTrackIntentUser,
-                );
+                });
                 reportForContextualSearch = option;
             }
 
@@ -279,6 +280,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         },
         [
             contextualReportID,
+            conciergeReportID,
             navigationSuggestions,
             textInputValue,
             isSearchRouterDisplayed,
@@ -291,6 +293,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             sortedActions,
             contextualReportNVP,
             contextualReportPolicy,
+            reportAttributes,
             isTrackIntentUser,
         ],
     );

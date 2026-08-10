@@ -374,11 +374,11 @@ function getValidOptions(
         const filteringFunction = (option: OptionData) => {
             const searchTermsFound = matchesSearchTerms(option, searchTerms);
 
-            if (!searchTermsFound || !option.reportID) {
+            if (!searchTermsFound || !option.reportID || !option.login) {
                 return false;
             }
 
-            if (!!option.login && loginsToExcludeFromSuggestions[option.login]) {
+            if (loginsToExcludeFromSuggestions[option.login]) {
                 return false;
             }
 
@@ -480,6 +480,21 @@ function createOptionList(
 }
 
 /**
+ * Keeps only the personal details whose login is in the given set. Meant to be applied before createOptionList so that no
+ * option is built for the accounts that are going to be filtered out anyway (e.g. everyone outside of a workspace).
+ */
+function filterPersonalDetailsByLogins(personalDetails: OnyxEntry<PersonalDetailsList>, logins: Set<string>): PersonalDetailsList {
+    const filteredPersonalDetails: PersonalDetailsList = {};
+    for (const [accountID, personalDetail] of Object.entries(personalDetails ?? {})) {
+        if (!personalDetail?.login || !logins.has(personalDetail.login)) {
+            continue;
+        }
+        filteredPersonalDetails[accountID] = personalDetail;
+    }
+    return filteredPersonalDetails;
+}
+
+/**
  * Helper method that returns the text to be used for the header's message and title (if any)
  */
 function getHeaderMessage(translate: LocaleContextProps['translate'], searchValue: string, countryCode: number, hasMatchedParticipant = false): string {
@@ -543,6 +558,7 @@ export {
     matchesSearchTerms,
     getValidOptions,
     createOptionList,
+    filterPersonalDetailsByLogins,
     getHeaderMessage,
     getUserToInviteOption,
     getFilteredRecentAttendees,
