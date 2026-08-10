@@ -1,4 +1,5 @@
 import extractModuleDefaultExport from '@libs/extractModuleDefaultExport';
+import {getIsOffline, onReachabilityConfirmed} from '@libs/NetworkState';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
@@ -167,13 +168,6 @@ class IntlStore {
         return this.currentLocale;
     }
 
-    /**
-     * An empty cache is never treated as final, because `translate()` would then render its raw key
-     * forever.
-     *
-     * NetworkState is imported lazily: it pulls in the whole network stack, and IntlStore is imported
-     * almost everywhere, so a static import would load that onto graphs that never fetch a locale.
-     */
     public static load(locale: Locale): Promise<void> {
         if (this.currentLocale === locale) {
             return Promise.resolve();
@@ -195,7 +189,6 @@ class IntlStore {
             try {
                 await loaderPromise();
             } catch (error) {
-                const {getIsOffline, onReachabilityConfirmed} = await import('@libs/NetworkState');
                 if (!getIsOffline()) {
                     throw error;
                 }
