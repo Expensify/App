@@ -17,16 +17,18 @@ import {
     isPolicyAdmin,
     isPolicyExpenseChat,
     isProcessingReport,
+    getPendingDeleteMemberAccountIDs,
     isValidReport,
 } from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+import {buildTransactionsByReportID} from '@libs/TodosUtils';
 
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -36,6 +38,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 let previousDisplayNames: Record<string, string> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
 let previousPolicies: OnyxCollection<Policy>;
+let previousReportsTransactions: Record<string, Transaction[]> | undefined;
 
 const RECOMPUTE_ALL = 'all' as const;
 
@@ -232,6 +235,7 @@ export default createOnyxDerivedValueConfig({
             policyTags,
             conciergeReportID,
             introSelected,
+            reportMetadata,
         ],
         {currentValue, sourceValues, triggeredKeys},
     ) => {
@@ -510,6 +514,15 @@ export default createOnyxDerivedValueConfig({
                 return currentValue ?? {reports: {}, locale: null};
             }
         }
+        // Only regroup transactions by reportID when the TRANSACTION collection itself changed - this rebuild
+        // otherwise re-runs over every transaction on every recompute (e.g. a REPORT_ACTIONS-only update),
+        // even though the grouping it produces couldn't have changed. `!sourceValues` also forces a rebuild:
+        // it signals a full recompute (e.g. Onyx.clear() on logout), and without it this cache would keep
+        // serving the previous session's stale transaction groupings until a TRANSACTION update happened to fire.
+        if (!previousReportsTransactions || !sourceValues || hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.TRANSACTION, triggeredKeys)) {
+            previousReportsTransactions = buildTransactionsByReportID(transactions);
+        }
+        const reportsTransactions = previousReportsTransactions;
 
         const reportAttributes = dataToIterate.reduce<ReportAttributesDerivedValue['reports']>(
             (acc, key) => {
@@ -597,6 +610,8 @@ export default createOnyxDerivedValueConfig({
                     actionTargetReportActionID = actionGreenTargetReportActionID;
                 }
 
+                const reportReportMetadata = reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
+                const pendingDeleteMemberAccountIDs = getPendingDeleteMemberAccountIDs(reportReportMetadata?.pendingChatMembers);
                 // Skip computeReportName when the name can't have changed (see nameSkipKeys).
                 const cachedName = currentValue?.reports?.[report.reportID]?.reportName;
                 const canReuseCachedName = cachedName !== undefined && nameSkipKeys.has(key);
@@ -618,7 +633,9 @@ export default createOnyxDerivedValueConfig({
                               allPolicyTags: policyTags,
                               conciergeReportID: conciergeReportID ?? undefined,
                               reportAttributes: currentValue?.reports,
+                              reportTransactions: reportsTransactions ?? {},
                               isTrackIntentUser: isTrackIntentUserSelector(introSelected),
+                              pendingDeleteMemberAccountIDs,
                           }),
                     isEmpty: generateIsEmptyReport(report, isReportArchived),
                     brickRoadStatus,
