@@ -1,7 +1,5 @@
 import {useSession} from '@components/OnyxListItemProvider';
 
-import useOnyx from '@hooks/useOnyx';
-
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -9,6 +7,8 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useCallback} from 'react';
+
+import useOnyx from './useOnyx';
 
 function useIsAgentAccount(): boolean | undefined {
     const session = useSession();

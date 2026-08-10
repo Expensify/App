@@ -86,7 +86,7 @@ function SecuritySettingsPage() {
     // "Copiloting into an agent" means we're acting as a delegate for an agent account. In this mode the
     // account being managed is the agent itself, so device management and merge accounts don't apply, and
     // "close account" should delete the agent and end the copilot session instead of closing a real account.
-    const isCopilotingIntoAgent = isAgentAccount && isActingAsDelegate;
+    const isCopilotingIntoAgent = isAgentAccount === true && isActingAsDelegate;
 
     const hasEverRegisteredForMultifactorAuthentication = account?.multifactorAuthenticationPublicKeyIDs !== CONST.MULTIFACTOR_AUTHENTICATION.PUBLIC_KEYS_AUTHENTICATION_NEVER_REGISTERED;
 
