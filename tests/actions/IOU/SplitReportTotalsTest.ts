@@ -1,4 +1,3 @@
-import {addPendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
 import '@libs/actions/IOU/MoneyRequest';
 import {createSplitsAndOnyxData} from '@libs/actions/IOU/Split';
 import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
@@ -736,7 +735,6 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
-                iouReportNextStep: undefined,
                 betas: [],
                 allPolicyTags: {},
                 personalDetails: undefined,
@@ -748,58 +746,6 @@ describe('actions/IOU', () => {
                 ...overrides,
             };
         }
-
-        it('registers new split transaction IDs for highlighting', async () => {
-            // Given two brand-new split expenses (not yet in allTransactionsList)
-            const params = buildBaseParams({
-                transactionData: {
-                    reportID: EXPENSE_REPORT_ID,
-                    originalTransactionID: ORIGINAL_TX_ID,
-                    splitExpenses: [
-                        {transactionID: 'new-tx-1', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
-                        {transactionID: 'new-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
-                    ],
-                    splitExpensesTotal: 1000,
-                },
-            });
-
-            // When saving the split
-            updateSplitTransactionsFromSplitExpensesFlow(params);
-            await waitForBatchedUpdates();
-
-            // Then both new IDs are registered for the highlight animation
-            expect(addPendingNewTransactionIDs).toHaveBeenCalledWith(EXPENSE_REPORT_ID, 'new-tx-1');
-            expect(addPendingNewTransactionIDs).toHaveBeenCalledWith(EXPENSE_REPORT_ID, 'new-tx-2');
-        });
-
-        it('skips transaction IDs that already exist as child transactions', async () => {
-            // Given one existing child transaction already in allTransactionsList
-            const existingChildTx = {
-                transactionID: 'existing-tx-1',
-                reportID: EXPENSE_REPORT_ID,
-                comment: {originalTransactionID: ORIGINAL_TX_ID, source: CONST.IOU.TYPE.SPLIT},
-            };
-            const params = buildBaseParams({
-                allTransactionsList: {[`${ONYXKEYS.COLLECTION.TRANSACTION}existing-tx-1`]: existingChildTx},
-                transactionData: {
-                    reportID: EXPENSE_REPORT_ID,
-                    originalTransactionID: ORIGINAL_TX_ID,
-                    splitExpenses: [
-                        {transactionID: 'existing-tx-1', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
-                        {transactionID: 'new-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
-                    ],
-                    splitExpensesTotal: 1000,
-                },
-            });
-
-            // When saving the split
-            updateSplitTransactionsFromSplitExpensesFlow(params);
-            await waitForBatchedUpdates();
-
-            // Then only the genuinely new ID is registered; the existing one is skipped
-            expect(addPendingNewTransactionIDs).not.toHaveBeenCalledWith(EXPENSE_REPORT_ID, 'existing-tx-1');
-            expect(addPendingNewTransactionIDs).toHaveBeenCalledWith(EXPENSE_REPORT_ID, 'new-tx-2');
-        });
 
         it('skips registration during a reverse split operation', async () => {
             // Given one existing child transaction (triggers isReverseSplitOperation when splitExpenses.length === 1)
@@ -824,7 +770,8 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then nothing is registered — no highlight for reverse splits
-            expect(addPendingNewTransactionIDs).not.toHaveBeenCalled();
+            const pendingNewTransactionIDs = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
+            expect(pendingNewTransactionIDs?.['new-merged-tx']).toBeUndefined();
         });
 
         it('skips registration when the expense report will become empty after the split', async () => {
@@ -853,7 +800,75 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then nothing is registered — the list navigates away before any highlight could render
+            const pendingNewTransactionIDs = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
+            expect(pendingNewTransactionIDs?.['new-tx-1']).toBeUndefined();
+            expect(pendingNewTransactionIDs?.['new-tx-2']).toBeUndefined();
+        });
+
+        it('registers the search-route highlight (not report metadata) when splitting from the Search/Spend page', async () => {
+            // Given the user is on the Search (Spend > Expenses) page, where the expense report is never opened
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+            const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
+            const params = buildBaseParams({
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [
+                        {transactionID: 'new-tx-1', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                    ],
+                    splitExpensesTotal: 1000,
+                },
+            });
+
+            // When saving the split from the Search page
+            updateSplitTransactionsFromSplitExpensesFlow(params);
+            await waitForBatchedUpdates();
+
+            // Then the report-metadata highlight is skipped — the report is never mounted, so those flags would
+            // never be cleared and would incorrectly highlight rows when the report is later opened from the Inbox.
             expect(addPendingNewTransactionIDs).not.toHaveBeenCalled();
+
+            // And instead the new IDs are registered on the search-route highlight, keyed by the current search type.
+            // This mechanism highlights optimistically without a server re-search, so it works offline too.
+            expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(
+                'expense',
+                Object.fromEntries([
+                    ['new-tx-1', true],
+                    ['new-tx-2', true],
+                ]),
+            );
+
+            spyOnMergeTransactionIdsHighlightOnSearchRoute.mockRestore();
+        });
+
+        it('skips the search-route highlight during a reverse split from the Search/Spend page', async () => {
+            // Given the user is on the Search page and this is a reverse split (1 expense, existing child present)
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+            const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
+            const existingChildTx = {
+                transactionID: 'child-tx-1',
+                reportID: EXPENSE_REPORT_ID,
+                comment: {originalTransactionID: ORIGINAL_TX_ID, source: CONST.IOU.TYPE.SPLIT},
+            };
+            const params = buildBaseParams({
+                allTransactionsList: {[`${ONYXKEYS.COLLECTION.TRANSACTION}child-tx-1`]: existingChildTx},
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [{transactionID: 'new-merged-tx', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 1000, created: '2024-01-01'}],
+                    splitExpensesTotal: 1000,
+                },
+            });
+
+            // When saving the reverse split
+            updateSplitTransactionsFromSplitExpensesFlow(params);
+            await waitForBatchedUpdates();
+
+            // Then nothing is highlighted — reverse splits create no new transactions
+            expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).not.toHaveBeenCalled();
+
+            spyOnMergeTransactionIdsHighlightOnSearchRoute.mockRestore();
         });
     });
 });

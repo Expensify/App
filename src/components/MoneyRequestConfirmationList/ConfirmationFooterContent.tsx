@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -16,6 +16,18 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import React from 'react';
 import {View} from 'react-native';
+
+/**
+ * A Sentry label aggregates every interaction that shares it, so the confirmation CTA reports one series per IOU flow
+ * instead of blending submit, split, track and invoice into a single INP measurement. Flows absent from this map fall
+ * back to CONFIRMATION_SUBMIT_BUTTON.
+ */
+const CONFIRMATION_SENTRY_LABEL_BY_IOU_TYPE: Partial<Record<IOUType, string>> = {
+    [CONST.IOU.TYPE.SPLIT]: CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_SPLIT_BUTTON,
+    [CONST.IOU.TYPE.SPLIT_EXPENSE]: CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_SPLIT_BUTTON,
+    [CONST.IOU.TYPE.TRACK]: CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_TRACK_BUTTON,
+    [CONST.IOU.TYPE.INVOICE]: CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_INVOICE_BUTTON,
+};
 
 type ConfirmationFooterContentProps = {
     /** IOU type currently being confirmed (submit / split / track / pay / invoice) */
@@ -110,12 +122,13 @@ function ConfirmationFooterContent({
         <>
             {expensesNumber > 1 && (
                 <Button
-                    large
-                    text={translate('iou.removeThisExpense')}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={showRemoveExpenseConfirmModal}
                     style={styles.mb3}
                     sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_REMOVE_EXPENSE_BUTTON}
-                />
+                >
+                    <Button.Text>{translate('iou.removeThisExpense')}</Button.Text>
+                </Button>
             )}
             <EducationalTooltip
                 shouldRender={shouldShowProductTrainingTooltip}
@@ -139,7 +152,7 @@ function ConfirmationFooterContent({
                         useKeyboardShortcuts
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || because we want undefined and false to both be treated as falsy for isLoading
                         isLoading={isConfirmed || isConfirming || isLoadingReceipt}
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_SUBMIT_BUTTON}
+                        sentryLabel={CONFIRMATION_SENTRY_LABEL_BY_IOU_TYPE[iouType] ?? CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_SUBMIT_BUTTON}
                     />
                 </View>
             </EducationalTooltip>
