@@ -40,8 +40,7 @@ function ReportPreviewHeader() {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow']);
     const {iouReportID, iouReport, action, transactions} = useReportPreviewData();
-    const {previewMessageStyle, shouldShowSkeleton, showStatusAndSkeleton, skeletonReasonAttributes, shouldShowEmptyPlaceholder, shouldShowAccessPlaceHolder, shouldShowCarouselArrows} =
-        useReportPreviewUIState();
+    const {previewMessageStyle, shouldShowSkeleton, showStatusAndSkeleton, shouldShowEmptyPlaceholder, shouldShowAccessPlaceHolder, shouldShowCarouselArrows} = useReportPreviewUIState();
     const {isPreviousDisabled, isNextDisabled} = useReportPreviewCarouselState();
     const {goToPrevious, goToNext} = useReportPreviewActions();
     const numberOfRequests = transactions.length;
@@ -112,7 +111,7 @@ function ReportPreviewHeader() {
                         </Animated.View>
                     </View>
                     {showStatusAndSkeleton && shouldShowSkeleton ? (
-                        <MoneyReportHeaderStatusBarSkeleton reasonAttributes={skeletonReasonAttributes} />
+                        <MoneyReportHeaderStatusBarSkeleton />
                     ) : (
                         (!shouldShowEmptyPlaceholder || shouldShowAccessPlaceHolder) &&
                         (shouldShowReportStatus || !shouldShowAccessPlaceHolder) && (
