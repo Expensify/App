@@ -123,6 +123,9 @@ type UseConfirmationValidationParams = {
 
     /** Whether the date field is shown for this flow (mirrors the footer's date visibility) */
     shouldShowDate: boolean;
+
+    /** Whether the inline tax amount field is currently left empty (new manual expense flow) */
+    isTaxAmountEmpty: boolean;
 };
 
 /**
@@ -170,6 +173,7 @@ function useConfirmationValidation({
     isNewManualExpenseFlowEnabled,
     isReadOnly,
     shouldShowDate,
+    isTaxAmountEmpty,
 }: UseConfirmationValidationParams): {validate: (paymentType?: PaymentMethodType) => ValidationResult | null} {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const selectedParticipantsCount = selectedParticipants.length;
@@ -269,6 +273,10 @@ function useConfirmationValidation({
             return {errorKey: 'violations.taxOutOfPolicy'};
         }
 
+        if (isNewManualExpenseFlowEnabled && shouldShowTax && !isDistanceRequest && isTaxAmountEmpty) {
+            return {errorKey: 'iou.error.invalidAmount'};
+        }
+
         // In the new manual expense flow the tax amount is edited inline, so the standalone tax amount step's
         // guard (tax amount can't exceed the tax computed from the rate and the expense amount) runs here.
         // This also blocks creation when an invalid tax amount was persisted to the draft and then reloaded.
@@ -314,7 +322,9 @@ function useConfirmationValidation({
                 return {errorKey: 'iou.error.genericSmartscanFailureMessage', shouldSetDidConfirmSplit: true};
             }
 
-            if (isEditingSplitBill && iouAmount === 0) {
+            const isFullyCoveredByCommuterExclusion =
+                isDistanceRequest && (transaction?.comment?.customUnit?.commuterExclusion ?? 0) > 0 && transaction?.comment?.customUnit?.reimbursableDistance === 0;
+            if (isEditingSplitBill && iouAmount === 0 && !isFullyCoveredByCommuterExclusion) {
                 return {errorKey: 'iou.error.invalidAmount'};
             }
 
