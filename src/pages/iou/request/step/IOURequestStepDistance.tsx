@@ -48,7 +48,7 @@ import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
@@ -87,7 +87,6 @@ type IOURequestStepDistanceProps = WithCurrentUserPersonalDetailsProps &
 function IOURequestStepDistance({
     report,
     route: {
-        name: routeName,
         params: {action, iouType, reportID, transactionID, backTo, backToReport, reportActionID},
     },
     transaction,
@@ -373,16 +372,12 @@ function IOURequestStepDistance({
             }
             // In the tabbed flow getActiveRoute() returns a URL with the tab suffix (e.g. "/distance-map") that
             // doesn't match the stack entry, so goBack() REPLACEs instead of POPs and crashes (GH #90037).
-            let waypointBackTo = Navigation.getActiveRoute();
-            if (shouldShowMapManualTabs) {
-                waypointBackTo =
-                    routeName === SCREENS.MONEY_REQUEST.CREATE
-                        ? ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(action, iouType, transactionID, report?.reportID ?? reportID, backToReport)
-                        : ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, report?.reportID ?? reportID, backTo);
-            }
+            const waypointBackTo = shouldShowMapManualTabs
+                ? ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, report?.reportID ?? reportID, backTo)
+                : Navigation.getActiveRoute();
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, iouWaypointType, transactionID, report?.reportID ?? reportID, index.toString(), waypointBackTo));
         },
-        [action, iouType, transactionID, report?.reportID, reportID, backTo, backToReport, isEditingSplit, routeName, shouldShowMapManualTabs],
+        [action, iouType, transactionID, report?.reportID, reportID, backTo, isEditingSplit, shouldShowMapManualTabs],
     );
 
     const navigateToNextStep = useDistanceNavigation({
