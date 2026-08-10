@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, From filter, To filter, workspace filter, workspace members]
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -123,6 +123,13 @@ For more advanced filtering, you can enter search operators directly into the se
 You can also combine filters with a keyword search for even more precision. For example, searching **"Uber in March"** will show only Uber rides from March.
 
 **Note**: If no filters are applied, the page defaults to showing all your unreported expenses.
+
+## How the From and To filters narrow to workspace members
+
+When you apply a **Workspace** filter, the **From** and **To** filters show only the members of the selected workspace instead of every contact you've shared an expense, report, or chat with. This makes it easier to find the right person on large or long-standing accounts.
+
+- Anyone already selected in the **From** or **To** filter stays in the list, even if they aren't a member of the selected workspace, so you can still deselect them.
+- Remove the **Workspace** filter to see the full list of contacts again.
 
 ## How to export from the Spend page
 
