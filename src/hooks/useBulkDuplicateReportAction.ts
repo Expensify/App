@@ -12,6 +12,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDelegateAccountID from './useDelegateAccountID';
@@ -33,6 +34,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {translate, formatPhoneNumber} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -73,6 +75,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
             isTrackIntentUser,
             delegateAccountID,
             formatPhoneNumber,
+            getCurrencyDecimals,
         });
 
         clearSelectedTransactions(undefined, true);
