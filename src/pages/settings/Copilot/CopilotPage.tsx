@@ -1,6 +1,7 @@
 import Badge from '@components/Badge';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
@@ -55,6 +56,18 @@ const accountDelegationSelector = (accountValue: Account | undefined) => ({
     delegatedAccess: accountValue?.delegatedAccess,
     validated: accountValue?.validated,
 });
+
+/**
+ * Resolves the title and description a copilot row shows for one account.
+ * A name-less SMS account resolves to the formatted number, which is what the formatted email already holds,
+ * so the resolved title is compared to it to keep the row from printing the same number twice.
+ */
+function getCopilotRowText(displayName: string | undefined, email: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
+    const formattedEmail = formatPhoneNumber(email);
+    const titleText = formatPhoneNumber(displayName ?? email);
+
+    return {titleText, descriptionText: titleText === formattedEmail ? '' : formattedEmail};
+}
 
 function CopilotPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'CircleSlash', 'Pencil', 'ThreeDots', 'UserPlus']);
@@ -229,11 +242,7 @@ function CopilotPage() {
                 Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(email, role));
             };
 
-            const formattedEmail = formatPhoneNumber(email);
-            const titleText = formatPhoneNumber(personalDetail?.displayName ?? email);
-            // A name-less SMS account resolves to the formatted number, which is what `formattedEmail` already holds.
-            // Compare the resolved title so the row does not print the same number twice.
-            const descriptionText = titleText === formattedEmail ? '' : formattedEmail;
+            const {titleText, descriptionText} = getCopilotRowText(personalDetail?.displayName, email, formatPhoneNumber);
             return {
                 key: email,
                 titleComponent: renderTitleWithRole(titleText, descriptionText, role),
@@ -276,16 +285,12 @@ function CopilotPage() {
     );
     const delegatorMenuItems: MenuItemProps[] = sortedDelegators.map(({email, role, pendingAction}) => {
         const personalDetail = personalDetailsByLogin[email.toLowerCase()];
-        const formattedEmail = formatPhoneNumber(email);
         const connectError = getLatestError(errorFields?.connect?.[email]);
         const removeDelegatorError = getLatestError(errorFields?.removeDelegator?.[email]);
         const error = getLatestError({...connectError, ...removeDelegatorError});
         const isCurrentUser = email === session?.email;
         const isPending = !!pendingAction;
-        const titleText = formatPhoneNumber(personalDetail?.displayName ?? email);
-        // A name-less SMS account resolves to the formatted number, which is what `formattedEmail` already holds.
-        // Compare the resolved title so the row does not print the same number twice.
-        const descriptionText = titleText === formattedEmail ? '' : formattedEmail;
+        const {titleText, descriptionText} = getCopilotRowText(personalDetail?.displayName, email, formatPhoneNumber);
 
         return {
             key: email,
