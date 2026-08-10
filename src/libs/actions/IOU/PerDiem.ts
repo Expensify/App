@@ -312,7 +312,7 @@ type GetPerDiemExpensePolicyIDParams = {
 
 /**
  * Resolves the policyID that `getPerDiemExpenseInformation`'s iouReport will end up with, without waiting for its
- * STEP 1/STEP 2 (chatReport/iouReport resolution) to run. Read-only — it doesn't build any optimistic report or
+ * STEP 1/STEP 2 (chatReport/iouReport resolution) to run. It is read-only and does not build any optimistic report or
  * transaction. Keep in sync with STEP 1/STEP 2 in `getPerDiemExpenseInformation` (and the chat report/moneyRequestReportID
  * resolution in `submitPerDiemExpense`) if their resolution order changes.
  */

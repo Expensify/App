@@ -623,7 +623,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
             const perDiemExpensePolicyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = submitPerDiemExpenseIOUActions({

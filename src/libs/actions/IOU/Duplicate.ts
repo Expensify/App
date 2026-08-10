@@ -729,7 +729,6 @@ function createExpenseByType({
         }
         case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
             const earlyPolicyID = getPerDiemExpensePolicyID(params);
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const perDiemParams: PerDiemExpenseInformation = {
