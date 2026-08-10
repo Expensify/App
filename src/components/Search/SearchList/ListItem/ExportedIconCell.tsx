@@ -36,6 +36,7 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
         'BillComSquare',
         'CertiniaSquare',
         'RilletSquare',
+        'DualEntrySquare',
     ]);
 
     let isExportedToStandardTemplate = false;
@@ -47,6 +48,7 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
     let isExportedToQuickbooksDesktop = false;
     let isExportedToCertinia = false;
     let isExportedToRillet = false;
+    let isExportedToDualEntry = false;
     let isExportedToBillCom = false;
     let isExportedToZenefits = false;
 
@@ -76,6 +78,7 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
             isExportedToBillCom = isExportedToBillCom || label === CONST.EXPORT_LABELS.BILLCOM;
             isExportedToCertinia = isExportedToCertinia || label === CONST.EXPORT_LABELS.CERTINIA;
             isExportedToRillet = isExportedToRillet || label === CONST.EXPORT_LABELS.RILLET;
+            isExportedToDualEntry = isExportedToDualEntry || label === CONST.EXPORT_LABELS.DUALENTRY;
             isExportedToIntacct = isExportedToIntacct || label === CONST.EXPORT_LABELS.INTACCT || label === CONST.EXPORT_LABELS.SAGE_INTACCT;
         }
     }
@@ -134,6 +137,13 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
             {isExportedToRillet && (
                 <Icon
                     src={icons.RilletSquare}
+                    size={CONST.ICON_SIZE.SMALL}
+                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.XXX_SMALL, CONST.ICON_TYPE_AVATAR)]}
+                />
+            )}
+            {isExportedToDualEntry && (
+                <Icon
+                    src={icons.DualEntrySquare}
                     size={CONST.ICON_SIZE.SMALL}
                     additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.XXX_SMALL, CONST.ICON_TYPE_AVATAR)]}
                 />

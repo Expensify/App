@@ -65,7 +65,7 @@ function TableListItem<TItem extends ListItem>({
                     text={item.text ?? ''}
                     style={[
                         styles.optionDisplayName,
-                        isFocusVisible ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                        styles.sidebarLinkText,
                         styles.sidebarLinkTextBold,
                         styles.pre,
                         !item.shouldHideAlternateText && item.alternateText ? styles.mb1 : null,

@@ -1,6 +1,6 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
-import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
@@ -357,12 +357,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 )
                             ) : (
                                 <Button
-                                    text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}
                                     onPress={isAccountLocked ? showLockedAccountModal : askForConfirmationToRemove}
                                     isDisabled={!canRemoveSelectedMember}
-                                    icon={icons.RemoveMembers}
                                     style={styles.mb5}
-                                />
+                                >
+                                    <Button.Icon src={icons.RemoveMembers} />
+                                    <Button.Text>{translate('workspace.people.removeWorkspaceMemberButtonTitle')}</Button.Text>
+                                </Button>
                             )}
                         </View>
                         <View style={styles.w100}>

@@ -46,7 +46,7 @@ function ProfileAvatarWithIndicator({isSelected = false, containerStyles}: Profi
                 />
                 <View style={styles.sidebarAvatar}>
                     {isLoading ? (
-                        <AvatarSkeleton reasonAttributes={{context: 'ProfileAvatarWithIndicator', isLoading}} />
+                        <AvatarSkeleton />
                     ) : (
                         <>
                             <UserAvatar
