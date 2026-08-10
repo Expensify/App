@@ -15506,7 +15506,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
 
-            const baseTransaction = createRandomTransaction(807);
+            const baseTransaction = createRandomTransaction(809);
             // The reverted split child stays in Onyx marked for deletion until the server confirms.
             const transaction: Transaction = {
                 ...baseTransaction,
@@ -15581,7 +15581,7 @@ describe('ReportUtils', () => {
             };
 
             const chatReport: Report = {
-                ...createPolicyExpenseChat(807),
+                ...createPolicyExpenseChat(810),
                 reportID: chatReportID,
                 ownerAccountID: currentUserAccountID,
                 policyID,
@@ -15590,7 +15590,7 @@ describe('ReportUtils', () => {
             };
 
             const expenseReport: Report = {
-                ...createExpenseReport(808),
+                ...createExpenseReport(811),
                 reportID: expenseReportID,
                 chatReportID,
                 ownerAccountID: currentUserAccountID,
@@ -15606,7 +15606,7 @@ describe('ReportUtils', () => {
             // Two violating transactions on the SAME expense report: a reverted split child (DELETE-pending)
             // and one that is still live. The report's RBR must survive because the live child still violates.
             const deletedTransaction: Transaction = {
-                ...createRandomTransaction(809),
+                ...createRandomTransaction(812),
                 transactionID: deletedTransactionID,
                 reportID: expenseReportID,
                 amount: 5000,
@@ -15616,7 +15616,7 @@ describe('ReportUtils', () => {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             };
             const liveTransaction: Transaction = {
-                ...createRandomTransaction(810),
+                ...createRandomTransaction(813),
                 transactionID: liveTransactionID,
                 reportID: expenseReportID,
                 amount: 5000,
