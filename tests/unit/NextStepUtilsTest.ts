@@ -1102,6 +1102,28 @@ describe('libs/NextStepUtils', () => {
             expect(formatPhoneNumberMock).toHaveBeenCalledWith(phoneActorLogin);
             expect(message).toBe(`<next-step>Waiting for formatted:${phoneActorLogin} to submit expenses.</next-step>`);
         });
+
+        it('renders a monthly automatic-submit eta using the day-of-month it encodes, not one shifted by UTC parsing', () => {
+            // A date-only `eta.dateTime` must render as the same day it encodes regardless of the browser timezone.
+            // Native `new Date('2026-08-15')` parses as UTC midnight and shows the 14th in UTC-negative timezones;
+            // `parseISO` keeps it at local midnight so the ordinal day matches the workspace setting.
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: 999999,
+                eta: {dateTime: '2026-08-15'},
+            };
+            // Echo the rendered eta (parameter index 2) so we can assert the ordinal day the user actually sees.
+            const translateEta: LocalizedTranslate = (path, ...parameters) => {
+                if (path === 'nextStep.message.waitingForAutomaticSubmit') {
+                    return String(parameters.at(2));
+                }
+                return translateLocal(path, ...parameters);
+            };
+
+            const message = buildNextStepMessage(nextStep, translateEta, 999999, formatPhoneNumber);
+            expect(message).toBe('<next-step>15th</next-step>');
+        });
     });
 
     describe('buildOptimisticNextStep', () => {
