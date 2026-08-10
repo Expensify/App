@@ -534,7 +534,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 />
             </PopoverWithMeasuredContent>
             <ConfirmModal
-                title={translate('reportActionContextMenu.deleteAction', {action: reportAction})}
+                title={translate('reportActionContextMenu.deleteAction', reportAction)}
                 isVisible={isDeleteCommentConfirmModalVisible}
                 shouldSetModalVisibility={shouldSetModalVisibilityForDeleteConfirmation}
                 onConfirm={confirmDeleteAndHideModal}
@@ -543,7 +543,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     clearActiveReportAction();
                     callbackWhenDeleteModalHide.current();
                 }}
-                prompt={translate('reportActionContextMenu.deleteConfirmation', {action: reportAction})}
+                prompt={translate('reportActionContextMenu.deleteConfirmation', reportAction)}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
