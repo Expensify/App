@@ -8662,7 +8662,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la configuración de viaje de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
-            return `cambió los asistentes de la categoría «${categoryName}» a ${newValue ? 'obligatorio' : 'no obligatorio'} (previamente ${newValue ? 'no obligatorio' : 'obligatorio'})`;
+            return `cambió los asistentes de la categoría «${categoryName}» a ${newValue ? 'obligatorio' : 'no es obligatorio'} (previamente ${newValue ? 'no es obligatorio' : 'obligatorio'})`;
         },
     },
     roomMembersPage: {
