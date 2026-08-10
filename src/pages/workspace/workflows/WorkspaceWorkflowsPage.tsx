@@ -495,7 +495,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const bankConnectionMessage = bankConnectionStatus?.messageKey ? translate(bankConnectionStatus.messageKey) : undefined;
         const bankConnectionActionText = bankConnectionStatus?.actionKey ? translate(bankConnectionStatus.actionKey) : undefined;
         const bankBadgeIcon = !isWalletConnectionStatusBetaEnabled && (isAccountInSetupState || (isBusinessBankAccountLocked && canWritePayments)) ? expensifyIcons.DotIndicator : undefined;
-        const canInteractWithBankAccountRow = canWritePayments && !isOffline;
 
         const updateWorkspaceCurrencyPrompt = (
             <View style={[styles.renderHTML, styles.flexRow]}>
@@ -535,17 +534,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
             });
         };
-        let bankAccountMenuItemOnPress: React.ComponentProps<typeof MenuItem>['onPress'];
-        if (isWalletConnectionStatusBetaEnabled) {
-            bankAccountMenuItemOnPress = canInteractWithBankAccountRow ? handleBankAccountPress : undefined;
-        } else {
-            bankAccountMenuItemOnPress = canWritePayments ? handleBankAccountPress : undefined;
-        }
-
         const bankAccountMenuItemProps: React.ComponentProps<typeof MenuItem> = {
             title: bankTitle,
             description: getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate),
-            onPress: bankAccountMenuItemOnPress,
+            onPress: canWritePayments ? handleBankAccountPress : undefined,
             displayInDefaultIconColor: true,
             icon: bankIcon.icon,
             iconHeight: bankIcon.iconHeight ?? bankIcon.iconSize,
@@ -553,13 +545,15 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             iconStyles: bankIcon.iconStyles,
             titleStyle: isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined,
             descriptionTextStyle: isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined,
-            disabled: isOffline || !canWritePayments,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT,
             shouldShowRightIcon: canWritePayments,
             interactive: canWritePayments,
             shouldGreyOutWhenDisabled: !policy?.pendingFields?.reimbursementChoice,
             ...(isWalletConnectionStatusBetaEnabled
                 ? {
+                      // The row stays pressable offline so it behaves like the same account in the wallet, which opens the
+                      // bank account flow and lets that screen explain that the user is offline.
+                      disabled: !canWritePayments,
                       badgeIcon: bankBadgeIcon,
                       descriptionAddon: bankConnectionStatusAddon,
                       shouldRemoveBackground: true,
@@ -568,6 +562,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                       brickRoadIndicator: bankConnectionMessage ? undefined : bankConnectionBrickRoadIndicator,
                   }
                 : {
+                      disabled: isOffline || !canWritePayments,
                       badgeText: getBadgeText(accountData?.state),
                       badgeIcon: isAccountInSetupState || (isBusinessBankAccountLocked && canWritePayments) ? expensifyIcons.DotIndicator : undefined,
                       isBadgeSuccess: isAccountInSetupState,
@@ -838,8 +833,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                                   <ConnectionStatusMessage
                                                                       message={bankConnectionMessage}
                                                                       actionText={bankConnectionActionText}
-                                                                      onActionPress={canInteractWithBankAccountRow ? handleBankAccountPress : undefined}
-                                                                      isActionDisabled={!canInteractWithBankAccountRow}
+                                                                      onActionPress={canWritePayments ? handleBankAccountPress : undefined}
                                                                       statusTone="danger"
                                                                       shouldIncludeHorizontalPadding={false}
                                                                   />
