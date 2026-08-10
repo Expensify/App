@@ -30,11 +30,8 @@ import {
 } from '@src/libs/ValidationUtils';
 
 import {addDays, format, startOfDay, subYears} from 'date-fns';
-import {TextEncoder} from 'util';
 
 import {translateLocal} from '../utils/TestHelper';
-
-global.TextEncoder = TextEncoder as typeof global.TextEncoder;
 
 describe('ValidationUtils', () => {
     beforeAll(() => {
@@ -607,7 +604,7 @@ describe('ValidationUtils', () => {
 
     describe('isValidRegistrationNumber', () => {
         describe('EU countries', () => {
-            test.each([
+            test.each<[Country, string, boolean]>([
                 ['AT', 'FN123456', true],
                 ['AT', 'FN654321a', true],
                 ['AT', '123456', false],
@@ -623,12 +620,12 @@ describe('ValidationUtils', () => {
                 ['ES', 'B87654321', true],
                 ['ES', '12345678A', false],
             ])('validates EU country registration number', (country, value, expected) => {
-                expect(isValidRegistrationNumber(value, country as Country)).toBe(expected);
+                expect(isValidRegistrationNumber(value, country)).toBe(expected);
             });
         });
 
         describe('Non-EU countries', () => {
-            test.each([
+            test.each<[Country, string, boolean]>([
                 ['AU', '51824753556', true],
                 ['AU', '004085616', true],
                 ['AU', '123456789', false],
@@ -642,7 +639,7 @@ describe('ValidationUtils', () => {
                 ['CA', '12345678', false],
                 ['CA', '123456789XX123', false],
             ])('validates Non-EU country registration number', (country, value, expected) => {
-                expect(isValidRegistrationNumber(value, country as Country)).toBe(expected);
+                expect(isValidRegistrationNumber(value, country)).toBe(expected);
             });
         });
     });

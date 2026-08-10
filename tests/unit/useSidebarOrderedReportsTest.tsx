@@ -36,7 +36,7 @@ jest.mock('@libs/ReportUtils', () => ({
     getReportIDFromLink: jest.fn(() => ''),
 }));
 
-const mockSidebarUtils = SidebarUtils as jest.Mocked<typeof SidebarUtils>;
+const mockSidebarUtils = jest.mocked(SidebarUtils);
 
 describe('useSidebarOrderedReports', () => {
     beforeAll(async () => {
@@ -70,12 +70,10 @@ describe('useSidebarOrderedReports', () => {
                 [ONYXKEYS.COLLECTION.REPORT]: {},
                 [ONYXKEYS.COLLECTION.POLICY]: {},
                 [ONYXKEYS.COLLECTION.TRANSACTION]: {},
-                [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: {},
                 [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: {},
-                [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]: {},
                 [ONYXKEYS.BETAS]: [],
                 [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: {reports: {}},
-            } as unknown as OnyxMultiSetInput);
+            } satisfies OnyxMultiSetInput);
         });
 
         await waitForBatchedUpdatesWithAct();
@@ -142,6 +140,14 @@ describe('useSidebarOrderedReports', () => {
 
         await waitForBatchedUpdatesWithAct();
 
+        const fullScanCall = mockSidebarUtils.getReportsToDisplayInLHN.mock.calls.at(0);
+        if (!fullScanCall) {
+            throw new Error('SidebarUtils.getReportsToDisplayInLHN was not called');
+        }
+        const [{transactionViolations, draftComments}] = fullScanCall;
+        expect(Object.keys(transactionViolations ?? {})).toHaveLength(0);
+        expect(Object.keys(draftComments ?? {})).toHaveLength(0);
+
         // Then the mock calls are cleared
         mockSidebarUtils.sortReportsToDisplayInLHN.mockClear();
 
@@ -174,9 +180,9 @@ describe('useSidebarOrderedReports', () => {
         // Then the initial reports are set
         await act(async () => {
             await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}1`]: initialReports['1'],
-                [`${ONYXKEYS.COLLECTION.REPORT}2`]: initialReports['2'],
-            } as unknown as OnyxMultiSetInput);
+                [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: initialReports['1'],
+                [`${ONYXKEYS.COLLECTION.REPORT}2` as const]: initialReports['2'],
+            } satisfies OnyxMultiSetInput);
         });
 
         await waitForBatchedUpdatesWithAct();
