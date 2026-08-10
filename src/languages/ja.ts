@@ -6356,7 +6356,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 one: '1日タグ',
                 other: (count: number) => `${count} 件のタグ`,
             }),
-            showTagGLCodes: '[ja] Show GL codes when selecting a tag',
+            showTagGLCodes: 'タグ選択時にGLコードを表示する',
         },
         taxes: {
             subtitle: '税名と税率を追加し、デフォルトを設定します。',

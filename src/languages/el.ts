@@ -6595,7 +6595,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 one: '1 ετικέτα',
                 other: (count: number) => `${count} ετικέτες`,
             }),
-            showTagGLCodes: '[el] Show GL codes when selecting a tag',
+            showTagGLCodes: 'Εμφάνιση κωδικών Γ.Λ. κατά την επιλογή ετικέτας',
         },
         taxes: {
             subtitle: 'Προσθέστε ονόματα φόρων, συντελεστές και ορίστε προεπιλογές.',

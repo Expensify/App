@@ -6434,7 +6434,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 one: '1 giorno',
                 other: (count: number) => `${count} tag`,
             }),
-            showTagGLCodes: '[it] Show GL codes when selecting a tag',
+            showTagGLCodes: 'Mostra i codici GL quando selezioni un tag',
         },
         taxes: {
             subtitle: 'Aggiungi nomi e aliquote delle imposte e imposta i valori predefiniti.',

@@ -5,7 +5,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 
-import type {CardList, PolicyCategories, PolicyTagLists, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
+import type {CardList, Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 
 type TransactionListItemSharedProps<TItem extends ListItem> = {
     item: TItem;
@@ -30,6 +30,8 @@ type TransactionListItemSharedProps<TItem extends ListItem> = {
     exportedReportActions: ReportAction[];
     policyCategories?: PolicyCategories;
     policyTagLists?: PolicyTagLists;
+    /** Policy fields merged from the row snapshot and live Onyx data. */
+    rowPolicy?: Policy;
     nonPersonalAndWorkspaceCards?: CardList;
     isAttendeesEnabledForMovingPolicy?: boolean;
     chatReport?: Report;

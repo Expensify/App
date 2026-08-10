@@ -202,6 +202,7 @@ function TransactionItemRowWide({
                             canEdit={canEditTag}
                             onSave={onEditTag}
                             policyID={effectivePolicyID}
+                            policy={policy}
                         />
                     </View>
                 );

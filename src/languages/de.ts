@@ -6459,7 +6459,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 one: '1 Tag',
                 other: (count: number) => `${count} Tags`,
             }),
-            showTagGLCodes: '[de] Show GL codes when selecting a tag',
+            showTagGLCodes: 'Kontenplan-Codes beim Auswählen eines Tags anzeigen',
         },
         taxes: {
             subtitle: 'Steuernamen und -sätze hinzufügen und Standardwerte festlegen.',

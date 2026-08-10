@@ -54,6 +54,12 @@ type TagPickerProps = {
      * split-edit where the active workspace no longer carries the original tag value.
      */
     additionalTagsToInclude?: string[];
+
+    /**
+     * Optional override for whether to show GL codes. When omitted, TagPicker reads
+     * `showTagGLCodes && glCodes` from the policy in Onyx.
+     */
+    shouldShowGLCode?: boolean;
 };
 
 const getSelectedOptions = (selectedTag: string): SelectedTagOption[] => {
@@ -80,11 +86,13 @@ function TagPicker({
     shouldOrderListByTagName = false,
     onSubmit,
     additionalTagsToInclude,
+    shouldShowGLCode: shouldShowGLCodeProp,
 }: TagPickerProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [shouldShowGLCode] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+    const [shouldShowGLCodeFromPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         selector: (policy) => !!policy?.showTagGLCodes && !!policy?.glCodes,
     });
+    const shouldShowGLCode = shouldShowGLCodeProp ?? shouldShowGLCodeFromPolicy;
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -157,7 +165,6 @@ function TagPicker({
               data: option.data.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')),
           }))
         : tagSections;
-
     const selectedOptionKey = sections.at(0)?.data?.find((policyTag) => policyTag.searchText === selectedTag)?.keyForList;
 
     const textInputOptions = {

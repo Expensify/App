@@ -45,6 +45,7 @@ function TransactionListItemWide<TItem extends ListItem>({
     exportedReportActions,
     policyCategories,
     policyTagLists,
+    rowPolicy,
     nonPersonalAndWorkspaceCards,
     isAttendeesEnabledForMovingPolicy,
     currentSearchHash,
@@ -180,7 +181,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         transactionItem={transactionItem}
                         report={transactionItem.report}
                         chatReport={chatReport}
-                        policy={transactionItem.policy}
+                        policy={rowPolicy ?? transactionItem.policy}
                         policyCategories={policyCategories}
                         policyTagLists={policyTagLists}
                         shouldShowTooltip={showTooltip}

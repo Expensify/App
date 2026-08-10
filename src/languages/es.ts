@@ -6333,7 +6333,7 @@ ${amount} para ${merchant} - ${date}`,
                 one: '1 etiqueta',
                 other: (count: number) => `${count} etiquetas`,
             }),
-            showTagGLCodes: '[es] Show GL codes when selecting a tag',
+            showTagGLCodes: 'Mostrar códigos del libro mayor al seleccionar una etiqueta',
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
