@@ -15,6 +15,7 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
 
     useEffect(() => {
         openLink(setupLink, environmentURL, false, session);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [environmentURL, setupLink]);
 
     return null;
