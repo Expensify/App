@@ -1,5 +1,7 @@
 import {act, render, waitFor} from '@testing-library/react-native';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import BaseReportActionContextMenu from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
 
 import CONST from '@src/CONST';
@@ -122,23 +124,33 @@ jest.mock('@libs/actions/IOU/Hold', () => {
     };
 });
 
-const mockNavigate = jest.fn();
-const mockSetParams = jest.fn();
 const mockIsReady = jest.fn(() => false);
 const mockGetActiveRoute = jest.fn(() => '');
 const mockGetCurrentRoute = jest.fn(() => undefined as {name: string; params: Record<string, unknown>} | undefined);
 
-jest.mock('@libs/Navigation/Navigation', () => ({
-    navigate: (...args: unknown[]) => mockNavigate(...args) as void,
-    setParams: (...args: unknown[]) => mockSetParams(...args) as void,
-    getActiveRoute: () => mockGetActiveRoute(),
-    getActiveRouteWithoutParams: jest.fn(() => ''),
-    isNavigationReady: jest.fn(() => Promise.resolve()),
-    navigationRef: {
-        isReady: () => mockIsReady(),
-        getCurrentRoute: () => mockGetCurrentRoute(),
-    },
-}));
+jest.mock('@libs/Navigation/Navigation', () => {
+    const mockNavigate = jest.fn<ReturnType<typeof Navigation.navigate>, Parameters<typeof Navigation.navigate>>();
+    const mockSetParams = jest.fn<ReturnType<typeof Navigation.setParams>, Parameters<typeof Navigation.setParams>>();
+    const navigationMock /* Shared named/default implementation. */ = {
+        navigate: mockNavigate,
+        setParams: mockSetParams,
+        getActiveRoute: () => mockGetActiveRoute(),
+        getActiveRouteWithoutParams: jest.fn(() => ''),
+        isNavigationReady: jest.fn(() => Promise.resolve()),
+        navigationRef: {
+            isReady: () => mockIsReady(),
+            getCurrentRoute: () => mockGetCurrentRoute(),
+        },
+    };
+
+    return {
+        __esModule: true,
+        ...navigationMock,
+        default: navigationMock,
+    };
+});
+
+const mockNavigate = jest.mocked(Navigation.navigate);
 
 const currentUserAccountID = 1;
 const currentUserLogin = 'user@test.com';
