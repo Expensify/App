@@ -9,8 +9,8 @@ type DisplayContentsViewProps = PropsWithChildren<{style: StyleProp<ViewStyle>}>
 type NativeComponentRegistryParams = Parameters<typeof NativeComponentRegistry.get<DisplayContentsViewProps>>;
 type ViewConfigProvider = NativeComponentRegistryParams[1];
 
-// The assertion is unavoidable here because the partial view config literal cannot be proven to match the
-// full generated config type.
+// The assertion is unavoidable, because a partial view config literal cannot be proven to match the full
+// generated config type.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const VIEW_CONFIG = {
     uiViewClassName: 'RCTView',
@@ -24,34 +24,30 @@ const VIEW_CONFIG = {
     },
 } as ReturnType<ViewConfigProvider>;
 
-// Keeps children painted while React hides the surrounding subtree. Both a suspended tree (react-freeze) and a
-// hidden <Activity> hide their nearest host views by committing display 'none' through the view config
-// (cloneHiddenInstance on Fabric). Processing the display attribute to always resolve to 'contents' neutralizes
-// that hiding, which keeps the underlay screen visible during swipe-back gestures and prevents a blank screen
-// flash while navigating between screens. This module is native only and must be imported from .native files.
-// Uses internal RN APIs (NativeComponentRegistry, ReactNativeStyleAttributes). Validated with RN 0.83.1 on the new
-// architecture (Fabric), where the component resolves by its registered name rather than by uiViewClassName.
-// Re-verify after upgrades.
+// Keeps children painted while React hides the surrounding subtree. A suspended tree (react-freeze) and a hidden
+// <Activity> hide their nearest host views by committing display 'none' through the view config
+// (cloneHiddenInstance on Fabric), so processing that attribute to always resolve to 'contents' neutralizes the
+// hiding and keeps the underlay of a swipe-back gesture visible. This uses internal RN APIs and was validated with
+// RN 0.83.1 on Fabric, where the component resolves by its registered name rather than by uiViewClassName, so it
+// needs re-verifying after upgrades.
 const DisplayContentsView = NativeComponentRegistry.get<DisplayContentsViewProps>('CustomViewWrapper', () => VIEW_CONFIG);
 
-// Pins the display the hiding would set anyway, so both states carry the same value. Yoga marks a node dirty
-// only when its style really changed (YogaLayoutableShadowNode::updateYogaProps), and 'contents' is also what
-// decides whether the view is flattened away, so leaving the value alone spares every hide and reveal a layout
-// pass over the subtree and a native view being destroyed and created again. The outer view then never exists
-// natively, which is one view less per screen. This mirrors the web wrapper, where the element is 'contents'
-// from its first render.
+// The style already carries the value the hiding would set, so a hide changes nothing. Yoga dirties a node only
+// when its style really changed (YogaLayoutableShadowNode::updateYogaProps), and 'contents' is also what flattens
+// the view away, so every hide and reveal is spared a layout pass over the subtree and a native view being
+// destroyed and created again.
 const DISPLAY_CONTENTS: ViewStyle = {display: 'contents'};
 
 /**
- * Wraps the painted content in the same pair of views react-navigation renders in its ActivityView: the outer one
- * neutralizes the hiding, the inner one carries the accessibility state. The accessibility props could have been
- * declared in the view config of the outer one instead, at the cost of one view per screen, but going through a
- * real View is what maps the single aria-hidden onto the right per-platform props.
+ * Wraps the painted content in the same pair of views react-navigation renders in its ActivityView. The outer one
+ * neutralizes the hiding, the inner one carries the accessibility state, which could have been declared in the
+ * outer view config instead, but going through a real View is what maps the single aria-hidden onto the right
+ * per-platform props.
  *
- * Content that stays painted also stays reachable for screen readers and for touches while its updates are
- * deferred, so the inner view takes that reachability away for as long as the screen is covered. A hidden Activity
- * runs no effects, so the flags have to be part of the rendered output rather than something an effect applies.
- * The pointer events come last, after the caller's style, because nothing passed in may weaken that guarantee.
+ * Painted content stays reachable for screen readers and for touches, so the inner view takes that reachability
+ * away while the screen is covered. A hidden Activity runs no effects, so the flags have to be part of the
+ * rendered output. The pointer events come after the caller's style, because nothing passed in may weaken that
+ * guarantee.
  */
 function CustomViewWrapper({style, inert, children}: PropsWithChildren<{style: ViewStyle; inert?: boolean}>) {
     return (

@@ -152,10 +152,6 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                 aria-modal={isSmallScreenWidth || undefined}
                 role={isSmallScreenWidth ? 'dialog' : undefined}
             >
-                {/* Covered screens in every modal stack (e.g. previous RHP steps) are wrapped in React <Activity> so their
-                    updates are deferred to background priority while they stay mounted with preserved state. Setting it
-                    for the whole navigator is only meant to demonstrate the mechanism on as many screens as possible.
-                    The final PR will opt every screen in separately, so each one is reviewed on its own. */}
                 <ModalStackNavigator.Navigator screenOptions={{nonTopScreenBehavior: 'activity'}}>
                     {Object.keys(screens as Required<Screens>).map((name) => (
                         <ModalStackNavigator.Screen

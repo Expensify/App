@@ -41,9 +41,6 @@ function getCustomSplitNavigatorState({state, shouldUseNarrowLayout}: CustomStat
 const SplitNavigatorComponent = createPlatformStackNavigatorComponent('SplitNavigator', {
     createRouter: SplitRouter,
     Effects: SplitNavigatorEffects,
-    // Covered central screens are deprioritized with React <Activity>. Setting it for the whole navigator is only meant
-    // to demonstrate the mechanism on as many screens as possible. The final PR will opt every screen in separately,
-    // so each one is reviewed on its own.
     defaultScreenOptions: {...defaultPlatformStackScreenOptions, nonTopScreenBehavior: 'activity'},
     getCustomState: getCustomSplitNavigatorState,
     NavigationContentWrapper: SidebarSpacerWrapper,

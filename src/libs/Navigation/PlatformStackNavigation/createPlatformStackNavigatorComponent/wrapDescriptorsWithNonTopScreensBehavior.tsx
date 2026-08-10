@@ -14,7 +14,7 @@ type Descriptor = {
     /** Route object containing the screen name, used to check if the screen is persistent */
     route: {name: string};
 
-    /** Resolved options of the screen, carrying the behavior it picked for the time it is covered */
+    /** Resolved options of the screen, carrying the behavior it picked for the time it is covered by another one */
     options: PlatformSpecificNavigationOptions & {nonTopScreenBehavior?: NonTopScreenBehavior};
 
     /** Render function for the screen content, wrapped with the non-top screen wrapper */
@@ -28,10 +28,9 @@ const WRAPPER_FOR_BEHAVIOR: Record<Exclude<NonTopScreenBehavior, 'none'>, Compon
 
 /**
  * Wraps each screen's render function so that a non-top screen either freezes (react-freeze) or gets deprioritized
- * (React <Activity>), depending on the behavior that screen picked through its nonTopScreenBehavior option. This
- * prevents off-screen components from re-rendering on the critical path. Screens that picked no behavior are left
- * unwrapped, and so are persistent screens (e.g. sidebar on web), because they stay visible and interactive
- * alongside the top screen, so they must never be hidden. That holds even when the whole navigator loses focus.
+ * (React <Activity>), depending on its nonTopScreenBehavior option, which keeps covered screens off the critical
+ * path. A screen that picked no behavior is left unwrapped, and so is a persistent screen (e.g. sidebar on web),
+ * because it stays visible and interactive alongside the top screen even when the navigator loses focus.
  */
 function wrapDescriptorsWithNonTopScreensBehavior<T extends Descriptor>(
     descriptors: Record<string, T>,

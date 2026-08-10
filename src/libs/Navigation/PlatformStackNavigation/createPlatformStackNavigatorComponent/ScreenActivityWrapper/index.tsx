@@ -14,10 +14,9 @@ import useScreenActivityMode from './useScreenActivityMode';
  * is still dismissing when the screen gets covered always finishes its close chain. That removes the freeze delay
  * and the modal coordination react-freeze needs.
  *
- * The content of a hidden Activity stays painted, because CustomViewWrapper neutralizes the hiding on both
- * platforms. The navigator's card visibility keeps deciding what is actually on screen, so a covered screen that
- * is still shown (dimmed under the RHP overlay on wide layouts, or as the underlay of a swipe-back gesture) does
- * not disappear. It only stops updating until it is revealed again.
+ * CustomViewWrapper keeps the content of a hidden Activity painted on both platforms, so a covered screen that is
+ * still shown (dimmed under the RHP overlay on wide layouts, or as the underlay of a swipe-back gesture) does not
+ * disappear. It only stops updating until it is revealed again.
  */
 function ScreenActivityWrapper({isScreenBlurred, routeKey, routeName, children}: NonTopScreenWrapperProps) {
     const styles = useThemeStyles();

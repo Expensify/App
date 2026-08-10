@@ -13,12 +13,11 @@ type NativeOnlyNavigationOptions = NativeStackNavigationOptions;
 // Common navigation options merged from both stack and native-stack navigations.
 type CommonStackNavigationOptions = CommonProperties<StackNavigationOptions, NativeStackNavigationOptions>;
 
-// Determines how a screen is wrapped while it is not the top screen of its navigator, to avoid re-render work
-// while it is covered.
-// With 'none' the screen is rendered as is and keeps updating while it is covered.
-// With 'freeze' the screen is suspended via react-freeze and processes no updates at all.
-// With 'activity' the screen is wrapped in React <Activity>, which defers updates to background priority
-// and runs effect cleanups while the screen is hidden.
+// How a screen is wrapped while it is covered by another screen of its navigator, to keep it off the critical path.
+// With 'none' it is rendered as is and keeps updating.
+// With 'freeze' it is suspended via react-freeze and processes no updates at all.
+// With 'activity' it is wrapped in React <Activity>, which defers its updates to background priority and runs its
+// effect cleanups while it is hidden.
 type NonTopScreenBehavior = 'none' | 'freeze' | 'activity';
 
 type GeneralPlatformStackNavigationOptions = {
@@ -30,8 +29,8 @@ type GeneralPlatformStackNavigationOptions = {
     presentation?: (typeof Presentation)[keyof typeof Presentation];
 
     // Set it on a navigator (screenOptions) to pick the behavior for all of its screens, or on a single screen to
-    // override that choice. It is not consumed by the underlying stack, it travels along the platform specific
-    // options only so that the navigator can read it back from the screen's descriptor.
+    // override that choice. The underlying stack does not consume it, it only travels along the platform specific
+    // options so that the navigator can read it back from the screen's descriptor.
     nonTopScreenBehavior?: NonTopScreenBehavior;
 };
 
