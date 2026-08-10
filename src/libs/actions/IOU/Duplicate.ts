@@ -26,7 +26,6 @@ import {
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
-    getDistanceRequestType,
     getReimbursable,
     getRequestType,
     getTransactionType,
@@ -34,6 +33,7 @@ import {
     isDistanceRequest,
     isExpenseSplit,
     isFromCreditCardImport,
+    isGPSDistanceRequest,
     isOdometerDistanceRequest,
     isPartialTransaction,
     isPerDiemRequest,
@@ -604,7 +604,8 @@ function resolveDuplicates({
  */
 function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, transactionDetails: ReturnType<typeof getTransactionDetails>) {
     const {linkedTrackedExpenseReportAction, ...transactionWithoutLinkedAction} = transaction;
-    const waypoints = !isExpenseSplit(transaction) ? (transactionDetails?.waypoints as WaypointCollection | undefined) : undefined;
+    const shouldDuplicateAsManualDistance = isGPSDistanceRequest(transaction);
+    const waypoints = !isExpenseSplit(transaction) && !shouldDuplicateAsManualDistance ? (transactionDetails?.waypoints as WaypointCollection | undefined) : undefined;
 
     const transactionParams = {
         ...transactionWithoutLinkedAction,
@@ -636,7 +637,7 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
         unit: transaction.comment?.units?.unit,
     };
 
-    if (isDistanceRequest(transaction) && (isExpenseSplit(transaction) || isOdometerDistanceRequest(transaction))) {
+    if (isDistanceRequest(transaction) && (isExpenseSplit(transaction) || isOdometerDistanceRequest(transaction) || shouldDuplicateAsManualDistance)) {
         transactionParams.distance = transaction.comment?.customUnit?.quantity ?? undefined;
     }
 
@@ -646,10 +647,18 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
 /**
  * Returns the request type the duplicate should be created with. SCAN sources become MANUAL because
  * `buildDuplicateTransactionParams` strips the receipt — without one, the duplicate cannot be a scan request.
+ * GPS distance sources become manual distance requests because the saved transaction does not contain
+ * the raw GPS track needed to create another GPS request.
  */
 function getDuplicateRequestType(transaction: OnyxTypes.Transaction) {
     const sourceRequestType = getRequestType(transaction);
-    return sourceRequestType === CONST.IOU.REQUEST_TYPE.SCAN ? CONST.IOU.REQUEST_TYPE.MANUAL : sourceRequestType;
+    if (sourceRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
+        return CONST.IOU.REQUEST_TYPE.MANUAL;
+    }
+    if (sourceRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS) {
+        return CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
+    }
+    return sourceRequestType;
 }
 
 /**
@@ -687,13 +696,14 @@ function createExpenseByType({
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
+            const duplicateRequestType = getDuplicateRequestType(transaction);
             const distanceParams: CreateDistanceRequestInformation = {
                 ...params,
                 participants,
                 currentUserLogin: params.currentUserEmailParam,
                 currentUserAccountID: params.currentUserAccountIDParam,
                 existingTransaction: {
-                    iouRequestType: getDuplicateRequestType(transaction),
+                    iouRequestType: duplicateRequestType,
                     amount: 0,
                     currency: '',
                     created: '',
@@ -713,7 +723,7 @@ function createExpenseByType({
                     comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
                     validWaypoints: waypoints,
                     modifiedAmount: transactionDetails?.amount,
-                    distanceRequestType: getDistanceRequestType(transaction),
+                    distanceRequestType: duplicateRequestType,
                 },
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
@@ -815,6 +825,7 @@ function duplicateExpenseTransaction({
 
     const transactionDetails = getTransactionDetails(transaction);
     const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails);
+    const duplicateRequestType = getDuplicateRequestType(transaction);
 
     const params: RequestMoneyInformation = {
         report: targetReport,
@@ -841,7 +852,7 @@ function duplicateExpenseTransaction({
         quickAction,
         existingTransactionDraft,
         existingTransaction: {
-            iouRequestType: getDuplicateRequestType(transaction),
+            iouRequestType: duplicateRequestType,
             amount: 0,
             currency: '',
             created: '',
@@ -868,7 +879,7 @@ function duplicateExpenseTransaction({
                 participant: {accountID: currentUserAccountID, selected: true},
             },
             existingTransaction: {
-                iouRequestType: getDuplicateRequestType(transaction),
+                iouRequestType: duplicateRequestType,
                 amount: 0,
                 currency: '',
                 created: '',
@@ -886,6 +897,7 @@ function duplicateExpenseTransaction({
             transactionParams: {
                 ...(params.transactionParams ?? {}),
                 validWaypoints: waypoints,
+                ...(isDistanceRequest(transaction) && {distanceRequestType: duplicateRequestType}),
             },
             report: undefined,
             isDraftPolicy: false,
