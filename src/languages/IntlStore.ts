@@ -221,6 +221,10 @@ class IntlStore {
 
     /**
      * Returns the date-fns locale to format dates in, which is undefined until that locale's date-fns module has loaded.
+     *
+     * Callers pass the locale they are rendering with so that a formatted date re-renders when the user switches
+     * language. That relies on `load()` populating `dateUtilsCache` before it sets `currentLocale`: the loader promise
+     * resolves first, so by the time anything can ask for the new locale its date-fns module is already cached.
      */
     public static getDateFnsLocale(locale: Locale | undefined) {
         return locale ? this.dateUtilsCache.get(locale) : undefined;
