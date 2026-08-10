@@ -639,6 +639,7 @@ function buildOnyxDataForTrackExpense({
     return onyxData;
 }
 
+// eslint-disable-next-line @typescript-eslint/max-params
 function getDeleteTrackExpenseInformation(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     transactionID: string | undefined,
