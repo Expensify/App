@@ -451,6 +451,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     isTrackIntentUser,
                     delegateAccountID,
                     formatPhoneNumber,
+                    getCurrencyDecimals,
                 });
             },
         },
@@ -541,6 +542,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                             iouReport,
                             chatIOUReport,
                             isChatIOUReportArchived,
+                            getCurrencyDecimals,
                             false,
                         );
                         const deleteNavigateBackUrl = goBackRoute ?? backTo ?? Navigation.getActiveRoute();
