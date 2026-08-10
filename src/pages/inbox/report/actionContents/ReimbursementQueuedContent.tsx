@@ -52,7 +52,7 @@ function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQu
     const [ownerDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: personalDetailsDisplayNameSelector(targetReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, translate, formatPhoneNumber),
     });
-    const submitterDisplayName = formatPhoneNumber(ownerDisplayName ?? '');
+    const submitterDisplayName = ownerDisplayName ?? '';
     const paymentType = getOriginalMessage(action)?.paymentType ?? '';
     const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWalletTierName, targetReport?.reportID, action, bankAccountList);
 

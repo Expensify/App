@@ -3085,9 +3085,9 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(
     const login = personalDetail?.login ?? '';
     return {
         text: temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: formatPhoneNumber(login), translate, formatPhoneNumber}),
-        alternateText: formatPhoneNumber(
-            login || temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: '', shouldFallbackToHidden: false, translate, formatPhoneNumber}),
-        ),
+        alternateText:
+            formatPhoneNumber(login) ||
+            temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: '', shouldFallbackToHidden: false, translate, formatPhoneNumber}),
         icons: [
             {
                 source: personalDetail?.avatar ?? FallbackAvatar,
