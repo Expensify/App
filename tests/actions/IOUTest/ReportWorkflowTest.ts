@@ -1653,10 +1653,10 @@ describe('actions/IOU/ReportWorkflow', () => {
             }
             expect(optimisticReportValue.nextStep.actorAccountID).toBe(ruleApproverAccountID);
 
-            const reportkey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
-            const optimisticReortUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportkey, Onyx.METHOD.MERGE, true);
-            const optimisticReortUpdateValue = optimisticReortUpdate.value;
-            expect(optimisticReortUpdateValue.nextStep).toEqual({
+            const reportKeyForNextStep = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
+            const optimisticReportNextStepUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportKeyForNextStep, Onyx.METHOD.MERGE, true);
+            const optimisticReportNextStepUpdateValue = optimisticReportNextStepUpdate.value;
+            expect(optimisticReportNextStepUpdateValue.nextStep).toEqual({
                 actorAccountID: ruleApproverAccountID,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,

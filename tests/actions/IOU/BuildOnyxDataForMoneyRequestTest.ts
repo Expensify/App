@@ -484,6 +484,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
     it('uses the injected formatter for optimistic new-chat personal detail display name', () => {
         const mockFormatPhoneNumber = jest.fn((phoneNumber: string) => `formatted:${phoneNumber}`);
         const result = getMoneyRequestInformation({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             parentChatReport: undefined,
             participantParams: {
                 payeeAccountID: CURRENT_USER_ACCOUNT_ID,
