@@ -115,6 +115,7 @@ function CurrencySelectionList({
             textInputOptions={textInputOptions}
             shouldShowTextInput={!!searchInputLabel}
             shouldSingleExecuteRowSelect
+            shouldUpdateFocusedIndex
             initiallyFocusedItemKey={initiallySelectedCurrencyCode}
             shouldShowLoadingPlaceholder={!didScreenTransitionEnd}
         />

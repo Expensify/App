@@ -48,6 +48,7 @@ type MockSection = {sectionIndex: number; data: Array<{currencyCode: string; isS
 
 type MockSelectionListProps = {
     sections: MockSection[];
+    shouldUpdateFocusedIndex?: boolean;
     textInputOptions?: {onChangeText?: (value: string) => void};
 };
 
@@ -78,6 +79,8 @@ describe('CurrencySelectionList', () => {
 
         expect(pinnedCurrencyCodes()).toEqual(['USD']);
         expect(props?.sections.at(0)?.data.at(0)?.isSelected).toBe(true);
+        // shouldUpdateFocusedIndex keeps focusedIndex on the pressed row so the selected-item focus sync does not scroll the list on select.
+        expect(props?.shouldUpdateFocusedIndex).toBe(true);
     });
 
     it('keeps the original currency pinned when the selected currency changes', () => {
