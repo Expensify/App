@@ -350,6 +350,24 @@ describe('MFA flow initialization', () => {
 
         expect(screen.queryByTestId(TEST_ID.MODAL_BACKDROP)).not.toBeOnTheScreen();
     });
+
+    it('cancels an active flow when the session account changes', async () => {
+        const {executeScenario} = renderMfaUi();
+        await waitForBatchedUpdatesWithAct();
+
+        await act(async () => executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByTestId(TEST_ID.MODAL_BACKDROP)).toBeOnTheScreen();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: MFA_TEST_ACCOUNT_ID + 1});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => pendingModalClose.run());
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByTestId(TEST_ID.MODAL_BACKDROP)).not.toBeOnTheScreen();
+    });
 });
 
 // Every settleable leaf must occur in a path that the walk above drives. `everyStateReachable.test.ts`

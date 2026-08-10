@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ReactNode} from 'react';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 
 import type {MultifactorAuthenticationExecuteScenarioArgs, MultifactorAuthenticationExternalAPI} from './MultifactorAuthenticationExternalApiContext';
 import type {MultifactorAuthenticationInternalApi} from './MultifactorAuthenticationInternalApiContext';
@@ -43,6 +43,15 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
     const [snapshot, send] = useInspectedMachine(MFAMachine);
     const state = snapshotToState(snapshot);
+
+    useEffect(() => {
+        if (state.modalState !== MFA_STATE.OPEN || state.accountID === undefined || state.accountID === accountID) {
+            return;
+        }
+
+        addMFABreadcrumb('Flow canceled: account changed', {flowAccountID: state.accountID, currentAccountID: accountID}, 'warning');
+        send({type: 'CLOSE_MODAL'});
+    }, [accountID, send, state.accountID, state.modalState]);
 
     const captureRegistrationState = async (flowAccountID: number): Promise<MFARegistrationStateSnapshot> => {
         const [hasLocalCredentials, deviceBiometrics] = await Promise.all([biometrics.areLocalCredentialsKnownToServer(), readOnyxValueOnce(getDeviceBiometricsOnyxKey(flowAccountID))]);
