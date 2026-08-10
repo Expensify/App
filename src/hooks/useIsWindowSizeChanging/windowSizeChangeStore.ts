@@ -1,5 +1,3 @@
-import Log from '@libs/Log';
-
 import type {EmitterSubscription, ScaledSize} from 'react-native';
 
 import {Dimensions} from 'react-native';
@@ -50,14 +48,6 @@ function handleDimensionsChange({window}: {window: ScaledSize}) {
     }
 
     rememberWindowSize(window);
-    if (!isWindowSizeChanging) {
-        // Logged once per change rather than per subscriber, because a single change flips every reader of the flag.
-        Log.info('[useIsWindowSizeChanging] Window size changed', false, {
-            width: window.width,
-            height: window.height,
-            isPortrait: lastIsPortrait,
-        });
-    }
     setIsWindowSizeChanging(true);
     clearTimeout(stopTimeoutID);
     stopTimeoutID = setTimeout(() => setIsWindowSizeChanging(false), WINDOW_SIZE_CHANGE_DURATION_MS);
