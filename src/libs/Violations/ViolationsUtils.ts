@@ -553,7 +553,7 @@ const ViolationsUtils = {
             }
 
             // Add 'missingCategory' violation when categories are required and none is set. isCategoryMissing also
-            // covers the 'Uncategorized'/'none' sentinel, mirroring the categoryOutOfPolicy check above.
+            // covers the 'Uncategorized'/'none' placeholder value, mirroring the categoryOutOfPolicy check above.
             if (!hasMissingCategoryViolation && !!policy.requiresCategory && isCategoryMissing(categoryKey) && !isSelfDM) {
                 newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
             }
