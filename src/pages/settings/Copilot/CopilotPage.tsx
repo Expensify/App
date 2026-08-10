@@ -455,7 +455,7 @@ function CopilotPage() {
                                         <MenuItemList menuItems={delegateMenuItems} />
                                     </>
                                 )}
-                                {!isAgentAccount ? (
+                                {isAgentAccount === false ? (
                                     <MenuItem
                                         title={translate('delegate.addCopilot')}
                                         icon={icons.UserPlus}

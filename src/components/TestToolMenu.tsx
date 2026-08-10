@@ -111,7 +111,7 @@ function TestToolMenu() {
                     </TestToolRow>
 
                     {/* Allows testing and revoking biometric multifactor authentication */}
-                    {!isAgentAccount && <BiometricsTestToolRow />}
+                    {isAgentAccount === false && <BiometricsTestToolRow />}
                 </>
             )}
 

@@ -98,7 +98,7 @@ function SecuritySettingsPage() {
         const baseMenuItems: BaseMenuItemType[] = [];
 
         // Agent accounts can't have two-factor/multifactor authentication, so hide those options for them.
-        if (!isAgentAccount) {
+        if (isAgentAccount === false) {
             baseMenuItems.push({
                 translationKey: 'twoFactorAuth.headerTitle',
                 icon: icons.Shield,
@@ -117,7 +117,7 @@ function SecuritySettingsPage() {
             });
         }
 
-        if (!isAgentAccount && hasEverRegisteredForMultifactorAuthentication) {
+        if (isAgentAccount === false && hasEverRegisteredForMultifactorAuthentication) {
             baseMenuItems.push({
                 translationKey: 'multifactorAuthentication.revoke.title',
                 icon: icons.Fingerprint,
@@ -274,6 +274,10 @@ function SecuritySettingsPage() {
         hasEverRegisteredForMultifactorAuthentication,
         hasDeviceManagementErrorValue,
     ]);
+
+    if (isAgentAccount === undefined) {
+        return null;
+    }
 
     return (
         <ScreenWrapper

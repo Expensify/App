@@ -17,7 +17,7 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
             ProtectedComponent = (props) => {
                 const isAgent = useIsAgentAccount();
                 const isAlreadyOnRedirectTarget = Navigation.isActiveRoute(ROUTES.SETTINGS_PROFILE.route);
-                const shouldRedirect = isAgent && !isAlreadyOnRedirectTarget;
+                const shouldRedirect = isAgent === true && !isAlreadyOnRedirectTarget;
 
                 // Redirect on every focus (not just the initial false->true transition) so navigating back
                 // onto a guarded screen that the split navigator keeps mounted (e.g. a stale agents route
@@ -25,7 +25,7 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                 // rendering a blank pane.
                 useFocusEffect(
                     useCallback(() => {
-                        if (!isAgent) {
+                        if (isAgent !== true) {
                             return;
                         }
 
@@ -58,10 +58,10 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                     }, [isAgent]),
                 );
 
-                if (shouldRedirect) {
+                if (isAgent === undefined || shouldRedirect) {
                     return null;
                 }
-                if (isAgent) {
+                if (isAgent === true) {
                     return (
                         <FullPageNotFoundView
                             shouldShow

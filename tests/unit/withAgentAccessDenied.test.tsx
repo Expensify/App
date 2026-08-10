@@ -61,6 +61,7 @@ function renderComponent() {
 async function signInAsAgent() {
     const accountID = 1;
     await TestHelper.signInWithTestUser(accountID, 'testbot_123@expensify.ai');
+    await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
     await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         [accountID]: {
             accountID,
@@ -149,6 +150,7 @@ describe('withAgentAccessDenied', () => {
 
     it('renders wrapped component for non-agent account', async () => {
         await TestHelper.signInWithTestUser(1, 'user@expensify.com');
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
         await waitForBatchedUpdatesWithAct();
 
         renderComponent();
@@ -157,6 +159,26 @@ describe('withAgentAccessDenied', () => {
         await waitFor(() => {
             expect(screen.getByTestId('protected-content')).toBeDefined();
             expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+    });
+
+    it('does not render wrapped component while agent identity is loading', async () => {
+        await TestHelper.signInWithTestUser(1, 'user@expensify.com');
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+        await waitForBatchedUpdatesWithAct();
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByTestId('protected-content')).toBeNull();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        await waitFor(() => {
+            expect(screen.getByTestId('protected-content')).toBeDefined();
         });
     });
 });

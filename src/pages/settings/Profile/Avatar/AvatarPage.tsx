@@ -8,6 +8,10 @@ import UserProfileAvatar from './UserProfileAvatar';
 function ProfileAvatar() {
     const isAgentAccount = useIsAgentAccount();
 
+    if (isAgentAccount === undefined) {
+        return null;
+    }
+
     if (isAgentAccount) {
         return <AgentProfileAvatar />;
     }
