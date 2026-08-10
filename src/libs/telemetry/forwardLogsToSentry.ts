@@ -41,7 +41,7 @@ type ForwardedLogPrefix = TupleToUnion<typeof FORWARDED_LOG_PREFIXES>;
  * allowed for any other prefix, so a generic key like event cannot leak from an unrelated line. This keeps the
  * receipt keys tied to the receipt logs instead of widening the global whitelist.
  */
-const PREFIX_SCOPED_PARAMETERS_WHITELIST = new Map<ForwardedLogPrefix, ReadonlyArray<string | RegExp>>([['[Receipt]', ['receiptTraceId', 'transactionID', 'event']]]);
+const PREFIX_SCOPED_PARAMETERS_WHITELIST = new Map<ForwardedLogPrefix, ReadonlyArray<string | RegExp>>([['[Receipt]', ['receiptTraceId', 'transactionID', 'event', 'captureSource']]]);
 
 /**
  * Method deciding whether a log packet should be forwarded to Sentry.

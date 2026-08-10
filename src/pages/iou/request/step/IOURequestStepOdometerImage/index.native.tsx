@@ -27,6 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getOdometerImageUri} from '@libs/OdometerUtils';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 
 import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/Camera';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
@@ -134,7 +135,7 @@ function IOURequestStepOdometerImage({
         ReceiptStorage.adopt(sourceUri, filename)
             .then((durableName) => ReceiptStorage.toLocalUri(durableName))
             .catch((error: unknown) => {
-                Log.alert('Failed to adopt odometer receipt into durable storage, using original URI', {error: error instanceof Error ? error.message : String(error)});
+                logReceiptAdoptFailed({error, captureSource: 'gallery'});
                 return sourceUri;
             })
             .then((uri) => {

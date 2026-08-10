@@ -19,12 +19,12 @@ import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
+import {logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 import {
     getRequestType,
     hasEReceipt,
@@ -302,7 +302,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             return ReceiptStorage.adopt(imageUri, filename)
                 .then((durableName) => ReceiptStorage.toLocalUri(durableName))
                 .catch((error: unknown) => {
-                    Log.alert('Failed to adopt edited receipt into durable storage, using original URI', {error: error instanceof Error ? error.message : String(error)});
+                    logReceiptAdoptFailed({error, captureSource: 'replace'});
                     return imageUri;
                 })
                 .then((durableUri) => {
