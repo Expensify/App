@@ -42,7 +42,6 @@ import {
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
-import {markSendMessageRendered} from '@libs/telemetry/sendMessageSpans';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
@@ -83,13 +82,6 @@ type ReportActionsListContentProps = {
 };
 
 type ReportActionsListProps = ReportActionsListContentProps;
-
-/**
- * How many of the newest rendered actions to check against the in-flight send-message telemetry span. The
- * list is descending so a just-sent message is normally at index 0, but Concierge can splice a synthetic
- * draft and an optimistic reply ahead of it.
- */
-const NEWEST_ACTIONS_CHECKED_FOR_PENDING_SEND = 3;
 
 /**
  * Create a unique key for each action in the FlatList.
@@ -241,16 +233,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         visibleReportActionsWithDraft.push(draftReportAction);
         return visibleReportActionsWithDraft;
     })();
-
-    // Closes the send-message telemetry phase covering the Onyx write and everything it triggers, and
-    // opens the one covering this render. It runs here rather than in an effect because an effect only
-    // fires once the render it is measuring has already finished. The list is descending, so a just-sent
-    // message is at the front — but not always exactly at index 0, since Concierge can splice a draft or
-    // an optimistic reply ahead of it, hence the few entries. Each call is a no-op unless that exact
-    // action has a send in flight that hasn't been marked as rendered yet.
-    for (let i = 0; i < NEWEST_ACTIONS_CHECKED_FOR_PENDING_SEND; i++) {
-        markSendMessageRendered(renderedVisibleReportActions.at(i)?.reportActionID);
-    }
 
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;

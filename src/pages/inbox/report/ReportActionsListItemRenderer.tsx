@@ -1,5 +1,6 @@
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
+import {markSendMessageRowRendered} from '@libs/telemetry/sendMessageSpans';
 
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -79,6 +80,12 @@ function ReportActionsListItemRenderer({
     isHarvestCreatedExpenseReport = false,
     shouldDisableContextMenuForConciergeDraft = false,
 }: ReportActionsListItemRendererProps) {
+    // Send-message telemetry boundary: the Onyx-write phase ends here, the row-render phase starts. In the
+    // render body rather than an effect, which would only fire once the render it measures has finished.
+    // Runs for every row of every list render, so it costs one `pendingAction` reference compare unless
+    // this row is a message the user just sent. No allocation, no telemetry lookup.
+    markSendMessageRowRendered(reportAction);
+
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
     /**

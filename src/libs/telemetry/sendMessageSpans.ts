@@ -1,44 +1,60 @@
 import CONST from '@src/CONST';
+import type {ReportAction} from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {ValueOf} from 'type-fest';
 
 import {cancelSpan, endSpan, getSpan, startSpan} from './activeSpans';
 
 /*
- * Sub-spans that break a send down into stages, so a slow `ManualSendMessageVisible` can be attributed to
- * one of them instead of reading as a single opaque duration: building the optimistic action, enqueueing
- * the API write, the async Onyx/derived-value cascade, and the React render.
+ * Sequential phases of a send, so a slow `ManualSendMessageVisible` can be attributed to a stage instead
+ * of reading as one opaque duration:
  *
- * There is no registry here — `activeSpans` already is one. A phase exists iff `getSpan` finds it, which
- * is also what makes every function below self-healing: once the parent is cancelled (report-actions
- * skeleton, navigating away, backgrounding), every later call for that send is a no-op.
+ *   Submit          build the optimistic action, hand the write to Onyx and the queue
+ *   Propagate       Onyx merge, derived recomputes, React scheduling, the list's own render work
+ *   RowRender       the sent message's own subtree, list item down to its text fragment
+ *   CommitAndPaint  the remaining rows, the React commit, layout
  *
- * Phases hang off `ManualSendMessageVisible` only, never the effect-anchored `ManualSendMessage`. That
- * span is being retired once the two anchors have been compared in Sentry, and leaving it untouched keeps
- * the comparison clean.
+ * Every boundary is keyed on the sent message's own `reportActionID` and marked by a component that
+ * already receives it, so nothing guesses which row the sent message is.
+ *
+ * No registry: `activeSpans` is one. A phase exists iff `getSpan` finds it, which also makes every
+ * function here self-healing: once the parent is cancelled, later calls for that send are no-ops.
+ *
+ * Phases hang off `ManualSendMessageVisible` only, never the effect-anchored `ManualSendMessage`, which is
+ * being retired once the two anchors have been compared.
  */
 
-/**
- * Phases of a send, in the order they run. Each one ends where the next begins, so together they
- * partition the parent span and their durations sum to it.
- */
+/** Phases in the order they run. Each ends where the next begins, so their durations sum to the parent. */
 type SendMessagePhase = ValueOf<typeof CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE>;
 
 function getPhaseSpanID(reportActionID: string, phase: SendMessagePhase) {
     return `${phase}_${reportActionID}`;
 }
 
+function isPhaseRunning(reportActionID: string, phase: SendMessagePhase) {
+    return !!getSpan(getPhaseSpanID(reportActionID, phase));
+}
+
 /**
- * Start `phase` as a child of this send's span. No-op when the send has no span — either it was never
- * started (the user was scrolled up) or it has since been cancelled.
+ * Cheapest test that can rule a row out, for the marks that run once per row per list render: only a
+ * message the user just sent can be a pending send, and it stays optimistic until the server confirms it.
+ * One reference compare, no string built, no map touched.
+ */
+function isPendingSend(pendingAction: PendingAction | undefined) {
+    return pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+}
+
+/**
+ * Start `phase` as a child of this send's span. No-op when the send has no span, either never started
+ * (user was scrolled up) or since cancelled.
  */
 function startSendMessagePhase(reportActionID: string | undefined, phase: SendMessagePhase) {
     if (!reportActionID) {
         return;
     }
-    // Guarding on the parent is required, not just defensive: `startInactiveSpan` falls back to whatever
-    // span is active on the scope when `parentSpan` is undefined, which would nest the phase under an
-    // unrelated transaction.
+    // Load-bearing, not defensive: `startInactiveSpan` falls back to the scope's active span when
+    // `parentSpan` is undefined, which would nest the phase under an unrelated transaction.
     const parentSpan = getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`);
     if (!parentSpan) {
         return;
@@ -55,52 +71,75 @@ function endSendMessagePhase(reportActionID: string | undefined, phase: SendMess
 }
 
 /**
- * The sent action has reached React: the async cascade is over and we are now rendering it. Closes
- * `Propagate` and opens `RenderCommit`.
+ * The sent row has started rendering, so the cascade the write set off is done. Closes `Propagate`, opens
+ * `RowRender`.
  *
- * Called from two render bodies, and has to be, because neither one alone covers every send:
- *
- * - `ReportActionsList`, with the newest action it is about to render. This is the boundary we want, since
- *   it separates the Onyx cascade from the whole list render. But it misses expense and invoice reports
- *   (those render through `MoneyRequestReportActionsList`), and it misses sends where something else sits
- *   at index 0 — a Concierge synthetic draft, an optimistic Concierge reply, an incoming whisper.
- * - `TextCommentFragment`, with its own action. This is the backstop: it is the component that ends the
- *   parent span, so it is on the path for every send in every list. It fires late (the list render is
- *   already underway), which shows up as a `RenderCommit` of only a millisecond or two — that is the
- *   signal that the list-level mark missed and the render cost landed in `Propagate` instead.
- *
- * Whichever fires first wins: the `getSpan` check below is false once `Propagate` has been closed, so
- * later calls — including every subsequent re-render — are no-ops.
+ * Called from the list item's render body, not an effect, because an effect only fires once the render it
+ * is measuring has finished. Idempotent, since the guard is false once `Propagate` is closed, which is what
+ * makes a discarded concurrent render or a recycled cell harmless.
  */
-function markSendMessageRendered(reportActionID: string | undefined) {
-    if (!reportActionID || !getSpan(getPhaseSpanID(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE))) {
+function markSendMessageRowRendered(reportAction: Pick<ReportAction, 'reportActionID' | 'pendingAction'>) {
+    if (!isPendingSend(reportAction.pendingAction)) {
+        return;
+    }
+    const {reportActionID} = reportAction;
+    if (!isPhaseRunning(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE)) {
         return;
     }
     endSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE);
-    startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.RENDER_COMMIT);
+    startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.ROW_RENDER);
 }
 
 /**
- * Close every phase of this send, immediately before its parent span ends. Sentry drops descendants that
- * are still running when the parent ends, so anything left open has to be closed here to survive.
+ * The message text is rendering, at the bottom of the row's subtree. Closes `RowRender`, opens
+ * `CommitAndPaint`. Called from `TextCommentFragment`'s render body, the component that also ends the
+ * parent span, so it is on the path for every measured send.
  *
- * Only the last phase reaches this point legitimately. Any earlier phase still running never reached its
- * own end, so it is cancelled rather than ended — and that is the interesting case: a cancelled
- * `Propagate` means the message never made it into the report-actions list at all (a skeleton swallowed
- * it), which a single opaque span could not tell apart from a slow render.
+ * Only one of the two phases can be open, so one `end` call is always a no-op, but ending `Propagate` is
+ * not duplication. If the row mark never fired, `Propagate` is the open one, and leaving it would have
+ * `endSendMessagePhases` cancel it at `t4` with a duration running past the render it should end at. The
+ * absent `RowRender` is what records the missed boundary instead. Happens on paths reaching
+ * `ReportActionItem` outside `ReportActionsListItemRenderer`, most plausibly search results
+ * (`ChatListItem`), since `addActions` calls `buildOptimisticSnapshotData`.
+ *
+ * Runs per text fragment per render with no `pendingAction` in scope, so it rules out on the parent span:
+ * one lookup, and no phase can be open without it.
+ */
+function markSendMessageContentRendered(reportActionID: string | undefined) {
+    if (!reportActionID || !getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`)) {
+        return;
+    }
+    if (!isPhaseRunning(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE) && !isPhaseRunning(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.ROW_RENDER)) {
+        return;
+    }
+    endSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE);
+    endSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.ROW_RENDER);
+    startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.COMMIT_AND_PAINT);
+}
+
+/**
+ * Close every phase immediately before the parent span ends, since Sentry drops descendants still running
+ * when their parent ends.
+ *
+ * Only `CommitAndPaint` should still be open here, since the marks above close the earlier ones during the
+ * render preceding this layout. The loop is a backstop, and cancels rather than ends because a phase
+ * arriving open never reached its real boundary, so its duration would be a lie.
+ *
+ * Runs from `onLayout`, which fires for every message that lays out, so it rules out on the parent lookup
+ * its caller needs anyway instead of probing all four phases.
  */
 function endSendMessagePhases(reportActionID: string | undefined) {
-    if (!reportActionID) {
+    if (!reportActionID || !getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`)) {
         return;
     }
     for (const phase of Object.values(CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE)) {
-        if (phase === CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.RENDER_COMMIT) {
+        if (phase === CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.COMMIT_AND_PAINT) {
             continue;
         }
         cancelSpan(getPhaseSpanID(reportActionID, phase));
     }
-    endSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.RENDER_COMMIT);
+    endSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.COMMIT_AND_PAINT);
 }
 
-export {startSendMessagePhase, endSendMessagePhase, markSendMessageRendered, endSendMessagePhases};
+export {startSendMessagePhase, endSendMessagePhase, markSendMessageRowRendered, markSendMessageContentRendered, endSendMessagePhases};
 export type {SendMessagePhase};
