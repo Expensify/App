@@ -25,7 +25,7 @@ export default {
         extraSources: [
             'android/gradle.properties',
             'ios/Podfile',
-            'scripts/compute-patches-hash.sh',
+            'scripts/artifacts-utils/compute-patches-hash.sh',
             'patches',
             ...(isHybrid ? ['Mobile-Expensify/patches'] : []),
             '.github/actions/composite/getXcodeVersion/action.yml',
