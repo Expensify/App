@@ -63,10 +63,10 @@ import type {PerDiemExpenseInformation} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
 
-import {getAllReports, getAllTransactions} from '.';
+import {getAllReports, getAllTransactions, getPolicyTags} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
-import {submitPerDiemExpense} from './PerDiem';
+import {getPerDiemExpensePolicyID, submitPerDiemExpense} from './PerDiem';
 import {createDistanceRequest} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 
@@ -732,6 +732,9 @@ function createExpenseByType({
             return createDistanceRequest(distanceParams);
         }
         case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
+            const earlyPolicyID = getPerDiemExpensePolicyID(params);
+            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+
             const perDiemParams: PerDiemExpenseInformation = {
                 ...params,
                 dateFnsLocale,
@@ -744,6 +747,7 @@ function createExpenseByType({
                 customUnitPolicyID,
                 isTrackIntentUser,
                 formatPhoneNumber,
+                policyTags,
             };
             return submitPerDiemExpense(perDiemParams);
         }
