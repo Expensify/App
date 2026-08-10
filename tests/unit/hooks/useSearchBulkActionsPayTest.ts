@@ -23,6 +23,13 @@ jest.mock('@libs/actions/IOU/PayMoneyRequest', () => ({
     payInvoice: jest.fn(),
 }));
 
+// On iOS the offline modal is deferred until the payment popover finishes dismissing (via TransitionTracker),
+// which never fires under Jest. Invoke the callback synchronously so we can assert the modal opens.
+jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
+    __esModule: true,
+    default: (presentModal: () => void) => presentModal(),
+}));
+
 jest.mock('@libs/actions/Search', () => ({
     getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     exportSearchItemsToCSV: jest.fn(),

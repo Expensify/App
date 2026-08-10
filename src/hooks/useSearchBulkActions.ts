@@ -36,6 +36,7 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
+import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
 import type {ExpensifyCardStatementParams} from '@libs/ExpensifyCardStatementUtils';
 import Log from '@libs/Log';
@@ -1165,7 +1166,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
             if (isOffline) {
-                setIsOfflineModalVisible(true);
+                // On iOS, presenting the offline modal while the payment popover is still dismissing freezes the app,
+                // so defer it until the popover transition completes (matching the delegate/locked-account guards).
+                deferModalPresentationAfterPopoverDismiss(() => setIsOfflineModalVisible(true));
                 return;
             }
 
