@@ -8,6 +8,11 @@ import type {Report, ReportAction} from '@src/types/onyx';
 import React from 'react';
 
 const mockReportActionItem = jest.fn<null, [unknown]>(() => null);
+const mockSystemReportActionItem = jest.fn<null, [unknown]>(() => null);
+
+function MockSystemReportActionItem(props: object) {
+    return mockSystemReportActionItem(props);
+}
 
 jest.mock('@pages/inbox/report/ReportActionItem', () => ({
     __esModule: true,
@@ -24,7 +29,7 @@ const action: ReportAction = {
 };
 const report: Report = {reportID: 'report-1'};
 
-function renderItem(displayAsSystemMessage?: boolean) {
+function renderItem(reportActionItemComponent?: typeof MockSystemReportActionItem) {
     return render(
         <ReportActionsListItemRenderer
             reportAction={action}
@@ -33,7 +38,7 @@ function renderItem(displayAsSystemMessage?: boolean) {
             report={report}
             transactionThreadReport={undefined}
             displayAsGroup={false}
-            displayAsSystemMessage={displayAsSystemMessage}
+            reportActionItemComponent={reportActionItemComponent}
             shouldHideThreadDividerLine={false}
             shouldDisplayNewMarker={false}
             shouldDisplayReplyDivider={false}
@@ -45,17 +50,20 @@ function renderItem(displayAsSystemMessage?: boolean) {
 describe('ReportActionsListItemRenderer system-message presentation', () => {
     beforeEach(() => {
         mockReportActionItem.mockClear();
+        mockSystemReportActionItem.mockClear();
     });
 
     it('keeps the existing standalone rendering path unchanged by default', () => {
         renderItem();
 
-        expect(mockReportActionItem).toHaveBeenCalledWith(expect.objectContaining({displayAsSystemMessage: false}));
+        expect(mockReportActionItem).toHaveBeenCalledTimes(1);
+        expect(mockSystemReportActionItem).not.toHaveBeenCalled();
     });
 
     it('uses the path without an avatar only when the money-request audit list opts in', () => {
-        renderItem(true);
+        renderItem(MockSystemReportActionItem);
 
-        expect(mockReportActionItem).toHaveBeenCalledWith(expect.objectContaining({displayAsSystemMessage: true}));
+        expect(mockSystemReportActionItem).toHaveBeenCalledTimes(1);
+        expect(mockReportActionItem).not.toHaveBeenCalled();
     });
 });

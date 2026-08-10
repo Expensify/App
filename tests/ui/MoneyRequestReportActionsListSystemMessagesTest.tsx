@@ -32,13 +32,13 @@ const EMAIL = 'testuser@example.com';
 type MockReportActionRendererProps = {
     reportAction: ReportAction;
     displayAsGroup: boolean;
-    displayAsSystemMessage: boolean;
+    reportActionItemComponent?: React.ComponentType;
 };
 
 const mockReportActionRenderer = jest.fn((props: MockReportActionRendererProps) => (
     <View
         testID={`report-action-${props.reportAction.reportActionID}`}
-        accessibilityLabel={`${props.displayAsGroup ? 'grouped' : 'single'}-${props.displayAsSystemMessage ? 'system' : 'chat'}`}
+        accessibilityLabel={`${props.displayAsGroup ? 'grouped' : 'single'}-${props.reportActionItemComponent ? 'system' : 'chat'}`}
     />
 ));
 
