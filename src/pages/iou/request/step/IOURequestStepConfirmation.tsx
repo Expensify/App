@@ -799,7 +799,7 @@ function IOURequestStepConfirmation({
         setMoneyRequestReceipt(currentTransactionID, source, file.name ?? '', true, file.type);
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptOnDrop);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(setReceiptOnDrop);
 
     const handleDroppingReceipt = (e: DragEvent) => {
         const file = e?.dataTransfer?.files[0];
@@ -949,7 +949,6 @@ function IOURequestStepConfirmation({
                             dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
                         />
                     </DragAndDropConsumer>
-                    {ErrorModal}
                     <SubmitExpenseOrchestrator
                         createTransaction={createTransaction}
                         destinationReportID={destinationReportID}

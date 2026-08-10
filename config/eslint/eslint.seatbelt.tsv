@@ -511,7 +511,6 @@
 "../../src/hooks/useDragAndDrop/types.ts"	"@typescript-eslint/no-deprecated/React.MutableRefObject"	1
 "../../src/hooks/useDynamicBackPath.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useExportedToFilterOptions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/hooks/useFilesValidation.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/hooks/useFilterFormValues.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useGeographicalStateAndCountryFromRoute.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useHtmlPaste/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1197,7 +1196,6 @@
 "../../src/pages/media/AttachmentModalScreen/AttachmentModalBaseContent/index.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/pages/media/AttachmentModalScreen/AttachmentModalContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/media/AttachmentModalScreen/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	16
-"../../src/pages/media/AttachmentModalScreen/routes/TransactionReceiptModalContent.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/media/AttachmentModalScreen/routes/TransactionReceiptModalContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/pages/media/AttachmentModalScreen/routes/TransactionReceiptModalContent.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/pages/media/AttachmentModalScreen/routes/hooks/useReportAttachmentModalType.ts"	"react-hooks/set-state-in-effect"	1
