@@ -29,8 +29,12 @@ jest.mock('@libs/Accessibility/blurActiveElement', () => ({__esModule: true, def
 const mockSetLastTrapFocusReturn = jest.fn();
 const mockClearLastTrapFocusReturn = jest.fn();
 jest.mock('@libs/lastTrapFocusReturn', () => ({
-    setLastTrapFocusReturn: (element: HTMLElement) => mockSetLastTrapFocusReturn(element),
-    clearLastTrapFocusReturn: () => mockClearLastTrapFocusReturn(),
+    setLastTrapFocusReturn: (element: HTMLElement): void => {
+        mockSetLastTrapFocusReturn(element);
+    },
+    clearLastTrapFocusReturn: (): void => {
+        mockClearLastTrapFocusReturn();
+    },
     getLastTrapFocusReturn: () => null,
 }));
 
@@ -58,12 +62,12 @@ function withActiveElement<T>(element: HTMLElement, fn: () => T): T {
 describe('FocusTrapForModal — launcher capture', () => {
     beforeEach(() => {
         capturedOptions = null;
-        (setActivePopoverLauncher as jest.Mock).mockClear();
-        (markActivePopoverLauncherDeactivated as jest.Mock).mockClear();
-        (hasLauncher as jest.Mock).mockClear();
-        (hasLauncher as jest.Mock).mockReturnValue(true);
-        (pickLauncher as jest.Mock).mockClear();
-        (pickLauncher as jest.Mock).mockReturnValue(null);
+        jest.mocked(setActivePopoverLauncher).mockClear();
+        jest.mocked(markActivePopoverLauncherDeactivated).mockClear();
+        jest.mocked(hasLauncher).mockClear();
+        jest.mocked(hasLauncher).mockReturnValue(true);
+        jest.mocked(pickLauncher).mockClear();
+        jest.mocked(pickLauncher).mockReturnValue(null);
         mockSetLastTrapFocusReturn.mockClear();
         mockClearLastTrapFocusReturn.mockClear();
         sharedTrapStack.length = 0;
@@ -218,7 +222,7 @@ describe('FocusTrapForModal — launcher capture', () => {
         it('skips the dismiss-time focus return when navigation already consumed the launcher', () => {
             const anchor = document.createElement('button');
             document.body.appendChild(anchor);
-            (hasLauncher as jest.Mock).mockReturnValue(false);
+            jest.mocked(hasLauncher).mockReturnValue(false);
 
             render(
                 <FocusTrapForModal
@@ -267,7 +271,7 @@ describe('FocusTrapForModal — launcher capture', () => {
         it('does not mark anything when no focus return happened', () => {
             const anchor = document.createElement('button');
             document.body.appendChild(anchor);
-            (hasLauncher as jest.Mock).mockReturnValue(false);
+            jest.mocked(hasLauncher).mockReturnValue(false);
 
             render(
                 <FocusTrapForModal
@@ -303,7 +307,7 @@ describe('FocusTrapForModal — launcher capture', () => {
         it('falls back to the LauncherStack when there is neither a focused element nor an anchor', () => {
             const fab = document.createElement('button');
             document.body.appendChild(fab);
-            (pickLauncher as jest.Mock).mockReturnValue(fab);
+            jest.mocked(pickLauncher).mockReturnValue(fab);
 
             render(<FocusTrapForModal active>{null}</FocusTrapForModal>);
 
@@ -321,7 +325,7 @@ describe('FocusTrapForModal — launcher capture', () => {
             const stacked = document.createElement('button');
             document.body.appendChild(anchor);
             document.body.appendChild(stacked);
-            (pickLauncher as jest.Mock).mockReturnValue(stacked);
+            jest.mocked(pickLauncher).mockReturnValue(stacked);
 
             render(
                 <FocusTrapForModal
