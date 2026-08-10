@@ -6,37 +6,32 @@ import Config from 'react-native-config';
 
 import type Environment from './types';
 
-let environment: Environment | null = null;
+// We cache the promise rather than the resolved value because several modules call this while the app is starting.
+// Caching only the value would let all of them start their own beta check, and on Android that means one request to
+// the GitHub API each, which is enough to hit the unauthenticated rate limit on a single cold start.
+let environmentPromise: Promise<Environment> | null = null;
+
+function resolveEnvironment(): Promise<Environment> {
+    const configuredEnvironment = Config?.ENVIRONMENT ?? CONST.ENVIRONMENT.DEV;
+
+    if (configuredEnvironment === CONST.ENVIRONMENT.DEV) {
+        return Promise.resolve(CONST.ENVIRONMENT.DEV);
+    }
+
+    if (configuredEnvironment === CONST.ENVIRONMENT.ADHOC) {
+        return Promise.resolve(CONST.ENVIRONMENT.ADHOC);
+    }
+
+    // If we aren't on dev/adhoc, check to see if this is a beta build
+    return betaChecker.isBetaBuild().then((isBeta) => (isBeta ? CONST.ENVIRONMENT.STAGING : CONST.ENVIRONMENT.PRODUCTION));
+}
 
 /**
  * Returns a promise that resolves with the current environment string value
  */
 function getEnvironment(): Promise<Environment> {
-    return new Promise((resolve) => {
-        // If we've already set the environment, use the current value
-        if (environment) {
-            resolve(environment);
-            return;
-        }
-
-        if ((Config?.ENVIRONMENT ?? CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV) {
-            environment = CONST.ENVIRONMENT.DEV;
-            resolve(environment);
-            return;
-        }
-
-        if ((Config?.ENVIRONMENT ?? CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.ADHOC) {
-            environment = CONST.ENVIRONMENT.ADHOC;
-            resolve(environment);
-            return;
-        }
-
-        // If we haven't set the environment yet and we aren't on dev/adhoc, check to see if this is a beta build
-        betaChecker.isBetaBuild().then((isBeta) => {
-            environment = isBeta ? CONST.ENVIRONMENT.STAGING : CONST.ENVIRONMENT.PRODUCTION;
-            resolve(environment);
-        });
-    });
+    environmentPromise ??= resolveEnvironment();
+    return environmentPromise;
 }
 
 export default getEnvironment;

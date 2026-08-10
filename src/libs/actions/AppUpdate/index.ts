@@ -8,8 +8,12 @@ function triggerUpdateAvailable() {
     Onyx.set(ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE, true);
 }
 
-function setIsAppInBeta(isBeta: boolean) {
-    Onyx.set(ONYXKEYS.IS_BETA, isBeta);
+/**
+ * Records that the running app version is a beta build. The version is stored rather than a flag so the verdict is
+ * discarded as soon as the app updates, instead of pinning a newer build to a stale answer.
+ */
+function setBetaBuildVersion(version: string) {
+    Onyx.set(ONYXKEYS.BETA_BUILD_VERSION, version);
 }
 
-export {triggerUpdateAvailable, setIsAppInBeta, updateApp};
+export {triggerUpdateAvailable, setBetaBuildVersion, updateApp};

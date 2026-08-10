@@ -344,6 +344,7 @@ const KEYS_TO_PRESERVE_SUPPORTAL = [
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
     ONYXKEYS.NETWORK,
     ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    ONYXKEYS.BETA_BUILD_VERSION,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
 
     // Preserve IS_USING_IMPORTED_STATE so that when transitioning to/from supportal,
@@ -679,7 +680,12 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
     });
 }
 
-function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettings, tryNewDot: TryNewDot | undefined, credentialsParam: Credentials | undefined) {
+function setupNewDotAfterTransitionFromOldDot(
+    hybridAppSettings: HybridAppSettings,
+    tryNewDot: TryNewDot | undefined,
+    credentialsParam: Credentials | undefined,
+    shouldUseStagingServer: boolean | undefined,
+) {
     const {hybridApp, ...newDotOnyxValues} = hybridAppSettings;
 
     const clearOnyxIfSigningIn = () => {
@@ -792,6 +798,14 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
             ];
 
             for (const [key, value] of Object.entries(newDotOnyxValues)) {
+                // OldDot sends its own staging server flag on every transition, and this runs on every NewDot mount.
+                // NewDot's stored value survives every Onyx clear (see the KEYS_TO_PRESERVE lists), so letting OldDot
+                // merge over it would reset the toggle on every cold start. We only take OldDot's value while NewDot
+                // has none, which seeds the key on the first transition so both apps start out agreeing.
+                if (key === ONYXKEYS.SHOULD_USE_STAGING_SERVER && shouldUseStagingServer !== undefined) {
+                    continue;
+                }
+
                 onyxUpdates.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key,
