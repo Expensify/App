@@ -914,6 +914,7 @@ function completeSplitBill({
     delegateAccountID,
     isTrackIntentUser,
     sessionEmail,
+    formatPhoneNumber,
 }: CompleteSplitBillActionParams) {
     if (!reportAction) {
         return;
@@ -1122,9 +1123,18 @@ function completeSplitBill({
 
         let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
+            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, formatPhoneNumber);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, delegateAccountID);
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(
+                oneOnOneChatReport,
+                oneOnOneIOUReport,
+                formatPhoneNumber,
+                '',
+                oneOnOneTransaction,
+                undefined,
+                undefined,
+                delegateAccountID,
+            );
         }
         const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations, sessionAccountID, sessionEmail ?? '');
 
@@ -1849,9 +1859,18 @@ function createSplitsAndOnyxData({
 
         let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
+            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, formatPhoneNumber);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, delegateAccountID);
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(
+                oneOnOneChatReport,
+                oneOnOneIOUReport,
+                formatPhoneNumber,
+                '',
+                oneOnOneTransaction,
+                undefined,
+                undefined,
+                delegateAccountID,
+            );
         }
 
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories) : [];
