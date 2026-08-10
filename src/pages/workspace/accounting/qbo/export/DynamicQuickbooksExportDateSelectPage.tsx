@@ -42,7 +42,7 @@ function DynamicQuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsPr
         text: translate(`workspace.qbo.exportDate.values.${dateType}.label`),
         alternateText:
             dateType === CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED
-                ? translate(`workspace.qbo.exportDate.values.${CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED}.description`, {integrationName})
+                ? translate(`workspace.qbo.exportDate.values.${CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED}.description`, integrationName)
                 : translate(`workspace.qbo.exportDate.values.${dateType}.description`),
         keyForList: dateType,
         isSelected: qboConfig?.exportDate === dateType,
@@ -71,7 +71,7 @@ function DynamicQuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsPr
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="QuickbooksExportDateSelectPage"
             data={data}
-            headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportDate.description', {integrationName})}</Text>}
+            headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportDate.description', integrationName)}</Text>}
             onBackButtonPress={goBack}
             onSelectRow={selectExportDate}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}

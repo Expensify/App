@@ -61,10 +61,10 @@ function DynamicQuickbooksOnlineAutoSyncPage({policy, route}: WithPolicyConnecti
                 />
                 <ToggleSettingOptionRow
                     title={translate('workspace.accounting.autoSync')}
-                    subtitle={translate('workspace.qbo.advancedConfig.autoSyncDescription', {integrationName})}
+                    subtitle={translate('workspace.qbo.advancedConfig.autoSyncDescription', integrationName)}
                     isActive={!!config?.autoSync?.enabled}
                     wrapperStyle={[styles.pv2, styles.mh5]}
-                    switchAccessibilityLabel={translate('workspace.qbo.advancedConfig.autoSyncDescription', {integrationName})}
+                    switchAccessibilityLabel={translate('workspace.qbo.advancedConfig.autoSyncDescription', integrationName)}
                     shouldPlaceSubtitleBelowSwitch
                     onCloseError={() => clearQuickbooksOnlineAutoSyncErrorField(policyID)}
                     onToggle={(isEnabled) => updateQuickbooksOnlineAutoSync(policyID, isEnabled)}
