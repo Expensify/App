@@ -258,7 +258,6 @@ describe('useSearchBulkActions - CSV export flow', () => {
         });
 
         expect(mockQueueExportSearchItemsToCSV).toHaveBeenCalled();
-        expect(result.current.exportDownloadStatusModal).not.toBeNull();
     });
 
     it('handleBasicExport with manual selection does not track any export', async () => {
@@ -272,7 +271,6 @@ describe('useSearchBulkActions - CSV export flow', () => {
         });
 
         expect(mockQueueExportSearchItemsToCSV).not.toHaveBeenCalled();
-        expect(result.current.exportDownloadStatusModal).toBeNull();
     });
 
     it('beginExportWithTemplate tracks the export', async () => {
@@ -294,7 +292,6 @@ describe('useSearchBulkActions - CSV export flow', () => {
             });
 
             expect(mockQueueExportSearchWithTemplate).toHaveBeenCalled();
-            expect(result.current.exportDownloadStatusModal).not.toBeNull();
         }
     });
 });

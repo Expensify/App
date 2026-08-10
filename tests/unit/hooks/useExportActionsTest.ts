@@ -5,7 +5,7 @@ import useExportActions from '@hooks/useExportActions';
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 
 const mockQueueExportSearchWithTemplate = jest.mocked(queueExportSearchWithTemplate);
-const mockTrackExport = jest.fn();
+const mockClearSelectedTransactions = jest.fn();
 
 const REPORT_ID = 'report1';
 const POLICY_ID = 'policy1';
@@ -27,8 +27,9 @@ jest.mock('@libs/actions/Link', () => ({
     openOldDotLink: jest.fn(),
 }));
 
-jest.mock('@components/MoneyReportHeaderActions/ExportDownloadStatusContext', () => ({
-    useExportDownloadStatus: () => ({trackExport: mockTrackExport}),
+jest.mock('@components/Search/SearchContext', () => ({
+    ...jest.requireActual<typeof import('@components/Search/SearchContext')>('@components/Search/SearchContext'),
+    useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
 }));
 
 let mockIsOffline = false;
@@ -113,7 +114,7 @@ describe('useExportActions - template export status modal', () => {
             },
             true,
         );
-        expect(mockTrackExport).toHaveBeenCalledWith('mock-export-id');
+        expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
     it('does not queue the export and shows the offline modal when offline', () => {

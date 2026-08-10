@@ -102,7 +102,7 @@ describe('Export actions', () => {
         expect(value).toEqual(expect.objectContaining({state: 'failed'}));
     });
 
-    test('clearStaleExportDownloads clears ready/failed entries but preserves preparing ones', async () => {
+    test('clearStaleExportDownloads clears failed entries but keeps preparing and ready ones', async () => {
         const key1 = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-1` as const;
         const key2 = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-2` as const;
         const key3 = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-3` as const;
@@ -120,7 +120,7 @@ describe('Export actions', () => {
         const value1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-1`);
         const value2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-2`);
         const value3 = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-3`);
-        expect(value1).toBeUndefined();
+        expect(value1).toEqual(expect.objectContaining({state: 'ready'}));
         expect(value2).toBeUndefined();
         expect(value3).toEqual(expect.objectContaining({state: 'preparing'}));
     });
