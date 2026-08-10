@@ -7,6 +7,8 @@ import TextInput from '@components/TextInput';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 
+import type {SubmitBehavior} from 'react-native';
+
 import React from 'react';
 
 // Replace TextInput with a lightweight stand-in. Because InputWrapper builds its `textInputBasedComponents`
@@ -27,12 +29,20 @@ jest.mock('@libs/DeviceCapabilities', () => ({
 
 const mockCanUseTouchScreen = jest.mocked(canUseTouchScreen);
 
+type RegistrationInput = {
+    autoGrowSingleLine?: boolean;
+    autoGrowHeight?: boolean;
+    multiline?: boolean;
+    shouldSubmitForm?: boolean;
+    submitBehavior?: SubmitBehavior;
+};
+
 type RegistrationResult = {
     /** The `shouldSubmitForm` value InputWrapper computed and passed to `registerInput` */
     shouldSubmitForm?: boolean;
 
     /** The `submitBehavior` InputWrapper resolved for the input */
-    submitBehavior?: string;
+    submitBehavior?: SubmitBehavior;
 };
 
 /**
@@ -40,7 +50,7 @@ type RegistrationResult = {
  * `registerInput` receives (inputID, shouldSubmitForm, inputProps), so we read the computed
  * `shouldSubmitForm` and the resolved `submitBehavior` straight off the recorded call.
  */
-function renderAndCaptureRegistration(props: Partial<React.ComponentProps<typeof TextInput>> & {shouldSubmitForm?: boolean}): RegistrationResult {
+function renderAndCaptureRegistration({autoGrowSingleLine, autoGrowHeight, multiline, shouldSubmitForm, submitBehavior}: RegistrationInput): RegistrationResult {
     const registerInput: jest.MockedFunction<RegisterInput> = jest.fn((_inputID, _shouldSubmitForm, inputProps) => inputProps);
     const contextValue = {
         registerInput,
@@ -53,7 +63,11 @@ function renderAndCaptureRegistration(props: Partial<React.ComponentProps<typeof
             <InputWrapper
                 InputComponent={TextInput}
                 inputID="testInput"
-                {...props}
+                autoGrowSingleLine={autoGrowSingleLine}
+                autoGrowHeight={autoGrowHeight}
+                multiline={multiline}
+                shouldSubmitForm={shouldSubmitForm}
+                submitBehavior={submitBehavior}
             />
         </FormContext.Provider>,
     );
