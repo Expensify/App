@@ -294,6 +294,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: 'Factureerbaar',
         nonBillable: 'Niet-factureerbaar',
         tag: 'Label',
+        violations: 'Overtredingen',
         receipt: 'Bonnetje',
         verified: 'Geverifieerd',
         replace: 'Vervangen',
@@ -487,6 +488,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorig jaar',
         nextYear: 'Volgend jaar',
         avatar: 'Avatar',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} van ${total}`,
         editor: 'Editor',
         restrictions: 'Beperkingen',
         tryAgain: 'Probeer het opnieuw',
@@ -543,6 +545,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentError: 'Bijlagefout',
         errorWhileSelectingAttachment: 'Er is een fout opgetreden bij het selecteren van een bijlage. Probeer het opnieuw.',
         errorWhileSelectingCorruptedAttachment: 'Er is een fout opgetreden bij het selecteren van een beschadigde bijlage. Probeer een ander bestand.',
+        errorWhileConvertingHeic: 'We konden deze afbeelding niet verwerken. Probeer het opnieuw of upload de foto in een ander formaat.',
         takePhoto: 'Maak foto',
         chooseFromGallery: 'Kies uit galerij',
         chooseDocument: 'Bestand kiezen',
@@ -1085,6 +1088,7 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateTitle: 'Geen recente uitgaven',
             emptyStateMessage: 'Maak er een aan of sleep hier een bonnetje naartoe',
         },
+        insightsSection: {chartUnavailable: 'Diagram niet beschikbaar', notEnoughData: 'We hebben nog niet genoeg gegevens om deze grafiek te vullen'},
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2199,6 +2203,18 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Afmelden',
         restoreStashed: 'Opgeslagen login herstellen',
         signOutConfirmationText: 'Je verliest alle offline wijzigingen als je je afmeldt.',
+        saveReceiptsConfirmation: {
+            title: 'Bonnen opslaan?',
+            prompt: ({count}: {count: number}) =>
+                `Er ${count === 1 ? 'wordt nog 1 bon' : `worden nog ${count} bonnen`} geüpload. Als je je nu afmeldt, slaan we ${count === 1 ? 'deze' : 'ze'} op in je foto's zodat je ${count === 1 ? 'deze' : 'ze'} later aan een nieuwe uitgave kunt toevoegen.`,
+            confirm: 'Opslaan en afmelden',
+        },
+        saveReceiptsAndSignOutConfirmation: {
+            title: 'Bonnen opslaan?',
+            prompt: ({count}: {count: number}) =>
+                `Er ${count === 1 ? 'wordt nog 1 bon' : `worden nog ${count} bonnen`} geüpload. Als je je nu afmeldt, slaan we ${count === 1 ? 'deze' : 'ze'} op in je foto's zodat je ${count === 1 ? 'deze' : 'ze'} later aan een nieuwe uitgave kunt toevoegen. Je verliest alle andere offline wijzigingen.`,
+            confirm: 'Opslaan en afmelden',
+        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Lees de <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Servicevoorwaarden</a> en het <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacybeleid</a>.`,
         help: 'Help',
@@ -5687,6 +5703,16 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 },
             },
         },
+        dualEntry: {
+            dualEntrySetup: 'DualEntry-configuratie',
+            enterCredentials: 'Voer je DualEntry API-sleutel in',
+            howToFindAPIKey:
+                '<strong>Je API-sleutel vinden.</strong><ol><li>Log in bij DualEntry</li><li>Ga naar [organisatienaam] -> Instellingen -> Ontwikkelaarstoegang -> API-sleutels</li><li>Maak een API-sleutel</li><li>Plak de API-sleutel hieronder</li></ol>',
+            subsidiary: 'Dochteronderneming',
+            subsidiarySelectDescription: 'Kies de dochteronderneming in DualEntry waarvan je gegevens wilt importeren.',
+            noCompaniesFound: 'Geen bedrijven gevonden',
+            noCompaniesFoundDescription: 'Voeg een bedrijf toe in DualEntry en synchroniseer de verbinding opnieuw',
+        },
         type: {
             free: 'Gratis',
             control: 'Beheer',
@@ -6699,6 +6725,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             rillet: 'Rillet',
+            dualEntry: 'DualEntry',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6718,6 +6745,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
+                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+                        return 'DualEntry';
                     default: {
                         return '';
                     }
@@ -6926,6 +6955,12 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'rilletSyncConnection':
                             return 'Verbinding met Rillet initialiseren';
                         case 'rilletSyncImportData':
+                            return 'Gegevens laden';
+                        case 'dualEntrySyncTitle':
+                            return 'DualEntry-gegevens synchroniseren';
+                        case 'dualEntrySyncConnection':
+                            return 'Verbinding met DualEntry initialiseren';
+                        case 'dualEntrySyncImportData':
                             return 'Gegevens laden';
                         default: {
                             return `Vertaling ontbreekt voor fase: ${stage}`;
@@ -7196,6 +7231,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Onze QuickBooks Desktop-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                title: 'Intuit Enterprise Suite',
+                description: `Koppel Intuit Enterprise Suite aan Expensify om je boekhoudgegevens automatisch te synchroniseren en handmatige invoer te verminderen.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Onze Intuit Enterprise Suite-integratie is alleen beschikbaar met het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 title: 'Certinia',
                 description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + Certinia-integratie. Stem uitgavendimensies en belastingsynchronisatie af op je Certinia-configuratie voor helderder financieel inzicht.`,
@@ -7207,6 +7248,12 @@ ${reportName}`,
                 description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + Rillet-integratie. Stem uitgavendimensies en belastingsynchronisatie af op je Rillet-configuratie voor helderder financieel inzicht.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Onze Rillet-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                title: 'DualEntry',
+                description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + DualEntry-integratie. Stem uitgavendimensies en belastingsynchronisatie af op je DualEntry-configuratie voor helderder financieel inzicht.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Onze DualEntry-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Geavanceerde goedkeuringen',
@@ -9068,6 +9115,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             topSpenders: 'Grootste uitgaven doeners',
             topCategories: 'Topcategorieën',
             topMerchants: 'Topverkopers',
+            violationsBySubmitter: 'Overtredingen door indiener',
         },
     },
     genericErrorPage: {
@@ -9383,6 +9431,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             title: 'Persoonlijke karma inschakelen',
             description: 'Doneer $1 aan Expensify.org voor elke $500 die je elke maand uitgeeft',
             stopDonationsPrompt: 'Weet je zeker dat je wilt stoppen met doneren aan Expensify.org?',
+            managePreferencesFromWeb: 'Manage your personal karma preferences from web',
         },
         getInTouch: 'Uitstekend! Deel hun gegevens zodat we contact met hen kunnen opnemen.',
         introSchoolPrincipal: 'Introductie bij je schooldirecteur',
@@ -9733,6 +9782,53 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Tarief is alleen geldig vanaf ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Tarief is alleen geldig tot ${endDate}`,
         cannotMergeDuplicates: 'Je kunt alleen onkosten samenvoegen op concept- of openstaande rapporten. Trek het rapport in en probeer het opnieuw.',
+        shortName: {
+            allTagLevelsRequired: 'Alle labels vereist',
+            autoReportedRejectedExpense: 'Declaratie afgewezen',
+            billableExpense: 'Declarabel niet langer geldig',
+            cashExpenseWithNoReceipt: 'Bonnetje vereist',
+            categoryOutOfPolicy: 'Categorie niet meer geldig',
+            companyCardRequired: 'Bedrijfskaart vereist',
+            conversionSurcharge: 'Omkostentoeslag voor conversie toegepast',
+            customUnitOutOfPolicy: 'Tarief niet geldig voor workspace',
+            customUnitRateOutOfDateRange: 'Tarief buiten geldige datums',
+            duplicatedTransaction: 'Mogelijke duplicaat',
+            fieldRequired: 'Rapportveld verplicht',
+            futureDate: 'Toekomstige datum niet toegestaan',
+            hold: 'Uitgave in de wacht',
+            inactiveVendor: 'Leverancier niet meer geldig',
+            increasedDistance: 'Afstand overschrijdt route',
+            invoiceMarkup: 'Factuur gewijzigd',
+            itemizedReceiptRequired: 'Gespecificeerde bon vereist',
+            maxAge: 'Declaratie te oud',
+            missingAttendees: 'Deelnemers verplicht',
+            missingCategory: 'Ontbrekende categorie',
+            missingComment: 'Beschrijving verplicht',
+            missingTag: 'Ontbrekende tag',
+            modifiedAmount: 'Bedrag aangepast',
+            modifiedDate: 'Datum gewijzigd',
+            noRoute: 'Geen geldige route',
+            nonExpensiworksExpense: 'Niet-Expensiworks-uitgave',
+            overAutoApprovalLimit: 'Boven automatische goedkeuringslimiet',
+            overCategoryLimit: 'Bovengrens categorie overschreden',
+            overLimit: 'Bovengrens overschreden',
+            overTripLimit: 'Boven reislimiet',
+            perDayLimit: 'Boven daglimiet',
+            prohibitedExpense: 'Verboden uitgave',
+            receiptGeneratedWithAI: 'Mogelijke AI-gegenereerde bon',
+            receiptNotSmartScanned: 'Bon toegevoegd met de hand',
+            receiptRequired: 'Bonnetje vereist',
+            rter: 'Wachten op kaartkoppeling',
+            smartscanFailed: 'Scannen van bon is mislukt',
+            someTagLevelsRequired: 'Label verplicht',
+            tagOutOfPolicy: 'Label niet meer geldig',
+            overLimitAttendee: 'Boven persoonslimiet',
+            customRules: 'Overtreding van aangepaste regel',
+            taxAmountChanged: 'Belastingbedrag gewijzigd',
+            taxOutOfPolicy: 'Belastingtarief niet meer geldig',
+            taxRateChanged: 'Belastingtarief gewijzigd',
+            taxRequired: 'Ontbrekend belastingtarief',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is verplicht`,

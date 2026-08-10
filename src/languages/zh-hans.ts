@@ -294,6 +294,7 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: '可计费',
         nonBillable: '不可计费',
         tag: '标签',
+        violations: '违规',
         receipt: '收据',
         verified: '已验证',
         replace: '替换',
@@ -483,6 +484,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '上一年',
         nextYear: '明年',
         avatar: '头像',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `第 ${current} 项（共 ${total} 项）`,
         editor: '编辑',
         restrictions: '限制',
         tryAgain: '重试',
@@ -541,6 +543,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentError: '附件错误',
         errorWhileSelectingAttachment: '选择附件时发生错误。请重试。',
         errorWhileSelectingCorruptedAttachment: '选择已损坏的附件时发生错误。请尝试另一个文件。',
+        errorWhileConvertingHeic: '我们无法处理此图片。请重试，或以其他格式上传照片。',
         takePhoto: '拍照',
         chooseFromGallery: '从相册中选择',
         chooseDocument: '选择文件',
@@ -1041,6 +1044,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天已偿还', recentTransactions: ({lastFour}: {lastFour: string}) => `最近交易 • ${lastFour}`},
         seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,
         recentlyAddedSection: {title: '最近添加', viewAll: '查看所有报销费用', emptyStateTitle: '最近没有报销记录', emptyStateMessage: '创建一个或将收据拖到这里'},
+        insightsSection: {chartUnavailable: '图表不可用', notEnoughData: '我们目前没有足够的数据来填充此图表'},
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -2126,6 +2130,17 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: '退出登录',
         restoreStashed: '恢复暂存的登录',
         signOutConfirmationText: '如果你退出登录，所有离线更改都会丢失。',
+        saveReceiptsConfirmation: {
+            title: '保存你的收据？',
+            prompt: ({count}: {count: number}) => `还有 ${count} 张收据正在上传。如果你现在退出登录，我们会将其保存到你的照片中，以便你稍后将其添加到新的支出中。`,
+            confirm: '保存并退出登录',
+        },
+        saveReceiptsAndSignOutConfirmation: {
+            title: '保存你的收据？',
+            prompt: ({count}: {count: number}) =>
+                `还有 ${count} 张收据正在上传。如果你现在退出登录，我们会将其保存到你的照片中，以便你稍后将其添加到新的支出中。你的所有其他离线更改都会丢失。`,
+            confirm: '保存并退出登录',
+        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `阅读<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">服务条款</a>和<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私政策</a>。`,
         help: '帮助',
@@ -5503,6 +5518,16 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 },
             },
         },
+        dualEntry: {
+            dualEntrySetup: 'DualEntry 设置',
+            enterCredentials: '输入你的 DualEntry API 密钥',
+            howToFindAPIKey:
+                '<strong>查找您的 API 密钥。</strong><ol><li>登录 DualEntry</li><li>导航到 [组织名称] -> 设置 -> 开发者访问 -> API 密钥</li><li>创建 API 密钥</li><li>将 API 密钥粘贴到下方</li></ol>',
+            subsidiary: '子公司',
+            subsidiarySelectDescription: '请选择要从中导入数据的 DualEntry 子公司。',
+            noCompaniesFound: '未找到公司',
+            noCompaniesFoundDescription: '请在 DualEntry 中添加一家公司，然后再次同步连接',
+        },
         type: {
             free: '免费',
             control: '控制',
@@ -6471,6 +6496,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             rillet: 'Rillet',
+            dualEntry: 'DualEntry',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6490,6 +6516,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
+                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+                        return 'DualEntry';
                     default: {
                         return '';
                     }
@@ -6697,6 +6725,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'rilletSyncConnection':
                             return '正在初始化与 Rillet 的连接';
                         case 'rilletSyncImportData':
+                            return '正在加载数据';
+                        case 'dualEntrySyncTitle':
+                            return '正在同步 DualEntry 数据';
+                        case 'dualEntrySyncConnection':
+                            return '正在初始化与 DualEntry 的连接';
+                        case 'dualEntrySyncImportData':
                             return '正在加载数据';
                         default: {
                             return `缺少以下阶段的翻译：${stage}`;
@@ -6952,6 +6986,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>我们的 QuickBooks Desktop 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                title: 'Intuit Enterprise Suite',
+                description: `将Intuit Enterprise Suite连接到Expensify，即可自动同步会计数据并减少手动录入。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Intuit Enterprise Suite集成仅适用于Control套餐，起价为每${hasTeam2025Pricing ? `位成员` : `位活跃成员`}每月<strong>${formattedPrice}</strong>。</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 title: 'Certinia',
                 description: `通过 Expensify 与 Certinia 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Certinia 配置对齐，以获得更清晰的财务可见性。`,
@@ -6963,6 +7003,12 @@ ${reportName}`,
                 description: `通过 Expensify 与 Rillet 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Rillet 配置对齐，以获得更清晰的财务可见性。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>我们的 Rillet 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                title: 'DualEntry',
+                description: `通过 Expensify 与 DualEntry 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 DualEntry 配置对齐，以获得更清晰的财务可见性。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>我们的 DualEntry 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: '高级审批',
@@ -8739,6 +8785,7 @@ ${reportName}`,
             topSpenders: '最高消费者',
             topCategories: '热门类别',
             topMerchants: '热门商家',
+            violationsBySubmitter: '提交人违规',
         },
     },
     genericErrorPage: {
@@ -9047,6 +9094,7 @@ ${reportName}`,
             title: '启用个人 Karma',
             description: '您每月每消费 500 美元，就向 Expensify.org 捐赠 1 美元',
             stopDonationsPrompt: '确定要停止向 Expensify.org 捐款吗？',
+            managePreferencesFromWeb: 'Manage your personal karma preferences from web',
         },
         getInTouch: '太好了！请分享他们的联系方式，以便我们与他们取得联系。',
         introSchoolPrincipal: '向你们学校校长的介绍',
@@ -9391,6 +9439,53 @@ ${reportName}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `费率仅自 ${startDate} 起有效`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `该费率仅在 ${endDate} 之前有效`,
         cannotMergeDuplicates: '您只能在草稿或未结报销单中合并报销。请先撤回后重试。',
+        shortName: {
+            allTagLevelsRequired: '所有标签为必填项',
+            autoReportedRejectedExpense: '报销已被拒绝',
+            billableExpense: '“可计费”不再有效',
+            cashExpenseWithNoReceipt: '收据必填',
+            categoryOutOfPolicy: '类别不再有效',
+            companyCardRequired: '需要公司卡',
+            conversionSurcharge: '已收取兑换附加费',
+            customUnitOutOfPolicy: '费率对该工作区无效',
+            customUnitRateOutOfDateRange: '费率超出有效日期范围',
+            duplicatedTransaction: '可能重复',
+            fieldRequired: '报表字段为必填项',
+            futureDate: '不允许使用将来的日期',
+            hold: '报销暂挂',
+            inactiveVendor: '供应商不再有效',
+            increasedDistance: '距离超出路线范围',
+            invoiceMarkup: '发票已标注',
+            itemizedReceiptRequired: '需要逐项明细收据',
+            maxAge: '报销过旧',
+            missingAttendees: '需要出席人员',
+            missingCategory: '缺少类别',
+            missingComment: '描述为必填项',
+            missingTag: '缺少标签',
+            modifiedAmount: '金额已修改',
+            modifiedDate: '修改日期',
+            noRoute: '无效路由',
+            nonExpensiworksExpense: '非 Expensiworks 报销',
+            overAutoApprovalLimit: '超出自动审批限额',
+            overCategoryLimit: '超出类别限额',
+            overLimit: '超出限额',
+            overTripLimit: '超出行程限额',
+            perDayLimit: '超出每日限额',
+            prohibitedExpense: '禁止报销费用',
+            receiptGeneratedWithAI: '可能为 AI 生成的收据',
+            receiptNotSmartScanned: '已手动添加收据',
+            receiptRequired: '收据必填',
+            rter: '等待卡片匹配',
+            smartscanFailed: '收据扫描失败',
+            someTagLevelsRequired: '需要标签',
+            tagOutOfPolicy: '标签不再有效',
+            overLimitAttendee: '超出人数上限',
+            customRules: '自定义规则违规',
+            taxAmountChanged: '税额已修改',
+            taxOutOfPolicy: '税率不再有效',
+            taxRateChanged: '税率已修改',
+            taxRequired: '缺少税率',
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} 为必填项`,
