@@ -5,7 +5,7 @@ import Text from '@components/Text';
 
 import DelegateOnBehalfOfText from '@pages/inbox/report/DelegateOnBehalfOfText';
 import ReportActionItemDate from '@pages/inbox/report/ReportActionItemDate';
-import ReportActionItemSystem from '@pages/inbox/report/ReportActionItemSystem';
+import {ReportActionItemSystemContent} from '@pages/inbox/report/ReportActionItemSystem';
 
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -63,13 +63,13 @@ describe('ReportActionItemSystem', () => {
         const report: Report = {reportID: '1'};
 
         render(
-            <ReportActionItemSystem
+            <ReportActionItemSystemContent
                 action={action}
                 report={report}
                 shouldUseRealActor
             >
                 <Text>submitted</Text>
-            </ReportActionItemSystem>,
+            </ReportActionItemSystemContent>,
         );
 
         expect(screen.getByText('Todd Clyde ')).toBeOnTheScreen();
@@ -92,13 +92,13 @@ describe('ReportActionItemSystem', () => {
         const report: Report = {reportID: '1'};
 
         render(
-            <ReportActionItemSystem
+            <ReportActionItemSystemContent
                 action={action}
                 report={report}
                 shouldUseRealActor={false}
             >
                 <Text>submitted</Text>
-            </ReportActionItemSystem>,
+            </ReportActionItemSystemContent>,
         );
 
         const delegateProps = jest.mocked(DelegateOnBehalfOfText).mock.calls.at(-1)?.at(0);

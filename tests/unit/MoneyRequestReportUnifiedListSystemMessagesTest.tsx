@@ -104,7 +104,6 @@ describe('MoneyRequestReportUnifiedList system-message presentation', () => {
                 contentContainerStyle={undefined}
                 isOffline={false}
                 isLoadingInitialActions={false}
-                skeletonReasonAttributes={{context: 'test'}}
                 onLastItemIndexChange={onLastItemIndexChange}
             />,
         );
@@ -168,7 +167,6 @@ describe('MoneyRequestReportUnifiedList system-message presentation', () => {
                 contentContainerStyle={undefined}
                 isOffline={false}
                 isLoadingInitialActions={false}
-                skeletonReasonAttributes={{context: 'test'}}
             />,
         );
 

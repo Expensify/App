@@ -77,3 +77,4 @@ function ReportActionItemSystem(props: ReportActionItemSystemProps) {
 }
 
 export default ReportActionItemSystem;
+export {ReportActionItemSystemContent};
