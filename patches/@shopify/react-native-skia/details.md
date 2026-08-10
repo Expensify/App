@@ -65,6 +65,6 @@
     display chart" empty state instead of leaving a blank canvas.
     ```
 
-- Upstream PR/issue: 🛑 TODO — the same defensive handling should be sent upstream so `onResize` matches the already-guarded `renderPictureToSurface` path.
+- Upstream PR/issue: https://github.com/Shopify/react-native-skia/pull/3996 — applies the same defensive handling (and the `skia-surface-unavailable` event) to upstream `main`, where the throws now live in the renderer constructor and `onResize`. Once it ships in a release we consume, this patch can be dropped.
 - E/App issue: https://github.com/Expensify/App/issues/97104
 - PR introducing patch: https://github.com/Expensify/App/pull/97219
