@@ -1396,7 +1396,7 @@ function getCardConnectionStatusDisplay({
     const shouldShowMessage = isCardBroken || shouldShowRBR || isCardInactiveStatus;
     const shouldUsePersonalCardFix = shouldShowMessage && isPersonalCardStatus;
     const shouldUseCompanyCardsLink = shouldShowMessage && !isPersonalCardStatus && isAdminForCardPolicy && !!policyID;
-    const shouldUseReauthMessage = shouldShowMessage && !!isCardNeedsReauth && !shouldUseCompanyCardsLink;
+    const shouldUseReauthMessage = shouldShowMessage && !!isCardNeedsReauth && isPersonalCardStatus;
     let messageKey: TranslationPaths | undefined;
 
     if (shouldShowMessage) {
