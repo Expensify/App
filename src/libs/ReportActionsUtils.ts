@@ -4516,6 +4516,7 @@ function getDelegateSubmitMessage(
     const {originalManager, delegate, isOnPolicy = true} = originalMessage ?? {};
 
     if (!originalManager || !delegate) {
+        Log.warn('ACTION_DELEGATE_SUBMIT action missing originalManager or delegate');
         return '';
     }
 

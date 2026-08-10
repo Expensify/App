@@ -1658,14 +1658,14 @@ const translations: TranslationDeepObject<typeof en> = {
             bulkSubtitle: '选择一个选项来更改这些报表的审批人。',
             delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
                 `由于你不是此报表所属政策的成员，该报表已发送给 <mention-user>@${originalManager}</mention-user>，而不是发送给你（其休假代理）`,
-            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
-                `此报表被发送给了 <mention-user>@${originalManager}</mention-user>，而不是你的休假代理人 <mention-user>@${delegate}</mention-user>，因为他们不是此报表所属政策的成员`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (_originalManager: string, delegate: string) =>
+                `此报表被发送给了你，而不是你的休假代理人 <mention-user>@${delegate}</mention-user>，因为他们不是此报表所属政策的成员`,
             delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
                 `此报表已发送给 <mention-user>@${originalManager}</mention-user>，而不是他们的休假代理人 <mention-user>@${delegate}</mention-user>，因为他们不是此报表所属政策的成员`,
             delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string, delegate: string) =>
                 `由于 <mention-user>@${delegate}</mention-user> 无法审批自己的报销单，此报销单已发送给 <mention-user>@${originalManager}</mention-user> 进行审批`,
-            delegateSubmitCannotApproveOwnReportAsOriginalManager: (originalManager: string, delegate: string) =>
-                `由于您的休假代理人 <mention-user>@${delegate}</mention-user> 无法审批自己的报销单，此报销单已发送给 <mention-user>@${originalManager}</mention-user> 进行审批`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (_originalManager: string, delegate: string) =>
+                `由于您的休假代理人 <mention-user>@${delegate}</mention-user> 无法审批自己的报销单，此报销单已发送给您进行审批`,
             delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
                 `由于审批人的休假代理人 <mention-user>@${delegate}</mention-user> 无法审批自己的报销单，此报销单已发送给 <mention-user>@${originalManager}</mention-user> 审批`,
         },

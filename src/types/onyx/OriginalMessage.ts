@@ -1671,9 +1671,6 @@ type OriginalMessageDelegateSubmit = {
 
     /** Whether the delegate is a member of the report's policy. Defaults to true when absent. */
     isOnPolicy?: boolean;
-
-    /** Whether this action was triggered automatically */
-    automaticAction?: boolean;
 };
 
 /**
