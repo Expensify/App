@@ -12,6 +12,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -32,6 +33,7 @@ type SelectorType = ListItem & {
 function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
@@ -53,10 +55,10 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.invoiceAccountSelectorDescription')}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.invoiceAccountSelectorDescription', integrationName)}</Text>
             </View>
         ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
+        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, integrationName],
     );
 
     const initiallyFocusedOptionKey = useMemo(() => qboOnlineSelectorOptions?.find((mode) => mode.isSelected)?.keyForList, [qboOnlineSelectorOptions]);
@@ -76,11 +78,11 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.qbo.noAccountsFound')}
-                subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
+                subtitle={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
                 containerStyle={styles.pb10}
             />
         ),
-        [illustrations.Telescope, translate, styles.pb10],
+        [illustrations.Telescope, translate, styles.pb10, integrationName],
     );
 
     return (
@@ -96,6 +98,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             listEmptyContent={listEmptyContent}
             title="workspace.qbo.advancedConfig.qboInvoiceCollectionAccount"
+            headerTitleAlreadyTranslated={translate('workspace.qbo.advancedConfig.qboInvoiceCollectionAccount', integrationName)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID))}
             pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID], qboConfig?.pendingFields)}

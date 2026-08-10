@@ -8,6 +8,7 @@ import KYCWallContextProvider from '@components/KYCWall/KYCWallContext';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
 import OpenAppFailureModal from '@components/OpenAppFailureModal';
+import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 import PriorityModeController from '@components/PriorityModeController';
 import {ProductTrainingContextProvider} from '@components/ProductTrainingContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
@@ -171,6 +172,7 @@ function AuthScreens() {
             <DelegatorConnectGuard>
                 <ComposeProviders
                     components={[
+                        PersonalDetailsByLoginProvider,
                         AttachmentModalContextProvider,
                         PlaybackContextProvider,
                         VolumeContextProvider,
