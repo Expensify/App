@@ -96,11 +96,18 @@ import LinkPreviewer from './LinkPreviewer';
 import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 import ReportActionItemContentCreated from './ReportActionItemContentCreated';
 import ReportActionItemFrame from './ReportActionItemFrame';
-import ReportActionItemSystem from './ReportActionItemSystem';
 import ReportActionItemThread from './ReportActionItemThread';
 import SearchActionHeader from './SearchActionHeader';
 import TripSummary from './TripSummary';
 import WhisperBanner from './WhisperBanner';
+
+type ReportActionItemContentWrapperProps = {
+    children: React.ReactNode;
+    action: OnyxTypes.ReportAction;
+    report: OnyxEntry<OnyxTypes.Report>;
+    iouReport?: OnyxTypes.Report;
+    shouldUseRealActor: boolean;
+};
 
 type ReportActionItemProps = {
     /** Report for this action */
@@ -124,8 +131,8 @@ type ReportActionItemProps = {
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
-    /** Whether the action should render as an inline system message without an avatar. */
-    displayAsSystemMessage?: boolean;
+    /** Optional caller-selected wrapper for the rendered action content. */
+    actionContentWrapper?: React.ComponentType<ReportActionItemContentWrapperProps>;
 
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: boolean;
@@ -174,7 +181,7 @@ function ReportActionItem({
     chatReport,
     linkedReportActionID,
     displayAsGroup,
-    displayAsSystemMessage = false,
+    actionContentWrapper: ActionContentWrapper,
     parentReportAction,
     shouldDisplayNewMarker,
     shouldHideThreadDividerLine = false,
@@ -527,19 +534,19 @@ function ReportActionItem({
             />
         );
 
-        if (!displayAsSystemMessage) {
+        if (!ActionContentWrapper) {
             return actionContent;
         }
 
         return (
-            <ReportActionItemSystem
+            <ActionContentWrapper
                 action={action}
                 report={report}
                 iouReport={iouReport}
                 shouldUseRealActor={isOnSearch}
             >
                 {actionContent}
-            </ReportActionItemSystem>
+            </ActionContentWrapper>
         );
     };
 
@@ -702,3 +709,4 @@ function ReportActionItem({
 }
 
 export default ReportActionItem;
+export type {ReportActionItemContentWrapperProps, ReportActionItemProps};

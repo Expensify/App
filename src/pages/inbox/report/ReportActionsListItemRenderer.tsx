@@ -4,9 +4,12 @@ import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 
+import type {ComponentType} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {memo, useMemo} from 'react';
+
+import type {ReportActionItemProps} from './ReportActionItem';
 
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
@@ -33,8 +36,8 @@ type ReportActionsListItemRendererProps = {
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
-    /** Whether the content should use the inline system-message presentation without an avatar. */
-    displayAsSystemMessage?: boolean;
+    /** Caller-selected report action item variant. */
+    reportActionItemComponent?: ComponentType<ReportActionItemProps>;
 
     /** If the thread divider line should be hidden */
     shouldHideThreadDividerLine: boolean;
@@ -71,7 +74,7 @@ function ReportActionsListItemRenderer({
     transactionThreadReport,
     chatReport,
     displayAsGroup,
-    displayAsSystemMessage = false,
+    reportActionItemComponent: ReportActionItemComponent = ReportActionItem,
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
     linkedReportActionID = '',
@@ -175,7 +178,7 @@ function ReportActionsListItemRenderer({
     }
 
     return (
-        <ReportActionItem
+        <ReportActionItemComponent
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             parentReportAction={parentReportAction}
             report={report}
@@ -185,7 +188,6 @@ function ReportActionsListItemRenderer({
             action={action}
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
-            displayAsSystemMessage={displayAsSystemMessage}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}

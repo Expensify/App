@@ -56,6 +56,7 @@ import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import {useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import ReportActionIndexContext from '@pages/inbox/report/ReportActionIndexContext';
+import ReportActionItemSystem from '@pages/inbox/report/ReportActionItemSystem';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
@@ -670,7 +671,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         transactionThreadReport={transactionThreadReport}
                         chatReport={chatReport}
                         displayAsGroup={displayAsGroup}
-                        displayAsSystemMessage={isSystemMessage}
+                        reportActionItemComponent={isSystemMessage ? ReportActionItemSystem : undefined}
                         shouldDisplayNewMarker={shouldDisplayUnreadMarker && (!systemMessageRun || systemMessageRun.isExpanded)}
                         shouldDisplayReplyDivider={visibleReportActions.length > 1}
                         isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}

@@ -7,36 +7,19 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDelegateAccountIDFromReportAction, getHumanAgentAccountIDFromReportAction, getManagerOnVacation, getVacationer} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
-import type * as OnyxTypes from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
 
+import type {ReportActionItemContentWrapperProps, ReportActionItemProps} from './ReportActionItem';
+
 import DelegateOnBehalfOfText from './DelegateOnBehalfOfText';
 import HumanAgentAssistedByText from './HumanAgentAssistedByText';
+import ReportActionItem from './ReportActionItem';
 import ReportActionItemDate from './ReportActionItemDate';
 import VacationDelegateText from './VacationDelegateText';
 
-type ReportActionItemSystemProps = {
-    /** Action content. */
-    children: React.ReactNode;
-
-    /** All the data of the action item. */
-    action: OnyxTypes.ReportAction;
-
-    /** Report for this action. */
-    report: OnyxEntry<OnyxTypes.Report>;
-
-    /** The IOU/Expense report associated with the action. */
-    iouReport?: OnyxTypes.Report;
-
-    /** Whether the avatar resolver should attribute automatic actions to their real actor. */
-    shouldUseRealActor: boolean;
-};
-
-function ReportActionItemSystem({children, action, report, iouReport, shouldUseRealActor}: ReportActionItemSystemProps) {
+function ReportActionItemSystemContent({children, action, report, iouReport, shouldUseRealActor}: ReportActionItemContentWrapperProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {avatarType, avatars, details, reportPreviewSenderID} = useReportActionAvatars({report: iouReport ?? report, action, shouldUseRealActor});
@@ -79,6 +62,17 @@ function ReportActionItemSystem({children, action, report, iouReport, shouldUseR
                 isLowercase
             />
         </View>
+    );
+}
+
+type ReportActionItemSystemProps = Omit<ReportActionItemProps, 'actionContentWrapper'>;
+
+function ReportActionItemSystem(props: ReportActionItemSystemProps) {
+    return (
+        <ReportActionItem
+            {...props}
+            actionContentWrapper={ReportActionItemSystemContent}
+        />
     );
 }
 
