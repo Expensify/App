@@ -90,32 +90,37 @@ Each row represents an expense and includes:
 
 # How to change the currency of the total spend on the Spend page
 
-When you select one or more expenses on the **Spend** page, a footer appears showing the number of selected **Expenses** and the **Total spend**. You can convert the **Total spend** to a different currency to see the combined value of expenses that were created in different currencies.
+The **Spend** page footer shows the **Total spend** for what you're viewing. When your expenses were created in different currencies, you can convert the **Total spend** to a single currency to see their combined value. Conversion works whether you've selected specific rows or nothing at all.
 
 ## What the total spend footer shows
 
-- **Expenses:** the number of expenses currently selected.
-- **Total spend:** the combined amount of the selected expenses, shown with a currency code.
+- **Total spend:** the combined amount, shown with a currency code. With nothing selected, this covers the whole search result; when you select rows, it covers just your selection.
+- **Expenses:** the number of expenses currently selected (shown when you've made a selection).
 
 The total is shown in your default currency until you choose a different one.
 
 ## How to change the total spend currency
 
-1. On the **Spend** page, select one or more expenses using the checkboxes.
+1. On the **Spend** page, optionally select the rows you want to total using the checkboxes. Leave everything unselected to convert the whole search result.
 2. In the footer, click the currency shown next to the **Total spend** amount.
 3. In the currency picker, search for and select the currency you want.
 4. Click **Apply**.
 
 The **Total spend** amount updates to show the converted value in the currency you selected. Click **Reset** in the picker to return to your default currency.
 
+Conversion works across the different ways you can view and select expenses:
+
+- **Nothing selected:** converts the total for the entire search result.
+- **Individual expenses:** converts the total of the expenses you've checked, even if some fall on a later page after scrolling.
+- **Reports:** converts the total of the reports you've selected.
+- **Grouped searches** (for example, grouped by category): converts the grand total, or the totals of the groups you select. You can also mix a whole group with individual expenses from another group, and the footer total includes both.
+
 ## When the total spend currency picker is disabled
 
 The currency picker can't be opened in these cases:
 
-- You're **offline**, because converted totals require a refresh from Expensify.
+- You're **offline**, because converting the total requires a refresh from Expensify.
 - The totals are still loading.
-- You've selected a **grouped** row (such as a report) rather than individual expenses.
-- Your selection includes expenses that aren't yet loaded (for example, expenses from a later page after scrolling).
 
 ---
 
@@ -200,5 +205,5 @@ Previews update **in real time** as expenses are added or removed. Deleted repor
 Yes. When someone comments, a Comments section appears in the preview, and the layout adjusts to accommodate the discussion.
 
 ## Why can't I change the total spend currency?
-The currency picker is disabled when you're offline, while totals are loading, when a grouped row (such as a report) is selected, or when your selection includes expenses that aren't yet loaded. Reconnect, load the expenses, or select individual expenses to enable it.
+The currency picker is only disabled when you're offline or while the totals are still loading, because converting the total requires a refresh from Expensify. Reconnect or wait for the totals to finish loading to enable it. It works with nothing selected (converting the whole search) and with any selection, including individual expenses on later pages, reports, and grouped searches.
 
