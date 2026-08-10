@@ -3639,11 +3639,11 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.getDynamicExternalWorkflowRoutedMessage(action, translateLocal);
 
             // Then it should return the routed due to DEW message with the correct "to" value
-            const expected = translateLocal('iou.routedDueToDEW', to, '');
+            const expected = translateLocal('iou.routedDueToDEW', to);
             expect(actual).toBe(expected);
         });
 
-        it('should return the routed message with reason', () => {
+        it('should return the routed message without the reason', () => {
             // Given a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action with a reason message
             const to = 'example@gmail.com';
             const reason = 'the report total exceeds the auto-approval limit';
@@ -3657,8 +3657,8 @@ describe('ReportActionsUtils', () => {
             // When getting the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action message
             const actual = ReportActionsUtils.getDynamicExternalWorkflowRoutedMessage(action, translateLocal);
 
-            // Then it should return the routed due to DEW message with the correct "to" value and reason
-            const expected = translateLocal('iou.routedDueToDEW', to, reason);
+            // Then it should return the routed due to DEW message with the correct "to" value and without the reason
+            const expected = translateLocal('iou.routedDueToDEW', to);
             expect(actual).toBe(expected);
         });
     });
