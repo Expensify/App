@@ -545,7 +545,10 @@ function handleRemoveFullscreenUnderRHP(
         return null;
     }
 
-    const routesWithoutRHP = state.routes.slice(0, -1);
+    // The caller (removePreInsertedFullscreenIfNeeded) always strips the buffer route via
+    // removeBufferRouteOnly() before dispatching this action, so this should already be a no-op.
+    // Filtering defensively here means a caller that forgets that step still can't strand the buffer.
+    const routesWithoutRHP = state.routes.slice(0, -1).filter((r) => r.name !== SCREENS.PRE_MOUNT_BUFFER);
 
     // Tab-switch path: restore the original TAB_NAVIGATOR route saved during pre-insertion.
     if (preInsertedOriginalTabRoute) {
