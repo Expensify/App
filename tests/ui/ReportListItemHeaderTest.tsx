@@ -41,6 +41,8 @@ const mockSearchStateContext = {
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
+    currentSearchTransactionsByReportID: new Map(),
+    currentSearchViolations: {},
     currentSelectedTransactionReportID: undefined,
     shouldShowFiltersBarLoading: false,
     shouldUseLiveData: false,

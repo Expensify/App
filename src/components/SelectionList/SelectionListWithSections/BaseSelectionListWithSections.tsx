@@ -324,7 +324,6 @@ function BaseSelectionListWithSectionsImpl({
                     shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     shouldShowListEmptyContent={shouldShowListEmptyContent}
                     listEmptyContent={listEmptyContent}
-                    context="BaseSelectionListWithSections"
                 />
             ) : (
                 <FlashList

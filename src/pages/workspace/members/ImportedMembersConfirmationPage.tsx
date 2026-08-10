@@ -32,14 +32,17 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-type ImportedMembersConfirmationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED>;
+type ImportedMembersConfirmationPageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION | typeof SCREENS.WORKSPACE.WORKFLOWS_IMPORTED_CONFIRMATION
+>;
 
 function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPageProps) {
     const styles = useThemeStyles();
@@ -96,11 +99,15 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         openExternalLink(CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL);
     };
 
+    // The same confirmation screen is reused for the Members importer and the Workflows importer, so we return the user
+    // to the page the import was started from.
+    const isWorkflowsImport = route.name === SCREENS.WORKSPACE.WORKFLOWS_IMPORTED_CONFIRMATION;
+
     const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImporting(false);
         closeImportPage();
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+        Navigation.goBack(isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
     };
 
     const importMembers = async () => {
@@ -131,7 +138,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
-                title={translate('workspace.inviteMessage.confirmDetails')}
+                title={isWorkflowsImport ? translate('workspace.invite.members') : translate('workspace.inviteMessage.confirmDetails')}
                 subtitle={policy?.name}
                 shouldShowBackButton
                 onBackButtonPress={() => {
@@ -141,10 +148,10 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             <View style={styles.ph5}>
                 <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <ReportActionAvatars
-                        size={CONST.AVATAR_SIZE.LARGE}
+                        size={CONST.AVATAR_SIZE.XXX_LARGE}
                         accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
                         horizontalStacking={{
-                            displayInRows: true,
+                            maxRows: 2,
                         }}
                         secondaryAvatarContainerStyle={[styles.secondAvatarInline]}
                     />
@@ -174,7 +181,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                     style={styles.mb3}
                 >
                     <Button.KeyboardShortcut />
-                    <Button.Text>{translate('common.import')}</Button.Text>
+                    <Button.Text>{isWorkflowsImport ? translate('common.invite') : translate('common.import')}</Button.Text>
                 </Button>
                 <PressableWithoutFeedback
                     onPress={openPrivacyURL}

@@ -2,10 +2,12 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import GPSMapView from '@components/MapView/GPSMapView';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestParticipantsPolicyTags from '@hooks/useMoneyRequestParticipantsPolicyTags';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -60,6 +62,7 @@ function IOURequestStepDistanceGPS({
     const delegateAccountID = useDelegateAccountID();
 
     const {translate, formatPhoneNumber} = useLocalize();
+    const {getCurrencySymbol} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const isInLandscapeMode = useIsInLandscapeMode();
 
@@ -118,6 +121,19 @@ function IOURequestStepDistanceGPS({
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID: currentUserAccountIDParam});
+
+    const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
+        currentUserAccountID: currentUserAccountIDParam,
+        report,
+        policy,
+        personalDetails,
+        conciergeReportID,
+        isArchived,
+        reportAttributesDerived,
+        reportDraft,
+        translate,
+    });
+
     const navigateToNextStep = () => {
         const gpsCoordinates = getStringifiedGPSCoordinates(gpsDraftDetails);
         const originalDistance = DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails?.distanceInMeters ?? 0, unit);
@@ -138,7 +154,6 @@ function IOURequestStepDistanceGPS({
             transaction,
             reportID,
             transactionID,
-            reportAttributesDerived,
             personalDetails,
             waypoints,
             currentUserLogin: currentUserEmailParam,
@@ -170,14 +185,15 @@ function IOURequestStepDistanceGPS({
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
-            conciergeReportID,
             optimisticTransactionID,
             optimisticChatReportID,
-            reportDraft,
             isTrackIntentUser,
             delegateAccountID,
             policyTagList,
             formatPhoneNumber,
+            getCurrencySymbol,
+            participants,
+            participantsPolicyTags,
         });
     };
 
