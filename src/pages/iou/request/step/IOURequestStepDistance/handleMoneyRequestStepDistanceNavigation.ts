@@ -95,7 +95,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     optimisticTransactionID: string;
     optimisticChatReportID: string | undefined;
-    reportDraft: OnyxEntry<Report> | undefined;
+    isDraftChatReport: boolean;
     action: IOUAction;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
@@ -198,7 +198,7 @@ function handleMoneyRequestStepDistanceNavigation({
     ownerBillingGracePeriodEnd,
     optimisticTransactionID,
     optimisticChatReportID,
-    reportDraft,
+    isDraftChatReport,
     action,
     isTrackIntentUser,
     delegateAccountID,
@@ -279,7 +279,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             report,
                             parentChatReport: report,
                             isDraftPolicy: false,
-                            isDraftChatReport: !!reportDraft,
+                            isDraftChatReport,
                             existingTransaction: transaction,
                             participantParams: {
                                 payeeEmail: currentUserLogin,

@@ -152,7 +152,7 @@ function IOURequestStepDistanceGPS({
             iouType,
             action,
             report,
-            reportDraft,
+            isDraftChatReport: !!reportDraft,
             policy,
             transaction,
             reportID,

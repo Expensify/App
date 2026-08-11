@@ -292,7 +292,7 @@ function IOURequestStepDistanceManual({
             iouType,
             action,
             report,
-            reportDraft,
+            isDraftChatReport: !!reportDraft,
             policy,
             transaction,
             reportID,

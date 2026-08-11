@@ -181,7 +181,7 @@ function useOdometerNavigation({
             iouType,
             action,
             report,
-            reportDraft,
+            isDraftChatReport: !!reportDraft,
             policy,
             transaction,
             reportID,

@@ -780,7 +780,7 @@ describe('MoneyRequest', () => {
             recentWaypoints: [] as RecentWaypoint[],
             optimisticTransactionID: 'mock-txn-id',
             optimisticChatReportID: 'mock-chat-id',
-            reportDraft: undefined,
+            isDraftChatReport: false,
             isSelfTourViewed: false,
             amountOwed: 0,
             draftTransactionIDs: undefined,
