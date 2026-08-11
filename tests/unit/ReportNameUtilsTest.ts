@@ -475,6 +475,46 @@ describe('ReportNameUtils', () => {
             );
             expect(name).toBe(expected);
         });
+        test('Disabled auto harvesting parent action uses the localized submissions message', () => {
+            const thread: Report = {
+                ...createWorkspaceThread(54),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                reportName: '#admins',
+            };
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    value: false,
+                },
+            } as unknown as ReportAction;
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
+                    [actionId]: parentAction,
+                },
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+
+            expect(name).toBe(translate(CONST.LOCALES.EN, 'workspaceActions.updatedAutoHarvesting', false));
+        });
         test('VBBA pay parent action uses action accountNumber before current policy account', () => {
             const policyID = '123';
             const thread: Report = {
