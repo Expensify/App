@@ -30,31 +30,20 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Restore Jest cache
-        id: cache-jest-cache
-        # v5.1.0, Blacksmith sticky-disk-backed drop-in for actions/cache/restore
-        uses: useblacksmith/cache/restore@c5fe29eb0efdf1cf4186b9f7fcbbcbc0cf025662
+      - name: Mount Jest sticky disk
+        # Persistent NVMe-backed disk on the runner (3s mount vs ~66s actions/cache download).
+        # Key still hashes lockfile/patches/babel config, so a config bump gets a fresh disk
+        # instead of piling up stale jest-transform-cache hash dirs inside one ever-growing mount.
+        # Branch Protection (Blacksmith dashboard, not a YAML input) must be enabled for this repo:
+        # only push/schedule/workflow_dispatch on main can commit writes back to the disk; PR jobs
+        # read the latest snapshot but their writes are discarded without failing the job.
+        uses: useblacksmith/stickydisk@v1
         with:
           path: .jest-cache
-          # Per-shard key: each shard only instruments the ~1/8 of suites it runs, so a single
-          # shared key freezes one shard's partial cache for all shards. The hash refreshes the
-          # cache when dependencies or Babel config change; restore-keys warms it in between.
           key: ${{ runner.os }}-jest-${{ matrix.chunk }}-${{ hashFiles('package-lock.json', 'patches/**', 'babel.config.js') }}
-          restore-keys: ${{ runner.os }}-jest-${{ matrix.chunk }}-
 
       - name: Jest tests
         run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=6 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
-
-      - name: Save Jest cache
-        # Only save on the post-merge run (test.yml called via workflow_call from preDeploy.yml on
-        # push to main). PR runs restore-only, so a PR's partial/stale shard cache never overwrites
-        # the sticky disk that other PRs restore from.
-        if: ${{ !cancelled() && github.event_name == 'workflow_call' }}
-        # v5.1.0, Blacksmith sticky-disk-backed drop-in for actions/cache/save
-        uses: useblacksmith/cache/save@c5fe29eb0efdf1cf4186b9f7fcbbcbc0cf025662
-        with:
-          path: .jest-cache
-          key: ${{ steps.cache-jest-cache.outputs.cache-primary-key }}
 
       - name: Upload coverage to Codecov (PRs - tokenless)
         if: ${{ github.event_name == 'pull_request' }}
