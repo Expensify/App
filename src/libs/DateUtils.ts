@@ -260,6 +260,30 @@ function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: Dat
 }
 
 /**
+ * Format date to a long date format with weekday but without the year
+ *
+ * @returns Sunday, July 9
+ */
+function formatToLongDateWithWeekdayWithoutYear(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
+    return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY_WITHOUT_YEAR, {locale: dateFnsLocale});
+}
+
+/**
+ * Get the time-of-day greeting key based on the hour of the given (already timezone-adjusted) date.
+ * Ranges per PRD: morning 5am–12pm, afternoon 12–5pm, evening 5pm–5am.
+ */
+function getTimeOfDayGreetingKey(date: Date): 'goodMorning' | 'goodAfternoon' | 'goodEvening' {
+    const hour = date.getHours();
+    if (hour >= 4 && hour < 12) {
+        return 'goodMorning';
+    }
+    if (hour >= 12 && hour < 17) {
+        return 'goodAfternoon';
+    }
+    return 'goodEvening';
+}
+
+/**
  * Format date to a weekday format
  *
  * @returns Sunday
@@ -1181,6 +1205,8 @@ const DateUtils = {
     isDate,
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
+    formatToLongDateWithWeekdayWithoutYear,
+    getTimeOfDayGreetingKey,
     formatToLocalTime,
     formatToReadableString,
     getZoneAbbreviation,

@@ -1,4 +1,5 @@
 import BaseWidgetItem from '@components/BaseWidgetItem';
+import Text from '@components/Text';
 import WidgetContainer from '@components/WidgetContainer';
 
 import {useAppLoadSkeletonState} from '@hooks/useInFlightRequests';
@@ -27,6 +28,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
+import ConciergePromptBox from './ConciergePromptBox';
 import EmptyState from './EmptyState';
 import ForYouSkeleton from './ForYouSkeleton';
 import shouldHideForYouSection from './shouldHideForYouSection';
@@ -208,7 +210,14 @@ function ForYouSection() {
         return null;
     }
 
-    return <WidgetContainer title={translate('homePage.forYou')}>{renderContent()}</WidgetContainer>;
+    return (
+        <WidgetContainer titleContent={<ConciergePromptBox />}>
+            <View style={[shouldUseNarrowLayout ? styles.ph5 : styles.ph8, styles.mt4]}>
+                <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{translate('homePage.forYou')}</Text>
+            </View>
+            {renderContent()}
+        </WidgetContainer>
+    );
 }
 
 export default ForYouSection;

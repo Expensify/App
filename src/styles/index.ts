@@ -7188,6 +7188,42 @@ const plainStyles = (theme: ThemeColors) =>
                 marginTop: shouldUseNarrowLayout ? 20 : 32,
             }) satisfies ViewStyle,
 
+        getConciergePromptBoxContainerStyle: (isFocused: boolean) =>
+            ({
+                borderWidth: 1,
+                borderColor: isFocused ? theme.borderFocus : theme.border,
+                borderRadius: variables.componentBorderRadiusRounded,
+                backgroundColor: theme.appBG,
+                minHeight: variables.componentSizeMedium,
+            }) satisfies ViewStyle,
+
+        conciergePromptBoxAddButton: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: variables.componentSizeNormal,
+            paddingLeft: 8,
+            paddingRight: 4,
+        },
+
+        conciergePromptBoxDivider: {
+            width: 1,
+            alignSelf: 'stretch',
+            backgroundColor: theme.border,
+        },
+
+        conciergePromptBoxInput: {
+            color: theme.text,
+            height: variables.componentSizeNormal,
+        } satisfies TextStyle,
+
+        conciergePromptBoxSendButton: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+            borderRadius: variables.componentBorderRadiusRounded,
+        },
+
         getWidgetItemIconContainerStyle: (backgroundColor: string) =>
             ({
                 alignItems: 'center',
