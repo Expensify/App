@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 
 jest.mock('@components/MenuItemWithTopDescription', () => {
-    const {Text} = jest.requireActual<typeof import('react-native')>('react-native');
+    const {Text} = jest.requireActual<Record<'Text', React.ComponentType<{children?: React.ReactNode}>>>('react-native');
     return ({title}: {title: string}) => <Text>{title}</Text>;
 });
 
