@@ -34,7 +34,7 @@ function AccountManagerBanner({reportID}: AccountManagerBannerProps) {
         }),
     });
     const accountManagerReportID = accountManagerData?.accountManagerReportID;
-    const accountManagerAccountID = Number(accountManagerData?.accountManagerAccountID ?? CONST.DEFAULT_MISSING_ID);
+    const accountManagerAccountID = accountManagerData?.accountManagerAccountID ?? CONST.DEFAULT_MISSING_ID;
     const [participantPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: personalDetailsSelector(accountManagerAccountID),
     });
