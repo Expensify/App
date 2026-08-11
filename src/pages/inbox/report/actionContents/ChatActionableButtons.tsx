@@ -41,7 +41,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
@@ -53,11 +52,6 @@ type ConciergeOptionsActionName = typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CAT
 /** Sends the user to the subscription page to add a payment card. */
 function AddPaymentCardButton() {
     const {translate} = useLocalize();
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
-
-    if (doesUserHavePaymentCardAdded(userBillingFundID) || !shouldRenderAddPaymentCard()) {
-        return null;
-    }
 
     return (
         <ActionableItemButtons layout="horizontal">
@@ -78,27 +72,23 @@ type ConciergeOptionsButtonsProps = {
     action: OnyxTypes.ReportAction<ConciergeOptionsActionName>;
 
     /** Report that owns this action for mutations (thread / merged-list cases use the original report) */
-    actionOwnerReport: OnyxEntry<OnyxTypes.Report>;
+    actionOwnerReport: OnyxTypes.Report;
 
     /** ID of the report the resolution is announced in */
     reportID: string | undefined;
+
+    /** The unresolved options to render, one button each */
+    options: string[];
 };
 
 /** The category or description options Concierge offers, one button per option. */
-function ConciergeOptionsButtons({action, actionOwnerReport, reportID}: ConciergeOptionsButtonsProps) {
+function ConciergeOptionsButtons({action, actionOwnerReport, reportID, options}: ConciergeOptionsButtonsProps) {
     const styles = useThemeStyles();
     const personalDetail = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    const isCategoryOptions = isConciergeCategoryOptions(action);
-    const isResolved = isCategoryOptions ? isResolvedConciergeCategoryOptions(action) : isResolvedConciergeDescriptionOptions(action);
-    const resolveOptions = isCategoryOptions ? resolveConciergeCategoryOptions : resolveConciergeDescriptionOptions;
-
-    const options = getOriginalMessage<ConciergeOptionsActionName>(action)?.options;
-    if (!options?.length || isResolved || !actionOwnerReport) {
-        return null;
-    }
+    const resolveOptions = isConciergeCategoryOptions(action) ? resolveConciergeCategoryOptions : resolveConciergeDescriptionOptions;
 
     return (
         <ActionableItemButtons
@@ -318,18 +308,29 @@ type ChatActionableButtonsProps = {
 function ChatActionableButtons({action, originalReportID, reportID, hasPendingFollowupListSkeleton}: ChatActionableButtonsProps) {
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(originalReportID)}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const actionOwnerReport = originalReport ?? report;
 
-    if (isActionableAddPaymentCard(action)) {
+    // Shown while Concierge is still composing a followup list, whenever the branches below have nothing to render.
+    const skeletonFallback = hasPendingFollowupListSkeleton ? <FollowupListSkeleton /> : null;
+
+    if (isActionableAddPaymentCard(action) && !doesUserHavePaymentCardAdded(userBillingFundID) && shouldRenderAddPaymentCard()) {
         return <AddPaymentCardButton />;
     }
 
     if (isConciergeCategoryOptions(action) || isConciergeDescriptionOptions(action)) {
+        const conciergeOptions = getOriginalMessage<ConciergeOptionsActionName>(action)?.options;
+        const isResolved = isConciergeCategoryOptions(action) ? isResolvedConciergeCategoryOptions(action) : isResolvedConciergeDescriptionOptions(action);
+        if (!conciergeOptions?.length || isResolved || !actionOwnerReport) {
+            return skeletonFallback;
+        }
+
         return (
             <ConciergeOptionsButtons
                 action={action}
                 actionOwnerReport={actionOwnerReport}
                 reportID={reportID}
+                options={conciergeOptions}
             />
         );
     }
@@ -356,11 +357,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
         );
     }
 
-    if (hasPendingFollowupListSkeleton) {
-        return <FollowupListSkeleton />;
-    }
-
-    return null;
+    return skeletonFallback;
 }
 
 export default ChatActionableButtons;
