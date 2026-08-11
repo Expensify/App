@@ -130,7 +130,7 @@ function FixBankAccountPage() {
                             descriptionStyle={styles.textSupportingNormal}
                             containerStyle={styles.flex1}
                         />
-                        <FixedFooter addBottomSafeAreaPadding>{resendButton}</FixedFooter>
+                        <FixedFooter>{resendButton}</FixedFooter>
                     </>
                 )}
                 {!didSend && !isInsufficientFunds && (
@@ -139,7 +139,7 @@ function FixBankAccountPage() {
                             <Text style={[styles.textHeadlineH1, styles.mb3]}>{translate('common.actionRequired')}</Text>
                             <RenderHTML html={translate('walletPage.fixBankAccount.debitBlockedBody')} />
                         </View>
-                        <FixedFooter addBottomSafeAreaPadding>{resendButton}</FixedFooter>
+                        <FixedFooter>{resendButton}</FixedFooter>
                     </>
                 )}
             </FullPageNotFoundView>
