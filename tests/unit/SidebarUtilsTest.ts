@@ -10,7 +10,14 @@ import DateUtils from '@libs/DateUtils';
 import {getLastActorDisplayName} from '@libs/OptionsListUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
-import {formatReportLastMessageText, generateReportID, getAllReportErrors, getReasonAndReportActionThatRequiresAttention, getReportPreviewReportActionMessage} from '@libs/ReportUtils';
+import {
+    buildOptimisticReportPreview,
+    formatReportLastMessageText,
+    generateReportID,
+    getAllReportErrors,
+    getReasonAndReportActionThatRequiresAttention,
+    getReportPreviewReportActionMessage,
+} from '@libs/ReportUtils';
 import SidebarUtils, {_buildSortKey, _categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -36,7 +43,7 @@ import {createSidebarReportsCollection, createSidebarTestData} from '../utils/co
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import {localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -138,6 +145,7 @@ describe('SidebarUtils', () => {
                     {},
                     MOCK_TRANSACTIONS,
                     false,
+                    CURRENT_USER_ACCOUNT_ID,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -169,6 +177,7 @@ describe('SidebarUtils', () => {
                     reportErrors,
                     MOCK_TRANSACTIONS,
                     false,
+                    CURRENT_USER_ACCOUNT_ID,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -195,6 +204,7 @@ describe('SidebarUtils', () => {
                     {},
                     MOCK_TRANSACTIONS,
                     false,
+                    CURRENT_USER_ACCOUNT_ID,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -238,6 +248,7 @@ describe('SidebarUtils', () => {
                     reportErrors,
                     MOCK_TRANSACTIONS,
                     false,
+                    CURRENT_USER_ACCOUNT_ID,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -269,6 +280,7 @@ describe('SidebarUtils', () => {
                     reportErrors,
                     MOCK_TRANSACTIONS,
                     false,
+                    CURRENT_USER_ACCOUNT_ID,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -312,6 +324,7 @@ describe('SidebarUtils', () => {
                     reportErrors,
                     MOCK_TRANSACTIONS,
                     false,
+                    CURRENT_USER_ACCOUNT_ID,
                     MOCK_TRANSACTION_VIOLATIONS,
                     isReportArchived.current,
                 ) ?? {};
@@ -337,6 +350,7 @@ describe('SidebarUtils', () => {
                 {},
                 MOCK_TRANSACTIONS,
                 false,
+                CURRENT_USER_ACCOUNT_ID,
                 MOCK_TRANSACTION_VIOLATIONS,
                 isReportArchived.current,
             );
@@ -355,6 +369,7 @@ describe('SidebarUtils', () => {
             };
 
             const optionDataPinned = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report: MOCK_REPORT_PINNED,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -366,6 +381,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction: undefined,
                 lastActionReport: undefined,
@@ -377,6 +393,7 @@ describe('SidebarUtils', () => {
                 reportAttributesDerived: undefined,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report: MOCK_REPORT_UNPINNED,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -388,6 +405,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction: undefined,
                 lastActionReport: undefined,
@@ -449,6 +467,7 @@ describe('SidebarUtils', () => {
                 {},
                 MOCK_TRANSACTIONS,
                 false,
+                CURRENT_USER_ACCOUNT_ID,
                 MOCK_TRANSACTION_VIOLATIONS,
                 isReportArchived.current,
             );
@@ -537,6 +556,7 @@ describe('SidebarUtils', () => {
                 reportErrors,
                 MOCK_TRANSACTIONS,
                 false,
+                CURRENT_USER_ACCOUNT_ID,
                 MOCK_TRANSACTION_VIOLATIONS,
                 isReportArchived.current,
             );
@@ -615,6 +635,7 @@ describe('SidebarUtils', () => {
                 {},
                 MOCK_TRANSACTIONS,
                 false,
+                CURRENT_USER_ACCOUNT_ID,
                 MOCK_TRANSACTION_VIOLATIONS,
                 isReportArchived.current,
             );
@@ -708,6 +729,7 @@ describe('SidebarUtils', () => {
                     {},
                     {[transactionKey]: transaction},
                     false,
+                    CURRENT_USER_ACCOUNT_ID,
                     transactionViolations,
                     false,
                 ) ?? {};
@@ -773,7 +795,18 @@ describe('SidebarUtils', () => {
             };
 
             // When: called with isOffline=false — the pending-delete action is skipped, leaving the live one as the single thread.
-            const onlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, false, {}, MOCK_TRANSACTIONS, false, {}, false);
+            const onlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                MOCK_REPORT,
+                MOCK_CHAT_REPORT,
+                MOCK_REPORT_ACTIONS,
+                false,
+                {},
+                MOCK_TRANSACTIONS,
+                false,
+                CURRENT_USER_ACCOUNT_ID,
+                {},
+                false,
+            );
 
             expect(onlineResult?.reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
         });
@@ -835,10 +868,117 @@ describe('SidebarUtils', () => {
             };
 
             // When: called with isOffline=true — the pending-delete action is included, making 2 IOU actions.
-            const offlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, false, {}, MOCK_TRANSACTIONS, true, {}, false);
+            const offlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                MOCK_REPORT,
+                MOCK_CHAT_REPORT,
+                MOCK_REPORT_ACTIONS,
+                false,
+                {},
+                MOCK_TRANSACTIONS,
+                true,
+                CURRENT_USER_ACCOUNT_ID,
+                {},
+                false,
+            );
 
             // Then: no single transaction thread is identified, so the receipt error is not surfaced via that path.
             expect(offlineResult).toBeNull();
+        });
+
+        it('forwards the passed currentUserAccountID to the smartscan detection instead of the module-level account ID', async () => {
+            // Given: an IOU report (owned by actorAccountID) that has a money-request action whose linked transaction is missing smartscan fields,
+            // surfaced in the chat report through a report-preview action. The smartscan RBR only applies to actions taken by the current user,
+            // so the reported action depends on which currentUserAccountID is passed in.
+            const actorAccountID = 777;
+            const chatReportID = '9001';
+            const iouReportID = '9002';
+            const transactionID = '9003';
+            const iouActionID = '9004';
+
+            const chatReport: Report = {...LHNTestUtils.getFakeReport(), reportID: chatReportID, type: CONST.REPORT.TYPE.CHAT};
+            const iouReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: iouReportID,
+                type: CONST.REPORT.TYPE.IOU,
+                parentReportID: chatReportID,
+                ownerAccountID: actorAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(Number(transactionID)),
+                transactionID,
+                reportID: iouReportID,
+                amount: 0,
+                merchant: '',
+                modifiedMerchant: '',
+            };
+            const iouAction: ReportAction = {
+                ...createRandomReportAction(Number(iouActionID)),
+                reportActionID: iouActionID,
+                reportID: iouReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID,
+                originalMessage: {
+                    IOUTransactionID: transactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 0,
+                    currency: CONST.CURRENCY.USD,
+                    comment: '',
+                    participantAccountIDs: [actorAccountID],
+                },
+            };
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, '', transaction);
+
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.SESSION, {accountID: 55555});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}` as const, chatReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}` as const, iouReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}` as const, {[iouActionID]: iouAction});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const, transaction);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const reportActions: ReportActions = {[reportPreviewAction.reportActionID]: reportPreviewAction};
+            const transactions: OnyxCollection<Transaction> = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction};
+            const reports: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport};
+            // Pre-populated non-empty errors so the HAS_ERRORS branch is taken in both calls;
+            // only the returned reportAction depends on the smartscan detection (and thus on currentUserAccountID).
+            const reportErrors = {someError: 'Some error occurred'};
+
+            // When: the passed currentUserAccountID matches the action's actor, the smartscan action is flagged as requiring attention.
+            const matchingResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                chatReport,
+                chatReport,
+                reportActions,
+                false,
+                reportErrors,
+                transactions,
+                false,
+                actorAccountID,
+                {},
+                false,
+                reports,
+            );
+            expect(matchingResult?.reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
+            expect(matchingResult?.reportAction?.reportActionID).toBe(reportPreviewAction.reportActionID);
+
+            // When: the passed currentUserAccountID does NOT match, the action is not attributed to the current user, so no smartscan action is returned.
+            const nonMatchingResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                chatReport,
+                chatReport,
+                reportActions,
+                false,
+                reportErrors,
+                transactions,
+                false,
+                actorAccountID + 1,
+                {},
+                false,
+                reports,
+            );
+            expect(nonMatchingResult?.reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
+            expect(nonMatchingResult?.reportAction).toBeUndefined();
         });
     });
 
@@ -1361,6 +1501,82 @@ describe('SidebarUtils', () => {
             expect(result.messageHtml).toContain('HiddenMarker');
         });
 
+        it('resolves the policy expense chat workspace name through the provided translate function', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: 'non-existent-policy-id',
+            };
+
+            await waitForBatchedUpdates();
+
+            // A translate that tags the "unavailable" workspace copy so we can prove getPolicyName used the provided translate
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableWorkspaceMarker' : translateLocal(path, ...parameters);
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateWithUnavailableMarker,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
+            expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
+        });
+
+        it('resolves the admin room workspace name through the provided translate function', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: 'non-existent-policy-id',
+            };
+
+            await waitForBatchedUpdates();
+
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableWorkspaceMarker' : translateLocal(path, ...parameters);
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateWithUnavailableMarker,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
+            expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
+        });
+
+        it('resolves the invoice room receiver name through the provided translate function', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: 'non-existent-policy-id',
+            };
+
+            await waitForBatchedUpdates();
+
+            const translateWithUnavailableMarker: LocalizedTranslate = (path, ...parameters) =>
+                path === 'workspace.common.unavailable' ? 'UnavailableWorkspaceMarker' : translateLocal(path, ...parameters);
+
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateWithUnavailableMarker,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
+            expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
+        });
+
         it('do not return pronouns in the welcome message text when it is group chat', async () => {
             const MOCK_REPORT: Report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -1522,11 +1738,6 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        const reportAttributes: Record<string, ReportAttributes> = {
-                            [MOCK_REPORT.reportID]: createMock<ReportAttributes>({
-                                reportName: 'Report (archived)',
-                            }),
-                        };
                         return SidebarUtils.getWelcomeMessage({
                             report: MOCK_REPORT,
                             policy: undefined,
@@ -1535,7 +1746,7 @@ describe('SidebarUtils', () => {
                             translate: translateLocal,
                             localeCompare,
                             conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
-                            reportAttributes,
+                            derivedReportName: 'Report (archived)',
                             isReportArchived: isReportArchived.current,
                         });
                     })
@@ -1722,12 +1933,6 @@ describe('SidebarUtils', () => {
                 },
             };
 
-            const reportAttributes: Record<string, ReportAttributes> = {
-                [archivedInvoiceRoom.reportID]: createMock<ReportAttributes>({
-                    reportName: `${senderPolicy.name} owes ${invoiceReceiverPolicy.name}`,
-                }),
-            };
-
             const result = SidebarUtils.getWelcomeMessage({
                 report: archivedInvoiceRoom,
                 policy: senderPolicy,
@@ -1736,7 +1941,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
-                reportAttributes,
+                derivedReportName: `${senderPolicy.name} owes ${invoiceReceiverPolicy.name}`,
                 isReportArchived: true,
                 reportDetailsLink: 'https://example.com/report',
             });
@@ -2086,6 +2291,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2097,6 +2303,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2152,6 +2359,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2163,6 +2371,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2193,6 +2402,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2204,6 +2414,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2233,6 +2444,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2244,6 +2456,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2273,6 +2486,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2284,6 +2498,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2319,6 +2534,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2330,6 +2546,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2359,6 +2576,7 @@ describe('SidebarUtils', () => {
             });
 
             const enabledResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2370,6 +2588,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction: enabledAction,
                 lastActionReport: undefined,
@@ -2392,6 +2611,7 @@ describe('SidebarUtils', () => {
             });
 
             const disabledResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2403,6 +2623,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction: disabledAction,
                 lastActionReport: undefined,
@@ -2432,6 +2653,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2443,6 +2665,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2472,6 +2695,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2483,6 +2707,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2512,6 +2737,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2523,6 +2749,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2552,6 +2779,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2563,6 +2791,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2592,6 +2821,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2603,6 +2833,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2632,6 +2863,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2643,6 +2875,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2672,6 +2905,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2683,6 +2917,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2740,6 +2975,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2751,6 +2987,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -2793,6 +3030,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const optionData = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs,
@@ -2806,6 +3044,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
@@ -2837,6 +3076,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const optionData = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs,
@@ -2850,6 +3090,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     isReportArchived: true,
                     lastActionReport: undefined,
@@ -2880,6 +3121,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const optionData = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs,
@@ -2893,6 +3135,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
@@ -3021,6 +3264,7 @@ describe('SidebarUtils', () => {
                 };
 
                 const optionData = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: policyExpenseChat,
                     reportAttributes: undefined,
                     reportNameValuePairs,
@@ -3033,6 +3277,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
@@ -3069,6 +3314,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const optionData = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs,
@@ -3082,6 +3328,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
@@ -3145,6 +3392,7 @@ describe('SidebarUtils', () => {
                     await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
                 });
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3156,6 +3404,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
@@ -3209,6 +3458,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3220,6 +3470,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
@@ -3261,6 +3512,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3274,6 +3526,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction: undefined,
                     lastActionReport: undefined,
@@ -3355,6 +3608,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: {...iouReportR14932, lastActorAccountID: session.accountID},
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3366,6 +3620,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
@@ -3483,6 +3738,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: MOCK_REPORT,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3494,6 +3750,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
@@ -3573,6 +3830,7 @@ describe('SidebarUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
                 await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3584,6 +3842,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction,
                     lastActionReport: undefined,
@@ -3674,6 +3933,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: dmChat,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3686,6 +3946,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: lastReportPreviewAction,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
@@ -3693,15 +3954,18 @@ describe('SidebarUtils', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
-                const reportPreviewMessage = getReportPreviewReportActionMessage({
-                    reportOrID: iouReport,
-                    iouReportAction: iouAction,
-                    shouldConsiderScanningReceiptOrPendingRoute: true,
-                    isPreviewMessageForParentChatReport: true,
-                    policy: null,
-                    isForListPreview: true,
-                    originalReportAction: lastReportPreviewAction,
-                });
+                const reportPreviewMessage = getReportPreviewReportActionMessage(
+                    {
+                        reportOrID: iouReport,
+                        iouReportAction: iouAction,
+                        shouldConsiderScanningReceiptOrPendingRoute: true,
+                        isPreviewMessageForParentChatReport: true,
+                        policy: null,
+                        isForListPreview: true,
+                        originalReportAction: lastReportPreviewAction,
+                    },
+                    getCurrencyDecimalsLocal,
+                );
                 expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID, translateLocal)}: ${reportPreviewMessage}`);
             });
 
@@ -3784,6 +4048,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: dmChat,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3796,6 +4061,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: lastReportPreviewAction,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
@@ -3803,15 +4069,18 @@ describe('SidebarUtils', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
-                const reportPreviewMessage = getReportPreviewReportActionMessage({
-                    reportOrID: iouReport,
-                    iouReportAction: iouAction,
-                    shouldConsiderScanningReceiptOrPendingRoute: true,
-                    isPreviewMessageForParentChatReport: true,
-                    policy: null,
-                    isForListPreview: true,
-                    originalReportAction: lastReportPreviewAction,
-                });
+                const reportPreviewMessage = getReportPreviewReportActionMessage(
+                    {
+                        reportOrID: iouReport,
+                        iouReportAction: iouAction,
+                        shouldConsiderScanningReceiptOrPendingRoute: true,
+                        isPreviewMessageForParentChatReport: true,
+                        policy: null,
+                        isForListPreview: true,
+                        originalReportAction: lastReportPreviewAction,
+                    },
+                    getCurrencyDecimalsLocal,
+                );
                 expect(result?.alternateText).toBe(reportPreviewMessage);
             });
         });
@@ -3826,6 +4095,7 @@ describe('SidebarUtils', () => {
 
                 // When getOptionData is called with matching conciergeReportID
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: MOCK_REPORT,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3836,6 +4106,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction: undefined,
                     lastActionReport: undefined,
@@ -3858,6 +4129,7 @@ describe('SidebarUtils', () => {
 
                 // When getOptionData is called with non-matching conciergeReportID
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: MOCK_REPORT,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3868,6 +4140,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction: undefined,
                     lastActionReport: undefined,
@@ -3889,6 +4162,7 @@ describe('SidebarUtils', () => {
 
                 // When getOptionData is called with empty conciergeReportID
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: MOCK_REPORT,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3899,6 +4173,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     translate: translateLocal,
+                    convertToDisplayString,
                     localeCompare,
                     lastAction: undefined,
                     lastActionReport: undefined,
@@ -3937,6 +4212,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -3948,6 +4224,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
@@ -4722,6 +4999,7 @@ describe('SidebarUtils', () => {
          */
         function callGetOptionData(report: Report, lastAction: ReportAction, policy?: Policy) {
             return SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -4733,6 +5011,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 translate: translateLocal,
+                convertToDisplayString,
                 localeCompare,
                 lastAction,
                 lastActionReport: undefined,
