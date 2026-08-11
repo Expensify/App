@@ -77,10 +77,8 @@ take_snap() {
 
 snap_has() { printf '%s' "$SNAP" | grep -qiF -- "$1"; }
 
-# Where internal drive commands park their output. This library never writes to
-# stdout (callers may parse it as a machine protocol), but agent-device echoes
-# action results there — "Tapped (x, y)", "Filled N chars" — and --settle expands
-# that into a full settled diff. Route both streams to a log instead.
+# Internal drive output lands here, never stdout — callers may parse stdout as a
+# machine protocol, and --settle returns a full settled diff.
 drive_log() {
   local dir="${GITHUB_WORKSPACE:-/tmp}/artifacts"
   mkdir -p "$dir" 2>/dev/null || true
@@ -314,9 +312,7 @@ drive_sign_in() {
   fi
   human "sign-in-drive: replay ${sign_in_ad}"
   # Replay must share AGENT_DEVICE_STATE_DIR with open (caller exports it).
-  # Keep replay's stderr: on failure it names the diverging step, the selector it
-  # could not match, and a repair hint — far more useful than the generic messages
-  # below. Its stdout is progress chatter and belongs in the drive log.
+  # Keep replay's stderr: it names the diverging step, selector, and repair hint.
   mkdir -p "${GITHUB_WORKSPACE:-/tmp}/artifacts"
   local replay_log="${GITHUB_WORKSPACE:-/tmp}/artifacts/melvin-signin-replay-${SESSION}.log"
   if ! agent-device replay "$sign_in_ad" -e "EMAIL=${email}" --platform "$PLATFORM" --session "$SESSION" \
