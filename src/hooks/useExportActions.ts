@@ -1,5 +1,5 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {useExportDownloadStatus} from '@components/MoneyReportHeaderActions/ExportDownloadStatusContext';
+import {useExportDownloadStatus} from '@components/MoneyReportHeaderActions/ExportDownloadStatusProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 
 import {exportReceiptsToZip} from '@libs/actions/Export';
