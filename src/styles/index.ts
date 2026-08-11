@@ -847,8 +847,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonExtraSmallText: {
-            fontSize: variables.fontSizeExtraSmall,
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            ...textVariants.finePrintStrong,
             textAlign: 'center',
         },
 
