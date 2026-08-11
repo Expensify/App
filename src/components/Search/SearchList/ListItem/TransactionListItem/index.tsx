@@ -171,6 +171,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     // Use snapshotReport/snapshotPolicy as fallbacks to fix offline issues where
     // newly created reports aren't in the search snapshot yet
     const policyForViolations = parentPolicy ?? snapshotPolicy;
+    const rowPolicy = parentPolicy || snapshotPolicy.id || transactionItem.policy ? {...transactionItem.policy, ...snapshotPolicy, ...parentPolicy} : undefined;
     const reportForViolations = parentReport ?? snapshotReport;
 
     const onyxViolations = (transactionViolationsForRow ?? []).filter(
@@ -265,6 +266,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         exportedReportActions,
         policyCategories,
         policyTagLists,
+        rowPolicy,
         nonPersonalAndWorkspaceCards,
         isAttendeesEnabledForMovingPolicy,
         chatReport,

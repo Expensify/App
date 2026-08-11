@@ -6509,6 +6509,7 @@ const translations = {
         tags: {
             tagName: 'Tag name',
             requiresTag: 'Members must tag all expenses',
+            showTagGLCodes: 'Show GL codes when selecting a tag',
             trackBillable: 'Track billable expenses',
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',

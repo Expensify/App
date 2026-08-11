@@ -2951,6 +2951,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether new transactions need to be tagged */
         requiresTag?: boolean;
 
+        /** Whether to show tag GL codes when selecting a tag */
+        showTagGLCodes?: boolean;
+
         /** Client-only marker used to restore required tags after switching tag levels clears all tags */
         pendingRequiresTagRestore?: boolean | null;
 
