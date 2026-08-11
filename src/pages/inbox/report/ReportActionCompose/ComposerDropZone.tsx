@@ -117,12 +117,8 @@ function ComposerDropZone({children}: PropsWithChildren) {
     const {reportID} = useComposerState();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const {shouldAddOrReplaceReceipt, transactionID} = useShouldAddOrReplaceReceipt(reportID);
-    const {pickAttachments, PDFValidationComponent: AttachmentPDFValidation, ErrorModal: AttachmentErrorModal} = useAttachmentPicker(reportID);
-    const {
-        onReceiptDropped,
-        PDFValidationComponent: ReceiptPDFValidation,
-        ErrorModal: ReceiptErrorModal,
-    } = useReceiptDrop({
+    const {pickAttachments, PDFValidationComponent: AttachmentPDFValidation} = useAttachmentPicker(reportID);
+    const {onReceiptDropped, PDFValidationComponent: ReceiptPDFValidation} = useReceiptDrop({
         reportID,
         report,
         shouldAddOrReplaceReceipt,
@@ -136,7 +132,6 @@ function ComposerDropZone({children}: PropsWithChildren) {
             <>
                 <SimpleDropZone onAttachmentDrop={onAttachmentDrop}>{children}</SimpleDropZone>
                 {AttachmentPDFValidation}
-                {AttachmentErrorModal}
             </>
         );
     }
@@ -153,9 +148,7 @@ function ComposerDropZone({children}: PropsWithChildren) {
                 {children}
             </RichDropZone>
             {AttachmentPDFValidation}
-            {AttachmentErrorModal}
             {ReceiptPDFValidation}
-            {ReceiptErrorModal}
         </>
     );
 }
