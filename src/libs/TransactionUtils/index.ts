@@ -751,10 +751,15 @@ function getUpdatedTransaction({
         const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
         const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
         const quantity = transaction?.comment?.customUnit?.quantity;
+        // `quantity` is the route distance rounded to 2dp, so it differs from the exact conversion by
+        // at most 0.005. A gap larger than this rounding tolerance means the user manually edited the
+        // distance, so we must convert their quantity instead of snapping back to the exact route.
+        const ROUNDING_TOLERANCE = 0.01;
         const hasManualDistanceOverride =
             typeof routeDistanceMeters === 'number' &&
             typeof quantity === 'number' &&
             !!existingDistanceUnit &&
+            Math.abs(quantity - DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, existingDistanceUnit)) > ROUNDING_TOLERANCE;
             Math.abs(quantity - DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, existingDistanceUnit)) > 0.01;
 
         // Get the new distance unit from the rate's unit
