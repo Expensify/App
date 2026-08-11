@@ -81,20 +81,28 @@ function cancelSpansByPrefix(prefix: string) {
     }
 }
 
+/** Reverse lookup of a tracked span's id, for callers that only hold the raw span instance. */
+function getSpanID(target: Span) {
+    for (const [spanID, entry] of activeSpans.entries()) {
+        if (entry.span === target) {
+            return spanID;
+        }
+    }
+}
+
 /**
  * Cancel a tracked span by its Sentry span instance rather than its id (e.g. from a lifecycle listener that
  * only has the raw span). Optionally stamps attributes first. No-op if the span isn't tracked.
  */
 function cancelSpanByInstance(target: Span, attributes?: Record<string, SpanAttributeValue>) {
-    for (const [spanID, entry] of activeSpans.entries()) {
-        if (entry.span === target) {
-            if (attributes) {
-                entry.span.setAttributes(attributes);
-            }
-            cancelSpan(spanID);
-            return;
-        }
+    const spanID = getSpanID(target);
+    if (!spanID) {
+        return;
     }
+    if (attributes) {
+        activeSpans.get(spanID)?.span.setAttributes(attributes);
+    }
+    cancelSpan(spanID);
 }
 
 function getSpan(spanId: string) {
@@ -107,4 +115,4 @@ function endSpanWithAttributes(spanId: string, attributes: Record<string, SpanAt
     endSpan(spanId);
 }
 
-export {startSpan, endSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelSpanByInstance, cancelAllSpans, cancelSpansByPrefix};
+export {startSpan, endSpan, endSpanWithAttributes, getSpan, getSpanID, cancelSpan, cancelSpanByInstance, cancelAllSpans, cancelSpansByPrefix};

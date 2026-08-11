@@ -1,4 +1,5 @@
-import {cancelSpanByInstance} from '@libs/telemetry/activeSpans';
+import {cancelSpanByInstance, getSpanID} from '@libs/telemetry/activeSpans';
+import {cancelSendMessagePhases} from '@libs/telemetry/sendMessageSpans';
 
 import CONST from '@src/CONST';
 
@@ -32,7 +33,11 @@ function useCancelSendMessageSpanOnSkeleton(reportID: string | undefined, skelet
                 return;
             }
             // Defer so activeSpans has registered the span (set right after the `startInactiveSpan` that emits this).
-            queueMicrotask(() => cancelSpanByInstance(span, {[CONST.TELEMETRY.ATTRIBUTE_CANCELED_BY_SKELETON]: skeletonName}));
+            queueMicrotask(() => {
+                // Phases must be cancelled before the parent, see `cancelSendMessagePhases`.
+                cancelSendMessagePhases(getSpanID(span));
+                cancelSpanByInstance(span, {[CONST.TELEMETRY.ATTRIBUTE_CANCELED_BY_SKELETON]: skeletonName});
+            });
         });
     }, [reportID, skeletonName]);
 }

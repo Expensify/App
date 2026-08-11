@@ -112,4 +112,20 @@ function endSendMessagePhases(reportActionID: string | undefined) {
     endSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PAINT);
 }
 
-export {startSendMessagePhase, endSendMessagePhase, markSendMessageRowRendered, markSendMessageCommitted, endSendMessagePhases};
+/**
+ * Cancel every phase of the send `parentSpanID` identifies. Must run before the parent is cancelled, or the
+ * phases outlive the span they partition. A phase can already be open, since the submit runs synchronously
+ * after the parent starts.
+ */
+function cancelSendMessagePhases(parentSpanID: string | undefined) {
+    const parentPrefix = `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_`;
+    if (!parentSpanID?.startsWith(parentPrefix)) {
+        return;
+    }
+    const reportActionID = parentSpanID.slice(parentPrefix.length);
+    for (const phase of Object.values(CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE)) {
+        cancelSpan(getPhaseSpanID(reportActionID, phase));
+    }
+}
+
+export {startSendMessagePhase, endSendMessagePhase, markSendMessageRowRendered, markSendMessageCommitted, endSendMessagePhases, cancelSendMessagePhases};
