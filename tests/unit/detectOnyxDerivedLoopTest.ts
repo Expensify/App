@@ -58,6 +58,17 @@ describe('detectOnyxDerivedLoop', () => {
         expect(captureMessage).not.toHaveBeenCalled();
     });
 
+    it('reports again after a new app load, without a page reload', async () => {
+        recompute(RECOMPUTE_THRESHOLD * 3);
+        expect(captureMessage).toHaveBeenCalledTimes(1);
+
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+        recompute(RECOMPUTE_THRESHOLD * 3);
+
+        expect(captureMessage).toHaveBeenCalledTimes(2);
+    });
+
     it('does not report recomputes spread beyond the rolling window', () => {
         for (let i = 0; i < RECOMPUTE_THRESHOLD * 3; i++) {
             recompute(1);

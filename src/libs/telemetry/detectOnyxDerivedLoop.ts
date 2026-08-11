@@ -40,11 +40,15 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.IS_LOADING_APP,
     callback: (value) => {
         isLoadingApp = value ?? false;
+        // A new OpenApp (sign-in, cache clear) is a fresh hydration cycle, so let every key report again.
+        if (isLoadingApp) {
+            statesByDerivedKey.clear();
+        }
     },
 });
 
 /**
- * Reports a runaway recompute rate for one derived key, once per key per session, with a per-dependency breakdown.
+ * Reports a runaway recompute rate for one derived key, once per key per app load, with a per-dependency breakdown.
  * Not a span: spans are dropped while backgrounded, which is when a loop is most likely to spin unnoticed.
  */
 function detectOnyxDerivedLoop(derivedKey: OnyxKey, triggeredKeys: Set<OnyxKey>) {
