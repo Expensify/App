@@ -1,5 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import type {CurrentUser} from '@userActions/Policy/Policy';
 
 import type {IOUAction} from '@src/CONST';
@@ -50,6 +52,7 @@ type CreateTrackExpenseParams = {
     delegateAccountID: number | undefined;
     reportActionsList: OnyxCollection<OnyxTypes.ReportActions> | undefined;
     isDraftChatReport: boolean;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};
