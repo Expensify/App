@@ -80,6 +80,13 @@ function FixBankAccountPage() {
 
     const resendButton = (
         <>
+            {!!resendErrorMessage && (
+                <FormHelpMessage
+                    isError
+                    message={resendErrorMessage}
+                    style={styles.mb2}
+                />
+            )}
             <Button
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
@@ -89,13 +96,6 @@ function FixBankAccountPage() {
             >
                 <Button.Text>{translate('walletPage.fixBankAccount.resendButton')}</Button.Text>
             </Button>
-            {!!resendErrorMessage && (
-                <FormHelpMessage
-                    isError
-                    message={resendErrorMessage}
-                    style={styles.mt2}
-                />
-            )}
         </>
     );
 
