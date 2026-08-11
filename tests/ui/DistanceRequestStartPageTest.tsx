@@ -279,6 +279,41 @@ describe('DistanceRequestStartPage', () => {
         expect(screen.queryByTestId(`tab-${CONST.TAB_REQUEST.DISTANCE_ODOMETER}`)).not.toBeOnTheScreen();
     });
 
+    it('keeps manual and odometer distance available when the global FAB targets the self-DM', async () => {
+        await setUpOnyx({selectedTab: CONST.TAB_REQUEST.DISTANCE_MAP});
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: ACCOUNT_LOGIN});
+        await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, 'workspacePolicy1');
+        await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, 'selfDMReport');
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}selfDMReport`, {
+            reportID: 'selfDMReport',
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            type: CONST.REPORT.TYPE.CHAT,
+        });
+        for (const policyID of ['workspacePolicy1', 'workspacePolicy2']) {
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                createMock<Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    name: policyID,
+                    role: CONST.POLICY.ROLE.USER,
+                    isPolicyExpenseChatEnabled: true,
+                    autoReporting: false,
+                    commuterExclusions: {
+                        method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                        fixedDistance: 1,
+                        fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                }),
+            );
+        }
+
+        await renderPage(CONST.TAB_REQUEST.DISTANCE_MAP, CONST.IOU.TYPE.CREATE);
+
+        expect(screen.getByTestId(`tab-${CONST.TAB_REQUEST.DISTANCE_MANUAL}`)).toBeOnTheScreen();
+        expect(screen.getByTestId(`tab-${CONST.TAB_REQUEST.DISTANCE_ODOMETER}`)).toBeOnTheScreen();
+    });
+
     it('hides manual and odometer distance when tracking from an expense report with commuter exclusions', async () => {
         await setUpOnyx({selectedTab: CONST.TAB_REQUEST.DISTANCE_MAP});
         await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: ACCOUNT_LOGIN});
