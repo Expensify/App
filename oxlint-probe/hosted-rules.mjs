@@ -15,6 +15,11 @@
 //   order                          eslint-plugin-import  -- no native port (oxfmt also enforces a stricter grouping)
 //   no-types                       eslint-plugin-jsdoc   -- no native oxlint port
 //   naming-convention              typescript-eslint     -- tsgolint lists it unimplemented (see the stub below)
+//   IMPORT_PATHS (3)               eslint-plugin-import  -- no native port; oxlint's import plugin
+//                                                          has 33 rules and none of these three
+//   REACT_LEGACY (17)              eslint-plugin-react   -- no native port; PropTypes statics and
+//                                                          class-member ordering are not modelled
+//                                                          by oxlint's Rust react rules
 import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -80,6 +85,37 @@ function withStubbedParserServices(rule) {
     };
 }
 
+// Grouped rather than listed one per line: within each group every rule is here for the same
+// reason, and the alias is the only thing that changes about them.
+const IMPORT_PATHS = ['no-import-module-exports', 'no-relative-packages', 'no-useless-path-segments'];
+
+// The PropTypes / class-component era. Nothing in this list can fire on a function component
+// with a TS props type, which is why the repo has zero findings for all 17 -- they guard against
+// regressing back to the old style, so "no findings" is the rule working, not the rule being dead.
+// jsx-uses-react and jsx-uses-vars are different in kind: they never report, they only mark
+// identifiers as used for no-unused-vars. oxlint's own no-unused-vars is already JSX-aware
+// (full-repo parity holds with thousands of JSX-only imports), so hosting them changes nothing
+// -- they are here so the rule sets match exactly rather than "match except for two".
+const REACT_LEGACY = [
+    'default-props-match-prop-types',
+    'forbid-foreign-prop-types',
+    'forbid-prop-types',
+    'jsx-uses-react',
+    'jsx-uses-vars',
+    'no-access-state-in-setstate',
+    'no-arrow-function-lifecycle',
+    'no-deprecated',
+    'no-invalid-html-attribute',
+    'no-typos',
+    'no-unused-class-component-methods',
+    'no-unused-prop-types',
+    'no-unused-state',
+    'prefer-exact-props',
+    'prefer-stateless-function',
+    'sort-comp',
+    'static-property-placement',
+];
+
 const plugin = {
     meta: {
         name: 'hosted',
@@ -92,6 +128,8 @@ const plugin = {
         order: importPlugin.order,
         'no-types': jsdoc['no-types'],
         'naming-convention': withStubbedParserServices(typescriptEslint['naming-convention']),
+        ...Object.fromEntries(IMPORT_PATHS.map((name) => [name, importPlugin[name]])),
+        ...Object.fromEntries(REACT_LEGACY.map((name) => [name, react[name]])),
     },
 };
 

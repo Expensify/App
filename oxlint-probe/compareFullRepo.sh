@@ -38,9 +38,15 @@ else
     # (ERR_WORKER_OUT_OF_MEMORY) even on a 48 GB machine
     # SEATBELT_DISABLE=1: turn off the seatbelt debt suppression so the ~4800
     # grandfathered findings are visible — that's what we compare against
+    # --rule '{"progress/activate":"off"}': eslint-plugin-file-progress writes its spinner
+    # to stderr, which sprays one "Processing: <file>" line per file (8200 of them) plus a
+    # "Lint done." per worker into this script's output. Switching the rule off is better
+    # than redirecting stderr, which would also swallow real errors. Verified: the report
+    # is byte-identical with and without.
     SECONDS=0
     SEATBELT_DISABLE=1 NODE_OPTIONS=--max_old_space_size=16384 npx eslint . \
         --no-cache --concurrency=2 --no-warn-ignored \
+        --rule '{"progress/activate":"off"}' \
         --format json -o "$ESLINT_JSON" || true
     echo "$SECONDS" >"$ESLINT_JSON.time"
 fi

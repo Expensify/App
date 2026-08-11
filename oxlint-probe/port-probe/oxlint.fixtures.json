@@ -5,6 +5,12 @@
     // rules that are still candidates.
     "jsPlugins": ["../core-rules.mjs", "../hosted-rules.mjs", "../expensify-rules.mjs", "./port-plugin.mjs"],
     "categories": {},
+    // Same settings block as .oxlintrc.json. propWrapperFunctions is load-bearing, not decoration:
+    // react/prefer-exact-props reports nothing unless it knows which wrappers count as exact.
+    "settings": {
+        "react": {"version": "19.2.3"},
+        "propWrapperFunctions": ["forbidExtraProps", "exact", "Object.freeze"]
+    },
     "rules": {
         "core/no-unreachable-loop": ["error", {"ignore": []}],
         "hosted/jsx-no-bind": ["error", {"ignoreRefs": true, "allowArrowFunctions": true, "allowFunctions": false, "allowBind": false, "ignoreDOMComponents": true}],
@@ -21,7 +27,80 @@
             {"selector": ["parameter", "method"], "format": ["camelCase", "PascalCase"], "leadingUnderscore": "allow"}
         ],
         "rulesdir/no-inline-useOnyx-selector": "error",
-        "pp/jsx-no-constructed-context-values": "error"
+        "pp/jsx-no-constructed-context-values": "error",
+        "core/strict": ["error", "never"],
+        "core/no-octal": "error",
+        "core/no-octal-escape": "error",
+        "core/no-undef-init": "error",
+        "core/lines-between-class-members": ["error", "always", {"exceptAfterSingleLine": false}],
+        "one-var": ["error", "never"],
+        "no-object-constructor": "error",
+        "hosted/no-import-module-exports": ["error", {"exceptions": []}],
+        "hosted/no-relative-packages": "error",
+        "hosted/no-useless-path-segments": ["error", {"commonjs": true}],
+        "hosted/default-props-match-prop-types": ["error", {"allowRequiredDefaults": false}],
+        "hosted/forbid-foreign-prop-types": ["error", {"allowInPropTypes": true}],
+        "hosted/forbid-prop-types": ["error", {"forbid": ["any", "array", "object"], "checkContextTypes": true, "checkChildContextTypes": true}],
+        "hosted/no-access-state-in-setstate": "error",
+        "hosted/no-arrow-function-lifecycle": "error",
+        "hosted/no-deprecated": "error",
+        "hosted/no-invalid-html-attribute": "error",
+        "hosted/no-typos": "error",
+        "hosted/no-unused-class-component-methods": "error",
+        "hosted/no-unused-prop-types": ["error", {"customValidators": [], "skipShapeProps": true}],
+        "hosted/no-unused-state": "error",
+        "hosted/prefer-exact-props": "error",
+        "hosted/prefer-stateless-function": ["error", {"ignorePureComponents": true}],
+        "hosted/sort-comp": [
+            "error",
+            {
+                "order": [
+                    "static-variables",
+                    "static-methods",
+                    "instance-variables",
+                    "lifecycle",
+                    "/^handle.+$/",
+                    "/^on.+$/",
+                    "getters",
+                    "setters",
+                    "/^(get|set)(?!(InitialState$|DefaultProps$|ChildContext$)).+$/",
+                    "instance-methods",
+                    "everything-else",
+                    "rendering"
+                ],
+                "groups": {
+                    "lifecycle": [
+                        "displayName",
+                        "propTypes",
+                        "contextTypes",
+                        "childContextTypes",
+                        "mixins",
+                        "statics",
+                        "defaultProps",
+                        "constructor",
+                        "getDefaultProps",
+                        "getInitialState",
+                        "state",
+                        "getChildContext",
+                        "getDerivedStateFromProps",
+                        "componentWillMount",
+                        "UNSAFE_componentWillMount",
+                        "componentDidMount",
+                        "componentWillReceiveProps",
+                        "UNSAFE_componentWillReceiveProps",
+                        "shouldComponentUpdate",
+                        "componentWillUpdate",
+                        "UNSAFE_componentWillUpdate",
+                        "getSnapshotBeforeUpdate",
+                        "componentDidUpdate",
+                        "componentDidCatch",
+                        "componentWillUnmount"
+                    ],
+                    "rendering": ["/^render.+$/", "render"]
+                }
+            }
+        ],
+        "hosted/static-property-placement": ["error", "property assignment"]
     },
     "overrides": [
         {

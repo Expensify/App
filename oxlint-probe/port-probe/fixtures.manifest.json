@@ -60,5 +60,132 @@
         "oxlintRule": "react-native-a11y/has-valid-accessibility-descriptors",
         "expected": 1,
         "why": "same: enabled on both sides, absent from oxlint's schema"
+    },
+
+    "strict": {"fixture": "fixtures/coreStyleRules.ts", "oxlintRule": "core/strict", "expected": 1, "why": "WIRED 2026-08-11; no native oxlint port"},
+    "one-var": {"fixture": "fixtures/coreStyleRules.ts", "oxlintRule": "eslint/one-var", "expected": 1, "why": "WIRED 2026-08-11; native as of oxlint 1.78.0 (#24470), so no sidecar cost"},
+    "no-undef-init": {
+        "fixture": "fixtures/coreStyleRules.ts",
+        "oxlintRule": "core/no-undef-init",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; no native oxlint port (unicorn/no-useless-undefined is broader, so not a stand-in)"
+    },
+    "no-new-object": {
+        "fixture": "fixtures/coreStyleRules.ts",
+        "oxlintRule": "eslint/no-object-constructor",
+        "expected": 1,
+        "why": "WIRED 2026-08-11 under its post-rename name: ESLint deprecated no-new-object in 8.50 for no-object-constructor, and oxlint only implements the new one. This fixture pins the shape both agree on, `new Object()`. The replacement also flags a bare `Object()` and does not flag `new Object(arg)` -- neither exists in the repo"
+    },
+    "lines-between-class-members": {
+        "fixture": "fixtures/coreStyleRules.ts",
+        "oxlintRule": "core/lines-between-class-members",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; no native oxlint port. TS-only in both configs, matching eslint-config-expensify"
+    },
+    "no-octal": {
+        "fixture": "fixtures/coreOctalSyntax.cjs",
+        "oxlintRule": "core/no-octal",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; the fixture must be script-mode, because in a module oxc rejects legacy octal syntax at parse time and no rule is reached"
+    },
+    "no-octal-escape": {"fixture": "fixtures/coreOctalSyntax.cjs", "oxlintRule": "core/no-octal-escape", "expected": 1, "why": "same as no-octal: only reachable in a script-mode file"},
+
+    "import/no-useless-path-segments": {
+        "fixture": "fixtures/importPathRules.ts",
+        "oxlintRule": "hosted/no-useless-path-segments",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; oxlint's native import plugin has 33 rules and none of these three"
+    },
+    "import/no-relative-packages": {"fixture": "fixtures/importPathRules.ts", "oxlintRule": "hosted/no-relative-packages", "expected": 1, "why": "WIRED 2026-08-11; no native oxlint port"},
+    "import/no-import-module-exports": {
+        "fixture": "fixtures/importPathRules.ts",
+        "oxlintRule": "hosted/no-import-module-exports",
+        "expected": 2,
+        "why": "WIRED 2026-08-11; no native oxlint port. Two findings because the rule reports once per import statement"
+    },
+
+    "react/default-props-match-prop-types": {
+        "fixture": "fixtures/reactPropTypes.tsx",
+        "oxlintRule": "hosted/default-props-match-prop-types",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; PropTypes era, no native oxlint port"
+    },
+    "react/forbid-foreign-prop-types": {
+        "fixture": "fixtures/reactPropTypes.tsx",
+        "oxlintRule": "hosted/forbid-foreign-prop-types",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; PropTypes era, no native oxlint port"
+    },
+    "react/forbid-prop-types": {
+        "fixture": "fixtures/reactPropTypes.tsx",
+        "oxlintRule": "hosted/forbid-prop-types",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; PropTypes era, no native oxlint port"
+    },
+    "react/no-typos": {
+        "fixture": "fixtures/reactPropTypes.tsx",
+        "oxlintRule": "hosted/no-typos",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; catches `static PropTypes` and friends, no native oxlint port"
+    },
+    "react/no-unused-prop-types": {
+        "fixture": "fixtures/reactPropTypes.tsx",
+        "oxlintRule": "hosted/no-unused-prop-types",
+        "expected": 2,
+        "why": "WIRED 2026-08-11; the only one of the 17 with live suppression sites in the repo (13), so the alias needed a comment sweep"
+    },
+    "react/no-access-state-in-setstate": {
+        "fixture": "fixtures/reactClassComponents.tsx",
+        "oxlintRule": "hosted/no-access-state-in-setstate",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; class-component era, no native oxlint port"
+    },
+    "react/no-arrow-function-lifecycle": {
+        "fixture": "fixtures/reactClassComponents.tsx",
+        "oxlintRule": "hosted/no-arrow-function-lifecycle",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; class-component era, no native oxlint port"
+    },
+    "react/no-unused-class-component-methods": {
+        "fixture": "fixtures/reactClassComponents.tsx",
+        "oxlintRule": "hosted/no-unused-class-component-methods",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; class-component era, no native oxlint port"
+    },
+    "react/no-unused-state": {
+        "fixture": "fixtures/reactClassComponents.tsx",
+        "oxlintRule": "hosted/no-unused-state",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; class-component era, no native oxlint port"
+    },
+    "react/prefer-stateless-function": {
+        "fixture": "fixtures/reactClassComponents.tsx",
+        "oxlintRule": "hosted/prefer-stateless-function",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; class-component era, no native oxlint port"
+    },
+    "react/sort-comp": {
+        "fixture": "fixtures/reactClassComponents.tsx",
+        "oxlintRule": "hosted/sort-comp",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; the full 12-entry order array from eslint-config-expensify is repeated in both fixture configs on purpose -- a rule can run and still disagree if the options are read differently"
+    },
+    "react/static-property-placement": {
+        "fixture": "fixtures/reactClassComponents.tsx",
+        "oxlintRule": "hosted/static-property-placement",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; class-component era, no native oxlint port"
+    },
+    "react/no-deprecated": {
+        "fixture": "fixtures/reactDeprecatedApis.tsx",
+        "oxlintRule": "hosted/no-deprecated",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; needs settings.react.version, which is why both fixture configs set it"
+    },
+    "react/no-invalid-html-attribute": {
+        "fixture": "fixtures/reactDeprecatedApis.tsx",
+        "oxlintRule": "hosted/no-invalid-html-attribute",
+        "expected": 1,
+        "why": "WIRED 2026-08-11; no native oxlint port"
     }
 }

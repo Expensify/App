@@ -15,13 +15,21 @@ import subprocess
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # One file per distinct ESLint config scope, so the union of their `--print-config`
-# output covers every rule the repo can apply.
+# output covers every rule the repo can apply. Getting this list wrong understates
+# ESLint's rule set silently: before the last three entries were added the union missed
+# 24 rules, because every file here was TypeScript and typescript-eslint switches a batch
+# of core rules off for TS (`no-undef`, `no-unreachable`, `constructor-super`, ...) while
+# leaving them on for plain JS. Add a file here whenever a new `files:` block is added
+# to config/eslint/eslint.config.mjs.
 REPRESENTATIVE_FILES = [
     'src/App.tsx',
     'src/libs/actions/Report/index.ts',
     'tests/ui/ReportActionsListTest.tsx',
     'scripts/utils/OpenAIUtils.ts',
     '.github/scripts/createDocsRoutes.ts',
+    'index.js',  # plain JS: core rules typescript-eslint replaces in TS files
+    'config/rsbuild/loaders/svg-loader.mjs',  # the `config/rsbuild/loaders/*-loader.mjs` override
+    'src/languages/en.ts',  # the en.ts/es.ts override (rulesdir/use-periods-for-error-messages)
 ]
 
 # typescript-eslint "extension rules" that oxlint implements as its (TS-aware) base
@@ -60,6 +68,16 @@ PORT_PLAN = {
         'effort': 'M', 'proven': True,
         'notes': 'already exposed by oxlint-probe/expensify-rules.mjs; only the gate is missing',
     },
+    # -- blocked by a missing API in oxlint's JS-plugin bridge, not by types --
+    'no-invalid-this': {
+        'mechanism': 'blocked - oxlint\'s bridge throws on sourceCode.getJSDocComment',
+        'effort': 'blocked', 'proven': False,
+        'notes': 'measured: hosting it errors on 36 files (dist/lint.js:5765 is a bare throw, reached '
+                 'via astUtils.hasJSDocThisTag), plus 2 more from the code-path analyzer it needs on '
+                 '.d.ts files whose `declare module` has no body (same bug as obstacle #5). TS files are '
+                 'largely covered anyway by noImplicitThis from tsconfig strict, so the exposure is '
+                 'the plain .js/.mjs files',
+    },
     # -- need TypeScript type info, which jsPlugins cannot reach --
     'rulesdir/prefer-locale-compare-from-context': {
         'mechanism': 'syntactic rewrite (the type check only asks "is the receiver a string")',
@@ -89,19 +107,24 @@ PORT_PLAN = {
     },
 }
 
-# Not implemented in oxlint AND effectively dead weight (deprecated stylistic rules,
-# PropTypes/class-component era, zero findings possible in this codebase).
-KNOWN_NOT_IMPLEMENTED_LOW_VALUE = {
-    'no-invalid-this', 'no-new-object', 'no-octal', 'no-octal-escape', 'no-undef-init',
-    'one-var', 'strict', 'lines-between-class-members',
-    'import/no-import-module-exports', 'import/no-relative-packages', 'import/no-useless-path-segments',
-    'react/default-props-match-prop-types', 'react/forbid-foreign-prop-types', 'react/forbid-prop-types',
-    'react/jsx-uses-react', 'react/jsx-uses-vars', 'react/no-access-state-in-setstate',
-    'react/no-arrow-function-lifecycle', 'react/no-deprecated', 'react/no-invalid-html-attribute',
-    'react/no-typos', 'react/no-unused-class-component-methods', 'react/no-unused-prop-types',
-    'react/no-unused-state', 'react/prefer-exact-props', 'react/prefer-stateless-function',
-    'react/sort-comp', 'react/static-property-placement',
+# Deliberately empty since 2026-08-11. It used to hold the 28 rules oxlint has no native port
+# for, on the argument that they are dead weight. That argument did not survive being tested:
+# hosting all 28 at once showed 27 of them run correctly through the jsPlugins the config already
+# loads, so they are wired now and the only cost is sidecar time (+6 s for core+import, +13 s for
+# the 17 react rules on a 101-second run). The 28th, no-invalid-this, is a coverage gap with a
+# named blocker in PORT_PLAN, not dead weight. Kept as a name because listAllRules reads it, and
+# because an empty set is the honest answer: no rule here is off for lack of value.
+KNOWN_NOT_IMPLEMENTED_LOW_VALUE = set()
+
+
+# ESLint rules that oxlint only implements under their post-rename name. Without the mapping a
+# rename reads as two separate problems -- an ESLint rule with no counterpart, plus an oxlint-only
+# rule nobody asked for -- when it is one rule under two spellings.
+OXLINT_RENAMES = {
+    'no-object-constructor': 'no-new-object',
+    'no-new-native-nonconstructor': 'no-new-symbol',
 }
+ESLINT_RENAMES = {es: ox for ox, es in OXLINT_RENAMES.items()}
 
 
 # oxlint-probe/hosted-rules.mjs re-exports these under the `hosted/` alias, because oxlint
@@ -113,6 +136,27 @@ HOSTED_RULE_ORIGIN = {
     'order': 'import',
     'no-types': 'jsdoc',
     'naming-convention': '@typescript-eslint',
+    # wired 2026-08-11: no native oxlint port, hosted from the same package ESLint uses
+    'no-import-module-exports': 'import',
+    'no-relative-packages': 'import',
+    'no-useless-path-segments': 'import',
+    'default-props-match-prop-types': 'react',
+    'forbid-foreign-prop-types': 'react',
+    'forbid-prop-types': 'react',
+    'jsx-uses-react': 'react',
+    'jsx-uses-vars': 'react',
+    'no-access-state-in-setstate': 'react',
+    'no-arrow-function-lifecycle': 'react',
+    'no-deprecated': 'react',
+    'no-invalid-html-attribute': 'react',
+    'no-typos': 'react',
+    'no-unused-class-component-methods': 'react',
+    'no-unused-prop-types': 'react',
+    'no-unused-state': 'react',
+    'prefer-exact-props': 'react',
+    'prefer-stateless-function': 'react',
+    'sort-comp': 'react',
+    'static-property-placement': 'react',
 }
 
 
@@ -124,7 +168,7 @@ def norm_ox(code):
     plugin, rule = m.groups()
     if plugin in ('eslint', 'core'):
         # 'core' is the jsPlugin alias for re-exported ESLint core rules
-        return rule
+        return OXLINT_RENAMES.get(rule, rule)
     if plugin == 'typescript':
         return f'@typescript-eslint/{rule}'
     if plugin == 'rh' or (plugin == 'react' and rule == 'exhaustive-deps'):
@@ -161,7 +205,7 @@ def norm_ox_config(rule_id):
         return f'{HOSTED_RULE_ORIGIN[rule]}/{rule}'
     if rule_id in ('react/exhaustive-deps', 'react/rules-of-hooks'):
         return 'react-hooks/' + rule_id.split('/', 1)[1]
-    return rule_id
+    return OXLINT_RENAMES.get(rule_id, rule_id)
 
 
 def is_on(value):
@@ -267,7 +311,9 @@ def oxlint_catalogue():
     names = json.load(open(schema_path))['definitions']['DummyRuleMap']['properties']
     catalogue = set()
     for name in names:
-        catalogue.add(name)
+        # a rule oxlint only ships under its post-rename name is listed under the name ESLint
+        # enables, so it matches instead of showing up as an unrelated oxlint-only rule
+        catalogue.add(OXLINT_RENAMES.get(name, name))
         if name.startswith('typescript/'):
             catalogue.add('@typescript-eslint/' + name.split('/', 1)[1])
         elif name.startswith('react/') and name.split('/', 1)[1] in ('exhaustive-deps', 'rules-of-hooks'):
