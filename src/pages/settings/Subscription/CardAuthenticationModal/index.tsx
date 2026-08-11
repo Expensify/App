@@ -8,8 +8,6 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import {clearPaymentCard3dsVerification, verifySetupIntent} from '@userActions/PaymentMethods';
 import {verifySetupIntentAndRequestPolicyOwnerChange} from '@userActions/Policy/Policy';
 
@@ -37,7 +35,6 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
     const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
     const [isLoading, setIsLoading] = useState(true);
     const [isVisible, setIsVisible] = useState(false);
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'CardAuthenticationModal', isLoading};
     const {accountID: currentUserAccountID, email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
 
     const onModalClose = useCallback(() => {
@@ -110,7 +107,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
                             setIsLoading(false);
                         }}
                     />
-                    {isLoading && <LoadingIndicator reasonAttributes={reasonAttributes} />}
+                    {isLoading && <LoadingIndicator />}
                 </View>
             </ScreenWrapper>
         </Modal>

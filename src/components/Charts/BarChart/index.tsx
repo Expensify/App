@@ -10,7 +10,6 @@ function BarChart(props: BarChartProps) {
         <SkiaWebChart
             getComponent={getBarChartContent}
             componentProps={props}
-            reasonContext="BarChart.SkiaWebLoading"
         />
     );
 }

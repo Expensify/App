@@ -1,3 +1,4 @@
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -49,6 +50,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const session = useSession();
     const personalDetails = usePersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -77,6 +79,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
             afterTransition: () => {
                 if (report && isIOUReport(report)) {
                     convertBulkTrackedExpensesToIOU({
+                        getCurrencyDecimals,
                         transactions,
                         iouReport: report,
                         chatReport,
@@ -109,6 +112,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         isTrackIntentUser,
                         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                         selfDMReportActions,
+                        getCurrencyDecimals,
                     });
                 }
             },

@@ -1,6 +1,7 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -57,6 +58,7 @@ function QuickCreationActionsBar() {
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
@@ -104,6 +106,7 @@ function QuickCreationActionsBar() {
                 defaultChatEnabledPolicy,
                 allBetas,
                 isTrackIntentUser,
+                getCurrencyDecimals,
                 false,
                 shouldDismissEmptyReportsConfirmation,
             );
@@ -114,7 +117,7 @@ function QuickCreationActionsBar() {
                 Navigation.navigate(getCreateReportRoute({reportID: createdReportID}));
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas, isTrackIntentUser],
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas, isTrackIntentUser, getCurrencyDecimals],
     );
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
@@ -210,38 +213,38 @@ function QuickCreationActionsBar() {
     return (
         <View style={[styles.flexRow, styles.gap2, styles.pt1, styles.pb5]}>
             <Button
-                small
-                icon={icons.ReceiptPlus}
-                text={translate('common.expense')}
+                size={CONST.BUTTON_SIZE.SMALL}
                 onPress={handleExpense}
                 style={styles.quickCreationActionsBarButton}
-                textStyles={styles.quickCreationActionsBarButtonText}
-            />
+            >
+                <Button.Icon src={icons.ReceiptPlus} />
+                <Button.Text style={styles.quickCreationActionsBarButtonText}>{translate('common.expense')}</Button.Text>
+            </Button>
             <Button
-                small
-                icon={icons.DocumentPlus}
-                text={translate('common.report')}
+                size={CONST.BUTTON_SIZE.SMALL}
                 onPress={handleReport}
                 style={styles.quickCreationActionsBarButton}
-                textStyles={styles.quickCreationActionsBarButtonText}
-            />
+            >
+                <Button.Icon src={icons.DocumentPlus} />
+                <Button.Text style={styles.quickCreationActionsBarButtonText}>{translate('common.report')}</Button.Text>
+            </Button>
             <Button
-                small
-                icon={icons.LocationAdd}
-                text={translate('common.distance')}
+                size={CONST.BUTTON_SIZE.SMALL}
                 onPress={handleDistance}
                 style={styles.quickCreationActionsBarButton}
-                textStyles={styles.quickCreationActionsBarButtonText}
-            />
+            >
+                <Button.Icon src={icons.LocationAdd} />
+                <Button.Text style={styles.quickCreationActionsBarButtonText}>{translate('common.distance')}</Button.Text>
+            </Button>
             {shouldShowBookTravel && (
                 <Button
-                    small
-                    icon={icons.LuggageWithLinesPlus}
-                    text={translate('workspace.common.travel')}
+                    size={CONST.BUTTON_SIZE.SMALL}
                     onPress={handleBookTravel}
                     style={styles.quickCreationActionsBarButton}
-                    textStyles={styles.quickCreationActionsBarButtonText}
-                />
+                >
+                    <Button.Icon src={icons.LuggageWithLinesPlus} />
+                    <Button.Text style={styles.quickCreationActionsBarButtonText}>{translate('workspace.common.travel')}</Button.Text>
+                </Button>
             )}
         </View>
     );
