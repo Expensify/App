@@ -299,7 +299,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replace: 'Vervangen',
         distance: 'Afstand',
         mile: 'mijl',
-        miles: 'mijl',
+        miles: 'mijlen',
         kilometer: 'kilometer',
         kilometers: 'kilometers',
         recent: 'Recent',
