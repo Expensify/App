@@ -10,6 +10,7 @@ import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
+import type {MachineDateFormat} from '@libs/DateUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -84,6 +85,7 @@ import type {
 } from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -1064,12 +1066,12 @@ function getPostedDate(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the formatted posted date from the transaction.
  */
-function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
+function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat: MachineDateFormat = CONST.DATE.FNS_FORMAT_STRING): string {
     const postedDate = getPostedDate(transaction);
     const parsedDate = parse(postedDate, 'yyyyMMdd', new Date());
 
     if (isValid(parsedDate)) {
-        return DateUtils.formatWithUTCTimeZone(format(parsedDate, 'yyyy-MM-dd'), dateFormat);
+        return DateUtils.formatMachineDateWithUTCTimeZone(format(parsedDate, 'yyyy-MM-dd'), dateFormat);
     }
     return '';
 }
@@ -1220,7 +1222,7 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
 /**
  * Resolves the merchant string to display for a transaction. Returns the localized scanning label while a receipt is
  * scanning, and normalizes the `DEFAULT_MERCHANT` ("Expense") and `PARTIAL_TRANSACTION_MERCHANT` ("(none)") placeholder
- * sentinels to an empty string so they never leak into the UI.
+ * values to an empty string so they never leak into the UI.
  */
 function getMerchantName(transaction: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string): string {
     const shouldShowMerchant = transaction.shouldShowMerchant ?? true;
@@ -1465,9 +1467,9 @@ function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
-function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
+function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING, dateFnsLocale?: DateFnsLocale): string {
     const created = getCreated(transaction);
-    return DateUtils.formatWithUTCTimeZone(created, dateFormat);
+    return DateUtils.formatWithUTCTimeZone(created, dateFormat, dateFnsLocale);
 }
 
 /**
