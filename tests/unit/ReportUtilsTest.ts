@@ -12922,7 +12922,7 @@ describe('ReportUtils', () => {
 
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenPreviewMarker' : translateLocal(path, ...parameters));
 
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, '', null, undefined, undefined, undefined, translateWithMarker);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, '', null, undefined, undefined, undefined, translateWithMarker);
 
             // The stored preview message resolves the payer through the provided translate, proving the pass-through works
             const [message] = Array.isArray(reportPreviewAction.message) ? reportPreviewAction.message : [];
@@ -12988,8 +12988,8 @@ describe('ReportUtils', () => {
 
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenUpdateMarker' : translateLocal(path, ...parameters));
 
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport);
-            const updatedPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, '', undefined, translateWithMarker);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal);
+            const updatedPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimalsLocal, false, '', undefined, translateWithMarker);
 
             // The refreshed preview message resolves the payer through the provided translate, proving the pass-through works
             const [message] = Array.isArray(updatedPreviewAction.message) ? updatedPreviewAction.message : [];
@@ -16812,7 +16812,7 @@ describe('ReportUtils', () => {
                 const translateWithMarker: LocalizedTranslate = (path, ...parameters) =>
                     path === 'common.hidden' ? 'HiddenPreviewMarker' : translate(CONST.LOCALES.EN, path, ...parameters);
 
-                const result = getReportPreviewReportActionMessage({reportOrID: iouReport}, translateWithMarker);
+                const result = getReportPreviewReportActionMessage({reportOrID: iouReport}, getCurrencyDecimalsLocal, translateWithMarker);
 
                 // The manager's name resolves to the marker while the surrounding copy stays hardcoded English
                 expect(result).toContain('HiddenPreviewMarker');
@@ -16838,7 +16838,9 @@ describe('ReportUtils', () => {
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
 
                 // Callers that haven't been migrated yet omit translate and keep the previous global-driven output
-                expect(getReportPreviewReportActionMessage({reportOrID: iouReport})).toBe(getReportPreviewReportActionMessage({reportOrID: iouReport}, englishTranslate));
+                expect(getReportPreviewReportActionMessage({reportOrID: iouReport}, getCurrencyDecimalsLocal)).toBe(
+                    getReportPreviewReportActionMessage({reportOrID: iouReport}, getCurrencyDecimalsLocal, englishTranslate),
+                );
             });
 
             it('resolves the latest-expense requestor name through the injected translate function', async () => {
@@ -16871,7 +16873,7 @@ describe('ReportUtils', () => {
                 const translateWithMarker: LocalizedTranslate = (path, ...parameters) =>
                     path === 'common.hidden' ? 'HiddenRequestorMarker' : translate(CONST.LOCALES.EN, path, ...parameters);
 
-                const result = getReportPreviewReportActionMessage({reportOrID: iouReport, iouReportAction}, translateWithMarker);
+                const result = getReportPreviewReportActionMessage({reportOrID: iouReport, iouReportAction}, getCurrencyDecimalsLocal, translateWithMarker);
 
                 // The latest-expense preview prefixes the requestor resolved through the provided translate
                 expect(result).toBe('HiddenRequestorMarker: $123.00');
@@ -16905,7 +16907,7 @@ describe('ReportUtils', () => {
 
                 const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenOwnerMarker' : translate(CONST.LOCALES.EN, path, ...parameters));
 
-                const result = getReportPreviewReportActionMessage({reportOrID: iouReport}, translateWithMarker);
+                const result = getReportPreviewReportActionMessage({reportOrID: iouReport}, getCurrencyDecimalsLocal, translateWithMarker);
 
                 // The non-reimbursable preview resolves the owner through the provided translate
                 expect(result).toContain('HiddenOwnerMarker spent');

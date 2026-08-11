@@ -3573,6 +3573,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicy({
+                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,

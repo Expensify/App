@@ -49,18 +49,20 @@ describe('createNewReport translate threading', () => {
     });
 
     it('passes the provided translate function through to the stored report preview message', () => {
-        createNewReport({accountID: 1, email: 'owner@test.com'}, false, false, policy, [], false, false, undefined, {translate: TestHelper.translateLocal});
+        createNewReport({accountID: 1, email: 'owner@test.com'}, false, false, policy, [], false, TestHelper.getCurrencyDecimalsLocal, false, undefined, {
+            translate: TestHelper.translateLocal,
+        });
 
         // The optimistic REPORT_PREVIEW message is built with the injected translate rather than the deprecated global
         expect(mockGetReportPreviewReportActionMessage).toHaveBeenCalledTimes(1);
-        expect(mockGetReportPreviewReportActionMessage.mock.calls.at(0)?.[1]).toBe(TestHelper.translateLocal);
+        expect(mockGetReportPreviewReportActionMessage.mock.calls.at(0)?.[2]).toBe(TestHelper.translateLocal);
     });
 
     it('falls back to the deprecated translation global when no translate is provided', () => {
-        createNewReport({accountID: 1, email: 'owner@test.com'}, false, false, policy, [], false);
+        createNewReport({accountID: 1, email: 'owner@test.com'}, false, false, policy, [], false, TestHelper.getCurrencyDecimalsLocal);
 
         // Callers that have not been migrated yet omit translate, so the preview message keeps the global-driven path
         expect(mockGetReportPreviewReportActionMessage).toHaveBeenCalledTimes(1);
-        expect(mockGetReportPreviewReportActionMessage.mock.calls.at(0)?.[1]).toBeUndefined();
+        expect(mockGetReportPreviewReportActionMessage.mock.calls.at(0)?.[2]).toBeUndefined();
     });
 });

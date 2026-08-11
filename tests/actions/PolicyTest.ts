@@ -7416,6 +7416,7 @@ describe('actions/Policy', () => {
                 localeTranslate: TestHelper.translateLocal,
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
 
