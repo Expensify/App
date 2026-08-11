@@ -27,6 +27,12 @@ import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@userActions/Tab');
+jest.mock(
+    '@pages/workspace/AccessOrNotFoundWrapper',
+    () =>
+        ({children}: {children: React.ReactNode}) =>
+            children,
+);
 jest.mock('@rnmapbox/maps', () => ({
     default: jest.fn(),
     MarkerView: jest.fn(),
@@ -242,6 +248,64 @@ describe('DistanceRequestStartPage', () => {
         );
 
         await renderPage(CONST.TAB_REQUEST.DISTANCE_MAP, CONST.IOU.TYPE.CREATE);
+
+        expect(screen.queryByTestId(`tab-${CONST.TAB_REQUEST.DISTANCE_MANUAL}`)).not.toBeOnTheScreen();
+        expect(screen.queryByTestId(`tab-${CONST.TAB_REQUEST.DISTANCE_ODOMETER}`)).not.toBeOnTheScreen();
+    });
+
+    it('hides manual and odometer distance when every active workspace has commuter exclusions', async () => {
+        await setUpOnyx({selectedTab: CONST.TAB_REQUEST.DISTANCE_MAP});
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: ACCOUNT_LOGIN});
+        for (const policyID of ['workspacePolicy1', 'workspacePolicy2']) {
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                createMock<Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    name: policyID,
+                    role: CONST.POLICY.ROLE.USER,
+                    commuterExclusions: {
+                        method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                        fixedDistance: 1,
+                        fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                }),
+            );
+        }
+
+        await renderPage(CONST.TAB_REQUEST.DISTANCE_MAP);
+
+        expect(screen.queryByTestId(`tab-${CONST.TAB_REQUEST.DISTANCE_MANUAL}`)).not.toBeOnTheScreen();
+        expect(screen.queryByTestId(`tab-${CONST.TAB_REQUEST.DISTANCE_ODOMETER}`)).not.toBeOnTheScreen();
+    });
+
+    it('hides manual and odometer distance when tracking from an expense report with commuter exclusions', async () => {
+        await setUpOnyx({selectedTab: CONST.TAB_REQUEST.DISTANCE_MAP});
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: ACCOUNT_LOGIN});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            reportID: REPORT_ID,
+            policyID: 'workspacePolicy',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+        await Onyx.set(
+            `${ONYXKEYS.COLLECTION.POLICY}workspacePolicy`,
+            createMock<Policy>({
+                id: 'workspacePolicy',
+                type: CONST.POLICY.TYPE.TEAM,
+                name: 'Workspace',
+                role: CONST.POLICY.ROLE.USER,
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 1,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+            }),
+        );
+
+        await renderPage(CONST.TAB_REQUEST.DISTANCE_MAP);
 
         expect(screen.queryByTestId(`tab-${CONST.TAB_REQUEST.DISTANCE_MANUAL}`)).not.toBeOnTheScreen();
         expect(screen.queryByTestId(`tab-${CONST.TAB_REQUEST.DISTANCE_ODOMETER}`)).not.toBeOnTheScreen();
