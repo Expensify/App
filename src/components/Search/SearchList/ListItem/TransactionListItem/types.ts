@@ -27,7 +27,7 @@ type TransactionListItemSharedProps<TItem extends ListItem> = {
     handleActionButtonPress: (event?: ModifiedMouseEvent) => void;
     shouldDisableActionPointerEvents?: boolean;
     transactionPreviewData: TransactionPreviewData;
-    reportActions: ReportAction[];
+    exportedReportActions: ReportAction[];
     policyCategories?: PolicyCategories;
     policyTagLists?: PolicyTagLists;
     nonPersonalAndWorkspaceCards?: CardList;
