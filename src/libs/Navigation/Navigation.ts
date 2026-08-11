@@ -1137,6 +1137,8 @@ function handleRHPClosedForBuffer() {
         return;
     }
 
+    DeviceEventEmitter.emit(CONST.MODAL_EVENTS.RESTORE_RHP_ANIMATION);
+
     // RHP is gone but our transaction wasn't cleared by commit/cancel - something else removed it
     // (native swipe, external dismissal). End state must be the origin, same as a normal cancel.
     bufferTransaction = undefined;
