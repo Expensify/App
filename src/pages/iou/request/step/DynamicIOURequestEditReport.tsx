@@ -2,6 +2,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -89,6 +90,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const reports = useChangeTransactionsReportReports(transactions, selectedReport?.reportID);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -101,6 +103,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
 
         const newReport = report ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
         const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
+        const reportsForCall = newReport?.reportID ? {[`${ONYXKEYS.COLLECTION.REPORT}${newReport.reportID}`]: newReport, ...reports} : reports;
 
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
@@ -114,7 +117,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
                 policyTagList,
                 transactions,
                 allTransactionViolation: transactionViolations,
-                allReports,
+                reports: reportsForCall,
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
@@ -141,7 +144,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             policyTagList,
             transactions,
             allTransactionViolation: transactionViolations,
-            allReports,
+            reports,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
@@ -177,7 +180,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
                 keyForList: optimisticReport.reportID,
                 policyID: policyForMovingExpenses?.id,
             },
-            optimisticReport,
+            {...optimisticReport, transactionCount: 0, unheldNonReimbursableTotal: 0},
         );
     };
 

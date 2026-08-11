@@ -62,7 +62,7 @@ function useGroupChildrenForShiftRange({
     isGroupSelected: boolean;
 } {
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const {convertToDisplayString} = useCurrencyListActions();
     const {selectedTransactions} = useSearchSelectionContext();
@@ -71,6 +71,7 @@ function useGroupChildrenForShiftRange({
     const rangeChildren: TransactionListItemType[] = isExpenseReportType
         ? groupTransactions
         : getSnapshotTransactionRows(snapshotData, {
+              dateFnsLocale,
               type: CONST.SEARCH.DATA_TYPES.EXPENSE,
               currentAccountID: currentUserDetails.accountID,
               currentUserEmail: currentUserDetails.email ?? '',

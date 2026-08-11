@@ -5,6 +5,7 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
 import useLocalize from '@hooks/useLocalize';
@@ -187,6 +188,7 @@ function Search({
 
     const previousReportActions = usePrevious(reportActions);
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const searchListRef = useRef<SelectionListHandle<SearchListItem> | null>(null);
 
     const savedSearchSelector = useCallback((searches: OnyxEntry<SaveSearch>) => searches?.[hash], [hash]);
@@ -530,6 +532,7 @@ function Search({
                 const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
                 const shouldOpenTransactionThreadInNewTab = shouldOpenTransactionThread && isModifiedMousePress(event);
                 const targetReportID = createAndOpenSearchTransactionThread({
+                    getCurrencyDecimals,
                     item,
                     introSelected,
                     backTo,
@@ -591,6 +594,7 @@ function Search({
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
                         createAndOpenSearchTransactionThread({
+                            getCurrencyDecimals,
                             item: firstTransaction,
                             introSelected,
                             backTo,
@@ -604,7 +608,7 @@ function Search({
                             shouldNavigate: false,
                         });
                     } else {
-                        setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, firstTransaction?.reportAction?.childReportID);
+                        setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, getCurrencyDecimals, firstTransaction?.reportAction?.childReportID);
                     }
                 }
 
@@ -659,7 +663,7 @@ function Search({
             markReportRHPWidth(reportID, 'wide');
 
             if (isTransactionItem && transactionPreviewData) {
-                setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, transactionItem?.reportAction?.childReportID);
+                setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, getCurrencyDecimals, transactionItem?.reportAction?.childReportID);
             }
 
             const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
@@ -684,6 +688,7 @@ function Search({
             searchResults?.search?.hasMoreResults,
             currentSearchKey,
             filteredData,
+            getCurrencyDecimals,
         ],
     );
 

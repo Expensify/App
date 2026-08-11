@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DestinationPicker from '@components/DestinationPicker';
 import FixedFooter from '@components/FixedFooter';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -244,8 +244,8 @@ function DynamicIOURequestStepDestination({
                         {isPolicyAdmin(policy) && (
                             <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                                 <Button
-                                    large
-                                    success
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                    size={CONST.BUTTON_SIZE.LARGE}
                                     style={[styles.w100]}
                                     onPress={() => {
                                         if (!policy?.id) {
@@ -261,10 +261,11 @@ function DynamicIOURequestStepDestination({
                                             Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, backToRoute));
                                         });
                                     }}
-                                    text={translate('workspace.perDiem.editPerDiemRates')}
-                                    pressOnEnter
                                     sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_PER_DIEM_RATES_BUTTON}
-                                />
+                                >
+                                    <Button.KeyboardShortcut />
+                                    <Button.Text>{translate('workspace.perDiem.editPerDiemRates')}</Button.Text>
+                                </Button>
                             </FixedFooter>
                         )}
                     </View>

@@ -14,6 +14,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import {getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
@@ -340,6 +341,7 @@ describe('handleActionButtonPress', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
             conciergeChat: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
             item: mockReportItemWithHold,
             goToItem,
@@ -365,6 +367,7 @@ describe('handleActionButtonPress', () => {
         const onHoldMenuOpen = jest.fn();
         handleActionButtonPress({
             conciergeChat: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
             item: mockReportItemWithHold,
             goToItem: jest.fn(),
@@ -391,6 +394,7 @@ describe('handleActionButtonPress', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
             conciergeChat: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
             item: updatedMockReportItem,
             goToItem,
