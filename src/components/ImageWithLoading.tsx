@@ -51,7 +51,6 @@ function ImageWithLoading({
     const isLoadedRef = useRef<boolean | null>(null);
     const [isImageCached, setIsImageCached] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
-    const [isThumbnailLoading, setIsThumbnailLoading] = useState(!!previewUri);
     const {isOffline} = useNetwork();
 
     const handleError = () => {
@@ -98,12 +97,9 @@ function ImageWithLoading({
                     <Image
                         {...rest}
                         source={{uri: previewUri}}
-                        style={[styles.w100, styles.h100, style]}
+                        style={[styles.w100, styles.h100, styles.opacitySemiTransparent, style]}
                         resizeMode={resizeMode}
-                        onLoad={(e) => {
-                            setIsThumbnailLoading(false);
-                            onLoad?.(e);
-                        }}
+                        onLoad={onLoad}
                         loadingIconSize={loadingIconSize}
                         loadingIndicatorStyles={loadingIndicatorStyles}
                     />
@@ -129,13 +125,12 @@ function ImageWithLoading({
                     isLoadedRef.current = false;
                     setIsImageCached(false);
                     setIsLoading(true);
-                    setIsThumbnailLoading(!!previewUri);
                     waitForSession?.();
                 }}
                 loadingIconSize={loadingIconSize}
                 loadingIndicatorStyles={loadingIndicatorStyles}
             />
-            {isLoading && (!previewUri || isThumbnailLoading) && !isImageCached && !isOffline && (
+            {(previewUri ? isLoading : isLoading && !isImageCached) && !isOffline && (
                 <LoadingIndicator
                     iconSize={loadingIconSize}
                     style={[styles.opacity1, styles.bgTransparent, loadingIndicatorStyles]}
@@ -149,3 +144,4 @@ function ImageWithLoading({
 ImageWithLoading.displayName = 'ImageWithLoading';
 
 export default React.memo(ImageWithLoading);
+export type {ImageWithSizeLoadingProps};
