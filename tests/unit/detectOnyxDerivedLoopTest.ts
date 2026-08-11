@@ -4,11 +4,9 @@ import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import * as Sentry from '@sentry/react-native';
-
-let mockStartupSpan: Record<string, unknown> | undefined;
+import Onyx from 'react-native-onyx';
 
 jest.mock('@sentry/react-native', () => ({captureMessage: jest.fn()}));
-jest.mock('@libs/telemetry/activeSpans', () => ({getSpan: () => mockStartupSpan}));
 
 const captureMessage = jest.mocked(Sentry.captureMessage);
 
@@ -23,10 +21,14 @@ function recompute(times: number, triggeredKey: OnyxKey = ONYXKEYS.COLLECTION.RE
 describe('detectOnyxDerivedLoop', () => {
     let now = 1_700_000_000_000;
 
-    beforeEach(() => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
         resetOnyxDerivedLoopDetection();
         captureMessage.mockClear();
-        mockStartupSpan = undefined;
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
         now = 1_700_000_000_000;
         jest.spyOn(Date, 'now').mockImplementation(() => now);
     });
@@ -48,8 +50,8 @@ describe('detectOnyxDerivedLoop', () => {
         );
     });
 
-    it('does not report while the app startup span is still open', () => {
-        mockStartupSpan = {};
+    it('does not report while the app is still loading', async () => {
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
 
         recompute(RECOMPUTE_THRESHOLD * 3);
 

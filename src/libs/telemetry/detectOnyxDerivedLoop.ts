@@ -1,11 +1,10 @@
 import Log from '@libs/Log';
 
-import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import * as Sentry from '@sentry/react-native';
-
-import {getSpan} from './activeSpans';
+import Onyx from 'react-native-onyx';
 
 const WINDOW_MS = 10_000;
 
@@ -32,13 +31,22 @@ type KeyState = {
 
 const statesByDerivedKey = new Map<OnyxKey, KeyState>();
 
+// Not useOnyx: this runs in the derived-value engine, outside React.
+let isLoadingApp = false;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.IS_LOADING_APP,
+    callback: (value) => {
+        isLoadingApp = value ?? false;
+    },
+});
+
 /**
  * Reports a runaway recompute rate for one derived key, once per key per session, with a per-dependency breakdown.
  * Not a span: spans are dropped while backgrounded, which is when a loop is most likely to spin unnoticed.
  */
 function detectOnyxDerivedLoop(derivedKey: OnyxKey, triggeredKeys: Set<OnyxKey>) {
-    // Startup hydrates dependencies in bursts, so dense recomputes are expected until the startup span ends.
-    if (getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP)) {
+    // OpenApp hydrates dependencies in bursts, so dense recomputes are expected until its data has landed.
+    if (isLoadingApp) {
         return;
     }
 
@@ -80,7 +88,6 @@ function detectOnyxDerivedLoop(derivedKey: OnyxKey, triggeredKeys: Set<OnyxKey>)
     // Mirrored to VictoriaLogs. alert, not info, because it flushes immediately.
     Log.alert(message, {derivedKey, recomputeCount: state.window.length, windowMs: WINDOW_MS, dependencyCounts}, false);
 
-    // Latched, so nothing reads the window again.
     state.window.length = 0;
 }
 
