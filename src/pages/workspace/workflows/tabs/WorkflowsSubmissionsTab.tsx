@@ -56,6 +56,7 @@ function WorkflowsSubmissionsTab({policyID}: WorkflowsSubmissionsTabProps) {
                     descriptionTextStyle={styles.textLabelSupportingNormal}
                     onPress={onPressAutoReportingFrequency}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTO_REPORTING_FREQUENCY}
+                    // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
                     description={translate('common.frequency')}
                     shouldShowRightIcon={canWriteWorkflows}
                     interactive={canWriteWorkflows}
@@ -63,7 +64,6 @@ function WorkflowsSubmissionsTab({policyID}: WorkflowsSubmissionsTabProps) {
                     brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             }
-            // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
             isActive={(policy?.autoReporting && !hasDelayedSubmissionError) ?? false}
             pendingAction={policy?.pendingFields?.autoReporting ?? policy?.pendingFields?.autoReportingFrequency}
             errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING)}
