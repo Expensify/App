@@ -68,6 +68,7 @@ function DistanceRequestStartPage({
     const targetParticipant = participants.find((participant) => participant.isPolicyExpenseChat);
     const isOnlyWorkspaceTheTarget = onlyActivePolicy?.id === targetParticipant?.policyID;
     const targetPolicy = isOnlyWorkspaceTheTarget ? onlyActivePolicy : undefined;
+    const reportPolicy = report?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
     // Manual/Odometer distance can't honor commuter exclusion (exclusions are derived from the mapped
     // route), so hide those tabs whenever the resolved destination enforces exclusion:
     // - Report-scoped flows (workspace chat / expense report): use that report's own policy.
@@ -79,7 +80,7 @@ function DistanceRequestStartPage({
     const isReportScopedTarget = isPolicyExpenseChat(report) || isExpenseReport(report);
     const everyActiveWorkspaceExcludesCommuters = activeGroupPolicies.length > 1 && activeGroupPolicies.every(isCommuterExclusionEnabled);
     const shouldHideManualAndOdometerTabs = isReportScopedTarget
-        ? isCommuterExclusionEnabled(policy)
+        ? isCommuterExclusionEnabled(reportPolicy)
         : !isSelfDMTarget && (isCommuterExclusionEnabled(targetPolicy) || everyActiveWorkspaceExcludesCommuters);
 
     const tabTitles = {
