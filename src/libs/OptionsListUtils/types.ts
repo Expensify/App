@@ -101,13 +101,7 @@ type SearchOptionData = Pick<
     | 'selected' // Duplicate of isSelected, kept for backwards compatibility
 >;
 
-/**
- * The createOption inputs of one createFilteredOptionList run, captured so hydrating a lazy personal detail
- * option reproduces exactly what the eager build would have produced. One object is shared by every shell of
- * the run — these are references to app-wide Onyx snapshots, not copies. It is reachable only from the
- * hydration closure a shell holds, never from the shell itself, so holding a contact option gives no handle
- * on app-wide Onyx state.
- */
+/** Inputs captured by shell hydrators for one option-list build. */
 type LazyHydrationContext = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     policiesCollection: OnyxCollection<Policy>;
@@ -117,10 +111,7 @@ type LazyHydrationContext = {
     privateIsArchivedMap: PrivateIsArchivedMap;
     conciergeReportID: string | undefined;
 
-    /**
-     * Bound to the locale the option list is keyed on, so the shell's display name and the hydrated option's
-     * agree.
-     */
+    /** Locale used when the option list was built. */
     translate: LocalizedTranslate;
 };
 
@@ -128,22 +119,7 @@ type SearchOption<T> = SearchOptionData & {
     item: T;
 };
 
-/**
- * A contact option as createFilteredOptionList produces it: the fields that filtering, ranking and de-duping
- * read, and nothing else. The display fields (icons, subtitle, lastMessageText, the display alternateText, …)
- * are deliberately absent, so reading one directly off `OptionList.personalDetails` is a compile error rather
- * than an `undefined` for code review to catch. Call hydrateLazyPersonalDetailOption to turn one into a
- * HydratedPersonalDetailOption before rendering it.
- *
- * The hydration inputs are not reachable from the shell: they live in the `hydrate` closure, so holding a
- * contact option gives no handle on the shared Onyx snapshots the build reads.
- *
- * The compile error only guards the direct read. Every display field of OptionData is optional, so a shell
- * structurally satisfies SearchOptionData: once it is handed to a helper typed against SearchOptionData or
- * Partial<SearchOptionData>, the display fields are back in scope and read as `undefined`. Prefer
- * PersonalDetailFilterRankFields for helpers that must accept either half of the union; hydrate first before
- * passing a shell anywhere that renders it.
- */
+/** Filter/rank fields for a contact. Hydrate before rendering. */
 type PersonalDetailShell = Pick<
     SearchOptionData,
     // Identity
@@ -156,31 +132,20 @@ type PersonalDetailShell = Pick<
     | 'participantsList'
     | 'isOptimisticPersonalDetail'
 
-    // isSelected/isBold: written in place by getValidOptions once the visible options are selected.
+    // Written in place by getValidOptions.
     | 'isSelected'
-    // selected: legacy duplicate, never updated after the shell is built.
     | 'selected'
     | 'isBold'
 > & {
     item: PersonalDetails | null;
 
-    /** Discriminant: this option carries filter/rank fields only, so the display fields must not be read off it. */
+    /** Discriminates a shell from a display-ready option. */
     isHydrated: false;
 
-    /**
-     * Written by getValidOptions when hydration is deferred, consumed by hydrateWithMarks.
-     *
-     * The eager path suppresses a GBR (INFO) brick road on the built option unless the caller asked for it.
-     * A shell has no brickRoadIndicator to suppress yet — createOption derives it during hydration — so the
-     * decision rides here instead of forcing every deferring screen to remember its own shouldShowGBR.
-     */
+    /** Passed from getValidOptions to hydrateWithMarks because shells have no brickRoadIndicator yet. */
     shouldShowGBR?: boolean;
 
-    /**
-     * Builds the full display option, memoizing the result so every clone of the same cached option list shares
-     * one build. Call hydrateLazyPersonalDetailOption rather than this directly — it also handles the already
-     * hydrated half of the union and returns a copy consumers may mark in place.
-     */
+    /** Builds the memoized display option. */
     hydrate: () => HydratedPersonalDetailOption;
 };
 
@@ -314,21 +279,7 @@ type GetOptionsConfig = {
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     sortedActions?: Record<string, ReportAction[]>;
     isTrackIntentUser?: boolean;
-    /**
-     * Return contact options as PersonalDetailShells instead of building their display fields.
-     *
-     * getValidOptions normally hydrates the page of contacts that survives filtering and the `maxElements` cap.
-     * A screen that caps the visible rows itself, after filtering, hydrates far fewer options by deferring:
-     * NewChatPage bypasses contact pagination while searching, so without this every match pays a full
-     * createOption even though only one page is rendered. Do NOT reach for `maxElements` instead — it collides
-     * with that screen's own hasMore/pagination accounting.
-     *
-     * The returned options carry the marks getValidOptions writes (isSelected / isBold / GBR suppression) but
-     * none of the display fields. Pass each one through hydrateWithMarks before rendering it; the
-     * PersonalDetailOptionOrShell element type is threaded through filterAndOrderOptions so forgetting to is a
-     * compile error at the render site. That covers `currentUserOption` as well — it is picked out of the same
-     * contact array, so `Options` is generic over the same element type.
-     */
+    /** Return shells; callers must pass them through hydrateWithMarks before rendering. */
     deferContactHydration?: boolean;
     /** TODO: Should be required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;
@@ -371,15 +322,7 @@ type SectionForSearchTerm = {
 
 type SelectionListSections = Array<SelectionListSection<OptionWithKey>>;
 
-/**
- * The contact-option element type is a parameter so a caller that passes `deferContactHydration` keeps the
- * PersonalDetailOptionOrShell union all the way from getValidOptions through filterAndOrderOptions to the
- * render, where hydrateWithMarks turns it back into a display option. Every other caller gets the default and
- * is unaffected.
- *
- * The same generic applies to `currentUserOption` too: that is an element of `personalDetails` (getValidOptions picks it
- * out of the same array), so with hydration deferred it is a shell and must be hydrated before it is rendered.
- */
+/** Keeps the shell/display union until the caller hydrates before rendering. */
 type Options<TPersonalDetail extends SearchOptionData = SearchOptionData> = {
     recentReports: SearchOptionData[];
     personalDetails: TPersonalDetail[];

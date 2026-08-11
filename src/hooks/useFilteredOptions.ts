@@ -17,12 +17,7 @@ type UseFilteredOptionsConfig = {
     maxRecentReports?: number;
     /** Whether the hook should be enabled (default: true) */
     enabled?: boolean;
-    /**
-     * Whether to build P2P contact shells in the option list. Required — must match the `includeP2P` passed to
-     * `getValidOptions`/`getSearchOptions` on the same screen. Passing `true` here while those helpers use
-     * `false` builds one shell per contact and then discards them all (no error, just wasted work). Pass
-     * `false` on screens that render reports only.
-     */
+    /** Whether to build contact shells; must match the downstream `includeP2P` value. */
     includeP2P: boolean;
     /** Number of reports to load per batch when paginating (default: 100) */
     batchSize?: number;

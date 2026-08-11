@@ -56,9 +56,7 @@ function useGroupChatDraftParticipantSync(
             }
             const foundOption = allPersonalDetailOptions.find((personalDetail) => personalDetail.accountID === participant.accountID);
             if (foundOption) {
-                // Options from useFilteredOptions are lightweight, but restored participants are rendered as
-                // selected rows, so the full display option is needed. `isHydrated` is option-list bookkeeping
-                // and stops here: a selected participant is a display option, not a half of the build-time union.
+                // Restored participants must be display-ready options.
                 const {isHydrated, ...hydrated} = hydrateLazyPersonalDetailOption(foundOption);
                 result.push({...hydrated, isSelected: true});
                 return result;

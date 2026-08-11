@@ -141,16 +141,9 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             betas: betas ?? [],
             includeSelfDM: true,
             shouldAlwaysIncludeDM: true,
-            // Search mode bypasses contact pagination (the usePaginatedData above), so without this every contact on
-            // the account survives into the hydration step and pays a full createOption. filterAndOrderOptions
-            // re-filters contacts over the same fields right after, and this filter's haystack is the
-            // concatenation of those fields, so it keeps a superset — the visible contacts are unchanged and the
-            // expensive build now runs only for matches. This also pre-filters recent reports, which brings this
-            // page in line with every other picker that passes searchString.
+            // Pre-filter search matches before deferred hydration; final filtering still runs below.
             searchString: getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode),
-            // This page caps the rendered contacts itself, after filtering (paginatedFilteredPersonalDetails
-            // below), so getValidOptions must not build display fields for every match — only the page that
-            // actually renders is hydrated, via hydrateWithMarks.
+            // This page paginates after filtering, so hydrate only the visible page below.
             deferContactHydration: true,
             personalDetails: allPersonalDetails,
             allPolicyTags,
@@ -223,12 +216,9 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         }
     };
 
-    // The only contacts whose display fields are ever built: one visible page, not every search match.
-    // The annotation is the guard — `Section` data accepts a shell structurally (every display field is
-    // optional), so without it, dropping the hydrate would render avatar-less rows instead of failing to compile.
+    // Hydrate before passing contacts to the UI; shells have no display fields.
     const hydratedPersonalDetails: HydratedPersonalDetailOption[] = paginatedFilteredPersonalDetails.map(hydrateWithMarks);
 
-    // Picked out of the same contact array, so it is a shell too whenever getValidOptions produced one.
     const hydratedCurrentUserOption: HydratedPersonalDetailOption | null | undefined = options.currentUserOption ? hydrateWithMarks(options.currentUserOption) : options.currentUserOption;
 
     return {
