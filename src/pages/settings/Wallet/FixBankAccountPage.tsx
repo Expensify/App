@@ -101,9 +101,8 @@ function FixBankAccountPage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={FixBankAccountPage.displayName}
+            testID="FixBankAccountPage"
         >
             <HeaderWithBackButton
                 title={translate('walletPage.fixBankAccount.title')}
@@ -147,7 +146,5 @@ function FixBankAccountPage() {
         </ScreenWrapper>
     );
 }
-
-FixBankAccountPage.displayName = 'FixBankAccountPage';
 
 export default FixBankAccountPage;
