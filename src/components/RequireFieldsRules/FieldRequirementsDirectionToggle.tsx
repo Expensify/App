@@ -13,30 +13,19 @@ import {View} from 'react-native';
 type FieldRequirementsDirectionToggleProps = {
     direction?: FieldRequirementsDirection;
     disabled?: boolean;
-
-    /** When false, pressing the selected direction does nothing instead of clearing it. */
-    canDeselect?: boolean;
     onSelect: (direction: FieldRequirementsDirection | undefined) => void;
 };
 
-function FieldRequirementsDirectionToggle({direction, disabled = false, canDeselect = true, onSelect}: FieldRequirementsDirectionToggleProps) {
+function FieldRequirementsDirectionToggle({direction, disabled = false, onSelect}: FieldRequirementsDirectionToggleProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const isRequireSelected = direction === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE;
     const isWaiveDirectionSelected = direction === CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE;
 
+    // Pressing the selected direction clears it, which drops the override so the policy-level requirement applies.
     const selectDirection = (isSelected: boolean, nextDirection: FieldRequirementsDirection) => {
-        if (!isSelected) {
-            onSelect(nextDirection);
-            return;
-        }
-
-        if (!canDeselect) {
-            return;
-        }
-
-        onSelect(undefined);
+        onSelect(isSelected ? undefined : nextDirection);
     };
 
     return (

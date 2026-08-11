@@ -1,5 +1,6 @@
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Switch from '@components/Switch';
 import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 
@@ -145,15 +146,28 @@ function FieldRequirementSettingRow({
         onSelectSetting(fieldKey, newSetting);
     };
 
+    // Receipt fields have a third state (no override, so the policy-level requirement applies) that a switch cannot
+    // express, so they keep the direction pills. Description and Attendees are booleans and read better as a switch.
+    const hasWaiveState = canClearRequireFieldsField(fieldKey);
+    const isDisabled = !canWriteRules || isCouplingDisabled;
+
     const rowContent = (
         <View style={[styles.ph5, styles.pv3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap3, styles.flexWrap]}>
             <Text style={[styles.flexShrink1, styles.pr3, styles.alignSelfCenter]}>{label}</Text>
-            <FieldRequirementsDirectionToggle
-                direction={setting}
-                disabled={!canWriteRules || isCouplingDisabled}
-                canDeselect={canClearRequireFieldsField(fieldKey)}
-                onSelect={handleSelectSetting}
-            />
+            {hasWaiveState ? (
+                <FieldRequirementsDirectionToggle
+                    direction={setting}
+                    disabled={isDisabled}
+                    onSelect={handleSelectSetting}
+                />
+            ) : (
+                <Switch
+                    isOn={setting === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE}
+                    disabled={isDisabled}
+                    accessibilityLabel={label}
+                    onToggle={(isOn) => handleSelectSetting(isOn ? CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE : CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE)}
+                />
+            )}
         </View>
     );
 
