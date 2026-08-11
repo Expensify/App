@@ -126,7 +126,6 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
 
     const handleSettleBalanceButtonClick = () => {
         showConfirmModal({
-            danger: true,
             title: translate('workspace.expensifyCard.settleBalanceConfirmationTitle'),
             prompt: translate('workspace.expensifyCard.settleBalanceConfirmationPrompt'),
             confirmText: translate('workspace.expensifyCard.settleBalance'),
