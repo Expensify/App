@@ -11,6 +11,7 @@
  */
 import CONST from '@src/CONST';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {Unit} from '@src/types/onyx/Policy';
 
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
@@ -9837,7 +9838,10 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Se eliminaron ${distance} ${unit} de viaje diario`,
+            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; unit: string; distanceUnit: Unit}) => ({
+                one: `Eliminó ${distance} viaje de ida y vuelta ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'milla' : 'kilómetro'}`,
+                other: `Eliminó ${distance} viaje de ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'millas' : 'kilómetros'}`,
+            }),
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `Se eliminaron ${distance} ${unit} de desplazamiento en base a ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">configuración de distancias del espacio de trabajo</a>` : 'ajustes de distancia del espacio de trabajo'}.`,
         },

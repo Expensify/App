@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {Unit} from '@src/types/onyx/Policy';
 
 import type {ValueOf} from 'type-fest';
 
@@ -320,7 +321,6 @@ const translations: TranslationDeepObject<typeof en> = {
         automatic: 'Αυτόματο',
         showing: 'Εμφανίζονται',
         of: 'του',
-        // @context Carousel pagination counter showing the current item's position out of the total (e.g. "3 of 50").
         currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} από ${total}`,
         default: 'Προεπιλογή',
         update: 'Ενημέρωση',
@@ -9770,7 +9770,10 @@ ${reportName}`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Αρχικό: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Αφαιρέθηκαν ${distance} διαδρομές εκτός έδρας (${unit})`,
+            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; unit: string; distanceUnit: Unit}) => ({
+                one: `Καταργήθηκε ${distance} μετακινούμενος ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'μίλι' : 'χιλιόμετρο'}`,
+                other: `Καταργήθηκε η μετακίνηση ${distance} ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'μίλια' : 'χιλιόμετρα'}`,
+            }),
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `Αφαιρέθηκαν ${distance} διαδρομές μετακίνησης ${unit} βάσει του ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ρυθμίσεις απόστασης χώρου εργασίας</a>` : 'ρυθμίσεις απόστασης χώρου εργασίας'}.`,
         },

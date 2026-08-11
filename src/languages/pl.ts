@@ -18,7 +18,7 @@ import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName, Unit} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 import type {ValueOf} from 'type-fest';
@@ -9469,7 +9469,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Oryginał: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Usunięto ${distance} dojazdów (${unit})`,
+            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; unit: string; distanceUnit: Unit}) => ({
+                one: `Usunięto ${distance} dojazdów ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'mila' : 'kilometr'}`,
+                other: `Usunięto dojazd ${distance} ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'mile' : 'kilometry'}`,
+            }),
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `Usunięto ${distance} dojazdowych ${unit} na podstawie ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ustawienia odległości w przestrzeni roboczej</a>` : 'ustawienia odległości w przestrzeni roboczej'}.`,
         },
