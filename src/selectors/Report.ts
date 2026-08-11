@@ -80,6 +80,10 @@ const policyChatRoomsSelector =
         return list;
     };
 
+/**
+ * Selects archived report NVPs for the current report and possible "Move expense" destination reports.
+ * This limits updates to data used to determine whether each destination report is archived.
+ */
 const createMoveExpenseReportNVPSelector = (outstandingReportsByPolicyID: OnyxEntry<OutstandingReportsByPolicyIDDerivedValue>, currentReportID: string | undefined) => {
     const moveExpenseReportIDs = new Set<string>();
     if (currentReportID) {
