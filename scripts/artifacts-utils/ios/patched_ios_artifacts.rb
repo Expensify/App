@@ -18,8 +18,8 @@ module PatchedIOSArtifacts
     # Tarballs fetched during setup, keyed by remote URL, so nothing downloads mid-install.
     @prefetched = {}
 
-    # Our own tag rather than react-native's, so it is obvious which code produced a line.
-    LOG_PREFIX = '[PatchedIOSArtifacts]'
+    # Matches the resolver and Gradle, so one tag covers artifact logging on both platforms.
+    LOG_PREFIX = '[PatchedArtifacts]'
 
     def self.log(message, level = :info)
         return unless defined?(Pod::UI)
