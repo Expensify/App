@@ -10,6 +10,7 @@ import type {PolicyTagLists} from '@src/types/onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import {formatPhoneNumber} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
@@ -51,6 +52,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
                 reportAttributesDerived,
                 reportDraft,
                 translate,
+                formatPhoneNumber,
             }),
         );
 
@@ -97,6 +99,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
                 reportAttributesDerived: {},
                 reportDraft: undefined,
                 translate,
+                formatPhoneNumber,
             }),
         );
 
@@ -120,6 +123,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
                 reportAttributesDerived: {},
                 reportDraft: undefined,
                 translate,
+                formatPhoneNumber,
             }),
         );
 

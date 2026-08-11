@@ -226,6 +226,7 @@ function IOURequestStepDistanceManual({
         reportAttributesDerived,
         reportDraft,
         translate,
+        formatPhoneNumber,
     });
 
     const navigateToNextPage = (amount: string) => {

@@ -228,6 +228,7 @@ function SubmitDetailsPage({
             : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID, {
                   translate,
                   dateFnsLocale,
+                  formatPhoneNumber,
               });
     });
 

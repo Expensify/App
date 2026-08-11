@@ -205,6 +205,7 @@ function IOURequestStepAmount({
             : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID, {
                   translate,
                   dateFnsLocale,
+                  formatPhoneNumber,
               });
     });
     const participant = participants.at(0);
@@ -251,7 +252,6 @@ function IOURequestStepAmount({
             policyTags,
             reportPolicyTags,
             ...submitData,
-            formatPhoneNumber,
         });
     };
 

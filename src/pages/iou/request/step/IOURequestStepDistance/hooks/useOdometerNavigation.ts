@@ -167,6 +167,7 @@ function useOdometerNavigation({
         reportAttributesDerived,
         reportDraft,
         translate,
+        formatPhoneNumber,
     });
 
     const delegateAccountID = useDelegateAccountID();

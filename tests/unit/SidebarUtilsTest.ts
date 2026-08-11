@@ -3331,7 +3331,6 @@ describe('SidebarUtils', () => {
                     formatPhoneNumber,
 
                     reportAttributesDerived: mockReportAttributesDerived,
-                    formatPhoneNumber,
                 });
 
                 expect(optionData?.alternateText).toBe(formatReportLastMessageText(iouReport.reportName));
@@ -3684,7 +3683,6 @@ describe('SidebarUtils', () => {
                             [lastAction.reportActionID]: true,
                         },
                     },
-                    formatPhoneNumber,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);

@@ -102,6 +102,7 @@ const options = createFilteredOptionList(personalDetails, reports, undefined, EM
     dateFnsLocale: undefined,
     conciergeReportID: undefined,
     isSearching: true,
+    formatPhoneNumber,
 });
 
 const ValidOptionsConfig = {
@@ -291,7 +292,20 @@ describe('OptionsListUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], {}, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, undefined, mockedPersonalDetails, true),
+            formatSectionsFromSearchTerm(
+                '',
+                Object.values(selectedOptions),
+                [],
+                [],
+                {},
+                MOCK_CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                formatPhoneNumber,
+                undefined,
+                mockedPersonalDetails,
+                true,
+            ),
         );
     });
 

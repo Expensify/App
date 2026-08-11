@@ -823,7 +823,6 @@ function getOptionData({
     card,
     lastAction,
     translate,
-    formatPhoneNumber,
     dateFnsLocale,
     convertToDisplayString,
     localeCompare,
@@ -852,7 +851,6 @@ function getOptionData({
     card: Card | undefined;
     lastAction: ReportAction | undefined;
     translate: LocalizedTranslate;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     dateFnsLocale: DateFnsLocale | undefined;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     localeCompare: LocaleContextProps['localeCompare'];

@@ -167,6 +167,7 @@ function useDistanceNavigation({
         reportAttributesDerived,
         reportDraft,
         translate,
+        formatPhoneNumber,
     });
 
     return () => {
