@@ -86,12 +86,12 @@ To submit expenses to an approver:
 
 ---
 
-## How to submit a report as a PDF
+## How to submit an expense to an approver as a PDF
 
-If you're not ready to invite your approver into Expensify, you can submit a report as a PDF and share it yourself by email or print. On a draft report in a Submit workspace, the **Submit** button includes two options:
+If you're not ready to invite your approver to Expensify, you can submit a report as a PDF and share it with them elsewhere. On a draft report in a Submit workspace, the **Submit** button includes two options:
 
-- **Submit**: Submit the report to an approver by email, as described above.
-- **Submit via PDF**: Move the report to the Outstanding status and download a PDF you can send or print.
+- **Submit**: Submits the report to an approver in Expensify
+- **Submit via PDF**: Downloads a PDF you can send or print and moves the report to the Outstanding status
 
 To submit a report as a PDF:
 
@@ -99,9 +99,9 @@ To submit a report as a PDF:
 2. Select the dropdown arrow on the **Submit** button.
 3. Select **Submit via PDF**.
 
-The report moves to the Outstanding status and the PDF downloads automatically. Share the PDF with your approver by email or print. Your approver opens the PDF and selects **Approve or Pay** — or scans the QR code on a printed copy — to sign in and approve the report online.
+The report moves to the Outstanding status, and the PDF downloads automatically. Share the PDF with your approver by email or print. Your approver can access the report in Expensify by clicking the **Approve or Pay** button on the PDF or scanning the QR code on the PDF. 
 
-Your choice is sticky: future reports default to the last method you used, including when you submit from the **Spend** page. Submitting multiple reports as PDFs at once isn't available.
+Your choice is sticky: future reports default to the last method you used, including when you submit from the **Spend** page.
 
 ---
 
@@ -120,9 +120,9 @@ Marking a report as paid lets you track which of your submitted reports are stil
 
 If your approver clicks **Approve**, they're prompted to upgrade the workspace to a paid plan before they can complete the approval.
 
-Your approver can reach the **Approve** button either from the email you send when submitting online, or by opening a PDF you shared and selecting **Approve or Pay** (or scanning the QR code on a printed copy). When they use the PDF, they sign in, are added to your workspace as an **Editor**, and can then approve.
+Your approver can reach the **Approve** button from the email you send when submitting online, selecting **Approve or Pay** on a PDF of the report or by scanning the QR code on a PDF of the report. When they use the PDF, they sign in, are added to your workspace as an **Editor**, and can then approve.
 
-A PDF approval link stays active for 60 days. If it expires before your approver uses it, they'll see a "Hmm... not there" message when they sign in, and you'll get a message on the report so you can download and resend the PDF.
+A PDF approval link stays active for 60 days. If it expires before your approver uses it, they'll see a "Hmm... not there" message when they sign in, and you'll get a message on the report so you can download and resend the PDF or retract the report and submit it directly to them in Expensify, using the **Submit** option.
 
 If they upgrade:
 
@@ -149,3 +149,4 @@ Editors can configure the workspace, but can't see other members' submitted repo
 ## Do I have to pay to submit expenses?
 
 No. Submitting expenses and marking reports as paid are free. Payment is only required when someone upgrades the workspace to a paid plan, such as when an approver approves a report.
+
