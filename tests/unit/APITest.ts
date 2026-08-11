@@ -809,7 +809,12 @@ describe('APITests', () => {
         const xhrCalls: XhrCalls = [];
         const xhr = jest
             .spyOn(HttpUtils, 'xhr')
-            .mockImplementationOnce(() => new Promise((resolve, reject) => xhrCalls.push({resolve, reject})))
+            .mockImplementationOnce(
+                () =>
+                    new Promise((resolve, reject) => {
+                        xhrCalls.push({resolve, reject});
+                    }),
+            )
             .mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
 
         await Onyx.multiSet({
