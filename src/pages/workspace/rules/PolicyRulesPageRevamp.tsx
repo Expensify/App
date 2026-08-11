@@ -40,7 +40,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {RulesTab, TableSelectionTab} from './tabs/useRulesTableBulkActions';
@@ -96,7 +96,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const resolvedTab: RulesTab = lastSelectedTabStr && isRulesTab(lastSelectedTabStr) ? lastSelectedTabStr : RULES_TAB.GENERAL;
     const activeTab: RulesTab = resolvedTab === RULES_TAB.AGENTS && !isCustomAgentBetaEnabled ? RULES_TAB.GENERAL : resolvedTab;
     const [selectedRuleKeysByTab, setSelectedRuleKeysByTab] = useState<Partial<Record<TableSelectionTab, string[]>>>({});
-    const appliedRequestedTabRef = useRef<string | undefined>(undefined);
 
     const {showConfirmModal} = useConfirmModal();
 
@@ -116,12 +115,12 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     }, [activeTab, policy]);
 
     useEffect(() => {
-        // Apply once per value, so a later manual tab press isn't undone by the param still sitting in the route.
-        if (!requestedTab || !isRulesTab(requestedTab) || appliedRequestedTabRef.current === requestedTab) {
+        // The tab param is only an entry hint (deep link, post-upgrade bounce-back). The selected tab itself lives in
+        // Onyx so it survives leaving the page, which is why tab presses update Onyx rather than the URL.
+        if (!requestedTab || !isRulesTab(requestedTab)) {
             return;
         }
 
-        appliedRequestedTabRef.current = requestedTab;
         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, requestedTab);
     }, [requestedTab]);
 
