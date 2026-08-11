@@ -46,7 +46,7 @@ describe('Concierge thread', () => {
 
         // The thread header builds its avatar from the parent report action, so record what Onyx holds when the thread opens.
         let parentReportActionWhenThreadOpened: OnyxTypes.ReportAction | undefined;
-        (Navigation.navigate as jest.Mock).mockImplementation(() => {
+        jest.mocked(Navigation.navigate).mockImplementation(() => {
             parentReportActionWhenThreadOpened = Object.values(getAllReportActions(CONCIERGE_DM_ID)).find((action) => action.childReportID === THREAD_ID);
         });
 
