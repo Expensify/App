@@ -1674,7 +1674,6 @@
 "../../tests/unit/DistanceRateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/DynamicContactMethodDetailsPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/ExpenseRuleUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/unit/ExportActionsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/ExportDownloadStatusModalTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/ExportOnyxStateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	12
 "../../tests/unit/FailureNotifierTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
