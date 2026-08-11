@@ -51,11 +51,12 @@ const WORKFLOWS_TAB = CONST.TAB.WORKFLOWS;
 
 type WorkflowsTab = ValueOf<typeof WORKFLOWS_TAB>;
 
-const WORKFLOWS_TAB_VALUES = new Set<string>(Object.values(WORKFLOWS_TAB));
-
-function isWorkflowsTab(key: string): key is WorkflowsTab {
-    return WORKFLOWS_TAB_VALUES.has(key);
-}
+/**
+ * The SELECTED_TAB Onyx collection is typed as SelectedTabRequest (the IOU request tabs), so a persisted Workflows tab
+ * comes back as a disjoint union and can't be narrowed by a type guard. Looking the value up here returns
+ * `WorkflowsTab | undefined` without an assertion.
+ */
+const WORKFLOWS_TABS_BY_KEY = new Map<string, WorkflowsTab>(Object.values(WORKFLOWS_TAB).map((tab) => [tab, tab]));
 
 type WorkspaceWorkflowsPageRevampProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
@@ -108,16 +109,15 @@ function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWork
     }, [showConfirmModal, translate]);
 
     const [lastSelectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.WORKFLOWS_TAB_TYPE}`);
-    const lastSelectedTabStr = lastSelectedTab as string | undefined;
     // A `?tab=` deep link wins over the persisted tab until the user picks a tab themselves, at which point the param is cleared below.
     const routeTab = route.params?.tab;
-    const persistedTab: WorkflowsTab = lastSelectedTabStr && isWorkflowsTab(lastSelectedTabStr) ? lastSelectedTabStr : WORKFLOWS_TAB.SUBMISSIONS;
-    const requestedTab: WorkflowsTab = routeTab && isWorkflowsTab(routeTab) ? routeTab : persistedTab;
+    const persistedTab = WORKFLOWS_TABS_BY_KEY.get(lastSelectedTab ?? '') ?? WORKFLOWS_TAB.SUBMISSIONS;
+    const requestedTab = routeTab ?? persistedTab;
 
     useEffect(() => {
         // Persist a deep-linked tab so returning here later — including via a `backTo` that intentionally carries no
         // tab, since `goBack` compares route params and a tab param would stop it matching the mounted page — reopens it.
-        if (!routeTab || !isWorkflowsTab(routeTab)) {
+        if (!routeTab) {
             return;
         }
 
@@ -159,11 +159,12 @@ function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWork
     const activeTab: WorkflowsTab = selectableTabs.some((tab) => tab.key === requestedTab) ? requestedTab : (selectableTabs.at(0)?.key ?? WORKFLOWS_TAB.APPROVALS);
 
     const handleTabPress = (key: string) => {
-        if (!isWorkflowsTab(key)) {
+        const tab = WORKFLOWS_TABS_BY_KEY.get(key);
+        if (!tab) {
             return;
         }
 
-        Tab.setSelectedTab(CONST.TAB.WORKFLOWS_TAB_TYPE, key);
+        Tab.setSelectedTab(CONST.TAB.WORKFLOWS_TAB_TYPE, tab);
 
         // Drop the deep-linked tab so the persisted tab drives the page from here on.
         if (routeTab) {
