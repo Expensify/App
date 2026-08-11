@@ -1999,15 +1999,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const optimisticReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportKey, Onyx.METHOD.MERGE, true);
             const optimisticReportValue = optimisticReportUpdate.value;
             expect(optimisticReportValue.managerID).toBe(ruleApproverAccountID);
-            if (!isObject(optimisticReportValue.nextStep)) {
-                throw new Error('Expected an optimistic next step.');
-            }
-            expect(optimisticReportValue.nextStep.actorAccountID).toBe(ruleApproverAccountID);
-
-            const reportkey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
-            const optimisticReortUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportkey, Onyx.METHOD.MERGE, true);
-            const optimisticReortUpdateValue = optimisticReortUpdate.value;
-            expect(optimisticReortUpdateValue.nextStep).toEqual({
+            expect(optimisticReportValue.nextStep).toEqual({
                 actorAccountID: ruleApproverAccountID,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
