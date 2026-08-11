@@ -110,7 +110,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {disableMultiScan} = useMultiScanActions();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
@@ -127,6 +127,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         reportAttributesDerived,
         reportDraft,
         translate,
+        dateFnsLocale,
     );
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
@@ -409,7 +410,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         submitWithGpsCheck(validReceiptFiles);
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
+    const {validateFiles, PDFValidationComponent} = useFilesValidation((files: FileObject[]) => {
         processReceipts(files, getPickerCaptureSource());
     });
 
@@ -425,7 +426,6 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                 onMultiScanSubmit={submitMultiScan}
                 shouldAcceptMultipleFiles
             />
-            {ErrorModal}
             <GpsPermissionGate
                 startLocationPermissionFlow={startLocationPermissionFlow}
                 receiptFiles={receiptFiles}

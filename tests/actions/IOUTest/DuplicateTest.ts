@@ -1581,6 +1581,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1650,6 +1651,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockTimeExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1711,6 +1713,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockScanExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1765,6 +1768,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockScanExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1819,6 +1823,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1877,6 +1882,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1944,6 +1950,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockTimeExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1995,6 +2002,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: undefined,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2041,6 +2049,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2090,6 +2099,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2145,6 +2155,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2215,6 +2226,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockPerDiemTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2286,6 +2298,7 @@ describe('actions/Duplicate', () => {
 
             // When duplicating the transaction
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockTransactionWithLinkedAction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2340,6 +2353,7 @@ describe('actions/Duplicate', () => {
 
             // When duplicating the transaction without targetPolicy
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2405,6 +2419,7 @@ describe('actions/Duplicate', () => {
 
             // When duplicating the transaction
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockCashExpense,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2580,6 +2595,7 @@ describe('actions/Duplicate', () => {
         const POLICY_EXPENSE_CHAT_REPORT_ID = 'policyExpenseChatReport';
 
         const getDefaultParams = (sourceTransactions: Transaction[], overrides: Partial<DuplicateReportParams> = {}): DuplicateReportParams => ({
+            dateFnsLocale: undefined,
             sourceReport: undefined,
             sourceReportTransactions: sourceTransactions,
             sourceReportName: 'Original Report',
@@ -3159,6 +3175,7 @@ describe('actions/Duplicate', () => {
             };
 
             bulkDuplicateExpenses({
+                dateFnsLocale: undefined,
                 transactionIDs: ['bulk_1', 'bulk_2', 'bulk_3'],
                 allTransactions,
                 sourcePolicyIDMap: {},
@@ -3259,6 +3276,7 @@ describe('actions/Duplicate', () => {
         });
 
         const getDefaultBulkParams = (reportIDs: string[], overrides: Partial<BulkDuplicateReportsParams> = {}): BulkDuplicateReportsParams => ({
+            dateFnsLocale: undefined,
             selectedReports: reportIDs.map((id) => ({
                 reportID: id,
                 policyID: undefined,

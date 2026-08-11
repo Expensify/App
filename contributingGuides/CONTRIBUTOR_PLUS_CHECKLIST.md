@@ -1,4 +1,4 @@
-# BugZero Checklist:
+# Contributor+ Checklist:
 
 - [ ] **[Contributor]** The offending PR and associated issue have been commented on, pointing out the bug it caused and why, so the author and reviewers can learn from the mistake.
 
@@ -14,10 +14,6 @@
 <details>
 <summary>Regression Test Proposal Template</summary>
 <!-- AFTER FILLING THIS OUT, be sure to remove the <details> and <summary> tags from this part of the checklist!!!!! -->
-
-- [ ] **[BugZero Assignee]** Create a GH issue for creating/updating the regression test once above steps have been agreed upon.
-
-    Link to issue:
 
 ## Regression Test Proposal
 ### Precondition:

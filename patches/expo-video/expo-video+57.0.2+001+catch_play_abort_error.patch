@@ -1,8 +1,8 @@
 diff --git a/node_modules/expo-video/build/VideoPlayer.web.js b/node_modules/expo-video/build/VideoPlayer.web.js
-index 10e49a3..52d0ab8 100644
+index 46dfa83..f9319cf 100644
 --- a/node_modules/expo-video/build/VideoPlayer.web.js
 +++ b/node_modules/expo-video/build/VideoPlayer.web.js
-@@ -224,7 +224,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
+@@ -228,7 +228,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
      }
      play() {
          this._mountedVideos.forEach((video) => {
@@ -11,7 +11,7 @@ index 10e49a3..52d0ab8 100644
          });
      }
      pause() {
-@@ -239,7 +239,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
+@@ -243,7 +243,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
              if (uri) {
                  video.setAttribute('src', uri);
                  video.load();
@@ -20,7 +20,7 @@ index 10e49a3..52d0ab8 100644
              }
              else {
                  video.removeAttribute('src');
-@@ -264,7 +264,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
+@@ -268,7 +268,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
      replay() {
          this._mountedVideos.forEach((video) => {
              video.currentTime = 0;
@@ -29,7 +29,7 @@ index 10e49a3..52d0ab8 100644
          });
          this.playing = true;
      }
-@@ -279,7 +279,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
+@@ -283,7 +283,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
              video.pause();
          }
          else {
@@ -38,7 +38,7 @@ index 10e49a3..52d0ab8 100644
          }
          video.currentTime = firstVideo.currentTime;
          video.volume = firstVideo.volume;
-@@ -305,7 +305,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
+@@ -309,7 +309,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
              this.playing = true;
              this._mountedVideos.forEach((mountedVideo) => {
                  if (e.target !== mountedVideo) {
