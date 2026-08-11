@@ -1,7 +1,7 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -150,19 +150,19 @@ function EditAgentPage({route}: EditAgentPageProps) {
                         onPress={handleEditPromptPress}
                     />
                 </OfflineWithFeedback>
-                <MenuItemStandard
+                <MenuItemAction
                     title={translate('editAgentPage.chatWithAgent')}
                     icon={icons.ChatBubble}
                     onPress={handleChatPress}
                     isDisabled={areActionsDisabled}
                 />
-                <MenuItemStandard
+                <MenuItemAction
                     title={translate('editAgentPage.copilotIntoAccount')}
                     icon={icons.Users}
                     onPress={handleCopilotPress}
                     isDisabled={areActionsDisabled}
                 />
-                <MenuItemStandard
+                <MenuItemAction
                     title={translate('editAgentPage.deleteAgent')}
                     icon={icons.Trashcan}
                     onPress={handleDeletePress}

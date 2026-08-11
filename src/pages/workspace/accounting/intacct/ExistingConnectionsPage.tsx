@@ -1,5 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -62,10 +62,9 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             />
             <ScrollView style={[styles.flex1]}>
                 <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)}</Text>
-                <MenuItemStandard
+                <MenuItemNavigation
                     title={translate('workspace.common.createNewConnection')}
                     icon={icons.LinkCopy}
-                    shouldShowChevron
                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path))}
                 />
                 <Text style={[styles.sectionTitle, styles.pl5, styles.pr5, styles.pb2, styles.mt3]}>{translate('workspace.common.existingConnections')}</Text>

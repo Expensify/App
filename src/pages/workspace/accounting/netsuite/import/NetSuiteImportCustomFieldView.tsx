@@ -1,5 +1,5 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -142,7 +142,7 @@ function NetSuiteImportCustomFieldView({
                             />
                         );
                     })}
-                    <MenuItemStandard
+                    <MenuItemAction
                         icon={icons.Trashcan}
                         title={translate('common.remove')}
                         isDisabled={!!config?.pendingFields?.[importCustomField]}

@@ -11,7 +11,7 @@ import type {ListItem} from './SelectionList/types';
 
 import Icon from './Icon';
 import getBankIcon from './Icon/BankIcons';
-import MenuItemStandard from './MenuItem/presets/MenuItemStandard';
+import MenuItemAction from './MenuItem/presets/MenuItemAction';
 import SelectionList from './SelectionList';
 import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 
@@ -78,7 +78,7 @@ function SettlementAccountSelector({
     // Render "Add new bank account" as list footer when enabled
     const addNewBankAccountIfEnabled =
         showAddNewAccountOption && onAddNewBankAccount ? (
-            <MenuItemStandard
+            <MenuItemAction
                 icon={icons.Plus}
                 title={translate('workspace.expensifyCard.addNewBankAccount')}
                 onPress={onAddNewBankAccount}

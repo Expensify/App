@@ -1,5 +1,5 @@
 import ConfirmModal from '@components/ConfirmModal';
-import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
+import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
@@ -278,7 +278,7 @@ function IOURequestEditReportCommon({
         }
 
         return (
-            <MenuItemStandard
+            <MenuItem
                 onPress={handleCreateReport}
                 title={translate('report.newReport.createReport')}
                 description={policyForMovingExpenses?.name}
@@ -337,7 +337,7 @@ function IOURequestEditReportCommon({
                 customListHeaderContent={createReportOption}
                 listFooterContent={
                     shouldShowRemoveFromReport ? (
-                        <MenuItemStandard
+                        <MenuItem
                             onPress={removeFromReport}
                             title={translate('iou.removeFromReport')}
                             description={translate('iou.moveToPersonalSpace')}

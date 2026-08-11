@@ -1,7 +1,7 @@
 import Button from '@components/ButtonComposed';
 import DecisionModal from '@components/DecisionModal';
 import MenuItem from '@components/MenuItem';
-import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -198,7 +198,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 )}
                 <View style={styles.mt6} />
                 {!!accountRequiresTwoFactorAuth && (
-                    <MenuItemStandard
+                    <MenuItemAction
                         title={translate('domain.common.resetTwoFactorAuth')}
                         icon={icons.CircularArrowBackwards}
                         onPress={() => {
@@ -209,7 +209,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 )}
 
                 {isAccountLocked ? (
-                    <MenuItemStandard
+                    <MenuItemAction
                         key="UnlockAccount"
                         title={translate('lockAccountPage.unlockAccount')}
                         icon={icons.Unlock}

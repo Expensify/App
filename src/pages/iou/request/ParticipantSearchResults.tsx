@@ -1,5 +1,5 @@
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
-import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
@@ -506,11 +506,10 @@ function ParticipantSearchResults({
 
     const shouldShowImportContactsButton = contactState?.showImportUI ?? showImportContacts;
     const importContactsButtonComponent = shouldShowImportContactsButton ? (
-        <MenuItemStandard
+        <MenuItemNavigation
             title={translate('contact.importContacts')}
             icon={icons.UserPlus}
             onPress={goToSettings}
-            shouldShowChevron
             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.PARTICIPANTS_IMPORT_CONTACTS_ITEM}
         />
     ) : null;

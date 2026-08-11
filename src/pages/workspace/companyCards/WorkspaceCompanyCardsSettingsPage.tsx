@@ -1,5 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
+import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -179,7 +180,7 @@ function WorkspaceCompanyCardsSettingsPage({
                             <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.moreFeatures.companyCards.setTransactionLiabilityDescription')}</Text>
                         </View>
                         {isDirectFeedType && (
-                            <MenuItemStandard
+                            <MenuItem
                                 icon={icons.Sync}
                                 title={translate('workspace.companyCards.assignNewCards.title')}
                                 description={translate('workspace.companyCards.assignNewCards.description')}
@@ -196,7 +197,7 @@ function WorkspaceCompanyCardsSettingsPage({
                             />
                         )}
                         {isCsvFeed && (
-                            <MenuItemStandard
+                            <MenuItemAction
                                 icon={icons.Table}
                                 title={translate('spreadsheet.importSpreadsheet')}
                                 onPress={() => {
@@ -213,7 +214,7 @@ function WorkspaceCompanyCardsSettingsPage({
                                 }}
                             />
                         )}
-                        <MenuItemStandard
+                        <MenuItemAction
                             icon={icons.Trashcan}
                             title={translate('workspace.moreFeatures.companyCards.removeCardFeed')}
                             onPress={() => {

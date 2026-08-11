@@ -110,7 +110,7 @@ jest.mock('@components/MenuItem', () => {
     return MockMenuItem;
 });
 
-jest.mock('@components/MenuItem/presets/MenuItemStandard', () => {
+jest.mock('@components/MenuItem/presets/MenuItemAction', () => {
     return ({title}: {title: string}) => title ?? null;
 });
 

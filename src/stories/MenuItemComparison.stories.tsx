@@ -1,6 +1,7 @@
 import CompactMenuContext from '@components/CompactMenuContext';
 import MenuItem from '@components/MenuItem';
-import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -13,8 +14,8 @@ import {View} from 'react-native';
 
 /**
  * Grid comparison of the legacy `MenuItem` monolith, the new composable
- * `MenuItem.Root`/`Row`/... API, and the `MenuItemStandard` preset. Each card shows
- * the same visual case built with every API that can currently express it.
+ * `MenuItem.Root`/`Row`/... API, and the `MenuItemAction`/`MenuItemNavigation` presets.
+ * Each card shows the same visual case built with every API that can currently express it.
  */
 const story: Meta<typeof MenuItem> = {
     title: 'Components/MenuItemComparison',
@@ -30,7 +31,7 @@ function Label({children}: {children: string}) {
     return <Text style={[styles.textMicroBold, styles.textSupporting, styles.mb1]}>{children}</Text>;
 }
 
-function Card({title, legacy, composable, standard}: {title: string; legacy: React.ReactNode; composable: React.ReactNode; standard?: React.ReactNode}) {
+function Card({title, legacy, composable, preset}: {title: string; legacy: React.ReactNode; composable: React.ReactNode; preset?: React.ReactNode}) {
     const styles = useThemeStyles();
 
     return (
@@ -44,10 +45,10 @@ function Card({title, legacy, composable, standard}: {title: string; legacy: Rea
                 <Label>Composable</Label>
                 {composable}
             </View>
-            {!!standard && (
+            {!!preset && (
                 <View>
-                    <Label>Standard preset</Label>
-                    {standard}
+                    <Label>Preset</Label>
+                    {preset}
                 </View>
             )}
         </View>
@@ -102,8 +103,8 @@ function Comparison() {
                         </MenuItem.Row>
                     </MenuItem.Root>
                 }
-                standard={
-                    <MenuItemStandard
+                preset={
+                    <MenuItemAction
                         title="Settings"
                         icon={icons.Gear}
                         onPress={noop}
@@ -134,11 +135,10 @@ function Comparison() {
                         </MenuItem.Row>
                     </MenuItem.Root>
                 }
-                standard={
-                    <MenuItemStandard
+                preset={
+                    <MenuItemNavigation
                         title="Settings"
                         icon={icons.Gear}
-                        shouldShowChevron
                         onPress={noop}
                     />
                 }
@@ -168,15 +168,6 @@ function Comparison() {
                             </MenuItem.Trailing>
                         </MenuItem.Row>
                     </MenuItem.Root>
-                }
-                standard={
-                    <MenuItemStandard
-                        title="Settings"
-                        description="Manage your preferences"
-                        icon={icons.Gear}
-                        shouldShowChevron
-                        onPress={noop}
-                    />
                 }
             />
 
@@ -220,12 +211,6 @@ function Comparison() {
                         </MenuItem.Row>
                     </MenuItem.Root>
                 }
-                standard={
-                    <MenuItemStandard
-                        title="Settings"
-                        icon={icons.Gear}
-                    />
-                }
             />
 
             <Card
@@ -255,11 +240,10 @@ function Comparison() {
                         </MenuItem.Row>
                     </MenuItem.Root>
                 }
-                standard={
-                    <MenuItemStandard
+                preset={
+                    <MenuItemNavigation
                         title="Settings"
                         icon={icons.Gear}
-                        shouldShowChevron
                         isDisabled
                         onPress={noop}
                     />
@@ -288,8 +272,8 @@ function Comparison() {
                         </MenuItem.Row>
                     </MenuItem.Root>
                 }
-                standard={
-                    <MenuItemStandard
+                preset={
+                    <MenuItemAction
                         title={'Settings'}
                         icon={icons.Gear}
                         onPress={noop}
@@ -321,11 +305,10 @@ function Comparison() {
                             </MenuItem.Row>
                         </MenuItem.Root>
                     }
-                    standard={
-                        <MenuItemStandard
+                    preset={
+                        <MenuItemNavigation
                             title="Edit columns"
                             icon={icons.Gear}
-                            shouldShowChevron
                             onPress={noop}
                         />
                     }
@@ -357,15 +340,6 @@ function Comparison() {
                                 </MenuItem.Trailing>
                             </MenuItem.Row>
                         </MenuItem.Root>
-                    }
-                    standard={
-                        <MenuItemStandard
-                            title="Edit columns"
-                            description="Choose what to display"
-                            icon={icons.Gear}
-                            shouldShowChevron
-                            onPress={noop}
-                        />
                     }
                 />
             </CompactMenuContext.Provider>

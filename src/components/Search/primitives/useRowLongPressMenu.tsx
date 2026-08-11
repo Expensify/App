@@ -1,4 +1,4 @@
-import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import Modal from '@components/Modal';
 import {useSearchRowSelectionActions} from '@components/Search/SearchContext';
 import type {SearchListItem, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -100,7 +100,7 @@ function useRowLongPressMenu({shouldPreventLongPressRow, isSmallScreenWidth, isM
             onClose={() => setIsModalVisible(false)}
             shouldPreventScrollOnFocus
         >
-            <MenuItemStandard
+            <MenuItemAction
                 title={translate('common.select')}
                 icon={expensifyIcons.CheckSquare}
                 onPress={turnOnSelectionMode}

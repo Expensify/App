@@ -1,4 +1,4 @@
-import MenuItemStandard from '@components/MenuItem/presets/MenuItemStandard';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -62,7 +62,7 @@ function DeleteGroupRow({domainAccountID, groupID}: DeleteGroupRowProps) {
     };
 
     return groupID !== defaultSecurityGroupID ? (
-        <MenuItemStandard
+        <MenuItemAction
             icon={icons.Trashcan}
             title={translate('domain.groups.deleteGroup')}
             onPress={() => {
