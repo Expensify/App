@@ -2031,6 +2031,7 @@ describe('actions/IOU/TrackExpense', () => {
                     comment: 'test comment',
                     receipt: undefined,
                 },
+                isDraftChatReport: false,
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
@@ -2080,6 +2081,7 @@ describe('actions/IOU/TrackExpense', () => {
                     comment: 'test comment false',
                     receipt: undefined,
                 },
+                isDraftChatReport: false,
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
@@ -2113,6 +2115,7 @@ describe('actions/IOU/TrackExpense', () => {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 parentChatReport: policyExpenseChat,
+                isDraftChatReport: false,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
                     payeeAccountID: RORY_ACCOUNT_ID,
@@ -2155,6 +2158,7 @@ describe('actions/IOU/TrackExpense', () => {
                     ...policyExpenseChat,
                     reportID: 'policy-chat-tour-test-2',
                 },
+                isDraftChatReport: false,
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
                     payeeAccountID: RORY_ACCOUNT_ID,
