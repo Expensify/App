@@ -59,11 +59,9 @@ const localeOrdinalMap: Record<Locale, LocaleOrdinals> = {
         other: (count) => `${count}η`,
     },
 
-    /**
-     * Categories: many, other. `many` is selected for 8, 11, 80 and 800, but the numeric ordinal
-     * indicator is the same in both, so only `other` is declared and `many` falls back to it.
-     */
+    /** Categories: many, other. Uses the masculine ordinal indicator. */
     [LOCALES.IT]: {
+        many: (count) => `${count}º`,
         other: (count) => `${count}º`,
     },
 

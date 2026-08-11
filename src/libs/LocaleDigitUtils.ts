@@ -68,17 +68,14 @@ function fromLocaleDigit(locale: Locale | undefined, localeDigit: string): strin
     return STANDARD_DIGITS.at(index) ?? '';
 }
 
-// Constructing Intl.PluralRules is expensive, and this runs once per row in lists like the
-// day-of-month picker, so the instance is cached per locale.
+// Constructing Intl.PluralRules is expensive, and this runs once per row in lists,
+// so the instance is cached per locale.
 const createOrdinalPluralRules = (locale: Locale): Intl.PluralRules => new Intl.PluralRules(locale, {type: 'ordinal'});
 const memoizedCreateOrdinalPluralRules = memoize(createOrdinalPluralRules);
 
 /**
  * Formats a number into its localized ordinal representation, e.g. `1st` in English, `1.` in German
  * or `第1` in Japanese.
- *
- * The ordinal is not always a suffix, which is why each locale renders the whole string rather than
- * something appended to the number.
  *
  * @param locale - The locale to use for formatting. Returns an empty string when absent, matching the
  * placeholder on the locale context.
@@ -95,8 +92,7 @@ function toLocaleOrdinal(locale: Locale | undefined, number: number): string {
     const pluralRule = memoizedCreateOrdinalPluralRules(locale).select(number);
     const localeOrdinalRules = localeOrdinalMap[locale];
 
-    // Each locale declares only the categories it needs, so the selected one may be missing. Italian
-    // selects `many` for 8 and 11, for instance, but shares the same indicator as `other`.
+    // Each locale declares only the categories it needs, so the selected one may be missing.
     const rule = localeOrdinalRules[pluralRule] ?? localeOrdinalRules.other;
     return rule(number);
 }
