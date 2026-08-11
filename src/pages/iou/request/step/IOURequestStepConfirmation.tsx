@@ -638,20 +638,6 @@ function IOURequestStepConfirmation({
     const destinationReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${preMountDestinationReportID}`];
     const promotedDraftReportIDRef = useRef<string | undefined>(undefined);
 
-    // The zero-workspace "Submit to my employer" flow creates the draft policy expense chat report (with the
-    // reportID the real backend commit will eventually use) before this screen mounts - see DraftWorkspaceOpener /
-    // createDraftWorkspace. Copying that draft into COLLECTION.REPORT here is a client-only render aid, not a new
-    // entity: it lets isDestinationReportLoaded pass so pre-mount can render immediately, and the backend success
-    // handler overwrites this same key with confirmed data once submit completes.
-    useEffect(() => {
-        if (!preMountDestinationReportID || destinationReport || !destinationReportDraft) {
-            return;
-        }
-
-        promotedDraftReportIDRef.current = preMountDestinationReportID;
-        promoteDraftReportForPreMount(preMountDestinationReportID, destinationReportDraft);
-    }, [preMountDestinationReportID, destinationReport, destinationReportDraft]);
-
     // All reactive inputs are in the deps; the builder's own live Navigation reads aren't reactive values so they don't belong
     // here. A recompute driven by a non-route-determining dep yields the same string route - a no-op for usePreMountDestination's
     // value-compared [route] effect. A genuine destinationReportID/iouType change yields a new route string and re-pre-inserts,
@@ -662,7 +648,7 @@ function IOURequestStepConfirmation({
             getSubmitExpensePreMountDestinationRoute({
                 isTransactionReady,
                 destinationReportID: preMountDestinationReportID,
-                destinationReport,
+                destinationReport: destinationReport ?? destinationReportDraft,
                 isFromGlobalCreate,
                 canPreInsertSearch,
                 iouType,
@@ -675,6 +661,7 @@ function IOURequestStepConfirmation({
             preMountDestinationReportID,
             optimisticP2PDestinationReportID,
             destinationReport,
+            destinationReportDraft,
             isFromGlobalCreate,
             canPreInsertSearch,
             iouType,
@@ -682,6 +669,22 @@ function IOURequestStepConfirmation({
             isSelfDMDestination,
         ],
     );
+
+    const preMountDestinationReportRoute = preMountDestinationReportID ? ROUTES.REPORT_WITH_ID.getRoute(preMountDestinationReportID) : undefined;
+    const shouldPromoteDestinationDraft = !!preMountDestinationReportRoute && preMountDestinationRoute === preMountDestinationReportRoute;
+
+    // The zero-workspace "Submit to my employer" flow creates the draft policy expense chat report (with the
+    // reportID the real backend commit will eventually use) before this screen mounts - see DraftWorkspaceOpener /
+    // createDraftWorkspace. Copy it into COLLECTION.REPORT only when this report is the eligible pre-mount target.
+    // The backend success handler overwrites the same key with confirmed data once submit completes.
+    useEffect(() => {
+        if (!shouldPromoteDestinationDraft || !preMountDestinationReportID || destinationReport || !destinationReportDraft) {
+            return;
+        }
+
+        promotedDraftReportIDRef.current = preMountDestinationReportID;
+        promoteDraftReportForPreMount(preMountDestinationReportID, destinationReportDraft);
+    }, [shouldPromoteDestinationDraft, preMountDestinationReportID, destinationReport, destinationReportDraft]);
 
     const {reveal: revealPreMountDestination, cleanupPreMount} = usePreMountDestination(preMountDestinationRoute, {
         shouldPreservePreInsertedRouteOnUnmount: () => formHasBeenSubmitted.current,
