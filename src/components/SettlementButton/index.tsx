@@ -208,7 +208,7 @@ function SettlementButton({
         if (isBankAccountValidationFailed && policy?.achAccount?.bankAccountID) {
             const bankConnectionStatus = getBankAccountConnectionStatus(bankAccountList?.[policy.achAccount.bankAccountID]?.accountData);
             if (bankConnectionStatus?.requiresFixHandler) {
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(policy.achAccount.bankAccountID)));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(policy.achAccount.bankAccountID.toString())));
                 return true;
             }
         }

@@ -172,7 +172,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.REPORT,
             SCREENS.SEARCH.ROOT,
         ],
-        getRoute: (bankAccountID: string | number) => `fix-bank-account/${bankAccountID}` as const,
+        getRoute: (bankAccountID: string) => `fix-bank-account/${bankAccountID}` as const,
     },
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'verify-bank-account',
