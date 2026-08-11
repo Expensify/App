@@ -80,7 +80,7 @@ jest.mock('@components/ButtonComposed', () => {
     };
 });
 
-// Sentinel style objects so the row layout is actually observable. With `{flex1: {}}` alone, `styles.flexRow` and
+// Marker style objects so the row layout is actually observable. With `{flex1: {}}` alone, `styles.flexRow` and
 // `styles.gap2` resolved to undefined and were silently dropped from the style array, leaving the two-button row
 // completely untested — a typo'd style key would have passed.
 const mockStyles = {flex1: {flex: 1}, flexRow: {flexDirection: 'row'}, gap2: {gap: 8}};

@@ -883,6 +883,29 @@ describe('MoneyRequestReportPreview', () => {
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: narrowReportRoute()}));
         });
 
+        it('falls back to the parent report when the re-fetch settles with no report actions at all', async () => {
+            // Same shape as the test below, but nothing is ever cached for the report, so the action count stays 0.
+            // The fallback must key off the fetch settling, not off there being actions, or the tap stays dead.
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+            expect(navigateSpy).not.toHaveBeenCalled();
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockIOUReport.reportID}`, {isLoadingInitialReportActions: true});
+                await waitForBatchedUpdatesWithAct();
+            });
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockIOUReport.reportID}`, {isLoadingInitialReportActions: false});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
+        });
+
         it('falls back to the parent report once the re-fetch settles when the expense has no IOU action at all', async () => {
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
