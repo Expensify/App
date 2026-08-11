@@ -4184,6 +4184,8 @@ ${amount} para ${merchant} - ${date}`,
         proofOf: 'Comprovante de endereço residencial',
         enterOneEmail: (companyName: string) => `Insira o e-mail de um diretor em ${companyName}`,
         regulationRequiresOneMoreDirector: 'A regulamentação exige pelo menos mais um diretor como signatário.',
+        bothSignersMustBeOnIllionReport: 'Ambos os signatários devem constar como diretores no relatório illion da empresa. Eles não podem ser quaisquer duas pessoas do negócio.',
+        signerMustBeOnIllionReport: 'O diretor que você adicionar como signatário deve constar no relatório da empresa na illion.',
         hangTight: 'Aguarde um instante...',
         enterTwoEmails: (companyName: string) => `Insira os e-mails de dois diretores em ${companyName}`,
         sendReminder: 'Enviar um lembrete',
@@ -4194,11 +4196,11 @@ ${amount} para ${merchant} - ${date}`,
         proofOfDirectorsDescription: 'Exemplos: Perfil Corporativo Oncorp ou Registro de Empresa.',
         codiceFiscale: 'Código fiscal',
         codiceFiscaleDescription: 'Codice Fiscale para signatários, usuários autorizados e beneficiários finais.',
-        PDSandFSG: 'Documentação de divulgação do PDS + FSG',
+        PDSandFSG: 'Documentação de divulgação PDS, FSG + TMD',
         PDSandFSGDescription: Str.dedent(`
-            Nossa parceria com a Corpay utiliza uma conexão de API para aproveitar sua vasta rede de parceiros bancários internacionais e impulsionar os Reembolsos Globais no Expensify. De acordo com a regulamentação australiana, estamos fornecendo o Guia de Serviços Financeiros (FSG) e o Documento de Divulgação de Produto (PDS) da Corpay.
+            Nossa parceria com a Corpay utiliza uma conexão por API para aproveitar sua ampla rede de parceiros bancários internacionais e viabilizar Reembolsos Globais no Expensify. De acordo com a regulamentação australiana, estamos fornecendo a você o Financial Services Guide (FSG), o Product Disclosure Statement (PDS) e o Target Market Determination (TMD) da Corpay.
 
-            Leia com atenção os documentos FSG e PDS, pois eles contêm todos os detalhes e informações importantes sobre os produtos e serviços oferecidos pela Corpay. Guarde esses documentos para referência futura.
+            Leia atentamente os documentos FSG, PDS e TMD, pois eles contêm todos os detalhes e informações importantes sobre os produtos e serviços oferecidos pela Corpay. Guarde esses documentos para referência futura.
         `),
         pleaseUpload: 'Envie abaixo documentação adicional para nos ajudar a verificar sua identidade como diretor(a) da empresa.',
         enterSignerInfo: 'Insira as informações do assinante',
@@ -4210,6 +4212,8 @@ ${amount} para ${merchant} - ${date}`,
         },
     },
     agreementsStep: {
+        bankStatement: 'Extrato bancário',
+        bankStatementDescription: 'Forneça um extrato bancário recente, datado dos últimos três meses, da conta bancária empresarial que você está conectando.',
         agreements: 'Acordos',
         pleaseConfirm: 'Confirme os acordos abaixo',
         regulationRequiresUs: 'A regulamentação exige que verifiquemos a identidade de qualquer pessoa física que possua mais de 25% do negócio.',
@@ -4218,7 +4222,7 @@ ${amount} para ${merchant} - ${date}`,
         iAcceptTheTermsAndConditions: `Eu aceito os <a href="https://www.corpay.com/cross-border/terms">termos e condições</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'Eu aceito os termos e condições.',
         accept: 'Aceitar e adicionar conta bancária',
-        iConsentToThePrivacyNotice: 'Eu concordo com o <a href="https://payments.corpay.com/compliance">aviso de privacidade</a>.',
+        iConsentToThePrivacyNotice: 'Eu concordo com o <a href="https://www.corpay.com/privacy-policy">aviso de privacidade</a>.',
         iConsentToThePrivacyNoticeAccessibility: 'Eu concordo com o aviso de privacidade.',
         error: {
             authorized: 'Você precisa ser um administrador responsável com autorização para movimentar a conta bancária da empresa',
@@ -5709,6 +5713,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             subsidiarySelectDescription: 'Escolha a subsidiária no DualEntry da qual você gostaria de importar dados.',
             noCompaniesFound: 'Nenhuma empresa encontrada',
             noCompaniesFoundDescription: 'Adicione uma empresa no DualEntry e sincronize a conexão novamente',
+            accountTypesDescription: 'Suas contas DualEntry serão importadas como categorias.',
+            enableNewAccountsTitle: 'Ativar contas recém-importadas',
+            enableNewAccountsDescription: 'Novas contas DualEntry estarão disponíveis como categorias.',
+            classificationsImport: 'Todas as classificações DualEntry são importadas como etiquetas',
+            importDescription: 'Escolha quais configurações de codificação importar do DualEntry.',
         },
         type: {
             free: 'Grátis',
@@ -8604,7 +8613,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) =>
             `alterou a fórmula do nome do relatório personalizado para "${newDefaultTitle}" (antes "${oldDefaultTitle}")`,
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `assumiu a propriedade de ${policyName} de ${oldOwnerName} (${oldOwnerEmail})`,
-        updatedAutoHarvesting: (enabled: boolean) => `Envio agendado ${enabled ? 'ativado' : 'desativado'}`,
         updatedIndividualBudgetNotification: (
             budgetAmount: string,
             budgetFrequency: string,
@@ -8763,6 +8771,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `configurações de fatura copiadas de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `configurações de viagem copiadas de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
+        updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
+            return `alterou os participantes da categoria "${categoryName}" para ${newValue ? 'obrigatório' : 'não obrigatório'} (antes ${newValue ? 'não obrigatório' : 'obrigatório'})`;
+        },
+        updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'ativado' : 'desativado'} envios`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',

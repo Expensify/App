@@ -153,9 +153,11 @@ function useOdometerNavigation({
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const {formatPhoneNumber, dateFnsLocale} = useLocalize();
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
 
     const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
+        dateFnsLocale,
         currentUserAccountID,
         report,
         policy,
@@ -168,14 +170,14 @@ function useOdometerNavigation({
     });
 
     const delegateAccountID = useDelegateAccountID();
-    const {formatPhoneNumber} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     return ({odometerStart, odometerEnd, odometerDistance, unit, previousOdometerDraft}: NavigateOptions) => {
         const optimisticTransactionID = rand64();
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
         handleMoneyRequestStepDistanceNavigation({
+            getCurrencyDecimals,
             iouType,
             action,
             report,

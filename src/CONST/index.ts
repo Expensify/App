@@ -2259,6 +2259,7 @@ const CONST = {
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
         ATTRIBUTE_FAILED: 'failed',
         ATTRIBUTE_IS_WARM: 'is_warm',
+        ATTRIBUTE_IS_STARTUP: 'is_startup',
         ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN: 'lazy_tab_fallback_shown',
         // Stamped on the navigate-to-inbox-tab span: wide-layout navigations mount the central report
         // pane in the same commit as the sidebar, so they measure a much bigger workload than narrow ones.
@@ -8568,6 +8569,7 @@ const CONST = {
             IMAGE: 'HTMLRenderer-Image',
             PRE: 'HTMLRenderer-Pre',
             VICTORY_CHART_EXPAND_BUTTON: 'HTMLRenderer-VictoryChartExpandButton',
+            TABLE_ROW: 'HTMLRenderer-TableRow',
         },
         RECEIPT: {
             IMAGE: 'Receipt-Image',

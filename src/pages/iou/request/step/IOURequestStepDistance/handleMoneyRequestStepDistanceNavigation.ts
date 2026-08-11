@@ -101,6 +101,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     policyTagList: PolicyTagLists;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     participants: Array<Participant | OptionData>;
     participantsPolicyTags: ParticipantsPolicyTags;
 };
@@ -202,6 +203,7 @@ function handleMoneyRequestStepDistanceNavigation({
     policyTagList,
     formatPhoneNumber,
     getCurrencySymbol,
+    getCurrencyDecimals,
     participants,
     participantsPolicyTags,
 }: MoneyRequestStepDistanceNavigationParams): void {
@@ -326,6 +328,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             currentUserLocalCurrency,
                             delegateAccountID,
                             reportActionsList: undefined,
+                            getCurrencyDecimals,
                         });
                         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                             report,
@@ -404,6 +407,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         isTrackIntentUser,
                         delegateAccountID,
                         formatPhoneNumber,
+                        getCurrencyDecimals,
                         participantsPolicyTags,
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
