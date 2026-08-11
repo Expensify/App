@@ -62,8 +62,6 @@ Depending on the report status and your role, the primary action button may say:
 
 **Note:** If your workspace does not use an approval workflow, you'll see **Mark as done** instead of **Submit** and **Approve**. 
 
-**Note:** In a Submit workspace, you won't see **Approve** on reports you submit yourself—this prevents self-approval. You'll still see **Mark as paid** to track reports that were reimbursed outside of Expensify.
-
 ---
 
 # Special Actions
