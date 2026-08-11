@@ -1,3 +1,5 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import measureTextWidth from '@libs/measureTextWidth';
 
 import variables from '@styles/variables';
@@ -8,18 +10,6 @@ import type {DynamicColumnConstraints} from './calculateDynamicColumnWidths';
 import type {TableColumn, TableData} from './types';
 
 import calculateDynamicColumnWidths from './calculateDynamicColumnWidths';
-
-/** Horizontal margin on the header row and every data row (`styles.mh5`). */
-const ROW_HORIZONTAL_MARGIN = 20;
-
-/** Horizontal padding inside the header row and every data row on wide layouts (`styles.ph3`). */
-const ROW_HORIZONTAL_PADDING = 12;
-
-/** Gap between columns (`styles.gap3`). */
-const COLUMN_GAP = 12;
-
-/** Width the sort arrow adds to a header label (`variables.iconSizeExtraSmall` plus `styles.ml1`). */
-const SORT_ICON_WIDTH = variables.iconSizeExtraSmall + 4;
 
 /**
  * How many of the longest candidate strings are measured per column. Character count is a good but imperfect proxy for
@@ -103,14 +93,14 @@ function measureColumnContentWidth<DataType extends TableData, ColumnKey extends
  * Measures how wide a column's header label renders, or `null` when the platform can't measure text. The label is
  * measured in the bold font the header uses while the column is sorted, so sorting a column never truncates its label.
  */
-function measureHeaderLabelWidth(label: string): number | null {
+function measureHeaderLabelWidth(label: string, sortIconWidth: number): number | null {
     const width = measureTextWidth(label, {fontSize: variables.fontSizeSmall, fontWeight: '700'});
 
     if (width === null) {
         return null;
     }
 
-    return width === 0 ? 0 : width + SORT_ICON_WIDTH;
+    return width === 0 ? 0 : width + sortIconWidth;
 }
 
 /**
@@ -131,6 +121,8 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     isEnabled,
     hasSelectionColumn,
 }: UseDynamicColumnWidthsParams<DataType, ColumnKey>): {gridTemplateColumns: string[] | undefined; scrollWidth: number | undefined} {
+    const styles = useThemeStyles();
+
     // This `useMemo` is load-bearing rather than redundant: it is the only hook call here, so without it the React
     // Compiler sees a plain function instead of a hook and memoizes nothing (both compilers report `no-components`).
     // The measurement below would then re-run on every render, including on every keystroke in the table's search box.
@@ -156,9 +148,9 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
 
         const selectionColumnWidth = hasSelectionColumn ? variables.tableCheckboxColumnWidth : 0;
         const totalColumnCount = columns.length + (hasSelectionColumn ? 1 : 0);
-        const totalGapWidth = Math.max(totalColumnCount - 1, 0) * COLUMN_GAP;
+        const totalGapWidth = Math.max(totalColumnCount - 1, 0) * styles.gap3.gap;
         const fixedColumnsWidth = fixedColumns.reduce((total, column) => total + column.width, 0);
-        const rowChromeWidth = (ROW_HORIZONTAL_MARGIN + ROW_HORIZONTAL_PADDING) * 2;
+        const rowChromeWidth = (styles.mh5.marginHorizontal + styles.ph3.paddingHorizontal) * 2;
         const availableWidth = tableWidth - rowChromeWidth - totalGapWidth - fixedColumnsWidth - selectionColumnWidth;
 
         if (availableWidth <= 0) {
@@ -169,7 +161,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
 
         for (const column of dynamicColumns) {
             const contentWidth = measureColumnContentWidth(column, data);
-            const headerLabelWidth = measureHeaderLabelWidth(column.label);
+            const headerLabelWidth = measureHeaderLabelWidth(column.label, variables.iconSizeExtraSmall + styles.ml1.marginLeft);
 
             // Text measurement is unavailable (native), so the table keeps its static, content-independent tracks.
             if (contentWidth === null || headerLabelWidth === null) {
@@ -215,7 +207,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         const scrollWidth = widths.reduce((total, width) => total + width, 0) + fixedColumnsWidth + selectionColumnWidth + totalGapWidth + rowChromeWidth;
 
         return {gridTemplateColumns, scrollWidth};
-    }, [columns, data, tableWidth, isEnabled, hasSelectionColumn]);
+    }, [columns, data, tableWidth, isEnabled, hasSelectionColumn, styles.mh5.marginHorizontal, styles.ph3.paddingHorizontal, styles.gap3.gap, styles.ml1.marginLeft]);
 }
 
 export default useDynamicColumnWidths;
