@@ -10,16 +10,21 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 
 import HeaderLoadingBar from './HeaderLoadingBar';
@@ -86,9 +91,27 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const singleTransactionID = transactions.length === 1 ? transactions.at(0)?.transactionID : undefined;
 
+    // Fallback anchor for a transaction thread, read straight off its parent IOU action.
+    //
+    // `singleTransactionID` above comes from the report-transactions derived value, which is indexed by report and is
+    // not always populated for a thread that was reached without pressing a row (back navigation, or returning from a
+    // merge). When it isn't, the header could not name the expense it was showing, so it fell back to the report
+    // carousel — which renders nothing on an expense search — and the carousel vanished even though the sibling list
+    // was correct. The parent action is the thread's own definition of which expense it shows, so it doesn't depend on
+    // that index being warm. A selector keeps this to a primitive so unrelated action churn can't re-render the header.
+    const threadParentReportActionID = moneyRequestReport?.parentReportActionID;
+    const threadTransactionIDSelector = useCallback(
+        (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
+            const parentReportAction = threadParentReportActionID ? parentReportActions?.[threadParentReportActionID] : undefined;
+            return isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
+        },
+        [threadParentReportActionID],
+    );
+    const [threadTransactionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.parentReportID)}`, {selector: threadTransactionIDSelector});
+
     const anchorTransactionIDFromRoute = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route.params.anchorTransactionID : undefined;
     const multiTxAnchorTransactionID = anchorTransactionIDFromRoute && activeTransactionIDs?.includes(anchorTransactionIDFromRoute) ? anchorTransactionIDFromRoute : undefined;
-    const carouselAnchorTransactionID = singleTransactionID ?? multiTxAnchorTransactionID;
+    const carouselAnchorTransactionID = singleTransactionID ?? threadTransactionID ?? multiTxAnchorTransactionID;
     const shouldShowTransactionNavigation = !!carouselAnchorTransactionID && !!activeTransactionIDs?.includes(carouselAnchorTransactionID);
 
     const styles = useThemeStyles();

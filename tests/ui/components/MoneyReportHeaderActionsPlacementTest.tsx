@@ -25,6 +25,11 @@ const CHAT_REPORT_ID = '2001';
 const HEADER_ROW_TEST_ID = 'header-row';
 const ACTIONS_TEST_ID = 'header-actions';
 const REPORT_CAROUSEL_TEST_ID = 'report-carousel';
+const TRANSACTIONS_CAROUSEL_TEST_ID = 'transactions-carousel';
+
+const PARENT_REPORT_ID = '3001';
+const PARENT_ACTION_ID = 'parentAction1';
+const THREAD_TRANSACTION_ID = 'thread-tx-1';
 
 /** A 1:1 DM IOU report: `isDM` is true for its chat report, and there is no next step or status bar to show. */
 const iouReport = {reportID: REPORT_ID, chatReportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.IOU} as Report;
@@ -97,7 +102,11 @@ jest.mock('@components/MoneyRequestReportView/MoneyRequestReportNavigation', () 
     const {View} = jest.requireActual<{View: React.ComponentType<{testID?: string; children?: React.ReactNode}>}>('react-native');
     return jest.fn(() => reactModule.createElement(View, {testID: 'report-carousel'}));
 });
-jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionsNavigation', () => jest.fn(() => null));
+jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionsNavigation', () => {
+    const reactModule = jest.requireActual<typeof React>('react');
+    const {View} = jest.requireActual<{View: React.ComponentType<{testID?: string; children?: React.ReactNode}>}>('react-native');
+    return jest.fn(() => reactModule.createElement(View, {testID: 'transactions-carousel'}));
+});
 
 const mockedUseOnyx = jest.mocked(useOnyx);
 const mockedUseRoute = jest.mocked(useRoute);
@@ -233,5 +242,74 @@ describe('MoneyReportHeader actions placement', () => {
         expect(getHeaderRowTestIDs(toJSON())).not.toContain(ACTIONS_TEST_ID);
         expect(mockedActions).not.toHaveBeenCalled();
         expect(mockedMoreContent.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({shouldRenderActionsInRow: true}));
+    });
+});
+
+describe('MoneyReportHeader transaction carousel anchor', () => {
+    const threadReport = {
+        reportID: REPORT_ID,
+        chatReportID: CHAT_REPORT_ID,
+        parentReportID: PARENT_REPORT_ID,
+        parentReportActionID: PARENT_ACTION_ID,
+        type: CONST.REPORT.TYPE.CHAT,
+    } as Report;
+
+    const parentIOUAction = {
+        reportActionID: PARENT_ACTION_ID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+        originalMessage: {IOUTransactionID: THREAD_TRANSACTION_ID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+    };
+
+    /** Mirrors the failing state: the derived transactions index has nothing for this thread. */
+    function mockThread({activeIDs, parentActions}: {activeIDs: string[]; parentActions: Record<string, unknown> | undefined}) {
+        // The anchor is read through a `selector`, so the mock has to apply it the way useOnyx does.
+        mockedUseOnyx.mockImplementation((key, options) => {
+            const rawValue = (() => {
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`) {
+                    return threadReport;
+                }
+                if (key === ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS) {
+                    return activeIDs;
+                }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`) {
+                    return parentActions;
+                }
+                return undefined;
+            })();
+            const {selector} = options ?? {};
+            const value = selector ? selector(rawValue) : rawValue;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- useOnyx's result type can't express "value depends on the key", and each branch above returns the shape its own key really holds
+            return [value as NonNullable<unknown> | undefined, {status: 'loaded'}];
+        });
+        mockedUseRoute.mockReturnValue({key: 'route-1', name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, params: {}});
+    }
+
+    beforeEach(() => {
+        mockedMoreContentVisibility.mockReturnValue({statusBarType: undefined, shouldShowNextStep: false, hasStatusOrNextStep: false});
+        mockedUseReportPrimaryAction.mockReturnValue(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    });
+
+    it('renders the transaction carousel using the parent IOU action when the derived index is cold', () => {
+        mockThread({activeIDs: ['other-tx', THREAD_TRANSACTION_ID], parentActions: {[PARENT_ACTION_ID]: parentIOUAction}});
+
+        const {toJSON} = renderHeader();
+
+        expect(getHeaderRowTestIDs(toJSON())).toContain(TRANSACTIONS_CAROUSEL_TEST_ID);
+    });
+
+    it('does not render it when the resolved expense is not one of the carousel siblings', () => {
+        mockThread({activeIDs: ['other-tx', 'unrelated-tx'], parentActions: {[PARENT_ACTION_ID]: parentIOUAction}});
+
+        const {toJSON} = renderHeader();
+
+        expect(getHeaderRowTestIDs(toJSON())).not.toContain(TRANSACTIONS_CAROUSEL_TEST_ID);
+    });
+
+    it('does not render it when the parent action is unavailable, so there is no expense to anchor to', () => {
+        mockThread({activeIDs: ['other-tx', THREAD_TRANSACTION_ID], parentActions: undefined});
+
+        const {toJSON} = renderHeader();
+
+        expect(getHeaderRowTestIDs(toJSON())).not.toContain(TRANSACTIONS_CAROUSEL_TEST_ID);
     });
 });

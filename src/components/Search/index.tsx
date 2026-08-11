@@ -24,7 +24,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
-import {clearActiveTransactionIDs, getActiveTransactionIDsSyncAction, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {clearActiveTransactionIDs, setActiveTransactionIDs, shouldWriteActiveTransactionIDsForSearch} from '@libs/actions/TransactionThreadNavigation';
 import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -704,14 +704,10 @@ function Search({
         if (shouldShowLoadingState) {
             return;
         }
-        const syncAction = getActiveTransactionIDsSyncAction(activeCarouselTransactionIDs, activeCarouselSnapshotHash, hash, carouselSiblingTransactionIDs);
-        if (syncAction === 'clear') {
-            clearActiveTransactionIDs();
+        if (!shouldWriteActiveTransactionIDsForSearch(activeCarouselTransactionIDs, activeCarouselSnapshotHash, hash, carouselSiblingTransactionIDs)) {
             return;
         }
-        if (syncAction === 'refresh') {
-            setActiveTransactionIDs(carouselSiblingTransactionIDs, hash);
-        }
+        setActiveTransactionIDs(carouselSiblingTransactionIDs, hash);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- carouselSiblingsKey is an order-sensitive proxy for the array, which is rebuilt on every search data change
     }, [carouselSiblingsKey, activeCarouselSnapshotHash, activeCarouselTransactionIDs, hash, shouldShowLoadingState]);
 
