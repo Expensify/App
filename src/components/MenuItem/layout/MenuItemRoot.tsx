@@ -1,5 +1,6 @@
 import Hoverable from '@components/Hoverable';
 import useIsCompactPopover from '@components/MenuItem/hooks/useIsCompactPopover';
+import useRemoveNonInteractiveClickHandler from '@components/MenuItem/hooks/useRemoveNonInteractiveClickHandler';
 import MenuItemAccessibilityContext, {useMenuItemAccessibility} from '@components/MenuItem/MenuItemAccessibilityContext';
 import {MenuItemConfigContext, MenuItemInteractionContext} from '@components/MenuItem/MenuItemContext';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -17,7 +18,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type {PropsWithChildren} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
-import React, {useEffect, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 type MenuItemRootProps = PropsWithChildren &
@@ -45,17 +46,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, acces
 
     const {accessibilityLabel: derivedAccessibilityLabel, accessibilityActions} = useMenuItemAccessibility();
 
-    useEffect(() => {
-        const element = pressableRef.current;
-        if (isInteractive || !element || typeof HTMLElement === 'undefined' || !(element instanceof HTMLElement) || typeof element.onclick === 'undefined') {
-            return;
-        }
-        // React Native Web's Pressable always attaches an onClick handler to the DOM element.
-        // TalkBack on Android web uses the presence of a click event listener to determine whether
-        // an element is clickable and announces "double tap to activate" even for non-interactive elements.
-        // Removing the onclick property prevents TalkBack from treating the element as clickable.
-        element.onclick = null;
-    }, [isInteractive]);
+    useRemoveNonInteractiveClickHandler(pressableRef, isInteractive);
 
     const onPressAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         if (isDisabled || !isInteractive) {

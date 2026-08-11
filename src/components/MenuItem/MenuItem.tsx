@@ -59,8 +59,10 @@ import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
+
+import useRemoveNonInteractiveClickHandler from './hooks/useRemoveNonInteractiveClickHandler';
 
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
@@ -640,17 +642,7 @@ function MenuItem({
     const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const popoverAnchor = useRef<View>(null);
     const pressableRef = useRef<View>(null);
-    useEffect(() => {
-        const element = pressableRef.current;
-        if (interactive || !element || typeof HTMLElement === 'undefined' || !(element instanceof HTMLElement) || typeof element.onclick === 'undefined') {
-            return;
-        }
-        // React Native Web's Pressable always attaches an onClick handler to the DOM element.
-        // TalkBack on Android web uses the presence of a click event listener to determine whether
-        // an element is clickable and announces "double tap to activate" even for non-interactive elements.
-        // Removing the onclick property prevents TalkBack from treating the element as clickable.
-        element.onclick = null;
-    }, [interactive]);
+    useRemoveNonInteractiveClickHandler(pressableRef, interactive);
     const deviceHasHoverSupport = hasHoverSupport();
     const isCompactMenu = useIsCompactMenu();
     const isCompactPopoverItem = isCompactMenu && !isSmallScreenWidth && !shouldIgnoreCompactStyle;
