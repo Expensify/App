@@ -822,6 +822,7 @@ type ChangeTransactionsReportProps = {
     isTrackIntentUser: boolean | undefined;
     personalPolicyOutputCurrency: string | undefined;
     selfDMReportActions: OnyxEntry<ReportActions>;
+    delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
@@ -841,6 +842,7 @@ function getChangeTransactionsReportOnyxData({
     isTrackIntentUser,
     personalPolicyOutputCurrency,
     selfDMReportActions,
+    delegateAccountID,
     getCurrencyDecimals,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -1657,7 +1659,7 @@ function getChangeTransactionsReportOnyxData({
 
         // Build unhold report action only when moving to unreported (self DM) report
         if (isUnreported && isOnHold(transaction)) {
-            const unHoldAction = buildOptimisticUnHoldReportAction();
+            const unHoldAction = buildOptimisticUnHoldReportAction(delegateAccountID);
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
