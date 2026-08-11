@@ -1710,17 +1710,17 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             bulkSubtitle: 'Wybierz opcję, aby zmienić akceptującego dla tych raportów.',
             delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
-                `Ten raport został wysłany do <mention-user>@${originalManager}</mention-user> zamiast do ciebie (jego Zastępcy na czas urlopu), ponieważ nie jesteś członkiem polityki tego raportu`,
+                `Ten raport został wysłany do <mention-user>@${originalManager}</mention-user> zamiast do ciebie (twojego Zastępcy na czas urlopu), ponieważ nie jesteś członkiem polityki tego raportu`,
             delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
-                `Ten raport został wysłany do ciebie zamiast do twojego Zastępcy na czas urlopu <mention-user>@${delegate}</mention-user>, ponieważ nie jest on członkiem polityki tego raportu`,
+                `Ten raport został wysłany do ciebie zamiast do twojego zastępcy urlopowego <mention-user>@${delegate}</mention-user>, ponieważ nie jest on członkiem polityki tego raportu`,
             delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
-                `Ten raport został wysłany do <mention-user>@${originalManager}</mention-user> zamiast do jego zastępcy na czas urlopu <mention-user>@${delegate}</mention-user>, ponieważ nie jest on członkiem polityki tego raportu`,
+                `Ten raport został wysłany do <mention-user>@${originalManager}</mention-user>, a nie do Zastępcy na czas urlopu <mention-user>@${delegate}</mention-user>, ponieważ nie jest on członkiem polityki tego raportu`,
             delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
                 `Ten raport został wysłany do <mention-user>@${originalManager}</mention-user> do zatwierdzenia, ponieważ nie możesz zatwierdzać własnych raportów`,
             delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
-                `Ten raport został wysłany do ciebie do zatwierdzenia, ponieważ twój zastępca urlopowy, <mention-user>@${delegate}</mention-user>, nie może zatwierdzać własnych raportów`,
+                `Ten raport został wysłany do ciebie do zatwierdzenia, ponieważ twój Zastępca na czas urlopu, <mention-user>@${delegate}</mention-user>, nie może zatwierdzać swoich własnych raportów`,
             delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
-                `Ten raport został wysłany do <mention-user>@${originalManager}</mention-user> do zatwierdzenia, ponieważ jego Zastępca na czas urlopu, <mention-user>@${delegate}</mention-user>, nie może zatwierdzać własnych raportów`,
+                `Ten raport został wysłany do <mention-user>@${originalManager}</mention-user> do zatwierdzenia, ponieważ ich Zastępca na czas urlopu, <mention-user>@${delegate}</mention-user>, nie może zatwierdzać własnych raportów`,
         },
         chooseWorkspace: 'Wybierz przestrzeń roboczą',
         routedDueToDEW: (to: string, reason?: string) => `raport przekazany do ${to}${reason ? ` bo ${reason}` : ''}`,

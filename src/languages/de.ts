@@ -1721,15 +1721,15 @@ const translations: TranslationDeepObject<typeof en> = {
             delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
                 `Dieser Bericht wurde an <mention-user>@${originalManager}</mention-user> statt an Sie (deren Urlaubsvertretung) gesendet, weil Sie kein Mitglied der Richtlinie dieses Berichts sind`,
             delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
-                `Dieser Bericht wurde Ihnen anstelle Ihres Vertretenden im Urlaub <mention-user>@${delegate}</mention-user> gesendet, da diese Person kein Mitglied der Richtlinie dieses Berichts ist`,
+                `Dieser Bericht wurde Ihnen anstelle Ihrer Urlaubsvertretung <mention-user>@${delegate}</mention-user> gesendet, weil sie kein Mitglied der Richtlinie dieses Berichts ist.`,
             delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
                 `Dieser Bericht wurde an <mention-user>@${originalManager}</mention-user> statt an die Urlaubsvertretung <mention-user>@${delegate}</mention-user> gesendet, weil diese Person kein Mitglied der Richtlinie dieses Berichts ist`,
             delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
-                `Dieser Report wurde zur Genehmigung an <mention-user>@${originalManager}</mention-user> gesendet, da Sie Ihre eigenen Reports nicht genehmigen können`,
+                `Dieser Bericht wurde zur Genehmigung an <mention-user>@${originalManager}</mention-user> gesendet, da Sie Ihre eigenen Berichte nicht genehmigen können`,
             delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
-                `Dieser Bericht wurde Ihnen zur Genehmigung gesendet, da Ihre Urlaubsvertretung, <mention-user>@${delegate}</mention-user>, ihre eigenen Berichte nicht genehmigen kann`,
+                `Dieser Bericht wurde Ihnen zur Genehmigung gesendet, da Ihre Vertretung im Urlaub, <mention-user>@${delegate}</mention-user>, ihre eigenen Berichte nicht genehmigen kann.`,
             delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
-                `Dieser Bericht wurde zur Genehmigung an <mention-user>@${originalManager}</mention-user> gesendet, da ihre Urlaubsvertretung, <mention-user>@${delegate}</mention-user>, ihre eigenen Berichte nicht genehmigen kann`,
+                `Dieser Bericht wurde zur Genehmigung an <mention-user>@${originalManager}</mention-user> gesendet, da deren Urlaubsvertretung, <mention-user>@${delegate}</mention-user>, eigene Berichte nicht genehmigen kann`,
         },
         chooseWorkspace: 'Wähle einen Arbeitsbereich',
         routedDueToDEW: (to: string, reason?: string) => `Bericht weitergeleitet an ${to}${reason ? ` weil ${reason}` : ''}`,

@@ -1718,17 +1718,17 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             bulkSubtitle: "Scegli un'opzione per cambiare l'approvatore di questi report.",
             delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
-                `Questo rapporto è stato inviato a <mention-user>@${originalManager}</mention-user> invece che a te (il loro Sostituto per le ferie) perché non fai parte della polizza di questo rapporto`,
+                `Questo report è stato inviato a <mention-user>@${originalManager}</mention-user> invece che a te (il loro Delegato per le ferie) perché non fai parte della policy di questo report`,
             delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
-                `Questo resoconto è stato inviato a te invece che al tuo delegato per le vacanze <mention-user>@${delegate}</mention-user> perché non è un membro della policy di questo resoconto`,
+                `Questo report è stato inviato a te invece che al tuo delegato per le vacanze <mention-user>@${delegate}</mention-user> perché non è un membro della policy di questo report`,
             delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
-                `Questo resoconto è stato inviato a <mention-user>@${originalManager}</mention-user> invece che al/dei suo/i sostituto/i per le ferie <mention-user>@${delegate}</mention-user> perché non fanno parte della polizza di questo resoconto`,
+                `Questo report è stato inviato a <mention-user>@${originalManager}</mention-user> invece che al/la suo/a delegato/a per le vacanze <mention-user>@${delegate}</mention-user> perché non è membro della policy di questo report`,
             delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
-                `Questo resoconto è stato inviato a <mention-user>@${originalManager}</mention-user> per l'approvazione perché tu non puoi approvare i tuoi resoconti`,
+                `Questo resoconto è stato inviato a <mention-user>@${originalManager}</mention-user> per l'approvazione, dato che non puoi approvare i tuoi stessi resoconti`,
             delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
-                `Questo rendiconto ti è stato inviato per l'approvazione perché il tuo sostituto per le ferie, <mention-user>@${delegate}</mention-user>, non può approvare i propri rendiconti`,
+                `Questo resoconto ti è stato inviato per l'approvazione perché il tuo delegato per le vacanze, <mention-user>@${delegate}</mention-user>, non può approvare i propri resoconti`,
             delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
-                `Questo resoconto è stato inviato a <mention-user>@${originalManager}</mention-user> per l’approvazione, dato che il suo delegato per le ferie, <mention-user>@${delegate}</mention-user>, non può approvare i propri resoconti`,
+                `Questo report è stato inviato a <mention-user>@${originalManager}</mention-user> per l'approvazione, dato che il/la suo/a Delegato/a per le ferie, <mention-user>@${delegate}</mention-user>, non può approvare i propri report`,
         },
         chooseWorkspace: 'Scegli uno spazio di lavoro',
         routedDueToDEW: (to: string, reason?: string) => `report indirizzato a ${to}${reason ? ` perché ${reason}` : ''}`,
