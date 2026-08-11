@@ -126,7 +126,7 @@ function PerDiemFields({perDiemCustomUnit, transaction, isReadOnly, didConfirm, 
                     if (!transactionID) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.getRoute(action, iouType, transactionID, reportID));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.path));
                 }}
                 disabled={didConfirm}
                 interactive={!isReadOnly}
