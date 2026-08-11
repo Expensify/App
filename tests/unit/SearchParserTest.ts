@@ -1,5 +1,4 @@
-import type {SearchQueryJSON} from '@components/Search/types';
-
+import {isRecord} from '@libs/ObjectUtils';
 import {parse} from '@libs/SearchParser/searchParser';
 
 import CONST from '@src/CONST';
@@ -1520,30 +1519,35 @@ const limitTests = [
     },
 ];
 
+function parseSearchQueryWithoutRawFilters(query: string): Record<string, unknown> {
+    const parsed: unknown = parse(query);
+    if (!isRecord(parsed)) {
+        throw new Error('Expected search parser to return a record');
+    }
+    const {rawFilterList, ...resultWithoutRawFilters} = parsed;
+    return resultWithoutRawFilters;
+}
+
 describe('search parser', () => {
     test.each(tests)(`parsing: $query`, ({query, expected}) => {
-        const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
-        expect(resultWithoutRawFilters).toEqual(expected);
+        expect(parseSearchQueryWithoutRawFilters(query)).toEqual(expected);
     });
 });
 
 describe('Testing search parser with special characters and wrapped in quotes.', () => {
     test.each(keywordTests)(`parsing: $query`, ({query, expected}) => {
-        const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
-        expect(resultWithoutRawFilters).toEqual(expected);
+        expect(parseSearchQueryWithoutRawFilters(query)).toEqual(expected);
     });
 });
 
 describe('search parser - view and groupBy defaults', () => {
     test.each(viewAndGroupByTests)(`parsing: $query`, ({query, expected}) => {
-        const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
-        expect(resultWithoutRawFilters).toEqual(expected);
+        expect(parseSearchQueryWithoutRawFilters(query)).toEqual(expected);
     });
 });
 
 describe('search parser - limit filter', () => {
     test.each(limitTests)('$description: $query', ({query, expected}) => {
-        const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
-        expect(resultWithoutRawFilters).toEqual(expected);
+        expect(parseSearchQueryWithoutRawFilters(query)).toEqual(expected);
     });
 });

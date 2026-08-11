@@ -115,8 +115,7 @@ function OptionRow({
     const fullTitle = isMultilineSupported ? text.trimStart() : text;
     const indentsLength = text.length - fullTitle.length;
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
-    const textStyle = optionIsFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
-    const textUnreadStyle = boldStyle || option.boldStyle ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
+    const textUnreadStyle = boldStyle || option.boldStyle ? [styles.sidebarLinkText, styles.sidebarLinkTextBold] : [styles.sidebarLinkText];
     const displayNameStyle: StyleProp<TextStyle> = [
         styles.optionDisplayName,
         textUnreadStyle,
@@ -126,7 +125,7 @@ function OptionRow({
         isMultilineSupported ? {paddingLeft} : {},
     ];
     const alternateTextStyle: StyleProp<TextStyle> = [
-        textStyle,
+        styles.sidebarLinkText,
         styles.optionAlternateText,
         styles.textLabelSupporting,
         style,

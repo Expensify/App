@@ -18,6 +18,7 @@ import usePageRefresh from '@hooks/usePageRefresh';
 
 import CONST from '@src/CONST';
 import lazyRetry from '@src/utils/lazyRetry';
+import retryDynamicImport from '@src/utils/retryDynamicImport';
 
 import type {ComponentType} from 'react';
 
@@ -211,6 +212,105 @@ describe('ChunkLoadError recovery', () => {
 
             expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
             expect(reloadMock).not.toHaveBeenCalled();
+        });
+    });
+
+    // Covers non-component dynamic imports (e.g. the locale bundles in IntlStore), which before the
+    // shared ladder rejected with nothing catching them — the "green screen of death" stuck boot splash.
+    describe('retryDynamicImport (non-component imports)', () => {
+        const chunkError = Object.assign(new Error('Loading chunk 9345 failed.'), {name: 'ChunkLoadError'});
+        const RETRY_KEY = 'locale:en';
+        const stateKey = `${CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED}:${RETRY_KEY}`;
+
+        it('plain-reloads on the first failure without clearing caches', async () => {
+            sessionStorage.removeItem(stateKey);
+            const failingImport = jest.fn().mockRejectedValue(chunkError);
+
+            retryDynamicImport(failingImport, RETRY_KEY).catch(() => {});
+            await flushMicrotasks();
+
+            expect(reloadMock).toHaveBeenCalledTimes(1);
+            expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+            expect(callOrder).toEqual(['reload']);
+        });
+
+        it('clears SW caches before reloading on the second ChunkLoadError failure when online', async () => {
+            sessionStorage.setItem(stateKey, 'true');
+            jest.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
+            const failingImport = jest.fn().mockRejectedValue(chunkError);
+
+            retryDynamicImport(failingImport, RETRY_KEY).catch(() => {});
+            await flushMicrotasks();
+
+            expect(mockClearWorkboxRecoveryCaches).toHaveBeenCalledTimes(1);
+            expect(reloadMock).toHaveBeenCalledTimes(1);
+            expect(callOrder).toEqual(['clear', 'reload']);
+        });
+
+        it('rejects on the third failure so the caller can surface it instead of reloading forever', async () => {
+            sessionStorage.setItem(stateKey, 'cache-cleared');
+            const failingImport = jest.fn().mockRejectedValue(chunkError);
+
+            await expect(retryDynamicImport(failingImport, RETRY_KEY)).rejects.toThrow('Loading chunk 9345 failed.');
+            await flushMicrotasks();
+
+            expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+            expect(reloadMock).not.toHaveBeenCalled();
+        });
+
+        it('rejects without clearing caches on the second failure when offline to preserve the offline shell', async () => {
+            sessionStorage.setItem(stateKey, 'true');
+            jest.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+            const failingImport = jest.fn().mockRejectedValue(chunkError);
+
+            await expect(retryDynamicImport(failingImport, RETRY_KEY)).rejects.toBeDefined();
+            await flushMicrotasks();
+
+            expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+            expect(reloadMock).not.toHaveBeenCalled();
+        });
+
+        it('resets the retry state on a successful import', async () => {
+            sessionStorage.setItem(stateKey, 'true');
+            const successfulImport = jest.fn().mockResolvedValue({default: 'translations'});
+
+            await retryDynamicImport(successfulImport, RETRY_KEY);
+            await flushMicrotasks();
+
+            expect(sessionStorage.getItem(stateKey)).toBe('false');
+            expect(reloadMock).not.toHaveBeenCalled();
+        });
+
+        // Without the storage guard the retry state can never advance, so every attempt would reload again — an infinite reload loop.
+        it('rejects instead of reloading when the retry state cannot be read', async () => {
+            const getItemSpy = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+                throw new Error('SecurityError: sessionStorage is not available');
+            });
+            const failingImport = jest.fn().mockRejectedValue(chunkError);
+
+            await expect(retryDynamicImport(failingImport, RETRY_KEY)).rejects.toBeDefined();
+            await flushMicrotasks();
+
+            expect(reloadMock).not.toHaveBeenCalled();
+            expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+
+            getItemSpy.mockRestore();
+        });
+
+        it('rejects instead of reloading when the retry state cannot be written', async () => {
+            sessionStorage.removeItem(stateKey);
+            const setItemSpy = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+                throw new Error('QuotaExceededError');
+            });
+            const failingImport = jest.fn().mockRejectedValue(chunkError);
+
+            await expect(retryDynamicImport(failingImport, RETRY_KEY)).rejects.toBeDefined();
+            await flushMicrotasks();
+
+            expect(reloadMock).not.toHaveBeenCalled();
+            expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+
+            setItemSpy.mockRestore();
         });
     });
 });

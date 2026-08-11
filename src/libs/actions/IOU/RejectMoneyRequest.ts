@@ -1,3 +1,5 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {MarkTransactionViolationAsResolvedParams, RejectExpenseReportParams, RejectMoneyRequestParams, SetNameValuePairParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -5,7 +7,7 @@ import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {navigationRef} from '@libs/Navigation/Navigation';
-import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {
@@ -111,19 +113,33 @@ function dismissRejectUseExplanation() {
  *   - sharedRejectedToReportID: When rejecting multiple expenses sequentially, pass a single shared destination reportID so all rejections land in the same new report.
  * @returns optimisticData, successData, failureData, parameters, urlToNavigateBack
  */
-function prepareRejectMoneyRequestData(
-    transactionID: string,
-    reportID: string,
-    comment: string,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    currentUserAccountIDParam: number,
-    currentUserLogin: string,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    options?: RejectMoneyRequestOptions,
-    shouldUseBulkAction?: boolean,
-    // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined,
-): RejectMoneyRequestData | undefined {
+type PrepareRejectMoneyRequestDataParams = {
+    transactionID: string;
+    reportID: string;
+    comment: string;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    currentUserAccountIDParam: number;
+    currentUserLogin: string;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    options?: RejectMoneyRequestOptions;
+    shouldUseBulkAction?: boolean;
+};
+
+function prepareRejectMoneyRequestData({
+    transactionID,
+    reportID,
+    comment,
+    policy,
+    currentUserAccountIDParam,
+    currentUserLogin,
+    betas,
+    delegateAccountID,
+    getCurrencyDecimals,
+    options,
+    shouldUseBulkAction,
+}: PrepareRejectMoneyRequestDataParams): RejectMoneyRequestData | undefined {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
     // TODO: https://github.com/Expensify/App/issues/66512
@@ -387,6 +403,7 @@ function prepareRejectMoneyRequestData(
             rejectedToReportID = existingOpenReport.reportID;
 
             const [, , iouAction] = buildOptimisticMoneyRequestEntities({
+                getCurrencyDecimals,
                 iouReport: movedToReport,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: transactionAmount,
@@ -481,8 +498,10 @@ function prepareRejectMoneyRequestData(
                 optimisticIOUReportID: rejectedToReportID,
                 reportTransactions,
                 betas,
+                getCurrencyDecimals,
             });
             const [, createdActionForExpenseReport, iouAction] = buildOptimisticMoneyRequestEntities({
+                getCurrencyDecimals,
                 iouReport: newExpenseReport,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: transactionAmount,
@@ -497,7 +516,7 @@ function prepareRejectMoneyRequestData(
                 delegateAccountIDParam: delegateAccountID,
             });
 
-            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, undefined, transaction, undefined, undefined, delegateAccountID);
+            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, getCurrencyDecimals, undefined, transaction, undefined, undefined, delegateAccountID);
             movedTransactionAction = buildOptimisticMovedTransactionAction(childReportID, newExpenseReport.reportID);
             createdIOUReportActionID = iouAction.reportActionID;
             expenseMovedReportActionID = movedTransactionAction.reportActionID;
@@ -920,9 +939,22 @@ function rejectMoneyRequest(
     currentUserAccountIDParam: number,
     currentUserLogin: string,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
+    delegateAccountID: number | undefined,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     options?: RejectMoneyRequestOptions,
 ): Route | undefined {
-    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, options);
+    const data = prepareRejectMoneyRequestData({
+        transactionID,
+        reportID,
+        comment,
+        policy,
+        currentUserAccountIDParam,
+        currentUserLogin,
+        betas,
+        delegateAccountID,
+        getCurrencyDecimals,
+        options,
+    });
     if (!data) {
         return;
     }
@@ -1040,7 +1072,7 @@ function rejectExpenseReport(
               isTrackIntentUser,
           });
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -1070,26 +1102,6 @@ function rejectExpenseReport(
             },
         },
     ];
-
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-        value: isRejectToSubmitter
-            ? // buildOptimisticNextStep is used in parallel
-              buildNextStepNew({
-                  report,
-                  predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
-                  isRejectedReport: true,
-                  isTrackIntentUser,
-              })
-            : // buildOptimisticNextStep is used in parallel
-              buildNextStepNew({
-                  report,
-                  predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                  bypassNextApproverID: targetAccountID,
-                  isTrackIntentUser,
-              }),
-    });
 
     if (report.parentReportID && report.parentReportActionID) {
         optimisticData.push({
@@ -1132,7 +1144,7 @@ function rejectExpenseReport(
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -1162,12 +1174,6 @@ function rejectExpenseReport(
             },
         },
     ];
-
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-        value: null,
-    });
 
     if (report.parentReportID && report.parentReportActionID) {
         failureData.push({
