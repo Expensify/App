@@ -608,7 +608,6 @@
 "../../src/libs/KeyboardShortcut/isEnterWhileComposition.ts"	"@typescript-eslint/no-deprecated/event.keyCode"	1
 "../../src/libs/KeyboardShortcut/isEnterWhileComposition.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/KeyboardShortcut/isEnterWhileComposition.ts"	"no-restricted-syntax"	1
-"../../src/libs/LocaleDigitUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/LocalePhoneNumber.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/Localize/index.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/Localize/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
