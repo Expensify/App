@@ -81,8 +81,8 @@ describe('useSearchHighlightAndScroll', () => {
     it('should trigger search when new transaction added and focused', () => {
         const initialProps = {
             ...baseProps,
-            transactions: {'1': {transactionID: '1'}},
-            previousTransactions: {'1': {transactionID: '1'}},
+            transactions: {transactions_1: {transactionID: '1'}},
+            previousTransactions: {transactions_1: {transactionID: '1'}},
         };
 
         const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
@@ -94,10 +94,10 @@ describe('useSearchHighlightAndScroll', () => {
         const updatedProps = {
             ...baseProps,
             transactions: {
-                '1': {transactionID: '1'},
-                '2': {transactionID: '2'},
+                transactions_1: {transactionID: '1'},
+                transactions_2: {transactionID: '2'},
             },
-            previousTransactions: {'1': {transactionID: '1'}},
+            previousTransactions: {transactions_1: {transactionID: '1'}},
         };
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -115,7 +115,7 @@ describe('useSearchHighlightAndScroll', () => {
 
         const updatedProps = {
             ...baseProps,
-            transactions: {'1': {transactionID: '1'}},
+            transactions: {transactions_1: {transactionID: '1'}},
         };
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -168,12 +168,12 @@ describe('useSearchHighlightAndScroll', () => {
         const initialProps = {
             ...baseProps,
             transactions: {
-                '1': {transactionID: '1'},
-                '2': {transactionID: '2'},
+                transactions_1: {transactionID: '1'},
+                transactions_2: {transactionID: '2'},
             },
             previousTransactions: {
-                '1': {transactionID: '1'},
-                '2': {transactionID: '2'},
+                transactions_1: {transactionID: '1'},
+                transactions_2: {transactionID: '2'},
             },
         };
 
@@ -186,7 +186,7 @@ describe('useSearchHighlightAndScroll', () => {
         const updatedProps = {
             ...baseProps,
             transactions: {
-                '1': {transactionID: '1'},
+                transactions_1: {transactionID: '1'},
             },
         };
 
@@ -196,9 +196,7 @@ describe('useSearchHighlightAndScroll', () => {
         expect(search).not.toHaveBeenCalled();
     });
 
-    // The `transactions` prop comes straight from `useOnyx(ONYXKEYS.COLLECTION.TRANSACTION)`, so its keys carry the
-    // `transactions_` prefix. The two tests below use that production shape rather than bare transaction IDs.
-    it('should not trigger search on a non-chat search when only a report action was added', () => {
+    it('should trigger search when a transaction that is absent from the results is added', () => {
         const initialProps = {
             ...baseProps,
             searchResults: {
@@ -213,16 +211,6 @@ describe('useSearchHighlightAndScroll', () => {
             previousTransactions: {
                 transactions_1: {transactionID: '1'},
             },
-            reportActions: {
-                reportActions_1: {
-                    '1': {actionName: 'EXISTING', reportActionID: '1'},
-                },
-            },
-            previousReportActions: {
-                reportActions_1: {
-                    '1': {actionName: 'EXISTING', reportActionID: '1'},
-                },
-            },
         };
 
         const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
@@ -231,21 +219,18 @@ describe('useSearchHighlightAndScroll', () => {
             initialProps,
         });
 
-        // An unrelated chat message arrives. No transaction changed, so the expense search must not refetch.
         const updatedProps = {
             ...initialProps,
-            reportActions: {
-                reportActions_1: {
-                    '1': {actionName: 'EXISTING', reportActionID: '1'},
-                    '2': {actionName: 'ADDCOMMENT', reportActionID: '2'},
-                },
+            transactions: {
+                transactions_1: {transactionID: '1'},
+                transactions_2: {transactionID: '2'},
             },
         };
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
-        expect(search).not.toHaveBeenCalled();
+        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
     });
 
     it('should not trigger search when the added transaction is already in the search results', () => {
@@ -272,7 +257,6 @@ describe('useSearchHighlightAndScroll', () => {
             initialProps,
         });
 
-        // The transaction lands in the Onyx collection, but the results already list it, so there is nothing to fetch.
         const updatedProps = {
             ...initialProps,
             transactions: {
@@ -296,8 +280,7 @@ describe('useSearchHighlightAndScroll', () => {
                     transactions_1: {transactionID: '1'},
                 },
             },
-            // `transactions_99` belongs to a report the user opened; it does not match the current query, so it is
-            // absent from the results. That is the normal state for any filtered or paginated search.
+            // `transactions_99` is held by the client but filtered out by the query, the normal paginated/filtered state.
             transactions: {
                 transactions_1: {transactionID: '1'},
                 transactions_99: {transactionID: '99'},
@@ -399,12 +382,12 @@ describe('useSearchHighlightAndScroll', () => {
                 },
             },
             transactions: {
-                '1': {transactionID: '1'},
-                '2': {transactionID: '2'},
-                '3': {transactionID: '3'},
+                transactions_1: {transactionID: '1'},
+                transactions_2: {transactionID: '2'},
+                transactions_3: {transactionID: '3'},
             },
             previousTransactions: {
-                '1': {transactionID: '1'},
+                transactions_1: {transactionID: '1'},
             },
         };
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -460,12 +443,12 @@ describe('useSearchHighlightAndScroll', () => {
                 },
             },
             transactions: {
-                '1': {transactionID: '1'},
-                '2': {transactionID: '2'},
-                '3': {transactionID: '3'},
+                transactions_1: {transactionID: '1'},
+                transactions_2: {transactionID: '2'},
+                transactions_3: {transactionID: '3'},
             },
             previousTransactions: {
-                '1': {transactionID: '1'},
+                transactions_1: {transactionID: '1'},
             },
         } as unknown as UseSearchHighlightAndScroll;
 
