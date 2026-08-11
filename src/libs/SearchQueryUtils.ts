@@ -164,13 +164,17 @@ function getUserFriendlyValue(value: string | undefined): UserFriendlyValue {
 
 /**
  * @private
- * Returns string value wrapped in quotes "", if the value contains space or &nbsp; (no-breaking space).
+ * Returns string value wrapped in quotes "", if the value contains space, &nbsp; (no-breaking space), or a comma when shouldQuoteComma is set.
  */
-function sanitizeSearchValue(str: string) {
-    if (str.includes(' ') || str.includes(`\xA0`)) {
+function sanitizeSearchValue(str: string, shouldQuoteComma = false) {
+    if (str.includes(' ') || str.includes(`\xA0`) || (shouldQuoteComma && str.includes(','))) {
         return `"${str}"`;
     }
     return str;
+}
+
+function stripSearchValueQuotes(str: string) {
+    return str.replaceAll(/["“”]/g, '');
 }
 
 const syntaxRegex = new RegExp(`^-?(${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(-.+)+)[:><=].+$`);
@@ -905,7 +909,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     if (columns?.length) {
         const filterValueArray = [...new Set<string>(columns)];
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map(sanitizeSearchValue).join(',')}`);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`);
     }
 
     const mappedFilters = Object.entries(otherFilters)
@@ -1037,7 +1041,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
 
                 if (keyInCorrectForm) {
-                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
+                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`;
                 }
             }
 
@@ -2612,6 +2616,7 @@ export {
     buildFilterFormValuesFromQuery,
     buildCannedSearchQuery,
     sanitizeSearchValue,
+    stripSearchValueQuotes,
     getQueryWithUpdatedValues,
     getKeywordQueryWithCurrentSearchContext,
     getCurrentSearchQueryJSON,
