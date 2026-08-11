@@ -1312,12 +1312,12 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('Starbucks');
         });
 
-        it('should normalize the DEFAULT_MERCHANT ("Expense") sentinel to an empty string', () => {
+        it('should normalize the DEFAULT_MERCHANT ("Expense") placeholder value to an empty string', () => {
             const transaction = generateTransaction({merchant: CONST.TRANSACTION.DEFAULT_MERCHANT});
             expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('');
         });
 
-        it('should normalize the PARTIAL_TRANSACTION_MERCHANT ("(none)") sentinel to an empty string', () => {
+        it('should normalize the PARTIAL_TRANSACTION_MERCHANT ("(none)") placeholder value to an empty string', () => {
             const transaction = generateTransaction({merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT});
             expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('');
         });

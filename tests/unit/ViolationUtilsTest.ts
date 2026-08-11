@@ -1304,7 +1304,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
         });
 
-        it('should add missingCategory violation when category is the Uncategorized sentinel and categories are required', () => {
+        it('should add missingCategory violation when category is the Uncategorized placeholder and categories are required', () => {
             transaction.category = CONST.SEARCH.CATEGORY_DEFAULT_VALUE;
             const result = ViolationsUtils.getViolationsOnyxData({
                 updatedTransaction: transaction,
@@ -2952,7 +2952,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         describe('Xero (R4)', () => {
-            // Sentinel for "Xero connected, contacts not yet synced". Explicit symbol avoids the
+            // Placeholder for "Xero connected, contacts not yet synced". Explicit symbol avoids the
             // default-parameter trap where `undefined` would fall back to the populated default.
             const XERO_CONTACTS_UNSYNCED = Symbol('XERO_CONTACTS_UNSYNCED');
             const policyWithXeroVendorFeature = (

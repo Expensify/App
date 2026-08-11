@@ -19,12 +19,12 @@ import Avatar from './Avatar';
 import Button from './Button';
 import Text from './Text';
 
-type AccountManagerBookCallButtonProps = {
-    /** The account manager's calendar link to open when the button is pressed */
+type BookCallButtonProps = {
+    /** The calendar link to open when the button is pressed */
     calendarLink: string;
 
-    /** When provided, the account manager's avatar is displayed instead of a phone icon */
-    accountManagerAccountID?: string;
+    /** When provided, this account's avatar is displayed instead of a phone icon */
+    avatarAccountID?: number;
 
     /** Whether this button is nested inside another pressable element */
     isNested?: boolean;
@@ -33,12 +33,12 @@ type AccountManagerBookCallButtonProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-function AccountManagerBookCallButton({calendarLink, accountManagerAccountID, isNested = false, style}: AccountManagerBookCallButtonProps) {
+function BookCallButton({calendarLink, avatarAccountID, isNested = false, style}: BookCallButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Phone']);
-    const [accountManagerDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetails: PersonalDetailsList | undefined) => (accountManagerAccountID ? personalDetails?.[accountManagerAccountID] : undefined),
+    const [avatarDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetails: PersonalDetailsList | undefined) => (avatarAccountID ? personalDetails?.[avatarAccountID] : undefined),
     });
 
     if (!calendarLink) {
@@ -56,7 +56,7 @@ function AccountManagerBookCallButton({calendarLink, accountManagerAccountID, is
         style,
     };
 
-    if (!accountManagerAccountID) {
+    if (!avatarAccountID) {
         return (
             <Button
                 text={label}
@@ -70,9 +70,9 @@ function AccountManagerBookCallButton({calendarLink, accountManagerAccountID, is
         <Button {...commonProps}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2]}>
                 <Avatar
-                    source={accountManagerDetails?.avatar}
-                    avatarID={accountManagerAccountID}
-                    name={accountManagerDetails?.displayName ?? accountManagerDetails?.login}
+                    source={avatarDetails?.avatar}
+                    avatarID={avatarAccountID}
+                    name={avatarDetails?.displayName ?? avatarDetails?.login}
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.XXX_SMALL}
                 />
@@ -82,4 +82,4 @@ function AccountManagerBookCallButton({calendarLink, accountManagerAccountID, is
     );
 }
 
-export default AccountManagerBookCallButton;
+export default BookCallButton;
