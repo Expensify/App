@@ -270,7 +270,7 @@ function formatToLongDateWithWeekdayWithoutYear(datetime: string | Date, dateFns
 
 /**
  * Get the time-of-day greeting key based on the hour of the given (already timezone-adjusted) date.
- * Ranges per PRD: morning 5am–12pm, afternoon 12–5pm, evening 5pm–5am.
+ * Ranges: morning 4am to 12pm, afternoon 12pm to 5pm, evening 5pm to 4am.
  */
 function getTimeOfDayGreetingKey(date: Date): 'goodMorning' | 'goodAfternoon' | 'goodEvening' {
     const hour = date.getHours();
