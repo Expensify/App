@@ -381,23 +381,27 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         );
     }, [isOffline, showConfirmModal, translate, route.params.policyID]);
 
-    const approvalSecondaryActions = useMemo<Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>>>(
-        () => [
-            {
+    const shouldBlockApprovalWorkflowEditing = isAnyHRReadOnlyWorkflowMode(policy);
+    const approvalSecondaryActions = useMemo<Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>>>(() => {
+        const actions: Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [];
+        // Importing modifies the workflows, so only offer it when editing is allowed.
+        if (!shouldBlockApprovalWorkflowEditing) {
+            actions.push({
                 icon: expensifyIcons.Table,
                 text: translate('spreadsheet.importWorkflows'),
                 onSelected: importWorkflowsAction,
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
-            },
-            {
-                icon: expensifyIcons.Download,
-                text: translate('spreadsheet.downloadWorkflows'),
-                onSelected: downloadWorkflowsAction,
-                value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
-            },
-        ],
-        [expensifyIcons.Table, expensifyIcons.Download, translate, importWorkflowsAction, downloadWorkflowsAction],
-    );
+            });
+        }
+        // Downloading is read-only, so it stays available even when editing is blocked.
+        actions.push({
+            icon: expensifyIcons.Download,
+            text: translate('spreadsheet.downloadWorkflows'),
+            onSelected: downloadWorkflowsAction,
+            value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+        });
+        return actions;
+    }, [shouldBlockApprovalWorkflowEditing, expensifyIcons.Table, expensifyIcons.Download, translate, importWorkflowsAction, downloadWorkflowsAction]);
 
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
     const hrFinalApproverEmail = getHRFinalApprover(policy) ?? undefined;
@@ -461,7 +465,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
     const isHRConnected = isAnyHRConnected(policy);
-    const shouldBlockApprovalWorkflowEditing = isAnyHRReadOnlyWorkflowMode(policy);
     const approvalSubtitle = useMemo(() => {
         if (!isHRConnected) {
             return translate('workflowsPage.addApprovalsDescription');
@@ -1101,20 +1104,21 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const isGroupPolicy = isGroupPolicyUtil(policy);
     const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
-    const headerButtons =
-        !shouldBlockApprovalWorkflowEditing && canWriteApprovals ? (
-            <View style={[styles.flexRow, styles.gap2]}>
-                <ButtonWithDropdownMenu
-                    onPress={() => {}}
-                    shouldAlwaysShowDropdownMenu
-                    customText={translate('common.more')}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_DROPDOWN}
-                    options={approvalSecondaryActions}
-                    isSplitButton={false}
-                    wrapperStyle={styles.flexGrow0}
-                />
-            </View>
-        ) : undefined;
+    // Show the More dropdown whenever the user can manage workflows. When editing is blocked it renders download-only
+    // (the Import action is filtered out of approvalSecondaryActions above).
+    const headerButtons = canWriteApprovals ? (
+        <View style={[styles.flexRow, styles.gap2]}>
+            <ButtonWithDropdownMenu
+                onPress={() => {}}
+                shouldAlwaysShowDropdownMenu
+                customText={translate('common.more')}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_DROPDOWN}
+                options={approvalSecondaryActions}
+                isSplitButton={false}
+                wrapperStyle={styles.flexGrow0}
+            />
+        </View>
+    ) : undefined;
 
     return (
         <AccessOrNotFoundWrapper
