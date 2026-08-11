@@ -1,4 +1,5 @@
 import useAttendees from '@hooks/useAttendees';
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
@@ -254,6 +255,11 @@ function MoneyRequestConfirmationList({
     const isDistanceRequest = isDistanceRequestUtil(transaction);
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
+    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        policyID: isPolicyExpenseChat ? policy?.id : undefined,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+    });
 
     const iouAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
     const iouCurrencyCode = getCurrency(transaction);
@@ -305,6 +311,7 @@ function MoneyRequestConfirmationList({
         isMovingTransactionFromTrackExpense,
         customUnitRateID,
         distance,
+        distanceUnit: unit,
         previousTransactionCurrency,
     });
 
@@ -504,7 +511,12 @@ function MoneyRequestConfirmationList({
         setFormError,
         setDidConfirmSplit,
         showDelegateNoAccessModal,
-        onConfirm,
+        onConfirm: () => {
+            if (blockManualOrOdometerDistanceRequestIfNeeded()) {
+                return;
+            }
+            onConfirm?.();
+        },
         onSendMoney,
     });
 
@@ -558,13 +570,13 @@ function MoneyRequestConfirmationList({
                     distance,
                     hasRoute,
                     unit,
-                    rate,
                     distanceRateName: mileageRate.name,
                     distanceRateCurrency: currency,
                     mileageRate,
                     expenseDate: getCreated(transaction),
                     customUnitRateID,
                     shouldShowRateAutoUpdatedTooltip,
+                    customUnit: transaction?.comment?.customUnit,
                 }}
                 amountDisplay={{amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee}}
                 requiredFlags={{isCategoryRequired, isMerchantRequired, isDescriptionRequired}}

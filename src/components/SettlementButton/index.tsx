@@ -10,6 +10,7 @@ import RenderHTML from '@components/RenderHTML';
 
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -115,6 +116,7 @@ function SettlementButton({
     const icons = useMemoizedLazyExpensifyIcons(['CheckCircle', 'ThumbsUp', 'Bank', 'Cash', 'Wallet', 'Building', 'User']);
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const expenseReportPolicy = usePolicy(iouReport?.policyID);
@@ -447,7 +449,7 @@ function SettlementButton({
                             navigateToBankAccountRoute({policyID: getPolicyID()});
                         } else {
                             clearPersonalBankAccount();
-                            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
+                            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute());
                         }
                     },
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -506,6 +508,7 @@ function SettlementButton({
                 confirmApproval();
             } else {
                 approveMoneyRequest({
+                    getCurrencyDecimals,
                     expenseReport: iouReport,
                     expenseReportPolicy,
                     currentUserAccountIDParam: accountID,

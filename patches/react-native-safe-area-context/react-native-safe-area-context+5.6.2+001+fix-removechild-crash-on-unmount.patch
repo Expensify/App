@@ -1,0 +1,42 @@
+diff --git a/node_modules/react-native-safe-area-context/lib/commonjs/NativeSafeAreaProvider.web.js b/node_modules/react-native-safe-area-context/lib/commonjs/NativeSafeAreaProvider.web.js
+index dcf0423..525dc18 100644
+--- a/node_modules/react-native-safe-area-context/lib/commonjs/NativeSafeAreaProvider.web.js
++++ b/node_modules/react-native-safe-area-context/lib/commonjs/NativeSafeAreaProvider.web.js
+@@ -66,8 +66,8 @@ function NativeSafeAreaProvider({
+     element.addEventListener(getSupportedTransitionEvent(), onEnd);
+     onEnd();
+     return () => {
+-      document.body.removeChild(element);
+       element.removeEventListener(getSupportedTransitionEvent(), onEnd);
++      element.remove();
+     };
+   }, [onInsetsChange]);
+   return /*#__PURE__*/React.createElement(_reactNative.View, {
+diff --git a/node_modules/react-native-safe-area-context/lib/module/NativeSafeAreaProvider.web.js b/node_modules/react-native-safe-area-context/lib/module/NativeSafeAreaProvider.web.js
+index 7f75c72..6a22f8c 100644
+--- a/node_modules/react-native-safe-area-context/lib/module/NativeSafeAreaProvider.web.js
++++ b/node_modules/react-native-safe-area-context/lib/module/NativeSafeAreaProvider.web.js
+@@ -59,8 +59,8 @@ export function NativeSafeAreaProvider({
+     element.addEventListener(getSupportedTransitionEvent(), onEnd);
+     onEnd();
+     return () => {
+-      document.body.removeChild(element);
+       element.removeEventListener(getSupportedTransitionEvent(), onEnd);
++      element.remove();
+     };
+   }, [onInsetsChange]);
+   return /*#__PURE__*/React.createElement(View, {
+diff --git a/node_modules/react-native-safe-area-context/src/NativeSafeAreaProvider.web.tsx b/node_modules/react-native-safe-area-context/src/NativeSafeAreaProvider.web.tsx
+index d3eceed..7986228 100644
+--- a/node_modules/react-native-safe-area-context/src/NativeSafeAreaProvider.web.tsx
++++ b/node_modules/react-native-safe-area-context/src/NativeSafeAreaProvider.web.tsx
+@@ -55,8 +55,8 @@ export function NativeSafeAreaProvider({
+     element.addEventListener(getSupportedTransitionEvent(), onEnd);
+     onEnd();
+     return () => {
+-      document.body.removeChild(element);
+       element.removeEventListener(getSupportedTransitionEvent(), onEnd);
++      element.remove();
+     };
+   }, [onInsetsChange]);
+ 
