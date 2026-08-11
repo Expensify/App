@@ -416,7 +416,7 @@ describe('DistanceRequestUtils', () => {
         });
 
         it('passes commuter distance semantics to localization', () => {
-            const translate = jest.fn(translateLocal) as unknown as LocaleContextProps['translate'];
+            const translate: LocaleContextProps['translate'] = jest.fn(translateLocal);
 
             DistanceRequestUtils.getDistanceDisplayDetailsWithCommuter(
                 {
