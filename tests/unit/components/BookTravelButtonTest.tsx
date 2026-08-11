@@ -72,6 +72,15 @@ const provisionedPolicy: Policy = {
     },
 };
 
+const provisionedMemberPolicy: Policy = {
+    ...provisionedPolicy,
+    role: CONST.POLICY.ROLE.USER,
+    employeeList: {
+        [ADMIN_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
+        [USER_LOGIN]: {role: CONST.POLICY.ROLE.USER},
+    },
+};
+
 const renderBookTravelButton = () =>
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
@@ -136,6 +145,26 @@ describe('BookTravelButton', () => {
             // stepper, which would otherwise immediately redirect to this same verify-account page anyway)
             expect(setTravelProvisioningNextStep).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, POLICY_ID, ''));
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
+        });
+    });
+
+    describe('when a non-admin member needs to validate their account', () => {
+        it('returns to the booking flow after Travel account verification', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, provisionedMemberPolicy);
+                await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, primaryLogin: USER_LOGIN});
+                await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.IS_TRAVEL_VERIFIED]);
+                await Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {legalFirstName: 'Test', legalLastName: 'User'});
+                await waitForBatchedUpdatesWithAct();
+            });
+            renderBookTravelButton();
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText('Book a trip'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, POLICY_ID, '', true));
             expect(Navigation.navigate).not.toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
         });
     });

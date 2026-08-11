@@ -3828,7 +3828,8 @@ const ROUTES = {
     TRAVEL_VERIFY_ACCOUNT: {
         route: `travel/${VERIFY_ACCOUNT}`,
 
-        getRoute: (domain?: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(getUrlWithParams(`travel/${VERIFY_ACCOUNT}`, {domain, policyID}), backTo),
+        getRoute: (domain?: string, policyID?: string, backTo?: string, shouldResumeBooking?: boolean) =>
+            getUrlWithBackToParam(getUrlWithParams(`travel/${VERIFY_ACCOUNT}`, {domain, policyID, shouldResumeBooking: shouldResumeBooking ? 'true' : undefined}), backTo),
     },
     TRAVEL_MISSING_PERSONAL_DETAILS: {
         route: 'travel/missing-personal-details',

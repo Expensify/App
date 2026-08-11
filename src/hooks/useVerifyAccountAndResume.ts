@@ -4,6 +4,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {isUserValidatedSelector} from '@selectors/Account';
@@ -54,8 +55,8 @@ function useVerifyAccountAndResume(onResume: (payload: ResumePayload) => void) {
         return () => handle.cancel();
     }, [isUserValidated, pendingAction]);
 
-    const verifyAccountAndResume = (payload: ResumePayload) => {
-        const verifyAccountRoute = createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path);
+    const verifyAccountAndResume = (payload: ResumePayload, customVerifyAccountRoute?: Route) => {
+        const verifyAccountRoute = customVerifyAccountRoute ?? createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path);
         const [verifyAccountPath] = splitPathAndQuery(verifyAccountRoute);
         setPendingAction(verifyAccountPath ? {payload, verifyAccountPath} : null);
         Navigation.navigate(verifyAccountRoute);

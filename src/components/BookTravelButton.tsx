@@ -8,6 +8,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
@@ -68,11 +69,13 @@ function BookTravelButton({
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const isUserValidated = account?.validated ?? false;
     const primaryLogin = account?.primaryLogin ?? '';
 
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume(() => {
+        openTravelDotLink(policy?.id, undefined, undefined, undefined, () => setErrorMessage(translate('travel.errorMessage')));
+    });
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
@@ -153,7 +156,7 @@ function BookTravelButton({
         // check would wrongly send them to the public-domain error page.
         if (!isPolicyAdmin(policy, primaryContactMethod)) {
             if (!isUserValidated) {
-                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute()));
+                verifyAccountAndResume(undefined, ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute(), true));
                 return;
             }
             openTravelDotLink(policy?.id, undefined, undefined, undefined, () => setErrorMessage(translate('travel.errorMessage')));

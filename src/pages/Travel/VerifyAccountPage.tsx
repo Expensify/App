@@ -19,7 +19,7 @@ import React, {useCallback, useEffect} from 'react';
 type VerifyAccountPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.VERIFY_ACCOUNT>;
 
 function VerifyAccountPage({route}: VerifyAccountPageProps) {
-    const {backTo, policyID} = route.params;
+    const {backTo, policyID, shouldResumeBooking: shouldResumeBookingParam} = route.params;
     const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
     const {isBetaEnabled} = usePermissions();
 
@@ -30,10 +30,11 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     }, []);
 
     const isTravelVerifiedBetaEnabled = isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED);
+    const shouldResumeBooking = shouldResumeBookingParam === 'true';
 
     // Determine where to navigate after successful OTP validation
     const defaultForwardRoute = policyID ? getTravelAcceptTermsRoute(policyID) : undefined;
-    const navigateForwardTo = isTravelVerifiedBetaEnabled ? (travelProvisioning?.nextStepRoute ?? defaultForwardRoute) : undefined;
+    const navigateForwardTo = isTravelVerifiedBetaEnabled && !shouldResumeBooking ? (travelProvisioning?.nextStepRoute ?? defaultForwardRoute) : undefined;
 
     const handleValidationSuccess = useCallback(() => {
         requestTravelAccess();
@@ -47,8 +48,8 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         <VerifyAccountPageBase
             navigateBackTo={backTo}
             navigateForwardTo={navigateForwardTo}
-            handleClose={!isTravelVerifiedBetaEnabled ? handleClose : undefined}
-            onValidationSuccess={!isTravelVerifiedBetaEnabled ? handleValidationSuccess : undefined}
+            handleClose={!isTravelVerifiedBetaEnabled || shouldResumeBooking ? handleClose : undefined}
+            onValidationSuccess={!isTravelVerifiedBetaEnabled && !shouldResumeBooking ? handleValidationSuccess : undefined}
         />
     );
 }
