@@ -80,9 +80,7 @@ jest.mock('@libs/ApiUtils', () => ({
 }));
 
 let mockIsAgentAccount = false;
-jest.mock('@libs/SessionUtils', () => ({
-    useIsAgentAccount: () => mockIsAgentAccount,
-}));
+jest.mock('@hooks/useIsAgentAccount', () => () => mockIsAgentAccount);
 
 const mockExecuteScenario = jest.fn().mockResolvedValue(undefined);
 jest.mock('@components/MultifactorAuthentication/Context', () => ({

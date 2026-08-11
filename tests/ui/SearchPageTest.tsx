@@ -216,6 +216,49 @@ describe('SearchPageNarrow', () => {
         expect(renderedPage.UNSAFE_queryByType(SearchRowSkeleton)).toBeNull();
     });
 
+    // Reproduces the reload case: the errored snapshot survives but the in-memory response code does not,
+    // so the persisted code is the only thing left that can tell the two failure kinds apart.
+    const setFailedSnapshot = (responseJsonCode: number) =>
+        act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {
+                errors: {error: 'Something went wrong'},
+                search: {
+                    type: CONST.SEARCH.DATA_TYPES.CHAT,
+                    offset: 0,
+                    hash: failedQueryJSON?.hash,
+                    isLoading: false,
+                    hasMoreResults: false,
+                    state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
+                    responseJsonCode,
+                },
+            });
+        });
+
+    it('hides the retry button on a fresh mount when the persisted response marks the query invalid', async () => {
+        await setFailedSnapshot(CONST.JSON_CODE.INVALID_SEARCH_QUERY);
+
+        renderPage();
+
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        expect(screen.getByText("That search isn't valid. Try adjusting your search criteria.")).toBeTruthy();
+        expect(screen.queryByText('Try again')).toBeNull();
+    });
+
+    it('keeps the retry button on a fresh mount when the persisted response is a retryable failure', async () => {
+        await setFailedSnapshot(CONST.JSON_CODE.EXP_ERROR);
+
+        renderPage();
+
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        expect(screen.getByText('Try again')).toBeTruthy();
+    });
+
     it('renders the empty state when a response without data reached the terminal loaded state', async () => {
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {
