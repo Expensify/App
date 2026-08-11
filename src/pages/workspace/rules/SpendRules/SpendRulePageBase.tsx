@@ -77,7 +77,7 @@ function getErrorMessage(hasSelectedCards: boolean, hasAnyRuleApplied: boolean, 
 function SpendRulePageBase({policyID, ruleID, titleKey, testID, upgradeBackTo}: SpendRulePageBaseProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
 
@@ -172,7 +172,13 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID, upgradeBackTo}: 
                     return id;
                 }
                 const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], defaultValue: '', shouldFallbackToHidden: false, translate});
+                const displayName = temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: personalDetails?.[accountID],
+                    defaultValue: '',
+                    shouldFallbackToHidden: false,
+                    translate,
+                    formatPhoneNumber,
+                });
                 return getCardDescriptionForSearchTable(card, translate, displayName || undefined) || id;
             }),
             (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
