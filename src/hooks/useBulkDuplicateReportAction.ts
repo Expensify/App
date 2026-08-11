@@ -33,7 +33,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -51,6 +51,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
 
     const handleDuplicateReports = () => {
         bulkDuplicateReports({
+            dateFnsLocale,
             selectedReports,
             allReports: allReports ?? {},
             searchData,
