@@ -46,7 +46,7 @@ describe('reduceModalGuardState', () => {
 });
 
 describe('getModalGuardEventFromSnapshotChange', () => {
-    it('returns GUARD_REMOVED when the sentinel disappears', () => {
+    it('returns GUARD_REMOVED when the guard entry disappears', () => {
         const prevSnapshot: ModalGuardSnapshot = {
             guardPresent: true,
             routesLength: 2,
@@ -62,7 +62,7 @@ describe('getModalGuardEventFromSnapshotChange', () => {
         });
     });
 
-    it('returns GUARD_APPEARED when the sentinel is restored while the modal is closed', () => {
+    it('returns GUARD_APPEARED when the guard entry is restored while the modal is closed', () => {
         const prevSnapshot: ModalGuardSnapshot = {
             guardPresent: false,
             routesLength: 2,

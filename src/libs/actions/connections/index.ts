@@ -155,6 +155,9 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.RILLET: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_RILLET, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.RILLET_SYNC_CONNECTION};
         }
+        case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_DUALENTRY, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.DUALENTRY_SYNC_CONNECTION};
+        }
         default:
             return undefined;
     }
@@ -366,6 +369,9 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
             break;
         case CONST.POLICY.CONNECTIONS.NAME.RILLET:
             stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.RILLET_SYNC_CONNECTION;
+            break;
+        case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+            stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.DUALENTRY_SYNC_CONNECTION;
             break;
         default:
             stageInProgress = null;
