@@ -44,6 +44,10 @@ import {Keyboard} from 'react-native';
 
 type AssigneeStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE>;
 
+type AssigneeListItem = ListItem & {
+    value: string;
+};
+
 function AssigneeStep({route}: AssigneeStepProps) {
     const policyID = route.params.policyID;
     const feed = route.params.feed;
@@ -166,7 +170,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
         Navigation.goBack();
     };
 
-    const membersDetails: ListItem[] = [];
+    const membersDetails: AssigneeListItem[] = [];
     if (policy?.employeeList) {
         for (const [email, policyEmployee] of Object.entries(policy.employeeList ?? {})) {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
@@ -200,7 +204,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
     // the base list and the search source below so it stays pinned while searching (when it still matches).
     // moveInitialSelectionToTop no-ops for lists under the search-box threshold.
     const orderedMembersDetails = moveInitialSelectionToTop(membersDetails, initialAssigneeEmail ? [initialAssigneeEmail] : []);
-    let assignees = filterGuideAndAccountManager(orderedMembersDetails, assignedGuideEmail, accountManagerLogin);
+    let assignees: ListItem[] = filterGuideAndAccountManager(orderedMembersDetails, assignedGuideEmail, accountManagerLogin);
     if (debouncedSearchTerm && areOptionsInitialized) {
         const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
         const filteredMembers = filterGuideAndAccountManager(orderedMembersDetails, assignedGuideEmail, accountManagerLogin);
