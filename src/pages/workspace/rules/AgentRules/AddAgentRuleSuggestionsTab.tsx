@@ -65,10 +65,7 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
     if (shouldShowLoadingIndicator) {
         return (
             <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={{context: 'AddAgentRuleSuggestionsTab'}}
-                />
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
             </View>
         );
     }
