@@ -799,6 +799,25 @@ describe('TransactionUtils', () => {
             // And the amount and merchant use the converted reimbursable distance at the kilometer rate
             expect(updatedTransaction.modifiedAmount).toBe(155);
             expect(updatedTransaction.modifiedMerchant).toBe('5.17 km @ EUR 0.30 / km');
+
+            const manuallyOverriddenTransaction = {
+                ...transaction,
+                comment: {customUnit: {...transaction.comment?.customUnit, quantity: 8}},
+            };
+            const updatedManuallyOverriddenTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction: manuallyOverriddenTransaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {customUnitRateID: 'ID2'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            expect(updatedManuallyOverriddenTransaction.comment?.customUnit?.quantity).toBe(12.87);
+            expect(updatedManuallyOverriddenTransaction.comment?.customUnit?.reimbursableDistance).toBeCloseTo(8.04);
+            expect(updatedManuallyOverriddenTransaction.modifiedAmount).toBe(241);
+            expect(updatedManuallyOverriddenTransaction.modifiedMerchant).toBe('8.04 km @ EUR 0.30 / km');
         });
 
         it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
