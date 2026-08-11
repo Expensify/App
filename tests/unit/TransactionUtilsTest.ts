@@ -779,16 +779,20 @@ describe('TransactionUtils', () => {
                 currency: CONST.CURRENCY.USD,
             });
 
+            const updateRate = (transactionToUpdate: Transaction, policy: Policy | undefined, policies?: OnyxCollection<Policy>) =>
+                TransactionUtils.getUpdatedTransaction({
+                    transaction: transactionToUpdate,
+                    isFromExpenseReport: false,
+                    policy,
+                    policies,
+                    transactionChanges: {customUnitRateID: 'ID2'},
+                    personalPolicyOutputCurrency: undefined,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
+                });
+
             // When the rate is changed
-            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
-                transaction,
-                isFromExpenseReport: false,
-                policy: fakePolicy,
-                transactionChanges: {customUnitRateID: 'ID2'},
-                personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
-            });
+            const updatedTransaction = updateRate(transaction, fakePolicy);
 
             // Then the original distance and commuter exclusion are converted to kilometers
             expect(updatedTransaction.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
@@ -804,20 +808,16 @@ describe('TransactionUtils', () => {
                 ...transaction,
                 comment: {customUnit: {...transaction.comment?.customUnit, quantity: 8}},
             };
-            const updatedManuallyOverriddenTransaction = TransactionUtils.getUpdatedTransaction({
-                transaction: manuallyOverriddenTransaction,
-                isFromExpenseReport: false,
-                policy: fakePolicy,
-                transactionChanges: {customUnitRateID: 'ID2'},
-                personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals,
-                getCurrencySymbol,
-            });
+            const updatedManuallyOverriddenTransaction = updateRate(manuallyOverriddenTransaction, fakePolicy);
 
             expect(updatedManuallyOverriddenTransaction.comment?.customUnit?.quantity).toBe(12.87);
             expect(updatedManuallyOverriddenTransaction.comment?.customUnit?.reimbursableDistance).toBeCloseTo(8.04);
             expect(updatedManuallyOverriddenTransaction.modifiedAmount).toBe(241);
             expect(updatedManuallyOverriddenTransaction.modifiedMerchant).toBe('8.04 km @ EUR 0.30 / km');
+
+            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`]: fakePolicy};
+            expect(updateRate(transaction, undefined, policies).comment?.customUnit?.quantity).toBe(10);
+            expect(updateRate(manuallyOverriddenTransaction, undefined, policies).comment?.customUnit?.quantity).toBe(12.87);
         });
 
         it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
