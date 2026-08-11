@@ -339,7 +339,7 @@ describe('Transaction', () => {
         });
 
         it('correctly handles reportNextStep parameter when moving transactions to unreported report', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spy on API.write to inspect the generated failure data.
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spy on API.write to verify this transaction action's API interaction.
             const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
@@ -540,7 +540,7 @@ describe('Transaction', () => {
         });
 
         it('correctly handles undefined reportNextStep parameter', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spy on API.write to inspect the generated failure data.
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spy on API.write to verify this transaction action's API interaction.
             const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
@@ -585,7 +585,7 @@ describe('Transaction', () => {
         });
 
         it('updates the source submitted report next step and reopens it when it becomes empty', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spy on API.write to inspect the generated optimistic data.
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spy on API.write to verify this transaction action's API interaction.
             const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
             const buildOptimisticNextStepSpy = jest.spyOn(NextStepUtils, 'buildOptimisticNextStep');
 
@@ -652,7 +652,7 @@ describe('Transaction', () => {
         });
 
         it('correctly handles ASAP submit beta enabled when moving transactions', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spy on API.write to inspect the generated parameters.
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spy on API.write to verify this transaction action's API interaction.
             const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
@@ -695,7 +695,7 @@ describe('Transaction', () => {
         });
 
         it('correctly handles different account IDs and emails when moving transactions', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spy on API.write to inspect the generated parameters.
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spy on API.write to verify this transaction action's API interaction.
             const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
@@ -1412,7 +1412,7 @@ describe('Transaction', () => {
         });
 
         it('should not call API.write when the transaction is already on the target report', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spy on API.write to inspect the generated updates.
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spy on API.write to verify this transaction action's API interaction.
             const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
