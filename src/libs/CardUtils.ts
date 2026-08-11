@@ -1021,6 +1021,8 @@ function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeedWithDomainID
     return isValidLastFeed ? lastSelectedFeed : defaultFeed;
 }
 
+function getCardFeedWithDomainID(feedName: CompanyCardFeedWithNumber, domainID: number | string): CompanyCardFeedWithDomainID;
+function getCardFeedWithDomainID(feedName: CardFeedWithNumber, domainID: number | string): CardFeedWithDomainID;
 function getCardFeedWithDomainID(feedName: CardFeedWithNumber, domainID: number | string): CardFeedWithDomainID {
     return `${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`;
 }
@@ -1034,7 +1036,7 @@ function getCompanyCardFeedWithDomainIDForCard(card: Card): CompanyCardFeedWithD
         return undefined;
     }
 
-    return `${getCompanyCardFeed(card.bank)}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${card.fundID}`;
+    return getCardFeedWithDomainID(getCompanyCardFeed(card.bank), card.fundID);
 }
 
 function splitCardFeedWithDomainID(feedName: CardFeedWithNumber | CardFeedWithDomainID | undefined): {feedName: CardFeedWithNumber; domainID: number | undefined} | undefined {
