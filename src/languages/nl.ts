@@ -18,7 +18,7 @@ import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName, Unit} from '@src/types/onyx/Policy';
+import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 import type {ValueOf} from 'type-fest';
@@ -9499,10 +9499,16 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Origineel: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; distanceUnit: Unit}) => ({
-                one: `${distance} woon-werkafstand ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'mijl' : 'kilometer'} verwijderd`,
-                other: `${distance} woon-werkafstand ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'mijlen' : 'kilometers'} verwijderd`,
-            }),
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `${distance} woon-werkmijl verwijderd`,
+                    other: `${distance} woon-werkmijlen verwijderd`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `${distance} woon-werk kilometer verwijderd`,
+                    other: `${distance} woon-werkkilometers verwijderd`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `${distance} woon-werk-${unit} verwijderd op basis van ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">werkruimte-afstandsinstellingen</a>` : 'instelling voor werkruimte-afstand'}.`,
         },

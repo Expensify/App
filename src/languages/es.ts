@@ -11,7 +11,6 @@
  */
 import CONST from '@src/CONST';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-import type {Unit} from '@src/types/onyx/Policy';
 
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
@@ -9844,10 +9843,16 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; distanceUnit: Unit}) => ({
-                one: `Eliminó ${distance} viaje de ida y vuelta ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'milla' : 'kilómetro'}`,
-                other: `Eliminó ${distance} viaje de ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'millas' : 'kilómetros'}`,
-            }),
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `Se eliminó ${distance} milla de trayecto al trabajo`,
+                    other: `Eliminó ${distance} millas de trayecto al trabajo`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `Se eliminó ${distance} kilómetro de desplazamiento laboral`,
+                    other: `Eliminó ${distance} kilómetros de desplazamiento`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `Se eliminaron ${distance} ${unit} de desplazamiento en base a ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">configuración de distancias del espacio de trabajo</a>` : 'ajustes de distancia del espacio de trabajo'}.`,
         },

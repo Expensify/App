@@ -18,7 +18,7 @@ import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName, Unit} from '@src/types/onyx/Policy';
+import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 import type {ValueOf} from 'type-fest';
@@ -9555,10 +9555,16 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; distanceUnit: Unit}) => ({
-                one: `${distance} Pendler:in ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'Meile' : 'Kilometer'} entfernt`,
-                other: `${distance} Pendler/-in ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'Meilen' : 'Kilometer'} entfernt`,
-            }),
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `${distance} Pendelmeile entfernt`,
+                    other: `${distance} Pendelmeilen entfernt`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `${distance} Pendelkilometer entfernt`,
+                    other: `${distance} Pendelkilometer entfernt`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `${distance} Pendl${unit} basierend auf ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">Entfernungseinstellungen des Arbeitsbereichs</a>` : 'Arbeitsbereich-Entfernungseinstellungen'} entfernt.`,
         },

@@ -18,7 +18,7 @@ import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName, Unit} from '@src/types/onyx/Policy';
+import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 import type {ValueOf} from 'type-fest';
@@ -9403,10 +9403,16 @@ ${reportName}`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `元の距離: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; distanceUnit: Unit}) => ({
-                one: `${distance}件の通勤${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'マイル' : 'キロメートル'}を削除しました`,
-                other: `${distance} 通勤 ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'マイル' : 'キロメートル'} を削除しました`,
-            }),
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `${distance}マイルの通勤距離を削除しました`,
+                    other: `${distance}マイルの通勤距離を削除しました`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `${distance}キロメートルの通勤距離を削除しました`,
+                    other: `${distance}キロメートルの通勤距離を削除しました`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ワークスペースの距離設定</a>` : 'ワークスペース距離設定'} に基づき、通勤距離 ${distance} ${unit} を削除しました。`,
         },

@@ -18,7 +18,7 @@ import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName, Unit} from '@src/types/onyx/Policy';
+import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 import type {ValueOf} from 'type-fest';
@@ -9527,10 +9527,16 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Originale: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; distanceUnit: Unit}) => ({
-                one: `Rimossi ${distance} pendolari ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'miglio' : 'chilometro'}`,
-                other: `Rimosso ${distance} pendolare ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'miglia' : 'chilometri'}`,
-            }),
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `Rimosso ${distance} miglio di tragitto pendolare`,
+                    other: `Rimosse ${distance} miglia di pendolarismo`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `Rimosso ${distance} chilometro di tragitto pendolare`,
+                    other: `Rimossi ${distance} chilometri di pendolarismo`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `Rimossi ${distance} ${unit} per il pendolarismo in base a ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">impostazioni distanza spazio di lavoro</a>` : 'impostazioni distanza spazio di lavoro'}.`,
         },

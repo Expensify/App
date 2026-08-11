@@ -16,7 +16,6 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-import type {Unit} from '@src/types/onyx/Policy';
 
 import type {ValueOf} from 'type-fest';
 
@@ -9776,10 +9775,16 @@ ${reportName}`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Αρχικό: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; distanceUnit: Unit}) => ({
-                one: `Καταργήθηκε ${distance} μετακινούμενος ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'μίλι' : 'χιλιόμετρο'}`,
-                other: `Καταργήθηκε η μετακίνηση ${distance} ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'μίλια' : 'χιλιόμετρα'}`,
-            }),
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `Αφαιρέθηκε ${distance} μίλι μετακίνησης`,
+                    other: `Αφαιρέθηκαν ${distance} μίλια μετακίνησης`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `Αφαιρέθηκε ${distance} χιλιόμετρο μετακίνησης`,
+                    other: `Καταργήθηκαν ${distance} χιλιόμετρα μετακίνησης`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `Αφαιρέθηκαν ${distance} διαδρομές μετακίνησης ${unit} βάσει του ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ρυθμίσεις απόστασης χώρου εργασίας</a>` : 'ρυθμίσεις απόστασης χώρου εργασίας'}.`,
         },

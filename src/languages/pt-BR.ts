@@ -18,7 +18,7 @@ import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName, Unit} from '@src/types/onyx/Policy';
+import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 import type {ValueOf} from 'type-fest';
@@ -9494,10 +9494,16 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; distanceUnit: Unit}) => ({
-                one: `Removeu ${distance} deslocamento diário ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'milha' : 'quilômetro'}`,
-                other: `Removida a distância de ${distance} de ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'milhas' : 'quilômetros'} usuário pendular`,
-            }),
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `Removeu ${distance} milha de deslocamento`,
+                    other: `Removidas ${distance} milhas de deslocamento`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `Foi removido ${distance} quilômetro de deslocamento`,
+                    other: `Removidos ${distance} quilômetros de deslocamento`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `Removidos ${distance} ${unit} de deslocamento diário com base em ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">configurações de distância do workspace</a>` : 'configurações de distância do workspace'}.`,
         },

@@ -18,7 +18,7 @@ import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName, Unit} from '@src/types/onyx/Policy';
+import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 import type {ValueOf} from 'type-fest';
@@ -9592,10 +9592,16 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original : ${formattedDistance}`,
-            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; distanceUnit: Unit}) => ({
-                one: `A retiré ${distance} trajet domicile-travail ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'mile' : 'kilomètre'}`,
-                other: `${distance} trajet domicile-travail ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'miles' : 'kilomètres'} supprimé`,
-            }),
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `Suppression de ${distance} mile de trajet domicile-travail`,
+                    other: `${distance} miles de trajet domicile-travail supprimés`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `${distance} kilomètre de trajet domicile-travail supprimé`,
+                    other: `${distance} kilomètres de trajet domicile-travail supprimés`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `${distance} ${unit} de trajet domicile-travail supprimé(s) en fonction de ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">paramètres de distance de l’espace de travail</a>` : 'paramètres de distance de l’espace de travail'}.`,
         },

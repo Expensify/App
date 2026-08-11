@@ -7,7 +7,7 @@ import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
-import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName, Unit} from '@src/types/onyx/Policy';
+import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
 import type {ValueOf} from 'type-fest';
@@ -9670,10 +9670,16 @@ const translations = {
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; distanceUnit: Unit}) => ({
-                one: `Removed ${distance} commuter ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'mile' : 'kilometer'}`,
-                other: `Removed ${distance} commuter ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'miles' : 'kilometers'}`,
-            }),
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `Removed ${distance} commuter mile`,
+                    other: `Removed ${distance} commuter miles`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `Removed ${distance} commuter kilometer`,
+                    other: `Removed ${distance} commuter kilometers`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `Removed ${distance} commuter ${unit} based on ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">workspace distance settings</a>` : 'workspace distance settings'}.`,
         },
