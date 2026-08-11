@@ -1,3 +1,4 @@
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
@@ -76,6 +77,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
+    const personalDetails = usePersonalDetails();
 
     const currentTransactionIndex = transactionIDsList.findIndex((id) => id === currentTransactionID);
 
@@ -212,7 +214,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         // hydrate it on arrival.
         const nextDescriptor = nextTransactionID ? siblingDescriptorsByTransactionID?.[nextTransactionID] : undefined;
         if (nextDescriptor) {
-            const nextReportID = getReportIDToOpenForExpense(nextDescriptor, {introSelected, betas, currentUserEmail: email, currentUserAccountID: accountID});
+            const nextReportID = getReportIDToOpenForExpense(nextDescriptor, {introSelected, betas, currentUserEmail: email, currentUserAccountID: accountID, personalDetails});
             markReportRHPWidth(nextReportID, 'wide');
             requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: nextReportID, reportActionID: undefined, anchorTransactionID: nextTransactionID, backTo})));
             return;
@@ -230,6 +232,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                 iouReport: nextTransactionParentReport,
                 iouReportAction: nextParentReportAction,
                 transaction: nextTransaction,
+                personalDetails,
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
             });
@@ -265,7 +268,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         // See onNext: resolve the target sibling lazily from its descriptor when present.
         const prevDescriptor = prevTransactionID ? siblingDescriptorsByTransactionID?.[prevTransactionID] : undefined;
         if (prevDescriptor) {
-            const prevReportID = getReportIDToOpenForExpense(prevDescriptor, {introSelected, betas, currentUserEmail: email, currentUserAccountID: accountID});
+            const prevReportID = getReportIDToOpenForExpense(prevDescriptor, {introSelected, betas, currentUserEmail: email, currentUserAccountID: accountID, personalDetails});
             markReportRHPWidth(prevReportID, 'wide');
             requestAnimationFrame(() => startTransition(() => Navigation.setParams({reportID: prevReportID, reportActionID: undefined, anchorTransactionID: prevTransactionID, backTo})));
             return;
@@ -287,6 +290,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                 transaction: prevTransaction,
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
+                personalDetails,
             });
             const targetReportID = optimisticThread?.reportID ?? prevTransaction.reportID;
             markReportRHPWidth(targetReportID, 'wide');

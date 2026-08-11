@@ -1,4 +1,5 @@
 import Button from '@components/ButtonComposed';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -28,6 +29,7 @@ import useTransactionThreadData from './useTransactionThreadData';
 function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
     const {translate} = useLocalize();
     const {accountID, email} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
 
     const {moneyRequestReport, reportActions, transactionThreadReportID} = useTransactionThreadData(reportID, chatReportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
@@ -70,6 +72,7 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
                                 betas,
                                 iouReport: moneyRequestReport,
                                 iouReportAction: iouAction,
+                                personalDetails,
                             });
                             threadID = createdTransactionThreadReport?.reportID;
                         }
