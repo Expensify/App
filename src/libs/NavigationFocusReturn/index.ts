@@ -63,8 +63,8 @@ function captureTriggerForRoute(routeKey: string): void {
     /*
      * When the user presses Enter or Space on a control that navigates (a Settings row, a
      * menu item), the destination screen usually mounts before this function runs. If
-     * that screen autofocuses one of its own controls (BaseTextInput's mount autofocus is
-     * the common case), the focus change fires a focusin event that overwrites
+     * that screen focuses one of its own controls on mount (BaseTextInput's mount
+     * autofocus is the common case), the focus change fires a focusin event that overwrites
      * lastInteractiveElement with the destination's input. Capturing that here would
      * attribute the trigger to the wrong element. By the time back-navigation runs, the
      * destination's input has been unmounted, so focus falls to <body> instead of

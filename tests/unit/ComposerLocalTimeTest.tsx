@@ -115,9 +115,10 @@ describe('ComposerLocalTime', () => {
         const personalDetails: PersonalDetailsList = {
             [RECIPIENT_ACCOUNT_ID]: {
                 accountID: RECIPIENT_ACCOUNT_ID,
-                login: 'agent_999@expensify.ai',
+                login: 'testbot_999@expensify.ai',
                 displayName: 'Agent 999',
                 firstName: 'Agent',
+                isCustomAgent: true,
                 validated: true,
                 timezone: {automatic: true, selected: 'America/New_York'},
             },
@@ -131,7 +132,7 @@ describe('ComposerLocalTime', () => {
 
         await waitForBatchedUpdates();
 
-        // Component should render nothing for agent emails
+        // Component should render nothing for custom agents.
         expect(toJSON()).toBeNull();
     });
 });
