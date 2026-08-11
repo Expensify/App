@@ -4,7 +4,11 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import CONST from '@src/CONST';
-import {updateQuickbooksOnlineSyncReimbursedReports, updateQuickbooksOnlineTravelInvoicingPayableAccount} from '@src/libs/actions/connections/QuickbooksOnline';
+import {
+    updateQuickbooksOnlineFxExpenseAccount,
+    updateQuickbooksOnlineSyncReimbursedReports,
+    updateQuickbooksOnlineTravelInvoicingPayableAccount,
+} from '@src/libs/actions/connections/QuickbooksOnline';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType} from '@src/types/onyx';
 import type {QBOConnectionConfig} from '@src/types/onyx/Policy';
@@ -193,6 +197,53 @@ describe('actions/connections/QuickbooksOnline', () => {
             const failureUpdate = onyxData?.failureData?.at(0);
             const failureConfig = getRequiredQuickBooksConfig(failureUpdate);
             expect(failureConfig[CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]).toBe(MOCK_OLD_ACCOUNT_ID);
+        });
+    });
+
+    describe('updateQuickbooksOnlineFxExpenseAccount', () => {
+        beforeEach(() => {
+            writeSpy.mockClear();
+        });
+
+        it('writes the UpdateQuickbooksOnlineFxExpenseAccount command with the account ID', () => {
+            updateQuickbooksOnlineFxExpenseAccount(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
+
+            const {command} = getFirstWriteCall();
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT);
+
+            const call = writeSpy.mock.calls.at(0);
+            const params = call?.[1] as {policyID: string; settingValue: string; idempotencyKey: string};
+            expect(params.policyID).toBe(MOCK_POLICY_ID);
+
+            // Auth parses settingValue as JSON and 400s on anything else, so the ID goes over the wire quoted
+            expect(params.settingValue).toBe(JSON.stringify(MOCK_ACCOUNT_ID));
+            expect(params.idempotencyKey).toBe(String(CONST.QUICKBOOKS_CONFIG.FX_EXPENSE_ACCOUNT));
+        });
+
+        it('updates fxExpenseAccount optimistically and reverts to the old value on failure', () => {
+            updateQuickbooksOnlineFxExpenseAccount(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
+
+            const {onyxData} = getFirstWriteCall();
+            const optimisticUpdate = onyxData?.optimisticData?.at(0);
+            const optimisticConfig = getRequiredQuickBooksConfig(optimisticUpdate);
+            expect(optimisticConfig[CONST.QUICKBOOKS_CONFIG.FX_EXPENSE_ACCOUNT]).toBe(MOCK_ACCOUNT_ID);
+            expect(optimisticConfig.pendingFields?.[CONST.QUICKBOOKS_CONFIG.FX_EXPENSE_ACCOUNT]).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            const failureUpdate = onyxData?.failureData?.at(0);
+            const failureConfig = getRequiredQuickBooksConfig(failureUpdate);
+            expect(failureConfig[CONST.QUICKBOOKS_CONFIG.FX_EXPENSE_ACCOUNT]).toBe(MOCK_OLD_ACCOUNT_ID);
+        });
+
+        it('skips the API call when the account has not changed', () => {
+            updateQuickbooksOnlineFxExpenseAccount(MOCK_POLICY_ID, MOCK_OLD_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
+
+            expect(writeSpy).not.toHaveBeenCalled();
+        });
+
+        it('skips the API call when policyID is missing', () => {
+            updateQuickbooksOnlineFxExpenseAccount(undefined, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
+
+            expect(writeSpy).not.toHaveBeenCalled();
         });
     });
 });
