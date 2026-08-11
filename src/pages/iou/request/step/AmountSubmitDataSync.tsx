@@ -34,7 +34,6 @@ type AmountSubmitData = Pick<
     | 'transactionDrafts'
     | 'transactionViolations'
     | 'storedTransaction'
-    | 'parentReportNextStep'
     | 'policyCategories'
     | 'userBillingGracePeriodEnds'
     | 'duplicateTransactions'
@@ -87,7 +86,6 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
     const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
     const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
@@ -125,7 +123,6 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
             transactionDrafts,
             transactionViolations,
             storedTransaction,
-            parentReportNextStep,
             policyCategories,
             userBillingGracePeriodEnds,
             duplicateTransactions,
@@ -157,7 +154,6 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
         transactionDrafts,
         transactionViolations,
         storedTransaction,
-        parentReportNextStep,
         policyCategories,
         userBillingGracePeriodEnds,
         duplicateTransactions,

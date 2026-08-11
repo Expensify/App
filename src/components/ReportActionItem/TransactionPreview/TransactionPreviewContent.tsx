@@ -2,6 +2,7 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import {ReportPreviewDataContext} from '@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import UserInfoCellsWithArrow from '@components/Search/SearchList/ListItem/UserInfoCellsWithArrow';
 import Text from '@components/Text';
@@ -25,14 +26,12 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
@@ -47,7 +46,7 @@ import {cardByIdSelector} from '@src/selectors/Card';
 import {getStableReportSelector} from '@src/selectors/Report';
 
 import truncate from 'lodash/truncate';
-import React, {useMemo} from 'react';
+import React, {useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -78,10 +77,10 @@ function TransactionPreviewContent({
     isReviewDuplicateTransactionPage = false,
     shouldHighlight = false,
 }: TransactionPreviewContentProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Folder', 'Tag']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
@@ -89,7 +88,7 @@ function TransactionPreviewContent({
         () => getTransactionDetails(transaction, undefined, policy, isParentPolicyExpenseChat) ?? {},
         [transaction, policy, isParentPolicyExpenseChat],
     );
-    const {amount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
+    const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const filteredViolations = filterReceiptViolations(violations);
     const firstViolation = filteredViolations.at(0);
@@ -132,7 +131,12 @@ function TransactionPreviewContent({
         [areThereDuplicates, transactionPreviewCommonArguments, isParentPolicyExpenseChat, currentUserEmail, currentUserAccountID, reportActions],
     );
 
-    const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowTag, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
+    const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
+
+    // Raw useContext (not the useReportPreviewData slice hook, which throws when absent): a missing provider means this is a
+    // standalone preview with no report header to carry the status, so the preview has to report a cancelled payment itself.
+    const isInsideReportPreview = !!useContext(ReportPreviewDataContext);
+    const shouldShowCanceledStatus = !isInsideReportPreview;
 
     const isIOUActionType = isMoneyRequestAction(action);
     const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, isChatReportArchived, report, policy);
@@ -143,6 +147,7 @@ function TransactionPreviewContent({
 
     const violationMessage = firstViolation
         ? ViolationsUtils.getViolationTranslation({
+              dateFnsLocale,
               violation: firstViolation,
               translate,
               convertToDisplayString,
@@ -159,29 +164,25 @@ function TransactionPreviewContent({
     const previewText = useMemo(
         () =>
             getTransactionPreviewTextAndTranslationPaths({
+                dateFnsLocale,
                 ...transactionPreviewCommonArguments,
                 shouldShowRBR,
+                shouldShowCanceledStatus,
                 violationMessage,
                 reportActions,
-                currentUserEmail,
-                currentUserAccountID,
                 originalTransaction,
                 convertToDisplayString,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, currentUserEmail, currentUserAccountID, originalTransaction, convertToDisplayString],
+        [transactionPreviewCommonArguments, shouldShowRBR, shouldShowCanceledStatus, violationMessage, reportActions, originalTransaction, convertToDisplayString, dateFnsLocale],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
-
-    const previewHeaderText = previewText.previewHeaderText.reduce((text, currentKey) => {
-        return `${text}${getTranslatedText(currentKey)}`;
-    }, '');
 
     const RBRMessage = getTranslatedText(previewText.RBRMessage);
     const displayAmountText = getTranslatedText(previewText.displayAmountText);
     const displayDeleteAmountText = getTranslatedText(previewText.displayDeleteAmountText);
+    const displayTypeText = getTranslatedText(previewText.previewTypeText);
 
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const shouldShowCategoryOrTag = shouldShowCategory || shouldShowTag;
     const shouldShowMerchantOrDescription = shouldShowDescription || shouldShowMerchant;
 
     const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
@@ -194,6 +195,10 @@ function TransactionPreviewContent({
     const displayAmount = isDeleted ? displayDeleteAmountText : displayAmountText;
     const receiptImages = [{...getThumbnailAndImageURIs(transaction), transaction}];
     const merchantOrDescription = shouldShowMerchant ? requestMerchant : description || '';
+    const previewSupportingText = [previewText.previewDateText, shouldShowCategory && category ? {text: getDecodedLeafCategoryName(category)} : undefined, ...previewText.previewStatusText]
+        .filter((item): item is TranslationPathOrText => !!item)
+        .map(getTranslatedText)
+        .join(` ${CONST.DOT_SEPARATOR} `);
     const participantAccountIDs = isMoneyRequestAction(action) && isBillSplit ? (getOriginalMessage(action)?.participantAccountIDs ?? []) : [managerID, ownerAccountID];
     const isCardTransaction = isCardTransactionUtils(transaction);
 
@@ -263,10 +268,6 @@ function TransactionPreviewContent({
         getCurrencyDecimals,
     ]);
 
-    const shouldWrapDisplayAmount = !(isBillSplit || shouldShowMerchantOrDescription || isTransactionScanning);
-    const previewTextViewGap = (shouldShowCategoryOrTag || !shouldWrapDisplayAmount) && styles.gap2;
-    const previewTextMargin = shouldShowIOUHeader && shouldShowMerchantOrDescription && !isBillSplit && !shouldShowCategoryOrTag && styles.mbn1;
-
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight,
         highlightColor: theme.messageHighlightBG,
@@ -275,11 +276,6 @@ function TransactionPreviewContent({
     });
 
     const transactionWrapperStyles = [styles.border, styles.moneyRequestPreviewBox, (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedbackPending];
-
-    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'TransactionPreviewContent',
-        shouldShowSkeleton,
-    };
 
     return (
         <Animated.View style={[transactionWrapperStyles, containerStyles, animatedHighlightStyle]}>
@@ -302,10 +298,7 @@ function TransactionPreviewContent({
                         shouldUseAspectRatio={!isMapDistanceRequest(transaction) && !isGPSDistanceRequest(transaction)}
                     />
                     {shouldShowSkeleton ? (
-                        <TransactionPreviewSkeletonView
-                            transactionPreviewWidth={transactionPreviewWidth}
-                            reasonAttributes={skeletonReasonAttributes}
-                        />
+                        <TransactionPreviewSkeletonView transactionPreviewWidth={transactionPreviewWidth} />
                     ) : (
                         <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
                             <View style={styles.gap3}>
@@ -322,113 +315,58 @@ function TransactionPreviewContent({
                                         style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}
                                     />
                                 )}
-                                <View style={previewTextViewGap}>
-                                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={[isDeleted && styles.lineThrough, styles.textLabelSupporting, styles.flex1, styles.lh16, previewTextMargin]}>{previewHeaderText}</Text>
-                                        {isBillSplit && (
-                                            <View style={styles.moneyRequestPreviewBoxAvatar}>
-                                                <ReportActionAvatars
-                                                    accountIDs={participantAccountIDs}
-                                                    horizontalStacking={{
-                                                        sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.ID,
-                                                        useCardBG: true,
-                                                    }}
-                                                    size={CONST.AVATAR_SIZE.XX_SMALL}
-                                                />
-                                            </View>
-                                        )}
-                                        {shouldWrapDisplayAmount && (
-                                            <Text
-                                                fontSize={variables.fontSizeNormal}
-                                                style={[isDeleted && styles.lineThrough, styles.flexShrink0]}
-                                                numberOfLines={1}
-                                            >
-                                                {displayAmount}
-                                            </Text>
-                                        )}
-                                    </View>
-                                    <View>
-                                        <View style={[styles.flexRow]}>
-                                            <View
-                                                style={[
-                                                    styles.flex1,
-                                                    styles.flexRow,
-                                                    styles.alignItemsCenter,
-                                                    isBillSplit && !shouldShowMerchantOrDescription ? styles.justifyContentEnd : styles.justifyContentBetween,
-                                                    styles.gap2,
-                                                ]}
-                                            >
-                                                {shouldShowMerchantOrDescription && (
-                                                    <Text
-                                                        fontSize={variables.fontSizeNormal}
-                                                        style={[isDeleted && styles.lineThrough, styles.flexShrink1]}
-                                                        numberOfLines={1}
-                                                    >
-                                                        {merchantOrDescription}
-                                                    </Text>
-                                                )}
-                                                {!shouldWrapDisplayAmount && (
-                                                    <Text
-                                                        fontSize={variables.fontSizeNormal}
-                                                        style={[isDeleted && styles.lineThrough, styles.flexShrink0]}
-                                                        numberOfLines={1}
-                                                    >
-                                                        {displayAmount}
-                                                    </Text>
-                                                )}
-                                            </View>
-                                        </View>
-                                        <View style={[styles.flexRow, styles.justifyContentEnd]}>
-                                            {!!splitShare && (
-                                                <Text style={[isDeleted && styles.lineThrough, styles.textLabel, styles.colorMuted, styles.amountSplitPadding]}>
-                                                    {translate('iou.yourSplit', convertToDisplayString(splitShare, requestCurrency))}
+                                <View style={[styles.flexColumn, styles.gap1]}>
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                            {shouldShowMerchantOrDescription && (
+                                                <Text
+                                                    fontSize={variables.fontSizeNormal}
+                                                    style={[isDeleted && styles.lineThrough, styles.flexShrink1]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {merchantOrDescription}
                                                 </Text>
                                             )}
+                                            {isBillSplit && (
+                                                <View style={styles.moneyRequestPreviewBoxAvatar}>
+                                                    <ReportActionAvatars
+                                                        accountIDs={participantAccountIDs}
+                                                        horizontalStacking={{
+                                                            avatarBorderColor: theme.cardBG,
+                                                        }}
+                                                        sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.ID}
+                                                        size={CONST.AVATAR_SIZE.XX_SMALL}
+                                                    />
+                                                </View>
+                                            )}
                                         </View>
+                                        <Text
+                                            fontSize={variables.fontSizeNormal}
+                                            style={[isDeleted && styles.lineThrough, styles.flexShrink0]}
+                                            numberOfLines={1}
+                                        >
+                                            {displayAmount}
+                                        </Text>
                                     </View>
-                                    {shouldShowCategoryOrTag && (
-                                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            {shouldShowCategory && (
-                                                <View
-                                                    style={[
-                                                        styles.flexRow,
-                                                        styles.alignItemsCenter,
-                                                        styles.gap1,
-                                                        shouldShowTag && styles.mw50,
-                                                        shouldShowTag && styles.pr1,
-                                                        styles.flexShrink1,
-                                                    ]}
-                                                >
-                                                    <Icon
-                                                        src={icons.Folder}
-                                                        height={variables.iconSizeExtraSmall}
-                                                        width={variables.iconSizeExtraSmall}
-                                                        fill={theme.icon}
-                                                    />
-                                                    <Text
-                                                        numberOfLines={1}
-                                                        style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
-                                                    >
-                                                        {getDecodedLeafCategoryName(category ?? '')}
-                                                    </Text>
-                                                </View>
-                                            )}
-                                            {shouldShowTag && !!tag && (
-                                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, category && styles.pl1]}>
-                                                    <Icon
-                                                        src={icons.Tag}
-                                                        height={variables.iconSizeExtraSmall}
-                                                        width={variables.iconSizeExtraSmall}
-                                                        fill={theme.icon}
-                                                    />
-                                                    <Text
-                                                        numberOfLines={1}
-                                                        style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
-                                                    >
-                                                        {getCommaSeparatedTagNameWithSanitizedColons(tag)}
-                                                    </Text>
-                                                </View>
-                                            )}
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[isDeleted && styles.lineThrough, styles.textLabelSupporting, styles.pre, styles.flexShrink1, styles.lh16]}
+                                        >
+                                            {previewSupportingText}
+                                        </Text>
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[isDeleted && styles.lineThrough, styles.textLabelSupporting, styles.pre, styles.flexShrink0, styles.lh16]}
+                                        >
+                                            {displayTypeText}
+                                        </Text>
+                                    </View>
+                                    {!!splitShare && (
+                                        <View style={[styles.flexRow, styles.justifyContentEnd]}>
+                                            <Text style={[isDeleted && styles.lineThrough, styles.textLabel, styles.colorMuted, styles.amountSplitPadding]}>
+                                                {translate('iou.yourSplit', convertToDisplayString(splitShare, requestCurrency))}
+                                            </Text>
                                         </View>
                                     )}
                                 </View>
