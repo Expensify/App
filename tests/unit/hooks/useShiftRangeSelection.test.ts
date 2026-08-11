@@ -510,9 +510,9 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['b', 'c'], toDeselect: ['d', 'e']});
         });
 
-        it('collapses rows that read as selected but are not protected, while still anchoring from them', () => {
+        it('adopts an unprotected block on a cold click, anchoring in it and narrowing it in one go', () => {
             const onApplyRange = makeApplyMock();
-            // Rows b..e read as selected (so they can anchor a cold shift+click) but none of them were picked on their own.
+            // Rows b..e read as selected but none of them were picked on their own, which is how a group-level selection looks.
             const {result} = renderHook(() =>
                 useShiftRangeSelection<Row>(
                     makeParams({
@@ -525,13 +525,31 @@ describe('useShiftRangeSelection', () => {
             act(() => {
                 result.current.applyShiftClick(ROW_D, true);
             });
-            // The anchor came from the first row reading as selected, not from the top of the list.
-            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd'], toDeselect: []});
+            // Anchored at the first row of the block rather than the top of the list, and 'e' falls out of it right away.
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd'], toDeselect: ['e']});
             act(() => {
                 result.current.applyShiftClick(ROW_C, true);
             });
-            // Unprotected rows were painted, so shrinking the range collapses them.
             expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['b', 'c'], toDeselect: ['d']});
+        });
+
+        it('leaves a block alone when the session already has an anchor, so an unrelated range cannot dissolve it', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() =>
+                useShiftRangeSelection<Row>(
+                    makeParams({
+                        isItemSelected: (row) => row.keyForList === 'd' || row.keyForList === 'e',
+                        isItemProtected: () => false,
+                        onApplyRange,
+                    }),
+                ),
+            );
+            // A plain click starts the session, so the block was not part of it.
+            act(() => result.current.notifyAnchor(ROW_A));
+            act(() => {
+                result.current.applyShiftClick(ROW_B, true);
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b'], toDeselect: []});
         });
 
         it('selects on a cold shift+click even when every row is already selected', () => {

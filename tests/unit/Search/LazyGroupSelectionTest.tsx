@@ -55,6 +55,10 @@ const loadedChildren = [
     {transactionID: '2', keyForList: '2', currency: 'USD', amount: -642, report: {reportID: '11'}},
 ] as unknown as TransactionListItemType[];
 
+/** The same group with a third child, for ranges that leave a row untouched on either side. */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only the fields the selection logic reads are needed
+const threeLoadedChildren = [...loadedChildren, {transactionID: '5', keyForList: '5', currency: 'USD', amount: -642, report: {reportID: '11'}}] as unknown as TransactionListItemType[];
+
 const EARLIER_GROUP_KEY = 'Office';
 
 /** A group rendered above `categoryGroup`, used to prove a range does not start from the top of the list. */
@@ -277,6 +281,34 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
         expect(result.current.selectedTransactions['3']).toBeUndefined();
         expect(result.current.selectedTransactions['4']).toBeUndefined();
+    });
+
+    it('leaves no untouched child behind when a range narrows a group of three', async () => {
+        const {result} = renderSelection();
+        const [firstChild, secondChild] = threeLoadedChildren;
+
+        // Given a group selected while it was still collapsed, whose three children have since loaded and been registered
+        await act(async () => {
+            result.current.toggle(categoryGroup, []);
+            result.current.registerGroupChildren(GROUP_KEY, threeLoadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a shift+click covers the first two children and a second one shrinks the range back to the first
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then only the clicked child survives, rather than the third child hanging on because no range ever covered it
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']).toBeUndefined();
+        expect(result.current.selectedTransactions['5']).toBeUndefined();
     });
 
     it('selects every child of a group that was not already selected once its children loaded', async () => {

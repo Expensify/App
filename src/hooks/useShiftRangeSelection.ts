@@ -27,7 +27,6 @@ type Api<TItem> = {
 type SessionState = {kind: 'idle'} | {kind: 'anchored'; anchor: string} | {kind: 'ranging'; anchor: string; painted: ReadonlySet<string>};
 
 const IDLE: SessionState = {kind: 'idle'};
-const NO_KEYS: ReadonlySet<string> = new Set();
 
 /** Shift+click range selection. Consumers notify on plain clicks / select-all so the hook can resolve an anchor for the next shift+click. */
 function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
@@ -122,6 +121,28 @@ function seedRangeState<TItem>(params: Params<TItem>, isIncluded: (key: string) 
     return IDLE;
 }
 
+/**
+ * What a session with no history starts from. It adopts rows that read as selected without having been picked on their own,
+ * since those came from a block selection like a group that a range is entitled to narrow. Empty unless `isItemProtected` is passed.
+ */
+function startingPainted<TItem>(params: Params<TItem>, state: SessionState): ReadonlySet<string> {
+    const keys = new Set<string>();
+    if (state.kind !== 'idle') {
+        return keys;
+    }
+    const isProtected = params.isItemProtected ?? params.isItemSelected;
+    for (const row of params.items) {
+        if (isExcluded(params, row)) {
+            continue;
+        }
+        const key = keyOf(params, row);
+        if (key != null && params.isItemSelected(row) && !isProtected(row)) {
+            keys.add(key);
+        }
+    }
+    return keys;
+}
+
 /** Selected keys the session didn't paint — derived fresh each click so protection tracks the live selection; the session never deselects these. */
 function protectedKeys<TItem>(params: Params<TItem>, painted: ReadonlySet<string>): ReadonlySet<string> {
     const keys = new Set<string>();
@@ -151,7 +172,7 @@ function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, ta
     // The session survives only while the same anchor does; a re-resolved or cold anchor starts fresh.
     const sameAnchor = state.kind !== 'idle' && anchor === state.anchor;
     const continuing = state.kind === 'ranging' && sameAnchor;
-    const prevPainted: ReadonlySet<string> = continuing ? state.painted : NO_KEYS;
+    const prevPainted: ReadonlySet<string> = continuing ? state.painted : startingPainted(params, state);
     const preSelected = protectedKeys(params, prevPainted);
 
     const anchorIdx = keyToIndex.get(anchor);
