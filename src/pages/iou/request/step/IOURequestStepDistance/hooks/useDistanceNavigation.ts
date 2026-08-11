@@ -178,6 +178,7 @@ function useDistanceNavigation({
             iouType,
             action,
             report,
+            reportDraft,
             policy,
             transaction,
             reportID,

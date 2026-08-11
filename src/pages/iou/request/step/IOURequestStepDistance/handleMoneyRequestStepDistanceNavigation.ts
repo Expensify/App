@@ -95,6 +95,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     optimisticTransactionID: string;
     optimisticChatReportID: string | undefined;
+    reportDraft: OnyxEntry<Report> | undefined;
     action: IOUAction;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
@@ -197,6 +198,7 @@ function handleMoneyRequestStepDistanceNavigation({
     ownerBillingGracePeriodEnd,
     optimisticTransactionID,
     optimisticChatReportID,
+    reportDraft,
     action,
     isTrackIntentUser,
     delegateAccountID,

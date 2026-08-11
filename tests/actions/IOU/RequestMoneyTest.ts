@@ -2745,6 +2745,8 @@ describe('actions/IOU', () => {
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
                     report: {reportID: '123', policyID: 'A'},
+                    parentChatReport: {reportID: '123', policyID: 'A'},
+                    isDraftChatReport: false,
                     isDraftPolicy: false,
                     action,
                     participantParams: {
@@ -2815,6 +2817,8 @@ describe('actions/IOU', () => {
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
                     report: {reportID: '123', policyID: 'A'},
+                    parentChatReport: {reportID: '123', policyID: 'A'},
+                    isDraftChatReport: false,
                     isDraftPolicy: false,
                     action,
                     participantParams: {

@@ -152,6 +152,7 @@ function IOURequestStepDistanceGPS({
             iouType,
             action,
             report,
+            reportDraft,
             policy,
             transaction,
             reportID,

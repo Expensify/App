@@ -2120,6 +2120,9 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 policyTagList: targetPolicyTags ?? {},
                 formatPhoneNumber,
+                dateFnsLocale: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();

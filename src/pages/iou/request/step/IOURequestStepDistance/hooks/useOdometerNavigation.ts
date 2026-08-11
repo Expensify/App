@@ -181,6 +181,7 @@ function useOdometerNavigation({
             iouType,
             action,
             report,
+            reportDraft,
             policy,
             transaction,
             reportID,

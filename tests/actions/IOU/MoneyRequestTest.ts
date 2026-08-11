@@ -207,6 +207,7 @@ describe('MoneyRequest', () => {
 
         it('should pass isDraftChatReport to trackExpense when provided', () => {
             createTransaction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.TRACK,
                 allTransactionDrafts: {},
@@ -779,6 +780,7 @@ describe('MoneyRequest', () => {
             recentWaypoints: [] as RecentWaypoint[],
             optimisticTransactionID: 'mock-txn-id',
             optimisticChatReportID: 'mock-chat-id',
+            reportDraft: undefined,
             isSelfTourViewed: false,
             amountOwed: 0,
             draftTransactionIDs: undefined,

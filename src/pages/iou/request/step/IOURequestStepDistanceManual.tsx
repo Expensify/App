@@ -292,6 +292,7 @@ function IOURequestStepDistanceManual({
             iouType,
             action,
             report,
+            reportDraft,
             policy,
             transaction,
             reportID,
