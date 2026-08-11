@@ -32,15 +32,18 @@ jobs:
 
       - name: Mount Jest sticky disk
         # Persistent NVMe-backed disk on the runner (3s mount vs ~66s actions/cache download).
-        # Key still hashes lockfile/patches/babel config, so a config bump gets a fresh disk
-        # instead of piling up stale jest-transform-cache hash dirs inside one ever-growing mount.
+        # Key is stable (no lockfile/babel hash) - a hashed key would spin up a brand-new disk
+        # on every lockfile bump, each billed for 7 idle days, and throw away the warm cache.
+        # Jest versions its own transform-cache subdir by config hash inside this same mount, so
+        # a config bump just adds a new subdir here instead of a new disk; run `jest --clearCache`
+        # on a schedule to prune stale subdirs so the disk doesn't grow unbounded.
         # Branch Protection (Blacksmith dashboard, not a YAML input) must be enabled for this repo:
         # only push/schedule/workflow_dispatch on main can commit writes back to the disk; PR jobs
         # read the latest snapshot but their writes are discarded without failing the job.
         uses: useblacksmith/stickydisk@v1
         with:
           path: .jest-cache
-          key: ${{ runner.os }}-jest-${{ matrix.chunk }}-${{ hashFiles('package-lock.json', 'patches/**', 'babel.config.js') }}
+          key: ${{ runner.os }}-jest-${{ matrix.chunk }}
 
       - name: Jest tests
         run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=6 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
