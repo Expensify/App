@@ -76,8 +76,8 @@ function SearchStaticList({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const session = useSession();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
@@ -99,6 +99,7 @@ function SearchStaticList({
         }
 
         const [filteredData] = getSections({
+            dateFnsLocale,
             type,
             data: searchData,
             currentAccountID: accountID,
@@ -140,6 +141,7 @@ function SearchStaticList({
             // They're only used for guided-setup onboarding data, which is gated behind introSelected/onboarding checks
             // that won't apply here - the user has already completed onboarding if they're submitting expenses.
             createAndOpenSearchTransactionThread({
+                getCurrencyDecimals,
                 item,
                 introSelected: undefined,
                 backTo,
