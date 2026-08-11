@@ -11,6 +11,7 @@ import Text from '@components/Text';
 
 import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useControlOnlyRuleUpgradeRedirect from '@hooks/useControlOnlyRuleUpgradeRedirect';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -40,6 +41,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -54,6 +56,9 @@ type SpendRulePageBaseProps = {
     ruleID?: string;
     titleKey: TranslationPaths;
     testID: string;
+
+    /** Where the Control upgrade page should return to. Defaults to the workspace Rules page. */
+    upgradeBackTo?: Route;
 };
 
 function getErrorMessage(hasSelectedCards: boolean, hasAnyRuleApplied: boolean, translate: (path: TranslationPaths) => string) {
@@ -69,15 +74,16 @@ function getErrorMessage(hasSelectedCards: boolean, hasAnyRuleApplied: boolean, 
     return '';
 }
 
-function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBaseProps) {
+function SpendRulePageBase({policyID, ruleID, titleKey, testID, upgradeBackTo}: SpendRulePageBaseProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
 
     const {showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const canWriteSpendRules = useCanWriteCardSpendRules(policyID);
+    useControlOnlyRuleUpgradeRedirect(policyID, upgradeBackTo);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const icons = useMemoizedLazyExpensifyIcons(['CreditCardHourglass', 'MoneyCircle', 'CoinsButton', 'Basket']);
@@ -166,7 +172,13 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                     return id;
                 }
                 const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], defaultValue: '', shouldFallbackToHidden: false, translate});
+                const displayName = temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: personalDetails?.[accountID],
+                    defaultValue: '',
+                    shouldFallbackToHidden: false,
+                    translate,
+                    formatPhoneNumber,
+                });
                 return getCardDescriptionForSearchTable(card, translate, displayName || undefined) || id;
             }),
             (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
@@ -491,7 +503,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID]}
             shouldBeBlocked={!!policy?.id && !canWriteSpendRules}
         >
             <ScreenWrapper

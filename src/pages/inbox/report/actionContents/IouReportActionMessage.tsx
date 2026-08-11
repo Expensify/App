@@ -1,3 +1,4 @@
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
@@ -34,6 +35,7 @@ type IouReportActionMessageProps = {
 
 function IouReportActionMessage({action, displayAsGroup, reportID, style, isHidden = false}: IouReportActionMessageProps) {
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getLinkedTransactionID(action))}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -42,7 +44,7 @@ function IouReportActionMessage({action, displayAsGroup, reportID, style, isHidd
     const isIOUAction = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU);
     const originalMessageType = isIOUAction ? getOriginalMessage(action)?.type : undefined;
     if (isIOUAction && originalMessageType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK) {
-        iouMessage = getIOUReportActionDisplayMessage(translate, action, transaction, report, bankAccountList);
+        iouMessage = getIOUReportActionDisplayMessage(translate, action, convertToDisplayString, transaction, report, bankAccountList);
     }
 
     return (

@@ -25,7 +25,7 @@ function SearchInputSelectionWrapper({ref, skipSkeleton, ...props}: SearchAutoco
     }, []);
 
     if (showSkeleton) {
-        return <SearchInputSelectionSkeleton reasonAttributes={{context: 'SearchInputSelectionWrapper'}} />;
+        return <SearchInputSelectionSkeleton />;
     }
 
     return (
