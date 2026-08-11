@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {isCommuterExclusionEnabled} from '@libs/PolicyDistanceRatesUtils';
 import {getActivePolicies, isGroupPolicy} from '@libs/PolicyUtils';
-import {getPayeeName, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {getPayeeName, isExpenseReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -67,11 +67,11 @@ function DistanceRequestStartPage({
     const onlyActivePolicy = activeGroupPolicies.length === 1 ? activeGroupPolicies.at(0) : undefined;
     const targetParticipant = participants.find((participant) => participant.isPolicyExpenseChat);
     const isOnlyWorkspaceTheTarget = onlyActivePolicy?.id === targetParticipant?.policyID;
-    let targetPolicy = isOnlyWorkspaceTheTarget ? onlyActivePolicy : undefined;
-    if (isPolicyExpenseChat(report)) {
-        targetPolicy = policy;
-    }
-    const shouldHideManualAndOdometerTabs = isCommuterExclusionEnabled(targetPolicy);
+    const targetPolicy = isOnlyWorkspaceTheTarget ? onlyActivePolicy : undefined;
+    const shouldHideManualAndOdometerTabs =
+        isPolicyExpenseChat(report) || isExpenseReport(report)
+            ? isCommuterExclusionEnabled(policy)
+            : !isSelfDM(report) && (isCommuterExclusionEnabled(targetPolicy) || (activeGroupPolicies.length > 1 && activeGroupPolicies.every(isCommuterExclusionEnabled)));
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
