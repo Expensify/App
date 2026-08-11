@@ -476,7 +476,7 @@ function getAccountingIntegrationData(
                     CONST.RILLET_CONFIG.EXPORTER,
                     CONST.RILLET_CONFIG.EXPORT_DATE,
                     CONST.RILLET_CONFIG.REIMBURSABLE,
-                    CONST.RILLET_CONFIG.COMPANY_CARD,
+                    CONST.RILLET_CONFIG.NON_REIMBURSABLE,
                     CONST.RILLET_CONFIG.DEFAULT_VENDORID,
                     CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE,
                     CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
