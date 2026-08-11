@@ -76,6 +76,14 @@ function getActiveTransactionIDs(): {ids: string[] | null; descriptors: Record<s
     return {ids: lastSetIDs, descriptors: lastSetDescriptors};
 }
 
+function shouldRefreshActiveTransactionIDs(activeIDs: string[] | undefined, activeSnapshotHash: number | undefined, searchSnapshotHash: number, searchTransactionIDs: string[]): boolean {
+    if (activeSnapshotHash !== searchSnapshotHash || !activeIDs?.length || searchTransactionIDs.length < 2) {
+        return false;
+    }
+    const isUpToDate = activeIDs.length === searchTransactionIDs.length && activeIDs.every((id, index) => id === searchTransactionIDs.at(index));
+    return !isUpToDate;
+}
+
 function clearActiveTransactionIDs() {
     lastSetIDs = null;
     lastSetSnapshotHash = null;
@@ -87,4 +95,4 @@ function clearActiveTransactionIDs() {
     ]);
 }
 
-export {setActiveTransactionIDs, clearActiveTransactionIDs, getActiveTransactionIDs};
+export {setActiveTransactionIDs, clearActiveTransactionIDs, getActiveTransactionIDs, shouldRefreshActiveTransactionIDs};

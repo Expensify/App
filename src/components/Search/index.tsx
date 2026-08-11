@@ -24,7 +24,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
-import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {clearActiveTransactionIDs, setActiveTransactionIDs, shouldRefreshActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -501,6 +501,16 @@ function Search({
         }, 0);
     }, [areItemsGrouped, filteredData]);
 
+    const carouselSiblingTransactionIDs = useMemo(
+        () =>
+            (filteredData as SearchListItem[])
+                .filter(
+                    (t): t is TransactionListItemType => !!t && isTransactionListItemType(t) && t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedTransaction(t),
+                )
+                .map((t) => t.transactionID),
+        [filteredData],
+    );
+
     const onSelectRow = useCallback(
         (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -513,14 +523,8 @@ function Search({
             // When opening an expense from the Spend page (flat transaction list), populate the carousel
             // with all sibling transactions so prev/next navigation works in the RHP transaction view.
             if (isTransactionItem) {
-                const siblingTransactionIDs = (filteredData as SearchListItem[])
-                    .filter(
-                        (t): t is TransactionListItemType =>
-                            !!t && isTransactionListItemType(t) && t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedTransaction(t),
-                    )
-                    .map((t) => t.transactionID);
-                if (siblingTransactionIDs.length > 1) {
-                    setActiveTransactionIDs(siblingTransactionIDs, hash);
+                if (carouselSiblingTransactionIDs.length > 1) {
+                    setActiveTransactionIDs(carouselSiblingTransactionIDs, hash);
                 } else {
                     clearActiveTransactionIDs();
                 }
@@ -687,10 +691,22 @@ function Search({
             offset,
             searchResults?.search?.hasMoreResults,
             currentSearchKey,
-            filteredData,
+            carouselSiblingTransactionIDs,
             getCurrencyDecimals,
         ],
     );
+
+    const carouselSiblingsKey = carouselSiblingTransactionIDs.join(',');
+    const [activeCarouselSnapshotHash] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH);
+    const [activeCarouselTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+
+    useEffect(() => {
+        if (!shouldRefreshActiveTransactionIDs(activeCarouselTransactionIDs, activeCarouselSnapshotHash, hash, carouselSiblingTransactionIDs)) {
+            return;
+        }
+        setActiveTransactionIDs(carouselSiblingTransactionIDs, hash);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- carouselSiblingsKey is an order-sensitive proxy for the array, which is rebuilt on every search data change
+    }, [carouselSiblingsKey, activeCarouselSnapshotHash, activeCarouselTransactionIDs, hash]);
 
     // getColumnsToShow allocates a fresh array on every call; preserve the previous reference
     // when contents are equal so downstream consumers don't re-render on Onyx snapshot churn
