@@ -3747,7 +3747,6 @@ export type {
     OptionList,
     OptionTree,
     Options,
-    PersonalDetailFilterRankFields,
     PersonalDetailOptionOrShell,
     SearchOption,
     SearchOptionData,
