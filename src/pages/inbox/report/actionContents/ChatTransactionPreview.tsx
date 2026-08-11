@@ -1,3 +1,4 @@
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -47,6 +48,7 @@ function ChatTransactionPreview({action, reportID, chatReport, iouReport, should
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const personalDetail = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
@@ -78,6 +80,7 @@ function ChatTransactionPreview({action, reportID, chatReport, iouReport, should
                             betas,
                             iouReport,
                             iouReportAction: action,
+                            personalDetails,
                         });
                         if (createdTransactionThreadReport?.reportID) {
                             Navigation.navigate(getReportRouteForCurrentContext({reportID: createdTransactionThreadReport.reportID}));

@@ -34,7 +34,7 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import PusherHelper from '../../utils/PusherHelper';
-import {getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -183,6 +183,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
@@ -195,6 +196,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -434,6 +436,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
@@ -446,6 +449,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1129,6 +1133,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                         comment: comment2,
                     },
                     shouldGenerateTransactionThreadReport: true,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     isASAPSubmitBetaEnabled: false,
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
@@ -1141,6 +1146,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
             }
 
@@ -1214,6 +1220,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
@@ -1226,6 +1233,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -1388,6 +1396,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                         comment: comment2,
                     },
                     shouldGenerateTransactionThreadReport: true,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     isASAPSubmitBetaEnabled: false,
                     transactionViolations: {},
                     currentUserAccountIDParam: 123,
@@ -1400,6 +1409,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
             }
 

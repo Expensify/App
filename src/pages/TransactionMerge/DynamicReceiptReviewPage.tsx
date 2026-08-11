@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -12,6 +12,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
+import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
@@ -21,8 +22,8 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -46,6 +47,8 @@ function DynamicReceiptReviewPage({route}: DynamicReceiptReviewPageProps) {
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const {targetTransaction, sourceTransaction, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({mergeTransaction});
+    const targetReportOwnerAsAttendee = useReportOwnerAsAttendee(targetTransaction);
+    const sourceReportOwnerAsAttendee = useReportOwnerAsAttendee(sourceTransaction);
 
     const transactions = [targetTransaction, sourceTransaction].filter((transaction): transaction is Transaction => !!transaction);
 
@@ -66,6 +69,8 @@ function DynamicReceiptReviewPage({route}: DynamicReceiptReviewPageProps) {
             [],
             targetTransactionPolicy,
             sourceTransactionPolicy,
+            targetReportOwnerAsAttendee,
+            sourceReportOwnerAsAttendee,
         );
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
@@ -77,11 +82,7 @@ function DynamicReceiptReviewPage({route}: DynamicReceiptReviewPageProps) {
     };
 
     if (isLoadingOnyxValue(mergeTransactionMetadata)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'TransactionMerge.ReceiptReviewPage',
-            isLoadingMergeTransaction: isLoadingOnyxValue(mergeTransactionMetadata),
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
@@ -109,13 +110,14 @@ function DynamicReceiptReviewPage({route}: DynamicReceiptReviewPageProps) {
                 </ScrollView>
                 <FixedFooter>
                     <Button
-                        success
-                        large
-                        text={translate('common.continue')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={handleContinue}
                         style={styles.mt5}
                         isDisabled={!mergeTransaction?.receipt}
-                    />
+                    >
+                        <Button.Text>{translate('common.continue')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </FullPageNotFoundView>
         </ScreenWrapper>
