@@ -332,7 +332,7 @@ function TransactionGroupListExpandedImpl({
             )}
             {visibleTransactions.map((transaction, index) => {
                 const shouldShowBottomBorder = !isLastTransaction(index);
-                const reportActions = Object.values(transactionsSnapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {});
+                const exportedReportActions = Object.values(transactionsSnapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {});
                 const isDeletedOrPendingDelete = isDeletedTransaction(transaction) || isTransactionPendingDelete(transaction);
 
                 return (
@@ -380,7 +380,7 @@ function TransactionGroupListExpandedImpl({
                                     shouldShowBottomBorder={shouldShowBottomBorder}
                                     onArrowRightPress={isDeletedOrPendingDelete ? undefined : (event) => openReportInRHP(transaction, event)}
                                     shouldShowArrowRightOnNarrowLayout
-                                    reportActions={reportActions}
+                                    reportActions={exportedReportActions}
                                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                                     isActionColumnWide={isActionColumnWide}
                                     isHover={hovered}
