@@ -72,7 +72,6 @@ function IOURequestStepDistanceRate({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
@@ -86,7 +85,7 @@ function IOURequestStepDistanceRate({
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
 
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit, localeCompare} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare, dateFnsLocale} = useLocalize();
     const {isOffline} = useNetwork();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
@@ -111,7 +110,7 @@ function IOURequestStepDistanceRate({
     const fallbackMovingExpensesPolicy = isEditingSplit ? policyForMovingExpenses : undefined;
     const policy = policyForTransaction ?? policyByCustomUnitID ?? policyByCustomUnitRateID ?? fallbackMovingExpensesPolicy ?? fallbackAvailablePolicy;
     const isDistanceRequest = isDistanceRequestTransactionUtils(currentTransaction);
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const isPolicyExpenseChat = isGroupPolicyByType(reportPolicyType);
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense || isExpenseUnreported(currentTransaction), policy, isDistanceRequest);
@@ -154,7 +153,7 @@ function IOURequestStepDistanceRate({
             ? effectiveRateID === rate.customUnitRateID && !hasUnitMismatchForMovingTrackExpense
             : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
         const rateForDisplay = DistanceRequestUtils.getFormattedRateValue(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit, getCurrencySymbol);
-        const dateLabel = DistanceRequestUtils.getRateDateLabel(rate, translate);
+        const dateLabel = DistanceRequestUtils.getRateDateLabel(rate, translate, dateFnsLocale);
         const alternateText = [rate.name ? rateForDisplay : '', dateLabel].filter(Boolean).join(' • ');
         return {
             text: rate.name ?? rateForDisplay,
@@ -197,7 +196,7 @@ function IOURequestStepDistanceRate({
         let taxRateExternalID;
         let taxValue;
         if (shouldShowTax) {
-            const distanceRateTaxUpdates = getDistanceRateTaxUpdates(policy, currentTransaction, customUnitRateID, currentUnit);
+            const distanceRateTaxUpdates = getDistanceRateTaxUpdates(policy, currentTransaction, customUnitRateID, getCurrencyDecimals, currentUnit);
             taxAmount = distanceRateTaxUpdates.taxAmount;
             taxRateExternalID = distanceRateTaxUpdates.taxCode;
             taxValue = distanceRateTaxUpdates.taxValue;
@@ -211,7 +210,16 @@ function IOURequestStepDistanceRate({
         if (currentRateID !== customUnitRateID || (isMovingTransactionFromTrackExpense && transactionUnit !== selectedRateUnit)) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit && transaction) {
-                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {customUnitRateID}, policy, personalPolicy?.outputCurrency, allPolicies);
+                setDraftSplitTransaction(
+                    transaction.transactionID,
+                    splitDraftTransaction,
+                    {customUnitRateID},
+                    policy,
+                    personalPolicy?.outputCurrency,
+                    allPolicies,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
+                );
                 saveAndNavigateBack();
                 return;
             }
@@ -224,7 +232,6 @@ function IOURequestStepDistanceRate({
                     transactionThreadReport: report,
                     parentReport,
                     iouReportOwnerLogin,
-                    parentReportNextStep,
                     rateID: customUnitRateID,
                     policy,
                     policyTagList: policyTags,
@@ -241,6 +248,8 @@ function IOURequestStepDistanceRate({
                     reportPolicyTags,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
             } else {
                 setMoneyRequestDistanceRate(transaction, customUnitRateID, policy, shouldUseTransactionDraft(action));

@@ -54,7 +54,6 @@ import {
     getSelectedFeed,
     getTranslationKeyForCardStatus,
     getYearFromExpirationDateString,
-    hasActiveExpensifyCardAssigned,
     hasAssignedCardMatching,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
@@ -2235,56 +2234,6 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('hasActiveExpensifyCardAssigned', () => {
-        const cardholderAccountID = 11;
-
-        it('returns true when the member holds an Expensify Card on the workspace', () => {
-            const cards = createMock<CardList>({
-                '1': {cardID: 1, accountID: cardholderAccountID, bank: CONST.EXPENSIFY_CARD.BANK},
-            });
-            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(true);
-        });
-
-        it('returns false for an undefined card list', () => {
-            expect(hasActiveExpensifyCardAssigned(undefined, cardholderAccountID)).toBe(false);
-        });
-
-        it('returns false when the Expensify Card belongs to another member', () => {
-            const cards = createMock<CardList>({
-                '1': {cardID: 1, accountID: 22, bank: CONST.EXPENSIFY_CARD.BANK},
-            });
-            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
-        });
-
-        it('returns false when the member only holds a company card', () => {
-            const cards = createMock<CardList>({
-                '1': {cardID: 1, accountID: cardholderAccountID, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA},
-            });
-            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
-        });
-
-        it('returns false when the member only holds a travel card', () => {
-            const cards = createMock<CardList>({
-                '1': {cardID: 1, accountID: cardholderAccountID, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US}},
-            });
-            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
-        });
-
-        it('returns false when the Expensify Card is already pending removal', () => {
-            const cards = createMock<CardList>({
-                '1': {cardID: 1, accountID: cardholderAccountID, bank: CONST.EXPENSIFY_CARD.BANK, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-            });
-            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
-        });
-
-        it('skips the cardList bucket of cards still available to assign', () => {
-            const cards = createMock<CardList>({
-                cardList: {'CREDIT CARD...1234': 'encrypted-value'} as Record<string, string>,
-            });
-            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
-        });
-    });
-
     describe('forEachAssignedCard', () => {
         const cardsList = createMock<WorkspaceCardsList>({
             '1': {cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN},
@@ -4348,8 +4297,8 @@ describe('CardUtils', () => {
         it('returns undefined when validFrom or validThru is missing', () => {
             const translate: LocalizedTranslate = jest.fn();
 
-            expect(getCardHintText(undefined, '2026-02-25 00:00:00', undefined, translate)).toBeUndefined();
-            expect(getCardHintText('2026-02-25 00:00:00', undefined, undefined, translate)).toBeUndefined();
+            expect(getCardHintText(undefined, '2026-02-25 00:00:00', undefined, undefined, translate)).toBeUndefined();
+            expect(getCardHintText('2026-02-25 00:00:00', undefined, undefined, undefined, translate)).toBeUndefined();
             expect(translate).not.toHaveBeenCalled();
         });
 
@@ -4357,7 +4306,7 @@ describe('CardUtils', () => {
             const translate: LocalizedTranslate = jest.fn();
             jest.spyOn(DateUtils, 'formatUTCDateTimeToDateInTimezone').mockReturnValue('');
 
-            expect(getCardHintText('2026-02-01 00:00:00', '2026-02-25 00:00:00', undefined, translate)).toBeUndefined();
+            expect(getCardHintText('2026-02-01 00:00:00', '2026-02-25 00:00:00', undefined, undefined, translate)).toBeUndefined();
             expect(translate).not.toHaveBeenCalled();
         });
 
@@ -4366,7 +4315,7 @@ describe('CardUtils', () => {
             jest.spyOn(DateUtils, 'formatUTCDateTimeToDateInTimezone').mockReturnValue('2026-02-01');
             jest.spyOn(DateUtils, 'formatToReadableString').mockReturnValueOnce('Feb 1, 2026').mockReturnValueOnce('Feb 25, 2026');
 
-            const result = getCardHintText('2026-02-01 00:00:00', '2026-02-25 00:00:00', undefined, translate);
+            const result = getCardHintText('2026-02-01 00:00:00', '2026-02-25 00:00:00', undefined, undefined, translate);
 
             expect(result).toBe('translated');
             expect(translate).toHaveBeenCalledWith('workspace.card.issueNewCard.validFromTo', {startDate: 'Feb 1, 2026', endDate: 'Feb 25, 2026'});

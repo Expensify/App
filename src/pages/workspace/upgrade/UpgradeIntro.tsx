@@ -41,6 +41,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {isBetaEnabled} = usePermissions();
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const isSubmitPolicy = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
     const {translate} = useLocalize();
     const preferredCurrency = usePreferredCurrency();
@@ -86,6 +87,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         'IntacctSquare',
         'NetSuiteSquare',
         'QBDSquare',
+        'QBOSquare',
         'CertiniaSquare',
         'RilletSquare',
         'DualEntrySquare',
@@ -130,12 +132,18 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
 
     const iconAdditionalStyles = feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id ? styles.br0 : undefined;
 
-    const onlyAvailableOnPlanHTML = translate(
-        feature.id === 'preventSelfApproval' || feature.id === 'autoApproveCompliantReports' || feature.id === 'autoPayApprovedReports'
-            ? 'workspace.upgrade.approvals.onlyAvailableOnPlan'
-            : `workspace.upgrade.${feature.id}.onlyAvailableOnPlan`,
-        {formattedPrice, hasTeam2025Pricing},
-    );
+    const getOnlyAvailableOnPlanHTML = () => {
+        const planParams = {formattedPrice, hasTeam2025Pricing};
+        if (feature.id === 'preventSelfApproval' || feature.id === 'autoApproveCompliantReports' || feature.id === 'autoPayApprovedReports') {
+            return translate('workspace.upgrade.approvals.onlyAvailableOnPlan', planParams);
+        }
+        if (feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id && isRulesRevampEnabled) {
+            return translate('workspace.upgrade.rules.onlyAvailableOnPlanUnlimited', planParams);
+        }
+        return translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`, planParams);
+    };
+
+    const onlyAvailableOnPlanHTML = getOnlyAvailableOnPlanHTML();
 
     const buttonText =
         isSubmitPolicy && feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id ? translate('workspace.upgrade.expensifyCard.upgradeButton') : translate('common.upgrade');
