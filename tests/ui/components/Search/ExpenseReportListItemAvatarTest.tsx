@@ -1,6 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 
-import {AvatarTooltipsDisabled} from '@components/Avatar/tooltips/AvatarTooltipContext';
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import type {UserAvatarProps} from '@components/Avatar/UserAvatar';
 import type {WorkspaceAvatarProps} from '@components/Avatar/WorkspaceAvatar';
 import ExpenseReportListItemAvatar from '@components/Search/SearchList/ListItem/ExpenseReportListItemRow/ExpenseReportListItemAvatar';
@@ -233,9 +233,9 @@ function buildSearchListItem(report: Report, policyForReport: typeof policy): Ex
 
 async function retrieveAvatarData(item: ExpenseReportListItemType) {
     render(
-        <AvatarTooltipsDisabled>
+        <AvatarTooltipsProvider isEnabled={false}>
             <ExpenseReportListItemAvatar item={item} />
-        </AvatarTooltipsDisabled>,
+        </AvatarTooltipsProvider>,
     );
 
     await waitForBatchedUpdatesWithAct();
@@ -327,12 +327,12 @@ describe('ExpenseReportListItemAvatar', () => {
     describe('handles edge cases', () => {
         it('returns nothing when primaryAvatar is undefined', async () => {
             render(
-                <AvatarTooltipsDisabled>
+                <AvatarTooltipsProvider isEnabled={false}>
                     <ExpenseReportListItemAvatar
                         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                         item={{keyForList: 'empty', isDisabled: false} as ExpenseReportListItemType}
                     />
-                </AvatarTooltipsDisabled>,
+                </AvatarTooltipsProvider>,
             );
 
             await waitForBatchedUpdatesWithAct();

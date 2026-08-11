@@ -10,7 +10,7 @@ import type {PropsWithChildren} from 'react';
 
 import React from 'react';
 
-import {useAreAvatarTooltipsDisabled} from './AvatarTooltipContext';
+import {useAreAvatarTooltipsEnabled} from './AvatarTooltipContext';
 
 type AvatarNamesTooltipProps = PropsWithChildren<{
     /** Avatars the tooltip lists by name, in order */
@@ -18,13 +18,13 @@ type AvatarNamesTooltipProps = PropsWithChildren<{
 }>;
 
 /** `AvatarNamesTooltip` shows a comma-separated list of avatar names, used by the "+N" overflow indicators.
- * Render it inside `AvatarTooltipsDisabled` to suppress the tooltip`.
+ * Render it inside `AvatarTooltipsProvider` with `isEnabled={false}` to suppress the tooltip`.
  */
 function AvatarNamesTooltip({avatars, children}: AvatarNamesTooltipProps) {
-    const areTooltipsDisabled = useAreAvatarTooltipsDisabled();
+    const areTooltipsEnabled = useAreAvatarTooltipsEnabled();
     const {formatPhoneNumber, translate} = useLocalize();
 
-    if (areTooltipsDisabled) {
+    if (!areTooltipsEnabled) {
         return children;
     }
 

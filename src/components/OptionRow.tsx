@@ -17,7 +17,7 @@ import {deepEqual} from 'fast-equals';
 import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
-import {AvatarTooltipsDisabled} from './Avatar/tooltips/AvatarTooltipContext';
+import {AvatarTooltipsProvider} from './Avatar/tooltips/AvatarTooltipContext';
 import DisplayNames from './DisplayNames';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
@@ -201,7 +201,7 @@ function OptionRow({
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 {!!option.icons?.length && !!firstIcon && (
-                                    <AvatarTooltipsDisabled isDisabled={!showTitleTooltip || !!option.private_isArchived}>
+                                    <AvatarTooltipsProvider isEnabled={showTitleTooltip && !option.private_isArchived}>
                                         <ReportActionAvatars
                                             subscriptAvatarBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
                                             reportID={reportID}
@@ -209,7 +209,7 @@ function OptionRow({
                                             size={CONST.AVATAR_SIZE.DEFAULT}
                                             secondaryAvatarContainerStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
                                         />
-                                    </AvatarTooltipsDisabled>
+                                    </AvatarTooltipsProvider>
                                 )}
                                 <View style={contentContainerStyles}>
                                     <DisplayNames

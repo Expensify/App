@@ -2,7 +2,7 @@ import {render, screen} from '@testing-library/react-native';
 
 import AvatarNamesTooltip from '@components/Avatar/tooltips/AvatarNamesTooltip';
 import AvatarTooltip from '@components/Avatar/tooltips/AvatarTooltip';
-import {AvatarTooltipsDisabled, useAreAvatarTooltipsDisabled} from '@components/Avatar/tooltips/AvatarTooltipContext';
+import {AvatarTooltipsProvider, useAreAvatarTooltipsEnabled} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import type {AvatarIcon} from '@components/Avatar/types';
 
 import {getUserDetailTooltipText} from '@libs/ReportUtils';
@@ -73,39 +73,39 @@ beforeEach(() => {
     jest.mocked(getUserDetailTooltipText).mockClear();
 });
 
-describe('AvatarTooltipsDisabled / useAreAvatarTooltipsDisabled', () => {
-    function DisabledStateProbe() {
-        const areTooltipsDisabled = useAreAvatarTooltipsDisabled();
-        return <View testID={`tooltips-disabled-${areTooltipsDisabled}`} />;
+describe('AvatarTooltipsProvider / useAreAvatarTooltipsEnabled', () => {
+    function EnabledStateProbe() {
+        const areTooltipsEnabled = useAreAvatarTooltipsEnabled();
+        return <View testID={`tooltips-enabled-${areTooltipsEnabled}`} />;
     }
 
     it('is enabled by default (no provider)', () => {
-        render(<DisabledStateProbe />);
-        expect(screen.getByTestId('tooltips-disabled-false')).toBeOnTheScreen();
+        render(<EnabledStateProbe />);
+        expect(screen.getByTestId('tooltips-enabled-true')).toBeOnTheScreen();
     });
 
     it.each([
-        ['disables tooltips by default', undefined, true],
-        ['disables tooltips when isDisabled is true', true, true],
-        ['keeps tooltips enabled when isDisabled is false', false, false],
-    ])('%s', (_description, isDisabled, expectedDisabled) => {
+        ['disables tooltips when isEnabled is false', false, false],
+        ['keeps tooltips enabled when isEnabled is true', true, true],
+        ['keeps tooltips enabled by default', undefined, true],
+    ])('%s', (_description, isEnabled, expectedEnabled) => {
         render(
-            <AvatarTooltipsDisabled isDisabled={isDisabled}>
-                <DisabledStateProbe />
-            </AvatarTooltipsDisabled>,
+            <AvatarTooltipsProvider isEnabled={isEnabled}>
+                <EnabledStateProbe />
+            </AvatarTooltipsProvider>,
         );
-        expect(screen.getByTestId(`tooltips-disabled-${expectedDisabled}`)).toBeOnTheScreen();
+        expect(screen.getByTestId(`tooltips-enabled-${expectedEnabled}`)).toBeOnTheScreen();
     });
 
     it('lets a nested provider re-enable tooltips', () => {
         render(
-            <AvatarTooltipsDisabled>
-                <AvatarTooltipsDisabled isDisabled={false}>
-                    <DisabledStateProbe />
-                </AvatarTooltipsDisabled>
-            </AvatarTooltipsDisabled>,
+            <AvatarTooltipsProvider isEnabled={false}>
+                <AvatarTooltipsProvider isEnabled>
+                    <EnabledStateProbe />
+                </AvatarTooltipsProvider>
+            </AvatarTooltipsProvider>,
         );
-        expect(screen.getByTestId('tooltips-disabled-false')).toBeOnTheScreen();
+        expect(screen.getByTestId('tooltips-enabled-true')).toBeOnTheScreen();
     });
 });
 
@@ -158,11 +158,11 @@ describe('AvatarTooltip', () => {
 
     it('renders children without a tooltip when tooltips are disabled', () => {
         render(
-            <AvatarTooltipsDisabled>
+            <AvatarTooltipsProvider isEnabled={false}>
                 <AvatarTooltip avatar={buildAvatar()}>
                     <AvatarChild />
                 </AvatarTooltip>
-            </AvatarTooltipsDisabled>,
+            </AvatarTooltipsProvider>,
         );
 
         expect(screen.queryByTestId(USER_DETAILS_TOOLTIP_TEST_ID)).not.toBeOnTheScreen();
@@ -194,11 +194,11 @@ describe('AvatarNamesTooltip', () => {
 
     it('renders children without a tooltip when tooltips are disabled', () => {
         render(
-            <AvatarTooltipsDisabled>
+            <AvatarTooltipsProvider isEnabled={false}>
                 <AvatarNamesTooltip avatars={avatars}>
                     <AvatarChild />
                 </AvatarNamesTooltip>
-            </AvatarTooltipsDisabled>,
+            </AvatarTooltipsProvider>,
         );
 
         expect(screen.queryByTestId(TOOLTIP_TEST_ID)).not.toBeOnTheScreen();

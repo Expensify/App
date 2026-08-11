@@ -1,4 +1,4 @@
-import {AvatarTooltipsDisabled} from '@components/Avatar/tooltips/AvatarTooltipContext';
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
@@ -95,7 +95,7 @@ function UserListItemContent<TItem extends ListItem>({
             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
         >
             {(!!reportExists || !!itemAccountID || !!policyID) && (
-                <AvatarTooltipsDisabled isDisabled={!showTooltip}>
+                <AvatarTooltipsProvider isEnabled={showTooltip}>
                     <ReportActionAvatars
                         subscriptAvatarBorderColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                         secondaryAvatarContainerStyle={[
@@ -109,7 +109,7 @@ function UserListItemContent<TItem extends ListItem>({
                         singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
                         fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
                     />
-                </AvatarTooltipsDisabled>
+                </AvatarTooltipsProvider>
             )}
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                 <TextWithTooltip

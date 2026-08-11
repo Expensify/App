@@ -1,4 +1,4 @@
-import {AvatarTooltipsDisabled} from '@components/Avatar/tooltips/AvatarTooltipContext';
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
 import Text from '@components/Text';
@@ -83,7 +83,7 @@ function InviteMemberListItem<TItem extends ListItem>({
             {(hovered?: boolean) => (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                     {(!!item.reportID || !!accountID || !!item.text || !!item.alternateText) && (
-                        <AvatarTooltipsDisabled isDisabled={!showTooltip}>
+                        <AvatarTooltipsProvider isEnabled={showTooltip}>
                             <ReportActionAvatars
                                 subscriptAvatarBorderColor={hovered && !isFocusVisible ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                                 secondaryAvatarContainerStyle={[
@@ -96,7 +96,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                                 reportID={item.reportID}
                                 accountIDs={accountID ? [accountID] : undefined}
                             />
-                        </AvatarTooltipsDisabled>
+                        </AvatarTooltipsProvider>
                     )}
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>

@@ -1,4 +1,4 @@
-import {AvatarTooltipsDisabled} from '@components/Avatar/tooltips/AvatarTooltipContext';
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import {
@@ -506,7 +506,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                             isSelected={isSelected}
                         />
                     )}
-                    <AvatarTooltipsDisabled isDisabled={!showTooltip}>
+                    <AvatarTooltipsProvider isEnabled={showTooltip}>
                         <ExpenseReportListItemRow
                             item={liveReportItem}
                             columns={columns}
@@ -525,7 +525,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                             shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
                             isMarkAsDone={shouldUseMarkAsDoneCopy}
                         />
-                    </AvatarTooltipsDisabled>
+                    </AvatarTooltipsProvider>
                     {getDescription}
                 </View>
             )}

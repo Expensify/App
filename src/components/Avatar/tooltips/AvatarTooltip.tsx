@@ -9,7 +9,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
-import {useAreAvatarTooltipsDisabled} from './AvatarTooltipContext';
+import {useAreAvatarTooltipsEnabled} from './AvatarTooltipContext';
 
 type AvatarTooltipProps = PropsWithChildren<{
     /** Avatar the tooltip describes. When `copilot` is set the tooltip reads "<copilot> (as copilot for <actedFor>)" */
@@ -24,12 +24,12 @@ type AvatarTooltipProps = PropsWithChildren<{
 
 /** `AvatarTooltip` wraps an avatar in the user-details tooltip describing the account it belongs to.
  * The wrapper `View` is mandatory: `primitives/AvatarContainer` sets `pointerEventsNone`, so the tooltip needs its own hover target.
- * Render the avatar inside `AvatarTooltipsDisabled` to suppress the tooltip where it would be redundant or misleading.
+ * Render the avatar inside `AvatarTooltipsProvider` with `isEnabled={false}` to suppress the tooltip where it would be redundant or misleading.
  */
 function AvatarTooltip({avatar, fallbackDisplayName, style, children}: AvatarTooltipProps) {
-    const areTooltipsDisabled = useAreAvatarTooltipsDisabled();
+    const areTooltipsEnabled = useAreAvatarTooltipsEnabled();
 
-    if (areTooltipsDisabled) {
+    if (!areTooltipsEnabled) {
         return <View style={style}>{children}</View>;
     }
 

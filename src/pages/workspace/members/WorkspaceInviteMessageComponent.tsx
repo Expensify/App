@@ -1,4 +1,4 @@
-import {AvatarTooltipsDisabled} from '@components/Avatar/tooltips/AvatarTooltipContext';
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
@@ -292,7 +292,7 @@ function WorkspaceInviteMessageComponent({
                         <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>
                     )}
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                        <AvatarTooltipsDisabled isDisabled={!shouldShowTooltip}>
+                        <AvatarTooltipsProvider isEnabled={shouldShowTooltip}>
                             <ReportActionAvatars
                                 size={CONST.AVATAR_SIZE.XXX_LARGE}
                                 accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
@@ -302,7 +302,7 @@ function WorkspaceInviteMessageComponent({
                                 secondaryAvatarContainerStyle={styles.secondAvatarInline}
                                 invitedEmailsToAccountIDs={invitedEmailsToAccountIDsDraft}
                             />
-                        </AvatarTooltipsDisabled>
+                        </AvatarTooltipsProvider>
                     </View>
                     <View style={[styles.mb3]}>
                         <View style={[styles.mhn5, styles.mb3]}>

@@ -2,7 +2,7 @@ import DiagonalAvatars from '@components/Avatar/layouts/DiagonalAvatars';
 import getAvatarLayout from '@components/Avatar/layouts/getAvatarLayout';
 import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
 import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
-import {AvatarTooltipsDisabled} from '@components/Avatar/tooltips/AvatarTooltipContext';
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import type {AvatarIcon} from '@components/Avatar/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
@@ -126,7 +126,7 @@ function Avatar({optionItem, viewMode, avatarBackgroundColor}: AvatarProps) {
     );
 
     // An archived room's participants can no longer be interacted with, so their details are not worth surfacing on hover.
-    return optionItem.private_isArchived ? <AvatarTooltipsDisabled>{avatars}</AvatarTooltipsDisabled> : avatars;
+    return optionItem.private_isArchived ? <AvatarTooltipsProvider isEnabled={false}>{avatars}</AvatarTooltipsProvider> : avatars;
 }
 
 Avatar.displayName = 'OptionRow.Avatar';
