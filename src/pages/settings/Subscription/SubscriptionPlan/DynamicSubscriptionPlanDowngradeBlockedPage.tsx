@@ -18,10 +18,10 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import React from 'react';
 
 function DynamicSubscriptionPlanDowngradeBlockedPage() {
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const backTo = useDynamicBackPath(DYNAMIC_ROUTES.SUBSCRIPTION_DOWNGRADE_BLOCKED.path);
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const formattedSubscriptionEndDate = formatSubscriptionEndDate(privateSubscription?.endDate);
+    const formattedSubscriptionEndDate = formatSubscriptionEndDate(privateSubscription?.endDate, dateFnsLocale);
     const onClosePress = () => {
         Navigation.goBack(backTo);
     };

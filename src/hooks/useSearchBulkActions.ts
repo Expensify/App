@@ -488,6 +488,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'QBDSquare',
         'CertiniaSquare',
         'RilletSquare',
+        'DualEntrySquare',
         'GustoSquare',
         'Pencil',
         'Workflows',
@@ -979,6 +980,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 !!expenseReport.policyID && shouldRestrictUserBillableActions(reportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID);
 
             approveMoneyRequest({
+                getCurrencyDecimals,
                 expenseReport,
                 expenseReportPolicy: reportPolicy,
                 currentUserAccountIDParam: accountID,
@@ -1035,6 +1037,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isTrackIntentUser,
         personalDetails,
         delegateAccountID,
+        getCurrencyDecimals,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
@@ -1362,6 +1365,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const payChatReportID = shouldUseB2BInvoiceReport ? existingB2BInvoiceReport.reportID : chatReport.reportID;
 
                     payInvoice({
+                        getCurrencyDecimals,
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
                         chatReport,
                         invoiceReport: iouReport,
@@ -1389,6 +1393,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 payMoneyRequest({
+                    getCurrencyDecimals,
                     paymentType: paymentItem.paymentType as PaymentMethodType,
                     chatReport,
                     iouReport,
@@ -1456,6 +1461,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             delegateAccountID,
             isTrackIntentUser,
             conciergeChat,
+            getCurrencyDecimals,
         ],
     );
 
@@ -2228,7 +2234,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         text: translate('common.merge'),
                         icon: expensifyIcons.ArrowCollapse,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, getCurrencyDecimals, reports, false, true),
+                        onSelected: () =>
+                            setupMergeTransactionDataAndNavigate(
+                                transactionID,
+                                searchedTransactions,
+                                localeCompare,
+                                getCurrencyDecimals,
+                                reports,
+                                false,
+                                true,
+                                undefined,
+                                accountID,
+                                personalDetails,
+                            ),
                     });
                 }
             }

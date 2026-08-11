@@ -88,11 +88,11 @@ describe('normalizeForKey', () => {
         expect(normalizeForKey(null)).toBeNull();
     });
 
-    it("returns the UNDEFINED_SENTINEL for undefined (so JSON.stringify doesn't collapse [undefined] to [null])", () => {
+    it("returns a placeholder string for undefined (so JSON.stringify doesn't collapse [undefined] to [null])", () => {
         const result = normalizeForKey(undefined);
         expect(typeof result).toBe('string');
         expect(result).not.toBeNull();
-        // Round-trip: JSON.stringify on [undefined] would normally produce [null]; the sentinel keeps them distinct.
+        // Round-trip: JSON.stringify on [undefined] would normally produce [null]; the placeholder keeps them distinct.
         expect(JSON.stringify([normalizeForKey(undefined)])).not.toBe('[null]');
     });
 
@@ -115,7 +115,7 @@ describe('normalizeForKey', () => {
         expect(Object.keys(result as Record<string, unknown>)).toEqual(['a', 'b', 'c']);
     });
 
-    it('preserves explicit-undefined nested values via the sentinel', () => {
+    it('preserves explicit-undefined nested values via the placeholder', () => {
         const result = normalizeForKey([undefined, 1]) as unknown[];
         expect(result.at(0)).not.toBeNull();
         expect(result.at(0)).not.toBeUndefined();

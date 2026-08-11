@@ -117,6 +117,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Submits the whole expense (used by inline inputs to keep Enter-to-confirm on hardware-keyboard setups) */
     onSubmitForm?: () => void;
+
+    /** Reports whether the inline tax amount field is currently empty, so submission can be blocked when it is left empty */
+    onTaxAmountEmptyChange?: (isEmpty: boolean) => void;
 };
 
 function MoneyRequestConfirmationListFooter({
@@ -147,6 +150,7 @@ function MoneyRequestConfirmationListFooter({
     compactControls,
     scrollFocusedInputIntoView,
     onSubmitForm,
+    onTaxAmountEmptyChange,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -179,6 +183,7 @@ function MoneyRequestConfirmationListFooter({
             isGPSDistanceRequest={distanceFlags.isGPSDistanceRequest}
             scrollFocusedInputIntoView={scrollFocusedInputIntoView}
             onSubmitForm={onSubmitForm}
+            onTaxAmountEmptyChange={onTaxAmountEmptyChange}
         >
             <View style={isCompactMode ? styles.flex1 : undefined}>
                 <View>

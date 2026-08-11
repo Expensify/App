@@ -3,9 +3,13 @@ import {act, renderHook} from '@testing-library/react-native';
 import type {DiscardChangesConfirmation} from '@hooks/useDiscardChangesConfirmation/types';
 import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
 
+import type {HardwareBackPressEvent} from 'react-native/Libraries/Utilities/BackHandler';
+
 import {BackHandler} from 'react-native';
 
 type MockBeforeRemoveEvent = {data: {action: {type: string}}};
+
+const mockHardwareBackPressEvent: HardwareBackPressEvent = {type: 'hardwareBackPress', timeStamp: 0};
 
 let mockPreventRemoveFlag: boolean | undefined;
 let mockPreventRemoveCallback: ((e: MockBeforeRemoveEvent) => void) | undefined;
@@ -61,7 +65,7 @@ const useDiscardChangesConfirmation = jest.requireActual<DiscardHookModule>('@ho
 
 describe('useDiscardChangesConfirmation (native)', () => {
     let backHandlerSpy: jest.SpyInstance;
-    let hardwareBackCallback: (() => boolean | null | undefined) | undefined;
+    let hardwareBackCallback: ((event: HardwareBackPressEvent) => boolean | null | undefined) | undefined;
     const removeSubscription = jest.fn();
     let resolveModal: ((result: {action: string}) => void) | undefined;
 
@@ -70,7 +74,7 @@ describe('useDiscardChangesConfirmation (native)', () => {
     const pressHardwareBack = (): boolean | null | undefined => {
         let consumed: boolean | null | undefined;
         act(() => {
-            consumed = hardwareBackCallback?.();
+            consumed = hardwareBackCallback?.(mockHardwareBackPressEvent);
         });
         return consumed;
     };
