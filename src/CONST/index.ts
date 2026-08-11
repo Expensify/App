@@ -1632,6 +1632,7 @@ const CONST = {
                 HOLD_COMMENT: 'HOLDCOMMENT',
                 INTEGRATION_SYNC_FAILED: 'INTEGRATIONSYNCFAILED',
                 COMPANY_CARD_CONNECTION_BROKEN: 'COMPANYCARDCONNECTIONBROKEN',
+                COMMUTER_EXCLUSION: 'COMMUTEREXCLUSION',
                 PLAID_BALANCE_FAILURE: 'PLAIDBALANCEFAILURE',
                 IOU: 'IOU',
                 INTEGRATIONS_MESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
@@ -2259,6 +2260,7 @@ const CONST = {
         ATTRIBUTE_ROUTE_FROM: 'route_from',
         ATTRIBUTE_ROUTE_TO: 'route_to',
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
+        ATTRIBUTE_FAILED: 'failed',
         ATTRIBUTE_IS_WARM: 'is_warm',
         ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN: 'lazy_tab_fallback_shown',
         // Stamped on the navigate-to-inbox-tab span: wide-layout navigations mount the central report
@@ -3509,7 +3511,7 @@ const CONST = {
         EXPORTER: 'exporter',
         EXPORT_DATE: 'exportDate',
         REIMBURSABLE: 'reimbursable',
-        COMPANY_CARD: 'companyCard',
+        NON_REIMBURSABLE: 'nonReimbursable',
         DEFAULT_VENDORID: 'defaultVendorID',
         CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
@@ -3534,8 +3536,8 @@ const CONST = {
         VENDOR_BILL: 'VENDOR_BILL',
     },
 
-    RILLET_EXPORT_COMPANY_CARD: {
-        CREDIT_CARD: 'CREDIT_CARD',
+    RILLET_EXPORT_NON_REIMBURSABLE: {
+        CREDIT_CARD_CHARGE: 'CREDIT_CARD_CHARGE',
     },
 
     RILLET_EXPORT_DATE: {
@@ -3873,6 +3875,12 @@ const CONST = {
     PAYMENT_METHOD_ID_KEYS: {
         DEBIT_CARD: 'fundID',
         BANK_ACCOUNT: 'bankAccountID',
+    },
+
+    /** The payment method a payee still has to set up before a queued payment can settle */
+    MISSING_PAYMENT_METHODS: {
+        BANK_ACCOUNT: 'bankAccount',
+        WALLET: 'wallet',
     },
 
     IOU: {
@@ -8563,6 +8571,7 @@ const CONST = {
             IMAGE: 'HTMLRenderer-Image',
             PRE: 'HTMLRenderer-Pre',
             VICTORY_CHART_EXPAND_BUTTON: 'HTMLRenderer-VictoryChartExpandButton',
+            TABLE_ROW: 'HTMLRenderer-TableRow',
         },
         RECEIPT: {
             IMAGE: 'Receipt-Image',

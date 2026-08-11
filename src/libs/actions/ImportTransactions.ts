@@ -242,21 +242,57 @@ function buildOptimisticTransactions(transactionList: TransactionFromCSV[], card
 }
 
 /**
+ * Builds the import settings to use when adding transactions to a card that was already created by a CSV import.
+ * Re-uploading a file skips the settings step, so the card's current configuration is reused instead of the
+ * defaults that apply to a brand new card.
+ *
+ * @param card - The existing CSV imported card the transactions are added to
+ * @param savedLayout - The saved column layout for that card, which holds the currency and amount sign settings picked on the first import
+ * @param customCardName - The name of the card in the custom card names NVP, if the card was renamed
+ */
+function getExistingCardImportSettings(card: Card | undefined, savedLayout: SavedCSVColumnLayoutData | undefined, customCardName: string | undefined): ImportTransactionSettings {
+    const settings: ImportTransactionSettings = {};
+
+    const cardDisplayName = customCardName ?? card?.nameValuePairs?.cardTitle ?? card?.cardName ?? savedLayout?.name;
+    if (cardDisplayName) {
+        settings.cardDisplayName = cardDisplayName;
+    }
+
+    const currency = savedLayout?.accountDetails?.currency;
+    if (currency) {
+        settings.currency = currency;
+    }
+
+    const isReimbursable = card?.reimbursable ?? savedLayout?.reimbursable;
+    if (isReimbursable !== undefined) {
+        settings.isReimbursable = isReimbursable;
+    }
+
+    if (savedLayout?.flipAmountSign !== undefined) {
+        settings.flipAmountSign = savedLayout.flipAmountSign;
+    }
+
+    return settings;
+}
+
+/**
  * Import transactions from a CSV spreadsheet
  * @param spreadsheet - The imported spreadsheet data
  * @param accountID - The current (importing) user's accountID, used as the cardholder for a new optimistic card
  * @param existingCardID - Optional cardID to add transactions to an existing card instead of creating a new one
  * @param previouslySavedLayout - Optional previous saved layout to restore on failure
+ * @param existingCardSettings - Optional settings of the existing card, which take precedence over the settings collected during the import flow
  */
 async function importTransactionsFromCSV(
     spreadsheet: ImportedSpreadsheet,
     accountID: number,
     existingCardID?: number,
     previouslySavedLayout?: SavedCSVColumnLayoutData,
+    existingCardSettings?: ImportTransactionSettings,
 ): Promise<ImportFinalModal> {
     // OFX already signs a charge, so the manual flip is dropped for this import without touching the saved preference.
     const isBankStatement = isOFXStatement(spreadsheet.fileName ?? '');
-    const storedSettings = spreadsheet.importTransactionSettings ?? {};
+    const storedSettings = {...spreadsheet.importTransactionSettings, ...existingCardSettings};
     const settings = isBankStatement ? {...storedSettings, flipAmountSign: false} : storedSettings;
     const {cardDisplayName = 'Imported Card', currency = CONST.CURRENCY.USD, isReimbursable = true, flipAmountSign = false} = settings;
 
@@ -384,5 +420,5 @@ async function importTransactionsFromCSV(
     }
 }
 
-export {getColumnIndexes, buildColumnLayout, buildTransactionListFromSpreadsheet};
+export {getColumnIndexes, buildColumnLayout, buildTransactionListFromSpreadsheet, getExistingCardImportSettings};
 export default importTransactionsFromCSV;
