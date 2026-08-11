@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
@@ -25,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {findSelfDMReportID} from '@libs/ReportUtils';
+import {findSelfDMReportID, getReportTransactions} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,6 +46,7 @@ type DynamicConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNav
 
 function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const styles = useThemeStyles();
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
@@ -90,9 +92,16 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
         }
         const reportID = mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? (findSelfDMReportID() ?? CONST.REPORT.UNREPORTED_REPORT_ID) : mergeTransaction.reportID;
 
+        // When the surviving expense is moved off its original report and that report held only this one expense,
+        // mergeTransactionRequest optimistically deletes the report. Capture that here (before the optimistic update runs)
+        // so we can replace the now-deleted report screen instead of pushing on top of it — otherwise the stale screen
+        // lingers in the stack and briefly flashes the "not found" page when the user taps back. Must be read pre-merge.
+        const willDeleteTargetTransactionReport = getReportTransactions(targetTransaction.reportID).length === 1;
+
         setIsMergingExpenses(true);
 
         mergeTransactionRequest({
+            getCurrencyDecimals,
             mergeTransactionID: transactionID,
             mergeTransaction,
             targetTransaction,
@@ -130,7 +139,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
         }
 
         if (reportIDToDismiss && reportID !== targetTransaction.reportID) {
-            Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
+            Navigation.dismissModalWithReport({reportID: reportIDToDismiss}, undefined, {forceReplace: willDeleteTargetTransactionReport});
             return;
         }
 

@@ -31,6 +31,7 @@ import {createExpenseReport, createRandomReport} from '../utils/collections/repo
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
+import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Helper function to create mock violations
@@ -209,6 +210,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         isTrackIntentUser: false,
         sourceTransactionThreadReportActions: undefined,
         sourceIOUAction,
+        getCurrencyDecimals: getCurrencyDecimalsLocal,
     });
 }
 
@@ -328,6 +330,7 @@ describe('mergeTransactionRequest', () => {
             isTrackIntentUser: false,
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
         await mockFetch?.resume?.();
@@ -448,6 +451,7 @@ describe('mergeTransactionRequest', () => {
             isTrackIntentUser: false,
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
         await mockFetch?.resume?.();
@@ -553,6 +557,7 @@ describe('mergeTransactionRequest', () => {
             isTrackIntentUser: false,
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
         await mockFetch?.resume?.();
@@ -720,6 +725,7 @@ describe('mergeTransactionRequest', () => {
             isTrackIntentUser: false,
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
         await waitForBatchedUpdates();
@@ -828,6 +834,7 @@ describe('mergeTransactionRequest', () => {
             isTrackIntentUser: false,
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
         await mockFetch?.resume?.();
@@ -1061,6 +1068,7 @@ describe('mergeTransactionRequest', () => {
                 isTrackIntentUser: false,
                 sourceTransactionThreadReportActions: undefined,
                 sourceIOUAction: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             await mockFetch?.resume?.();
@@ -1265,6 +1273,7 @@ describe('mergeTransactionRequest', () => {
                 isTrackIntentUser: false,
                 sourceTransactionThreadReportActions: undefined,
                 sourceIOUAction,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1418,6 +1427,7 @@ describe('mergeTransactionRequest', () => {
                 isTrackIntentUser: false,
                 sourceTransactionThreadReportActions: undefined,
                 sourceIOUAction: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             await waitForBatchedUpdates();
