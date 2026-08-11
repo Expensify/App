@@ -16,6 +16,7 @@ import * as Session from '@src/libs/actions/Session';
 import HttpUtils from '@src/libs/HttpUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import appSetup from '@src/setup';
 import type {CurrencyList, Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -77,9 +78,13 @@ const anyArray: unknown = expect.any(Array);
 const anyObject: unknown = expect.any(Object);
 const anyString: unknown = expect.any(String);
 
-function setupApp() {
+/**
+ * Boots the app on the Inbox by default, since most tests rely on the reports sidebar.
+ * Pass `initialUrl` when the test needs a different screen, e.g. `https://new.expensify.com/` for Home.
+ */
+function setupApp(initialUrl = `https://new.expensify.com/${ROUTES.INBOX}`) {
     beforeAll(() => {
-        Linking.setInitialURL('https://new.expensify.com/');
+        Linking.setInitialURL(initialUrl);
         appSetup();
 
         // Connect to Pusher
@@ -515,6 +520,7 @@ export {
     anyString,
     translateLocal,
     convertToDisplayString,
+    getCurrencyDecimalsLocal,
     assertFormDataMatchesObject,
     buildPersonalDetails,
     buildTestReportComment,

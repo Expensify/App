@@ -90,12 +90,12 @@ For additional control:
 1. Go to **Workspaces > [Workspace Name] > Accounting > NetSuite > Advanced**
 2. Configure the following options:
 
-- **Auto-Sync** – Enable for daily syncing of NetSuite data
+- **Auto-sync** – Enable for daily syncing of NetSuite data
 - **Sync Reimbursed Reports** – Automatically updates status between systems
 - **Invite Employees & Set Approvals** – Imports employees and sets workflow
 - **Auto Create Employees/Vendors** – Automatically creates a NetSuite record if one doesn’t exist
 - **Enable Newly Imported Categories** – Activates newly synced Expense Categories
-- **Sync Consolidated Travel Billing Settlements** – If Expensify Travel's Consolidated Travel Billing feature is enabled, turn on this toggle to continuously reconcile settlements through NetSuite. When enabled, select a **Reconciliation account** to match your settlement account.
+- **Sync Consolidated Travel Billing settlements** – If Expensify Travel's [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) feature is enabled, turn on this toggle to continuously reconcile settlements through NetSuite. When enabled, select a **Reconciliation account** to match your settlement account. Auto-sync must be enabled to use this setting.
 - **Approval Levels** – Set approval levels for:
   - Expense Reports
   - Vendor Bills
@@ -128,7 +128,7 @@ Yes. When enabled:
 
 - **Reimbursable expenses** export after reimbursement
 - **Company card expenses** export after approval
-- **Auto-Sync** ensures reimbursement status updates automatically
+- **Auto-sync** ensures reimbursement status updates automatically
 
 
 ## How do I configure corporate card exports in NetSuite?
@@ -146,15 +146,15 @@ Yes. When enabled:
 Check the **Use as Field ID** box in NetSuite. This assigns a usable ID to older segments for import into Expensify.
 
 
-## How does Auto-Sync work with reimbursed reports?
+## How does Auto-sync work with reimbursed reports?
 
 - When a report is reimbursed in Expensify, NetSuite marks it as paid
 - If paid in NetSuite, Expensify reflects that during the next sync
 
 
-## Will enabling Auto-Sync affect existing reports?
+## Will enabling Auto-sync affect existing reports?
 
-No. Auto-Sync only applies to newly approved reports. Export older reports manually if needed.
+No. Auto-sync only applies to newly approved reports. Export older reports manually if needed.
 
 
 ## How does multi-currency exporting work in NetSuite?
