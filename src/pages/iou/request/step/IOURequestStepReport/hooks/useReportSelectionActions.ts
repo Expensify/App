@@ -1,6 +1,8 @@
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
@@ -114,7 +116,9 @@ function useReportSelectionActions({
     const {removeTransaction} = useSearchSelectionActions();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
+    const reports = useChangeTransactionsReportReports(transaction ? [transaction] : [], undefined);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const targetTransactionIDs = transaction?.transactionID ? [transaction.transactionID] : [];
     const targetTransactions = transaction ? [transaction] : [];
@@ -203,6 +207,7 @@ function useReportSelectionActions({
 
                 if (isEditing) {
                     const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
+                    const reportsForCall = report?.reportID ? {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report, ...reports} : reports;
                     changeTransactionsReport({
                         transactionIDs: targetTransactionIDs,
                         isASAPSubmitBetaEnabled,
@@ -214,10 +219,11 @@ function useReportSelectionActions({
                         policyTagList,
                         transactions: targetTransactions,
                         allTransactionViolation: transactionViolations,
-                        allReports,
+                        reports: reportsForCall,
                         isTrackIntentUser,
                         personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                         selfDMReportActions,
+                        getCurrencyDecimals,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -241,10 +247,11 @@ function useReportSelectionActions({
                     policyTagList,
                     transactions: targetTransactions,
                     allTransactionViolation: transactionViolations,
-                    allReports,
+                    reports,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                     selfDMReportActions,
+                    getCurrencyDecimals,
                 });
                 removeTransaction(transaction.transactionID);
             },
