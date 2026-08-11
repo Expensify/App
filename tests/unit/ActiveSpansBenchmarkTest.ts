@@ -40,6 +40,22 @@ afterEach(() => {
 });
 
 describe('activeSpans benchmark logging', () => {
+    it('calculates an epoch-based span duration with the monotonic clock', () => {
+        const dateNow = jest.spyOn(Date, 'now').mockReturnValue(1_786_362_201_500);
+        const performanceNow = jest.spyOn(performance, 'now').mockReturnValue(10_000);
+
+        startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP, {
+            name: CONST.TELEMETRY.SPAN_APP_STARTUP,
+            startTime: 1_786_362_201_000,
+        });
+
+        dateNow.mockReturnValue(1_786_362_201_750);
+        performanceNow.mockReturnValue(10_250);
+        endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
+
+        expect(mockLogBenchmarkSpanEnd).toHaveBeenCalledWith(CONST.TELEMETRY.SPAN_APP_STARTUP, 750);
+    });
+
     it('logs the Sentry span name instead of its unique tracking ID', () => {
         jest.spyOn(performance, 'now').mockReturnValueOnce(100).mockReturnValueOnce(250);
 

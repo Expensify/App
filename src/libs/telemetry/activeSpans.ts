@@ -2,7 +2,7 @@ import CONST from '@src/CONST';
 
 import type {Span, SpanAttributeValue, StartSpanOptions} from '@sentry/core';
 
-import {SPAN_STATUS_OK} from '@sentry/core';
+import {SPAN_STATUS_OK, spanTimeInputToSeconds} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import {AppState} from 'react-native';
 
@@ -15,6 +15,17 @@ type ActiveSpanEntry = {
 };
 
 const activeSpans = new Map<string, ActiveSpanEntry>();
+
+function getPerformanceStartTimeForLog(startTime: StartSpanOptions['startTime']): number {
+    const performanceTimestamp = performance.now();
+    if (startTime === undefined) {
+        return performanceTimestamp;
+    }
+
+    // Sentry start times are Unix timestamps, while performance.now() is relative to the process start. Translate the timestamp once so elapsed time stays monotonic.
+    const epochStartTime = spanTimeInputToSeconds(startTime) * 1000;
+    return performanceTimestamp - (Date.now() - epochStartTime);
+}
 
 function startSpan(spanId: string, options: StartSpanOptions) {
     if ((AppState.currentState ?? CONST.APP_STATE.ACTIVE) !== CONST.APP_STATE.ACTIVE && !isBenchmarkSpanEnabled(options.name)) {
@@ -29,12 +40,7 @@ function startSpan(spanId: string, options: StartSpanOptions) {
     });
     const span = Sentry.startInactiveSpan(options);
 
-    let startTimeForLog: number;
-    if (typeof options.startTime === 'number') {
-        startTimeForLog = options.startTime;
-    } else {
-        startTimeForLog = performance.now();
-    }
+    const startTimeForLog = getPerformanceStartTimeForLog(options.startTime);
 
     activeSpans.set(spanId, {span, spanName: options.name, startTimeForLog});
 
@@ -48,10 +54,10 @@ function endSpan(spanId: string) {
         return;
     }
     const {span, spanName, startTimeForLog} = entry;
-    const now = performance.now();
-    const durationMs = Math.round(now - startTimeForLog);
+    const performanceTimestamp = performance.now();
+    const durationMs = Math.round(performanceTimestamp - startTimeForLog);
     const attributes = Sentry.spanToJSON(span).data ?? {};
-    console.debug(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, {spanId, durationMs, timestamp: now, attributes});
+    console.debug(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, {spanId, durationMs, timestamp: Date.now(), attributes});
     if (attributes[CONST.TELEMETRY.ATTRIBUTE_CANCELED] !== true) {
         logBenchmarkSpanEnd(spanName, durationMs);
     }
