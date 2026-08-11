@@ -185,7 +185,7 @@ function SearchAutocompleteList({
     ref,
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addOfflineIndicatorBottomSafeAreaPadding: true,
@@ -256,6 +256,7 @@ function SearchAutocompleteList({
             return defaultListOptions;
         }
         return getSearchOptions({
+            dateFnsLocale,
             options: listOptions,
             draftComments,
             betas: betas ?? [],
@@ -298,6 +299,7 @@ function SearchAutocompleteList({
         isTrackIntentUser,
         translate,
         formatPhoneNumber,
+        dateFnsLocale,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -398,6 +400,7 @@ function SearchAutocompleteList({
                           currentUserAccountID,
                           autoCompleteWithSpace: false,
                           translate,
+                          formatPhoneNumber,
                           feedKeysWithCards,
                           reportAttributes,
                           bankAccountList,
@@ -420,6 +423,7 @@ function SearchAutocompleteList({
         policies,
         currentUserAccountID,
         translate,
+        formatPhoneNumber,
         feedKeysWithCards,
         reportAttributes,
         bankAccountList,

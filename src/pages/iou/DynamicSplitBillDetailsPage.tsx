@@ -49,7 +49,7 @@ type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & Plat
 
 function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const theme = useTheme();
     const {isBetaEnabled} = usePermissions();
@@ -78,17 +78,16 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     if (isPolicyExpenseChat(report)) {
         participants = [
             getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails, translate),
-            getPolicyExpenseReportOption({
-                participant: {...report, selected: true, reportID},
+            getPolicyExpenseReportOption(
+                {...report, selected: true, reportID},
                 privateIsArchived,
                 personalDetails,
-                expenseReport: report,
+                report,
                 policy,
-                translate,
-                formatPhoneNumber,
-                currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                {translate, dateFnsLocale, formatPhoneNumber},
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 reportAttributesDerived,
-            }),
+            ),
         ];
     } else {
         participants = participantAccountIDs.map((accountID) => getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails, translate));

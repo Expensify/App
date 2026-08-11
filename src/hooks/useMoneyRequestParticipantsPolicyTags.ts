@@ -1,8 +1,3 @@
-/**
- * Resolves the participants for a money request and derives the policy tags for each participant's policy.
- * Combines `getMoneyRequestParticipantOptions` with `useParticipantsPolicyTags` so distance-request call sites can
- * read reactive participant policy tags from Onyx instead of the deprecated `buildParticipantsPolicyTags` helper.
- */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
@@ -12,11 +7,18 @@ import type {ParticipantsPolicyTags, PersonalDetailsList, Policy, Report} from '
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 
+/**
+ * Resolves the participants for a money request and derives the policy tags for each participant's policy.
+ * Combines `getMoneyRequestParticipantOptions` with `useParticipantsPolicyTags` so distance-request call sites can
+ * read reactive participant policy tags from Onyx instead of the deprecated `buildParticipantsPolicyTags` helper.
+ */
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import useParticipantsPolicyTags from './useParticipantsPolicyTags';
 
 type UseMoneyRequestParticipantsPolicyTagsParams = {
+    dateFnsLocale: DateFnsLocale | undefined;
     currentUserAccountID: number;
     report: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
@@ -45,6 +47,7 @@ function useMoneyRequestParticipantsPolicyTags({
     reportDraft,
     translate,
     formatPhoneNumber,
+    dateFnsLocale,
 }: UseMoneyRequestParticipantsPolicyTagsParams): UseMoneyRequestParticipantsPolicyTagsResult {
     const participants = getMoneyRequestParticipantOptions(
         currentUserAccountID,
@@ -57,6 +60,7 @@ function useMoneyRequestParticipantsPolicyTags({
         reportDraft,
         translate,
         formatPhoneNumber,
+        dateFnsLocale,
     );
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 

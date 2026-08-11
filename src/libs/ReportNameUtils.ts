@@ -17,6 +17,7 @@ import type {
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /**
@@ -177,6 +178,7 @@ import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUp
 import {hasNonReimbursableTransactions} from './TransactionUtils';
 
 type ComputeReportName = {
+    dateFnsLocale: DateFnsLocale | undefined;
     report?: Report;
     reports?: OnyxCollection<Report>;
     policies?: OnyxCollection<Policy>;
@@ -358,7 +360,11 @@ function getInvoicesChatName({
     }
 
     if (isIndividual) {
-        return formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[invoiceReceiverAccountID], translate}));
+        return temporaryGetDisplayNameOrDefault({
+            passedPersonalDetails: personalDetails?.[invoiceReceiverAccountID],
+            translate,
+            formatPhoneNumber,
+        });
     }
 
     return getPolicyName({report, policy: receiverPolicy, unavailableTranslation: translate('workspace.common.unavailable')});
@@ -402,7 +408,7 @@ function getInvoicePayerName(
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 
     if (isIndividual) {
-        return formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: invoiceReceiverPersonalDetail ?? undefined, translate}));
+        return temporaryGetDisplayNameOrDefault({passedPersonalDetails: invoiceReceiverPersonalDetail ?? undefined, translate, formatPhoneNumber});
     }
 
     return getPolicyName({report, policy: invoiceReceiverPolicy, unavailableTranslation: translate('workspace.common.unavailable')});
@@ -477,6 +483,7 @@ function getMoneyRequestReportName({
 
 function computeReportNameBasedOnReportAction(
     translate: LocalizedTranslate,
+    dateFnsLocale: DateFnsLocale | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     parentReportAction: ReportAction | undefined,
     report: Report | undefined,
@@ -819,10 +826,10 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE)) {
-        return getWorkspaceCustomUnitRateAddedMessage(translate, parentReportAction);
+        return getWorkspaceCustomUnitRateAddedMessage(translate, dateFnsLocale, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE)) {
-        return getWorkspaceCustomUnitRateUpdatedMessage(translate, parentReportAction);
+        return getWorkspaceCustomUnitRateUpdatedMessage(translate, dateFnsLocale, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE)) {
         return getWorkspaceCustomUnitRateDeletedMessage(translate, parentReportAction);
@@ -998,6 +1005,7 @@ function computeChatThreadReportName(
  * In all other cases you should use `getReportName`
  */
 function computeReportName({
+    dateFnsLocale,
     report,
     reports,
     policies,
@@ -1026,6 +1034,7 @@ function computeReportName({
 
     const parentReportActionBasedName = computeReportNameBasedOnReportAction(
         translate,
+        dateFnsLocale,
         formatPhoneNumber,
         parentReportAction,
         report,
@@ -1048,6 +1057,7 @@ function computeReportName({
         const {originalID} = getOriginalMessage(parentReportAction) ?? {};
         const originalReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
         const reportName = computeReportName({
+            dateFnsLocale,
             report: originalReport,
             reports,
             policies,

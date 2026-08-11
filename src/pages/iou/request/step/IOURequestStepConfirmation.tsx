@@ -250,7 +250,7 @@ function IOURequestStepConfirmation({
 
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isOffline} = useNetwork();
@@ -320,20 +320,20 @@ function IOURequestStepConfirmation({
                 // any participant without a reportID to getParticipantsOption instead.
                 return participant.accountID || !participant.reportID
                     ? getParticipantsOption(participant, personalDetails, translate)
-                    : getReportOption({
+                    : getReportOption(
                           participant,
                           privateIsArchived,
-                          policy: participantPolicy,
+                          participantPolicy,
                           personalDetails,
                           conciergeReportID,
                           reportAttributesDerived,
-                          reportDraft: participantReportDraft,
-                          currentUserAccountID: currentUserPersonalDetails.accountID,
-                          translate,
-                          formatPhoneNumber,
-                      });
+                          participantReportDraft,
+                          currentUserPersonalDetails.accountID,
+                          {translate, dateFnsLocale, formatPhoneNumber},
+                      );
             }) ?? [],
         [
+            dateFnsLocale,
             transaction?.participants,
             iouType,
             personalDetails,
@@ -863,7 +863,11 @@ function IOURequestStepConfirmation({
             shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
             testID="IOURequestStepConfirmation"
         >
-            <TelemetrySpanManager iouType={iouType} />
+            <TelemetrySpanManager
+                iouType={iouType}
+                requestType={requestType}
+                hasReceipt={!!transaction?.receipt}
+            />
             <DraftWorkspaceOpener
                 isCreatingTrackExpense={isCreatingTrackExpense}
                 policyID={policyID}

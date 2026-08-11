@@ -20,7 +20,7 @@ import type {MockFetch} from '../../utils/TestHelper';
 import createPersonalDetails from '../../utils/collections/personalDetails';
 import {createSelfDM} from '../../utils/collections/reports';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
 
@@ -219,6 +219,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -306,6 +307,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -413,6 +415,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -506,6 +509,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -567,6 +571,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -657,6 +662,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();

@@ -58,7 +58,7 @@ import ParticipantSelectorFooter from './ParticipantSelectorFooter';
 
 const sanitizedSelectedParticipant = (option: Option | OptionData, iouType: IOUType) => ({
     ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber', 'displayName'),
-    // A report-less Contacts option carries an empty-string reportID sentinel. Normalize it to undefined so downstream
+    // A report-less Contacts option carries an empty-string reportID. Normalize it to undefined so downstream
     // readers that rely on `!== undefined`/`??` (e.g. initiallySelectedReportID guard, useParticipantSubmission ref)
     // don't treat the empty string as a real reportID, which would produce a spurious checkmark and an invalid route.
     reportID: option.reportID ? option.reportID : undefined,
@@ -160,7 +160,7 @@ function ParticipantSearchResults({
         action !== CONST.IOU.ACTION.SUBMIT &&
         action !== CONST.IOU.ACTION.CATEGORIZE;
     const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {contactPermissionState, contacts, setContactPermissionState} = useContactImport();
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -314,6 +314,7 @@ function ParticipantSearchResults({
             allPolicies,
             translate,
             formatPhoneNumber,
+            dateFnsLocale,
             personalDetails,
             true,
             undefined,
@@ -381,17 +382,16 @@ function ParticipantSearchResults({
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption({
+                        ? getPolicyExpenseReportOption(
                               participant,
                               privateIsArchived,
                               personalDetails,
-                              expenseReport: userToInviteExpenseReport,
-                              policy: userToInviteExpenseReportPolicy,
-                              translate,
-                              formatPhoneNumber,
+                              userToInviteExpenseReport,
+                              userToInviteExpenseReportPolicy,
+                              {translate, dateFnsLocale, formatPhoneNumber},
                               currentUserAccountID,
                               reportAttributesDerived,
-                          })
+                          )
                         : getParticipantsOption(participant, personalDetails, translate);
                 }),
                 sectionIndex: 5,
