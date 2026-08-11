@@ -1,7 +1,7 @@
 import writeBenchmarkLog from '@libs/telemetry/writeBenchmarkLog/index.ios';
 
-const mockMkdir = jest.fn(() => Promise.resolve());
-const mockWriteFile = jest.fn(() => Promise.resolve());
+const mockMkdir = jest.fn<Promise<void>, [string]>(() => Promise.resolve());
+const mockWriteFile = jest.fn<Promise<void>, [string, string, string]>(() => Promise.resolve());
 
 jest.mock('react-native-fs', () => ({
     CachesDirectoryPath: '/Library/Caches',

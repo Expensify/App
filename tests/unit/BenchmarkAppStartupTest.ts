@@ -1,4 +1,14 @@
-import {benchmarkStartups, benchmarkStats, findBenchmarkDuration, iosBenchmarkMarkerPath, parseBenchmarkLogEvents, percentile} from '@scripts/benchmarkAppStartup';
+import {
+    benchmarkStartups,
+    benchmarkStats,
+    findBenchmarkDuration,
+    iosBenchmarkMarkerPath,
+    parseIosInstalledAppURL,
+    parseBenchmarkLogEvents,
+    parseIosLaunchProcessIdentifier,
+    parseIosRunningAppProcessIdentifier,
+    percentile,
+} from '@scripts/benchmarkAppStartup';
 
 import {mkdtempSync, readFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -18,6 +28,30 @@ describe('benchmarkAppStartup', () => {
 
     it('creates an app-container-safe marker path for an iOS span', () => {
         expect(iosBenchmarkMarkerPath('Manual/App Startup')).toBe('Library/Caches/ExpensifyBenchmark/Manual%2FApp%20Startup.log');
+    });
+
+    it('reads the launched iOS process identifier from CoreDevice output', () => {
+        expect(parseIosLaunchProcessIdentifier({result: {process: {processIdentifier: 1234}}})).toBe(1234);
+        expect(() => parseIosLaunchProcessIdentifier({result: {process: {}}})).toThrow('CoreDevice did not return a valid app process identifier.');
+    });
+
+    it('finds an already-running iOS app process from CoreDevice output', () => {
+        const appID = 'com.example.app';
+        const appURL = parseIosInstalledAppURL({result: {apps: [{bundleIdentifier: appID, url: 'file:///containers/Example.app'}]}}, appID);
+        const processIdentifier = parseIosRunningAppProcessIdentifier(
+            {
+                result: {
+                    runningProcesses: [
+                        {executable: `${appURL}PlugIns/Notification.appex/Notification`, processIdentifier: 123},
+                        {executable: `${appURL}Example`, processIdentifier: 456},
+                    ],
+                },
+            },
+            appURL,
+        );
+
+        expect(appURL).toBe('file:///containers/Example.app/');
+        expect(processIdentifier).toBe(456);
     });
 
     it('calculates interpolated percentiles and summary statistics', () => {

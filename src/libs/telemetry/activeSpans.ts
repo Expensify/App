@@ -6,7 +6,7 @@ import {SPAN_STATUS_OK} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import {AppState} from 'react-native';
 
-import logBenchmarkSpanEnd from './logBenchmarkSpanEnd';
+import logBenchmarkSpanEnd, {isBenchmarkSpanEnabled} from './logBenchmarkSpanEnd';
 
 type ActiveSpanEntry = {
     span: ReturnType<typeof Sentry.startInactiveSpan>;
@@ -17,7 +17,7 @@ type ActiveSpanEntry = {
 const activeSpans = new Map<string, ActiveSpanEntry>();
 
 function startSpan(spanId: string, options: StartSpanOptions) {
-    if ((AppState.currentState ?? CONST.APP_STATE.ACTIVE) !== CONST.APP_STATE.ACTIVE) {
+    if ((AppState.currentState ?? CONST.APP_STATE.ACTIVE) !== CONST.APP_STATE.ACTIVE && !isBenchmarkSpanEnabled(options.name)) {
         return;
     }
     // End any existing span for this name

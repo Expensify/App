@@ -126,6 +126,48 @@ function iosBenchmarkMarkerPath(spanName: string): string {
     return `${IOS_BENCHMARK_DIRECTORY}/${encodeURIComponent(spanName)}.log`;
 }
 
+function parseIosLaunchProcessIdentifier(response: unknown): number {
+    if (!isRecord(response) || !isRecord(response.result) || !isRecord(response.result.process)) {
+        fail('CoreDevice returned an unexpected app-launch response.');
+    }
+    const {processIdentifier} = response.result.process;
+    if (typeof processIdentifier !== 'number' || !Number.isInteger(processIdentifier) || processIdentifier <= 0) {
+        fail('CoreDevice did not return a valid app process identifier.');
+    }
+    return processIdentifier;
+}
+
+function parseIosInstalledAppURL(response: unknown, appID: string): string {
+    if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.apps)) {
+        fail('CoreDevice returned an unexpected installed-app response.');
+    }
+    const apps: unknown[] = response.result.apps;
+    const app: unknown = apps.find((candidate) => isRecord(candidate) && candidate.bundleIdentifier === appID);
+    if (!isRecord(app) || typeof app.url !== 'string') {
+        fail(`Unable to find installed iOS app ${appID}.`);
+    }
+    return app.url.endsWith('/') ? app.url : `${app.url}/`;
+}
+
+function parseIosRunningAppProcessIdentifier(response: unknown, appURL: string): number | undefined {
+    if (!isRecord(response) || !isRecord(response.result) || !Array.isArray(response.result.runningProcesses)) {
+        fail('CoreDevice returned an unexpected process-list response.');
+    }
+    const runningProcesses: unknown[] = response.result.runningProcesses;
+    const runningProcess: unknown = runningProcesses.find((candidate) => {
+        if (!isRecord(candidate) || typeof candidate.executable !== 'string') {
+            return false;
+        }
+        const relativeExecutablePath = candidate.executable.slice(appURL.length);
+        return candidate.executable.startsWith(appURL) && relativeExecutablePath.length > 0 && !relativeExecutablePath.includes('/');
+    });
+    if (!isRecord(runningProcess)) {
+        return undefined;
+    }
+    const {processIdentifier} = runningProcess;
+    return typeof processIdentifier === 'number' && Number.isInteger(processIdentifier) && processIdentifier > 0 ? processIdentifier : undefined;
+}
+
 function createAndroidAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeAppBenchmarkAdapterOptions, 'platform'>): NativeAppBenchmarkAdapter {
     const {capture, run} = createCommandHelpers(rootDirectory);
     const selectedDeviceIdentifier = deviceIdentifier ?? capture('adb', ['get-serialno']).trim();
@@ -217,7 +259,53 @@ function createIosAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeA
     const iosDeviceID: unknown = process.env.IOS_DEVICE_ID;
     const environmentDeviceIdentifier = typeof iosDeviceID === 'string' ? iosDeviceID : undefined;
     const device = resolveIosDevice(rootDirectory, deviceIdentifier ?? environmentDeviceIdentifier);
-    const terminate = () => runAllowFailure('xcrun', ['devicectl', 'device', 'process', 'terminate', '--device', device, appID]);
+    let runningProcessIdentifier: number | undefined;
+    const terminate = () => {
+        if (runningProcessIdentifier === undefined) {
+            return;
+        }
+        runAllowFailure('xcrun', ['devicectl', 'device', 'process', 'terminate', '--device', device, '--pid', String(runningProcessIdentifier)]);
+        runningProcessIdentifier = undefined;
+    };
+    const launch = (): void => {
+        const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-ios-launch-'));
+        const jsonPath = join(temporaryDirectory, 'launch.json');
+        try {
+            run('xcrun', ['devicectl', 'device', 'process', 'launch', '--device', device, '--terminate-existing', '--json-output', jsonPath, '--quiet', appID]);
+            const response: unknown = JSON.parse(readFileSync(jsonPath, 'utf8'));
+            runningProcessIdentifier = parseIosLaunchProcessIdentifier(response);
+        } finally {
+            rmSync(temporaryDirectory, {recursive: true, force: true});
+        }
+    };
+    const resolveRunningProcessIdentifier = (): number | undefined => {
+        const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-ios-process-'));
+        const appsJSONPath = join(temporaryDirectory, 'apps.json');
+        const processesJSONPath = join(temporaryDirectory, 'processes.json');
+        try {
+            run('xcrun', ['devicectl', 'device', 'info', 'apps', '--device', device, '--bundle-id', appID, '--json-output', appsJSONPath, '--quiet']);
+            const appsResponse: unknown = JSON.parse(readFileSync(appsJSONPath, 'utf8'));
+            const appURL = parseIosInstalledAppURL(appsResponse, appID);
+            const escapedAppURL = appURL.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
+            run('xcrun', [
+                'devicectl',
+                'device',
+                'info',
+                'processes',
+                '--device',
+                device,
+                '--filter',
+                `executable.absoluteString BEGINSWITH '${escapedAppURL}'`,
+                '--json-output',
+                processesJSONPath,
+                '--quiet',
+            ]);
+            const processesResponse: unknown = JSON.parse(readFileSync(processesJSONPath, 'utf8'));
+            return parseIosRunningAppProcessIdentifier(processesResponse, appURL);
+        } finally {
+            rmSync(temporaryDirectory, {recursive: true, force: true});
+        }
+    };
     const readBenchmarkMarker = (spanName: string): string | undefined => {
         const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-ios-marker-'));
         const localPath = join(temporaryDirectory, 'benchmark.log');
@@ -250,6 +338,7 @@ function createIosAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeA
         appID,
         deviceIdentifier: device,
         prepareStartup: async (mode, appPath) => {
+            runningProcessIdentifier ??= resolveRunningProcessIdentifier();
             terminate();
             if (mode === 'cold') {
                 if (!appPath) {
@@ -265,7 +354,7 @@ function createIosAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeA
         },
         launchAndWait: async (spanName, timeoutSeconds) => {
             const previousMarker = readBenchmarkMarker(spanName);
-            run('xcrun', ['devicectl', 'device', 'process', 'launch', '--device', device, '--terminate-existing', appID]);
+            launch();
 
             const deadline = Date.now() + timeoutSeconds * 1000;
             let marker: string | undefined;
@@ -291,5 +380,15 @@ function createNativeAppBenchmarkAdapter(options: NativeAppBenchmarkAdapterOptio
     return createIosAdapter(options);
 }
 
-export {BENCHMARK_LOG_TAG, PLATFORM_NAMES, createNativeAppBenchmarkAdapter, findBenchmarkDuration, iosBenchmarkMarkerPath, parseBenchmarkLogEvents};
+export {
+    BENCHMARK_LOG_TAG,
+    PLATFORM_NAMES,
+    createNativeAppBenchmarkAdapter,
+    findBenchmarkDuration,
+    iosBenchmarkMarkerPath,
+    parseIosInstalledAppURL,
+    parseBenchmarkLogEvents,
+    parseIosLaunchProcessIdentifier,
+    parseIosRunningAppProcessIdentifier,
+};
 export type {BenchmarkLogEvent, NativeAppBenchmarkAdapter, NativeAppBenchmarkAdapterOptions, PlatformName, StartupMode};

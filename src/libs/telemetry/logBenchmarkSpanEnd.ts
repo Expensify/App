@@ -43,7 +43,12 @@ function createBenchmarkSpanEndLogger(spanNames: string[], writeLog: (message: s
     };
 }
 
-const logBenchmarkSpanEnd = createBenchmarkSpanEndLogger(parseBenchmarkSpanNames(configuredSpanNames), writeBenchmarkLog);
+const enabledBenchmarkSpanNames = new Set(parseBenchmarkSpanNames(configuredSpanNames));
+const logBenchmarkSpanEnd = createBenchmarkSpanEndLogger([...enabledBenchmarkSpanNames], writeBenchmarkLog);
 
-export {BENCHMARK_LOG_TAG, createBenchmarkSpanEndLogger, parseBenchmarkSpanNames};
+function isBenchmarkSpanEnabled(spanName: string): boolean {
+    return enabledBenchmarkSpanNames.has(spanName);
+}
+
+export {BENCHMARK_LOG_TAG, createBenchmarkSpanEndLogger, isBenchmarkSpanEnabled, parseBenchmarkSpanNames};
 export default logBenchmarkSpanEnd;
