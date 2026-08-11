@@ -35,11 +35,7 @@ type UseReportPreviewCarouselParams = {
     /** Transactions that belong to the previewed report */
     transactions: Transaction[];
 
-    /**
-     * Called with the transactions in the order the carousel renders them. The expense view's prev/next arrows are
-     * seeded from this, and they have to walk the cards in the order the user sees, not the order the collection
-     * happens to be in.
-     */
+    /** Called with the transactions in the order the carousel renders them, used to seed the expense view's arrows */
     onOrderedTransactionsChange?: (orderedTransactions: Transaction[]) => void;
 
     /** Violations for the previewed transactions, used to sort RBR transactions first */
