@@ -17,27 +17,27 @@ const MODAL_GUARD_EFFECT = {
 } as const;
 
 /**
- * Lifecycle of one modal's browser-history back-guard sentinel. A single state replaces the previous
+ * Lifecycle of one modal's browser-history back-guard entry. A single state replaces the previous
  * pair of correlated booleans (`hasGuard` / `isClosingByDispatch`) so the invalid "registered AND
  * closing" combination cannot be expressed.
  *
- * - `CLOSED`: no sentinel registered.
- * - `OPEN`: sentinel registered; browser Back removes it.
- * - `CLOSING_BY_DISPATCH`: we initiated the close and removed our own sentinel, so the resulting
+ * - `CLOSED`: no guard registered.
+ * - `OPEN`: guard registered; browser Back removes it.
+ * - `CLOSING_BY_DISPATCH`: we initiated the close and removed our own guard entry, so the resulting
  *   `GUARD_REMOVED` must be swallowed rather than treated as a browser Back.
  */
 type ModalGuardState = (typeof MODAL_GUARD_STATE)[keyof typeof MODAL_GUARD_STATE];
 
 type ModalGuardEvent =
     | {
-          /** Our sentinel left root history (browser Back, our own close, or forward-nav consume). */
+          /** Our guard entry left root history (browser Back, our own close, or forward-nav consume). */
           type: typeof MODAL_GUARD_EVENT_TYPE.GUARD_REMOVED;
 
           /** Whether a route was pushed alongside the removal (forward navigation consumed the guard). */
           routesGrew: boolean;
       }
     | {
-          /** Our sentinel re-entered root history (browser Forward restored the saved nav state). */
+          /** Our guard entry re-entered root history (browser Forward restored the saved nav state). */
           type: typeof MODAL_GUARD_EVENT_TYPE.GUARD_APPEARED;
       };
 
@@ -50,12 +50,12 @@ type ModalGuardTransition = {
 /**
  * Pure transition for a modal's back-guard in response to root-history changes. The write path sets
  * `OPEN` / `CLOSING_BY_DISPATCH` directly; this reducer owns the ambiguous external events where one
- * observable change (the sentinel disappearing) has several possible causes.
+ * observable change (the guard entry disappearing) has several possible causes.
  */
 function reduceModalGuardState(state: ModalGuardState, event: ModalGuardEvent, isVisible: boolean): ModalGuardTransition {
     switch (event.type) {
         case MODAL_GUARD_EVENT_TYPE.GUARD_REMOVED:
-            // Our own close dispatch removed the sentinel — settle without firing onClose.
+            // Our own close dispatch removed the guard entry, so settle without firing onClose.
             if (state === MODAL_GUARD_STATE.CLOSING_BY_DISPATCH) {
                 return {state: MODAL_GUARD_STATE.CLOSED};
             }

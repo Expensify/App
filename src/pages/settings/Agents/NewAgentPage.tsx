@@ -129,10 +129,7 @@ function NewAgentPage({route}: NewAgentPageProps) {
                 {buildCustomAgentButton}
                 {templateSectionLabel}
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={{context: 'NewAgentPage'}}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             </View>
         );
