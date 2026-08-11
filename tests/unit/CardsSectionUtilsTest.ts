@@ -21,6 +21,9 @@ function translateMock<TPath extends TranslationPaths>(path: TPath, ...phrasePar
 const AMOUNT_OWED = 100;
 const GRACE_PERIOD_DATE = 1750819200;
 
+// 1 January 2026, distinct from GRACE_PERIOD_DATE so the two grace periods can be told apart
+const TRAVEL_GRACE_PERIOD_DATE = 1767225600;
+
 const stripeCustomerId = STRIPE_CUSTOMER_ID;
 const ACCOUNT_DATA = {
     cardNumber: '1234',
@@ -266,6 +269,32 @@ describe('CardSectionUtils', () => {
             isError: true,
             isAddButtonDark: true,
         });
+    });
+
+    it('should date the travel invoice banner from the travel grace period rather than the subscription one', () => {
+        mockGetSubscriptionStatus.mockReturnValue({
+            status: PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE,
+        });
+
+        const billingStatus = CardSectionUtils.getBillingStatus({
+            translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => {
+                const interpolatedDate = parameters.at(0);
+                return typeof interpolatedDate === 'string' ? `${path}|${interpolatedDate}` : path;
+            },
+            stripeCustomerId,
+            accountData: ACCOUNT_DATA,
+            retryBillingSuccessful: false,
+            billingDisputePending: undefined,
+            retryBillingFailed: undefined,
+            creditCardEyesIcon,
+            fundList: undefined,
+            billingStatus: undefined,
+            amountOwed: AMOUNT_OWED,
+            ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
+            ownerTravelBillingGracePeriodEnd: TRAVEL_GRACE_PERIOD_DATE,
+        });
+
+        expect(billingStatus?.subtitle).toBe('subscription.billingBanner.travelInvoiceOverdue.subtitle|January 1, 2026');
     });
 
     it('should return BILLING_DISPUTE_PENDING variant', () => {
