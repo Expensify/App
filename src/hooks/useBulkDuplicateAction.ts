@@ -13,6 +13,7 @@ import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {isDraftReportSelector} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 
 import {useCurrencyListActions} from './useCurrencyList';
@@ -72,6 +73,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
     }
 
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const [isDraftChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${activePolicyExpenseChat?.reportID}`, {selector: isDraftReportSelector});
     const policyTagList = useMoneyRequestPolicyTagsForReport({report: activePolicyExpenseChat, currentUserAccountID: accountID});
     const participants = getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID);
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
@@ -87,6 +89,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             targetPolicyCategories: targetPolicyCategories ?? {},
             targetPolicyTags: targetPolicyTags ?? {},
             targetReport: activePolicyExpenseChat,
+            isDraftChatReport: !!isDraftChatReport,
             personalDetails,
             isASAPSubmitBetaEnabled,
             introSelected,

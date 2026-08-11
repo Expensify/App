@@ -783,7 +783,7 @@ type DuplicateExpenseTransactionParams = {
     optimisticReportPreviewActionID?: string;
     currentUser: CurrentUser;
     currentUserLocalCurrency: string | undefined;
-    isDraftChatReport?: boolean;
+    isDraftChatReport: boolean;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
@@ -1152,6 +1152,7 @@ type BulkDuplicateExpensesParams = {
     targetPolicyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
     targetPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     targetReport: OnyxEntry<OnyxTypes.Report>;
+    isDraftChatReport: boolean;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     isASAPSubmitBetaEnabled: boolean;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
@@ -1180,6 +1181,7 @@ function bulkDuplicateExpenses({
     targetPolicyCategories,
     targetPolicyTags,
     targetReport,
+    isDraftChatReport,
     personalDetails,
     isASAPSubmitBetaEnabled,
     introSelected,
@@ -1282,6 +1284,7 @@ function bulkDuplicateExpenses({
             targetPolicy: targetPolicy ?? undefined,
             targetPolicyCategories: targetPolicyCategories ?? {},
             targetReport: currentTargetReport,
+            isDraftChatReport,
             existingTransactionDraft,
             betas,
             personalDetails,

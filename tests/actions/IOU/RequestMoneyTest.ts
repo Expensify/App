@@ -3150,6 +3150,7 @@ describe('actions/IOU', () => {
                 optimisticTransactionIDs: ['create-transaction-optimistic-tx'],
                 optimisticChatReportID: undefined,
                 currentUserLocalCurrency: 'USD',
+                isDraftChatReport: false,
                 isTrackIntentUser: false,
                 delegateAccountID: undefined,
             };

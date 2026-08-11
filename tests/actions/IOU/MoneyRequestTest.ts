@@ -155,6 +155,7 @@ describe('MoneyRequest', () => {
             optimisticTransactionIDs: ['mock-txn-id'],
             optimisticChatReportID: undefined,
             currentUserLocalCurrency: undefined,
+            isDraftChatReport: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber,
