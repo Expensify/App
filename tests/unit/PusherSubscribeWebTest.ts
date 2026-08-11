@@ -167,6 +167,11 @@ jest.mock('pusher-js/with-encryption', () => {
 describe('Pusher.subscribe on web', () => {
     const CHANNEL = 'private-encrypted-user-accountID-1';
 
+    function reconnectChannel(channel: FakeChannel) {
+        channel.dropConnection();
+        channel.completeHandshake();
+    }
+
     function getChannel(): FakeChannel {
         const channel = mockChannels.get(CHANNEL);
         if (!channel) {
@@ -203,8 +208,7 @@ describe('Pusher.subscribe on web', () => {
 
         expect(onResubscribe).not.toHaveBeenCalled();
 
-        channel.dropConnection();
-        channel.completeHandshake();
+        reconnectChannel(channel);
 
         expect(onResubscribe).toHaveBeenCalledTimes(1);
     });
@@ -230,8 +234,7 @@ describe('Pusher.subscribe on web', () => {
 
         // Discard the window above. One ordinary resubscribe must still produce one call.
         onResubscribe.mockClear();
-        channel.dropConnection();
-        channel.completeHandshake();
+        reconnectChannel(channel);
 
         expect(onResubscribe).toHaveBeenCalledTimes(1);
     });
@@ -250,8 +253,7 @@ describe('Pusher.subscribe on web', () => {
         await jest.runAllTimersAsync();
         await withHandler;
 
-        channel.dropConnection();
-        channel.completeHandshake();
+        reconnectChannel(channel);
 
         expect(onResubscribe).toHaveBeenCalledTimes(1);
     });
@@ -271,8 +273,7 @@ describe('Pusher.subscribe on web', () => {
         channel.completeHandshake();
         await Promise.all([a, b, c, d]);
 
-        channel.dropConnection();
-        channel.completeHandshake();
+        reconnectChannel(channel);
 
         expect(first).toHaveBeenCalledTimes(1);
         expect(second).toHaveBeenCalledTimes(1);

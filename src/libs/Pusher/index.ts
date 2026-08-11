@@ -138,10 +138,51 @@ function getChannel(channelName: string): Channel | undefined {
     return socket.channel(channelName);
 }
 
-/** Both have to go together: pusher-js forgets the channel object along with the handlers bound to it, so stale state would make the next subscribe() skip re-binding them. */
-function unsubscribeChannel(channelName: string) {
+/** All three have to go together: pusher-js forgets the channel object along with the handlers bound to it, so stale state would make the next subscribe() skip re-binding them. */
+function unsubscribeChannel(channelName: string, channel: Channel | undefined = getChannel(channelName)) {
+    if (channel) {
+        eventsBoundToChannels.delete(channel);
+    }
     channelStates.delete(channelName);
     socket?.unsubscribe(channelName);
+}
+
+/**
+ * Binds the handshake handlers a channel needs for its whole life. Kept at module level so they capture
+ * only the channel name, instead of pinning the scope of whichever subscriber happened to create it.
+ */
+function bindChannelLifecycleHandlers(channel: Channel, channelName: string) {
+    const drainWaiters = (notify: (waiter: ChannelState['waiters'][number]) => void) => {
+        const state = channelStates.get(channelName);
+        if (!state) {
+            return undefined;
+        }
+        for (const waiter of state.waiters.splice(0)) {
+            notify(waiter);
+        }
+        return state;
+    };
+
+    channel.bind('pusher:subscription_succeeded', () => {
+        const state = drainWaiters((waiter) => waiter.onSubscribed());
+        if (!state) {
+            return;
+        }
+
+        // The first handshake is the initial subscription, not a resubscribe.
+        if (state.hasCompletedHandshake) {
+            for (const resubscribeCallback of state.resubscribeCallbacks) {
+                resubscribeCallback();
+            }
+        }
+        state.hasCompletedHandshake = true;
+    });
+
+    channel.bind('pusher:subscription_error', (data: PusherSubscriptionErrorData = {}) => {
+        const {type, error, status} = data;
+        Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {channelName, status, type, error});
+        drainWaiters((waiter) => waiter.onError(error));
+    });
 }
 
 /**
@@ -239,11 +280,10 @@ function subscribe<EventName extends PusherEventName>(
     channelName: string,
     eventName?: EventName,
     eventCallback: (data: EventData<EventName>) => void = () => {},
-    onResubscribe = () => {},
+    onResubscribe?: () => void,
 ): PusherSubscription {
     let wrappedCb: BoundCallback | undefined;
     let resolvedChannel: Channel | undefined;
-    let registeredResubscribe: (() => void) | undefined;
     let disposed = false;
 
     const promise = initPromise.then(
@@ -289,47 +329,12 @@ function subscribe<EventName extends PusherEventName>(
                             channelStates.set(channelName, channelState);
 
                             // Bound once per channel. A pair per subscriber made one socket drop fire ReconnectApp once for every caller.
-                            channel.bind('pusher:subscription_succeeded', () => {
-                                const state = channelStates.get(channelName);
-                                if (!state) {
-                                    return;
-                                }
-
-                                for (const waiter of state.waiters.splice(0)) {
-                                    waiter.onSubscribed();
-                                }
-
-                                // The first handshake is the initial subscription, not a resubscribe.
-                                if (state.hasCompletedHandshake) {
-                                    for (const resubscribeCallback of state.resubscribeCallbacks) {
-                                        resubscribeCallback();
-                                    }
-                                }
-                                state.hasCompletedHandshake = true;
-                            });
-
-                            channel.bind('pusher:subscription_error', (data: PusherSubscriptionErrorData = {}) => {
-                                const {type, error, status} = data;
-                                Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
-                                    channelName,
-                                    status,
-                                    type,
-                                    error,
-                                });
-
-                                const state = channelStates.get(channelName);
-                                if (!state) {
-                                    return;
-                                }
-
-                                for (const waiter of state.waiters.splice(0)) {
-                                    waiter.onError(error);
-                                }
-                            });
+                            bindChannelLifecycleHandlers(channel, channelName);
                         }
 
-                        registeredResubscribe = onResubscribe;
-                        channelState.resubscribeCallbacks.add(onResubscribe);
+                        if (onResubscribe) {
+                            channelState.resubscribeCallbacks.add(onResubscribe);
+                        }
 
                         const bindAndResolve = () => {
                             if (disposed) {
@@ -337,8 +342,7 @@ function subscribe<EventName extends PusherEventName>(
                                 // if no other subscribers have bound callbacks to it
                                 const eventMap = eventsBoundToChannels.get(channel);
                                 if (!eventMap || eventMap.size === 0) {
-                                    eventsBoundToChannels.delete(channel);
-                                    unsubscribeChannel(channelName);
+                                    unsubscribeChannel(channelName, channel);
                                 }
                                 resolve();
                                 return;
@@ -364,9 +368,8 @@ function subscribe<EventName extends PusherEventName>(
         unsubscribe: () => {
             disposed = true;
 
-            if (registeredResubscribe) {
-                channelStates.get(channelName)?.resubscribeCallbacks.delete(registeredResubscribe);
-                registeredResubscribe = undefined;
+            if (onResubscribe) {
+                channelStates.get(channelName)?.resubscribeCallbacks.delete(onResubscribe);
             }
 
             if (!wrappedCb || !resolvedChannel || !eventName) {
@@ -388,8 +391,7 @@ function subscribe<EventName extends PusherEventName>(
 
             // 4. If last event on this channel, unsubscribe entirely
             if (eventMap?.size === 0) {
-                eventsBoundToChannels.delete(resolvedChannel);
-                unsubscribeChannel(channelName);
+                unsubscribeChannel(channelName, resolvedChannel);
             }
 
             wrappedCb = undefined;
@@ -417,8 +419,7 @@ function unsubscribe(channelName: string, eventName: PusherEventName = '') {
         eventsBoundToChannels.get(channel)?.delete(eventName);
         if (eventsBoundToChannels.get(channel)?.size === 0) {
             Log.info(`[Pusher] After unbinding ${eventName} from channel ${channelName}, no other events were bound to that channel. Unsubscribing...`, false);
-            eventsBoundToChannels.delete(channel);
-            unsubscribeChannel(channelName);
+            unsubscribeChannel(channelName, channel);
         }
     } else {
         if (!channel.subscribed) {
@@ -428,8 +429,7 @@ function unsubscribe(channelName: string, eventName: PusherEventName = '') {
         Log.info('[Pusher] Unsubscribing from channel', false, {channelName});
 
         channel.unbind();
-        eventsBoundToChannels.delete(channel);
-        unsubscribeChannel(channelName);
+        unsubscribeChannel(channelName, channel);
     }
 }
 
