@@ -17481,22 +17481,6 @@ describe('ReportUtils', () => {
             expect(getMissingPaymentMethodForQueuedPayment(undefined, buildQueuedAction(CONST.IOU.PAYMENT_TYPE.EXPENSIFY), {})).toBe(CONST.MISSING_PAYMENT_METHODS.WALLET);
         });
 
-            // Verify GBR shows in LHN
-            const reason = reasonForReportToBeInOptionList({
-                report: chatReport,
-                chatReport,
-                currentReportId: '',
-                isInFocusMode: false,
-                betas: [CONST.BETAS.DEFAULT_ROOMS],
-                doesReportHaveViolations: false,
-                excludeEmptyChats: false,
-                isReportArchived: false,
-                draftComment: '',
-                hasGuidesEmails: false,
-                conciergeReportID: undefined,
-            });
-            expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
-
         it('should ask for a wallet when a Wallet payment is queued and the wallet is not activated', () => {
             expect(getMissingPaymentMethodForQueuedPayment(CONST.WALLET.TIER_NAME.SILVER, buildQueuedAction(CONST.IOU.PAYMENT_TYPE.EXPENSIFY), {})).toBe(
                 CONST.MISSING_PAYMENT_METHODS.WALLET,
@@ -17552,22 +17536,6 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
         }
-
-            // Verify GBR shows
-            const reason = reasonForReportToBeInOptionList({
-                report: chatReport,
-                chatReport,
-                currentReportId: '',
-                isInFocusMode: false,
-                betas: [CONST.BETAS.DEFAULT_ROOMS],
-                doesReportHaveViolations: false,
-                excludeEmptyChats: false,
-                isReportArchived: false,
-                draftComment: '',
-                hasGuidesEmails: false,
-                conciergeReportID: undefined,
-            });
-            expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
         afterEach(async () => {
             await Onyx.clear();
