@@ -460,6 +460,7 @@ function SearchWriteActionsProvider({
                     if (!tx.keyForList || isTransactionPendingDelete(tx)) {
                         return;
                     }
+                    updated = spellOutGroupSelection(updated, tx.keyForList);
                     const [key, info] = buildSelectedEntry(tx);
                     const parentGroupKey = groupKeyByChildKey.get(tx.keyForList);
                     updated[key] = parentGroupKey ? {...info, groupKey: parentGroupKey} : info;

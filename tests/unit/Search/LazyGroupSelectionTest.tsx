@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import {useSearchRowSelectionActions, useSearchSelectionContext, useSearchShiftRangeChildren} from '@components/Search/SearchContext';
+import {useSearchRowSelectionActions, useSearchSelectionActions, useSearchSelectionContext, useSearchShiftRangeChildren} from '@components/Search/SearchContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import SearchWriteActionsProvider from '@components/Search/SearchWriteActionsProvider';
 
@@ -99,6 +99,7 @@ const renderSelection = (wrapper: React.ComponentType<{children: React.ReactNode
     renderHook(
         () => ({
             ...useSearchSelectionContext(),
+            ...useSearchSelectionActions(),
             ...useSearchRowSelectionActions(),
             ...useSearchShiftRangeChildren(),
         }),
@@ -280,6 +281,28 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
         expect(result.current.selectedTransactions['2']).toBeUndefined();
         expect(result.current.selectedTransactions['5']).toBeUndefined();
+    });
+
+    it('drops the group entry when a range covers every child, rather than holding both', async () => {
+        const {result} = renderSelection();
+        const [, secondChild] = loadedChildren;
+
+        // Given a group selected while it was still collapsed, whose children have since loaded and been registered
+        await act(async () => {
+            result.current.toggle(categoryGroup, []);
+            result.current.registerGroupChildren(GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When one shift+click covers the whole group, so nothing is deselected
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the selection is the children alone, not the children plus the group they were already selected through
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['1', '2']);
     });
 
     it('selects every child of a group that was not already selected once its children loaded', async () => {
