@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import reserveSearchChannelIfGlobalCreate from '@libs/Navigation/helpers/reserveSearchChannelIfGlobalCreate';
+import {isLookingAroundOnboardingChoice} from '@libs/OnboardingUtils';
 import {startTracking} from '@libs/telemetry/submitFollowUpAction';
 import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import {extractUrlDomain} from '@libs/Url';
@@ -69,6 +70,8 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const isLookingAroundUser = isLookingAroundOnboardingChoice(introSelected?.choice);
 
     const formattedAmount = convertToDisplayString(Math.abs(transaction?.amount ?? 0), transaction?.currency);
 
@@ -136,6 +139,7 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
             isFromGlobalCreate,
             optimisticChatReportID: report?.reportID ?? reportID,
             isInvoice: true,
+            isLookingAroundUser,
         });
     };
 

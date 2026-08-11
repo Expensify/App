@@ -19,6 +19,12 @@ type CleanupAndNavigateAfterExpenseCreateParams = {
     isInvoice?: boolean;
     linkedTrackedExpenseReportAction?: OnyxEntry<ReportAction>;
     action: DeepValueOf<typeof CONST.IOU.ACTION>;
+
+    /**
+     * Whether the current user selected the "Looking around / Something else" (LOOKING_AROUND) onboarding choice.
+     * Read from Onyx in render context by the calling component/hook and forwarded to `navigateAfterExpenseCreate`.
+     */
+    isLookingAroundUser?: boolean;
 };
 
 function cleanupAndNavigateAfterExpenseCreate({
@@ -31,6 +37,7 @@ function cleanupAndNavigateAfterExpenseCreate({
     isInvoice,
     linkedTrackedExpenseReportAction,
     action,
+    isLookingAroundUser,
 }: CleanupAndNavigateAfterExpenseCreateParams) {
     cleanupAfterExpenseCreate({
         draftTransactionIDs,
@@ -50,6 +57,7 @@ function cleanupAndNavigateAfterExpenseCreate({
         isInvoice,
         hasMultipleTransactions,
         shouldAddPendingNewTransactionIDs,
+        isLookingAroundUser,
     });
 }
 

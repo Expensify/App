@@ -20,6 +20,7 @@ import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfter
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {isLookingAroundOnboardingChoice} from '@libs/OnboardingUtils';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
@@ -218,6 +219,8 @@ function handleMoneyRequestStepDistanceNavigation({
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
     const distanceRequestType = getDistanceRequestType(transaction);
+    // Derived here (rather than read from Onyx) from the onboarding choice the calling component/hook already passes in.
+    const isLookingAroundUser = isLookingAroundOnboardingChoice(introSelected?.choice);
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
         resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
@@ -356,6 +359,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             backToReport,
                             optimisticChatReportID,
                             linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
+                            isLookingAroundUser,
                         });
                     },
                     destinationReportID: report?.reportID ?? selfDMReport?.reportID,
@@ -435,6 +439,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         backToReport,
                         optimisticChatReportID,
                         linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
+                        isLookingAroundUser,
                     });
                 },
                 destinationReportID: distanceDestinationReportID,

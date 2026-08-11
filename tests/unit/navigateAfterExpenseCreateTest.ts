@@ -97,6 +97,24 @@ describe('navigateAfterExpenseCreate', () => {
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
+    it('should navigate to search for a LOOKING_AROUND user even when on the inbox tab', () => {
+        // A "Looking around / Something else" user creating an expense from global create while on the Inbox should
+        // land in Spend > Expenses, not their self-DM. Passing isLookingAroundUser treats them as "not on inbox".
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        mockGetIsNarrowLayout.mockReturnValue(true);
+
+        navigateAfterExpenseCreate({
+            activeReportID: 'report-123',
+            transactionID: 'txn-1',
+            isFromGlobalCreate: true,
+            hasMultipleTransactions: false,
+            isLookingAroundUser: true,
+        });
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}), {forceReplace: true});
+        expect(Navigation.dismissModalWithReport).not.toHaveBeenCalled();
+    });
+
     it('should dismiss to report when transactionID is missing', () => {
         navigateAfterExpenseCreate({
             activeReportID: 'report-123',
