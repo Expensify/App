@@ -6522,6 +6522,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 one: '1 tag',
                 other: (count: number) => `${count} tags`,
             }),
+            showTagGLCodes: 'Afficher les codes GL lors de la sélection d’un tag',
         },
         taxes: {
             subtitle: 'Ajoutez des noms de taxes, des taux et définissez des valeurs par défaut.',

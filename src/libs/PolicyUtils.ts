@@ -1276,11 +1276,18 @@ function getTagGLCode(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTag:
 
             const directMatch = levelTags[tagName];
             const matchingTag = matchesTagAtLevel(directMatch) ? directMatch : Object.values(levelTags).find(matchesTagAtLevel);
-            const glCode = matchingTag?.['GL Code'];
-            return glCode != null ? String(glCode).replaceAll('"', '') : '';
+            return getGLCodeFromPolicyTag(matchingTag);
         })
         .filter(Boolean)
         .join(', ');
+}
+
+/**
+ * Resolves the GL code for a single policy tag object, stripping wrapping quotes from the backend.
+ */
+function getGLCodeFromPolicyTag(tag: {['GL Code']?: string | number} | undefined): string {
+    const glCode = tag?.['GL Code'];
+    return glCode != null ? String(glCode).replaceAll('"', '') : '';
 }
 
 /**
@@ -3203,6 +3210,7 @@ export {
     hasIndependentTags,
     getLengthOfTag,
     getTagGLCode,
+    getGLCodeFromPolicyTag,
     isPolicyMemberWithoutPendingDelete,
     hasDynamicExternalWorkflow,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
