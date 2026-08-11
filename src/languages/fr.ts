@@ -9204,7 +9204,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             violationsBySubmitter: 'Infractions par déclarant',
         },
         mergeReports: {
-            title: 'Fusionner les notes de frais',
+            title: 'Fusionner des notes de frais',
             description: 'Sélectionnez la note de frais à conserver. Toutes les dépenses y seront déplacées et les autres notes de frais seront supprimées.',
         },
     },

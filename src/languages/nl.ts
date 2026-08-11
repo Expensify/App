@@ -9113,7 +9113,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         mergeReports: {
             title: 'Rapporten samenvoegen',
-            description: 'Selecteer het rapport dat je wilt behouden. Alle uitgaven worden ernaartoe verplaatst en de andere rapporten worden verwijderd.',
+            description: 'Selecteer het rapport dat je wilt behouden. Alle uitgaven worden daarheen verplaatst en de andere rapporten worden verwijderd.',
         },
     },
     genericErrorPage: {

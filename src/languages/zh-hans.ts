@@ -8782,7 +8782,7 @@ ${reportName}`,
             topMerchants: '热门商家',
             violationsBySubmitter: '提交人违规',
         },
-        mergeReports: {title: '合并报表', description: '选择要保留的报销单。所有费用都会移入该报销单，其他报销单将被删除。'},
+        mergeReports: {title: '合并报表', description: '选择要保留的报表。所有费用都将移入该报表，其他报表将被删除。'},
     },
     genericErrorPage: {
         title: '哎呀，出错了！',
