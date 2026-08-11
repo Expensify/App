@@ -762,16 +762,17 @@ describe('TransactionUtils', () => {
                 },
             };
 
-            // And a 10 mile expense whose reimbursable distance is 7 miles after the exclusion
+            // And a 10 km route stored as a rounded mile quantity
             const transaction = generateTransaction({
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
                 comment: {
                     customUnit: {
                         customUnitRateID: 'ID1',
                         distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                        quantity: 10,
-                        commuterExclusion: 3,
-                        reimbursableDistance: 7,
+                        quantity: 6.21,
+                        routeDistanceMeters: 10000,
+                        commuterExclusion: 1,
+                        reimbursableDistance: 5.21,
                         commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
                     },
                 },
@@ -791,13 +792,13 @@ describe('TransactionUtils', () => {
 
             // Then the original distance and commuter exclusion are converted to kilometers
             expect(updatedTransaction.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
-            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(16.09);
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(10);
             expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBeCloseTo(4.83);
-            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBeCloseTo(11.26);
+            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBeCloseTo(5.17);
 
             // And the amount and merchant use the converted reimbursable distance at the kilometer rate
-            expect(updatedTransaction.modifiedAmount).toBe(338);
-            expect(updatedTransaction.modifiedMerchant).toBe('11.26 km @ EUR 0.30 / km');
+            expect(updatedTransaction.modifiedAmount).toBe(155);
+            expect(updatedTransaction.modifiedMerchant).toBe('5.17 km @ EUR 0.30 / km');
         });
 
         it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
