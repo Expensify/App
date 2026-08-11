@@ -818,6 +818,12 @@ describe('TransactionUtils', () => {
             const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`]: fakePolicy};
             expect(updateRate(transaction, undefined, policies).comment?.customUnit?.quantity).toBe(10);
             expect(updateRate(manuallyOverriddenTransaction, undefined, policies).comment?.customUnit?.quantity).toBe(12.87);
+
+            const legacyTransaction = {
+                ...transaction,
+                comment: {customUnit: {...transaction.comment?.customUnit, routeDistanceMeters: undefined, quantity: 10}},
+            };
+            expect(updateRate(legacyTransaction, fakePolicy).comment?.customUnit?.quantity).toBe(16.09);
         });
 
         it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
