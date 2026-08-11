@@ -6,7 +6,7 @@
 # @param  FIRST_NAME First name to enter on onboarding profile step.
 # @param  LAST_NAME Last name to enter on onboarding profile step.
 
-press "id=\"onboardingPrivateEmailSkipButton\" || role=\"button\" label=\"Skip\" || label=\"Skip\""
+press "role=\"button\" label=\"Skip\" || label=\"Skip\""
 press "role=\"button\" label=\"Something else\" || label=\"Something else\""
 fill "role=\"textbox\" label=\"First name\" || label=\"First name\"" "${FIRST_NAME}"
 fill "role=\"textbox\" label=\"Last name\" || label=\"Last name\"" "${LAST_NAME}"
