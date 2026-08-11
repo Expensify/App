@@ -191,6 +191,16 @@ const transactionWithReceipt: Transaction = {
     },
 };
 
+const transactionWithMultiPagePDFReceipt: Transaction = {
+    ...transactionWithoutReceipt,
+    receipt: {
+        state: CONST.IOU.RECEIPT_STATE.OPEN,
+        source: 'https://example.com/receipt.pdf',
+        filename: 'receipt.pdf',
+        pageCount: 3,
+    },
+};
+
 const transactionWithScanningReceipt: Transaction = {
     ...transactionWithoutReceipt,
     receipt: {
@@ -269,6 +279,61 @@ describe('MoneyRequestReceiptView', () => {
             const firstCall = (mockOpenPicker.mock.calls as Array<[{onPicked: (files: FileObject[]) => void}]>).at(0);
             const onPicked = firstCall?.at(0)?.onPicked;
             expect(onPicked).toBeDefined();
+        });
+    });
+
+    describe('receipt page count badge', () => {
+        it('shows the page count for a multi-page PDF receipt', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithMultiPagePDFReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeTruthy();
+        });
+
+        it('does not show the page count for a single page PDF receipt', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {
+                    ...transactionWithMultiPagePDFReceipt,
+                    receipt: {...transactionWithMultiPagePDFReceipt.receipt, pageCount: 1},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 1}))).toBeNull();
+        });
+
+        // An image receipt carries no page count at all, which is also what a PDF uploaded before the
+        // backend started reporting one looks like
+        it('does not show the page count for a receipt without one', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
         });
     });
 
