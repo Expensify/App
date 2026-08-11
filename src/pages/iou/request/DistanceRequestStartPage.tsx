@@ -68,10 +68,11 @@ function DistanceRequestStartPage({
     const targetParticipant = participants.find((participant) => participant.isPolicyExpenseChat);
     const isOnlyWorkspaceTheTarget = onlyActivePolicy?.id === targetParticipant?.policyID;
     const targetPolicy = isOnlyWorkspaceTheTarget ? onlyActivePolicy : undefined;
+    const isSelfDMTarget = isSelfDM(report) || participants.some((participant) => participant.isSelfDM);
     const shouldHideManualAndOdometerTabs =
         isPolicyExpenseChat(report) || isExpenseReport(report)
             ? isCommuterExclusionEnabled(policy)
-            : !isSelfDM(report) && (isCommuterExclusionEnabled(targetPolicy) || (activeGroupPolicies.length > 1 && activeGroupPolicies.every(isCommuterExclusionEnabled)));
+            : !isSelfDMTarget && (isCommuterExclusionEnabled(targetPolicy) || (activeGroupPolicies.length > 1 && activeGroupPolicies.every(isCommuterExclusionEnabled)));
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
