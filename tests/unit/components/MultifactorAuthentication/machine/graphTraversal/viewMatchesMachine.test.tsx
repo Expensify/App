@@ -17,9 +17,10 @@ import getWalkedPaths, {actorDoneEventType, actorErrorEventType, isAutoDrivenEve
 import {getSettleableLeafStates} from 'tests/utils/mfa/leafStates';
 import renderMfaUi from 'tests/utils/mfa/realUi/harness';
 import {
-    checkLocalCredentialsControl,
+    createCredentialControl,
+    loadRegistrationStateControl,
+    registrationStateCaptureControl,
     pendingModalClose,
-    readHasAcceptedSoftPromptControl,
     requestRegistrationChallengeControl,
     resetMfaUiMocks,
     validateDeviceControl,
@@ -161,12 +162,12 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
         },
         [actorDoneEventType('validateDevice')]: (step) => settleActor(() => validateDeviceControl.resolve(getActorDoneOutput(step))),
         [actorErrorEventType('validateDevice')]: () => settleActor(validateDeviceControl.reject),
-        [actorDoneEventType('readHasAcceptedSoftPrompt')]: (step) => settleActor(() => readHasAcceptedSoftPromptControl.resolve(getActorDoneOutput(step))),
-        [actorErrorEventType('readHasAcceptedSoftPrompt')]: () => settleActor(readHasAcceptedSoftPromptControl.reject),
-        [actorDoneEventType('checkLocalCredentials')]: (step) => settleActor(() => checkLocalCredentialsControl.resolve(getActorDoneOutput(step))),
-        [actorErrorEventType('checkLocalCredentials')]: () => settleActor(checkLocalCredentialsControl.reject),
+        [actorDoneEventType('loadRegistrationState')]: (step) => settleActor(() => loadRegistrationStateControl.resolve(getActorDoneOutput(step))),
+        [actorErrorEventType('loadRegistrationState')]: () => settleActor(loadRegistrationStateControl.reject),
         [actorDoneEventType('requestRegistrationChallenge')]: (step) => settleActor(() => requestRegistrationChallengeControl.resolve(getActorDoneOutput(step))),
         [actorErrorEventType('requestRegistrationChallenge')]: () => settleActor(requestRegistrationChallengeControl.reject),
+        [actorDoneEventType('createCredential')]: (step) => settleActor(() => createCredentialControl.resolve(getActorDoneOutput(step))),
+        [actorErrorEventType('createCredential')]: () => settleActor(createCredentialControl.reject),
     } satisfies MfaEventExecutors;
 }
 /* eslint-enable @typescript-eslint/naming-convention */
@@ -187,24 +188,6 @@ const testConfig = {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.INITIAL_SCREEN)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
-            expect(state.context.error).toBeUndefined();
-        },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
-            expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
-            expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
-            expect(state.context.validateCode).toBeUndefined();
-            // A registration challenge means the flow re-entered this check from the validate-code
-            // screen, which stays visible while the read runs; a first pass has no challenge and
-            // runs behind the transparent initial screen.
-            if (state.context.registrationChallenge === undefined) {
-                expect(screen.queryAllByTestId(TEST_ID.INITIAL_SCREEN)).toHaveLength(1);
-            } else {
-                expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE);
-                // The validate-code screen stays visible during this read, but the machine no longer
-                // accepts resend requests after a valid code has advanced the flow.
-                expect(screen.getByTestId(TEST_ID.VALIDATE_CODE_RESEND_BUTTON)).toBeDisabled();
-            }
-            expect(state.context.accountID).toBeDefined();
             expect(state.context.error).toBeUndefined();
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.VALIDATE_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
@@ -242,10 +225,21 @@ const testConfig = {
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT);
             expect(screen.getByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON)).toBeOnTheScreen();
+            expect(screen.getByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON)).toBeEnabled();
             expect(screen.getByText(translateLocal('multifactorAuthentication.verifyYourself.biometrics'))).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('multifactorAuthentication.enableQuickVerification.biometrics'))).toBeOnTheScreen();
             expect(state.context.error).toBeUndefined();
             expect(state.context.softPromptApproved).toBe(false);
+        },
+        [`${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.CREATING_CREDENTIAL}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+            expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
+            expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
+            expect(state.context.registrationChallenge).toBeDefined();
+            expect(state.context.error).toBeUndefined();
+            expect(state.context.softPromptApproved).toBe(true);
+            expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT);
+            // The prompt stays mounted during credential creation, but the already-approved action is removed.
+            expect(screen.queryByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON)).not.toBeOnTheScreen();
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
@@ -321,6 +315,58 @@ describe('the real MFA modal matches the machine at every step of every generate
         const {executeScenario} = renderMfaUi();
         await waitForBatchedUpdatesWithAct();
         await path.test({...testConfig, events: createMfaEventExecutors(executeScenario)});
+    });
+});
+
+describe('MFA flow initialization', () => {
+    beforeEach(async () => {
+        resetMfaUiMocks();
+        await act(async () => {
+            await Onyx.clear();
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: MFA_TEST_ACCOUNT_ID});
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('does not initialize a flow when the account changes while registration state is being captured', async () => {
+        const {executeScenario} = renderMfaUi();
+        await waitForBatchedUpdatesWithAct();
+        registrationStateCaptureControl.defer();
+
+        const flowPromise = executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST);
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: MFA_TEST_ACCOUNT_ID + 1});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        registrationStateCaptureControl.resolve(false);
+        await act(async () => flowPromise);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByTestId(TEST_ID.MODAL_BACKDROP)).not.toBeOnTheScreen();
+    });
+
+    it('cancels an active flow when the session account changes', async () => {
+        const {executeScenario} = renderMfaUi();
+        await waitForBatchedUpdatesWithAct();
+
+        await act(async () => executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByTestId(TEST_ID.MODAL_BACKDROP)).toBeOnTheScreen();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: MFA_TEST_ACCOUNT_ID + 1});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => pendingModalClose.run());
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByTestId(TEST_ID.MODAL_BACKDROP)).not.toBeOnTheScreen();
     });
 });
 

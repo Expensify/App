@@ -2,6 +2,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LoadingIndicator from '@components/LoadingIndicator';
 import {MULTIFACTOR_AUTHENTICATION_PROMPT_UI} from '@components/MultifactorAuthentication/config';
 import {useMultifactorAuthenticationInternal} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationInternalApiContext';
 import MultifactorAuthenticationPromptContent from '@components/MultifactorAuthentication/PromptContent';
@@ -14,22 +15,21 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultifactorAuthenticationModalNavigatorParamList} from '@libs/Navigation/types';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type MultifactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultifactorAuthenticationModalNavigatorParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT>;
 
-/**
- * The machine routes here only when the account has not accepted the soft prompt on this device,
- * so the copy is static and the confirm button is always available.
- */
 function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {requestCancel, approveSoftPrompt, state} = useMultifactorAuthenticationInternal();
-    const {isCancelConfirmVisible} = state;
+    const {isCancelConfirmVisible, isProcessingPrompt} = state;
 
     const {illustration, title, subtitle} = MULTIFACTOR_AUTHENTICATION_PROMPT_UI[route.params.promptType];
     const interceptFocusTrapEscape = useMFACancelOnEscape();
@@ -58,14 +58,20 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
                     subtitle={subtitle}
                 />
                 <FixedFooter style={[styles.flexColumn, styles.gap3]}>
-                    <Button
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        onPress={approveSoftPrompt}
-                        testID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.PROMPT_CONFIRM_BUTTON}
-                    >
-                        <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
-                    </Button>
+                    {isProcessingPrompt ? (
+                        <View style={[styles.w100, styles.justifyContentCenter, {height: variables.componentSizeLarge}]}>
+                            <LoadingIndicator iconSize={28} />
+                        </View>
+                    ) : (
+                        <Button
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            size={CONST.BUTTON_SIZE.LARGE}
+                            onPress={approveSoftPrompt}
+                            testID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.PROMPT_CONFIRM_BUTTON}
+                        >
+                            <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
+                        </Button>
+                    )}
                 </FixedFooter>
             </FullPageOfflineBlockingView>
         </ScreenWrapper>

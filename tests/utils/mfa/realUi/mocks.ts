@@ -1,8 +1,10 @@
 import type {UseBiometricsReturn} from '@components/MultifactorAuthentication/biometrics/shared/types';
 import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
 import type {
-    CheckLocalCredentialsInput,
-    ReadHasAcceptedSoftPromptInput,
+    CreateCredentialInput,
+    CreateCredentialOutput,
+    LoadRegistrationStateInput,
+    LoadRegistrationStateOutput,
     RequestRegistrationChallengeInput,
     RequestRegistrationChallengeOutput,
     ValidateDeviceInput,
@@ -57,6 +59,30 @@ const biometricsMock: Pick<UseBiometricsReturn, 'serverKnownCredentialIDs' | 'ar
     areLocalCredentialsKnownToServer: () => Promise.resolve(false),
 };
 
+let pendingRegistrationStateCapture: ((hasLocalCredentials: boolean) => void) | undefined;
+
+/** Lets a test hold the Provider's pre-INIT registration-state snapshot across an account switch. */
+const registrationStateCaptureControl = {
+    defer: () => {
+        biometricsMock.areLocalCredentialsKnownToServer = () =>
+            new Promise<boolean>((resolve) => {
+                pendingRegistrationStateCapture = resolve;
+            });
+    },
+    resolve: (hasLocalCredentials: boolean) => {
+        const resolve = pendingRegistrationStateCapture;
+        pendingRegistrationStateCapture = undefined;
+        if (!resolve) {
+            throw new Error('No pending registration-state capture is available.');
+        }
+        resolve(hasLocalCredentials);
+    },
+    reset: () => {
+        pendingRegistrationStateCapture = undefined;
+        biometricsMock.areLocalCredentialsKnownToServer = () => Promise.resolve(false);
+    },
+};
+
 /**
  * Builds a controlled deferred mock for one invoked machine actor. Each machine invocation parks a
  * pending promise that the test settles later through `resolve` or `reject`, at the exact path step
@@ -90,25 +116,26 @@ function createControlledActor<TOutput, TInput>(actorID: string) {
 }
 
 const validateDeviceControl = createControlledActor<MFAResult, ValidateDeviceInput>('validateDevice');
-const readHasAcceptedSoftPromptControl = createControlledActor<boolean, ReadHasAcceptedSoftPromptInput>('readHasAcceptedSoftPrompt');
-const checkLocalCredentialsControl = createControlledActor<boolean, CheckLocalCredentialsInput>('checkLocalCredentials');
+const loadRegistrationStateControl = createControlledActor<LoadRegistrationStateOutput, LoadRegistrationStateInput>('loadRegistrationState');
 const requestRegistrationChallengeControl = createControlledActor<RequestRegistrationChallengeOutput, RequestRegistrationChallengeInput>('requestRegistrationChallenge');
+const createCredentialControl = createControlledActor<CreateCredentialOutput, CreateCredentialInput>('createCredential');
 
 function resetMfaUiMocks() {
     pendingModalClose.clear();
+    registrationStateCaptureControl.reset();
     validateDeviceControl.reset();
-    readHasAcceptedSoftPromptControl.reset();
-    checkLocalCredentialsControl.reset();
+    loadRegistrationStateControl.reset();
     requestRegistrationChallengeControl.reset();
+    createCredentialControl.reset();
 }
 
 /** Replaces the machine's side-effect actors with controlled test implementations. */
 function mfaActorsMock() {
     const actors = {
         validateDevice: validateDeviceControl.actor,
-        readHasAcceptedSoftPrompt: readHasAcceptedSoftPromptControl.actor,
-        checkLocalCredentials: checkLocalCredentialsControl.actor,
+        loadRegistrationState: loadRegistrationStateControl.actor,
         requestRegistrationChallenge: requestRegistrationChallengeControl.actor,
+        createCredential: createCredentialControl.actor,
     } satisfies ReturnType<typeof createActors>;
 
     return {
@@ -199,10 +226,11 @@ function navigationMock() {
 
 export {
     pendingModalClose,
+    registrationStateCaptureControl,
     validateDeviceControl,
-    readHasAcceptedSoftPromptControl,
-    checkLocalCredentialsControl,
+    loadRegistrationStateControl,
     requestRegistrationChallengeControl,
+    createCredentialControl,
     resetMfaUiMocks,
     mfaActorsMock,
     userActionsMock,

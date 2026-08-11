@@ -48,6 +48,8 @@ const REASON = {
         CANCELED: 'Local: Flow canceled by user',
         /** No HTTP status code present — typically a network failure, JSON parse error, or unhandled exception in an action function. */
         UNHANDLED_API_RESPONSE: 'Local: Missing HTTP status in API response',
+        /** Updating the local passkey credential list failed before backend registration. */
+        LOCAL_CREDENTIAL_UPDATE_FAILED: 'Local: Failed to update passkey credentials',
         WEBAUTHN: {
             NOT_ALLOWED: 'Local WebAuthn: Operation not allowed',
             INVALID_STATE: 'Local WebAuthn: Invalid state',
@@ -196,6 +198,7 @@ const ANOMALOUS_FAILURES = new Set<ReasonValue>([
     REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION,
     REASON.LOCAL_ERRORS.UNRECOGNIZED,
     REASON.LOCAL_ERRORS.SIGNATURE_MISSING,
+    REASON.LOCAL_ERRORS.LOCAL_CREDENTIAL_UPDATE_FAILED,
     REASON.LOCAL_ERRORS.WEBAUTHN.INVALID_STATE,
     REASON.LOCAL_ERRORS.WEBAUTHN.SECURITY_ERROR,
     REASON.LOCAL_ERRORS.WEBAUTHN.CONSTRAINT_ERROR,
@@ -222,7 +225,6 @@ const MFA_STATE = {
     PREPARING: 'preparing',
     VALIDATING_DEVICE: 'validatingDevice',
     DECIDING_REGISTRATION: 'decidingRegistration',
-    CHECKING_SOFT_PROMPT_ACCEPTANCE: 'checkingSoftPromptAcceptance',
     VALIDATE_CODE: 'validateCode',
     AWAITING_VALIDATE_CODE: 'awaitingValidateCode',
     AWAITING_INPUT: 'awaitingInput',
@@ -230,6 +232,7 @@ const MFA_STATE = {
     REQUESTING_REGISTRATION_CHALLENGE: 'requestingRegistrationChallenge',
     PROMPT: 'prompt',
     AWAITING_SOFT_PROMPT: 'awaitingSoftPrompt',
+    CREATING_CREDENTIAL: 'creatingCredential',
     OUTCOME: 'outcome',
     RESOLVING_OUTCOME: 'resolvingOutcome',
     SUCCESS: 'success',

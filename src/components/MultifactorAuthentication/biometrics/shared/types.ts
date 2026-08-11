@@ -1,19 +1,18 @@
 import type {AuthenticationChallenge, RegistrationChallenge, SignedChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
-import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import type {MFAError, MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {AuthTypeInfo, RegistrationKeyInfo} from '@libs/MultifactorAuthentication/shared/types';
 
-type BaseRegisterResult = {
-    keyInfo: RegistrationKeyInfo;
+/**
+ * Params for the platform-resolved credential-creation ceremony. A params object (not positional
+ * args) keeps both platform signatures identical while native simply ignores `signal`.
+ */
+type CreateCredentialParams = {
+    accountID: number;
+    registrationChallenge: RegistrationChallenge;
+    signal?: AbortSignal;
 };
 
-type RegisterResult =
-    | ({
-          success: true;
-      } & BaseRegisterResult)
-    | ({
-          success: false;
-          error: MFAError;
-      } & Partial<BaseRegisterResult>);
+type CreateCredentialResult = MFAResult<{keyInfo: RegistrationKeyInfo}>;
 
 type AuthorizeParams = {
     challenge: AuthenticationChallenge;
@@ -48,9 +47,6 @@ type UseBiometricsReturn = {
     /** Check if local credentials are known to server (local credential exists in server's list) */
     areLocalCredentialsKnownToServer: () => Promise<boolean>;
 
-    /** Register current device for the chosen authentication method */
-    register: (onResult: (result: RegisterResult) => Promise<void> | void, registrationChallenge: RegistrationChallenge) => Promise<void>;
-
     /** Authorize using chosen authentication method */
     authorize: (params: AuthorizeParams, onResult: (result: AuthorizeResult) => Promise<void> | void) => Promise<void>;
 
@@ -58,4 +54,4 @@ type UseBiometricsReturn = {
     deleteLocalKeysForAccount: () => Promise<void>;
 };
 
-export type {RegisterResult, AuthorizeParams, AuthorizeResult, UseBiometricsReturn};
+export type {AuthorizeParams, AuthorizeResult, UseBiometricsReturn, CreateCredentialParams, CreateCredentialResult};

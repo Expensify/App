@@ -1,4 +1,5 @@
 import type {AllowedAuthenticationMethods} from '@components/MultifactorAuthentication/biometrics/checkDeviceEligibility';
+import type {CreateCredentialParams} from '@components/MultifactorAuthentication/biometrics/shared/types';
 import type {MultifactorAuthenticationScenarioConfigFor} from '@components/MultifactorAuthentication/config';
 import type {
     MultifactorAuthenticationScenario,
@@ -77,11 +78,14 @@ type MfaEvent =
 /** Describes the input the machine passes to the device-check actor. */
 type ValidateDeviceInput = {allowedAuthenticationMethods: AllowedAuthenticationMethods};
 
-/** Identifies the per-account Onyx member read by the soft-prompt actor. */
-type ReadHasAcceptedSoftPromptInput = {accountID: number};
+/** Identifies the account whose device-local registration state the machine loads. */
+type LoadRegistrationStateInput = {accountID: number};
 
-/** Identifies the account whose local credentials the registration-decision actor checks. */
-type CheckLocalCredentialsInput = {accountID: number};
+/** Device-local signals needed to choose between registration and authorization. */
+type LoadRegistrationStateOutput = {
+    hasLocalCredentials: boolean;
+    hasEverAcceptedSoftPrompt: boolean;
+};
 
 /** Validate code sent to the backend to obtain a registration challenge. */
 type RequestRegistrationChallengeInput = {validateCode: string};
@@ -89,13 +93,21 @@ type RequestRegistrationChallengeInput = {validateCode: string};
 /** A successful response must carry the validated registration challenge. */
 type RequestRegistrationChallengeOutput = MFAResult<{challenge: RegistrationChallenge}>;
 
+/** Input the machine passes to the credential-creation actor: everything `CreateCredentialParams` needs except the abort signal, which the actor supplies itself. */
+type CreateCredentialInput = Omit<CreateCredentialParams, 'signal'>;
+
+/** The credential-creation actor's result. `keyInfo` never leaves the actor, so a success carries no additional data. */
+type CreateCredentialOutput = MFAResult;
+
 export type {
-    CheckLocalCredentialsInput,
+    CreateCredentialInput,
+    CreateCredentialOutput,
+    LoadRegistrationStateInput,
+    LoadRegistrationStateOutput,
     MfaContext,
     MfaEvent,
     MfaModalState,
     MultifactorAuthenticationInitEvent,
-    ReadHasAcceptedSoftPromptInput,
     RequestRegistrationChallengeInput,
     RequestRegistrationChallengeOutput,
     ValidateDeviceInput,

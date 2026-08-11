@@ -11,7 +11,13 @@ import type {ActorLogic, DoneActorEvent, ErrorActorEvent, InputFrom, SnapshotFro
 import {matchesState} from 'xstate';
 import {getShortestPaths, TestModel} from 'xstate/graph';
 
-import createInitEvent, {MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR, MFA_TEST_INVALID_CODE_ERROR, MFA_TEST_REGISTRATION_CHALLENGE, MFA_TEST_VALIDATE_CODE} from './flowFixtures';
+import createInitEvent, {
+    MFA_TEST_CREDENTIAL_CREATION_ERROR,
+    MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR,
+    MFA_TEST_INVALID_CODE_ERROR,
+    MFA_TEST_REGISTRATION_CHALLENGE,
+    MFA_TEST_VALIDATE_CODE,
+} from './flowFixtures';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
@@ -94,26 +100,61 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         events: [
             createInitEvent(),
             createActorDoneEvent('validateDevice', {success: true}),
-            createActorDoneEvent('checkLocalCredentials', false),
+            createActorDoneEvent('loadRegistrationState', {hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false}),
             {type: 'RESEND_VALIDATE_CODE'},
             {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
             createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
         ],
-        endState: `${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}`,
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.AWAITING_SOFT_PROMPT}`,
     },
     {
         description: 'the invalid-code journey clears the inline error and accepts a corrected code',
         events: [
             createInitEvent(),
             createActorDoneEvent('validateDevice', {success: true}),
-            createActorDoneEvent('checkLocalCredentials', false),
+            createActorDoneEvent('loadRegistrationState', {hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false}),
             {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
             createActorDoneEvent('requestRegistrationChallenge', {success: false, error: MFA_TEST_INVALID_CODE_ERROR}),
             {type: 'VALIDATE_CODE_CHANGED'},
             {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
             createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
         ],
-        endState: `${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}`,
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.AWAITING_SOFT_PROMPT}`,
+    },
+    {
+        description: 'the credential-creation journey reaches creatingCredential after the user accepts the soft prompt',
+        events: [
+            createInitEvent(),
+            createActorDoneEvent('validateDevice', {success: true}),
+            createActorDoneEvent('loadRegistrationState', {hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false}),
+            {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
+            createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
+            {type: 'SOFT_PROMPT_APPROVED'},
+        ],
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.CREATING_CREDENTIAL}`,
+    },
+    // A (re-)registration always requires approval, even if the account accepted the soft prompt
+    // before - the persisted flag only matters on the returning-user branch below.
+    {
+        description: 'the registration journey still requires soft-prompt approval even though the account already accepted it before',
+        events: [
+            createInitEvent(),
+            createActorDoneEvent('validateDevice', {success: true}),
+            createActorDoneEvent('loadRegistrationState', {hasLocalCredentials: false, hasEverAcceptedSoftPrompt: true}),
+            {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
+            createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
+        ],
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.AWAITING_SOFT_PROMPT}`,
+    },
+    // A returning user who already accepted the soft prompt skips straight to the outcome instead of re-confirming.
+    {
+        description: 'the returning-user journey skips the soft prompt when the account already accepted it on this device',
+        events: [
+            createInitEvent(),
+            createActorDoneEvent('validateDevice', {success: true}),
+            createActorDoneEvent('loadRegistrationState', {hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true}),
+        ],
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`,
     },
 ];
 
@@ -159,14 +200,20 @@ const MFA_ACTOR_EVENT_FIXTURES = {
             error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED, 'Graph-traversal device-check enrollment refusal'),
         },
     ),
-    readHasAcceptedSoftPrompt: createActorEvents('readHasAcceptedSoftPrompt', false, true),
-    checkLocalCredentials: createActorEvents('checkLocalCredentials', false, true),
+    loadRegistrationState: createActorEvents(
+        'loadRegistrationState',
+        {hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false},
+        {hasLocalCredentials: false, hasEverAcceptedSoftPrompt: true},
+        {hasLocalCredentials: true, hasEverAcceptedSoftPrompt: false},
+        {hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true},
+    ),
     requestRegistrationChallenge: createActorEvents(
         'requestRegistrationChallenge',
         {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE},
         {success: false, error: MFA_TEST_INVALID_CODE_ERROR},
         {success: false, error: MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR},
     ),
+    createCredential: createActorEvents('createCredential', {success: true}, {success: false, error: MFA_TEST_CREDENTIAL_CREATION_ERROR}),
 } satisfies MfaActorEventFixtures;
 
 /** Every concrete event the traversal can offer, in the order its fixtures declare them. */

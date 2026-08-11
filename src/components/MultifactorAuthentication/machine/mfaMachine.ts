@@ -23,8 +23,10 @@ const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 // sibling branch needs an id target rather than a relative one.
 const OUTCOME_TARGET = `#${MFA_STATE.OUTCOME}` as const;
 const PROMPT_TARGET = `#${MFA_STATE.PROMPT}` as const;
-const SOFT_PROMPT_CHECK_TARGET = `#${MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}` as const;
 const VALIDATE_CODE_TARGET = `#${MFA_STATE.VALIDATE_CODE}` as const;
+
+// One literal shared by both branches of an explicit soft-prompt approval, so they can't drift apart.
+const SOFT_PROMPT_ACCEPTED_ACTIONS = ['approveSoftPrompt', 'persistSoftPromptAcceptance'] as const;
 
 // Which prompt variant the screen renders is a device property, resolved once per platform.
 const PROMPT_TYPE = CONST.MULTIFACTOR_AUTHENTICATION.PROMPT_TYPE_MAP[deviceVerificationType];
@@ -42,8 +44,9 @@ const DEFAULT_CONTEXT: MfaContext = {
 };
 
 /**
- * MFA state machine. The top level models the modal lifecycle (`closed` -> `open` -> `closing`); the
- * child states of `open` map 1:1 to the screen the user currently sees.
+ * MFA state machine. The top level models the modal lifecycle (`closed` -> `open` -> `closing`).
+ * Screen-owning states navigate on entry, while their nested processing states keep that screen
+ * mounted across the related flow steps.
  *
  * No state is `final`: one long-lived actor serves every MFA flow (a top-level final state would
  * stop it).
@@ -60,6 +63,7 @@ const MFAMachine = setup({
     actors: createActors(),
     guards: {
         hasError: ({context}) => context.error !== undefined,
+        hasRegistrationChallenge: ({context}) => context.registrationChallenge !== undefined,
     },
     actions: {
         // Seeds the flow's context from the INIT event. A named action's event is typed as the full
@@ -177,40 +181,28 @@ const MFAMachine = setup({
                         },
                         [MFA_STATE.DECIDING_REGISTRATION]: {
                             invoke: {
-                                id: 'checkLocalCredentials',
-                                src: 'checkLocalCredentials',
+                                id: 'loadRegistrationState',
+                                src: 'loadRegistrationState',
                                 input: ({context}) => {
                                     if (context.accountID === undefined) {
                                         throw new Error('MFA account must be initialized before the registration decision');
                                     }
                                     return {accountID: context.accountID};
                                 },
-                                // A returning user's credentials are already registered, so only a fresh registration asks for a code.
+                                // A fresh (re-)registration always requires soft-prompt approval. A returning
+                                // user who already accepted it skips straight to the outcome instead of
+                                // re-confirming. Both signals come from the same account-scoped actor read.
+                                //
+                                // Scoped shortcut: production re-authenticates behind a loader before the outcome.
+                                // This slice has no authorization actor yet - revisit this guard once one exists.
                                 onDone: [
-                                    {guard: ({event}) => event.output, target: SOFT_PROMPT_CHECK_TARGET},
+                                    {guard: ({event}) => event.output.hasLocalCredentials && event.output.hasEverAcceptedSoftPrompt, target: OUTCOME_TARGET},
+                                    {guard: ({event}) => event.output.hasLocalCredentials, target: PROMPT_TARGET},
                                     {target: VALIDATE_CODE_TARGET, actions: 'requestValidateCode'},
                                 ],
                                 onError: {
                                     target: OUTCOME_TARGET,
-                                    actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Local credentials check', event.error)}),
-                                },
-                            },
-                        },
-                        [MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE]: {
-                            id: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE,
-                            invoke: {
-                                id: 'readHasAcceptedSoftPrompt',
-                                src: 'readHasAcceptedSoftPrompt',
-                                input: ({context}) => {
-                                    if (context.accountID === undefined) {
-                                        throw new Error('MFA account must be initialized before reading soft-prompt acceptance');
-                                    }
-                                    return {accountID: context.accountID};
-                                },
-                                onDone: [{guard: ({event}) => event.output, target: OUTCOME_TARGET}, {target: PROMPT_TARGET}],
-                                onError: {
-                                    target: OUTCOME_TARGET,
-                                    actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Soft-prompt acceptance read', event.error)}),
+                                    actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Registration state check', event.error)}),
                                 },
                             },
                         },
@@ -259,7 +251,7 @@ const MFAMachine = setup({
                                 onDone: [
                                     {
                                         guard: ({event}) => event.output.success,
-                                        target: SOFT_PROMPT_CHECK_TARGET,
+                                        target: PROMPT_TARGET,
                                         actions: assign({registrationChallenge: ({event}) => (event.output.success ? event.output.challenge : undefined)}),
                                     },
                                     {
@@ -277,19 +269,43 @@ const MFAMachine = setup({
                         },
                     },
                 },
-                // This branch shows the soft prompt when the current account has not accepted it on this device.
+                // Reached for a fresh/re-registration, or a returning user who hasn't accepted the soft
+                // prompt yet - see the routing comment on `decidingRegistration`.
                 [MFA_STATE.PROMPT]: {
                     id: MFA_STATE.PROMPT,
                     entry: ['navigateToPrompt'],
                     initial: MFA_STATE.AWAITING_SOFT_PROMPT,
-                    on: {
-                        SOFT_PROMPT_APPROVED: {
-                            target: MFA_STATE.OUTCOME,
-                            actions: ['approveSoftPrompt', 'persistSoftPromptAcceptance'],
-                        },
-                    },
                     states: {
-                        [MFA_STATE.AWAITING_SOFT_PROMPT]: {},
+                        [MFA_STATE.AWAITING_SOFT_PROMPT]: {
+                            on: {
+                                SOFT_PROMPT_APPROVED: [
+                                    {guard: 'hasRegistrationChallenge', target: MFA_STATE.CREATING_CREDENTIAL, actions: SOFT_PROMPT_ACCEPTED_ACTIONS},
+                                    {target: OUTCOME_TARGET, actions: SOFT_PROMPT_ACCEPTED_ACTIONS},
+                                ],
+                            },
+                        },
+                        // Registration and, in the next slice, authorization stay under `prompt` so the
+                        // prompt screen and its fingerprint animation remain mounted throughout.
+                        [MFA_STATE.CREATING_CREDENTIAL]: {
+                            invoke: {
+                                id: 'createCredential',
+                                src: 'createCredential',
+                                input: ({context}) => {
+                                    if (context.accountID === undefined || context.registrationChallenge === undefined) {
+                                        throw new Error('MFA account and registration challenge must be stored before creating a credential');
+                                    }
+                                    return {accountID: context.accountID, registrationChallenge: context.registrationChallenge};
+                                },
+                                onDone: [
+                                    {guard: ({event}) => !event.output.success, target: OUTCOME_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
+                                    {target: OUTCOME_TARGET},
+                                ],
+                                onError: {
+                                    target: OUTCOME_TARGET,
+                                    actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Credential registration', event.error)}),
+                                },
+                            },
+                        },
                     },
                 },
                 [MFA_STATE.OUTCOME]: {

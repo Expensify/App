@@ -3,7 +3,7 @@ import {getScenarioConfig} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
 import {MFAMachine, snapshotToState} from '@components/MultifactorAuthentication/machine';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
-import type {CredentialsState} from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
+import type {MFARegistrationStateSnapshot} from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
 import trackMFAFlowStart from '@components/MultifactorAuthentication/observability/trackMFAFlowStart';
 import useSyncMfaModalNavigatorWithHistory from '@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory';
 
@@ -12,12 +12,16 @@ import useInspectedMachine from '@hooks/useInspectedMachine';
 import useNetwork from '@hooks/useNetwork';
 
 import getPlatform from '@libs/getPlatform';
+import readOnyxValueOnce from '@libs/MultifactorAuthentication/shared/readOnyxValueOnce';
+
+import {getDeviceBiometricsOnyxKey} from '@userActions/MultifactorAuthentication';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ReactNode} from 'react';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 
 import type {MultifactorAuthenticationExecuteScenarioArgs, MultifactorAuthenticationExternalAPI} from './MultifactorAuthenticationExternalApiContext';
 import type {MultifactorAuthenticationInternalApi} from './MultifactorAuthenticationInternalApiContext';
@@ -40,11 +44,21 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const [snapshot, send] = useInspectedMachine(MFAMachine);
     const state = snapshotToState(snapshot);
 
-    const captureCredentialsState = async (): Promise<CredentialsState> => {
-        const hasLocalCredentials = await biometrics.areLocalCredentialsKnownToServer();
+    useEffect(() => {
+        if (state.modalState !== MFA_STATE.OPEN || state.accountID === undefined || state.accountID === accountID) {
+            return;
+        }
+
+        addMFABreadcrumb('Flow canceled: account changed', {flowAccountID: state.accountID, currentAccountID: accountID}, 'warning');
+        send({type: 'CLOSE_MODAL'});
+    }, [accountID, send, state.accountID, state.modalState]);
+
+    const captureRegistrationState = async (flowAccountID: number): Promise<MFARegistrationStateSnapshot> => {
+        const [hasLocalCredentials, deviceBiometrics] = await Promise.all([biometrics.areLocalCredentialsKnownToServer(), readOnyxValueOnce(getDeviceBiometricsOnyxKey(flowAccountID))]);
         return {
             hasServerCredentials: biometrics.serverKnownCredentialIDs.length > 0,
             hasLocalCredentials,
+            hasEverAcceptedSoftPrompt: deviceBiometrics?.hasAcceptedSoftPrompt ?? false,
         };
     };
 
@@ -56,7 +70,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         const [params] = args;
 
         // Perf short-circuit: while the modal is open or closing the machine drops INIT, so skip the
-        // redundant captureCredentialsState() native call + breadcrumb on the happy path.
+        // redundant captureRegistrationState() native call + breadcrumb on the happy path.
         if (state.modalState !== MFA_STATE.CLOSED) {
             return;
         }
@@ -68,20 +82,37 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
-        const startCredentialsState = await captureCredentialsState();
+        const flowAccountID = accountID;
+        const startRegistrationState = await captureRegistrationState(flowAccountID);
+
+        // A session switch can happen while the asynchronous registration-state snapshot is being read. Read
+        // the source of truth again immediately before INIT so stale account data never starts a flow.
+        const currentSession = await readOnyxValueOnce(ONYXKEYS.SESSION);
+        const currentAccountID = currentSession?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        if (currentAccountID !== flowAccountID) {
+            addMFABreadcrumb('Flow rejected: account changed during initialization', {scenario: scenarioName, flowAccountID, currentAccountID}, 'warning');
+            return;
+        }
 
         addMFABreadcrumb('Flow started', {
             scenario: scenarioName,
             hasPayload: params !== undefined && Object.keys(params).length > 0,
             platform,
             isOffline,
-            serverHasAnyCredentials: startCredentialsState.hasServerCredentials,
+            serverHasAnyCredentials: startRegistrationState.hasServerCredentials,
+            hasEverAcceptedSoftPrompt: startRegistrationState.hasEverAcceptedSoftPrompt,
         });
-        trackMFAFlowStart({scenario: scenarioName, isOffline, credentialsState: startCredentialsState});
+        trackMFAFlowStart({scenario: scenarioName, isOffline, registrationState: startRegistrationState});
 
         const scenario = getScenarioConfig(scenarioName);
 
-        send({type: 'INIT', accountID, scenarioName, scenario, payload: params && Object.keys(params).length > 0 ? params : undefined});
+        send({
+            type: 'INIT',
+            accountID: flowAccountID,
+            scenarioName,
+            scenario,
+            payload: params && Object.keys(params).length > 0 ? params : undefined,
+        });
     };
 
     const closeModal = () => send({type: 'CLOSE_MODAL'});

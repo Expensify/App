@@ -1,17 +1,12 @@
-import mfaMachine from '@components/MultifactorAuthentication/machine/mfaMachine';
-import type {CheckLocalCredentialsInput, ReadHasAcceptedSoftPromptInput, ValidateDeviceInput} from '@components/MultifactorAuthentication/machine/types';
-
 import {getDeviceBiometricsOnyxKey} from '@libs/actions/MultifactorAuthentication';
-import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 
 import CONST from '@src/CONST';
 
 import Onyx from 'react-native-onyx';
 import getOnyxValue from 'tests/utils/getOnyxValue';
-import {createActorAtState, sendCheckLocalCredentialsDone} from 'tests/utils/mfa/flowActors';
-import createInitEvent, {MFA_TEST_ACCOUNT_ID} from 'tests/utils/mfa/flowFixtures';
+import {createActorAtState, sendLoadRegistrationStateDone} from 'tests/utils/mfa/flowActors';
+import {MFA_TEST_ACCOUNT_ID} from 'tests/utils/mfa/flowFixtures';
 import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
-import {createActor, fromPromise} from 'xstate';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
@@ -30,7 +25,7 @@ describe('MFA soft prompt', () => {
         const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
 
         actor.start();
-        sendCheckLocalCredentialsDone(actor, true);
+        sendLoadRegistrationStateDone(actor, {hasLocalCredentials: true, hasEverAcceptedSoftPrompt: false});
         await waitForBatchedUpdates();
 
         const result = actor.getSnapshot();
@@ -40,59 +35,27 @@ describe('MFA soft prompt', () => {
         actor.stop();
     });
 
-    it('skips the soft prompt when the user has already accepted it on this device', async () => {
-        await Onyx.merge(getDeviceBiometricsOnyxKey(MFA_TEST_ACCOUNT_ID), {hasAcceptedSoftPrompt: true});
+    it('skips the soft prompt and reaches the outcome directly for a returning user who already accepted it on this device', () => {
         const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
 
         actor.start();
-        sendCheckLocalCredentialsDone(actor, true);
-        await waitForBatchedUpdates();
+        sendLoadRegistrationStateDone(actor, {hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true});
 
         const result = actor.getSnapshot();
         expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.SUCCESS}})).toBe(true);
-        // The context flag tracks an approval given during this flow, so a skip leaves it false.
         expect(result.context.softPromptApproved).toBe(false);
 
         actor.stop();
     });
 
-    it('disconnects a pending soft-prompt read when the flow closes', () => {
-        const connection = {id: 'soft-prompt-read-test', callbackID: 'soft-prompt-read-test'};
-        jest.spyOn(Onyx, 'connectWithoutView').mockReturnValue(connection);
-        const disconnectSpy = jest.spyOn(Onyx, 'disconnect').mockImplementation();
+    it('still shows the soft prompt for a fresh registration even though the account already accepted it on this device before (production parity: a new registration always needs approval in this flow)', () => {
         const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
 
         actor.start();
-        sendCheckLocalCredentialsDone(actor, true);
-        expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.CHECKING_SOFT_PROMPT_ACCEPTANCE}})).toBe(true);
-
-        actor.send({type: 'CLOSE_MODAL'});
-
-        expect(disconnectSpy).toHaveBeenCalledTimes(1);
-        expect(disconnectSpy).toHaveBeenCalledWith(connection);
-
-        actor.stop();
-    });
-
-    it('ends the current flow with an error when reading the soft-prompt flag rejects', async () => {
-        const machine = mfaMachine.provide({
-            actors: {
-                validateDevice: fromPromise<MFAResult, ValidateDeviceInput>(() => Promise.resolve({success: true})),
-                // A registered account routes the flow straight to the soft-prompt read under test.
-                checkLocalCredentials: fromPromise<boolean, CheckLocalCredentialsInput>(() => Promise.resolve(true)),
-                readHasAcceptedSoftPrompt: fromPromise<boolean, ReadHasAcceptedSoftPromptInput>(() => Promise.reject(new Error('Onyx read failed'))),
-            },
-        });
-        const actor = createActor(machine);
-
-        actor.start();
-        actor.send(createInitEvent());
-        await waitForBatchedUpdates();
+        sendLoadRegistrationStateDone(actor, {hasLocalCredentials: false, hasEverAcceptedSoftPrompt: true});
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
-        expect(result.context.error?.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION);
-        expect(result.context.error?.message).toContain('Soft-prompt acceptance read threw: Onyx read failed');
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}})).toBe(true);
 
         actor.stop();
     });

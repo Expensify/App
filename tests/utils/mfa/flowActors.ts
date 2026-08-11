@@ -48,8 +48,15 @@ function sendValidateDeviceDone(actor: ReturnType<typeof createActorAtState>, ou
 /**
  * Completes the invoked credentials-check actor by sending its done event carrying the given output.
  */
-function sendCheckLocalCredentialsDone(actor: ReturnType<typeof createActorAtState>, output: MfaActorOutput<'checkLocalCredentials'>) {
-    actor.send(createActorDoneEvent('checkLocalCredentials', output));
+function sendLoadRegistrationStateDone(actor: ReturnType<typeof createActorAtState>, output: MfaActorOutput<'loadRegistrationState'>) {
+    actor.send(createActorDoneEvent('loadRegistrationState', output));
 }
 
-export {createActorAtState, createFlowContext, sendCheckLocalCredentialsDone, sendValidateDeviceDone};
+/**
+ * Completes the invoked credential-creation actor by sending its done event carrying the given output.
+ */
+function sendCreateCredentialDone(actor: ReturnType<typeof createActorAtState>, output: MfaActorOutput<'createCredential'>) {
+    actor.send(createActorDoneEvent('createCredential', output));
+}
+
+export {createActorAtState, createFlowContext, sendCreateCredentialDone, sendLoadRegistrationStateDone, sendValidateDeviceDone};
