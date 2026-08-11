@@ -251,6 +251,7 @@ function DistanceRequestController({
             transactionID,
             transaction,
             policy,
+            isPolicyExpenseChat,
             customUnitRateID,
             routeDistanceMeters: distance,
             distanceUnit: unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
@@ -275,6 +276,7 @@ function DistanceRequestController({
         getCurrencySymbol,
         isManualDistanceRequest,
         policy,
+        isPolicyExpenseChat,
         customUnitRateID,
         personalPolicy?.outputCurrency,
     ]);
