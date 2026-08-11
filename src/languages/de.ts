@@ -1215,6 +1215,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Beleg hinzufügen',
             phrase2: 'oder ziehe eine hierher und lege sie ab',
         },
+        pageCount: ({pageCount}: {pageCount: number}) => `Seite 1 von ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Beleg scannen',
