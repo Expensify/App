@@ -1289,6 +1289,7 @@ describe('actions/Transaction', () => {
                 let allTransactions: OnyxCollection<Transaction>;
                 let allReports: OnyxCollection<Report>;
                 let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+                let allReportActions: OnyxCollection<ReportActions>;
 
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -1308,6 +1309,12 @@ describe('actions/Transaction', () => {
                         allReportNameValuePairs = value;
                     },
                 });
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    callback: (value) => {
+                        allReportActions = value;
+                    },
+                });
 
                 const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
                 const reports = getTransactionAndExpenseReports(reportID);
@@ -1316,7 +1323,7 @@ describe('actions/Transaction', () => {
                 updateSplitTransactionsFromSplitExpensesFlow({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
-                    allReportActionsList: undefined,
+                    allReportActionsList: allReportActions,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
                         reportID,
