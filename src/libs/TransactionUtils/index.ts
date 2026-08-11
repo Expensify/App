@@ -796,6 +796,7 @@ function getUpdatedTransaction({
                 ? DistanceRequestUtils.getTransactionCommuterExclusionData({
                       transaction: updatedTransaction,
                       policy,
+                      storedCustomUnit: transaction?.comment?.customUnit,
                       personalPolicyOutputCurrency,
                   })
                 : undefined;
@@ -905,6 +906,7 @@ function getUpdatedTransaction({
             ? DistanceRequestUtils.getTransactionCommuterExclusionData({
                   transaction: updatedTransaction,
                   policy,
+                  storedCustomUnit: transaction?.comment?.customUnit,
                   personalPolicyOutputCurrency,
               })
             : undefined;
