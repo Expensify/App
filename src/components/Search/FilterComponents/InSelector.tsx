@@ -54,8 +54,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const {options, isLoading} = useFilteredOptions({
         enabled: ready,
         isSearching: !!debouncedSearchTerm.trim(),
-        // This filter only ever renders reports (see the sections built below), and the getSearchOptions call
-        // here passes neither maxResults nor searchQuery, so every contact would be built and then dropped.
+          // The sections below read recentReports and never personalDetails, so contacts would never reach the list.
         includeP2P: false,
     });
 
