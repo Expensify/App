@@ -1154,6 +1154,7 @@ function addActions({
     }
 
     // Concierge answers each question in a thread off it, so build that thread here and hand its ID to the server.
+    let conciergeThreadOnyxData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [];
     if (conciergeThreadReportID && resolvedReportActionID) {
         parameters.conciergeThreadReportID = conciergeThreadReportID;
 
@@ -1179,7 +1180,9 @@ function addActions({
             childLastVisibleActionCreated: currentTime,
         };
 
-        optimisticData.push(
+        const optimisticParentReportAction = {...optimisticReportActions[resolvedReportActionID], ...optimisticThreadDetails};
+
+        conciergeThreadOnyxData = [
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${conciergeThreadReportID}`,
@@ -1198,14 +1201,12 @@ function addActions({
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                value: {[resolvedReportActionID]: optimisticThreadDetails},
+                value: {[resolvedReportActionID]: optimisticParentReportAction},
             },
-        );
+        ];
+        optimisticData.push(...conciergeThreadOnyxData);
         snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT}${conciergeThreadReportID}`] = optimisticThread;
-        snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = {
-            ...optimisticReportActions,
-            [resolvedReportActionID]: {...optimisticReportActions[resolvedReportActionID], ...optimisticThreadDetails},
-        };
+        snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = {...optimisticReportActions, [resolvedReportActionID]: optimisticParentReportAction};
         successData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1266,7 +1267,8 @@ function addActions({
     });
 
     if (conciergeThreadReportID && resolvedReportActionID) {
-        Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID}));
+        // The thread header takes its avatar from the question it hangs off, so open the thread once Onyx has stored both.
+        Onyx.update(conciergeThreadOnyxData).then(() => Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID})));
     }
     notifyNewAction(resolvedNotifyReportID, lastAction, lastAction?.actorAccountID === currentUserAccountID);
 }
