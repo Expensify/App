@@ -144,11 +144,6 @@ describe('IOURequestEditReportCommon', () => {
 
             await act(async () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${currentReport.reportID}`, currentReport);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}`, {
-                    transactionID: FAKE_TRANSACTION_ID,
-                    reportID: currentReport.reportID,
-                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
-                });
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, {
                     ...createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
                     commuterExclusions: {
