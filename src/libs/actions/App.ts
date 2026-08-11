@@ -411,9 +411,8 @@ function getOnyxDataForOpenOrReconnect(
  * @param shouldKeepPublicRooms - Whether to keep public rooms in Onyx
  * @param allReportsWithDraftComments - All reports with draft comments
  * @param forceRun - Force run even when using imported state (used when exiting imported state mode)
- * @param shouldDedupeWithInFlight - Whether an OpenApp already in flight satisfies this call, in which case
- * this one is dropped instead of repeating the download. Pass false when the response has to reflect state the
- * in-flight request could not have seen.
+ * @param shouldDedupeWithInFlight - Pass false when the response has to reflect state an OpenApp already in
+ * flight could not have seen, so this call is not dropped as a duplicate.
  */
 function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Record<string, string | undefined>, forceRun = false, shouldDedupeWithInFlight = true) {
     // Don't make API calls when using imported state to avoid infinite loading

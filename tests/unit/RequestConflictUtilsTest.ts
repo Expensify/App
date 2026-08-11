@@ -234,7 +234,6 @@ describe('RequestConflictUtils', () => {
         });
     });
 
-    // Shared by the two reconnect-family resolver blocks below.
     const openApp = (): AnyRequest => ({command: WRITE_COMMANDS.OPEN_APP});
     const fullReconnect = (): AnyRequest => ({command: WRITE_COMMANDS.RECONNECT_APP});
     const drop = {conflictAction: {type: 'noAction'}};
@@ -279,8 +278,6 @@ describe('RequestConflictUtils', () => {
     });
 
     describe('resolveOpenAppDuplicationConflictAction', () => {
-        // An in-flight OpenApp covers an incoming one unless the caller opted out. Everything else falls
-        // through to the queue-only decision, where a queued OpenApp is replaced by the newer one.
         const replaceQueued = (index: number) => ({conflictAction: {type: 'replace', index}});
         it.each([
             ['an OpenApp is in flight', [], openApp(), true, drop],

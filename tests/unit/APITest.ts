@@ -827,22 +827,19 @@ describe('APITests', () => {
             await waitForBatchedUpdates();
             expect(PersistedRequests.getOngoingRequest()?.command).toBe(WRITE_COMMANDS.OPEN_APP);
 
-            // Deduping is the default, so this one is dropped instead of repeating the whole download.
             await API.writeWithNoDuplicatesOpenAppConflictAction(openAppParams());
             expect(PersistedRequests.getAll()).toHaveLength(0);
 
-            // A caller that opts out keeps its own round trip.
             await API.writeWithNoDuplicatesOpenAppConflictAction(openAppParams(), {}, false);
             expect(PersistedRequests.getAll()).toHaveLength(1);
         } finally {
-            // Always release the held request, so one failed assertion cannot strand the queue for the
-            // rest of the file.
+            // Release the held request even if an assertion failed, so the queue is not stranded for the rest of the file.
             xhrCalls.at(0)?.resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
         }
         await SequentialQueue.waitForIdle();
         await waitForBatchedUpdates();
 
-        // Two OpenApps on the wire: the in-flight one and the opted-out one. The dropped one never went out.
+        // The in-flight one and the opted-out one; the dropped one never went out.
         expect(xhr.mock.calls.filter(([command]) => command === WRITE_COMMANDS.OPEN_APP)).toHaveLength(2);
     });
 

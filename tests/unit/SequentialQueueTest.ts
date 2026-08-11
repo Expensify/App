@@ -454,8 +454,7 @@ describe('SequentialQueue - reconnect coverage collapse', () => {
         } as Request<TKey>;
     }
 
-    // Build an OpenApp wired as API.writeWithNoDuplicatesOpenAppConflictAction does. That helper's own default
-    // is covered in tests/unit/APITest.ts.
+    // Build an OpenApp wired as API.writeWithNoDuplicatesOpenAppConflictAction does.
     function makeOpenAppRequest<TKey extends OnyxKey = never>(shouldDedupeWithInFlight = true): Request<TKey> {
         return {
             command: 'OpenApp',
@@ -584,8 +583,6 @@ describe('SequentialQueue - reconnect coverage collapse', () => {
             await waitForBatchedUpdates();
             expect(getOngoingRequest()?.command).toBe('OpenApp');
 
-            // The in-flight OpenApp already re-fetches the whole account, so a second one is pure waste: it
-            // would run back to back with the first and keep the app-load skeleton up for both round trips.
             await SequentialQueue.push(makeOpenAppRequest());
 
             expect(getLength()).toBe(1);
