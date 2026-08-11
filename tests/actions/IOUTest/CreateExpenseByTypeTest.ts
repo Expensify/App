@@ -154,6 +154,7 @@ describe('actions/IOU/createExpenseByType', () => {
             isTrackIntentUser: undefined,
             formatPhoneNumber: (phoneNumber: string) => phoneNumber,
             participantsPolicyTags: {},
+            policyTags: {},
             ...overrides,
         });
     }

@@ -63,10 +63,10 @@ import type {PerDiemExpenseInformation} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
 
-import {getAllReports, getAllTransactions, getPolicyTags} from '.';
+import {getAllReports, getAllTransactions} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
-import {getPerDiemExpensePolicyID, submitPerDiemExpense} from './PerDiem';
+import {submitPerDiemExpense} from './PerDiem';
 import {createDistanceRequest} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 
@@ -674,6 +674,7 @@ function createExpenseByType({
     formatPhoneNumber,
     dateFnsLocale,
     participantsPolicyTags,
+    policyTags,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -690,6 +691,8 @@ function createExpenseByType({
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     dateFnsLocale: DateFnsLocale | undefined;
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
+    /** The destination policy's tags for the PER_DIEM case — the caller already knows the destination policy, so it resolves this directly. */
+    policyTags: OnyxTypes.PolicyTagLists;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
@@ -732,9 +735,6 @@ function createExpenseByType({
             return createDistanceRequest(distanceParams);
         }
         case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
-            const earlyPolicyID = getPerDiemExpensePolicyID(params);
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
-
             const perDiemParams: PerDiemExpenseInformation = {
                 ...params,
                 dateFnsLocale,
@@ -821,6 +821,7 @@ function duplicateExpenseTransaction({
     formatPhoneNumber,
     getCurrencyDecimals,
     participantsPolicyTags,
+    targetPolicyTags,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -942,6 +943,7 @@ function duplicateExpenseTransaction({
         isTrackIntentUser,
         formatPhoneNumber,
         participantsPolicyTags,
+        policyTags: targetPolicyTags ?? {},
     });
 }
 
@@ -1127,6 +1129,7 @@ function duplicateReport({
             isTrackIntentUser,
             formatPhoneNumber,
             participantsPolicyTags,
+            policyTags: targetPolicyTags ?? {},
         });
 
         if (result?.iouReport) {
