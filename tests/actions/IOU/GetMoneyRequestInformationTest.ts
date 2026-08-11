@@ -2,10 +2,11 @@ import {getMoneyRequestInformation} from '@libs/actions/IOU/MoneyRequestBuilder'
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, PolicyTagLists, Report} from '@src/types/onyx';
+import type {Beta, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -86,6 +87,7 @@ describe('getMoneyRequestInformation', () => {
     describe('optimistic recently used tags', () => {
         it('should store recently used tags at the correct policy key when policyTagList and tag are provided', () => {
             const result = getMoneyRequestInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 policyParams: {
                     policyTagList: policyTagListA,
@@ -105,6 +107,7 @@ describe('getMoneyRequestInformation', () => {
 
         it('should not store recently used tags when tag is not provided', () => {
             const result = getMoneyRequestInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 policyParams: {
                     policyTagList: policyTagListA,
@@ -119,6 +122,7 @@ describe('getMoneyRequestInformation', () => {
 
         it('should store tags under empty-string list key when policyTagList has no named tag lists', () => {
             const result = getMoneyRequestInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 policyParams: {
                     policyTagList: {},
@@ -140,6 +144,7 @@ describe('getMoneyRequestInformation', () => {
         it('should use parentChatReport.policyID for the recently used tags key', () => {
             const otherPolicyID = 'policy-other';
             const result = getMoneyRequestInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 parentChatReport: {
                     ...parentChatReport,
@@ -177,6 +182,7 @@ describe('getMoneyRequestInformation', () => {
             await waitForBatchedUpdates();
 
             const result = getMoneyRequestInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 moneyRequestReportID,
                 policyParams: {
@@ -197,6 +203,7 @@ describe('getMoneyRequestInformation', () => {
 
         it('should fall back to parentChatReport.policyID when moneyRequestReportID is empty string', () => {
             const result = getMoneyRequestInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 moneyRequestReportID: '',
                 policyParams: {
@@ -219,7 +226,7 @@ describe('getMoneyRequestInformation', () => {
     describe('pendingNewTransactionIDs metadata rail', () => {
         // Only the 0→1 negative is testable here (the resolved report has no existing txs); the >= 1 positive path lives in the useNewTransactions consumer tests.
         it('does NOT flag the first transaction of a report (no stale flag to re-highlight the original on a later add)', () => {
-            const result = getMoneyRequestInformation(baseParams);
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
             const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.iouReport.reportID}`;
             const newTxID = result.transaction.transactionID;
 
@@ -227,5 +234,49 @@ describe('getMoneyRequestInformation', () => {
                 expect.arrayContaining([expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[newTxID]: true})})})]),
             );
         });
+    });
+
+    it('does not copy commuter exclusion data to an optimistic split', () => {
+        const customUnit = {
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            customUnitID: 'distance-unit',
+            customUnitRateID: 'rate-123',
+            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            quantity: 2.24,
+        } as const;
+        const existingTransaction: Transaction = {
+            transactionID: 'original-transaction',
+            reportID: 'expense-report',
+            amount: -280,
+            currency: CONST.CURRENCY.USD,
+            created: '2024-01-01',
+            merchant: '4.48 mi @ $0.625 / mi',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            comment: {
+                customUnit: {
+                    ...customUnit,
+                    quantity: 6.48,
+                    commuterExclusion: 2,
+                    reimbursableDistance: 4.48,
+                    commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                },
+            },
+        };
+
+        const result = getMoneyRequestInformation({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            ...baseParams,
+            existingTransaction,
+            isSplitExpense: true,
+            transactionParams: {
+                ...baseParams.transactionParams,
+                amount: 140,
+                modifiedAmount: 140,
+                originalTransactionID: existingTransaction.transactionID,
+                customUnit,
+            },
+        });
+
+        expect(result.transaction.comment?.customUnit).toEqual(customUnit);
     });
 });
