@@ -4887,9 +4887,9 @@ ${amount} voor ${merchant} - ${date}`,
                 accountSelectDescription: (integrationName = 'QuickBooks Online') => `Kies vanwaar je rekeningen wilt betalen en wij maken de betaling aan in ${integrationName}.`,
                 invoiceAccountSelectorDescription: (integrationName = 'QuickBooks Online') =>
                     `Kies waar je factuurbetalingen wilt ontvangen en we maken de betaling aan in ${integrationName}.`,
-                qboFxExpenseAccount: (integrationName = 'QuickBooks Online') => `${integrationName}-rekening voor valutaomrekeningskosten`,
+                qboFxExpenseAccount: (integrationName = 'QuickBooks Online') => `${integrationName}-rekening voor valutaconversiekosten`,
                 fxExpenseAccountDescription: (integrationName = 'QuickBooks Online') =>
-                    `Wanneer je bedrijf de valutaomrekeningskosten van een betaling in het buitenland dekt, boeken we die kosten als journaalpost op deze rekening in ${integrationName}.`,
+                    `Wanneer je bedrijf de kosten voor valutaconversie dekt voor een betaling in het buitenland, boeken we die kosten in ${integrationName} op deze rekening als een journaalpost.`,
             },
             debitCardExportDescription: (integrationName = 'QuickBooks Online') =>
                 `We koppelen de naam van de handelaar op de debetkaarttransactie automatisch aan alle bijbehorende leveranciers in ${integrationName}. Als er geen leveranciers bestaan, maken we een leverancier ‘Debit Card Misc.’ aan voor de koppeling.`,

@@ -4873,7 +4873,7 @@ ${amount} dla ${merchant} - ${date}`,
                 invoiceAccountSelectorDescription: (integrationName = 'QuickBooks Online') => `Wybierz, gdzie otrzymywać płatności za faktury, a my utworzymy płatność w ${integrationName}.`,
                 qboFxExpenseAccount: (integrationName = 'QuickBooks Online') => `Konto opłat za przewalutowanie w ${integrationName}`,
                 fxExpenseAccountDescription: (integrationName = 'QuickBooks Online') =>
-                    `Gdy Twoja firma pokrywa koszt przewalutowania płatności zagranicznej, zaksięgujemy ten koszt na tym koncie w ${integrationName} jako zapis księgowy.`,
+                    `Gdy twoja firma pokryje koszt przewalutowania przy płatności dokonanej za granicą, zaksięgujemy ten koszt na tym koncie w ${integrationName} jako zapis w dzienniku.`,
             },
             debitCardExportDescription: (integrationName = 'QuickBooks Online') =>
                 `Automatycznie dopasujemy nazwę sprzedawcy z transakcji kartą debetową do odpowiednich dostawców w ${integrationName}. Jeśli żaden dostawca nie istnieje, utworzymy dostawcę „Debit Card Misc.” do powiązania.`,

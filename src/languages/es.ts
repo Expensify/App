@@ -4845,9 +4845,9 @@ ${amount} para ${merchant} - ${date}`,
                 qboInvoiceCollectionAccount: (integrationName = 'QuickBooks Online') => `Cuenta de cobro de las facturas ${integrationName}`,
                 accountSelectDescription: (integrationName = 'QuickBooks Online') => `Elige desde dónde pagar las facturas y crearemos el pago en ${integrationName}.`,
                 invoiceAccountSelectorDescription: (integrationName = 'QuickBooks Online') => `Elige dónde recibir los pagos de facturas y crearemos el pago en ${integrationName}.`,
-                qboFxExpenseAccount: (integrationName = 'QuickBooks Online') => `Cuenta de comisiones por conversión de divisa ${integrationName}`,
+                qboFxExpenseAccount: (integrationName = 'QuickBooks Online') => `Cuenta de comisión por conversión de divisa de ${integrationName}`,
                 fxExpenseAccountDescription: (integrationName = 'QuickBooks Online') =>
-                    `Cuando tu empresa cubra el coste de conversión de divisa de un pago hecho en el extranjero, contabilizaremos ese coste en esta cuenta de ${integrationName} como un asiento contable.`,
+                    `Cuando tu empresa cubra el coste de conversión de moneda en un pago realizado en el extranjero, registraremos ese coste en esta cuenta en ${integrationName} como un asiento contable.`,
             },
             debitCardExportDescription: (integrationName = 'QuickBooks Online') =>
                 `Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de débito con cualquier proveedor correspondiente en ${integrationName}. Si no existen proveedores, crearemos un proveedor asociado 'Debit Card Misc.'.`,

@@ -4732,9 +4732,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 qboInvoiceCollectionAccount: (integrationName = 'QuickBooks Online') => `${integrationName} 发票收款账户`,
                 accountSelectDescription: (integrationName = 'QuickBooks Online') => `选择用于支付账单的来源，我们会在 ${integrationName} 中创建这笔付款。`,
                 invoiceAccountSelectorDescription: (integrationName = 'QuickBooks Online') => `选择接收发票付款的账户，我们会在 ${integrationName} 中创建这笔付款。`,
-                qboFxExpenseAccount: (integrationName = 'QuickBooks Online') => `${integrationName}货币兑换费用科目`,
+                qboFxExpenseAccount: (integrationName = 'QuickBooks Online') => `${integrationName} 货币转换手续费账户`,
                 fxExpenseAccountDescription: (integrationName = 'QuickBooks Online') =>
-                    `当贵公司承担境外付款的货币兑换成本时，我们会将该成本以日记账分录的形式记入${integrationName}中的此科目。`,
+                    `当您的公司承担一笔境外付款的货币转换成本时，我们会在 ${integrationName} 中将该成本作为一笔分录记入此科目。`,
             },
             debitCardExportDescription: (integrationName = 'QuickBooks Online') =>
                 `我们会自动将借记卡交易中的商户名称与 ${integrationName} 中任何相应的供应商进行匹配。如果不存在对应供应商，我们会创建一个名为“Debit Card Misc.”的供应商以供关联。`,
