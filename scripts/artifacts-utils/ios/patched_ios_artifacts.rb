@@ -114,7 +114,7 @@ module PatchedIOSArtifacts
     end
 
     # Fetches everything the install needs while the prebuilt/source decision is still reversible, so
-    # any failure downgrades to a source build. After pod resolution, switching would desync the sandbox.
+    # any failure downgrades to a source build. After pod resolution, switching would leave a mixed sandbox.
     def self.prefetch(resolution)
         return resolution if resolution['buildFromSource']
 
