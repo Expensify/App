@@ -11,6 +11,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 
+import type ReactNative from 'react-native';
+
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -36,6 +38,62 @@ jest.mock('@react-navigation/native', () => ({
 
 // The page is gated by report/transaction "not found" HOCs; short-circuit that gate for the test.
 jest.mock('@hooks/useShowNotFoundPageInIOUStep', () => () => false);
+
+// Render FlashList as a plain ScrollView that mounts every row, so the test can assert the full data
+// order instead of only the virtualized window (the real list scrolls to the focused rate on mount).
+jest.mock('@shopify/flash-list', () => {
+    const ReactLocal = jest.requireActual<typeof React>('react');
+    const RN = jest.requireActual<typeof ReactNative>('react-native');
+
+    const FlashList = ReactLocal.forwardRef<
+        {scrollToIndex: (params: {index: number}) => void},
+        Omit<React.ComponentProps<typeof RN.ScrollView>, 'children'> & {
+            data?: unknown[];
+            renderItem?: (info: {item: unknown; index: number; target: string}) => React.ReactNode;
+            keyExtractor?: (item: unknown, index: number) => string;
+            ListHeaderComponent?: React.ReactNode;
+            ListFooterComponent?: React.ReactNode;
+            getItemType?: unknown;
+            extraData?: unknown;
+            initialScrollIndex?: number;
+            onEndReached?: unknown;
+            onEndReachedThreshold?: unknown;
+            ListFooterComponentStyle?: unknown;
+        }
+    >(
+        (
+            {
+                data,
+                renderItem,
+                keyExtractor,
+                ListHeaderComponent,
+                ListFooterComponent,
+                getItemType: _getItemType,
+                extraData: _extraData,
+                initialScrollIndex: _initialScrollIndex,
+                onEndReached: _onEndReached,
+                onEndReachedThreshold: _onEndReachedThreshold,
+                ListFooterComponentStyle: _ListFooterComponentStyle,
+                ...scrollViewProps
+            },
+            ref,
+        ) => {
+            ReactLocal.useImperativeHandle(ref, () => ({scrollToIndex: jest.fn()}));
+
+            return ReactLocal.createElement(
+                RN.ScrollView,
+                scrollViewProps,
+                ListHeaderComponent ?? null,
+                ...(data ?? []).map((item, index) =>
+                    ReactLocal.createElement(ReactLocal.Fragment, {key: keyExtractor?.(item, index) ?? String(index)}, renderItem?.({item, index, target: 'Cell'})),
+                ),
+                ListFooterComponent ?? null,
+            );
+        },
+    );
+
+    return {FlashList};
+});
 
 const ACCOUNT_ID = 1;
 const ACCOUNT_LOGIN = 'test@user.com';
@@ -65,6 +123,7 @@ function buildRates(count: number) {
 }
 
 function buildPolicy(rateCount: number): Policy {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only policy stub
     return {
         id: POLICY_ID,
         name: 'Test Workspace',
@@ -83,10 +142,10 @@ function buildPolicy(rateCount: number): Policy {
                 rates: buildRates(rateCount),
             },
         },
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only policy stub
     } as unknown as Policy;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only report stub
 const report = {
     reportID: REPORT_ID,
     policyID: POLICY_ID,
@@ -94,9 +153,9 @@ const report = {
     type: CONST.REPORT.TYPE.CHAT,
     ownerAccountID: ACCOUNT_ID,
     isOwnPolicyExpenseChat: true,
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only report stub
 } as unknown as Report;
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only transaction stub
 const transactionDraft = {
     transactionID: TRANSACTION_ID,
     reportID: REPORT_ID,
@@ -109,29 +168,29 @@ const transactionDraft = {
             distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
         },
     },
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only transaction stub
 } as unknown as Transaction;
 
 function renderPage() {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only route stub; the page only reads route.params
+    const props = {
+        route: {
+            key: 'IOURequestStepDistanceRate',
+            name: SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE,
+            params: {
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                reportID: REPORT_ID,
+                transactionID: TRANSACTION_ID,
+                action: CONST.IOU.ACTION.CREATE,
+                reportActionID: '1',
+                backTo: '',
+            },
+        },
+    } as React.ComponentProps<typeof IOURequestStepDistanceRate>;
     return render(
         <OnyxListItemProvider>
             <LocaleContextProvider>
                 <CurrencyListContextProvider>
-                    <IOURequestStepDistanceRate
-                        route={{
-                            key: 'IOURequestStepDistanceRate',
-                            name: SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE,
-                            params: {
-                                iouType: CONST.IOU.TYPE.SUBMIT,
-                                reportID: REPORT_ID,
-                                transactionID: TRANSACTION_ID,
-                                action: CONST.IOU.ACTION.CREATE,
-                                reportActionID: '1',
-                            },
-                        }}
-                        // @ts-expect-error navigation param is not needed for this test
-                        navigation={undefined}
-                    />
+                    <IOURequestStepDistanceRate {...props} />
                 </CurrencyListContextProvider>
             </LocaleContextProvider>
         </OnyxListItemProvider>,
@@ -162,7 +221,7 @@ describe('IOURequestStepDistanceRate', () => {
 
     it('pins the current rate to the top of a long rate list on open', async () => {
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy(CONST.STANDARD_LIST_ITEM_LIMIT + 2));
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy(CONST.STANDARD_LIST_ITEM_LIMIT + 2));
         });
 
         renderPage();
@@ -176,7 +235,7 @@ describe('IOURequestStepDistanceRate', () => {
 
     it('does not reorder when the rate list is under the item-limit threshold', async () => {
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy(CONST.STANDARD_LIST_ITEM_LIMIT - 2));
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy(CONST.STANDARD_LIST_ITEM_LIMIT - 2));
         });
 
         renderPage();
