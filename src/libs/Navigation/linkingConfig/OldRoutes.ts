@@ -91,6 +91,7 @@ const oldRoutes: Record<string, string> = {
     '/referral/*': '/home/referral/$1',
     '/a/*/avatar': '/avatar/$1',
     '/settings/profile/contact-methods/verify': '/settings/profile/contact-methods/verify-account',
+    '/settings/profile/contact-methods/new': '/settings/profile/contact-methods/new-contact-method',
     '/home-page': '/home',
     '/new/task/details': '/task-details',
     '/new/task/title': '/task-details/task-confirm/task-title',
