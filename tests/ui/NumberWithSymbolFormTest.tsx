@@ -5,6 +5,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import type {NumberWithSymbolFormProps} from '@components/NumberWithSymbolForm';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,6 +45,10 @@ function renderForm(props: Partial<NumberWithSymbolFormProps> = {}) {
             />
         </ComposeProviders>,
     );
+}
+
+function queryAllById(id: string) {
+    return screen.UNSAFE_queryAllByProps({id});
 }
 
 function getTextInput() {
@@ -247,6 +252,160 @@ describe('NumberWithSymbolForm', () => {
                 await waitForBatchedUpdatesWithAct();
 
                 expect(onSymbolButtonPress).toHaveBeenCalledTimes(1);
+            });
+        });
+    });
+
+    describe('landscape path', () => {
+        beforeEach(() => {
+            mockIsInLandscapeMode.mockReturnValue(true);
+        });
+
+        it('renders the symbol input, the number pad and the currency button', async () => {
+            renderForm({value: '10', currency: 'USD'});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByDisplayValue('10')).toBeTruthy();
+            // The landscape branch renders the pad next to the input, inside the row ScrollView
+            expect(screen.getByTestId('button_1')).toBeTruthy();
+            expect(screen.getByTestId('button_<')).toBeTruthy();
+            expect(screen.getByText('USD')).toBeTruthy();
+            // The landscape branch never renders the portrait `numberView` wrapper
+            expect(queryAllById('numberView')).toHaveLength(0);
+            expect(queryAllById('numPadContainerView').length).toBeGreaterThan(0);
+        });
+
+        it('hides the currency button when the symbol is not pressable', async () => {
+            renderForm({value: '10', currency: 'USD', isSymbolPressable: false});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText('USD')).toBeNull();
+        });
+
+        it('hides the number pad when `shouldShowBigNumberPad` is false', async () => {
+            renderForm({value: '10', shouldShowBigNumberPad: false});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('button_1')).toBeNull();
+        });
+
+        it('renders the error message and the footer', async () => {
+            renderForm({
+                value: '10',
+                errorText: 'Something went wrong',
+                footer: <Text>Landscape footer</Text>,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Something went wrong')).toBeTruthy();
+            expect(screen.getByText('Landscape footer')).toBeTruthy();
+        });
+
+        it('presses the currency button through onSymbolButtonPress (not onCurrencyButtonPress)', async () => {
+            const onSymbolButtonPress = jest.fn();
+            const onCurrencyButtonPress = jest.fn();
+            renderForm({value: '10', currency: 'USD', onSymbolButtonPress, onCurrencyButtonPress});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText('USD'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(onSymbolButtonPress).toHaveBeenCalledTimes(1);
+            expect(onCurrencyButtonPress).not.toHaveBeenCalled();
+        });
+
+        it('assigns the text input instance to the separate `ref` prop', async () => {
+            const ref = React.createRef<BaseTextInputRef>();
+            renderForm({value: '10', ref});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(ref.current).toBeTruthy();
+        });
+
+        describe('negation via the caller-supplied toggleNegative', () => {
+            it('shows the flip button only when `allowFlippingAmount` is set and delegates the press to toggleNegative', async () => {
+                const toggleNegative = jest.fn();
+                const onInputChange = jest.fn();
+                renderForm({value: '10', toggleNegative, onInputChange});
+                await waitForBatchedUpdatesWithAct();
+
+                expect(screen.queryByText('Flip')).toBeNull();
+
+                screen.unmount();
+
+                renderForm({value: '10', allowFlippingAmount: true, toggleNegative, onInputChange});
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent.press(screen.getByText('Flip'));
+                await waitForBatchedUpdatesWithAct();
+
+                expect(toggleNegative).toHaveBeenCalledTimes(1);
+                // Unlike the text-input path, flipping here never rewrites the value itself
+                expect(onInputChange).not.toHaveBeenCalled();
+                expect(screen.getByDisplayValue('10')).toBeTruthy();
+            });
+
+            it('strips a typed minus sign and toggles negative when `allowFlippingAmount` is set', async () => {
+                const toggleNegative = jest.fn();
+                const onInputChange = jest.fn();
+                renderForm({value: '10', decimals: 2, allowFlippingAmount: true, toggleNegative, onInputChange});
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent.changeText(screen.getByLabelText(INPUT_LABEL), '-10');
+                await waitForBatchedUpdatesWithAct();
+
+                expect(toggleNegative).toHaveBeenCalledTimes(1);
+                expect(onInputChange).toHaveBeenCalledWith('10');
+            });
+        });
+
+        describe('BigNumberPad drives setNewNumber', () => {
+            it('appends the pressed digit and reports the new value', async () => {
+                const onInputChange = jest.fn();
+                renderForm({value: '1', decimals: 2, onInputChange});
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent.press(screen.getByTestId('button_2'));
+                await waitForBatchedUpdatesWithAct();
+
+                expect(onInputChange).toHaveBeenLastCalledWith('12');
+                expect(screen.getByDisplayValue('12')).toBeTruthy();
+            });
+
+            it('deletes the last character on backspace', async () => {
+                const onInputChange = jest.fn();
+                renderForm({value: '12', decimals: 2, onInputChange});
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent.press(screen.getByTestId('button_<'));
+                await waitForBatchedUpdatesWithAct();
+
+                expect(onInputChange).toHaveBeenLastCalledWith('1');
+                expect(screen.getByDisplayValue('1')).toBeTruthy();
+            });
+
+            it('adds the leading zero in updateValueNumberPad, before setNewNumber runs', async () => {
+                const onInputChange = jest.fn();
+                renderForm({value: '', decimals: 2, onInputChange});
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent.press(screen.getByTestId('button_.'));
+                await waitForBatchedUpdatesWithAct();
+
+                // `setNewNumber` itself never calls addLeadingZero - the pad handler does it for this path
+                expect(onInputChange).toHaveBeenLastCalledWith('0.');
+            });
+
+            it('rejects a pad press that would make the number invalid', async () => {
+                const onInputChange = jest.fn();
+                renderForm({value: '1', decimals: 0, onInputChange});
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent.press(screen.getByTestId('button_.'));
+                await waitForBatchedUpdatesWithAct();
+
+                expect(onInputChange).not.toHaveBeenCalled();
+                expect(screen.getByDisplayValue('1')).toBeTruthy();
             });
         });
     });
