@@ -3027,6 +3027,9 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.RULES]: {
         policyID: string;
+
+        /** Preselects a Rules tab; the page otherwise restores the last one used */
+        tab?: string;
     };
     [SCREENS.WORKSPACE.TIME_TRACKING]: {
         policyID: string;

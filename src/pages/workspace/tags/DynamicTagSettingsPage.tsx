@@ -13,6 +13,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -62,6 +63,8 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
     const {canWrite: canWriteTags, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const policyTag = getTagListByOrderWeight(policyTags, orderWeight);
     const {environmentURL} = useEnvironment();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
@@ -209,7 +212,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                         </OfflineWithFeedback>
                     )}
 
-                    {arePolicyRulesEnabled(policy, policyData.categories) && !isMultiLevelTags && (
+                    {arePolicyRulesEnabled(policy, policyData.categories, isRulesRevampEnabled) && !isMultiLevelTags && (
                         <>
                             <View style={[styles.mh5, styles.mv3, styles.pt3, styles.borderTop]}>
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.tags.tagRules')}</Text>

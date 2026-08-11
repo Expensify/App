@@ -171,7 +171,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
-                return Navigation.goBack(route.params.backTo ?? ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                // The Rules backTo can carry a tab the user was heading to. Comparing params would miss the already
+                // mounted Rules route and replace it instead of popping, so pop and let it take the new params.
+                return Navigation.goBack(route.params.backTo ?? ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID), {compareParams: false});
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id:

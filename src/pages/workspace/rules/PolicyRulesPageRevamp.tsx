@@ -40,7 +40,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {RulesTab, TableSelectionTab} from './tabs/useRulesTableBulkActions';
@@ -76,7 +76,7 @@ const agentsRulesBannerDismissedSelector = (value: OnyxEntry<DismissedProductTra
 
 function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const {translate} = useLocalize();
-    const {policyID} = route.params;
+    const {policyID, tab: requestedTab} = route.params;
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
@@ -96,6 +96,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const resolvedTab: RulesTab = lastSelectedTabStr && isRulesTab(lastSelectedTabStr) ? lastSelectedTabStr : RULES_TAB.GENERAL;
     const activeTab: RulesTab = resolvedTab === RULES_TAB.AGENTS && !isCustomAgentBetaEnabled ? RULES_TAB.GENERAL : resolvedTab;
     const [selectedRuleKeysByTab, setSelectedRuleKeysByTab] = useState<Partial<Record<TableSelectionTab, string[]>>>({});
+    const appliedRequestedTabRef = useRef<string | undefined>(undefined);
 
     const {showConfirmModal} = useConfirmModal();
 
@@ -113,6 +114,17 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, RULES_TAB.GENERAL);
     }, [activeTab, policy]);
+
+    useEffect(() => {
+        // Returning from the upgrade flow carries the tab the user was heading to. Apply it once per value so a
+        // later manual tab press isn't undone by the param still sitting in the route.
+        if (!requestedTab || !isRulesTab(requestedTab) || appliedRequestedTabRef.current === requestedTab) {
+            return;
+        }
+
+        appliedRequestedTabRef.current = requestedTab;
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, requestedTab);
+    }, [requestedTab]);
 
     const clearAllTableSelection = useCallback(() => {
         setSelectedRuleKeysByTab((prev) => (Object.keys(prev).length > 0 ? {} : prev));
@@ -260,7 +272,8 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             return;
         }
 
-        if (key !== RULES_TAB.GENERAL && tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, rulesUpgradeBackTo)) {
+        // Come back to the tab the user asked for, so upgrading lands them where they were headed.
+        if (key !== RULES_TAB.GENERAL && tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, ROUTES.WORKSPACE_RULES.getRoute(policyID, key))) {
             return;
         }
 

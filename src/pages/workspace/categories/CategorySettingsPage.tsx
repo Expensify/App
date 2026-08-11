@@ -83,7 +83,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
     const decodedCategoryName = getDecodedCategoryName(policyCategory?.name ?? '');
-    const categoryRulesEnabled = arePolicyRulesEnabled(policy, policyCategories);
+    const categoryRulesEnabled = arePolicyRulesEnabled(policy, policyCategories, isRulesRevampEnabled);
 
     const contextualRules = useMemo(() => {
         if (!isRulesRevampEnabled || !policyCategory) {
