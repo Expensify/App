@@ -1,3 +1,6 @@
+/**
+ * Rate tripwire that detects runaway Onyx derived-value recompute loops and reports each offending derived key once per session.
+ */
 import Log from '@libs/Log';
 
 import type {OnyxKey} from '@src/ONYXKEYS';
@@ -8,7 +11,7 @@ import Onyx from 'react-native-onyx';
 
 const WINDOW_MS = 10_000;
 
-// Hand-tuned flat rate (5/s); make it per-key if one config needs a looser bound.
+// Hand-tuned flat rate of about 5/s. Make it per-key if one config needs a looser bound.
 const RECOMPUTE_THRESHOLD = 50;
 
 /** A single recompute of a derived key: when it happened and which dependency keys triggered it. */
@@ -25,7 +28,7 @@ type KeyState = {
     /** Recomputes within the last `WINDOW_MS`, oldest first. */
     window: RecomputeEntry[];
 
-    /** Whether this key already reported a loop; latched so each key reports at most once per session. */
+    /** Whether this key already reported a loop. Latched so each key reports at most once per session. */
     hasReported: boolean;
 };
 
