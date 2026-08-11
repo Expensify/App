@@ -1,10 +1,20 @@
-import {shouldRefreshActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {clearActiveTransactionIDs, setActiveTransactionIDs, shouldPreserveActiveTransactionIDs, shouldRefreshActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
+import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 const SEARCH_HASH = 959171759;
 const OTHER_SEARCH_HASH = 123456;
 
 // The Spend page's expense list, as the carousel was seeded with it when a row was pressed.
 const SEEDED_IDS = ['A1', 'A2', 'A3'];
+
+// The Spend page holds one expense from report A and two from report B; report B owns only its own two.
+const SPEND_PAGE_IDS = ['A1', 'B1', 'B2'];
+const REPORT_B_IDS = ['B1', 'B2'];
 
 describe('shouldRefreshActiveTransactionIDs', () => {
     it('refreshes when the search gained one expense, so y grows by one', () => {
@@ -42,5 +52,66 @@ describe('shouldRefreshActiveTransactionIDs', () => {
 
     it('does not refresh down to a single expense, which has nothing to navigate between', () => {
         expect(shouldRefreshActiveTransactionIDs(SEEDED_IDS, SEARCH_HASH, SEARCH_HASH, ['A1'])).toBe(false);
+    });
+});
+
+/**
+ * Regression guard for https://github.com/Expensify/App/issues/98196: opening an expense from Spend seeds the carousel
+ * with every expense in the search, but drilling into the owning report and tapping a row there re-seeded it with just
+ * that report's expenses. Navigating back then left the counter showing the report's total instead of the search's.
+ */
+describe('shouldPreserveActiveTransactionIDs', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        await clearActiveTransactionIDs();
+        await waitForBatchedUpdates();
+    });
+
+    it('preserves a strictly broader carousel that contains the tapped expense', async () => {
+        await setActiveTransactionIDs(SPEND_PAGE_IDS, SEARCH_HASH);
+
+        expect(shouldPreserveActiveTransactionIDs(REPORT_B_IDS, 'B2')).toBe(true);
+    });
+
+    it('does not preserve when no carousel is active', () => {
+        expect(shouldPreserveActiveTransactionIDs(REPORT_B_IDS, 'B2')).toBe(false);
+    });
+
+    it('does not preserve when the active carousel is missing the tapped expense', async () => {
+        await setActiveTransactionIDs(['C1', 'C2', 'C3'], SEARCH_HASH);
+
+        expect(shouldPreserveActiveTransactionIDs(REPORT_B_IDS, 'B2')).toBe(false);
+    });
+
+    it('does not preserve when the active carousel does not cover every sibling', async () => {
+        // Broader by length, but B2 is absent, so prev/next would skip an expense the report shows.
+        await setActiveTransactionIDs(['A1', 'B1', 'C1'], SEARCH_HASH);
+
+        expect(shouldPreserveActiveTransactionIDs(REPORT_B_IDS, 'B1')).toBe(false);
+    });
+
+    it('does not preserve an equally sized carousel, so a re-sorted report re-seeds in its new visual order', async () => {
+        await setActiveTransactionIDs(['B2', 'B1'], SEARCH_HASH);
+
+        expect(shouldPreserveActiveTransactionIDs(REPORT_B_IDS, 'B1')).toBe(false);
+    });
+
+    it('does not preserve a narrower carousel', async () => {
+        await setActiveTransactionIDs(['B1'], SEARCH_HASH);
+
+        expect(shouldPreserveActiveTransactionIDs(REPORT_B_IDS, 'B1')).toBe(false);
+    });
+
+    it('does not preserve a carousel that only exists in persisted Onyx state', async () => {
+        // The Onyx key is persisted, so on a fresh load it can hold a carousel from an earlier session or a search that
+        // no longer matches the screen. Preserving that made a drill-in show a stale total ("4 of 6" in a 2-expense
+        // report), so only a list seeded during this session counts.
+        await Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, SPEND_PAGE_IDS);
+        await waitForBatchedUpdates();
+
+        expect(shouldPreserveActiveTransactionIDs(REPORT_B_IDS, 'B2')).toBe(false);
     });
 });

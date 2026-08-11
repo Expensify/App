@@ -676,6 +676,7 @@ function MoneyRequestReportTransactionList({
                 report,
                 transaction: sortedTransactions.find((t) => t.transactionID === activeTransactionID),
                 siblingTransactionIDs: visualOrderTransactionIDs,
+                shouldPreserveBroaderCarousel: true,
             });
         },
         [navigateToTransactionThread, reportActions, sortedTransactions, report, visualOrderTransactionIDs],

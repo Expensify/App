@@ -84,6 +84,14 @@ function shouldRefreshActiveTransactionIDs(activeIDs: string[] | undefined, acti
     return !isUpToDate;
 }
 
+function shouldPreserveActiveTransactionIDs(candidateIDs: string[], anchorTransactionID: string): boolean {
+    const activeIDs = lastSetIDs;
+    if (!activeIDs?.includes(anchorTransactionID)) {
+        return false;
+    }
+    return activeIDs.length > candidateIDs.length && candidateIDs.every((id) => activeIDs.includes(id));
+}
+
 function clearActiveTransactionIDs() {
     lastSetIDs = null;
     lastSetSnapshotHash = null;
@@ -95,4 +103,4 @@ function clearActiveTransactionIDs() {
     ]);
 }
 
-export {setActiveTransactionIDs, clearActiveTransactionIDs, getActiveTransactionIDs, shouldRefreshActiveTransactionIDs};
+export {setActiveTransactionIDs, clearActiveTransactionIDs, getActiveTransactionIDs, shouldRefreshActiveTransactionIDs, shouldPreserveActiveTransactionIDs};

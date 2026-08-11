@@ -1,7 +1,7 @@
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
-import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {setActiveTransactionIDs, shouldPreserveActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 
@@ -30,6 +30,8 @@ type NavigateToTransactionThreadParams = {
     /** Ordered list of sibling transaction IDs used to drive the prev/next carousel in the thread RHP */
     siblingTransactionIDs: string[];
 
+    shouldPreserveBroaderCarousel?: boolean;
+
     /** Route to return to when navigating back; defaults to the current active route */
     backTo?: string;
 };
@@ -49,7 +51,7 @@ function useNavigateToTransactionThread() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
-    return ({transactionID, reportActions, report, transaction, siblingTransactionIDs, backTo}: NavigateToTransactionThreadParams) => {
+    return ({transactionID, reportActions, report, transaction, siblingTransactionIDs, shouldPreserveBroaderCarousel = false, backTo}: NavigateToTransactionThreadParams) => {
         const iouAction = getIOUActionForTransactionID(reportActions, transactionID);
         const resolvedBackTo = backTo ?? Navigation.getActiveRoute();
         let reportIDToNavigate = iouAction?.childReportID;
@@ -78,8 +80,12 @@ function useNavigateToTransactionThread() {
         }
 
         // Single transaction report opens in RHP. We seed every sibling transaction ID so the RHP can
-        // display prev/next arrows for navigation between expenses.
-        setActiveTransactionIDs(siblingTransactionIDs).then(() => {
+        // display prev/next arrows for navigation between expenses. A broader carousel the user drilled in from is
+        // left untouched, so its list (and the snapshot hash backing prev/next) survive navigating back out to it.
+        const seedCarousel =
+            shouldPreserveBroaderCarousel && shouldPreserveActiveTransactionIDs(siblingTransactionIDs, transactionID) ? Promise.resolve() : setActiveTransactionIDs(siblingTransactionIDs);
+
+        seedCarousel.then(() => {
             if (reportIDToNavigate) {
                 markReportRHPWidth(reportIDToNavigate, 'wide');
             }
