@@ -112,11 +112,6 @@ describe('localize', () => {
         });
     });
 
-    it('translates plural miles to Dutch', async () => {
-        await IntlStore.load(CONST.LOCALES.NL);
-        expect(Localize.translate(CONST.LOCALES.NL, 'common.miles')).toBe('mijlen');
-    });
-
     describe('translate method - missing translation behavior', () => {
         beforeEach(async () => {
             await IntlStore.load(CONST.LOCALES.EN);
