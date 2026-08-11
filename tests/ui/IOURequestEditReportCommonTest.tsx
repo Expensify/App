@@ -37,17 +37,21 @@ jest.mock('@hooks/useConfirmModal', () => () => ({
 const renderIOURequestEditReportCommon = ({
     selectedReportID = '',
     selectedPolicyID,
+    transactionPolicyID,
     transactionIDs,
     isManualDistanceRequest = false,
     isOdometerDistanceRequest = false,
     selectReport = jest.fn(),
+    createReport,
 }: {
     selectedReportID: string;
     selectedPolicyID?: string;
+    transactionPolicyID?: string;
     transactionIDs?: string[];
     isManualDistanceRequest?: boolean;
     isOdometerDistanceRequest?: boolean;
     selectReport?: jest.Mock;
+    createReport?: jest.Mock;
 }) =>
     render(
         <NavigationContainer>
@@ -55,10 +59,12 @@ const renderIOURequestEditReportCommon = ({
                 <IOURequestEditReportCommon
                     selectedReportID={selectedReportID}
                     selectedPolicyID={selectedPolicyID}
+                    transactionPolicyID={transactionPolicyID}
                     transactionIDs={transactionIDs}
                     isManualDistanceRequest={isManualDistanceRequest}
                     isOdometerDistanceRequest={isOdometerDistanceRequest}
                     selectReport={selectReport}
+                    createReport={createReport}
                     backTo=""
                     isPerDiemRequest={false}
                 />
@@ -133,19 +139,19 @@ describe('IOURequestEditReportCommon', () => {
             expect(dotIndicators).toHaveLength(0);
         });
 
-        it('blocks moving a manual distance expense to a report with commuter exclusions', async () => {
+        const setUpCommuterExclusionTest = async () => {
             const currentReport: Report = {
                 reportID: 'currentReport',
                 reportName: 'Current Report',
                 ownerAccountID: FAKE_ACCOUNT_ID,
                 policyID: 'currentPolicy',
             };
-            const selectReport = jest.fn();
-
             await act(async () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${currentReport.reportID}`, currentReport);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, {
                     ...createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: undefined,
                     commuterExclusions: {
                         method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
                         fixedDistance: 1,
@@ -155,12 +161,52 @@ describe('IOURequestEditReportCommon', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            renderIOURequestEditReportCommon({selectedReportID: currentReport.reportID, transactionIDs: [FAKE_TRANSACTION_ID], isManualDistanceRequest: true, selectReport});
+            return currentReport;
+        };
+
+        it.each([
+            ['a manual', {isManualDistanceRequest: true}],
+            ['an odometer', {isOdometerDistanceRequest: true}],
+        ])('blocks moving %s distance expense to a report with commuter exclusions', async (_distanceType, requestTypeProps) => {
+            const currentReport = await setUpCommuterExclusionTest();
+            const selectReport = jest.fn();
+
+            renderIOURequestEditReportCommon({selectedReportID: currentReport.reportID, transactionIDs: [FAKE_TRANSACTION_ID], selectReport, ...requestTypeProps});
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(screen.getByText('Expense Report'));
 
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
             expect(selectReport).not.toHaveBeenCalled();
+        });
+
+        it('allows moving a GPS distance expense to a report with commuter exclusions', async () => {
+            const currentReport = await setUpCommuterExclusionTest();
+            const selectReport = jest.fn();
+
+            renderIOURequestEditReportCommon({selectedReportID: currentReport.reportID, transactionIDs: [FAKE_TRANSACTION_ID], selectReport});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText('Expense Report'));
+
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(selectReport).toHaveBeenCalledTimes(1);
+        });
+
+        it('blocks creating a report for a manual distance expense with commuter exclusions', async () => {
+            const currentReport = await setUpCommuterExclusionTest();
+            const createReport = jest.fn();
+
+            renderIOURequestEditReportCommon({
+                selectedReportID: currentReport.reportID,
+                transactionPolicyID: FAKE_POLICY_ID,
+                transactionIDs: [FAKE_TRANSACTION_ID],
+                isManualDistanceRequest: true,
+                createReport,
+            });
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText('Create report'), {});
+
+            expect(createReport).not.toHaveBeenCalled();
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         });
     });
 
