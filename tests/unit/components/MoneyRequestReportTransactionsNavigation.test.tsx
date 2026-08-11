@@ -69,6 +69,10 @@ jest.mock('@components/WideRHPContextProvider', () => ({
     useWideRHPActions: () => ({markReportRHPWidth: mockMarkReportRHPWidth}),
 }));
 
+jest.mock('@components/OnyxListItemProvider', () => ({
+    usePersonalDetails: () => ({}),
+}));
+
 type ReactActual = {createElement: typeof React.createElement; Fragment: typeof React.Fragment};
 type ReactNativeActual = {
     Pressable: React.ComponentType<{testID?: string; disabled?: boolean; onPress?: () => void}>;
