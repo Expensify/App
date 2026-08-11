@@ -498,11 +498,14 @@ function getInitialPerDiemTargetReport(
 /**
  * Resolves the chat report ID for navigation, generating an optimistic ID if no existing chat is found.
  */
-function resolveOptimisticChatReportID(participantAccountIDs: number[], existingReport?: OnyxInputOrEntry<Report>) {
+function resolveOptimisticChatReportID(participantAccountIDs: number[], existingReport?: OnyxInputOrEntry<Report>, preferredOptimisticChatReportID?: string) {
     const existingChat = existingReport?.reportID ? existingReport : getChatByParticipants(participantAccountIDs);
-    const optimisticChatReportID = existingChat?.reportID ? undefined : generateReportID();
-    const chatReportID = existingChat?.reportID ?? optimisticChatReportID;
-    return {optimisticChatReportID, chatReportID};
+    if (existingChat?.reportID) {
+        return {optimisticChatReportID: undefined, chatReportID: existingChat.reportID};
+    }
+
+    const optimisticChatReportID = preferredOptimisticChatReportID ?? generateReportID();
+    return {optimisticChatReportID, chatReportID: optimisticChatReportID};
 }
 
 /** Returns the transaction report ID when it can be reused for a brand-new P2P chat. */

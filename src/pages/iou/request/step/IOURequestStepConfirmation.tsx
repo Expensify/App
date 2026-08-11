@@ -621,17 +621,19 @@ function IOURequestStepConfirmation({
     const routeDestinationReportID = shouldUsePerDiemChatReport ? report?.chatReportID : report?.reportID;
     const destinationReportID = (isSelfDMDestination ? selfDMReportID : (backToReport ?? routeDestinationReportID)) ?? selfDMReportID;
 
-    // For a brand-new P2P recipient (no existing chat), useParticipantSubmission already committed the draft
-    // transaction to a stable optimistic reportID via setTransactionReport, before this screen even mounted (see
-    // createDistanceRequest in useExpenseSubmission.ts, which reuses this same ID for the same reason). Reusing it
-    // here lets us pre-mount the Report screen the submit will actually land on, instead of treating the destination
-    // as unknown. Keyed off the selected participant's own chat linkage, not the page-level `report` - that prop can
-    // stay bound to a previously-selected participant's chat when the user swaps recipients without remounting
-    // (e.g. "Create expense" pre-fills the last-used participant).
+    // Resolve the selected P2P participant independently of the page-level report, which can still belong to the
+    // previously selected participant. Existing chats win; only a genuinely new chat reuses the transaction's stable
+    // optimistic reportID committed by useParticipantSubmission.
     const firstParticipant = participants.at(0);
     // Split creates or resolves its own group chat report ID, so it cannot reuse the transaction's P2P report ID.
-    const optimisticP2PDestinationReportID = iouType !== CONST.IOU.TYPE.SPLIT && firstParticipant ? getReusableP2PReportID(firstParticipant, transaction?.reportID) : undefined;
-    const preMountDestinationReportID = optimisticP2PDestinationReportID ?? destinationReportID;
+    const isP2PDestination = iouType !== CONST.IOU.TYPE.SPLIT && !!firstParticipant && !firstParticipant.isPolicyExpenseChat;
+    const reusableP2PReportID = isP2PDestination ? getReusableP2PReportID(firstParticipant, transaction?.reportID) : undefined;
+    const resolvedP2PReportIDs = isP2PDestination
+        ? resolveOptimisticChatReportID([firstParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], undefined, reusableP2PReportID)
+        : undefined;
+    const optimisticP2PDestinationReportID = reusableP2PReportID && resolvedP2PReportIDs?.optimisticChatReportID === reusableP2PReportID ? reusableP2PReportID : undefined;
+    const existingP2PDestinationReportID = resolvedP2PReportIDs && !resolvedP2PReportIDs.optimisticChatReportID ? resolvedP2PReportIDs.chatReportID : undefined;
+    const preMountDestinationReportID = optimisticP2PDestinationReportID ?? existingP2PDestinationReportID ?? destinationReportID;
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${preMountDestinationReportID}`);
     const destinationReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${preMountDestinationReportID}`];
     const promotedDraftReportIDRef = useRef<string | undefined>(undefined);

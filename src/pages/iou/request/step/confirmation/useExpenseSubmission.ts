@@ -413,7 +413,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         // Keyed off the selected participant's own chat linkage, not the page-level `report` - that prop can stay
         // bound to a previously-selected participant's chat when the user swaps recipients without remounting.
         const transactionReportID = transaction?.reportID;
-        const optimisticChatReportID = getReusableP2PReportID(participant, transactionReportID) ?? generateReportID();
+        const reusableP2PReportID = getReusableP2PReportID(participant, transactionReportID);
+        const participantAccountIDs = [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID];
+        const {chatReportID: optimisticChatReportID} = resolveOptimisticChatReportID(participantAccountIDs, undefined, reusableP2PReportID);
         const optimisticCreatedReportActionID = rand64();
         const optimisticReportPreviewActionID = rand64();
         let existingIOUReport: Report | undefined;
@@ -623,9 +625,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             // Reuse it so the pre-mounted screen subscribes to the report created on submission.
             const reusableP2PReportID = !isExpenseReport ? getReusableP2PReportID(participant, transactionReportID) : undefined;
             const participantAccountIDs = [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID];
-            const reportIDs = reusableP2PReportID
-                ? {optimisticChatReportID: reusableP2PReportID, chatReportID: reusableP2PReportID}
-                : resolveOptimisticChatReportID(participantAccountIDs, existingChatReport);
+            const reportIDs =
+                !isExpenseReport && !participant.isPolicyExpenseChat
+                    ? resolveOptimisticChatReportID(participantAccountIDs, undefined, reusableP2PReportID)
+                    : resolveOptimisticChatReportID(participantAccountIDs, existingChatReport);
             const {optimisticChatReportID, chatReportID} = reportIDs;
             const activeReportID = isExpenseReport ? report?.reportID : chatReportID;
 
