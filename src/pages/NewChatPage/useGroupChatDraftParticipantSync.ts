@@ -1,7 +1,7 @@
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useOnyx from '@hooks/useOnyx';
 
-import {getUserToInviteOption, hydrateLazyPersonalDetailOption} from '@libs/OptionsListUtils';
+import {getUserToInviteOption, hydrateContactOption} from '@libs/OptionsListUtils';
 import type {PersonalDetailOptionOrShell} from '@libs/OptionsListUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,7 +57,7 @@ function useGroupChatDraftParticipantSync(
             const foundOption = allPersonalDetailOptions.find((personalDetail) => personalDetail.accountID === participant.accountID);
             if (foundOption) {
                 // Restored participants must be display-ready options.
-                const {isHydrated, ...hydrated} = hydrateLazyPersonalDetailOption(foundOption);
+                const {isHydrated, ...hydrated} = hydrateContactOption(foundOption);
                 result.push({...hydrated, isSelected: true});
                 return result;
             }

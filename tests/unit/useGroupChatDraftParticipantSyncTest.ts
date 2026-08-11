@@ -457,7 +457,7 @@ describe('useGroupDraftRestore', () => {
         it('should restore the same participant option from eager and lazy contact lists', () => {
             // Given the same contacts represented once as full options and once as lazy shells
             const shells = buildLazyShells();
-            const eagerOptions = shells.map(OptionsListUtilsModule.hydrateLazyPersonalDetailOption);
+            const eagerOptions = shells.map(OptionsListUtilsModule.hydrateContactOption);
             const draftParticipants = [PARTICIPANT_A];
 
             // When the draft is restored through each representation

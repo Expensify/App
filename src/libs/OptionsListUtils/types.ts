@@ -142,7 +142,7 @@ type PersonalDetailShell = Pick<
     /** Discriminates a shell from a display-ready option. */
     isHydrated: false;
 
-    /** Passed from getValidOptions to hydrateWithMarks because shells have no brickRoadIndicator yet. */
+    /** Passed from getValidOptions to hydrateDeferredContactOption because shells have no brickRoadIndicator yet. */
     shouldShowGBR?: boolean;
 
     /** Builds the memoized display option. */
@@ -279,7 +279,7 @@ type GetOptionsConfig = {
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     sortedActions?: Record<string, ReportAction[]>;
     isTrackIntentUser?: boolean;
-    /** Return shells; callers must pass them through hydrateWithMarks before rendering. */
+    /** Return shells; callers must pass them through hydrateDeferredContactOption before rendering. */
     deferContactHydration?: boolean;
     /** TODO: Should be required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;

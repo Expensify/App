@@ -27,7 +27,7 @@ import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/acti
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {filterAndOrderOptions, getHeaderMessage, getSearchValueForPhoneOrEmail, getValidOptions, hydrateWithMarks} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, getHeaderMessage, getSearchValueForPhoneOrEmail, getValidOptions, hydrateDeferredContactOption} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {HydratedPersonalDetailOption, OptionWithKey} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
@@ -217,9 +217,11 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     };
 
     // Hydrate before passing contacts to the UI; shells have no display fields.
-    const hydratedPersonalDetails: HydratedPersonalDetailOption[] = paginatedFilteredPersonalDetails.map(hydrateWithMarks);
+    const hydratedPersonalDetails: HydratedPersonalDetailOption[] = paginatedFilteredPersonalDetails.map(hydrateDeferredContactOption);
 
-    const hydratedCurrentUserOption: HydratedPersonalDetailOption | null | undefined = options.currentUserOption ? hydrateWithMarks(options.currentUserOption) : options.currentUserOption;
+    const hydratedCurrentUserOption: HydratedPersonalDetailOption | null | undefined = options.currentUserOption
+        ? hydrateDeferredContactOption(options.currentUserOption)
+        : options.currentUserOption;
 
     return {
         ...options,

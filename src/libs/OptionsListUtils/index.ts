@@ -1723,7 +1723,7 @@ function buildFullOption(accountID: number, item: PersonalDetails | null, report
 
 /**
  * Step 5 of createFilteredOptionList: one lightweight shell per personal detail.
- * Only filter/rank fields are computed here; getValidOptions hydrates survivors via hydrateLazyPersonalDetailOption.
+ * Only filter/rank fields are computed here; getValidOptions hydrates survivors via hydrateContactOption.
  */
 function buildPersonalDetailsOptions(reportMapForAccountIDs: Record<number, Report>, context: LazyHydrationContext): PersonalDetailShell[] {
     const {personalDetails, translate} = context;
@@ -1758,7 +1758,7 @@ function buildPersonalDetailsOptions(reportMapForAccountIDs: Record<number, Repo
 }
 
 /** Hydrates a shell, reusing its memoized display option. */
-function hydrateLazyPersonalDetailOption(option: PersonalDetailOptionOrShell): HydratedPersonalDetailOption {
+function hydrateContactOption(option: PersonalDetailOptionOrShell): HydratedPersonalDetailOption {
     if (option.isHydrated) {
         return option;
     }
@@ -1767,12 +1767,12 @@ function hydrateLazyPersonalDetailOption(option: PersonalDetailOptionOrShell): H
 }
 
 /** Hydrates a deferred shell and restores the marks applied by getValidOptions. */
-function hydrateWithMarks(option: PersonalDetailOptionOrShell): HydratedPersonalDetailOption {
+function hydrateDeferredContactOption(option: PersonalDetailOptionOrShell): HydratedPersonalDetailOption {
     if (option.isHydrated) {
         return option;
     }
 
-    const hydrated = hydrateLazyPersonalDetailOption(option);
+    const hydrated = hydrateContactOption(option);
     hydrated.isSelected = option.isSelected;
     hydrated.isBold = option.isBold;
     // A shell cannot apply this suppression until hydration creates brickRoadIndicator.
@@ -3009,7 +3009,7 @@ function getValidOptions(
             : undefined;
         const groupedPersonalDetails = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
         // Defer callers hydrate only the rows they render; other callers hydrate the selected page here.
-        personalDetailsOptions = deferContactHydration ? groupedPersonalDetails.options : groupedPersonalDetails.options.map(hydrateLazyPersonalDetailOption);
+        personalDetailsOptions = deferContactHydration ? groupedPersonalDetails.options : groupedPersonalDetails.options.map(hydrateContactOption);
 
         hasMore = hasMore || groupedPersonalDetails.hasMore;
 
@@ -3681,8 +3681,8 @@ export {
     combineOrderingOfReportsAndPersonalDetails,
     createOptionFromReport,
     createFilteredOptionList,
-    hydrateLazyPersonalDetailOption,
-    hydrateWithMarks,
+    hydrateContactOption,
+    hydrateDeferredContactOption,
     createOption,
     filterAndOrderOptions,
     filterReports,

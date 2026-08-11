@@ -38,8 +38,8 @@ import {
     getSearchValueForPhoneOrEmail,
     getUserToInviteOption,
     getValidOptions,
-    hydrateLazyPersonalDetailOption,
-    hydrateWithMarks,
+    hydrateContactOption,
+    hydrateDeferredContactOption,
     optionsOrderAndGroupBy,
     optionsOrderBy,
     orderOptions,
@@ -1815,11 +1815,11 @@ describe('OptionsListUtils', () => {
     describe('getValidOptions() with lazy contact options', () => {
         const hydrateAllPersonalDetails = (list: OptionList): OptionList => ({
             ...list,
-            personalDetails: list.personalDetails.map(hydrateLazyPersonalDetailOption),
+            personalDetails: list.personalDetails.map(hydrateContactOption),
         });
 
         // NOTE: `eagerList` is NOT a correctness baseline for what hydration produces — both sides of every
-        // comparison below run through hydrateLazyPersonalDetailOption, so a dropped hydration input would
+        // comparison below run through hydrateContactOption, so a dropped hydration input would
         // change both and still pass. What these tests prove is that getValidOptions handles the two halves of
         // PersonalDetailOptionOrShell identically (filtering, ranking, the top-N heap, marking).
         // The non-circular check — hydration output vs. a direct createOption call with non-default inputs —
@@ -2093,7 +2093,7 @@ describe('OptionsListUtils', () => {
             expect(cachedShell).toBeDefined();
             expect(cachedShell).not.toBe(freshShell);
             if (freshShell && cachedShell) {
-                expect(hydrateLazyPersonalDetailOption(cachedShell).icons).toBe(hydrateLazyPersonalDetailOption(freshShell).icons);
+                expect(hydrateContactOption(cachedShell).icons).toBe(hydrateContactOption(freshShell).icons);
             }
 
             // When both the fresh and cached lazy lists go through getValidOptions
@@ -2131,7 +2131,7 @@ describe('OptionsListUtils', () => {
 
             // When the shell is hydrated (hydration reads the inputs captured at build time, so no consumer
             // - e.g. a getSearchOptions caller without report attributes in scope - can drop display data)
-            const hydrated = hydrateLazyPersonalDetailOption(shell);
+            const hydrated = hydrateContactOption(shell);
 
             // Then the RBR indicator matches what the eager build would have produced
             expect(hydrated.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
@@ -2146,10 +2146,10 @@ describe('OptionsListUtils', () => {
             if (!shell) {
                 return;
             }
-            const first = hydrateLazyPersonalDetailOption(shell);
+            const first = hydrateContactOption(shell);
 
             // When the same shell is hydrated again
-            const second = hydrateLazyPersonalDetailOption(shell);
+            const second = hydrateContactOption(shell);
 
             // Then the expensive parts are shared, but the option itself is a new object so consumers marking it
             // in place (isSelected/isBold) cannot leak into other callers and list rows still see a changed reference
@@ -2159,7 +2159,7 @@ describe('OptionsListUtils', () => {
 
             // And mutating one copy leaves later hydrations of the same shell untouched
             first.isSelected = true;
-            expect(hydrateLazyPersonalDetailOption(shell).isSelected).toBe(false);
+            expect(hydrateContactOption(shell).isSelected).toBe(false);
         });
 
         it('should hydrate lazy shells when mixed with fully-built device contacts', () => {
@@ -2290,7 +2290,7 @@ describe('OptionsListUtils', () => {
             }
 
             // When it is hydrated
-            const hydrated = hydrateLazyPersonalDetailOption(shell);
+            const hydrated = hydrateContactOption(shell);
 
             // Then it matches an option built by calling createOption directly with those same inputs.
             // Dropping any input from the hydration path makes this diverge, because this side names them all.
@@ -2322,7 +2322,7 @@ describe('OptionsListUtils', () => {
             }
 
             // Then hydration surfaces it, so a caller with no report attributes in scope cannot lose it
-            expect(hydrateLazyPersonalDetailOption(shell).brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+            expect(hydrateContactOption(shell).brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
         });
 
         it('should carry the archived state from privateIsArchivedMap into the built option', () => {
@@ -2333,7 +2333,7 @@ describe('OptionsListUtils', () => {
             }
 
             // Then hydration reflects it
-            expect(hydrateLazyPersonalDetailOption(shell).private_isArchived).toBe(true);
+            expect(hydrateContactOption(shell).private_isArchived).toBe(true);
         });
 
         it('should carry conciergeReportID into the built option', () => {
@@ -2351,7 +2351,7 @@ describe('OptionsListUtils', () => {
 
             // Then hydration builds the same option a direct createOption call with that conciergeReportID does,
             // rather than the one it would build with conciergeReportID dropped
-            const hydrated = hydrateLazyPersonalDetailOption(shell);
+            const hydrated = hydrateContactOption(shell);
             const withConcierge = createOption({
                 accountIDs: [PARITY_ACCOUNT_ID],
                 personalDetails: PARITY_PERSONAL_DETAILS,
@@ -2373,7 +2373,7 @@ describe('OptionsListUtils', () => {
         // createOption is called through a module-local binding, so a jest spy on the export never sees it.
         // buildFullOption allocates a fresh `icons` array per build instead, so sharing that array by reference
         // is exactly "no createOption ran": a rebuild could not produce the same array object.
-        const buildIdentity = (option: PersonalDetailOptionOrShell) => hydrateLazyPersonalDetailOption(option).icons;
+        const buildIdentity = (option: PersonalDetailOptionOrShell) => hydrateContactOption(option).icons;
 
         it('should not rebuild any contact option when the second option list comes from the entry cache', () => {
             // Given two identical createFilteredOptionList calls, the second served from the entry cache
@@ -2415,7 +2415,7 @@ describe('OptionsListUtils', () => {
             if (!shell) {
                 return;
             }
-            const hydrated = hydrateLazyPersonalDetailOption(shell);
+            const hydrated = hydrateContactOption(shell);
             const icons = hydrated.icons;
             expect(icons?.length).toBeGreaterThan(0);
 
@@ -2466,7 +2466,7 @@ describe('OptionsListUtils', () => {
             // `icons` identity doubles as the build counter here (see the warm-path suite above).
             const PAGE_SIZE = 2;
             expect(deferred.personalDetails.length).toBeGreaterThan(PAGE_SIZE);
-            const page = deferred.personalDetails.slice(0, PAGE_SIZE).map(hydrateWithMarks);
+            const page = deferred.personalDetails.slice(0, PAGE_SIZE).map(hydrateDeferredContactOption);
             expect(page).toHaveLength(PAGE_SIZE);
             expect(page.every((option) => option.isHydrated && option.icons !== undefined)).toBe(true);
             expect(deferred.personalDetails.slice(PAGE_SIZE).every((option) => !option.isHydrated)).toBe(true);
@@ -2489,7 +2489,7 @@ describe('OptionsListUtils', () => {
             );
 
             // Then hydrating the deferred survivors reproduces the eager options exactly
-            expect(deferred.personalDetails.map(hydrateWithMarks)).toEqual(eager.personalDetails);
+            expect(deferred.personalDetails.map(hydrateDeferredContactOption)).toEqual(eager.personalDetails);
         });
 
         it.each([false, true])('should preserve selected and bold marks through deferred hydration ($shouldBoldTitleByDefault)', (shouldBoldTitleByDefault) => {
@@ -2521,7 +2521,7 @@ describe('OptionsListUtils', () => {
             );
 
             // Then hydrating the deferred results reproduces the eager results, including both marks
-            expect(deferred.personalDetails.map(hydrateWithMarks)).toEqual(eager.personalDetails);
+            expect(deferred.personalDetails.map(hydrateDeferredContactOption)).toEqual(eager.personalDetails);
 
             const selectedShell = deferred.personalDetails.find((option) => option.login === selectedLogin);
             expect(selectedShell).toBeDefined();
@@ -2532,14 +2532,14 @@ describe('OptionsListUtils', () => {
             expect(selectedShell.isBold).toBe(shouldBoldTitleByDefault);
 
             // Then hydration carries them onto the built option instead of resetting to the shared build's values
-            const hydrated = hydrateWithMarks(selectedShell);
+            const hydrated = hydrateDeferredContactOption(selectedShell);
             expect(hydrated.isSelected).toBe(true);
             expect(hydrated.isBold).toBe(shouldBoldTitleByDefault);
             expect(hydrated.icons).toBeDefined();
 
             // And an unselected contact stays unselected
             const otherShell = deferred.personalDetails.find((option) => option.login !== selectedLogin);
-            expect(otherShell ? hydrateWithMarks(otherShell).isSelected : undefined).toBe(false);
+            expect(otherShell ? hydrateDeferredContactOption(otherShell).isSelected : undefined).toBe(false);
         });
 
         it('should expose the same current-user option after deferred hydration as the eager path', () => {
@@ -2561,7 +2561,7 @@ describe('OptionsListUtils', () => {
             // Then both paths find the same contact, and hydrating the deferred reference reproduces the eager option
             expect(eager.currentUserOption).toBeDefined();
             expect(deferred.currentUserOption).toBeDefined();
-            expect(deferred.currentUserOption ? hydrateWithMarks(deferred.currentUserOption) : undefined).toEqual(eager.currentUserOption);
+            expect(deferred.currentUserOption ? hydrateDeferredContactOption(deferred.currentUserOption) : undefined).toEqual(eager.currentUserOption);
         });
 
         it('should apply the GBR suppression the eager path applies, using the flag recorded on the shell', () => {
@@ -2614,7 +2614,7 @@ describe('OptionsListUtils', () => {
                 return;
             }
             expect(eagerDM.brickRoadIndicator).toBe('');
-            expect(hydrateWithMarks(deferredDM).brickRoadIndicator).toBe('');
+            expect(hydrateDeferredContactOption(deferredDM).brickRoadIndicator).toBe('');
         });
 
         it('should keep GBR indicators when the caller asks for them', () => {
@@ -2671,7 +2671,7 @@ describe('OptionsListUtils', () => {
             const deferredDM = deferred.personalDetails.find((option) => option.reportID === dmReportID);
             expect(eagerDM).toBeDefined();
             expect(deferredDM).toBeDefined();
-            expect(deferredDM ? hydrateWithMarks(deferredDM) : undefined).toEqual(eagerDM);
+            expect(deferredDM ? hydrateDeferredContactOption(deferredDM) : undefined).toEqual(eagerDM);
         });
     });
 
@@ -2698,7 +2698,7 @@ describe('OptionsListUtils', () => {
             expect(subtitle).toBeUndefined();
 
             // Narrowing (or hydrating) is what makes them readable
-            expect(hydrateLazyPersonalDetailOption(option).icons).toBeDefined();
+            expect(hydrateContactOption(option).icons).toBeDefined();
         });
     });
 
@@ -4857,7 +4857,7 @@ describe('OptionsListUtils', () => {
 
             // Then the hydrated personal detail option for account 1 (Mister Fantastic) should have private_isArchived set
             const misterFantasticOption = result.personalDetails.find((pd) => pd.item?.accountID === 1);
-            const hydratedMisterFantasticOption = misterFantasticOption ? hydrateLazyPersonalDetailOption(misterFantasticOption) : undefined;
+            const hydratedMisterFantasticOption = misterFantasticOption ? hydrateContactOption(misterFantasticOption) : undefined;
             expect(hydratedMisterFantasticOption?.private_isArchived).toBe(true);
         });
 
@@ -4870,7 +4870,7 @@ describe('OptionsListUtils', () => {
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, emptyMap, undefined, {conciergeReportID: undefined, isSearching: true});
 
             // Then no personal details options should have private_isArchived set once hydrated
-            const optionsWithArchived = result.personalDetails.map(hydrateLazyPersonalDetailOption).filter((pd) => pd.private_isArchived);
+            const optionsWithArchived = result.personalDetails.map(hydrateContactOption).filter((pd) => pd.private_isArchived);
             expect(optionsWithArchived.length).toBe(0);
         });
 
@@ -4888,8 +4888,8 @@ describe('OptionsListUtils', () => {
             // Then the hydrated personal detail options should have the correct private_isArchived values
             const misterFantasticOption = result.personalDetails.find((pd) => pd.item?.accountID === 1);
             const invisibleWomanOption = result.personalDetails.find((pd) => pd.item?.accountID === 5);
-            const hydratedMisterFantasticOption = misterFantasticOption ? hydrateLazyPersonalDetailOption(misterFantasticOption) : undefined;
-            const hydratedInvisibleWomanOption = invisibleWomanOption ? hydrateLazyPersonalDetailOption(invisibleWomanOption) : undefined;
+            const hydratedMisterFantasticOption = misterFantasticOption ? hydrateContactOption(misterFantasticOption) : undefined;
+            const hydratedInvisibleWomanOption = invisibleWomanOption ? hydrateContactOption(invisibleWomanOption) : undefined;
 
             expect(hydratedMisterFantasticOption?.private_isArchived).toBe(true);
             expect(hydratedInvisibleWomanOption?.private_isArchived).toBe(true);
@@ -10528,7 +10528,7 @@ describe('OptionsListUtils', () => {
 
             // Hydration freezes the option it memoizes, and it reads shared Onyx Reports out of its captured
             // build inputs — those must survive unfrozen too.
-            const hydrated = result.personalDetails.map(hydrateLazyPersonalDetailOption);
+            const hydrated = result.personalDetails.map(hydrateContactOption);
             expect(hydrated.length).toBeGreaterThan(0);
             expect(hydrated.every((option) => !Object.isFrozen(option))).toBe(true);
             expect(Object.values(REPORTS).every((report) => !Object.isFrozen(report))).toBe(true);
