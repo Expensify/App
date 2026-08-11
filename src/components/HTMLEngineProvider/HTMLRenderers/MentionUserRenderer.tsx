@@ -49,7 +49,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     if (!isEmpty(htmlAttribAccountID) && personalDetails?.[htmlAttribAccountID]) {
         const user = personalDetails[htmlAttribAccountID];
         accountID = parseInt(htmlAttribAccountID, 10);
-        mentionDisplayText = formatPhoneNumber(user?.login ?? '') || temporaryGetDisplayNameOrDefault({passedPersonalDetails: user, translate});
+        mentionDisplayText = formatPhoneNumber(user?.login ?? '') || temporaryGetDisplayNameOrDefault({passedPersonalDetails: user, translate, formatPhoneNumber});
         mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, currentUserPersonalDetails, user?.login ?? '') ?? '';
         navigationRoute = createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID), Navigation.getReportRHPActiveRoute());
     } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
@@ -68,7 +68,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     } else if (!isEmpty(htmlAttribAccountID)) {
         // accountID not found in personal details and mention data not provided
         accountID = parseInt(htmlAttribAccountID, 10);
-        mentionDisplayText = temporaryGetDisplayNameOrDefault({translate});
+        mentionDisplayText = temporaryGetDisplayNameOrDefault({translate, formatPhoneNumber});
         navigationRoute = createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID), Navigation.getReportRHPActiveRoute());
     } else {
         // If neither an account ID or email is provided, don't render anything
