@@ -104,11 +104,11 @@ function FixBankAccountPage() {
             shouldEnableMaxHeight
             testID="FixBankAccountPage"
         >
-            <HeaderWithBackButton
-                title={translate('walletPage.fixBankAccount.title')}
-                onBackButtonPress={didSend ? onDismiss : onBack}
-            />
             <FullPageNotFoundView shouldShow={!isValidationFailed && !didSend}>
+                <HeaderWithBackButton
+                    title={translate('walletPage.fixBankAccount.title')}
+                    onBackButtonPress={didSend ? onDismiss : onBack}
+                />
                 {didSend && (
                     <ConfirmationPage
                         illustration={illustrations.LaptopWithSecondScreenBank}
