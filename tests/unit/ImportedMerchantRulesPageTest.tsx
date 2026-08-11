@@ -341,6 +341,21 @@ describe('ImportedMerchantRulesPage', () => {
             expect(screen.getByText(IMPORT_BUTTON_TEXT)).not.toBeDisabled();
         });
 
+        it('disables the Import button while offline when categories are enabled but not yet loaded', async () => {
+            // Categories are enabled but not cached (e.g. after a cache clear), so the empty lookup wrongly flags
+            // every category invalid. The short-circuit hinges on categories we couldn't validate, so it isn't safe offline.
+            await seedOnyx(true, buildInvalidCategorySpreadsheet());
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderImportedMerchantRulesPage();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(IMPORT_BUTTON_TEXT)).toBeDisabled();
+        });
+
         it('keeps the Import button enabled online even when the import needs the API', async () => {
             await seedOnyx(false);
 

@@ -319,9 +319,14 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     // button can never be enabled offline for an import that actually needs the (non-retryable) API call
     const parsedRules = useMemo(() => parseSpreadsheetRules(spreadsheet, containsHeader, policy, policyCategories), [spreadsheet, containsHeader, policy, policyCategories]);
 
+    // When categories are enabled but not yet cached (e.g. after a cache clear, before the on-focus fetch), the
+    // category lookup is empty so every category is wrongly flagged invalid. Invalid-category counts are only
+    // trustworthy once categories are loaded; a purely-duplicate short-circuit (no invalid categories) is safe regardless.
+    const areCategoriesReady = !policy?.areCategoriesEnabled || !!policyCategories;
+
     // The import short-circuits locally (no API call) only when every row was skipped, so that's the only case
-    // where the button may stay active offline
-    const canImportOffline = willImportShortCircuitLocally(parsedRules);
+    // where the button may stay active offline — and only when that short-circuit doesn't hinge on unvalidated categories.
+    const canImportOffline = willImportShortCircuitLocally(parsedRules) && (areCategoriesReady || parsedRules.invalidCategoryNames.size === 0);
 
     const importRules = async () => {
         setIsValidationEnabled(true);
