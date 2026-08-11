@@ -466,19 +466,31 @@ function getMoneyRequestReportName({
     return payerPaidAmountMessage;
 }
 
-function computeReportNameBasedOnReportAction(
-    translate: LocalizedTranslate,
-    dateFnsLocale: DateFnsLocale | undefined,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    parentReportAction: ReportAction | undefined,
-    report: Report | undefined,
-    reportPolicy: Policy | undefined,
-    parentReport: Report | undefined,
-    personalDetailsList: OnyxEntry<PersonalDetailsList>,
-    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
-    isTrackIntentUser: boolean | undefined,
-    currentUserAccountID: number,
-): string | undefined {
+function computeReportNameBasedOnReportAction({
+    translate,
+    dateFnsLocale,
+    formatPhoneNumber,
+    parentReportAction,
+    report,
+    reportPolicy,
+    parentReport,
+    personalDetailsList,
+    reportAttributes,
+    isTrackIntentUser,
+    currentUserAccountID,
+}: {
+    translate: LocalizedTranslate;
+    dateFnsLocale: DateFnsLocale | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    parentReportAction: ReportAction | undefined;
+    report: Report | undefined;
+    reportPolicy: Policy | undefined;
+    parentReport: Report | undefined;
+    personalDetailsList: OnyxEntry<PersonalDetailsList>;
+    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined;
+    isTrackIntentUser: boolean | undefined;
+    currentUserAccountID: number;
+}): string | undefined {
     if (!parentReportAction) {
         return undefined;
     }
@@ -1015,10 +1027,10 @@ function computeReportName({
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const parentReportAction = isThread(report) ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report.parentReportActionID] : undefined;
 
-    const parentReportActionBasedName = computeReportNameBasedOnReportAction(
+    const parentReportActionBasedName = computeReportNameBasedOnReportAction({
         translate,
         dateFnsLocale,
-        formatPhoneNumberPhoneUtils,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
         parentReportAction,
         report,
         reportPolicy,
@@ -1026,8 +1038,8 @@ function computeReportName({
         personalDetailsList,
         reportAttributes,
         isTrackIntentUser,
-        currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-    );
+        currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+    });
 
     if (parentReportActionBasedName) {
         return parentReportActionBasedName;
