@@ -73,7 +73,7 @@ function MemberListItemHeaderImpl({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
-    const formattedDisplayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: memberItem, translate}));
+    const formattedDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: memberItem, translate, formatPhoneNumber});
     const formattedLogin = formatPhoneNumber(memberItem.login ?? '');
 
     const columnComponents = {

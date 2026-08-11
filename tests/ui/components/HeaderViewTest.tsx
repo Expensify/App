@@ -239,7 +239,7 @@ describe('HeaderView', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID), accountManagerCalendarLink});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID, accountManagerCalendarLink});
         });
 
         renderHeader(report.reportID);
@@ -256,7 +256,7 @@ describe('HeaderView', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, report.reportID);
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID), accountManagerCalendarLink});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID, accountManagerCalendarLink});
         });
 
         renderHeader(report.reportID);
@@ -273,7 +273,7 @@ describe('HeaderView', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID)});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID});
         });
 
         renderHeader(report.reportID);
@@ -290,7 +290,7 @@ describe('HeaderView', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID), accountManagerCalendarLink});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID, accountManagerCalendarLink});
         });
 
         renderHeader(report.reportID);

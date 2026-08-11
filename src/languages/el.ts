@@ -320,7 +320,6 @@ const translations: TranslationDeepObject<typeof en> = {
         automatic: 'Αυτόματο',
         showing: 'Εμφανίζονται',
         of: 'του',
-        // @context Carousel pagination counter showing the current item's position out of the total (e.g. "3 of 50").
         currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} από ${total}`,
         default: 'Προεπιλογή',
         update: 'Ενημέρωση',
@@ -5869,6 +5868,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             subsidiarySelectDescription: 'Επιλέξτε τη θυγατρική στο DualEntry από την οποία θέλετε να εισαγάγετε δεδομένα.',
             noCompaniesFound: 'Δεν βρέθηκαν εταιρείες',
             noCompaniesFoundDescription: 'Παρακαλούμε προσθέστε μια εταιρεία στο DualEntry και συγχρονίστε ξανά τη σύνδεση',
+            accountTypesDescription: 'Οι λογαριασμοί DualEntry θα εισαχθούν ως κατηγορίες.',
+            enableNewAccountsTitle: 'Ενεργοποίηση νέων εισαγόμενων λογαριασμών',
+            enableNewAccountsDescription: 'Οι νέοι λογαριασμοί DualEntry θα είναι διαθέσιμοι ως κατηγορίες.',
+            classificationsImport: 'Όλες οι κατηγοριοποιήσεις DualEntry εισάγονται ως ετικέτες',
+            importDescription: 'Επιλέξτε ποιες ρυθμίσεις κωδικοποίησης θέλετε να εισαγάγετε από το DualEntry.',
         },
         type: {
             free: 'Δωρεάν',
@@ -9030,6 +9034,9 @@ ${reportName}`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `αντιγράφηκαν οι ρυθμίσεις τιμολογίου από το <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `αντιγράφηκαν οι ρυθμίσεις ταξιδιού από το <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             currency: (sourcePolicyName: string, sourcePolicyURL: string) => `αντιγράφηκε το νόμισμα από την πολιτική <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+        },
+        updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
+            return `άλλαξε τους συμμετέχοντες της κατηγορίας «${categoryName}» σε ${newValue ? 'υποχρεωτικό' : 'μη υποχρεωτικό'} (προηγουμένως ${newValue ? 'μη υποχρεωτικό' : 'υποχρεωτικό'})`;
         },
     },
     roomMembersPage: {

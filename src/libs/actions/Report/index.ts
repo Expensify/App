@@ -8430,7 +8430,7 @@ function mergeReports({
         policyTagList: policyTagList ?? {},
         transactions: transactionsToMove,
         allTransactionViolation,
-        allReports: reports,
+        reports,
         skippedReportIDs: sourceReportIDs,
         isTrackIntentUser,
         personalPolicyOutputCurrency,
