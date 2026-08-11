@@ -31,7 +31,7 @@ abstract class HybridAppStartTimeModuleSpec: HybridObject() {
   
   @get:DoNotStrip
   @get:Keep
-  abstract val appStartupMarkers: String
+  abstract val appStartupMarkers: Map<String, Double>
 
   // Methods
   

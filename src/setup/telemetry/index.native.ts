@@ -24,13 +24,11 @@ const STARTUP_FLAG_MARKERS: Record<string, string> = {
  */
 function reportStartupMarkers(startupSpan: Span, nativeAppStartTimeMs: number) {
     try {
-        const markersJSON = (AppStartTimeNitroModule as {readonly appStartupMarkers?: string}).appStartupMarkers ?? '{}';
-        const parsed: unknown = JSON.parse(markersJSON);
-        if (!parsed || typeof parsed !== 'object') {
-            return;
-        }
-        const markers = Object.entries(parsed)
-            .filter((entry): entry is [string, number] => typeof entry[1] === 'number' && entry[1] >= nativeAppStartTimeMs)
+        // The getter only exists on binaries built with this native module version. A newer JS bundle
+        // on an older HybridApp binary (Metro dev, release skew) sees undefined at runtime — no markers.
+        const rawMarkers = (AppStartTimeNitroModule.appStartupMarkers as Record<string, number> | undefined) ?? {};
+        const markers = Object.entries(rawMarkers)
+            .filter(([, timestampMs]) => timestampMs >= nativeAppStartTimeMs)
             .sort(([, a], [, b]) => a - b);
 
         let previousTimestampMs = nativeAppStartTimeMs;

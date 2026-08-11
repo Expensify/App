@@ -11,7 +11,7 @@ import NitroModules
 public protocol HybridAppStartTimeModuleSpec_protocol: HybridObject {
   // Properties
   var appStartTime: Double { get }
-  var appStartupMarkers: String { get }
+  var appStartupMarkers: Dictionary<String, Double> { get }
 
   // Methods
   

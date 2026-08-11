@@ -15,6 +15,7 @@ namespace ExpensifyNitroUtils { class HybridAppStartTimeModuleSpec_cxx; }
 
 
 #include <string>
+#include <unordered_map>
 
 #include "ExpensifyNitroUtils-Swift-Cxx-Umbrella.hpp"
 
@@ -65,7 +66,7 @@ namespace margelo::nitro::utils {
     inline double getAppStartTime() noexcept override {
       return _swiftPart.getAppStartTime();
     }
-    inline std::string getAppStartupMarkers() noexcept override {
+    inline std::unordered_map<std::string, double> getAppStartupMarkers() noexcept override {
       auto __result = _swiftPart.getAppStartupMarkers();
       return __result;
     }

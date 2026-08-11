@@ -128,10 +128,16 @@ open class HybridAppStartTimeModuleSpec_cxx {
     }
   }
   
-  public final var appStartupMarkers: std.string {
+  public final var appStartupMarkers: bridge.std__unordered_map_std__string__double_ {
     @inline(__always)
     get {
-      return std.string(self.__implementation.appStartupMarkers)
+      return { () -> bridge.std__unordered_map_std__string__double_ in
+        var __map = bridge.create_std__unordered_map_std__string__double_(self.__implementation.appStartupMarkers.count)
+        for (__k, __v) in self.__implementation.appStartupMarkers {
+          bridge.emplace_std__unordered_map_std__string__double_(&__map, std.string(__k), __v)
+        }
+        return __map
+      }()
     }
   }
 

@@ -11,11 +11,11 @@ interface AppStartTimeModule extends HybridObject<{ios: 'swift'; android: 'kotli
 
     /**
      * Gets the named startup stage timestamps (milliseconds since epoch) recorded by the
-     * native layer during app launch, serialized as a JSON object string. The markers are
-     * cleared whenever the app start time is reset, so every entry belongs to the current
-     * startup. Returns '{}' when no markers were recorded.
+     * native layer during app launch. The markers are cleared whenever the app start time
+     * is reset, so every entry belongs to the current startup. Returns an empty record
+     * when no markers were recorded.
      */
-    readonly appStartupMarkers: string;
+    readonly appStartupMarkers: Record<string, number>;
 }
 
 export default AppStartTimeModule;

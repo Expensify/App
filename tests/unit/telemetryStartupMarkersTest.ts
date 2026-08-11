@@ -4,7 +4,7 @@ import setupTelemetry from '@src/setup/telemetry/index.native';
 jest.unmock('@src/setup/telemetry');
 jest.unmock('@src/setup/telemetry/index.native');
 
-const mockMarkers = jest.fn<string, []>(() => '{}');
+const mockMarkers = jest.fn<Record<string, number> | undefined, []>(() => ({}));
 
 jest.mock('@expensify/nitro-utils', () => ({
     get AppStartTimeNitroModule() {
@@ -36,21 +36,19 @@ describe('telemetry startup markers (native)', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         global.requestAnimationFrame = jest.fn();
-        mockMarkers.mockReturnValue('{}');
+        mockMarkers.mockReturnValue({});
         activeSpansMock.startSpan.mockReturnValue({setAttribute: jest.fn()});
         startInactiveSpanMock.mockImplementation(() => ({end: jest.fn(), setAttribute: jest.fn()}));
     });
 
     it('creates one backdated child span per stage marker plus the trailing JS-init span', () => {
         // Given native markers recorded out of write-order (YAPLLoad returns after RN setup)
-        mockMarkers.mockReturnValue(
-            JSON.stringify({
-                NativeYAPLLoad: 1_930,
-                NativeDeviceConfig: 1_003,
-                RNSetupStart: 1_843,
-                OldDotDisplay: 1_828,
-            }),
-        );
+        mockMarkers.mockReturnValue({
+            NativeYAPLLoad: 1_930,
+            NativeDeviceConfig: 1_003,
+            RNSetupStart: 1_843,
+            OldDotDisplay: 1_828,
+        });
 
         setupTelemetry();
 
@@ -66,12 +64,10 @@ describe('telemetry startup markers (native)', () => {
     });
 
     it('reports flag markers as attributes on the startup span instead of child spans', () => {
-        mockMarkers.mockReturnValue(
-            JSON.stringify({
-                OldDotDeeplinkDeferred: 1_500,
-                NativeDeviceConfig: 1_003,
-            }),
-        );
+        mockMarkers.mockReturnValue({
+            OldDotDeeplinkDeferred: 1_500,
+            NativeDeviceConfig: 1_003,
+        });
         const parentSpan = {setAttribute: jest.fn()};
         activeSpansMock.startSpan.mockReturnValue(parentSpan);
 
@@ -84,7 +80,7 @@ describe('telemetry startup markers (native)', () => {
 
     it('skips the JS-init span when only flag markers are present', () => {
         // Given markers with no stage boundaries — a JS-init span here would cover the whole native head
-        mockMarkers.mockReturnValue(JSON.stringify({OldDotDeeplinkDeferred: 1_500}));
+        mockMarkers.mockReturnValue({OldDotDeeplinkDeferred: 1_500});
 
         setupTelemetry();
 
@@ -93,7 +89,7 @@ describe('telemetry startup markers (native)', () => {
     });
 
     it('ignores stale markers recorded before the app start time', () => {
-        mockMarkers.mockReturnValue(JSON.stringify({StaleMarker: 500, NativeDeviceConfig: 1_003}));
+        mockMarkers.mockReturnValue({StaleMarker: 500, NativeDeviceConfig: 1_003});
 
         setupTelemetry();
 
@@ -101,8 +97,9 @@ describe('telemetry startup markers (native)', () => {
         expect(stageNames).not.toContain('StaleMarker');
     });
 
-    it('survives malformed marker JSON without touching Sentry', () => {
-        mockMarkers.mockReturnValue('not-json');
+    it('survives the getter missing on an older native binary without touching Sentry', () => {
+        // Given a JS bundle newer than the installed binary — the nitro getter does not exist yet
+        mockMarkers.mockReturnValue(undefined);
 
         expect(() => setupTelemetry()).not.toThrow();
         expect(startInactiveSpanMock).not.toHaveBeenCalled();

@@ -15,13 +15,10 @@ final class HybridAppStartTimeModule: HybridAppStartTimeModuleSpec {
         return UserDefaults.standard.double(forKey: Self.appStartTimePreferencesKey)
     }
 
-    var appStartupMarkers: String {
-        guard let markers = UserDefaults.standard.dictionary(forKey: Self.appStartupMarkersPreferencesKey),
-              JSONSerialization.isValidJSONObject(markers),
-              let data = try? JSONSerialization.data(withJSONObject: markers),
-              let json = String(data: data, encoding: .utf8) else {
-            return "{}"
+    var appStartupMarkers: Dictionary<String, Double> {
+        guard let markers = UserDefaults.standard.dictionary(forKey: Self.appStartupMarkersPreferencesKey) else {
+            return [:]
         }
-        return json
+        return markers.compactMapValues { ($0 as? NSNumber)?.doubleValue }
     }
 }
