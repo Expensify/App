@@ -9,8 +9,6 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 /**
  * Resolves account IDs into avatar {@link Icon}s from the personal-details context and the default-avatar set.
- * Reads no Onyx keys of its own — the personal details come from the shared `OnyxListItemProvider` context — so the
- * cost is the same whether one account is rendered or twenty.
  *
  * @param invitedEmailsToAccountIDs Emails of invited, not-yet-registered accounts. An account listed here gets a
  * deterministic fallback avatar seeded from its email, so it looks the same before and after it registers.

@@ -844,7 +844,7 @@ function MenuItem({
 
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
-    // A known account renders straight from the personal-details context; only the report-derived avatars need `ReportActionAvatars`.
+    // A known account renders straight from the personal-details context. Only the report-derived avatars need `ReportActionAvatars`.
     const rightIconAccountIDNumber = Number(rightIconAccountID);
     const hasRightIconAccount = !!rightIconAccountID && rightIconAccountIDNumber > 0;
 
