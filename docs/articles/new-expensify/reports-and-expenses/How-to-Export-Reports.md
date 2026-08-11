@@ -78,7 +78,7 @@ For reports on a Submit workspace, the PDF also includes an **Approve or Pay** b
 4. Select **Download as PDF**.
 5. Wait for the files to finish preparing, then select **Download file** to save them to your device. You can also select **Send me the file when it's ready** to have Concierge send the files to you in a chat message instead.
 
-Each report downloads as its own PDF, including all expenses, attached receipts, and report notes. 
+Each report downloads as its own PDF, including all expenses, attached receipts, and report notes.
 
 ## How to download the receipts on a report
 
