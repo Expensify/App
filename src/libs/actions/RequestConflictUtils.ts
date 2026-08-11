@@ -75,6 +75,29 @@ function resolveDuplicationConflictAction(persistedRequests: AnyRequest[], reque
     };
 }
 
+/**
+ * Duplicate resolver for an incoming OpenApp. See the Conflict Resolution section of
+ * contributingGuides/SEQUENTIAL_QUEUE.md.
+ *
+ * OpenApp re-fetches the whole account, so one already in flight makes an incoming one redundant. The generic
+ * resolver cannot see that, because the in-flight request has already left the persisted queue: two full
+ * OpenApps then run back to back and the app-load skeleton stays up for both round trips.
+ *
+ * `shouldDedupeWithInFlight` is false for a caller whose response the in-flight request cannot supply, since
+ * the params do not describe the whole response. Such a request is never collapsed into a running one.
+ */
+function resolveOpenAppDuplicationConflictAction(persistedRequests: AnyRequest[], ongoingRequest: AnyRequest | null, shouldDedupeWithInFlight: boolean): ConflictActionData {
+    if (shouldDedupeWithInFlight && ongoingRequest?.command === WRITE_COMMANDS.OPEN_APP) {
+        return {
+            conflictAction: {
+                type: 'noAction',
+            },
+        };
+    }
+
+    return resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.OPEN_APP);
+}
+
 function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, parameters: OpenReportParams): ConflictActionData {
     for (let index = 0; index < persistedRequests.length; index++) {
         const request = persistedRequests.at(index);
@@ -354,6 +377,7 @@ function resolveDetachReceiptConflicts<TKey extends OnyxKey>(persistedRequests: 
 
 export {
     resolveDuplicationConflictAction,
+    resolveOpenAppDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
     resolveReconnectDuplicationConflictAction,
     readUpdateIDFrom,

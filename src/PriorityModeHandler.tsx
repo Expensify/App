@@ -22,7 +22,9 @@ function PriorityModeHandler() {
         }
         // When a user switches their priority mode away from #focus/GSD we need to call openApp
         // to fetch all their chats because #focus mode works with a subset of a user's chats.
-        openApp(false, allReportsWithDraftComments);
+        // The last argument turns off deduping against an OpenApp that is already in flight: the server picks
+        // the report set from the priority mode it reads, so an earlier request only brought the subset.
+        openApp(false, allReportsWithDraftComments, false, false);
     }, [priorityMode, allReportsWithDraftComments, prevPriorityMode]);
 
     return null;

@@ -1,4 +1,10 @@
-import {readUpdateIDFrom, resolveDuplicationConflictAction, resolveEnableFeatureConflicts, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
+import {
+    readUpdateIDFrom,
+    resolveDuplicationConflictAction,
+    resolveEnableFeatureConflicts,
+    resolveOpenAppDuplicationConflictAction,
+    resolveReconnectDuplicationConflictAction,
+} from '@libs/actions/RequestConflictUtils';
 import type {AnyRequestMatcher, EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
 import {waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
@@ -16,7 +22,7 @@ import type {ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCom
 import type {WriteReadyBarrier} from './writeWhenReady';
 
 import {buildLogParams, prepareRequest, processRequest} from './makeRequest';
-import {READ_COMMANDS} from './types';
+import {READ_COMMANDS, WRITE_COMMANDS} from './types';
 import baseWrite from './write';
 import {createTransitionBarrier, writeWhenReady} from './writeWhenReady';
 
@@ -79,6 +85,24 @@ function writeWithNoDuplicatesReconnectConflictAction<TCommand extends WriteComm
     };
 
     return write(command, apiCommandParameters, onyxData, conflictResolver);
+}
+
+/**
+ * Writes an OpenApp through the resolver that also compares it against the in-flight request, so a redundant
+ * OpenApp is dropped instead of repeating the download. The command is fixed because that resolver only ever
+ * decides about OpenApp. `shouldDedupeWithInFlight` is the caller's answer to "would the response of an
+ * OpenApp already in flight satisfy this one?".
+ */
+function writeWithNoDuplicatesOpenAppConflictAction<TKey extends OnyxKey>(
+    apiCommandParameters: ApiRequestCommandParameters[typeof WRITE_COMMANDS.OPEN_APP],
+    onyxData: OnyxData<TKey> = {},
+    shouldDedupeWithInFlight = true,
+): Promise<void | Response<TKey>> {
+    const conflictResolver = {
+        checkAndFixConflictingRequest: (persistedRequests: AnyRequest[]) => resolveOpenAppDuplicationConflictAction(persistedRequests, getOngoingRequest(), shouldDedupeWithInFlight),
+    };
+
+    return write(WRITE_COMMANDS.OPEN_APP, apiCommandParameters, onyxData, conflictResolver);
 }
 
 /**
@@ -209,6 +233,7 @@ export {
     read,
     paginate,
     writeWithNoDuplicatesConflictAction,
+    writeWithNoDuplicatesOpenAppConflictAction,
     writeWithNoDuplicatesReconnectConflictAction,
     writeWithNoDuplicatesEnableFeatureConflicts,
     waitForWrites,
