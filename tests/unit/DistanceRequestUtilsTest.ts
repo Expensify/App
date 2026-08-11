@@ -416,7 +416,11 @@ describe('DistanceRequestUtils', () => {
         });
 
         it('passes commuter distance semantics to localization', () => {
-            const translate: LocaleContextProps['translate'] = jest.fn(translateLocal);
+            const translateMock = jest.fn();
+            const translate: LocaleContextProps['translate'] = (path, ...parameters) => {
+                translateMock(path, ...parameters);
+                return translateLocal(path, ...parameters);
+            };
 
             DistanceRequestUtils.getDistanceDisplayDetailsWithCommuter(
                 {
@@ -428,7 +432,7 @@ describe('DistanceRequestUtils', () => {
                 translate,
             );
 
-            expect(translate).toHaveBeenCalledWith('distance.commuterExclusion.removedCommuterDistance', {
+            expect(translateMock).toHaveBeenCalledWith('distance.commuterExclusion.removedCommuterDistance', {
                 distance: '1.00',
                 unit: translateLocal('common.mile'),
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
