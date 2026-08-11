@@ -101,15 +101,17 @@ module PatchedIOSArtifacts
         @prefetched[tarball_url]
     end
 
-    # Mirrors react-native's own artifact cache, keyed by artifact version because our filenames are
-    # indistinguishable from vanilla ones. Pruned to a single version, so it cannot grow over time.
+    # Mirrors react-native's own artifact cache, keyed by package and artifact version: our filenames are
+    # indistinguishable from vanilla ones, and the hybrid and standalone packages number their versions
+    # independently, so a version alone does not identify an artifact. Each package keeps a single
+    # version, so the cache cannot grow over time and one package never evicts the other.
     CACHE_ROOT = File.join(Dir.home, 'Library', 'Caches', 'Expensify', 'react-native-artifacts')
 
-    def self.prune_cache(version)
-        Dir.glob(File.join(CACHE_ROOT, '*')).each do |entry|
+    def self.prune_cache(package, version)
+        Dir.glob(File.join(CACHE_ROOT, package, '*')).each do |entry|
             next if File.basename(entry) == version
             FileUtils.rm_rf(entry)
-            log("Removed stale cached artifacts for #{File.basename(entry)}")
+            log("Removed stale cached artifacts for #{package}:#{File.basename(entry)}")
         end
     end
 
@@ -118,14 +120,15 @@ module PatchedIOSArtifacts
     def self.prefetch(resolution)
         return resolution if resolution['buildFromSource']
 
+        package = resolution['packageName'].to_s
         version = resolution['version'].to_s
         prefetched = {}
         required_classifiers.each do |name|
             url = "#{resolution['artifactUrlPrefix']}-#{name}.tar.gz"
-            destination = File.join(CACHE_ROOT, version, "#{name}.tar.gz")
+            destination = File.join(CACHE_ROOT, package, version, "#{name}.tar.gz")
             prefetched[url] = download_and_verify(url, destination, resolution['githubToken'])
         end
-        prune_cache(version)
+        prune_cache(package, version)
         @prefetched = prefetched
         resolution
     rescue => e
