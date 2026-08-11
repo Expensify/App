@@ -94,6 +94,18 @@ type OriginalMessageIOU = {
     /** Currency of the transaction money */
     currency?: string;
 
+    /** Cross-border FX reimbursement: amount credited to the employee, in their deposit currency */
+    creditedAmount?: number;
+
+    /** Cross-border FX reimbursement: currency of `creditedAmount` (the employee deposit currency) */
+    creditedCurrency?: string;
+
+    /** Cross-border FX reimbursement: last 4 of the company withdrawal (VBA) account that was debited */
+    debitBankAccountLast4?: string;
+
+    /** Cross-border FX reimbursement: last 4 of the employee deposit account that was credited */
+    creditBankAccountLast4?: string;
+
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
 };
@@ -238,6 +250,12 @@ type OriginalMessagePolicyExpenseChatWelcomeWhisper = {
     type?: string;
 };
 
+/** Model of a violation captured on a submitted report action */
+type SubmittedTransactionViolation = {
+    /** Violation identifier/name captured at submit time */
+    name: string;
+};
+
 /** Model of `submitted` report action */
 type OriginalMessageSubmitted = {
     /** The login of the admin (used in admin-submit) */
@@ -272,6 +290,12 @@ type OriginalMessageSubmitted = {
 
     /** The workflow the report is submitted on */
     workflow?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+
+    /** Snapshot of transaction violations present when the report was submitted */
+    violations?: {
+        /** Violations keyed by transaction ID */
+        transactions: Record<string, SubmittedTransactionViolation[]>;
+    };
 };
 
 /** Model of `created` report action */
@@ -1323,6 +1347,12 @@ type OriginalMessageReimbursed = {
 
     /** For StripeConnect payments, indicates payment type ('card' or 'bank account') */
     stripePaymentType?: string;
+
+    /** Cents credited to the employee on a cross-border FX reimbursement, in the employee's deposit currency */
+    creditedAmount?: number;
+
+    /** Currency the creditedAmount is denominated in (the employee's deposit currency) */
+    creditedCurrency?: string;
 };
 
 /** Model of `trip room preview` report action */

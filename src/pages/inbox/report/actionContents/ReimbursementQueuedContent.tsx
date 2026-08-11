@@ -57,7 +57,7 @@ function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQu
     return (
         <ReportActionItemBasicMessage message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', submitterDisplayName)}>
             <>
-                {missingPaymentMethod === 'bankAccount' && (
+                {missingPaymentMethod === CONST.MISSING_PAYMENT_METHODS.BANK_ACCOUNT && (
                     <Button
                         success
                         style={[styles.w100, styles.requestPreviewBox]}
@@ -67,12 +67,12 @@ function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQu
                         large
                     />
                 )}
-                {missingPaymentMethod === 'wallet' && (
+                {missingPaymentMethod === CONST.MISSING_PAYMENT_METHODS.WALLET && (
                     <KYCWall
                         ref={kycWallRef}
                         onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
                         enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                        addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
+                        addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL.getRoute()}
                         addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                         chatReportID={targetReport?.reportID}
                         iouReport={iouReport}

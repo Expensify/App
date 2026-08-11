@@ -160,7 +160,7 @@ function validateAndApplyDeferredUpdates(clientLastUpdateID?: number, previousPa
 
                 // Prevent info loops of calls to GetMissingOnyxMessages
                 if (previousParams?.newLastUpdateIDFromClient === newLastUpdateIDFromClient && previousParams?.latestMissingUpdateID === latestMissingUpdateID) {
-                    Log.info('[DeferredUpdates] Aborting call to GetMissingOnyxMessages, repeated params', false, {lastUpdateIDFromClient, latestMissingUpdateID, previousParams});
+                    Log.alert('[DeferredUpdates] Aborting call to GetMissingOnyxMessages, repeated params', {lastUpdateIDFromClient, latestMissingUpdateID, previousParams});
                     resolve(undefined);
                     return;
                 }
