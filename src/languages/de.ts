@@ -4919,6 +4919,9 @@ ${amount} für ${merchant} – ${date}`,
                     `Wählen Sie, von welchem Konto Sie Rechnungen bezahlen möchten, und wir erstellen die Zahlung in ${integrationName}.`,
                 invoiceAccountSelectorDescription: (integrationName = 'QuickBooks Online') =>
                     `Wähle aus, wo Rechnungszahlungen eingehen sollen, und wir erstellen die Zahlung in ${integrationName}.`,
+                qboFxExpenseAccount: (integrationName = 'QuickBooks Online') => `${integrationName}-Konto für Währungsumrechnungsgebühren`,
+                fxExpenseAccountDescription: (integrationName = 'QuickBooks Online') =>
+                    `Wenn Ihr Unternehmen die Währungsumrechnungskosten einer Zahlung ins Ausland übernimmt, buchen wir diese Kosten als Journalbuchung auf dieses Konto in ${integrationName}.`,
             },
             debitCardExportDescription: (integrationName = 'QuickBooks Online') =>
                 `Wir gleichen den Händlernamen der Debitkartentransaktion automatisch mit allen entsprechenden Lieferanten in ${integrationName} ab. Falls keine Lieferanten vorhanden sind, erstellen wir zur Zuordnung einen Lieferanten „Debit Card Misc.“.`,
