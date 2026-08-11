@@ -136,18 +136,14 @@ type PersonalDetailShell = Pick<
     | 'participantsList'
     | 'isOptimisticPersonalDetail'
 
-    // Written in place by getValidOptions.
+    // Initialized to their falsy defaults by the shell builder; getValidOptions marks the hydrated copy.
     | 'isSelected'
     | 'selected'
-    | 'isBold'
 > & {
     item: PersonalDetails | null;
 
     /** Discriminates a shell from a display-ready option. */
     isHydrated: false;
-
-    /** Passed from getValidOptions to hydrateDeferredContactOption because shells have no brickRoadIndicator yet. */
-    shouldShowGBR?: boolean;
 
     /** Builds the memoized display option. */
     hydrate: () => HydratedPersonalDetailOption;
@@ -285,8 +281,6 @@ type GetOptionsConfig = {
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     sortedActions?: Record<string, ReportAction[]>;
     isTrackIntentUser?: boolean;
-    /** Return shells; callers must pass them through hydrateDeferredContactOption before rendering. */
-    deferContactHydration?: boolean;
     /** TODO: Should be required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;
 } & GetValidReportsConfig;

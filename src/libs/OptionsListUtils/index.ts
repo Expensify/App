@@ -1807,23 +1807,6 @@ function hydrateContactOption(option: PersonalDetailOptionOrShell): HydratedPers
     return {...option.hydrate(), isHydrated: true};
 }
 
-/** Hydrates a deferred shell and restores the marks applied by getValidOptions. */
-function hydrateDeferredContactOption(option: PersonalDetailOptionOrShell): HydratedPersonalDetailOption {
-    if (option.isHydrated) {
-        return option;
-    }
-
-    const hydrated = hydrateContactOption(option);
-    hydrated.isSelected = option.isSelected;
-    hydrated.isBold = option.isBold;
-    // A shell cannot apply this suppression until hydration creates brickRoadIndicator.
-    if (!option.shouldShowGBR && hydrated.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-        hydrated.brickRoadIndicator = '';
-    }
-
-    return hydrated;
-}
-
 function createFilteredOptionList(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reports: OnyxCollection<Report>,
@@ -2734,28 +2717,6 @@ function getValidOptions(
     currentUserAccountID: number,
     currentUserEmail: string,
     conciergeReportID: string | undefined,
-    config: GetOptionsConfig & {deferContactHydration: true},
-    translate: LocalizedTranslate,
-): OptionsResult<PersonalDetailOptionOrShell>;
-function getValidOptions(
-    options: OptionList,
-    policiesCollection: OnyxCollection<Policy>,
-    draftComments: OnyxCollection<string> | undefined,
-    loginList: OnyxEntry<Login>,
-    currentUserAccountID: number,
-    currentUserEmail: string,
-    conciergeReportID: string | undefined,
-    config: GetOptionsConfig,
-    translate: LocalizedTranslate,
-): OptionsResult;
-function getValidOptions(
-    options: OptionList,
-    policiesCollection: OnyxCollection<Policy>,
-    draftComments: OnyxCollection<string> | undefined,
-    loginList: OnyxEntry<Login>,
-    currentUserAccountID: number,
-    currentUserEmail: string,
-    conciergeReportID: string | undefined,
     {
         dateFnsLocale,
         excludeLogins = {},
@@ -2781,11 +2742,10 @@ function getValidOptions(
         sortedActions,
         isTrackIntentUser,
         isOffline,
-        deferContactHydration = false,
         ...config
     }: GetOptionsConfig,
     translate: LocalizedTranslate,
-): OptionsResult<PersonalDetailOptionOrShell> {
+): OptionsResult {
     // Gather shared configs:
     // Hard exclusions: cannot be selected at all
     const loginsToExclude: Record<string, boolean> = {
@@ -3006,11 +2966,9 @@ function getValidOptions(
     }
 
     // Get valid personal details and check if we can find the current user:
-    let personalDetailsOptions: PersonalDetailOptionOrShell[] = [];
-    // Holds an element of `personalDetailsOptions`, so with `deferContactHydration` it can be a shell. Typed as
-    // the union so it leaves getValidOptions as one too and the render site has to hydrate it (see `Options`).
+    let personalDetailsOptions: HydratedPersonalDetailOption[] = [];
     const currentUserRef = {
-        current: undefined as PersonalDetailOptionOrShell | undefined,
+        current: undefined as HydratedPersonalDetailOption | undefined,
     };
 
     if (includeP2P) {
@@ -3058,8 +3016,8 @@ function getValidOptions(
             ? Math.max(maxElements - recentReportOptions.length - workspaceChats.length - (!selfDMChat ? 1 : 0), MIN_PERSONAL_DETAILS_SLOTS)
             : undefined;
         const groupedPersonalDetails = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
-        // Defer callers hydrate only the rows they render; other callers hydrate the selected page here.
-        personalDetailsOptions = deferContactHydration ? groupedPersonalDetails.options : groupedPersonalDetails.options.map(hydrateContactOption);
+        // Only the top-N survivors of the heap are hydrated; the shells filtered out above never pay the build cost.
+        personalDetailsOptions = groupedPersonalDetails.options.map(hydrateContactOption);
 
         hasMore = hasMore || groupedPersonalDetails.hasMore;
 
@@ -3079,12 +3037,8 @@ function getValidOptions(
                 currentUserRef.current = personalDetail;
             }
             personalDetail.isBold = shouldBoldTitleByDefault;
-            if (personalDetail.isHydrated) {
-                if (personalDetail.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-                    personalDetail.brickRoadIndicator = shouldShowGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : '';
-                }
-            } else {
-                personalDetail.shouldShowGBR = shouldShowGBR;
+            if (personalDetail.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+                personalDetail.brickRoadIndicator = shouldShowGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : '';
             }
             personalDetail.isSelected =
                 (!!personalDetail.accountID && selectedAccountIDs.has(personalDetail.accountID)) || (!!personalDetail.login && selectedLogins.has(personalDetail.login));
@@ -3740,7 +3694,6 @@ export {
     createOptionFromReport,
     createFilteredOptionList,
     hydrateContactOption,
-    hydrateDeferredContactOption,
     createOption,
     filterAndOrderOptions,
     filterReports,
