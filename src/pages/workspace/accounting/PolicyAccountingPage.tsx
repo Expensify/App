@@ -55,7 +55,6 @@ import {
     settingsPendingAction,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import Navigation from '@navigation/Navigation';
 
@@ -442,7 +441,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           brickRoadIndicator: policy?.connections?.dualEntry?.config.errorFields?.subsidiaryID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                           onPress:
                               policyID && canWriteAccounting && dualEntryCompanyList && dualEntryCompanyList.length > 1
-                                  ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_COMPANY_SELECTOR.getRoute(policyID))
+                                  ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_SUBSIDIARY_SELECTOR.getRoute(policyID))
                                   : undefined,
                       };
 
@@ -642,18 +641,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
               ]
             : [];
 
-        const syncActivityReasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'PolicyAccountingPage.connectionsMenuItems',
-            isSyncInProgress,
-        };
         let rightComponent;
         if (isSyncInProgress) {
-            rightComponent = (
-                <ActivityIndicator
-                    style={[styles.popoverMenuIcon]}
-                    reasonAttributes={syncActivityReasonAttributes}
-                />
-            );
+            rightComponent = <ActivityIndicator style={[styles.popoverMenuIcon]} />;
         } else if (canWriteAccounting) {
             rightComponent = (
                 <ThreeDotsMenu
