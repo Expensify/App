@@ -1,14 +1,14 @@
 import reportAttributes from '@libs/actions/OnyxDerived/configs/reportAttributes';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+import * as OnyxDerivedUtils from '@userActions/OnyxDerived/utils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
-import type {ReportActions} from '@src/types/onyx/ReportAction';
+import type {Report, Transaction, TransactionViolation, ReportAction, ReportActions} from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
@@ -17,6 +17,7 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {createRandomCompanyCard, createRandomExpensifyCard} from '../utils/collections/card';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const onyxDerivedTestSetup = () => {
@@ -108,11 +109,73 @@ describe('OnyxDerived', () => {
         it('updates when locale changes', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
             await IntlStore.load(CONST.LOCALES.ES);
+            // Derived recomputes are coalesced onto a microtask; pump it so the locale change is applied.
+            await waitForBatchedUpdates();
 
             const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             expect(derivedReportAttributes).toMatchObject({
                 locale: 'es',
+            });
+        });
+
+        describe('coalescing', () => {
+            // Each flush/recompute writes the derived value exactly once via setDerivedValue, so counting
+            // its calls for a given derived key = counting how many times that value was recomputed.
+            const countRecomputes = (spy: jest.SpyInstance, derivedKey: string) => spy.mock.calls.filter(([calledKey]) => calledKey === derivedKey).length;
+
+            it('coalesces the dependency changes from a single Onyx.update batch (without dropping any)', async () => {
+                // Prime so the derived value is populated and connections are warm.
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+                await waitForBatchedUpdates();
+
+                const setDerivedValueSpy = jest.spyOn(OnyxDerivedUtils, 'setDerivedValue');
+
+                // One logical update touching 3 different reportAttributes dependencies at once.
+                const updates: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        value: {[`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`]: {reportName: 'Renamed report'}},
+                    },
+                    {onyxMethod: Onyx.METHOD.MERGE_COLLECTION, key: ONYXKEYS.COLLECTION.TRANSACTION, value: {[`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: createRandomTransaction(1)}},
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+                        key: ONYXKEYS.COLLECTION.REPORT_METADATA,
+                        value: {[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockReport.reportID}`]: {isOptimisticReport: false}},
+                    },
+                ];
+                await Onyx.update(updates);
+                await waitForBatchedUpdates();
+
+                // Microtask flushing coalesces the changes delivered within a synchronous broadcast burst, so
+                // this recomputes fewer times than one-per-changed-dependency (3). We assert it's reduced rather
+                // than a brittle exact count, because Onyx.update can span a couple of microtask turns and a
+                // microtask flush does not batch across Onyx's async pipeline.
+                expect(countRecomputes(setDerivedValueSpy, ONYXKEYS.DERIVED.REPORT_ATTRIBUTES)).toBeLessThan(3);
+
+                // And the coalesced compute must not drop any of the batched changes.
+                const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derived?.reports?.[mockReport.reportID]?.reportName).toBe('Renamed report');
+
+                setDerivedValueSpy.mockRestore();
+            });
+
+            it('applies every change from separate merges in the same tick without dropping any', async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+                await waitForBatchedUpdates();
+
+                // Separate merges to different dependencies, fired synchronously (not awaited between). Microtask
+                // flushing intentionally does NOT batch these into a single recompute — batching across ticks would
+                // require deferring the flush past render, reintroducing stale-frame reads. The invariant that must
+                // hold is that no update is dropped: every change is reflected in the final derived value.
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, {reportName: 'Renamed again'});
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, createRandomTransaction(1));
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockReport.reportID}`, {isOptimisticReport: false});
+                await waitForBatchedUpdates();
+
+                const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derived?.reports?.[mockReport.reportID]?.reportName).toBe('Renamed again');
             });
         });
 
@@ -240,7 +303,10 @@ describe('OnyxDerived', () => {
             // PERSONAL_DETAILS_LIST is a valid runtime source key (hasKeyTriggeredCompute reads it), but the
             // sourceValues type only models collection keys, so there's no representable type for this marker.
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- non-collection source keys aren't modeled by DerivedSourceValues
-            const personalDetailsSource = {sourceValues: {[ONYXKEYS.PERSONAL_DETAILS_LIST]: true}} as unknown as Parameters<typeof reportAttributes.compute>[1];
+            const personalDetailsSource = {
+                sourceValues: {[ONYXKEYS.PERSONAL_DETAILS_LIST]: true},
+                triggeredKeys: new Set([ONYXKEYS.PERSONAL_DETAILS_LIST]),
+            } as unknown as Parameters<typeof reportAttributes.compute>[1];
 
             // Reset the module-level diff baseline (no sourceValues clears it) so the seed below is deterministic.
             reportAttributes.compute(
@@ -443,6 +509,85 @@ describe('OnyxDerived', () => {
                 derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
                 expect(derivedReportAttributes?.reports[parentReport.reportID].brickRoadStatus).toBeUndefined();
             });
+        });
+    });
+
+    describe('reportTransactionsAndViolations', () => {
+        it('keeps a violations-only change for one transaction when coalesced with a transaction change for another', async () => {
+            const transactionA: Transaction = {...createRandomTransaction(1), transactionID: 'A', reportID: 'rA', amount: 100};
+            const transactionB: Transaction = {...createRandomTransaction(2), transactionID: 'B', reportID: 'rB', amount: 200};
+
+            // Prime so both transactions are tracked and the connections are warm.
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}A` as const]: transactionA,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}B` as const]: transactionB,
+            });
+            await waitForBatchedUpdates();
+
+            const violation: TransactionViolation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_CATEGORY};
+
+            // One logical update: transaction A changes AND violations change for transaction B.
+            const updates: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
+                {onyxMethod: Onyx.METHOD.MERGE_COLLECTION, key: ONYXKEYS.COLLECTION.TRANSACTION, value: {[`${ONYXKEYS.COLLECTION.TRANSACTION}A`]: {amount: 999}}},
+                {onyxMethod: Onyx.METHOD.MERGE_COLLECTION, key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, value: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}B`]: [violation]}},
+            ];
+            await Onyx.update(updates);
+            await waitForBatchedUpdates();
+
+            const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
+
+            // The batched violations change for B must not be dropped...
+            expect(derived?.rB?.violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}B`]).toEqual([violation]);
+            // ...and the transaction change for A must also land.
+            expect(derived?.rA?.transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}A`]?.amount).toBe(999);
+        });
+    });
+
+    describe('sortedReportActions', () => {
+        it('applies a REPORT change that is coalesced with a REPORT_ACTIONS change for another report', async () => {
+            const chatReportID = '10';
+            const expenseReportID = '20';
+            const parentChatReportID = '30';
+            const threadReportID = '40';
+
+            const iouAction = getFakeReportAction(100, {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: threadReportID,
+                reportID: expenseReportID,
+                originalMessage: {IOUTransactionID: 'txn1', type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD'},
+            } as Partial<ReportAction>);
+
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}` as const]: createMockReport({reportID: chatReportID, type: CONST.REPORT.TYPE.CHAT}),
+                // The expense report starts as a CHAT, so its one-transaction thread does not resolve yet.
+                [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}` as const]: createMockReport({reportID: expenseReportID, type: CONST.REPORT.TYPE.CHAT, chatReportID: parentChatReportID}),
+                [`${ONYXKEYS.COLLECTION.REPORT}${parentChatReportID}` as const]: createMockReport({reportID: parentChatReportID, type: CONST.REPORT.TYPE.CHAT}),
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}` as const]: {'1': getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}` as const]: {'100': iouAction},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}` as const]: {'200': getFakeReportAction(200, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})},
+            });
+            await waitForBatchedUpdates();
+
+            // Precondition: while it is a CHAT, no transaction thread is resolved for the report.
+            let derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+            expect(derived?.transactionThreadIDs?.[expenseReportID]).toBeUndefined();
+
+            // One logical update: flip the report to EXPENSE (a REPORT change that resolves its thread) batched
+            // with an unrelated REPORT_ACTIONS change to a different report.
+            const updates: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+                {onyxMethod: Onyx.METHOD.MERGE_COLLECTION, key: ONYXKEYS.COLLECTION.REPORT, value: {[`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]: {type: CONST.REPORT.TYPE.EXPENSE}}},
+                {
+                    onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    value: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`]: {'2': getFakeReportAction(2, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})}},
+                },
+            ];
+            await Onyx.update(updates);
+            await waitForBatchedUpdates();
+
+            // The batched REPORT change must be applied: the expense report's transaction thread now resolves.
+            derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+            expect(derived?.transactionThreadIDs?.[expenseReportID]).toBe(threadReportID);
         });
     });
 

@@ -4,13 +4,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {findSelfDMReportID, generateReportID} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,6 +31,7 @@ function TrackExpensePage() {
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
     const {isOffline} = useNetwork();
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
     const [hasSeenTrackTraining, hasSeenTrackTrainingResult] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING);
     const isLoadingHasSeenTrackTraining = isLoadingOnyxValue(hasSeenTrackTrainingResult);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
@@ -49,7 +50,7 @@ function TrackExpensePage() {
                     draftTransactionIDs,
                 );
 
-                if (!hasSeenTrackTraining && !isOffline) {
+                if (!hasSeenTrackTraining && !isOffline && !shouldSuppressPromotionalUI) {
                     setTimeout(() => {
                         Navigation.navigate(ROUTES.TRACK_TRAINING_MODAL);
                     }, CONST.ANIMATED_TRANSITION);
@@ -65,18 +66,10 @@ function TrackExpensePage() {
         [],
     );
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'TrackExpensePage',
-        isLoadingHasSeenTrackTraining,
-    };
-
     return (
         <ScreenWrapper testID="TrackExpensePage">
             <View style={[styles.borderBottom]}>
-                <ReportHeaderSkeletonView
-                    onBackButtonPress={Navigation.goBack}
-                    reasonAttributes={reasonAttributes}
-                />
+                <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
             </View>
             <ReportActionsSkeletonView />
         </ScreenWrapper>

@@ -4,6 +4,7 @@ import * as eReceiptBGs from '@components/Icon/EReceiptBGs';
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -11,9 +12,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {convertToDisplayStringWithExplicitCurrency} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {formatLastFourPAN} from '@libs/TransactionPreviewUtils';
 
 import variables from '@styles/variables';
@@ -35,10 +34,11 @@ type AuthorizeCardTransactionPreviewProps = {
 function AuthorizeCardTransactionPreview({transactionID, amount, currency, merchant, created, lastFourPAN}: AuthorizeCardTransactionPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['CreditCard', 'ReceiptBody', 'CreditCardExclamation']);
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
 
     const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1);
     const transactionPreviewWidth = reportPreviewStyles.transactionPreviewStandaloneStyle.width;
@@ -50,21 +50,19 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
     if (shouldShowSkeleton) {
         return (
             <View style={containerStyle}>
-                <TransactionPreviewSkeletonView
-                    transactionPreviewWidth={transactionPreviewWidth}
-                    reasonAttributes={
-                        {context: 'AuthorizeCardTransactionPreview', isCreatedUndefined: !created, isTransactionIDUndefined: !transactionID} satisfies SkeletonSpanReasonAttributes
-                    }
-                />
+                <TransactionPreviewSkeletonView transactionPreviewWidth={transactionPreviewWidth} />
             </View>
         );
     }
 
     const formattedDate = created
-        ? DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT)
+        ? DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT, dateFnsLocale)
         : '';
     const headerText = [formattedDate, translate('common.card')].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
-    const displayAmount = amount === undefined ? '' : convertToDisplayStringWithExplicitCurrency(amount, currency);
+    let displayAmount = '';
+    if (amount !== undefined) {
+        displayAmount = currency ? convertToDisplayString(amount, currency) : convertToDisplayStringWithoutCurrency(amount);
+    }
 
     const formattedLastFourPAN = formatLastFourPAN(lastFourPAN);
     const shouldShowCardEnding = formattedLastFourPAN.length > 0;

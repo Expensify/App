@@ -35,7 +35,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
-import type {Rate, TaxRateAttributes} from '@src/types/onyx/Policy';
+import type {Rate, RateAttributes} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -46,7 +46,7 @@ type PolicyDistanceRateDetailsPageProps = PlatformStackScreenProps<SettingsNavig
 
 function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const policyID = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
@@ -159,7 +159,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     const taxClaimableValueToDisplay = taxClaimablePercentage && rate.rate ? convertAmountToDisplayString(taxClaimablePercentage * rate.rate, currency) : '';
     const unitToDisplay = translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
 
-    const clearErrorFields = (fieldName: keyof Rate | keyof TaxRateAttributes) => {
+    const clearErrorFields = (fieldName: keyof Rate | keyof RateAttributes) => {
         clearPolicyDistanceRateErrorFields(policyID, customUnit.customUnitID, rateID, {...errorFields, [fieldName]: null});
     };
 
@@ -248,7 +248,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                     >
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={canWriteDistanceRates}
-                            title={rate.startDate ? DateUtils.formatToReadableString(rate.startDate) : ''}
+                            title={rate.startDate ? DateUtils.formatToReadableString(rate.startDate, dateFnsLocale) : ''}
                             description={translate('workspace.distanceRates.startDate')}
                             descriptionTextStyle={styles.textNormal}
                             onPress={editStartDate}
@@ -263,7 +263,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                     >
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={canWriteDistanceRates}
-                            title={rate.endDate ? DateUtils.formatToReadableString(rate.endDate) : ''}
+                            title={rate.endDate ? DateUtils.formatToReadableString(rate.endDate, dateFnsLocale) : ''}
                             description={translate('workspace.distanceRates.endDate')}
                             descriptionTextStyle={styles.textNormal}
                             onPress={editEndDate}

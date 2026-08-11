@@ -1,0 +1,52 @@
+import ListFilterContent from '@components/Search/FilterComponents/ListFilterContent';
+import type {ListFilterContentProps} from '@components/Search/FilterComponents/ListFilterContent';
+
+import {getFilterFormValues} from '@libs/SearchQueryUtils';
+import {getFilterNegatableValue} from '@libs/SearchUIUtils';
+
+import CONST from '@src/CONST';
+import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
+
+import React, {useState} from 'react';
+
+import type {PopoverComponentProps} from './FilterPopupButton';
+
+import BasePopup from './BasePopup';
+
+type ListPopupProps = Pick<ListFilterContentProps, 'baseFilterKey'> & {
+    values: Partial<SearchAdvancedFiltersForm> | undefined;
+    label: string;
+    closeOverlay: PopoverComponentProps['closeOverlay'];
+    updateFilterForm: (value: Partial<SearchAdvancedFiltersForm>) => void;
+};
+
+function ListPopup({baseFilterKey, values, label, updateFilterForm, closeOverlay}: ListPopupProps) {
+    const {isNegated: initialIsNegated, value: initialValue} = getFilterNegatableValue(baseFilterKey, values);
+    const [value, setValue] = useState(initialValue);
+    const [isNegated, setIsNegated] = useState(initialIsNegated);
+
+    const applyChanges = () => {
+        updateFilterForm(getFilterFormValues(baseFilterKey, value, isNegated));
+        closeOverlay();
+    };
+
+    return (
+        <BasePopup
+            label={label}
+            onApply={applyChanges}
+            applySentryLabel={`Search-FilterPopupApply-${baseFilterKey}`}
+        >
+            <ListFilterContent
+                baseFilterKey={baseFilterKey}
+                value={value}
+                isNegated={isNegated}
+                type={values?.type}
+                policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, values)}
+                onChange={setValue}
+                onNegationChange={setIsNegated}
+            />
+        </BasePopup>
+    );
+}
+
+export default ListPopup;
