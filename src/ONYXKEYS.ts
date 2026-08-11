@@ -333,6 +333,9 @@ const ONYXKEYS = {
     /** The end date (epoch timestamp) of the workspace owner’s grace period after the free trial ends. */
     NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END: 'nvp_private_billingGracePeriodEnd',
 
+    /** The end date (epoch timestamp) of the workspace owner’s grace period for an overdue Consolidated Travel Billing invoice. */
+    NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END: 'nvp_private_travelBillingGracePeriodEnd',
+
     /**  The NVP containing the target url to navigate to when deleting a transaction */
     NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL: 'nvp_deleteTransactionNavigateBackURL',
 
@@ -940,6 +943,9 @@ const ONYXKEYS = {
         /** Collection of objects where each object represents the owner of the workspace that is past due billing AND the user is a member of. */
         SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END: 'sharedNVP_private_billingGracePeriodEnd_',
 
+        /** Collection of objects where each object represents the owner of a workspace with an overdue Consolidated Travel Billing invoice AND the user is a member of. */
+        SHARED_NVP_PRIVATE_USER_TRAVEL_BILLING_GRACE_PERIOD_END: 'sharedNVP_private_travelBillingGracePeriodEnd_',
+
         /** The collection of card feeds */
         SHARED_NVP_PRIVATE_DOMAIN_MEMBER: 'sharedNVP_private_domain_member_',
 
@@ -1509,6 +1515,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
     [ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT]: OnyxTypes.AgentPrompt;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_TRAVEL_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER]: OnyxTypes.CardFeeds;
     [ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS]: OnyxTypes.ExpensifyCardSettings;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA]: OnyxTypes.ExpensifyCardBankAccountMetadata;
@@ -1755,6 +1762,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_FREEBIE_CREDITS]: number;
     [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
+    [ONYXKEYS.NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END]: number;
     [ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL]: string | undefined;
     [ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE]: string;
     [ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE]: string;

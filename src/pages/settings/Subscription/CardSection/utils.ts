@@ -41,6 +41,7 @@ type GetBillingStatusProps = {
     fundList: OnyxEntry<FundList>;
     amountOwed: number;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
+    ownerTravelBillingGracePeriodEnd: OnyxEntry<number>;
 };
 
 function getBillingStatus({
@@ -56,6 +57,7 @@ function getBillingStatus({
     closeIcon,
     fundList,
     ownerBillingGracePeriodEnd,
+    ownerTravelBillingGracePeriodEnd,
     amountOwed,
 }: GetBillingStatusProps): BillingStatusResult | undefined {
     const cardEnding = (accountData?.cardNumber ?? '')?.slice(-4);
@@ -69,9 +71,10 @@ function getBillingStatus({
         billingStatus,
         amountOwed,
         ownerBillingGracePeriodEnd,
+        ownerTravelBillingGracePeriodEnd,
     );
 
-    const endDate = ownerBillingGracePeriodEnd;
+    const endDate = ownerTravelBillingGracePeriodEnd ?? ownerBillingGracePeriodEnd;
 
     const endDateFormatted = endDate ? DateUtils.formatWithUTCTimeZone(fromUnixTime(endDate).toUTCString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT) : null;
 
@@ -117,6 +120,22 @@ function getBillingStatus({
             return {
                 title: translate('subscription.billingBanner.policyOwnerUnderInvoicingOverdue.title'),
                 subtitle: translate('subscription.billingBanner.policyOwnerUnderInvoicingOverdue.subtitle'),
+                isError: true,
+                isAddButtonDark: true,
+            };
+
+        case PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE:
+            return {
+                title: translate('subscription.billingBanner.travelInvoiceOverdue.title'),
+                subtitle: translate('subscription.billingBanner.travelInvoiceOverdue.subtitle', endDateFormatted ?? ''),
+                isError: true,
+                isAddButtonDark: true,
+            };
+
+        case PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE_LOCKED:
+            return {
+                title: translate('subscription.billingBanner.travelInvoiceOverdueLocked.title'),
+                subtitle: translate('subscription.billingBanner.travelInvoiceOverdueLocked.subtitle'),
                 isError: true,
                 isAddButtonDark: true,
             };

@@ -158,6 +158,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS);
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerTravelBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SETTINGS} />;
     const network = useNetwork();
@@ -418,6 +419,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     billingStatus,
                     amountOwed,
                     ownerBillingGracePeriodEnd,
+                    ownerTravelBillingGracePeriodEnd,
                 )
                     ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                     : undefined,

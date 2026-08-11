@@ -82,6 +82,7 @@ function CardSection() {
     const [billingStatusOnyx] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS);
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerTravelBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isGrandfatheredFree] = useOnyx(ONYXKEYS.NVP_PRIVATE_GRANDFATHERED_FREE);
     const requestRefund = useCallback(() => {
@@ -138,6 +139,7 @@ function CardSection() {
             fundList,
             amountOwed,
             ownerBillingGracePeriodEnd,
+            ownerTravelBillingGracePeriodEnd,
         }),
     );
 
@@ -166,6 +168,7 @@ function CardSection() {
                 fundList,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
+                ownerTravelBillingGracePeriodEnd,
             }),
         );
     }, [
@@ -183,6 +186,7 @@ function CardSection() {
         fundList,
         amountOwed,
         ownerBillingGracePeriodEnd,
+        ownerTravelBillingGracePeriodEnd,
     ]);
 
     const handleRetryPayment = () => {
