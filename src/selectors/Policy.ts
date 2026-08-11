@@ -356,6 +356,8 @@ const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
 
 const policyTypeSelector = (policy: OnyxEntry<Policy>) => policy?.type;
 
+const policyRoleSelector = (policy: OnyxEntry<Policy>) => policy?.role;
+
 const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
 
 function isAdminForPolicyByIDSelector(policyID?: string) {
@@ -411,6 +413,7 @@ export {
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
     policyNameSelector,
+    policyRoleSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,
     createAdminPoliciesSelector,
