@@ -2755,7 +2755,7 @@ ${amount} pour ${merchant} - ${date}`,
             lastBusinessDayOfMonth: 'Dernier jour ouvrable du mois',
             ordinals: {
                 '1': 'Premier',
-                '2': 'Seconde',
+                '2': 'Deuxième',
                 '3': 'Troisième',
                 '4': 'Quatrième',
                 '5': 'Cinquième',

@@ -2715,7 +2715,7 @@ ${date} の ${merchant} への ${amount}`,
             lastBusinessDayOfMonth: '月末最終営業日',
             ordinals: {
                 '1': '最初',
-                '2': '秒',
+                '2': '2番目',
                 '3': '3 番目',
                 '4': '4番目',
                 '5': '5番目',

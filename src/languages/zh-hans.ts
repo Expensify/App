@@ -2646,7 +2646,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             lastBusinessDayOfMonth: '每月的最后一个工作日',
             ordinals: {
                 '1': '第一',
-                '2': '秒',
+                '2': '第二',
                 '3': '第三',
                 '4': '第四',
                 '5': '第五',
