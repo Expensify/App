@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -17,6 +17,7 @@ import {getOriginalMessage, getReportActionMessage, getReportActionMessageText, 
 import {canUserPerformWriteAction, formatReportLastMessageText, getInvoiceReceiverPolicyID, getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
@@ -115,12 +116,13 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     return (
         <ScrollView style={styles.mv3}>
             <Button
-                success
-                large
-                text={translate('common.create')}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION_CREATE.getRoute(reportID))}
                 style={[styles.pb3, styles.ph3]}
-            />
+            >
+                <Button.Text>{translate('common.create')}</Button.Text>
+            </Button>
             <SelectionList
                 data={searchedReportActions}
                 style={{listItemTitleStyles: styles.fontWeightNormal}}

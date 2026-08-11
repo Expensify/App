@@ -45,7 +45,7 @@ function SingleAvatar({avatar, size, containerStyles, shouldShowTooltip, fallbac
                     fallbackIcon={avatar.fallbackIcon}
                     fill={avatar.fill}
                     size={size}
-                    testID="ReportActionAvatars-SingleAvatar"
+                    testID="SingleAvatar"
                 />
             </View>
         </UserDetailsTooltip>

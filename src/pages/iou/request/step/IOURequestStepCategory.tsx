@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CategoryPicker from '@components/CategoryPicker';
 import FixedFooter from '@components/FixedFooter';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
@@ -34,7 +34,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {hasAccountingConnections, isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getRequestType} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -149,11 +148,6 @@ function IOURequestStepCategory({
     const isLoading = !isOffline && policyCategories === undefined;
     const shouldShowEmptyState = policyCategories !== undefined && !shouldShowCategory;
     const shouldShowOfflineView = policyCategories === undefined && isOffline;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'IOURequestStepCategory',
-        isLoading,
-        isOffline,
-    };
 
     useEffect(() => {
         fetchData();
@@ -234,7 +228,6 @@ function IOURequestStepCategory({
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     style={[styles.flex1]}
-                    reasonAttributes={reasonAttributes}
                 />
             )}
             {shouldShowOfflineView && <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>}
@@ -250,8 +243,8 @@ function IOURequestStepCategory({
                     {isPolicyAdmin(policy) && (
                         <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                             <Button
-                                large
-                                success
+                                size={CONST.BUTTON_SIZE.LARGE}
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 style={[styles.w100]}
                                 onPress={() => {
                                     if (!policyID || !report?.reportID) {
@@ -270,10 +263,11 @@ function IOURequestStepCategory({
                                         );
                                     });
                                 }}
-                                text={translate('workspace.categories.editCategories')}
-                                pressOnEnter
                                 sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_CATEGORIES_BUTTON}
-                            />
+                            >
+                                <Button.KeyboardShortcut />
+                                <Button.Text>{translate('workspace.categories.editCategories')}</Button.Text>
+                            </Button>
                         </FixedFooter>
                     )}
                 </View>

@@ -17,6 +17,7 @@ import type {
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /**
@@ -148,7 +149,6 @@ import {
     getTransactionReportName,
     getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
-    hasNonReimbursableTransactions,
     isAdminRoom,
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
@@ -176,8 +176,10 @@ import {
     shouldShowMarkAsDone,
 } from './ReportUtils';
 import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from './SpendRuleChangeLogUtils';
+import {hasNonReimbursableTransactions} from './TransactionUtils';
 
 type ComputeReportName = {
+    dateFnsLocale: DateFnsLocale | undefined;
     report?: Report;
     reports?: OnyxCollection<Report>;
     policies?: OnyxCollection<Policy>;
@@ -191,6 +193,7 @@ type ComputeReportName = {
     translate: LocalizedTranslate;
     conciergeReportID: string | undefined;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
+    reportTransactions: Record<string, Transaction[]>;
     isTrackIntentUser: boolean | undefined;
     pendingDeleteMemberAccountIDs?: string[];
 };
@@ -359,12 +362,20 @@ function getInvoicesChatName({
 
 function getInvoiceReportName(
     report: OnyxEntry<Report>,
+    linkedTransactions: Transaction[],
     translate: LocalizedTranslate,
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     policy?: OnyxEntry<Policy>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
 ): string {
-    const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy, personalDetailsList, translate});
+    const moneyRequestReportName = getMoneyRequestReportName({
+        report,
+        policy,
+        invoiceReceiverPolicy,
+        linkedTransactions,
+        personalDetailsList,
+        translate,
+    });
     const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
     return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
 }
@@ -397,12 +408,14 @@ function getMoneyRequestReportName({
     report,
     policy,
     invoiceReceiverPolicy,
+    linkedTransactions,
     personalDetailsList,
     translate,
 }: {
     report: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy>;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
+    linkedTransactions: Transaction[];
     personalDetailsList: OnyxEntry<PersonalDetailsList>;
     translate: LocalizedTranslate;
 }): string {
@@ -441,7 +454,7 @@ function getMoneyRequestReportName({
         return `${payerPaidAmountMessage} ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
     }
 
-    if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
+    if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(linkedTransactions)) {
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '';
         return translate('iou.payerSpentAmount', formattedAmount, payerOrApproverName);
     }
@@ -455,6 +468,7 @@ function getMoneyRequestReportName({
 
 function computeReportNameBasedOnReportAction(
     translate: LocalizedTranslate,
+    dateFnsLocale: DateFnsLocale | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     parentReportAction: ReportAction | undefined,
     report: Report | undefined,
@@ -734,7 +748,7 @@ function computeReportNameBasedOnReportAction(
 
     if (isMoneyRequestAction(parentReportAction)) {
         const originalMessage = getOriginalMessage(parentReportAction);
-        const last4Digits = reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
+        const last4Digits = originalMessage?.accountNumber?.slice(-4) ?? reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '';
 
         if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -797,10 +811,10 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE)) {
-        return getWorkspaceCustomUnitRateAddedMessage(translate, parentReportAction);
+        return getWorkspaceCustomUnitRateAddedMessage(translate, dateFnsLocale, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE)) {
-        return getWorkspaceCustomUnitRateUpdatedMessage(translate, parentReportAction);
+        return getWorkspaceCustomUnitRateUpdatedMessage(translate, dateFnsLocale, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE)) {
         return getWorkspaceCustomUnitRateDeletedMessage(translate, parentReportAction);
@@ -974,6 +988,7 @@ function computeChatThreadReportName(
  * In all other cases you should use `getReportName`
  */
 function computeReportName({
+    dateFnsLocale,
     report,
     reports,
     policies,
@@ -987,6 +1002,7 @@ function computeReportName({
     allPolicyTags,
     conciergeReportID,
     reportAttributes,
+    reportTransactions,
     isTrackIntentUser,
     pendingDeleteMemberAccountIDs,
 }: ComputeReportName): string {
@@ -1000,6 +1016,7 @@ function computeReportName({
 
     const parentReportActionBasedName = computeReportNameBasedOnReportAction(
         translate,
+        dateFnsLocale,
         formatPhoneNumberPhoneUtils,
         parentReportAction,
         report,
@@ -1022,6 +1039,7 @@ function computeReportName({
         const {originalID} = getOriginalMessage(parentReportAction) ?? {};
         const originalReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
         const reportName = computeReportName({
+            dateFnsLocale,
             report: originalReport,
             reports,
             policies,
@@ -1034,6 +1052,7 @@ function computeReportName({
             translate,
             conciergeReportID,
             reportAttributes,
+            reportTransactions,
             isTrackIntentUser,
             // TODO: pass the true data in the next PR, issue https://github.com/Expensify/App/issues/66421
             pendingDeleteMemberAccountIDs: undefined,
@@ -1085,7 +1104,13 @@ function computeReportName({
 
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     if (isMoneyRequestReport(report)) {
-        formattedName = getMoneyRequestReportName({report, policy, personalDetailsList, translate});
+        formattedName = getMoneyRequestReportName({
+            report,
+            policy,
+            linkedTransactions: reportTransactions[report.reportID] ?? [],
+            personalDetailsList,
+            translate,
+        });
     }
 
     if (isInvoiceReport(report)) {
@@ -1096,7 +1121,7 @@ function computeReportName({
             chatReceiverPolicyID = (chatReceiver as {policyID: string}).policyID;
         }
         const invoiceReceiverPolicy = chatReceiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReceiverPolicyID}`] : undefined;
-        formattedName = getInvoiceReportName(report, translate, personalDetailsList, policy, invoiceReceiverPolicy);
+        formattedName = getInvoiceReportName(report, reportTransactions[report.reportID] ?? [], translate, personalDetailsList, policy, invoiceReceiverPolicy);
     }
 
     if (isInvoiceRoom(report)) {
