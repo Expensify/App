@@ -124,11 +124,11 @@ jest.mock('@hooks/usePrevious', () => jest.fn());
 const mockUseCurrentUserPersonalDetails = useCurrentUserPersonalDetails as jest.MockedFunction<typeof useCurrentUserPersonalDetails>;
 
 // We mount the public ReportActionsList (the skeleton guard + its content) and observe what the content
-// feeds the list via InvertedFlashList's `data`. The heavy scroll/marker hooks have their own unit tests,
+// feeds the list via InvertedLegendList's `data`. The heavy scroll/marker hooks have their own unit tests,
 // so they are stubbed here to isolate the skeleton logic. Because the guard only mounts the content when
 // the skeleton is not showing, these stubs double as a probe for dormancy: while a skeleton renders the
 // content is never mounted, so useMarkAsRead/useReportActionsScroll are never called.
-jest.mock('@components/FlashList/InvertedFlashList', () => jest.fn(() => null));
+jest.mock('@components/LegendList/InvertedLegendList', () => jest.fn(() => null));
 jest.mock('@hooks/useUnreadMarker', () => jest.fn(() => ({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1})));
 jest.mock('@hooks/useMarkAsRead', () => jest.fn(() => ({markNewestActionAsRead: jest.fn(), completeSkippedMarkAsRead: jest.fn()})));
 jest.mock('@hooks/useReportActionsScroll', () =>
@@ -162,7 +162,7 @@ type MockInvertedFlashListProps = {
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
 };
 
-const mockInvertedFlashList: jest.MockedFunction<(props: MockInvertedFlashListProps) => null> = jest.requireMock('@components/FlashList/InvertedFlashList');
+const mockInvertedFlashList: jest.MockedFunction<(props: MockInvertedFlashListProps) => null> = jest.requireMock('@components/LegendList/InvertedLegendList');
 const mockReportActionItemCreated: jest.Mock = jest.requireMock('@pages/inbox/report/ReportActionItemCreated');
 
 /** Returns the report actions the body fed into the (mocked) inverted list on its latest render. */

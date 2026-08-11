@@ -50,11 +50,13 @@ function isMvcpEnabled() {
     return config ? !config.disabled : undefined;
 }
 
-jest.mock('@components/FlashList/InvertedFlashList', () => {
+jest.mock('@components/LegendList/InvertedLegendList', () => {
     const {forwardRef} = jest.requireActual<typeof React>('react');
     return {
         __esModule: true,
-        default: forwardRef<unknown, CapturedListProps>((props) => {
+        // The second parameter is intentionally unused; forwardRef requires it to avoid a React development warning.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        default: forwardRef<unknown, CapturedListProps>((props, ref) => {
             capturedListProps = props;
             mockMvcpHistory.push(props.maintainVisibleContentPosition ? !props.maintainVisibleContentPosition.disabled : undefined);
             return null;

@@ -1,5 +1,5 @@
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
-import InvertedFlashList from '@components/FlashList/InvertedFlashList';
+import InvertedLegendList from '@components/LegendList/InvertedLegendList';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
 import useEnvironment from '@hooks/useEnvironment';
@@ -12,7 +12,6 @@ import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -55,7 +54,7 @@ import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -105,7 +104,6 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
 function ReportActionsListContent({reportID, onLayout}: ReportActionsListContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isProduction} = useEnvironment();
 
@@ -268,7 +266,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         scrollToActionBadgeTarget,
         flushPendingScrollToBottom,
         shouldBeAlignedToTop,
-        shouldFocusToTopOnMount,
         initialScrollIndex,
         initialScrollIndexParams,
         maintainVisibleContentPosition,
@@ -355,7 +352,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
     })();
 
-    const renderItem = ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
+    const renderItem = ({item: reportAction, index}: LegendListRenderItemProps<OnyxTypes.ReportAction>) => {
         const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
         return (
@@ -458,7 +455,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
                 report={report}
                 isReportArchived={isReportArchived}
             >
-                <InvertedFlashList
+                <InvertedLegendList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={listRef}
                     testID="report-actions-list"
@@ -485,10 +482,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
                     onViewableItemsChanged={onViewableItemsChanged}
                     extraData={extraData}
                     key={listID}
-                    overrideProps={{
-                        isInvertedVirtualizedList: true,
-                        contentOffset: shouldFocusToTopOnMount ? {x: 0, y: windowHeight} : undefined,
-                    }}
                     getItemType={(item) => item.actionName}
                     initialScrollIndex={initialScrollIndex}
                     initialScrollIndexParams={initialScrollIndexParams}
