@@ -222,6 +222,21 @@ type CardFeedsStatusByDomainID = Record<number, CardFeedsStatus>;
  */
 type WorkspaceCardFeedsStatus = Record<CardFeedWithNumber, CardFeedsStatus>;
 
+/** A single travel invoicing provisioning error for a workspace member */
+type TravelInvoicingProvisioningError = {
+    /** Account ID of the member whose card provisioning failed */
+    accountID: number;
+
+    /** Email of the member whose card provisioning failed */
+    email: string;
+
+    /** Whether the scheduled retry has already re-attempted this member */
+    retried?: boolean;
+};
+
+/** Travel invoicing provisioning errors keyed by the failed member's account ID */
+type TravelInvoicingProvisioningErrors = Record<string, TravelInvoicingProvisioningError>;
+
 /** Card feeds model, including domain settings */
 type CardFeeds = {
     /** Feed settings */
@@ -255,8 +270,8 @@ type CardFeeds = {
 
         /** Travel invoicing provisioning data */
         travelInvoicing?: {
-            /** Provisioning errors for workspace members */
-            errors?: string[];
+            /** Provisioning errors keyed by the failed member's account ID */
+            errors?: TravelInvoicingProvisioningErrors;
         };
     };
 } & CardFeedsStatus &
@@ -308,6 +323,9 @@ type AddNewCardFeedData = {
 
     /** Existing instance ID when editing a CSV feed */
     existingInstanceID?: string;
+
+    /** Account that owns the CSV feed being edited */
+    domainAccountID?: number;
 
     /** Plaid accounts */
     plaidAccounts?: LinkAccount[] | PlaidAccount[];
@@ -375,4 +393,5 @@ export type {
     DomainSettings,
     CombinedCardFeed,
     CombinedCardFeeds,
+    TravelInvoicingProvisioningErrors,
 };

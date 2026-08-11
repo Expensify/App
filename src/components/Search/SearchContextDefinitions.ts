@@ -31,8 +31,12 @@ const defaultSearchQueryActions: SearchQueryActionsValue = {
     setShouldResetSearchQuery: () => {},
 };
 
+const EMPTY_TRANSACTIONS_BY_REPORT_ID: SearchResultsContextValue['currentSearchTransactionsByReportID'] = new Map();
+
 const defaultSearchResultsContext: SearchResultsContextValue = {
     currentSearchResults: undefined,
+    currentSearchTransactionsByReportID: EMPTY_TRANSACTIONS_BY_REPORT_ID,
+    currentSearchViolations: CONST.EMPTY_OBJECT,
     shouldUseLiveData: false,
     sortedReportIDs: CONST.EMPTY_ARRAY,
     shouldShowFiltersBarLoading: false,
@@ -79,6 +83,7 @@ const SearchSelectionActionsContext = React.createContext<SearchSelectionActions
 const SearchRowSelectionActionsContext = React.createContext<SearchRowSelectionActionsValue>(defaultRowSelectionActions);
 
 export {
+    EMPTY_TRANSACTIONS_BY_REPORT_ID,
     SearchQueryContext,
     SearchQueryActionsContext,
     SearchResultsContext,

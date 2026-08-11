@@ -27,7 +27,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -158,6 +158,28 @@ describe('actions/SendInvoice', () => {
             participants: baseParticipants,
         };
 
+        const existingInvoiceChatReportFixture: OnyxEntry<Report> = {
+            reportID: 'invoice_chat_123',
+            chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            type: CONST.REPORT.TYPE.CHAT,
+            participants: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '123': {
+                    role: CONST.REPORT.ROLE.MEMBER,
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '456': {
+                    role: CONST.REPORT.ROLE.MEMBER,
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                },
+            },
+            invoiceReceiver: {
+                type: 'individual',
+                accountID: 456,
+            },
+        };
+
         it('should merge policyRecentlyUsedCategories when provided', () => {
             const currentUserAccountID = 123;
             const existingRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories> = [];
@@ -176,7 +198,9 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: existingRecentlyUsedCategories,
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: Verify optimistic data is generated when policyRecentlyUsedCategories are provided
@@ -202,7 +226,9 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: undefined,
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(result.onyxData.optimisticData).toBeDefined();
@@ -254,7 +280,9 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: 'https://testcompany.com',
                 policyRecentlyUsedCategories: ['Services', 'Consulting'],
                 senderPolicyTags: mockPolicyTagList as PolicyTagLists,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: Verify the result structure and key values
@@ -285,6 +313,82 @@ describe('actions/SendInvoice', () => {
             expect(result.onyxData.failureData).toBeDefined();
         });
 
+        it('should set report loading state in failure data for new invoice chat report', () => {
+            const currentUserAccountID = 123;
+
+            const result = getSendInvoiceInformation({
+                transaction: baseTransaction as OnyxEntry<Transaction>,
+                currentUserAccountID,
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: undefined,
+                receiptFile: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: undefined,
+                companyWebsite: undefined,
+                policyRecentlyUsedCategories: [],
+                senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            const reportLoadingStateUpdate = result.onyxData.failureData?.find(
+                (update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceRoom.reportID}`,
+            );
+
+            expect(reportLoadingStateUpdate).toMatchObject({
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    hasOnceLoadedReportActions: true,
+                    isLoadingInitialReportActions: false,
+                },
+            });
+        });
+
+        it('should not set report loading state in failure data for existing invoice chat report', () => {
+            const currentUserAccountID = 123;
+            const transaction: OnyxEntry<Transaction> = {
+                ...baseTransaction,
+                participants: [
+                    {accountID: 123, isSender: true, policyID: 'workspace_456'},
+                    {accountID: 456, isSender: false},
+                ],
+            };
+
+            const result = getSendInvoiceInformation({
+                transaction,
+                currentUserAccountID,
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: existingInvoiceChatReportFixture,
+                receiptFile: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: 'Client Company Ltd.',
+                companyWebsite: 'https://clientcompany.com',
+                policyRecentlyUsedCategories: [],
+                senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            const reportLoadingStateUpdate = result.onyxData.failureData?.find(
+                (update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceRoom.reportID}`,
+            );
+
+            expect(reportLoadingStateUpdate).toBeUndefined();
+            // Then: both reports are stamped as "actions already loaded" so they never hang on an infinite skeleton once online
+            const optimisticData = result.onyxData.optimisticData ?? [];
+            const invoiceReportLoadingState = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceReportID}`);
+            const invoiceRoomLoadingState = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${result.invoiceRoom.reportID}`);
+
+            expect(invoiceReportLoadingState?.value).toMatchObject({hasOnceLoadedReportActions: true});
+            expect(invoiceRoomLoadingState).toBeUndefined();
+        });
+
         describe('delegateAccountID forwarding', () => {
             it('sets delegateAccountID on the IOU action when delegateAccountID is provided', () => {
                 const DELEGATE_ACCOUNT_ID = 999;
@@ -304,7 +408,9 @@ describe('actions/SendInvoice', () => {
                     companyWebsite: 'https://testcompany.com',
                     policyRecentlyUsedCategories: [],
                     senderPolicyTags: baseSenderPolicyTags,
+                    formatPhoneNumber,
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
 
                 const reportActionsUpdate = result.onyxData.optimisticData?.find((update) => String(update.key) === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.invoiceReportID}`);
@@ -321,46 +427,22 @@ describe('actions/SendInvoice', () => {
         });
 
         it('should return correct invoice information with existing chat report', () => {
-            // Given: Existing invoice chat report
-            const existingInvoiceChatReport = {
-                reportID: 'invoice_chat_123',
-                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
-                type: CONST.REPORT.TYPE.CHAT,
-                participants: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '123': {
-                        accountID: 123,
-                        role: CONST.REPORT.ROLE.MEMBER,
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '456': {
-                        accountID: 456,
-                        role: CONST.REPORT.ROLE.MEMBER,
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                },
-                invoiceReceiver: {
-                    type: 'individual',
-                    accountID: 456,
-                    displayName: 'Client Company',
-                    login: 'client@example.com',
-                },
-            };
-
             const currentUserAccountID = 123;
 
-            const transaction = {
+            const transaction: OnyxEntry<Transaction> = {
                 ...baseTransaction,
-                participants: [{...baseParticipants.at(0), policyID: 'workspace_456'}, baseParticipants.at(1)],
+                participants: [
+                    {accountID: 123, isSender: true, policyID: 'workspace_456'},
+                    {accountID: 456, isSender: false},
+                ],
             };
 
             // When: Call getSendInvoiceInformation with existing chat report
             const result = getSendInvoiceInformation({
-                transaction: transaction as OnyxEntry<Transaction>,
+                transaction,
                 currentUserAccountID,
                 policyRecentlyUsedCurrencies: [],
-                invoiceChatReport: existingInvoiceChatReport as OnyxEntry<Report>,
+                invoiceChatReport: existingInvoiceChatReportFixture,
                 receiptFile: undefined,
                 policy: undefined,
                 policyTagList: undefined,
@@ -369,7 +451,9 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: 'https://clientcompany.com',
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: Verify the result uses existing chat report
@@ -406,7 +490,9 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: Verify receipt handling
@@ -456,7 +542,9 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: Verify function handles missing data gracefully
@@ -487,7 +575,9 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(result.invoiceRoom).toBeDefined();
@@ -540,7 +630,9 @@ describe('actions/SendInvoice', () => {
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
                 senderPolicyTags: baseSenderPolicyTags,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(result.invoiceRoom).toBeDefined();
@@ -594,7 +686,9 @@ describe('actions/SendInvoice', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags,
                 senderPolicyTags: senderPolicyTags ?? {},
+                formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: optimisticData should contain a POLICY_RECENTLY_USED_TAGS update with the transaction tag prepended
@@ -642,7 +736,9 @@ describe('actions/SendInvoice', () => {
                 currentUserAccountID: 123,
                 policyRecentlyUsedCurrencies: [],
                 senderPolicyTags: senderPolicyTags ?? {},
+                formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: No POLICY_RECENTLY_USED_TAGS update should be in optimisticData
@@ -675,7 +771,9 @@ describe('actions/SendInvoice', () => {
                 companyName,
                 companyWebsite,
                 senderPolicyTags: undefined,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then a new invoice chat is created instead of incorrectly using the invoice chat which has been converted from individual to business
@@ -704,7 +802,9 @@ describe('actions/SendInvoice', () => {
                 transaction,
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 senderPolicyTags: undefined,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             mockFetch?.fail?.();
@@ -744,7 +844,9 @@ describe('actions/SendInvoice', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedCategories,
                 senderPolicyTags: undefined,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then onyxData should be passed to API.write
@@ -786,7 +888,9 @@ describe('actions/SendInvoice', () => {
                         orderWeight: 0,
                     },
                 },
+                formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
 
@@ -822,7 +926,9 @@ describe('actions/SendInvoice', () => {
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReportID: preGeneratedReportID,
                 senderPolicyTags: undefined,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(writeSpy).toHaveBeenCalledWith(

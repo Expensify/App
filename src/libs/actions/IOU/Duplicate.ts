@@ -1,6 +1,9 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectedReports} from '@components/Search/types';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+import {getPolicyTagsSelector} from '@hooks/useParticipantsPolicyTags';
+
 import * as API from '@libs/API';
 import type {MergeDuplicatesParams, ResolveDuplicatesParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -48,6 +51,7 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 
@@ -59,27 +63,27 @@ import type {PerDiemExpenseInformation} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
 
-import {getAllReportActionsFromIOU, getAllReports, getAllTransactions} from '.';
+import {getAllReports, getAllTransactions, getPolicyTags} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
-import {submitPerDiemExpense} from './PerDiem';
+import {getPerDiemExpensePolicyID, submitPerDiemExpense} from './PerDiem';
 import {createDistanceRequest} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 
-function getIOUActionForTransactions(transactionIDList: Array<string | undefined>, iouReportID: string | undefined): Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
-    const allReportActions = getAllReportActionsFromIOU();
-    return Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`] ?? {})?.filter(
-        (reportAction): reportAction is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
-            if (!isMoneyRequestAction(reportAction)) {
-                return false;
-            }
-            const message = getOriginalMessage(reportAction);
-            if (!message?.IOUTransactionID) {
-                return false;
-            }
-            return transactionIDList.includes(message.IOUTransactionID);
-        },
-    );
+function getIOUActionForTransactions(
+    transactionIDList: Array<string | undefined>,
+    iouReportActions: OnyxEntry<OnyxTypes.ReportActions>,
+): Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
+    return Object.values(iouReportActions ?? {})?.filter((reportAction): reportAction is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
+        if (!isMoneyRequestAction(reportAction)) {
+            return false;
+        }
+        const message = getOriginalMessage(reportAction);
+        if (!message?.IOUTransactionID) {
+            return false;
+        }
+        return transactionIDList.includes(message.IOUTransactionID);
+    });
 }
 
 type DiscardedSource = {
@@ -174,6 +178,7 @@ type MergeDuplicatesFuncParams = MergeDuplicatesParams & {
     taxAmount?: number;
     taxValue?: string;
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
 };
 
 /** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
@@ -184,6 +189,7 @@ function mergeDuplicates({
     taxAmount,
     taxValue,
     allTransactionViolations,
+    allReportActionsList,
     ...params
 }: MergeDuplicatesFuncParams) {
     const allParams: MergeDuplicatesParams = {...params};
@@ -255,7 +261,7 @@ function mergeDuplicates({
         if (transaction.reimbursable) {
             entry.reimbursableAmount += transaction.amount;
         }
-        entry.actions.push(...getIOUActionForTransactions([id], transaction.reportID));
+        entry.actions.push(...getIOUActionForTransactions([id], allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`]));
         sources.set(transaction.reportID, entry);
     }
     const deletedTime = DateUtils.getDBTime();
@@ -312,7 +318,10 @@ function mergeDuplicates({
     const optimisticReportAction = buildOptimisticResolvedDuplicatesReportAction();
 
     const transactionThreadReportID =
-        optimisticTransactionThreadReportID ?? (params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined);
+        optimisticTransactionThreadReportID ??
+        (params.reportID
+            ? getIOUActionForTransactions([params.transactionID], allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`]).at(0)?.childReportID
+            : undefined);
     const optimisticReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
@@ -431,12 +440,14 @@ function resolveDuplicates({
     taxValue,
     transactionThreadReportIDMap,
     allTransactionViolations,
+    allReportActionsList,
     ...params
 }: MergeDuplicatesParams & {
     taxAmount?: number;
     taxValue?: string;
     transactionThreadReportIDMap: Record<string, string | undefined>;
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
 }) {
     if (!params.transactionID) {
         return;
@@ -497,8 +508,8 @@ function resolveDuplicates({
             continue;
         }
 
-        const transactionThreadReportID = transactionThreadReportIDMap[transactionID];
-        if (!transactionThreadReportID) {
+        const iouAction = getIOUActionForTransactions([transactionID], allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`]).at(0);
+        if (!iouAction) {
             continue;
         }
 
@@ -519,10 +530,15 @@ function resolveDuplicates({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 comment: {
-                    hold: null,
+                    hold: transaction.comment?.hold ?? null,
                 },
             },
         });
+
+        const transactionThreadReportID = transactionThreadReportIDMap[transactionID] ?? iouAction.childReportID;
+        if (!transactionThreadReportID) {
+            continue;
+        }
         optimisticHoldActions.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
@@ -541,33 +557,36 @@ function resolveDuplicates({
         });
     }
 
-    const transactionThreadReportID = params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined;
+    const keptTransactionThreadReportID = params.reportID
+        ? getIOUActionForTransactions([params.transactionID], allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`]).at(0)?.childReportID
+        : undefined;
     const optimisticReportAction = buildOptimisticDismissedViolationReportAction({
         reason: 'manual',
         violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     });
 
-    const optimisticReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-        value: {
-            [optimisticReportAction.reportActionID]: optimisticReportAction,
-        },
-    };
-
-    const failureReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-        value: {
-            [optimisticReportAction.reportActionID]: null,
-        },
-    };
-
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
 
-    optimisticData.push(optimisticTransactionData, ...optimisticTransactionViolations, ...optimisticHoldActions, ...optimisticHoldTransactionActions, optimisticReportActionData);
-    failureData.push(failureTransactionData, ...failureTransactionViolations, ...failureHoldActions, ...failureHoldTransactionActions, failureReportActionData);
+    optimisticData.push(optimisticTransactionData, ...optimisticTransactionViolations, ...optimisticHoldActions, ...optimisticHoldTransactionActions);
+    failureData.push(failureTransactionData, ...failureTransactionViolations, ...failureHoldActions, ...failureHoldTransactionActions);
+
+    if (keptTransactionThreadReportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${keptTransactionThreadReportID}`,
+            value: {
+                [optimisticReportAction.reportActionID]: optimisticReportAction,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${keptTransactionThreadReportID}`,
+            value: {
+                [optimisticReportAction.reportActionID]: null,
+            },
+        });
+    }
     const {reportID, transactionIDList, receiptID, ...otherParams} = params;
 
     const parameters: ResolveDuplicatesParams = {
@@ -653,6 +672,8 @@ function createExpenseByType({
     recentWaypoints,
     isTrackIntentUser,
     formatPhoneNumber,
+    dateFnsLocale,
+    participantsPolicyTags,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -667,6 +688,8 @@ function createExpenseByType({
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    dateFnsLocale: DateFnsLocale | undefined;
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
@@ -704,12 +727,17 @@ function createExpenseByType({
                 personalDetails,
                 recentWaypoints,
                 formatPhoneNumber,
+                participantsPolicyTags,
             };
             return createDistanceRequest(distanceParams);
         }
         case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
+            const earlyPolicyID = getPerDiemExpensePolicyID(params);
+            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+
             const perDiemParams: PerDiemExpenseInformation = {
                 ...params,
+                dateFnsLocale,
                 transactionParams: {
                     ...(params.transactionParams ?? {}),
                     comment: transactionDetails?.comment ?? '',
@@ -718,6 +746,8 @@ function createExpenseByType({
                 hasViolations: false,
                 customUnitPolicyID,
                 isTrackIntentUser,
+                formatPhoneNumber,
+                policyTags,
             };
             return submitPerDiemExpense(perDiemParams);
         }
@@ -729,6 +759,7 @@ function createExpenseByType({
 }
 
 type DuplicateExpenseTransactionParams = {
+    dateFnsLocale: DateFnsLocale | undefined;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     optimisticChatReportID: string;
     optimisticIOUReportID: string;
@@ -756,9 +787,12 @@ type DuplicateExpenseTransactionParams = {
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
 };
 
 function duplicateExpenseTransaction({
+    dateFnsLocale,
     transaction,
     optimisticChatReportID,
     optimisticIOUReportID,
@@ -785,6 +819,8 @@ function duplicateExpenseTransaction({
     delegateAccountID,
     policyTagList,
     formatPhoneNumber,
+    getCurrencyDecimals,
+    participantsPolicyTags,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -829,11 +865,14 @@ function duplicateExpenseTransaction({
             transactionID: '1',
         },
         isSelfTourViewed,
+        // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
+        conciergeChat: undefined,
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
         isTrackIntentUser,
         delegateAccountID,
+        getCurrencyDecimals,
     };
 
     // If no workspace is provided the expense should be unreported
@@ -868,6 +907,8 @@ function duplicateExpenseTransaction({
             isDraftPolicy: false,
             currentUser: {accountID: currentUserAccountID, email: currentUserLogin},
             introSelected,
+            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
+            conciergeChat: undefined,
             quickAction,
             recentWaypoints,
             betas,
@@ -886,6 +927,7 @@ function duplicateExpenseTransaction({
     };
 
     return createExpenseByType({
+        dateFnsLocale,
         transactionType: getTransactionType(transaction),
         params,
         transaction,
@@ -899,10 +941,12 @@ function duplicateExpenseTransaction({
         recentWaypoints,
         isTrackIntentUser,
         formatPhoneNumber,
+        participantsPolicyTags,
     });
 }
 
 type DuplicateReportParams = {
+    dateFnsLocale: DateFnsLocale | undefined;
     sourceReport: OnyxEntry<OnyxTypes.Report>;
     sourceReportTransactions: OnyxTypes.Transaction[];
     sourceReportName: string;
@@ -926,9 +970,12 @@ type DuplicateReportParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
 };
 
 function duplicateReport({
+    dateFnsLocale,
     sourceReport,
     sourceReportTransactions,
     sourceReportName,
@@ -952,6 +999,8 @@ function duplicateReport({
     isTrackIntentUser,
     delegateAccountID,
     formatPhoneNumber,
+    getCurrencyDecimals,
+    participantsPolicyTags,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
@@ -965,9 +1014,12 @@ function duplicateReport({
         targetPolicy,
         betas,
         isTrackIntentUser,
+        getCurrencyDecimals,
         false,
         undefined,
-        newReportName,
+        {
+            reportName: newReportName,
+        },
     );
 
     const isCrossWorkspace = !!sourceReport && sourceReport.policyID !== targetPolicy.id;
@@ -1049,14 +1101,18 @@ function duplicateReport({
                 transactionID: '1',
             },
             isSelfTourViewed,
+            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
+            conciergeChat: undefined,
             betas,
             personalDetails,
             shouldDeferAutoSubmit: !isLastExpense,
             isTrackIntentUser,
             delegateAccountID,
+            getCurrencyDecimals,
         };
 
         const result = createExpenseByType({
+            dateFnsLocale,
             transactionType: getTransactionType(transaction),
             params,
             transaction,
@@ -1070,6 +1126,7 @@ function duplicateReport({
             recentWaypoints,
             isTrackIntentUser,
             formatPhoneNumber,
+            participantsPolicyTags,
         });
 
         if (result?.iouReport) {
@@ -1083,6 +1140,7 @@ function duplicateReport({
 }
 
 type BulkDuplicateExpensesParams = {
+    dateFnsLocale: DateFnsLocale | undefined;
     transactionIDs: string[];
     allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>>;
     sourcePolicyIDMap: Record<string, string | undefined>;
@@ -1105,9 +1163,12 @@ type BulkDuplicateExpensesParams = {
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
 };
 
 function bulkDuplicateExpenses({
+    dateFnsLocale,
     transactionIDs,
     allTransactions,
     sourcePolicyIDMap,
@@ -1130,6 +1191,8 @@ function bulkDuplicateExpenses({
     delegateAccountID,
     policyTagList,
     formatPhoneNumber,
+    getCurrencyDecimals,
+    participantsPolicyTags,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1202,6 +1265,7 @@ function bulkDuplicateExpenses({
         const shouldDeferAutoSubmit = !isLastExpense && !reportWasSplit && !policyWillSplitReport;
 
         const result = duplicateExpenseTransaction({
+            dateFnsLocale,
             transaction: item,
             optimisticChatReportID,
             optimisticIOUReportID: currentOptimisticIOUReportID,
@@ -1229,6 +1293,8 @@ function bulkDuplicateExpenses({
             delegateAccountID,
             policyTagList,
             formatPhoneNumber,
+            getCurrencyDecimals,
+            participantsPolicyTags,
         });
 
         if (result?.iouReport) {
@@ -1244,6 +1310,7 @@ function bulkDuplicateExpenses({
 }
 
 type BulkDuplicateReportsParams = {
+    dateFnsLocale: DateFnsLocale | undefined;
     selectedReports: SelectedReports[];
     allReports: NonNullable<OnyxCollection<OnyxTypes.Report>>;
     searchData: Record<string, unknown> | undefined;
@@ -1267,9 +1334,11 @@ type BulkDuplicateReportsParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 function bulkDuplicateReports({
+    dateFnsLocale,
     selectedReports: selectedReportsParam,
     allReports,
     searchData,
@@ -1293,6 +1362,7 @@ function bulkDuplicateReports({
     isTrackIntentUser,
     delegateAccountID,
     formatPhoneNumber,
+    getCurrencyDecimals,
 }: BulkDuplicateReportsParams) {
     const allTransactionsMap = getAllTransactions();
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
@@ -1346,7 +1416,11 @@ function bulkDuplicateReports({
         const targetPolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicy?.id}`] ?? {};
         const targetPolicyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicy?.id}`] ?? {};
 
+        const participants = getMoneyRequestParticipantsFromReport(parentChatReport, currentUserAccountID);
+        const participantsPolicyTags = getPolicyTagsSelector(participants)(allPolicyTags);
+
         duplicateReport({
+            dateFnsLocale,
             sourceReport: report,
             sourceReportTransactions: reportTransactions,
             sourceReportName: report.reportName ?? '',
@@ -1370,11 +1444,13 @@ function bulkDuplicateReports({
             isTrackIntentUser,
             delegateAccountID,
             formatPhoneNumber,
+            getCurrencyDecimals,
+            participantsPolicyTags,
         });
     }
 
     playSound(SOUNDS.DONE);
 }
 
-export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, bulkDuplicateExpenses, duplicateReport, bulkDuplicateReports};
+export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, bulkDuplicateExpenses, duplicateReport, bulkDuplicateReports, createExpenseByType};
 export type {DuplicateReportParams, BulkDuplicateReportsParams};
