@@ -648,6 +648,7 @@ function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {h
         // (the AM/PM buttons render their own translated labels), so it must be a locale-independent English marker.
         // Deriving it from the 24-hour clock avoids the active date-fns locale returning a localized marker (e.g. de
         // "NACHM.", el "Μ.Μ.") that would match neither CONST.TIME_PERIOD nor round-trip through the English parse.
+        // cspell:ignore NACHM
         period: parsedTime.getHours() >= 12 ? CONST.TIME_PERIOD.PM : CONST.TIME_PERIOD.AM,
     };
 }

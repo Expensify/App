@@ -730,6 +730,7 @@ describe('DateUtils', () => {
     // resulting `hh:mm a` string is re-parsed by combineDateAndTime. Under locales whose date-fns day-period marker or
     // translation diverges from English (e.g. de "vorm./nachm.", el "π.μ./μ.μ."), a localized period would break the
     // highlight comparison and, once tapped or forced to English, break the reverse parse and the time save entirely.
+    // cspell:ignore vorm nachm
     describe('TimePicker AM/PM round trip under localized locales', () => {
         // A PM and an AM saved datetime, in the "yyyy-MM-dd HH:mm:ss" shape stored for a Custom Status "Clear after".
         const savedPm = '2026-08-15 23:10:00';
