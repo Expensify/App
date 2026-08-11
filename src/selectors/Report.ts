@@ -1,5 +1,3 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {
     canShowReportRecipientLocalTime,
@@ -11,9 +9,14 @@ import {
     isPolicyExpenseChat,
     isThread,
 } from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
 import {getLastClosedReportAction} from './ReportAction';
 
 type OpenExpenseReportIDMap = Record<string, true>;
@@ -167,7 +170,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         transactionCount: report.transactionCount,
         parentReportID: report.parentReportID,
         parentReportActionID: report.parentReportActionID,
-        // Coerce sentinel `0` to `undefined`. The backend ships `managerID: 0` on chat reports
+        // Coerce placeholder `0` to `undefined`. The backend ships `managerID: 0` on chat reports
         // without a manager, and a later push removes the key entirely; treating both as
         // `undefined` keeps the projection stable through that reconciliation.
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -202,6 +205,10 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
     } satisfies Record<keyof StableReport, unknown> & StableReport;
 }
 
+function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
+    return !!draft;
+}
+
 export {
     getArchiveReason,
     getReportChatType,
@@ -212,6 +219,7 @@ export {
     policyChatRoomsSelector,
     openExpenseReportIDsSelector,
     getStableReportSelector,
+    isDraftReportSelector,
 };
 
 export type {StableReport};

@@ -1,4 +1,3 @@
-import type {SvgProps} from 'react-native-svg';
 import AddReaction from '@assets/images/add-reaction.svg';
 import All from '@assets/images/all.svg';
 import Android from '@assets/images/android.svg';
@@ -32,6 +31,7 @@ import Bolt from '@assets/images/bolt.svg';
 import Bookmark from '@assets/images/bookmark.svg';
 import Bot from '@assets/images/bot.svg';
 import Box from '@assets/images/box.svg';
+import Briefcase from '@assets/images/briefcase.svg';
 import Bug from '@assets/images/bug.svg';
 import Building from '@assets/images/building.svg';
 import Buildings from '@assets/images/buildings.svg';
@@ -134,6 +134,7 @@ import Info from '@assets/images/info.svg';
 import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.svg';
 import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
+import DualEntrySquare from '@assets/images/integrationicons/dualentry-icon-square.svg';
 import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
@@ -159,6 +160,7 @@ import Key from '@assets/images/key.svg';
 import Keyboard from '@assets/images/keyboard.svg';
 import LinkCopy from '@assets/images/link-copy.svg';
 import Link from '@assets/images/link.svg';
+import LocationAdd from '@assets/images/location-add.svg';
 import Location from '@assets/images/location.svg';
 import Lock from '@assets/images/lock.svg';
 import LuggageWithLinesPlus from '@assets/images/luggage-with-lines-plus.svg';
@@ -274,6 +276,7 @@ import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
+
 // These icons are React components because they have
 // drop shadow that is NOT handled by babel-plugin-transform-react-native-svg
 import MapCurrentLocation from '@components/MapView/Icons/MapCurrentLocation';
@@ -281,6 +284,8 @@ import MapCurrentLocationPuck from '@components/MapView/Icons/MapCurrentLocation
 import MapStartWaypoint from '@components/MapView/Icons/MapStartWaypoint';
 import MapStopWaypoint from '@components/MapView/Icons/MapStopWaypoint';
 import MapWaypoint from '@components/MapView/Icons/MapWaypoint';
+
+import type {SvgProps} from 'react-native-svg';
 
 const Expensicons = {
     ReceiptBody,
@@ -310,6 +315,7 @@ const Expensicons = {
     Bolt,
     Bot,
     Box,
+    Briefcase,
     Bug,
     Building,
     Buildings,
@@ -407,6 +413,7 @@ const Expensicons = {
     Link,
     LinkCopy,
     Location,
+    LocationAdd,
     Lock,
     UserMinus,
     Luggage,
@@ -467,6 +474,7 @@ const Expensicons = {
     ReplaceReceipt,
     ReceiptMultiple,
     RilletSquare,
+    DualEntrySquare,
     Rotate,
     RotateLeft,
     Scan,

@@ -1,5 +1,6 @@
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
 import {getMimeTypeFromUri} from './fileDownload/FileUtils';
 import getPlatform from './getPlatform';
 

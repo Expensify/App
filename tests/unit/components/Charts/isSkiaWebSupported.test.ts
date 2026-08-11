@@ -46,14 +46,24 @@ function mockCanvas(getContext: jest.Mock) {
 
 describe('isSkiaWebSupported', () => {
     let isSkiaWebSupported: () => boolean;
+    let originalWebGL2: PropertyDescriptor | undefined;
 
     beforeEach(async () => {
+        // jsdom omits the WebGL2 API, so define it to emulate a modern browser where CanvasKit (and this
+        // probe) request a webgl2 context. Individual tests delete it to cover the legacy WebGL1 path.
+        originalWebGL2 = Object.getOwnPropertyDescriptor(globalThis, 'WebGL2RenderingContext');
+        Object.defineProperty(globalThis, 'WebGL2RenderingContext', {value: class {}, configurable: true, writable: true});
         // The probe caches a long-lived context in module scope, so reset the module between tests.
         jest.resetModules();
         isSkiaWebSupported = (await import('@components/Charts/SkiaWebChart/isSkiaWebSupported')).default;
     });
 
     afterEach(() => {
+        if (originalWebGL2) {
+            Object.defineProperty(globalThis, 'WebGL2RenderingContext', originalWebGL2);
+        } else {
+            Reflect.deleteProperty(globalThis, 'WebGL2RenderingContext');
+        }
         jest.restoreAllMocks();
     });
 
@@ -65,7 +75,18 @@ describe('isSkiaWebSupported', () => {
         expect(gl.getShaderPrecisionFormat).toHaveBeenCalledWith(FRAGMENT_SHADER, HIGH_FLOAT);
     });
 
-    it('should fall back to the WebGL1 context when WebGL2 is unavailable', () => {
+    it('should return false when a WebGL2 context cannot be created', () => {
+        // CanvasKit requests webgl2 whenever the WebGL2 API exists and never falls back to webgl1, so a
+        // browser that exposes the API but cannot create the context crashes with "failed to create webgl
+        // context". Skip Skia instead of green-lighting a webgl1 context the renderer will not use.
+        mockCanvas(jest.fn(() => null));
+
+        expect(isSkiaWebSupported()).toBe(false);
+    });
+
+    it('should probe the WebGL1 context when the WebGL2 API is unavailable', () => {
+        // Legacy browsers without the WebGL2 API: CanvasKit falls back to webgl1, so the probe mirrors that.
+        Reflect.deleteProperty(globalThis, 'WebGL2RenderingContext');
         const gl = makeGl(VALID_FORMAT);
         mockCanvas(jest.fn((contextId: string) => (contextId === 'webgl' ? gl : null)));
 
@@ -81,12 +102,6 @@ describe('isSkiaWebSupported', () => {
 
     it('should return true when the null format comes from a lost context (transient, not a verdict)', () => {
         mockCanvas(jest.fn(() => makeGl(null, {lost: true})));
-
-        expect(isSkiaWebSupported()).toBe(true);
-    });
-
-    it('should return true when no WebGL context is available (transient GPU pressure, not a verdict)', () => {
-        mockCanvas(jest.fn(() => null));
 
         expect(isSkiaWebSupported()).toBe(true);
     });

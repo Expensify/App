@@ -1,5 +1,3 @@
-import React, {useCallback} from 'react';
-import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -7,21 +5,28 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SingleSelectWithAvatarListItem from '@components/SelectionList/ListItem/SingleSelectWithAvatarListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {canBeExported as canBeExportedUtil, getIntegrationIcon, isExported as isExportedUtil} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback} from 'react';
 
 type DynamicReportDetailsExportPageProps = PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT>;
 
@@ -41,7 +46,17 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
     const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
     const lazyIllustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenAndHourglass']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare', 'RilletSquare', 'GustoSquare']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'XeroSquare',
+        'QBOSquare',
+        'NetSuiteSquare',
+        'IntacctSquare',
+        'QBDSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+        'DualEntrySquare',
+        'GustoSquare',
+    ]);
 
     const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons);
     const canBeExported = canBeExportedUtil(report);
@@ -63,7 +78,7 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
         async (type: ExportType) => {
             const result = await showConfirmModal({
                 title: translate('workspace.exportAgainModal.title'),
-                prompt: translate('workspace.exportAgainModal.description', {reportName: report?.reportName ?? '', connectionName}),
+                prompt: translate('workspace.exportAgainModal.description', report?.reportName ?? '', connectionName),
                 confirmText: translate('workspace.exportAgainModal.confirmText'),
                 cancelText: translate('workspace.exportAgainModal.cancelText'),
             });
@@ -77,7 +92,7 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
     const exportSelectorOptions: ExportSelectorType[] = [
         {
             value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
-            text: translate('workspace.common.exportIntegrationSelected', {connectionName}),
+            text: translate('workspace.common.exportIntegrationSelected', connectionName),
             icons: [
                 {
                     source: iconToDisplay ?? '',

@@ -1,19 +1,24 @@
-import React from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isInvalidMerchantValue, isRequiredFulfilled, isValidInputLength} from '@libs/ValidationUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import EXPENSE_RULE_INPUT_IDS from '@src/types/form/ExpenseRuleForm';
 import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type TextBaseProps<TFormID extends OnyxFormKey> = {
     fieldID: string;
@@ -29,17 +34,23 @@ type TextBaseProps<TFormID extends OnyxFormKey> = {
     isMarkdownEnabled?: boolean;
 };
 
-function TextBase<TFormID extends OnyxFormKey>({
-    fieldID,
-    hint,
-    isRequired,
-    title,
-    label,
-    onSubmit,
-    formID,
-    characterLimit = CONST.MERCHANT_NAME_MAX_BYTES,
-    isMarkdownEnabled = false,
-}: TextBaseProps<TFormID>) {
+type TextBasePropsWidened = {
+    fieldID: string;
+    hint?: string;
+    isRequired?: boolean;
+    title: string;
+    label: string;
+    characterLimit?: number;
+    formID: OnyxFormKey;
+    onSubmit: (values: FormOnyxValues<OnyxFormKey>) => void;
+    isMarkdownEnabled?: boolean;
+};
+
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function TextBaseImpl({fieldID, hint, isRequired, title, label, onSubmit, formID, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES, isMarkdownEnabled = false}: TextBasePropsWidened) {
     const {translate} = useLocalize();
     const [form] = useOnyx(formID);
     const styles = useThemeStyles();
@@ -47,9 +58,9 @@ function TextBase<TFormID extends OnyxFormKey>({
     const currentValue = (form as Record<string, unknown>)?.[fieldID] ?? '';
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const validate = (values: FormOnyxValues<TFormID>) => {
-        const errors: FormInputErrors<TFormID> = {};
-        const fieldValue = values[fieldID as keyof FormOnyxValues<TFormID>] ?? '';
+    const validate = (values: FormOnyxValues<OnyxFormKey>) => {
+        const errors: FormInputErrors<OnyxFormKey> = {};
+        const fieldValue = (values as Record<string, unknown>)[fieldID] ?? '';
 
         if (typeof fieldValue !== 'string') {
             return errors;
@@ -103,6 +114,10 @@ function TextBase<TFormID extends OnyxFormKey>({
             </View>
         </FormProvider>
     );
+}
+
+function TextBase<TFormID extends OnyxFormKey>(props: TextBaseProps<TFormID>) {
+    return <TextBaseImpl {...(props as unknown as TextBasePropsWidened)} />;
 }
 
 export default TextBase;

@@ -1,8 +1,10 @@
+import CONST from '@src/CONST';
+
+import type {Span, SpanAttributeValue, StartSpanOptions} from '@sentry/core';
+
 import {SPAN_STATUS_OK} from '@sentry/core';
-import type {SpanAttributeValue, StartSpanOptions} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import {AppState} from 'react-native';
-import CONST from '@src/CONST';
 
 type ActiveSpanEntry = {
     span: ReturnType<typeof Sentry.startInactiveSpan>;
@@ -11,15 +13,7 @@ type ActiveSpanEntry = {
 
 const activeSpans = new Map<string, ActiveSpanEntry>();
 
-type StartSpanExtraOptions = Partial<{
-    /**
-     * Minimum duration of the span in milliseconds. If the span is shorter than this duration, it will be discarded (filtered out) before sending to Sentry.
-     *
-     */
-    minDuration: number;
-}>;
-
-function startSpan(spanId: string, options: StartSpanOptions, extraOptions: StartSpanExtraOptions = {}) {
+function startSpan(spanId: string, options: StartSpanOptions) {
     if ((AppState.currentState ?? CONST.APP_STATE.ACTIVE) !== CONST.APP_STATE.ACTIVE) {
         return;
     }
@@ -28,14 +22,9 @@ function startSpan(spanId: string, options: StartSpanOptions, extraOptions: Star
     console.debug(`[Sentry][${spanId}] Starting span`, {
         spanId,
         spanOptions: options,
-        spanExtraOptions: extraOptions,
         timestamp: Date.now(),
     });
     const span = Sentry.startInactiveSpan(options);
-
-    if (extraOptions.minDuration) {
-        span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_MIN_DURATION, extraOptions.minDuration);
-    }
 
     let startTimeForLog: number;
     if (typeof options.startTime === 'number') {
@@ -92,6 +81,22 @@ function cancelSpansByPrefix(prefix: string) {
     }
 }
 
+/**
+ * Cancel a tracked span by its Sentry span instance rather than its id (e.g. from a lifecycle listener that
+ * only has the raw span). Optionally stamps attributes first. No-op if the span isn't tracked.
+ */
+function cancelSpanByInstance(target: Span, attributes?: Record<string, SpanAttributeValue>) {
+    for (const [spanID, entry] of activeSpans.entries()) {
+        if (entry.span === target) {
+            if (attributes) {
+                entry.span.setAttributes(attributes);
+            }
+            cancelSpan(spanID);
+            return;
+        }
+    }
+}
+
 function getSpan(spanId: string) {
     return activeSpans.get(spanId)?.span;
 }
@@ -102,4 +107,4 @@ function endSpanWithAttributes(spanId: string, attributes: Record<string, SpanAt
     endSpan(spanId);
 }
 
-export {startSpan, endSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelAllSpans, cancelSpansByPrefix};
+export {startSpan, endSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelSpanByInstance, cancelAllSpans, cancelSpansByPrefix};

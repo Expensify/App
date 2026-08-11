@@ -1,5 +1,3 @@
-import {useEffect, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {READ_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -7,9 +5,10 @@ import HttpUtils from '@libs/HttpUtils';
 import {isParticipantP2P} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isDistanceRequest} from '@libs/TransactionUtils';
+import {isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
+
 import {
     resetDraftTransactionsCustomUnit,
     setCustomUnitRateID,
@@ -20,6 +19,7 @@ import {
 } from '@userActions/IOU/MoneyRequest';
 import {setSplitShares} from '@userActions/IOU/Split';
 import {createDraftWorkspace, generateDefaultWorkspaceName} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,6 +28,13 @@ import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect, useRef} from 'react';
+
+import useCommuterExclusionGuard from './useCommuterExclusionGuard';
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useMappedPolicies from './useMappedPolicies';
@@ -74,6 +81,7 @@ function useParticipantSubmission({
     isMovingTransactionFromTrackExpense,
     isFocused,
 }: UseParticipantSubmissionParams) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {translate} = useLocalize();
     const personalPolicy = usePersonalPolicy();
 
@@ -96,6 +104,10 @@ function useParticipantSubmission({
     // explicit useMemo is needed here.
     const transactionIDs = draftTransactions?.map((transaction) => transaction.transactionID);
     const [transactions] = useTransactionsByID(transactionIDs);
+    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
+        isOdometerDistanceRequest: isOdometerDistanceRequest(initialTransaction),
+    });
 
     const isActivePolicyRequest =
         iouType === CONST.IOU.TYPE.CREATE &&
@@ -232,6 +244,12 @@ function useParticipantSubmission({
             return;
         }
 
+        // Block selecting a workspace with commuter exclusions before participants/workspace are committed.
+        const selectedPolicyID = firstParticipant?.policyID ?? (firstParticipant?.reportID ? getReportOrDraftReport(firstParticipant.reportID)?.policyID : undefined);
+        if (blockManualOrOdometerDistanceRequestIfNeeded(selectedPolicyID)) {
+            return;
+        }
+
         const {allPolicies: policies, lastSelectedDistanceRates: distanceRates, draftTransactions: drafts} = dataRef.current;
         const firstParticipantReportID = val.at(0)?.reportID;
         const isPolicyExpenseChat = !!firstParticipant?.isPolicyExpenseChat;
@@ -347,7 +365,13 @@ function useParticipantSubmission({
             const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
             const defaultCategory = isDistanceRequest(transaction) && policyDistance?.defaultCategory ? policyDistance?.defaultCategory : '';
             const category = isMovingTransactionFromTrackExpense ? (transaction?.category ?? '') : defaultCategory;
-            setMoneyRequestCategory(transaction.transactionID, category, isMovingTransactionFromTrackExpense ? movingPolicy : undefined, isMovingTransactionFromTrackExpense);
+            setMoneyRequestCategory(
+                transaction.transactionID,
+                category,
+                isMovingTransactionFromTrackExpense ? movingPolicy : undefined,
+                getCurrencyDecimals,
+                isMovingTransactionFromTrackExpense,
+            );
 
             if (shouldUpdateTransactionReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: transactionReportID}, true);

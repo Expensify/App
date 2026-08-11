@@ -1,6 +1,7 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {IOUType} from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 /**
  * Finite state machine for the stitcher's lifecycle. Verification states are handled upstream;

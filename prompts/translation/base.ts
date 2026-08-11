@@ -1,6 +1,7 @@
-import {Str} from 'expensify-common';
 import {LOCALE_TO_LANGUAGE_STRING} from '@src/CONST/LOCALES';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
+
+import {Str} from 'expensify-common';
 
 /**
  * This file contains the base translation prompt used to translate static strings in en.ts to other languages.

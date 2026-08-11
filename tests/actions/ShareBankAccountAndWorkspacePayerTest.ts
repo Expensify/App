@@ -1,10 +1,13 @@
-import Onyx from 'react-native-onyx';
 import {shareBankAccountAndSetPayer} from '@libs/actions/BankAccounts';
 import {setWorkspacePayer} from '@libs/actions/Policy/Policy';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API', () => ({
@@ -118,6 +121,8 @@ describe('actions/ShareBankAccountAndWorkspacePayer', () => {
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                             value: expect.objectContaining({
+                                reimburser: null,
+                                achAccount: {reimburser: null},
                                 // Error object shape from ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey
                                 errorFields: expect.objectContaining({
                                     reimburser: expect.anything(), // eslint-disable-line @typescript-eslint/no-unsafe-assignment -- Jest matcher

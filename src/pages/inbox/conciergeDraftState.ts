@@ -1,6 +1,7 @@
 import Parser from '@libs/Parser';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
 import {getParsedComment} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
@@ -17,6 +18,8 @@ type ConciergeDraft = {
     pusherQueuedTargetEvents?: ConciergeDraftEvent[];
     /** Completion event held while the Pusher pacer is still revealing banked text. */
     pusherPendingCompletionEvent?: ConciergeDraftEvent;
+    /** Terminal lifecycle event used to reject stale chunks after a content-free completion. */
+    pusherTerminalEvent?: ConciergeDraftEvent;
     /** Number of UTF-16 source units consumed from the current Pusher target. */
     pusherVisibleSourceOffset?: number;
     /** Source markdown prefix consumed from the current Pusher target, used to detect server-side corrections. */
@@ -660,10 +663,6 @@ function getNextVisibleConciergeDraftMarkdown(
     };
 }
 
-function getNextVisibleConciergeDraftBodyMarkdown(currentBodyMarkdown: string, targetBodyMarkdown: string): string {
-    return getNextVisibleConciergeDraftMarkdown(currentBodyMarkdown, targetBodyMarkdown).bodyMarkdown;
-}
-
 // Module-level cache so a chat re-mount (ReportScreen unmount/remount on chat
 // switch) preserves the in-progress draft. Without this the gate's local state
 // resets to null on every revisit and the synthetic bubble disappears for the
@@ -728,13 +727,5 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
     };
 }
 
-export {
-    applyConciergeDraftEvent,
-    CONCIERGE_DRAFT_STATUS,
-    getCachedDraft,
-    getNextVisibleConciergeDraftBodyMarkdown,
-    getNextVisibleConciergeDraftMarkdown,
-    setCachedDraft,
-    stripIncompleteMarkdown,
-};
+export {applyConciergeDraftEvent, CONCIERGE_DRAFT_STATUS, getCachedDraft, getNextVisibleConciergeDraftMarkdown, setCachedDraft, stripIncompleteMarkdown};
 export type {ConciergeDraft};

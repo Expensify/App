@@ -1,9 +1,12 @@
-import {format, parseISO} from 'date-fns';
-import React from 'react';
-import {View} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {format, parseISO} from 'date-fns';
+import React from 'react';
+import {View} from 'react-native';
+
 import Text from './Text';
 
 type DateIconProps = {
@@ -14,8 +17,9 @@ type DateIconProps = {
 function DateIcon({date}: DateIconProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {dateFnsLocale} = useLocalize();
     const parsedDate = parseISO(date);
-    const monthAbbr = format(parsedDate, 'MMM');
+    const monthAbbr = format(parsedDate, 'MMM', {locale: dateFnsLocale});
     const dayNumber = format(parsedDate, 'd');
     const StyleUtils = useStyleUtils();
 

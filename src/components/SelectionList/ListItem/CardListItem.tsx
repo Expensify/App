@@ -1,22 +1,28 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
-import SelectableListItem from './SelectableListItem';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
 import type {ListItem, SelectableListItemProps} from './types';
+
+import SelectableListItem from './SelectableListItem';
 
 type AdditionalCardProps = {
     shouldShowOwnersAvatar?: boolean;
@@ -100,7 +106,6 @@ function CardListItem<TItem extends ListItem>({
                                 >
                                     <View>
                                         <Avatar
-                                            containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT))}
                                             source={ownersAvatar.source}
                                             name={ownersAvatar.name}
                                             avatarID={ownersAvatar.id}
@@ -148,7 +153,7 @@ function CardListItem<TItem extends ListItem>({
                             text={Str.removeSMSDomain(item.text ?? '')}
                             style={[
                                 styles.optionDisplayName,
-                                isFocusVisible ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                styles.sidebarLinkText,
                                 item.isBold !== false && styles.sidebarLinkTextBold,
                                 styles.pre,
                                 item.alternateText ? styles.mb1 : null,

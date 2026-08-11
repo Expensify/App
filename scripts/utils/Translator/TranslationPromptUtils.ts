@@ -1,14 +1,16 @@
-import {createRequire} from 'node:module';
 import getBasePrompt from '@prompts/translation/base';
 import getContextPrompt from '@prompts/translation/context';
+
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
+
+import {createRequire} from 'node:module';
 
 const requireLocalePrompt = createRequire(__dirname);
 
 /**
  * Gets a locale-specific prompt if one exists for the target language.
  *
- * Uses require() so ts-node compiles the .ts prompt module. Native import() of a .ts file URL
+ * Uses require() so Bun transpiles the .ts prompt module on the fly. Native import() of a .ts file URL
  * is handled by Node and fails with ERR_UNKNOWN_FILE_EXTENSION.
  */
 async function getLocaleSpecificPrompt(targetLang: TranslationTargetLocale): Promise<string> {

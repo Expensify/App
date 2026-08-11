@@ -1,21 +1,26 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import {clearXeroErrorField, enablePolicyReportFields} from '@libs/actions/Policy/Policy';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy, settingsPendingAction} from '@libs/PolicyUtils';
+
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 type RouteParams = {
     categoryId?: string;

@@ -1,13 +1,14 @@
-import {format as formatDate} from 'date-fns';
-import React, {createContext, useEffect, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+
 import DateUtils from '@libs/DateUtils';
 import {fromLocaleDigit as fromLocaleDigitLocaleDigitUtils, toLocaleDigit as toLocaleDigitLocaleDigitUtils, toLocaleOrdinal as toLocaleOrdinalLocaleDigitUtils} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {getDevicePreferredLocale, translate as translateLocalize} from '@libs/Localize';
 import {format} from '@libs/NumberFormatUtils';
+
 import {setLocale} from '@userActions/App';
+
 import CONST from '@src/CONST';
 import {isSupportedLocale} from '@src/CONST/LOCALES';
 import IntlStore from '@src/languages/IntlStore';
@@ -16,6 +17,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {Locale as DateFnsLocale} from 'date-fns';
+
+import {format as formatDate} from 'date-fns';
+import React, {createContext, useEffect, useState} from 'react';
 
 type LocaleContextProviderProps = {
     /** Actual content wrapped by this component */
@@ -59,6 +65,12 @@ type LocaleContextProps = {
 
     /** The user's preferred locale e.g. 'en', 'es' */
     preferredLocale: Locale | undefined;
+
+    /**
+     * The date-fns locale matching `preferredLocale`. Pass it as the `locale` option of date-fns `format` so that
+     * locale-sensitive tokens (MMM, MMMM, EEEE, do) re-render when the user switches language.
+     */
+    dateFnsLocale: DateFnsLocale | undefined;
 };
 
 type LocalizedTranslate = LocaleContextProps['translate'];
@@ -76,6 +88,7 @@ const LocaleContext = createContext<LocaleContextProps>({
     localeCompare: () => 0,
     formatTravelDate: () => '',
     preferredLocale: undefined,
+    dateFnsLocale: undefined,
 });
 
 const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'};
@@ -148,10 +161,12 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
     const localeCompare: LocaleContextProps['localeCompare'] = (a, b) => collator.compare(a, b);
 
+    const dateFnsLocale = IntlStore.getDateFnsLocale(currentLocale);
+
     const formatTravelDate: LocaleContextProps['formatTravelDate'] = (datetime) => {
         const date = new Date(datetime);
-        const formattedDate = formatDate(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
-        const formattedHour = formatDate(date, CONST.DATE.LOCAL_TIME_FORMAT);
+        const formattedDate = formatDate(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale});
+        const formattedHour = formatDate(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale});
         const at = translateLocalize(currentLocale, 'common.conjunctionAt');
         return `${formattedDate} ${at} ${formattedHour}`;
     };
@@ -169,6 +184,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         localeCompare,
         formatTravelDate,
         preferredLocale: currentLocale,
+        dateFnsLocale,
     };
 
     // eslint-disable-next-line rulesdir/context-provider-split-values

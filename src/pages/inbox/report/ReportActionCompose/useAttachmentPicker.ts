@@ -1,13 +1,19 @@
-import {useContext, useState} from 'react';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
+
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {cleanFileObject, cleanFileObjectName, getFilesFromClipboardEvent} from '@libs/fileDownload/FileUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
+
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import {useContext, useState} from 'react';
+
 import {useComposerActions, useComposerMeta, useComposerSendState} from './ComposerContext';
 
 function useAttachmentPicker(reportID: string) {
@@ -50,7 +56,7 @@ function useAttachmentPicker(reportID: string) {
         Navigation.navigate(ROUTES.REPORT_ADD_ATTACHMENT.getRoute(reportID));
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(onFilesValidated);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(onFilesValidated);
 
     const pickAttachments = ({dragEvent, files}: {dragEvent?: DragEvent; files?: FileObject | FileObject[]}) => {
         if (isAttachmentPreviewActive) {
@@ -94,7 +100,7 @@ function useAttachmentPicker(reportID: string) {
         validateFiles(fileObjects, filteredItems, {isValidatingReceipts: false});
     };
 
-    return {pickAttachments, PDFValidationComponent, ErrorModal};
+    return {pickAttachments, PDFValidationComponent};
 }
 
 export default useAttachmentPicker;

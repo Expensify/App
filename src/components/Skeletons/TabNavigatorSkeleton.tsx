@@ -1,20 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
 import SkeletonRect from '@components/SkeletonRect';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
+
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 
-type TabNavigatorSkeletonProps = {
-    reasonAttributes: SkeletonSpanReasonAttributes;
-};
+import React from 'react';
+import {View} from 'react-native';
 
-function TabNavigatorSkeleton({reasonAttributes}: TabNavigatorSkeletonProps) {
+function TabNavigatorSkeleton() {
     const styles = useThemeStyles();
     const theme = useTheme();
-    useSkeletonSpan('TabNavigatorSkeleton', reasonAttributes);
 
     return (
         <View style={[styles.flexRow, styles.w100, styles.justifyContentBetween, styles.h10]}>

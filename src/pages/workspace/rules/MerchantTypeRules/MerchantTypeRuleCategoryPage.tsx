@@ -1,20 +1,25 @@
-import React from 'react';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
+
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+
 import {updateDraftMerchantTypeRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MerchantTypeRuleForm';
+
+import React from 'react';
 
 type MerchantTypeRuleCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_TYPE_CATEGORY>;
 
@@ -48,19 +53,22 @@ function MerchantTypeRuleCategoryPage({route}: MerchantTypeRuleCategoryPageProps
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
             shouldBeBlocked={!isRulesRevampEnabled || !canWriteRules}
         >
             <RuleSelectionBase
                 titleKey="common.category"
                 testID="MerchantTypeRuleCategoryPage"
-                selectedItem={selectedCategoryItem}
-                items={categoryItems}
-                onSave={onSave}
                 onBack={() => Navigation.goBack(backToRoute)}
-                backToRoute={backToRoute}
-            />
+            >
+                <RuleSelectionBase.Picker
+                    selectedItem={selectedCategoryItem}
+                    items={categoryItems}
+                    onSave={onSave}
+                    backToRoute={backToRoute}
+                />
+            </RuleSelectionBase>
         </AccessOrNotFoundWrapper>
     );
 }

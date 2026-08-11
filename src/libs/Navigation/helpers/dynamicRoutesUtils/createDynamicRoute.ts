@@ -1,6 +1,8 @@
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+
 import type {Route} from '@src/ROUTES';
+
 import isDynamicRouteSuffix from './isDynamicRouteSuffix';
 import splitPathAndQuery from './splitPathAndQuery';
 

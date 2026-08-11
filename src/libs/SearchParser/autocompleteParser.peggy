@@ -93,6 +93,7 @@ autocompleteKey "key"
       / receiptType
       / withdrawalType
       / withdrawalStatus
+      / paidStatus
       / type
       / status
       / cardID
@@ -122,6 +123,9 @@ autocompleteKey "key"
       / reportID
       / withdrawalID
       / title
+      / submitterUserID
+      / submitterPayrollID
+      / orderDealNumbers
       / reportFieldDynamic
       / columns
       / limit

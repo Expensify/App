@@ -1,12 +1,15 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePrevious from '@hooks/usePrevious';
+
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getDistanceInMeters, hasRoute as hasRouteUtil} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const mileageRateSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getDefaultMileageRate(policy);
 const policyDraftSelector = (draft: OnyxEntry<OnyxTypes.Policy>) => draft && ({customUnits: draft.customUnits} as OnyxEntry<OnyxTypes.Policy>);
@@ -82,8 +85,9 @@ function useDistanceRequestState({
     const distanceRate = mileageRate.rate;
     const distanceUnit = mileageRate.unit;
     const calculateFromTransactionData = isMovingTransactionFromTrackExpense && !distanceRate;
-    const unit = calculateFromTransactionData ? transaction?.comment?.customUnit?.distanceUnit : distanceUnit;
-    const rate = calculateFromTransactionData ? Math.abs(iouAmount) / (transaction?.comment?.customUnit?.quantity ?? 1) : distanceRate;
+    const customUnit = transaction?.comment?.customUnit;
+    const unit = calculateFromTransactionData ? customUnit?.distanceUnit : distanceUnit;
+    const rate = calculateFromTransactionData ? Math.abs(iouAmount) / (customUnit?.quantity ?? 1) : distanceRate;
     const currency = calculateFromTransactionData ? iouCurrencyCode : (mileageRate.currency ?? CONST.CURRENCY.USD);
     const prevRate = usePrevious(rate);
     const prevUnit = usePrevious(unit);
@@ -91,12 +95,21 @@ function useDistanceRequestState({
 
     const distance = getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
-    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit);
+    const amountUnit = unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const commuterExclusionData = DistanceRequestUtils.getCommuterExclusionDisplayData(customUnit, amountUnit);
+    const reimbursableDistance = commuterExclusionData?.reimbursableDistance;
+    const prevReimbursableDistance = usePrevious(reimbursableDistance);
+    const reimbursableDistanceInMeters = commuterExclusionData
+        ? DistanceRequestUtils.convertToDistanceInMeters(commuterExclusionData.reimbursableDistance, commuterExclusionData.distanceUnit)
+        : distance;
+    const shouldCalculateDistanceAmount =
+        isDistanceRequest &&
+        (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit || prevReimbursableDistance !== reimbursableDistance);
 
     const hasRoute = hasRouteUtil(transaction, isDistanceRequest);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
 
-    const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
+    const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(reimbursableDistanceInMeters, amountUnit, rate ?? 0);
 
     return {
         policyDraft,

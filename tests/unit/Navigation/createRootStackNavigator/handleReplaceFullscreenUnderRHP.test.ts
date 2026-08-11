@@ -1,20 +1,15 @@
-import type {
-    CommonActions,
-    NavigationRoute,
-    NavigationState,
-    ParamListBase,
-    PartialState,
-    Router,
-    RouterConfigOptions,
-    StackActionType,
-    StackNavigationState,
-} from '@react-navigation/native';
 import {handleReplaceFullscreenUnderRHP} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import type {ReplaceFullscreenUnderRHPActionType} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
+import type {NavigationPartialRoute, NavigationStateRoute} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import type {CommonActions, NavigationState, ParamListBase, PartialState, Router, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
+
+import createMock from '../../../utils/createMock';
 
 // Stub the linking parser so the test does not depend on the production linking config.
 // Each test sets the parsed state (what getStateFromPath returns for the incoming route).
@@ -24,10 +19,10 @@ jest.mock('@libs/Navigation/helpers/getStateFromPath', () => ({
     default: jest.fn(() => mockStubbedParsedState),
 }));
 
-type TestRoute = NavigationRoute<ParamListBase, string>;
+type TestRoute = NavigationPartialRoute & Pick<NavigationStateRoute, 'key'>;
 
 function makeRoute(name: string, params?: Record<string, unknown>, state?: PartialState<NavigationState>, key?: string): TestRoute {
-    return {key: key ?? `${name}-key`, name, params, state} as TestRoute;
+    return createMock<TestRoute>({key: key ?? `${name}-key`, name, params, state});
 }
 
 function makeStackState(routes: TestRoute[]): StackNavigationState<ParamListBase> {
@@ -37,7 +32,7 @@ function makeStackState(routes: TestRoute[]): StackNavigationState<ParamListBase
         routeNames: routes.map((r) => r.name),
         routes,
         type: 'stack',
-        stale: false as const,
+        stale: false,
         preloadedRoutes: [],
     };
 }
@@ -50,9 +45,14 @@ const CONFIG_OPTIONS: RouterConfigOptions = {
 
 // Identity rehydration: we only assert on the routes/index the handler computed before passing
 // them to the router; the router's own rehydration is exercised by other tests.
-const stackRouter = {
-    getRehydratedState: (partial: PartialState<NavigationState>) => partial as unknown as StackNavigationState<ParamListBase>,
-} as unknown as Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>;
+const stackRouter = createMock<Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>>({
+    getRehydratedState: (partialState) => {
+        if (partialState.stale !== false) {
+            throw new Error('Expected the test router to receive a rehydrated navigation state.');
+        }
+        return partialState;
+    },
+});
 
 /** Builds the state returned by the stubbed getStateFromPath: a TAB_NAVIGATOR focused on WORKSPACE_NAVIGATOR with the given nested routes. */
 function makeParsedState(workspaceNavNestedRoutes: PartialState<NavigationState>['routes']): PartialState<NavigationState> {
@@ -74,8 +74,8 @@ function makeParsedState(workspaceNavNestedRoutes: PartialState<NavigationState>
     };
 }
 
-const INCOMING_SPLIT_ONLY = [{name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, params: {policyID: 'NEW'}}] as PartialState<NavigationState>['routes'];
-const INCOMING_WITH_LIST = [{name: SCREENS.WORKSPACES_LIST}, {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, params: {policyID: 'NEW'}}] as PartialState<NavigationState>['routes'];
+const INCOMING_SPLIT_ONLY = [{name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, params: {policyID: 'NEW'}}] satisfies PartialState<NavigationState>['routes'];
+const INCOMING_WITH_LIST = [{name: SCREENS.WORKSPACES_LIST}, {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, params: {policyID: 'NEW'}}] satisfies PartialState<NavigationState>['routes'];
 
 function makeRHPRoute(): TestRoute {
     return makeRoute(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, undefined, undefined, 'rhp-key');
@@ -86,11 +86,11 @@ function makeRHPRoute(): TestRoute {
  * Pass `undefined` for workspaceNavNestedRoutes to model a WORKSPACE_NAVIGATOR that was never
  * mounted (no nested state) — e.g. a workspace created from Inbox.
  */
-function makeExistingState(workspaceNavNestedRoutes: TestRoute[] | undefined, workspaceNavIndex = 0): StackNavigationState<ParamListBase> {
+function makeExistingState(workspaceNavNestedRoutes: PartialState<NavigationState>['routes'] | undefined, workspaceNavIndex = 0): StackNavigationState<ParamListBase> {
     const workspaceNavRoute = {
         key: 'workspace-nav-key',
         name: NAVIGATORS.WORKSPACE_NAVIGATOR,
-        ...(workspaceNavNestedRoutes ? {state: {index: workspaceNavIndex, routes: workspaceNavNestedRoutes as unknown as PartialState<NavigationState>['routes']}} : {}),
+        ...(workspaceNavNestedRoutes ? {state: {index: workspaceNavIndex, routes: workspaceNavNestedRoutes}} : {}),
     };
     const tabNavRoute = makeRoute(NAVIGATORS.TAB_NAVIGATOR, undefined, {index: 0, routes: [workspaceNavRoute]}, 'tab-nav-key');
     return makeStackState([tabNavRoute, makeRHPRoute()]);
@@ -99,15 +99,15 @@ function makeExistingState(workspaceNavNestedRoutes: TestRoute[] | undefined, wo
 function makeAction(): ReplaceFullscreenUnderRHPActionType {
     return {
         type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
-        payload: {route: '/workspaces/NEW' as Route},
+        payload: {route: ROUTES.WORKSPACE_INITIAL.getRoute('NEW')},
     };
 }
 
 function getWorkspaceNavInnerRoutes(result: StackNavigationState<ParamListBase> | null) {
     const tabRoute = result?.routes.find((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
-    const tabState = tabRoute?.state as NavigationState | undefined;
+    const tabState = tabRoute?.state;
     const workspaceNav = tabState?.routes.find((r) => r.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
-    const workspaceNavState = workspaceNav?.state as NavigationState | undefined;
+    const workspaceNavState = workspaceNav?.state;
     const list = workspaceNavState?.routes?.find((r) => r.name === SCREENS.WORKSPACES_LIST);
     return {
         names: workspaceNavState?.routes?.map((r) => r.name),

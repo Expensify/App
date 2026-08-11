@@ -1,17 +1,27 @@
-import React, {useCallback, useMemo} from 'react';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef} from '@components/Form/types';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+import UploadFile from '@components/UploadFile';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getFieldRequiredErrors, isRequiredFulfilled} from '@libs/ValidationUtils';
+
 import requiresDocusignStep from '@pages/ReimbursementAccount/NonUSD/utils/requiresDocusignStep';
-import {clearErrors} from '@userActions/FormActions';
+
+import {clearErrorFields, clearErrors, setDraftValues, setErrorFields} from '@userActions/FormActions';
+
+import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
+import type {FileObject} from '@src/types/utils/Attachment';
+
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 function IsAuthorizedToUseBankAccountLabel() {
     const {translate} = useLocalize();
@@ -65,6 +75,12 @@ type AgreementsFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
 
     /** Index of currently active step in header */
     startStepIndex: number;
+
+    /** ID of the bank statement file upload input. When provided, a required bank statement upload is rendered. */
+    bankStatementInputID?: FormOnyxKeys<TFormID>;
+
+    /** Default value for the bank statement file upload input */
+    bankStatementDefaultValue?: FileObject[];
 };
 
 function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -77,15 +93,53 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
     currency,
     stepNames,
     startStepIndex,
+    bankStatementInputID,
+    bankStatementDefaultValue,
 }: AgreementsFullStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const formRef = useRef<FormRef | null>(null);
+    const [uploadedBankStatement, setUploadedBankStatement] = useState<FileObject[]>(bankStatementDefaultValue ?? []);
+
     const isDocusignStepRequired = requiresDocusignStep(currency);
-    const stepFields = useMemo(
-        () => [inputIDs.authorizedToBindClientToAgreement, inputIDs.provideTruthfulInformation, inputIDs.agreeToTermsAndConditions, inputIDs.consentToPrivacyNotice],
-        [inputIDs.authorizedToBindClientToAgreement, inputIDs.provideTruthfulInformation, inputIDs.agreeToTermsAndConditions, inputIDs.consentToPrivacyNotice],
-    );
+    const stepFields = useMemo(() => {
+        const fields = [inputIDs.authorizedToBindClientToAgreement, inputIDs.provideTruthfulInformation, inputIDs.agreeToTermsAndConditions, inputIDs.consentToPrivacyNotice];
+        if (bankStatementInputID) {
+            fields.push(bankStatementInputID);
+        }
+        return fields;
+    }, [inputIDs.authorizedToBindClientToAgreement, inputIDs.provideTruthfulInformation, inputIDs.agreeToTermsAndConditions, inputIDs.consentToPrivacyNotice, bankStatementInputID]);
+
+    const handleSelectBankStatement = (files: FileObject[]) => {
+        if (!bankStatementInputID) {
+            return;
+        }
+        setDraftValues(formID, {[bankStatementInputID]: [...uploadedBankStatement, ...files]});
+        setUploadedBankStatement((prev) => [...prev, ...files]);
+    };
+
+    const handleRemoveBankStatement = (fileName: string) => {
+        if (!bankStatementInputID) {
+            return;
+        }
+        const newUploadedFiles = uploadedBankStatement.filter((file) => file.name !== fileName);
+        setDraftValues(formID, {[bankStatementInputID]: newUploadedFiles});
+        setUploadedBankStatement(newUploadedFiles);
+    };
+
+    const setBankStatementError = (error: string) => {
+        if (!bankStatementInputID) {
+            return;
+        }
+        if (!error) {
+            clearErrorFields(formID);
+            return;
+        }
+        formRef.current?.resetFormFieldError(String(bankStatementInputID));
+        clearErrors(formID);
+        setErrorFields(formID, {[bankStatementInputID]: {onUpload: error}});
+    };
 
     const handleBackButtonPress = () => {
         clearErrors(formID);
@@ -126,6 +180,7 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
             startStepIndex={startStepIndex}
         >
             <FormProvider
+                ref={formRef}
                 formID={formID}
                 onSubmit={onSubmit}
                 validate={validate}
@@ -172,6 +227,32 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
                     defaultValue={defaultValues[inputIDs.consentToPrivacyNotice]}
                     shouldSaveDraft
                 />
+                {!!bankStatementInputID && (
+                    <>
+                        <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />
+                        <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('agreementsStep.bankStatement')}</Text>
+                        <InputWrapper
+                            InputComponent={UploadFile}
+                            buttonText={translate('common.chooseFile')}
+                            uploadedFiles={uploadedBankStatement}
+                            onUpload={(files) => {
+                                handleSelectBankStatement(files);
+                            }}
+                            onRemove={(fileName) => {
+                                handleRemoveBankStatement(fileName);
+                            }}
+                            acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
+                            value={uploadedBankStatement}
+                            inputID={String(bankStatementInputID)}
+                            setError={(error) => {
+                                setBankStatementError(error);
+                            }}
+                            fileLimit={1}
+                            maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
+                        />
+                        <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('agreementsStep.bankStatementDescription')}</Text>
+                    </>
+                )}
             </FormProvider>
         </InteractiveStepWrapper>
     );

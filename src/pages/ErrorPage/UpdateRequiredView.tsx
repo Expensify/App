@@ -1,11 +1,10 @@
-import React from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Header from '@components/Header';
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
+
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -13,10 +12,18 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Accessibility from '@libs/Accessibility';
+
 import variables from '@styles/variables';
+
 import {updateApp} from '@userActions/AppUpdate';
+
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function UpdateRequiredView() {
     const insets = useSafeAreaInsets();
@@ -67,12 +74,13 @@ function UpdateRequiredView() {
                     </View>
                 </View>
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => updateApp(isProduction)}
-                    text={translate('common.update')}
                     style={styles.updateRequiredViewTextContainer}
-                />
+                >
+                    <Button.Text>{translate('common.update')}</Button.Text>
+                </Button>
             </View>
         </View>
     );

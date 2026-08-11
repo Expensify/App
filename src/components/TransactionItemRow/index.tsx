@@ -1,10 +1,8 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import useAttendees from '@hooks/useAttendees';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getCompanyCardDescription} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -20,17 +18,26 @@ import {
     isMerchantMissing,
     shouldShowAttendees as shouldShowAttendeesUtils,
 } from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React from 'react';
+
+import type {TransactionItemRowProps} from './types';
+
 import TransactionItemRowNarrow from './TransactionItemRowNarrow';
 import TransactionItemRowWide from './TransactionItemRowWide';
-import type {TransactionItemRowProps} from './types';
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
 
 function TransactionItemRow({
     transactionItem,
     report,
+    chatReport,
     policy,
     policyCategories,
     policyTagLists,
@@ -73,6 +80,7 @@ function TransactionItemRow({
     isAttendeesEnabledForMovingPolicy,
     isActionColumnWide: isActionColumnWideProp,
     shouldRemoveTotalColumnFlex,
+    shouldUseFullHeightEditableCellHoverTarget = false,
     onEditDate,
     onEditMerchant,
     onEditDescription,
@@ -85,7 +93,9 @@ function TransactionItemRow({
     canEditCategory,
     canEditAmount,
     canEditTag,
+    shouldSkipDeferRBR = false,
 }: TransactionItemRowProps) {
+    const shouldDeferRBR = !shouldSkipDeferRBR;
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
@@ -169,6 +179,7 @@ function TransactionItemRow({
                 createdAt={createdAt}
                 transactionThreadReportID={transactionThreadReportID}
                 shouldRenderChatBubbleCell={shouldRenderChatBubbleCell}
+                shouldDeferRBR={shouldDeferRBR}
             />
         );
     }
@@ -176,6 +187,7 @@ function TransactionItemRow({
     const wideForwardedProps = {
         transactionItem,
         report,
+        chatReport,
         policy,
         policyCategories,
         policyTagLists,
@@ -213,6 +225,7 @@ function TransactionItemRow({
         nonPersonalAndWorkspaceCards,
         isActionColumnWide: isActionColumnWideProp,
         shouldRemoveTotalColumnFlex,
+        shouldUseFullHeightEditableCellHoverTarget,
         onEditDate,
         onEditMerchant,
         onEditDescription,
@@ -229,7 +242,7 @@ function TransactionItemRow({
 
     const description = getDescription(transactionItem);
     const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency ?? policy?.outputCurrency);
-    const cardName = getCompanyCardDescription(translate, transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards);
+    const cardName = getCompanyCardDescription(translate, transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards, transactionItem?.feedCountry);
     const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const shouldShowAttendees = (isUnreported ? !!isAttendeesEnabledForMovingPolicy : shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy)) && transactionAttendees.length > 0;
 
@@ -250,6 +263,7 @@ function TransactionItemRow({
             totalPerAttendee={!attendeesCount || totalAmount === undefined ? undefined : totalAmount / attendeesCount}
             createdAt={createdAt}
             transactionThreadReportID={transactionThreadReportID}
+            shouldDeferRBR={shouldDeferRBR}
             isMarkAsDone={shouldUseMarkAsDoneCopy}
         />
     );

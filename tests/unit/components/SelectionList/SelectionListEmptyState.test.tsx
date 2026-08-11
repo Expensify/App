@@ -1,8 +1,11 @@
 import {render, screen} from '@testing-library/react-native';
-import React from 'react';
-import type ReactNative from 'react-native';
-import {View} from 'react-native';
+
 import SelectionListEmptyState from '@components/SelectionList/components/SelectionListEmptyState';
+
+import type ReactNative from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 jest.mock('@components/OptionsListSkeletonView', () => {
     const ReactLocal = jest.requireActual<typeof React>('react');
@@ -19,7 +22,6 @@ describe('SelectionListEmptyState', () => {
                 shouldShowLoadingPlaceholder
                 shouldShowListEmptyContent
                 listEmptyContent={<View testID="empty" />}
-                context="Test"
             />,
         );
         expect(screen.getByTestId('options-list-skeleton')).toBeTruthy();
@@ -33,7 +35,6 @@ describe('SelectionListEmptyState', () => {
                 customLoadingPlaceholder={<View testID="custom-loading" />}
                 shouldShowListEmptyContent
                 listEmptyContent={<View testID="empty" />}
-                context="Test"
             />,
         );
         expect(screen.getByTestId('custom-loading')).toBeTruthy();
@@ -46,7 +47,6 @@ describe('SelectionListEmptyState', () => {
                 shouldShowLoadingPlaceholder={false}
                 shouldShowListEmptyContent
                 listEmptyContent={<View testID="empty" />}
-                context="Test"
             />,
         );
         expect(screen.getByTestId('empty')).toBeTruthy();
@@ -59,7 +59,6 @@ describe('SelectionListEmptyState', () => {
                 shouldShowLoadingPlaceholder={false}
                 shouldShowListEmptyContent={false}
                 listEmptyContent={<View testID="empty" />}
-                context="Test"
             />,
         );
         expect(screen.queryByTestId('empty')).toBeNull();

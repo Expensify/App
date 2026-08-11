@@ -1,19 +1,23 @@
-import {emailSelector} from '@selectors/Session';
-import React from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoice} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
-import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {emailSelector} from '@selectors/Session';
+import React from 'react';
 
 type InvoiceSenderFieldProps = {
     /** The selected participants */
@@ -25,12 +29,6 @@ type InvoiceSenderFieldProps = {
     /** Flag indicating if the confirmation is done */
     didConfirm: boolean;
 
-    /** The type of the IOU */
-    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-
-    /** The report ID */
-    reportID: string;
-
     /** The transaction (only the fields this field reads) */
     transaction: OnyxEntry<Pick<OnyxTypes.Transaction, 'isFromGlobalCreate' | 'transactionID'>>;
 };
@@ -38,13 +36,11 @@ type InvoiceSenderFieldProps = {
 const senderWorkspaceSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => (policy ? {id: policy.id, name: policy.name, avatarURL: policy.avatarURL} : undefined);
 
 const createCanUpdateSenderWorkspaceSelector =
-    (selectedParticipants: Participant[], currentUserLogin: string | undefined, isFromGlobalCreate: boolean) =>
-    (policies: OnyxCollection<OnyxTypes.Policy>): boolean => {
-        const isInvoiceRoomParticipant = selectedParticipants.some((participant) => participant.isInvoiceRoom);
-        return canSendInvoice(policies ?? null, currentUserLogin) && isFromGlobalCreate && !isInvoiceRoomParticipant;
-    };
+    (isInvoiceRoomParticipant: boolean, currentUserLogin: string | undefined, isFromGlobalCreate: boolean) =>
+    (policies: OnyxCollection<OnyxTypes.Policy>): boolean =>
+        isFromGlobalCreate && !isInvoiceRoomParticipant && canSendInvoice(policies ?? null, currentUserLogin);
 
-function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, iouType, reportID, transaction}: InvoiceSenderFieldProps) {
+function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, transaction}: InvoiceSenderFieldProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -55,19 +51,19 @@ function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, iouTy
 
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
 
+    const isInvoiceRoomParticipant = selectedParticipants.some((participant) => participant.isInvoiceRoom);
+
     // canSendInvoice needs the full policy collection to check all admin workspaces
-    const [canUpdateSenderWorkspace] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createCanUpdateSenderWorkspaceSelector(selectedParticipants, currentUserLogin, isFromGlobalCreate)}, [
-        selectedParticipants,
-        currentUserLogin,
-        isFromGlobalCreate,
-    ]);
+    const [canUpdateSenderWorkspace] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: createCanUpdateSenderWorkspaceSelector(isInvoiceRoomParticipant, currentUserLogin, isFromGlobalCreate),
+    });
 
     return (
         <MenuItem
             avatarID={senderWorkspace?.id}
             shouldShowRightIcon={!isReadOnly && !!canUpdateSenderWorkspace}
             title={senderWorkspace?.name}
-            icon={senderWorkspace?.avatarURL ? senderWorkspace.avatarURL : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
+            icon={senderWorkspace?.avatarURL}
             iconType={CONST.ICON_TYPE_WORKSPACE}
             description={translate('workspace.common.workspace')}
             label={translate('workspace.invoices.sendFrom')}
@@ -77,7 +73,7 @@ function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, iouTy
                 if (!transaction?.transactionID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID, reportID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SEND_FROM.path));
             }}
             style={styles.moneyRequestMenuItem}
             labelStyle={styles.mt2}

@@ -1,9 +1,12 @@
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import type CONST from '@src/CONST';
+
 import type {FocusTrapProps} from 'focus-trap-react';
 import type {ForwardedRef} from 'react';
 import type {View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import type CONST from '@src/CONST';
+
 import type ReanimatedModalProps from './ReanimatedModal/types';
 import type {SwipeDirection} from './ReanimatedModal/types';
 
@@ -23,6 +26,12 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
 
         /** Should we announce the Modal visibility changes? */
         shouldSetModalVisibility?: boolean;
+
+        /**
+         * Whether this modal should suppress persistent surfaces that must not overlap covering modals.
+         * POPOVER and BOTTOM_DOCKED modals default to false; other modal types default to true.
+         */
+        shouldTreatModalAsCovering?: boolean;
 
         /** Callback method fired when the user requests to close the modal */
         onClose?: () => void;

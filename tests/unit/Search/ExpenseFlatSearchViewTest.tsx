@@ -1,6 +1,5 @@
 import {act, render, screen} from '@testing-library/react-native';
-import React, {Profiler, useCallback, useMemo} from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -10,9 +9,15 @@ import type {SearchListItem} from '@components/Search/SearchList/ListItem/types'
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
+
 import {setHasRadio} from '@libs/NetworkState';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {Profiler, useCallback, useMemo} from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -106,20 +111,24 @@ function selectKeys(...keys: string[]): Record<string, {isSelected: boolean}> {
     return Object.fromEntries(keys.map((key) => [key, {isSelected: true}]));
 }
 
+// Counts rows whose AnimatedExitRow has a live FadeOutUp `exiting` animation. Each row's Animated.View always
+// receives an `entering` prop (identifying the wrapper) and an `exiting` prop that is only non-null when armed.
+function countArmedExitAnimations(root: ReturnType<typeof render>['UNSAFE_root']): number {
+    return root.findAll((node) => typeof node.type !== 'string' && !!node.props && 'entering' in node.props && node.props.exiting != null).length;
+}
+
 const STABLE_QUERY_JSON: SearchQueryJSON = {
     hash: 0,
     recentSearchHash: 0,
     similarSearchHash: 0,
     groupBy: undefined,
     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
     sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
     sortOrder: 'desc',
     view: CONST.SEARCH.VIEW.TABLE,
     flatFilters: [],
     inputQuery: '',
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS, right: ''},
-    policyID: undefined,
     columns: undefined,
     limit: undefined,
     rawFilterList: undefined,
@@ -302,5 +311,22 @@ describe('ExpenseFlatSearchView', () => {
 
         expect(onSelectRow).toHaveBeenCalledTimes(1);
         expect(mockToggle).not.toHaveBeenCalled();
+    });
+
+    it('does not arm the FadeOutUp exit on a stable row, so it cannot flicker on remount', async () => {
+        // Two expenses, none deleted: the first row must carry no armed exit animation, otherwise a remount
+        // (e.g. switching Inbox -> Spend) replays FadeOutUp and the row flickers.
+        const {UNSAFE_root: root} = renderView({data: createMockData(2)});
+        await waitForBatchedUpdates();
+
+        expect(countArmedExitAnimations(root)).toBe(0);
+    });
+
+    it('keeps the FadeOutUp exit armed only for a pending-delete row', async () => {
+        // First row pending delete: its exit stays armed so the delete animation still plays; the stable last row does not.
+        const {UNSAFE_root: root} = renderView({data: createMockData(2, new Set(['transaction-0']))});
+        await waitForBatchedUpdates();
+
+        expect(countArmedExitAnimations(root)).toBe(1);
     });
 });

@@ -1,7 +1,9 @@
-import {DarkTheme, DefaultTheme} from '@react-navigation/native';
 import type {ThemePreferenceWithoutSystem} from '@styles/theme/types';
 import {getBaseTheme} from '@styles/theme/utils';
+
 import CONST from '@src/CONST';
+
+import {DarkTheme, DefaultTheme} from '@react-navigation/native';
 
 /**
  * Resolves a user's theme preference to the matching react-navigation base theme.

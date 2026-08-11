@@ -1,20 +1,25 @@
-import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getInvalidAddressErrorTranslationPath, isRequiredFulfilled} from '@libs/ValidationUtils';
+
 import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+
+import type {FormOnyxValues} from './Form/types';
+import type {State} from './StateSelector';
+
 import AddressSearch from './AddressSearch';
 import CountrySelector from './CountrySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
-import type {FormOnyxValues} from './Form/types';
-import type {State} from './StateSelector';
 import StateSelector from './StateSelector';
 import TextInput from './TextInput';
 
@@ -65,6 +70,14 @@ type AddressFormProps = {
 
     /** Whether PO boxes and mail drops are rejected on address lines */
     shouldValidatePhysicalAddress?: boolean;
+
+    /**
+     * Whether the form should apply its own bottom safe-area padding. Defaults to true for the common case of a
+     * screen whose own ScreenWrapper has delegated bottom safe-area handling to this form (edge-to-edge mode).
+     * Set to false when the parent already applies it (e.g. a ScreenWrapper using the legacy, non-edge-to-edge
+     * default), otherwise the inset is padded twice, visible as extra bottom padding on iOS.
+     */
+    addBottomSafeAreaPadding?: boolean;
 };
 
 function AddressForm({
@@ -82,6 +95,7 @@ function AddressForm({
     shouldHideCountrySelector = false,
     enabledWhenOffline: enabledWhenOfflineProp = true,
     shouldValidatePhysicalAddress = false,
+    addBottomSafeAreaPadding = true,
 }: AddressFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -184,7 +198,7 @@ function AddressForm({
             onSubmit={onSubmit}
             submitButtonText={submitButtonText}
             enabledWhenOffline={enabledWhenOfflineProp}
-            addBottomSafeAreaPadding
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         >
             <View>
                 <InputWrapper

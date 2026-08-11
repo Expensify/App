@@ -1,7 +1,7 @@
 ---
 title: How Concierge Analyzes Spend
 description: Learn how Concierge proactively analyzes company spend to share highlights, and how to ask Concierge questions about your expense data on demand.
-keywords: [New Expensify, Concierge, spend analysis, ask Concierge about expenses, expense questions, Concierge management report, insights, AI, expense trends, proactive insights, spend monitoring, flux analysis]
+keywords: [New Expensify, Concierge, spend analysis, ask Concierge about expenses, expense questions, Concierge management report, insights, AI, expense trends, proactive insights, spend monitoring, flux analysis, spend chart, bar chart, Concierge chart]
 internalScope: Audience is Workspace Admins and Members. Covers how Concierge performs proactive spend analysis and how to ask Concierge questions about expense data. Does not cover how to use Insights or generate custom reports.
 ---
 
@@ -51,15 +51,31 @@ Concierge currently answers direct lookup questions about your expense data. If 
 
 ---
 
+## How to explore a Concierge spend chart
+
+When you ask Concierge to show spending as a chart—for example, “Give me a bar chart of my monthly expenses this year”—Concierge can reply with an interactive bar chart directly in the chat, alongside its written answer.
+
+On web, you can interact with the chart to dig into the numbers behind it:
+
+- Hover over a bar to see a tooltip with the details for that bar.
+- Select a bar to open its matching expenses on the **Search** page.
+
+This lets you move from a high-level view of your spend straight to the individual expenses without building a search yourself.
+
+---
+
 ## Where Concierge shares spend analysis insights
 
 When Concierge analyzes spend proactively, it sends a message to the #admins room for that workspace. The message is visible to all members of that room.
 
 Insights are shared periodically and may vary in timing, format, and level of detail.
 
-You can ask Concierge your own expense questions in the #admins room for a workspace, or in your Concierge chat. 
+You can ask Concierge your own expense questions anywhere Concierge is available. Concierge scopes the answer to where you're chatting:
  - In the #admins room, answers are scoped to that workspace.
  - In your Concierge chat, questions can span all of the workspaces you have access to.
+ - In a workspace chat, answers are scoped to that workspace and the member who owns the chat.
+ - In an expense report, answers are scoped to that report's workspace and submitter.
+ - In an expense thread, Concierge can answer questions about that specific expense, such as "Did this merchant increase their prices compared to previous months?"
 
 [Learn how to find the #admins room for a workspace](/articles/new-expensify/chat/Expensify-Chat-Rooms-for-Admins). 
 
@@ -100,4 +116,4 @@ You can ask direct lookup questions about your expense data, such as who spent w
 
 ## Where can I ask Concierge about my expenses?
 
-You can ask in the #admins room for a workspace, where answers are scoped to that workspace, or in your Concierge chat, where questions can span all of the workspaces you have access to. Concierge respects your access level, so you'll only see data you're allowed to view.
+You can ask anywhere Concierge is available: the #admins room, your Concierge chat, workspace chats, expense reports, and expense threads. Concierge scopes each answer to where you're chatting—for example, questions in the #admins room and workspace chats are scoped to that workspace, while questions in your Concierge chat can span all of the workspaces you have access to. Concierge respects your access level, so you'll only see data you're allowed to view.

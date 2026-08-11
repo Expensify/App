@@ -17,7 +17,7 @@ namespace margelo::nitro::utils {
   using namespace facebook;
 
   /**
-   * The C++ JNI bridge between the C++ struct "StringHolder" and the the Kotlin data class "StringHolder".
+   * The C++ JNI bridge between the C++ struct "StringHolder" and the Kotlin data class "StringHolder".
    */
   struct JStringHolder final: public jni::JavaClass<JStringHolder> {
   public:

@@ -1,5 +1,3 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import {isAnonymousUser} from '@libs/actions/Session';
 import * as API from '@libs/API';
 import type {MarkAllMessagesAsReadParams} from '@libs/API/parameters';
@@ -7,22 +5,25 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getDBTimeWithSkew, getIsOffline} from '@libs/NetworkState';
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {isArchivedReport, isUnread} from '@libs/ReportUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 // We use connectWithoutView because markAllMessagesAsRead doesn't affect the UI rendering
 // and this avoids unnecessary re-rendering in AuthScreen whenever any report or report action is updated
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
     callback: (value) => (allReportActions = value),
 });
 
 let allReports: OnyxCollection<Report>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => (allReports = value),
 });
 

@@ -1,3 +1,11 @@
+import useTodoSearchResults from '@hooks/useTodoSearchResults';
+
+import {getTransactionsByReportID, getViolationsFromSearchData, isTodoSearch} from '@libs/SearchUIUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
+
 import React, {useState} from 'react';
 // This provider is the source of the snapshot data that `@hooks/useOnyx` later routes consumers onto,
 // so going through that wrapper here would be self-referential. The wrapper also short-circuits its own
@@ -5,14 +13,11 @@ import React, {useState} from 'react';
 // so it would add nothing for this read. Use the raw react-native-onyx hook directly.
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
-import useTodoSearchResults from '@hooks/useTodoSearchResults';
-import {isTodoSearch} from '@libs/SearchUIUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
-import {useSearchQueryContext} from './SearchContext';
-import {SearchResultsActionsContext, SearchResultsContext} from './SearchContextDefinitions';
+
 import type {SearchResultsActionsValue, SearchResultsContextValue} from './types';
+
+import {useSearchQueryContext} from './SearchContext';
+import {EMPTY_TRANSACTIONS_BY_REPORT_ID, SearchResultsActionsContext, SearchResultsContext} from './SearchContextDefinitions';
 
 type SearchResultsProviderProps = {
     children: React.ReactNode;
@@ -22,14 +27,16 @@ type SearchResultsProviderProps = {
 // Used for to-do searches where we build SearchResults from live Onyx data instead of API snapshots
 const defaultSearchInfo: SearchResultsInfo = {
     offset: 0,
+    hash: 0,
+    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
     hasMoreResults: false,
     hasResults: true,
     isLoading: false,
     count: 0,
     total: 0,
-    currency: '',
+    currency: undefined,
 };
 
 function SearchResultsProvider({children}: SearchResultsProviderProps) {
@@ -75,8 +82,15 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
         });
     };
 
+    // Computed here, not per row: it scans every snapshot key.
+    const searchData = currentSearchResults?.data;
+    const currentSearchTransactionsByReportID = searchData ? getTransactionsByReportID(searchData) : EMPTY_TRANSACTIONS_BY_REPORT_ID;
+    const currentSearchViolations = searchData ? getViolationsFromSearchData(searchData) : CONST.EMPTY_OBJECT;
+
     const resultsValue: SearchResultsContextValue = {
         currentSearchResults,
+        currentSearchTransactionsByReportID,
+        currentSearchViolations,
         shouldUseLiveData,
         sortedReportIDs,
         shouldShowFiltersBarLoading,

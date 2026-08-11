@@ -1,7 +1,10 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import {getSections, getSortedSections} from '@libs/SearchUIUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type LastSearchParams from '@src/types/onyx/ReportNavigation';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import useActionLoadingReportIDs from './useActionLoadingReportIDs';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -20,7 +23,7 @@ function useSearchSections(): UseSearchSectionsResult {
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`);
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const {localeCompare, formatPhoneNumber, translate} = useLocalize();
+    const {localeCompare, formatPhoneNumber, translate, dateFnsLocale} = useLocalize();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const {convertToDisplayString} = useCurrencyListActions();
 
@@ -33,7 +36,7 @@ function useSearchSections(): UseSearchSectionsResult {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributesDerivedValue = useReportAttributes();
 
-    const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
+    const {type, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
     const searchResultsData = currentSearchResults?.data;
     const searchResultsSearch = currentSearchResults?.search;
     const currentAccountID = currentUserDetails.accountID;
@@ -43,6 +46,7 @@ function useSearchSections(): UseSearchSectionsResult {
     let results: Array<string | undefined> = [];
     if (!!type && !!searchResultsData && !!searchResultsSearch) {
         const [searchData] = getSections({
+            dateFnsLocale,
             type,
             data: searchResultsData,
             currentAccountID,
@@ -61,7 +65,7 @@ function useSearchSections(): UseSearchSectionsResult {
             convertToDisplayString,
             reportAttributesDerivedValue,
         });
-        results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
+        results = getSortedSections(type, searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
 
     return {allReports: useFilterPendingDeleteReports(results), isSearchLoading: !!currentSearchResults?.search?.isLoading, lastSearchQuery};

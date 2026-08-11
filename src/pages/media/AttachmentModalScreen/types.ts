@@ -1,7 +1,9 @@
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+
 import type SCREENS from '@src/SCREENS';
 import type ModalType from '@src/types/utils/ModalType';
+
 import type {AttachmentModalBaseContentProps} from './AttachmentModalBaseContent/types';
 
 type AttachmentModalContainerModalProps = {
@@ -16,9 +18,6 @@ type AttachmentModalContainerModalProps = {
 
     /** Whether to handle navigation back */
     shouldHandleNavigationBack?: boolean;
-
-    /** Extra modals to be displayed in the modal */
-    ExtraContent?: React.ReactNode;
 };
 
 type AttachmentModalScreenType =

@@ -1,5 +1,3 @@
-import mapValues from 'lodash/mapValues';
-import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
@@ -7,6 +5,11 @@ import type {ErrorFields, Errors, TranslationKeyError, TranslationKeyErrors} fro
 import type Response from '@src/types/onyx/Response';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
+
+import mapValues from 'lodash/mapValues';
+
 import DateUtils from './DateUtils';
 import {translate, translateLocal} from './Localize';
 

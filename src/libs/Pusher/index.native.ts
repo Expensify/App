@@ -1,17 +1,23 @@
+import Log from '@libs/Log';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
+import {authenticatePusher} from '@userActions/Session';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import type {PusherAuthorizerResult, PusherChannel} from '@pusher/pusher-websocket-react-native';
+import type {ValueOf} from 'type-fest';
+
 import {Pusher} from '@pusher/pusher-websocket-react-native';
 import * as Sentry from '@sentry/react-native';
 import isObject from 'lodash/isObject';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-import Log from '@libs/Log';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {authenticatePusher} from '@userActions/Session';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import TYPE from './EventType';
+
 import type {Args, ChunkedDataEvents, EventCallbackError, EventData, PusherEventName, PusherSubscription, SocketEventCallback, SocketEventName, States} from './types';
 import type PusherModule from './types';
+
+import TYPE from './EventType';
 
 let shouldForceOffline = false;
 // We have used `connectWithoutView` here because it is not connected to any UI
@@ -238,7 +244,9 @@ function subscribe<EventName extends PusherEventName>(
                             const error = new Error('[Pusher] instance not found. Pusher.subscribe() most likely has been called before Pusher.init()');
 
                             if (__DEV__) {
-                                throw error;
+                                // TransitionTracker isolates callback errors, so reject explicitly instead of relying on a thrown scheduler callback to reject this Promise.
+                                reject(error);
+                                return;
                             }
 
                             // In production, report to Sentry without crashing the app.

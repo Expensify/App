@@ -1,11 +1,14 @@
-import React from 'react';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
+
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import React from 'react';
 
 type SubmitDraftButtonProps = PressableWithFeedbackProps & {
     /** The label to display on the button */

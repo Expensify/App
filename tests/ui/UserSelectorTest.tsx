@@ -1,12 +1,17 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import UserSelector from '@components/Search/FilterComponents/UserSelector';
 import SelectionList from '@components/SelectionList';
+
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
+
 import CONST from '@src/CONST';
 import type {PersonalDetailsList} from '@src/types/onyx';
+
+import React from 'react';
 
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/UserSelectionListItem', () => jest.fn(() => null));
@@ -80,6 +85,7 @@ describe('UserSelector', () => {
         render(
             <UserSelector
                 value={[preselectedKey]}
+                policyID={undefined}
                 onChange={jest.fn()}
             />,
         );
@@ -104,6 +110,7 @@ describe('UserSelector', () => {
         const {rerender} = render(
             <UserSelector
                 value={[preselectedKey]}
+                policyID={undefined}
                 onChange={jest.fn()}
             />,
         );
@@ -112,6 +119,7 @@ describe('UserSelector', () => {
         rerender(
             <UserSelector
                 value={[preselectedKey, toggledKey]}
+                policyID={undefined}
                 onChange={jest.fn()}
             />,
         );
@@ -142,6 +150,7 @@ describe('UserSelector', () => {
         render(
             <UserSelector
                 value={[preselectedKey]}
+                policyID={undefined}
                 onChange={jest.fn()}
             />,
         );

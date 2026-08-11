@@ -1,6 +1,7 @@
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationRoute, RootNavigatorParamList, State} from '@libs/Navigation/types';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 
 /**

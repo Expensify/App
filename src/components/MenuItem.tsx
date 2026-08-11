@@ -1,16 +1,10 @@
-import type {ImageContentFit} from 'expo-image';
-import type {ReactElement, ReactNode, Ref} from 'react';
-import React, {useEffect, useMemo, useRef} from 'react';
-import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {AnimatedStyle} from 'react-native-reanimated';
-import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
@@ -19,30 +13,47 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import variables from '@styles/variables';
+
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {ImageContentFit} from 'expo-image';
+import type {ReactElement, ReactNode, Ref} from 'react';
+import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatedStyle} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
+
+import React, {useEffect, useMemo, useRef} from 'react';
+import {View} from 'react-native';
+
+import type {DisplayNameWithTooltip} from './DisplayNames/types';
+import type HoverableProps from './Hoverable/types';
+import type {PressableRef} from './Pressable/GenericPressable/types';
+
 import ActivityIndicator from './ActivityIndicator';
 import Avatar from './Avatar';
+import WorkspaceAvatar from './Avatar/WorkspaceAvatar';
 import Badge from './Badge';
 import {useIsCompactMenu} from './CompactMenuContext';
 import CopyTextToClipboard from './CopyTextToClipboard';
 import DisplayNames from './DisplayNames';
-import type {DisplayNameWithTooltip} from './DisplayNames/types';
 import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
+import InlineIcon from './Icon/InlineIcon';
 import {useMenuItemGroupActions, useMenuItemGroupState} from './MenuItemGroup';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
-import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RadioButton from './RadioButton';
 import RenderHTML from './RenderHTML';
@@ -73,7 +84,8 @@ type NoIcon = {
 };
 
 type MenuItemBaseProps = ForwardedFSClassProps &
-    WithSentryLabel & {
+    WithSentryLabel &
+    Pick<HoverableProps, 'shouldUseNativeHoverEvents'> & {
         /** Reference to the outer element */
         ref?: PressableRef | Ref<View>;
 
@@ -286,7 +298,7 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** The type of brick road indicator to show. */
         brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 
-        /** Should render the content in HTML format */
+        /** Should render the content in HTML format. A title without HTML content is rendered as plain text even when this is set. */
         shouldRenderAsHTML?: boolean;
 
         /** Whether or not the text should be escaped */
@@ -607,6 +619,7 @@ function MenuItem({
     forwardedFSClass,
     ref,
     isFocused,
+    shouldUseNativeHoverEvents = false,
     sentryLabel,
     rootWrapperStyle,
     role = CONST.ROLE.BUTTON,
@@ -651,9 +664,6 @@ function MenuItem({
     } else if (isCompactPopoverItem) {
         descriptionVerticalMargin = styles.mt0Half;
     }
-    const menuItemLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'MenuItem',
-    };
     const defaultAccessibilityLabel = (shouldShowDescriptionOnTop ? [description, title] : [title, description]).filter(Boolean).join(', ');
     const isNewWindowIcon = iconRight === icons.NewWindow;
     let enhancedAccessibilityLabel = accessibilityLabel ?? defaultAccessibilityLabel;
@@ -669,8 +679,9 @@ function MenuItem({
     });
     const shouldDimIconRight = iconRight === icons.ArrowRight || !iconRight;
 
+    const hasIcon = (!!icon || iconType === CONST.ICON_TYPE_WORKSPACE) && !Array.isArray(icon);
     // eslint-disable-next-line no-nested-ternary -- Selects ml2/ml3/empty based on icon presence and avatar size
-    const iconLeftPadding = shouldPutLeftPaddingWhenNoIcon || (icon && !Array.isArray(icon)) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {};
+    const iconLeftPadding = shouldPutLeftPaddingWhenNoIcon || hasIcon ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {};
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
@@ -693,7 +704,7 @@ function MenuItem({
         styles.flex1,
         title ? {} : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
         title ? styles.textLineHeightNormal : StyleUtils.getLineHeightStyle(variables.fontSizeNormalHeight),
-        !descriptionAddon && icon && !Array.isArray(icon) ? styles.ml3 : {},
+        !descriptionAddon && hasIcon ? styles.ml3 : {},
         descriptionAddon ? styles.ml2 : {},
         (descriptionTextStyle as TextStyle) || styles.breakWord,
         isDeleted ? styles.offlineFeedbackDeleted : {},
@@ -702,7 +713,7 @@ function MenuItem({
     const descriptionContainerStyle = StyleUtils.combineStyles<ViewStyle>([
         styles.flexRow,
         styles.alignItemsCenter,
-        descriptionAddon && icon && !Array.isArray(icon) ? styles.ml3 : {},
+        descriptionAddon && hasIcon ? styles.ml3 : {},
         title ? descriptionVerticalMargin : {},
     ]);
 
@@ -738,6 +749,8 @@ function MenuItem({
         }
         return Parser.replace(helperText, {shouldEscapeText});
     }, [helperText, shouldParseHelperText, shouldEscapeText]);
+
+    const shouldRenderTitleAsHTML = shouldRenderAsHTML && !!title && Parser.isHTML(title);
 
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
@@ -857,7 +870,10 @@ function MenuItem({
                 shouldHideOnScroll={shouldHideOnScroll}
             >
                 <View>
-                    <Hoverable isFocused={isFocused}>
+                    <Hoverable
+                        isFocused={isFocused}
+                        shouldUseNativeHoverEvents={shouldUseNativeHoverEvents}
+                    >
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
@@ -930,7 +946,7 @@ function MenuItem({
                                                             accountIDs={iconAccountID ? [iconAccountID] : undefined}
                                                         />
                                                     )}
-                                                    {!icon && shouldPutLeftPaddingWhenNoIcon && (
+                                                    {!icon && iconType !== CONST.ICON_TYPE_WORKSPACE && shouldPutLeftPaddingWhenNoIcon && (
                                                         <View
                                                             style={[
                                                                 styles.popoverMenuIcon,
@@ -940,7 +956,7 @@ function MenuItem({
                                                             ]}
                                                         />
                                                     )}
-                                                    {!!icon && !Array.isArray(icon) && (
+                                                    {hasIcon && (
                                                         <View
                                                             style={[
                                                                 styles.popoverMenuIcon,
@@ -975,20 +991,14 @@ function MenuItem({
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
                                                                 ) : (
-                                                                    <ActivityIndicator
-                                                                        color={theme.textSupporting}
-                                                                        reasonAttributes={menuItemLoadingReasonAttributes}
-                                                                    />
+                                                                    <ActivityIndicator color={theme.textSupporting} />
                                                                 ))}
-                                                            {!!icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
-                                                                <Avatar
-                                                                    imageStyles={[styles.alignSelfCenter]}
-                                                                    size={CONST.AVATAR_SIZE.DEFAULT}
+                                                            {iconType === CONST.ICON_TYPE_WORKSPACE && (
+                                                                <WorkspaceAvatar
+                                                                    imageStyles={styles.alignSelfCenter}
                                                                     source={icon}
-                                                                    fallbackIcon={fallbackIcon ?? icons.FallbackAvatar}
-                                                                    name={title}
-                                                                    avatarID={avatarID}
-                                                                    type={CONST.ICON_TYPE_WORKSPACE}
+                                                                    name={title ?? ''}
+                                                                    avatarID={avatarID ?? CONST.DEFAULT_NUMBER_ID}
                                                                 />
                                                             )}
                                                             {iconType === CONST.ICON_TYPE_AVATAR && (
@@ -1034,7 +1044,14 @@ function MenuItem({
                                                             >
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={[styles.renderHTMLTitle, styles.textAlignLeft, shouldApplyIconPaddingToHTMLTitle && iconLeftPadding]}>
-                                                                        <RenderHTML html={processedTitle} />
+                                                                        {/* Use Text instead of RenderHTML when the title is plain text.
+                                                                            Titles with shouldRenderAsHTML use baseFontStyle, which differs from combinedTitleTextStyle below.
+                                                                        */}
+                                                                        {shouldRenderTitleAsHTML || shouldParseTitle ? (
+                                                                            <RenderHTML html={processedTitle} />
+                                                                        ) : (
+                                                                            <Text style={styles.webViewStyles.baseFontStyle}>{convertToLTR(Parser.htmlToText(processedTitle))}</Text>
+                                                                        )}
                                                                     </View>
                                                                 )}
                                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
@@ -1061,11 +1078,9 @@ function MenuItem({
                                                         {!!furtherDetails && (
                                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                                                 {!!furtherDetailsIcon && (
-                                                                    <Icon
+                                                                    <InlineIcon
                                                                         src={furtherDetailsIcon}
-                                                                        height={variables.iconSizeNormal}
-                                                                        width={variables.iconSizeNormal}
-                                                                        inline
+                                                                        size={CONST.ICON_SIZE.MEDIUM}
                                                                     />
                                                                 )}
                                                                 <Text
@@ -1140,7 +1155,6 @@ function MenuItem({
                                                                 }
                                                             }
                                                             accountIDs={!!rightIconAccountID && Number(rightIconAccountID) > 0 ? [Number(rightIconAccountID)] : undefined}
-                                                            useMidSubscriptSizeForMultipleAvatars
                                                         />
                                                     </View>
                                                 )}
@@ -1206,8 +1220,7 @@ function MenuItem({
                                                         <CopyTextToClipboard
                                                             urlToCopy={copyValue}
                                                             shouldHaveActiveBackground
-                                                            iconHeight={variables.iconSizeExtraSmall}
-                                                            iconWidth={variables.iconSizeExtraSmall}
+                                                            iconSize={CONST.ICON_SIZE.EXTRA_SMALL}
                                                             iconStyles={styles.t0}
                                                             styles={styles.reportActionContextMenuMiniButton}
                                                             shouldUseButtonBackground

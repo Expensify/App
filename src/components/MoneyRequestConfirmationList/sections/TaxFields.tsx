@@ -1,26 +1,34 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setMoneyRequestTaxAmount} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCalculatedTaxAmount, getTaxAmount, getTaxRateTitle} from '@libs/TransactionUtils';
+
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import {taxSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -42,7 +50,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
-    const {isNewManualExpenseFlowEnabled, isEditingSplitBill} = useConfirmationFields();
+    const {isNewManualExpenseFlowEnabled, isEditingSplitBill, onTaxAmountEmptyChange} = useConfirmationFields();
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -80,8 +88,9 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
 
         const taxAmountInSmallestCurrencyUnits = toBackendTaxAmount(newAmount);
 
-        // Clear a previously surfaced tax error as the user edits; validation re-runs on submit.
-        clearFormErrors(['iou.error.invalidTaxAmount']);
+        onTaxAmountEmptyChange?.(newAmount.trim() === '');
+
+        clearFormErrors(['iou.error.invalidTaxAmount', 'iou.error.invalidAmount']);
 
         // When editing a split expense, persist directly to the split draft so that
         // SplitBillDetailsPage and completeSplitBill read the latest value.
@@ -109,7 +118,15 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
             }
         }
         numberFormRef.current?.updateNumber(taxAmountInput);
-    }, [isNewManualExpenseFlowEnabled, taxAmount, taxAmountInput]);
+        onTaxAmountEmptyChange?.(false);
+    }, [isNewManualExpenseFlowEnabled, taxAmount, taxAmountInput, onTaxAmountEmptyChange]);
+
+    useEffect(() => {
+        if (isNewManualExpenseFlowEnabled && canModifyTaxFields) {
+            return () => onTaxAmountEmptyChange?.(false);
+        }
+        onTaxAmountEmptyChange?.(false);
+    }, [isNewManualExpenseFlowEnabled, canModifyTaxFields, onTaxAmountEmptyChange]);
 
     useEffect(() => {
         if (!isNewManualExpenseFlowEnabled || formError !== 'iou.error.invalidTaxAmount' || taxAmount > maxTaxAmount) {
@@ -121,7 +138,8 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     return (
         <>
             <MenuItemWithTopDescription
-                key={`${taxRates?.name}${taxRateTitle}`}
+                key={`${taxRates?.name}_rate`}
+                pressableTestID={`${taxRates?.name}_rate`}
                 shouldShowRightIcon={canModifyTaxFields}
                 title={taxRateTitle}
                 description={taxRates?.name}
@@ -132,7 +150,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                         return;
                     }
 
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID)));
                 }}
                 disabled={didConfirm}
                 interactive={canModifyTaxFields}
@@ -160,7 +178,8 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                 </View>
             ) : (
                 <MenuItemWithTopDescription
-                    key={`${taxRates?.name}${formattedTaxAmount}`}
+                    key={`${taxRates?.name}_amount`}
+                    pressableTestID={`${taxRates?.name}_amount`}
                     shouldShowRightIcon={canModifyTaxFields}
                     title={formattedTaxAmount}
                     description={translate('iou.taxAmount')}
@@ -171,7 +190,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                             return;
                         }
 
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID)));
                     }}
                     disabled={didConfirm}
                     interactive={canModifyTaxFields}

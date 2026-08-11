@@ -1,17 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Header from '@components/Header';
 import Modal from '@components/Modal';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setIsOpenAppFailureModalOpen} from '@libs/actions/isOpenAppFailureModalOpen';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type BaseOpenAppFailureModalProps = {
     onRefreshAndTryAgainButtonPress: () => void;
@@ -30,6 +34,7 @@ function BaseOpenAppFailureModal({onRefreshAndTryAgainButtonPress}: BaseOpenAppF
         <Modal
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             isVisible={isOpenAppFailureModalOpen}
+            shouldTreatModalAsCovering
             innerContainerStyle={styles.pv0}
             onClose={() => setIsOpenAppFailureModalOpen(false)}
         >
@@ -48,17 +53,19 @@ function BaseOpenAppFailureModal({onRefreshAndTryAgainButtonPress}: BaseOpenAppF
                     </TextLink>
                 </Text>
                 <Button
-                    large
-                    success
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     style={[styles.mb3]}
-                    text={translate('openAppFailureModal.refreshAndTryAgain')}
                     onPress={onRefreshAndTryAgainButtonPress}
-                />
+                >
+                    <Button.Text>{translate('openAppFailureModal.refreshAndTryAgain')}</Button.Text>
+                </Button>
                 <Button
-                    large
-                    text={translate('common.close')}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => setIsOpenAppFailureModalOpen(false)}
-                />
+                >
+                    <Button.Text>{translate('common.close')}</Button.Text>
+                </Button>
             </View>
         </Modal>
     );

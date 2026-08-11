@@ -1,8 +1,10 @@
-import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
 import {render, screen} from '@testing-library/react-native';
-import React from 'react';
+
 import SkiaWebChart from '@components/Charts/SkiaWebChart';
 import isSkiaWebSupported from '@components/Charts/SkiaWebChart/isSkiaWebSupported';
+
+import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
+import React from 'react';
 
 jest.mock('@components/Charts/SkiaWebChart/isSkiaWebSupported', () => jest.fn());
 
@@ -37,7 +39,6 @@ describe('SkiaWebChart', () => {
             <SkiaWebChart
                 getComponent={getComponent}
                 componentProps={{}}
-                reasonContext="Test.SkiaWebLoading"
             />,
         );
 
@@ -53,7 +54,6 @@ describe('SkiaWebChart', () => {
             <SkiaWebChart
                 getComponent={getComponent}
                 componentProps={{}}
-                reasonContext="Test.SkiaWebLoading"
             />,
         );
 

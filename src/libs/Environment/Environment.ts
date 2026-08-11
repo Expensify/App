@@ -1,8 +1,11 @@
-import Config from 'react-native-config';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import getEnvironment from './getEnvironment';
+
+import Config from 'react-native-config';
+
 import type Environment from './getEnvironment/types';
+
+import getEnvironment from './getEnvironment';
 
 const ENVIRONMENT_URLS = {
     [CONST.ENVIRONMENT.DEV]: CONST.DEV_NEW_EXPENSIFY_URL + CONFIG.DEV_PORT,

@@ -1,28 +1,33 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import {useSearchRouterState} from '@components/Search/SearchRouter/SearchRouterContext';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 type RateFieldProps = {
     distanceRateName: string | undefined;
     distanceRateCurrency: string;
     unit: Unit | undefined;
-    rate: number | undefined;
     mileageRate: MileageRate;
     expenseDate: string | undefined;
     customUnitRateID: string | undefined;
@@ -45,7 +50,6 @@ function RateField({
     distanceRateName,
     distanceRateCurrency,
     unit,
-    rate,
     mileageRate,
     expenseDate,
     customUnitRateID,
@@ -64,7 +68,7 @@ function RateField({
     shouldShowRateAutoUpdatedTooltip,
 }: RateFieldProps) {
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, dateFnsLocale} = useLocalize();
     const {getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     const {isOffline} = useNetwork();
@@ -73,6 +77,7 @@ function RateField({
     const policyRate = customUnitRateID && policy ? DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy}) : undefined;
     const rateOutOfDateRangeErrorText = isRateOutOfDateRange
         ? ViolationsUtils.getViolationTranslation({
+              dateFnsLocale,
               violation: {
                   name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
                   type: CONST.VIOLATION_TYPES.WARNING,
@@ -88,6 +93,7 @@ function RateField({
         : '';
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const rate = mileageRate.rate;
     const isRateInteractive = !!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT;
 
     const {isSearchRouterDisplayed} = useSearchRouterState();

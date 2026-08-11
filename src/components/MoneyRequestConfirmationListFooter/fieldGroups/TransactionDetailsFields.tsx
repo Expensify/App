@@ -1,5 +1,3 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
 import DescriptionField from '@components/MoneyRequestConfirmationList/sections/DescriptionField';
@@ -8,8 +6,15 @@ import MerchantField from '@components/MoneyRequestConfirmationList/sections/Mer
 import RateField from '@components/MoneyRequestConfirmationList/sections/RateField';
 import TimeFields from '@components/MoneyRequestConfirmationList/sections/TimeFields';
 import type {AmountDisplay, DistanceData, ErrorState, RequiredFlags} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import type {FieldVisibility} from './fieldVisibility';
 
 type TransactionDetailsFieldsProps = {
@@ -138,7 +143,6 @@ function TransactionDetailsFields({
                     hasRoute={distanceData.hasRoute}
                     distance={distanceData.distance}
                     unit={distanceData.unit}
-                    rate={distanceData.rate}
                     isManualDistanceRequest={isManualDistanceRequest}
                     isOdometerDistanceRequest={isOdometerDistanceRequest}
                     isGPSDistanceRequest={isGPSDistanceRequest}
@@ -149,6 +153,7 @@ function TransactionDetailsFields({
                     iouType={iouType}
                     reportID={reportID}
                     reportActionID={reportActionID}
+                    customUnit={distanceData.customUnit}
                 />
             )}
 
@@ -157,7 +162,6 @@ function TransactionDetailsFields({
                     distanceRateName={distanceData.distanceRateName}
                     distanceRateCurrency={distanceData.distanceRateCurrency}
                     unit={distanceData.unit}
-                    rate={distanceData.rate}
                     mileageRate={distanceData.mileageRate}
                     expenseDate={distanceData.expenseDate}
                     customUnitRateID={distanceData.customUnitRateID}

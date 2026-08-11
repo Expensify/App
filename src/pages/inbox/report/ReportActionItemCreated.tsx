@@ -1,21 +1,28 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {conciergePersonalDetailSelector, isOptimisticPersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
-import React, {memo, useMemo} from 'react';
-import {View} from 'react-native';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportWelcomeText from '@components/ReportWelcomeText';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {hasDeferredWriteForReport} from '@libs/deferredLayoutWrite';
 import {isChatReport, isCurrentUserInvoiceReceiver, isInvoiceRoom, navigateToDetailsPage, shouldDisableDetailPage as shouldDisableDetailPageReportUtils} from '@libs/ReportUtils';
+
 import {clearCreateChatError} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {conciergePersonalDetailSelector, isOptimisticPersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
+import React, {memo} from 'react';
+import {View} from 'react-native';
+
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
 type ReportActionItemCreatedProps = {
@@ -30,6 +37,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const styles = useThemeStyles();
 
     const {translate} = useLocalize();
+    const isInSidePanel = useIsInSidePanel();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -40,8 +48,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID} = currentUserPersonalDetail;
     const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
-    const reportOwnerSelector = useMemo(() => personalDetailsSelector(report?.ownerAccountID), [report?.ownerAccountID]);
-    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
+    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
 
     const otherParticipantAccountID =
         Object.keys(report?.participants ?? {})
@@ -88,7 +95,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                 >
                     <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>
                         <PressableWithoutFeedback
-                            onPress={() => navigateToDetailsPage(report)}
+                            onPress={() => navigateToDetailsPage(report, isInSidePanel)}
                             style={[styles.mh5, styles.mb3, styles.alignSelfStart, shouldDisableDetailPage && styles.cursorDefault]}
                             accessibilityLabel={translate('common.details')}
                             role={CONST.ROLE.BUTTON}
@@ -97,13 +104,13 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                         >
                             <ReportActionAvatars
                                 reportID={reportID}
-                                size={CONST.AVATAR_SIZE.X_LARGE}
+                                size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                 horizontalStacking={{
-                                    displayInRows: shouldUseNarrowLayout,
-                                    maxAvatarsInRow: shouldUseNarrowLayout ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN,
+                                    maxRows: shouldUseNarrowLayout ? 2 : 1,
+                                    maxAvatarsPerRow: shouldUseNarrowLayout ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN,
                                     overlapDivider: 4,
-                                    sort: isInvoiceRoom(report) && isCurrentUserInvoiceReceiver(report) ? CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE : undefined,
                                 }}
+                                sort={isInvoiceRoom(report) && isCurrentUserInvoiceReceiver(report) ? CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE : undefined}
                             />
                         </PressableWithoutFeedback>
                     </OfflineWithFeedback>

@@ -1,5 +1,3 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -7,23 +5,31 @@ import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/ty
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {clearPolicyErrorField, setPolicyMaxExpenseAmountNoItemizedReceipt, setPolicyMaxExpenseAmountNoReceipt} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesRequireReceiptsForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 type RulesRequireReceiptsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_REQUIRE_RECEIPTS>;
 
@@ -130,11 +136,29 @@ function RulesRequireReceiptsPage({
             const receiptValue = receiptEnabled ? values.maxExpenseAmountNoReceipt : '';
             const itemizedValue = itemizedEnabled ? values.maxExpenseAmountNoItemizedReceipt : '';
 
-            if (receiptChanged) {
-                setPolicyMaxExpenseAmountNoReceipt(policyID, receiptValue, policy?.maxExpenseAmountNoReceipt);
-            }
-            if (itemizedChanged) {
-                setPolicyMaxExpenseAmountNoItemizedReceipt(policyID, itemizedValue, policy?.maxExpenseAmountNoItemizedReceipt);
+            const updateReceipt = () => setPolicyMaxExpenseAmountNoReceipt(policyID, receiptValue, policy?.maxExpenseAmountNoReceipt);
+            const updateItemized = () => setPolicyMaxExpenseAmountNoItemizedReceipt(policyID, itemizedValue, policy?.maxExpenseAmountNoItemizedReceipt);
+
+            if (receiptChanged && itemizedChanged) {
+                // The two amounts are saved as separate requests, and each is validated on the server against the OTHER
+                // amount still stored there, under the invariant "require-receipt amount <= require-itemized-receipt amount".
+                // Send the update that keeps that invariant true first, so no intermediate server state is ever rejected.
+                const oldReceiptCents = policy?.maxExpenseAmountNoReceipt ?? 0;
+                const newItemizedCents = itemizedValue === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : convertToBackendAmount(Number(itemizedValue));
+                // Sending the itemized update first is safe unless it would lower the itemized amount below the receipt
+                // amount still on the server; in that (lowering) case send the receipt update first instead.
+                const itemizedFirstIsSafe = oldReceiptCents === CONST.DISABLED_MAX_EXPENSE_VALUE || newItemizedCents >= oldReceiptCents;
+                if (itemizedFirstIsSafe) {
+                    updateItemized();
+                    updateReceipt();
+                } else {
+                    updateReceipt();
+                    updateItemized();
+                }
+            } else if (receiptChanged) {
+                updateReceipt();
+            } else if (itemizedChanged) {
+                updateItemized();
             }
             Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
         },
@@ -154,7 +178,7 @@ function RulesRequireReceiptsPage({
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}

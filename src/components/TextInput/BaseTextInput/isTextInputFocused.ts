@@ -1,4 +1,5 @@
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
+
 import type {BaseTextInputRef} from './types';
 
 /** Checks that text input has the isFocused method and is focused. */

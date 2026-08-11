@@ -1,10 +1,11 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import SkeletonRect from '@components/SkeletonRect';
+
 import useContainerWidth from '@hooks/useContainerWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+
 import ItemListSkeletonView from './ItemListSkeletonView';
 
 function getMessageSkeletonWidth(index: number) {
@@ -35,13 +36,11 @@ function getExpenseAmountSkeletonWidth(index: number) {
 
 type UnreportedExpensesSkeletonProps = {
     fixedNumberOfItems?: number;
-    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
-function UnreportedExpensesSkeleton({fixedNumberOfItems, reasonAttributes}: UnreportedExpensesSkeletonProps) {
+function UnreportedExpensesSkeleton({fixedNumberOfItems}: UnreportedExpensesSkeletonProps) {
     const {onLayout, containerWidth: pageWidth} = useContainerWidth(40);
     const styles = useThemeStyles();
-    useSkeletonSpan('UnreportedExpensesSkeleton', reasonAttributes);
 
     const skeletonItem = useCallback(
         (args: {itemIndex: number}) => {

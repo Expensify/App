@@ -1,25 +1,30 @@
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MagicCodeInput from '@components/MagicCodeInput';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import ValidateCodeInput from '@components/ValidateCodeInput';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isValidPIN} from '@libs/ValidationUtils';
+
 import {PINContextProvider, usePINActions, usePINState} from '@pages/MissingPersonalDetails/PINContext';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
 
 type ChangePINPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN>;
 
@@ -107,7 +112,7 @@ function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBl
                         <Text style={[styles.textHeadlineH1, styles.mb2]}>{title}</Text>
 
                         <View style={[styles.mv4, styles.ph11]}>
-                            <MagicCodeInput
+                            <ValidateCodeInput
                                 key={`pin-${isConfirmStep}`}
                                 autoComplete={CONST.AUTO_COMPLETE_VARIANTS.OFF}
                                 name="pin"
@@ -122,22 +127,21 @@ function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBl
                         </View>
 
                         <View style={[styles.flexRow, styles.justifyContentCenter, styles.mv4, styles.alignItemsCenter, styles.w100]}>
-                            <Button
-                                icon={isPINHidden ? icons.Eye : icons.EyeDisabled}
-                                text={isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}
-                                onPress={togglePINVisibility}
-                                medium
-                            />
+                            <Button onPress={togglePINVisibility}>
+                                <Button.Icon src={isPINHidden ? icons.Eye : icons.EyeDisabled} />
+                                <Button.Text>{isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}</Button.Text>
+                            </Button>
                         </View>
                     </View>
 
                     <Button
-                        success
-                        large
-                        text={isConfirmStep ? translate('common.confirm') : translate('common.next')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={handleSubmit}
                         style={[styles.mb5]}
-                    />
+                    >
+                        <Button.Text>{isConfirmStep ? translate('common.confirm') : translate('common.next')}</Button.Text>
+                    </Button>
                 </View>
             </FullPageOfflineBlockingView>
         </ScreenWrapper>

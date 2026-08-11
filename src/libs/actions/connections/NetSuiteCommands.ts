@@ -1,17 +1,21 @@
-import type {CONST as COMMON_CONST} from 'expensify-common';
-import isObject from 'lodash/isObject';
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {ConnectPolicyToNetSuiteParams} from '@libs/API/parameters';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import type {ConnectPolicyToNetSuiteOAuthParams, ConnectPolicyToNetSuiteParams} from '@libs/API/parameters';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getCommandURL} from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {Connections, NetSuiteCustomFormID, NetSuiteCustomList, NetSuiteCustomSegment, NetSuiteMappingValues} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {CONST as COMMON_CONST} from 'expensify-common';
+import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import isObject from 'lodash/isObject';
+import Onyx from 'react-native-onyx';
 
 type SubsidiaryParam = {
     subsidiaryID: string;
@@ -44,6 +48,12 @@ function writeNetSuiteCredentials(
 function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>) {
     writeNetSuiteCredentials(WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE, policyID, credentials);
 }
+
+const getNetSuiteSetupLink = (policyID: string, accountID: string) => {
+    const params: ConnectPolicyToNetSuiteOAuthParams = {policyID, netSuiteAccountID: accountID};
+    const commandURL = getCommandURL({command: READ_COMMANDS.CONNECT_POLICY_TO_NETSUITE_OAUTH, shouldSkipWebProxy: true});
+    return commandURL + new URLSearchParams(params).toString();
+};
 
 function updateNetSuiteTokens(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>) {
     writeNetSuiteCredentials(WRITE_COMMANDS.UPDATE_NETSUITE_TOKENS, policyID, credentials);
@@ -1084,6 +1094,7 @@ function updateNetSuiteTravelInvoicingJournalPostingPreference(
 
 export {
     connectPolicyToNetSuite,
+    getNetSuiteSetupLink,
     updateNetSuiteTokens,
     updateNetSuiteSubsidiary,
     updateNetSuiteSyncTaxConfiguration,

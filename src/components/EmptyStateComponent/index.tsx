@@ -1,14 +1,20 @@
-import isEmpty from 'lodash/isEmpty';
-import React, {useMemo} from 'react';
-import {StyleSheet, View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
+
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
+
 import CONST from '@src/CONST';
+
+import isEmpty from 'lodash/isEmpty';
+import React, {useMemo} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import type {EmptyStateComponentProps} from './types';
 
 function EmptyStateComponent({
@@ -68,6 +74,7 @@ function EmptyStateComponent({
                                 {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style, innerStyles, hoverStyles, dropDownOptions}) =>
                                     dropDownOptions ? (
                                         <ButtonWithDropdownMenu
+                                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                                             key={buttonText}
                                             onPress={() => {}}
                                             shouldAlwaysShowDropdownMenu
@@ -79,15 +86,16 @@ function EmptyStateComponent({
                                     ) : (
                                         <Button
                                             key={buttonText}
-                                            success={success}
+                                            variant={success ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                                             onPress={buttonAction}
-                                            text={buttonText}
-                                            icon={icon}
                                             isDisabled={isDisabled}
                                             style={style}
                                             innerStyles={innerStyles}
                                             hoverStyles={hoverStyles}
-                                        />
+                                        >
+                                            {!!icon && <Button.Icon src={icon} />}
+                                            {!!buttonText && <Button.Text>{buttonText}</Button.Text>}
+                                        </Button>
                                     ),
                                 )}
                             </View>

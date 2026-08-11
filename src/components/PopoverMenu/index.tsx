@@ -1,8 +1,3 @@
-import {deepEqual} from 'fast-equals';
-import type {ReactNode, RefObject} from 'react';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import CompactMenuContext from '@components/CompactMenuContext';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
@@ -14,6 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -25,16 +21,27 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
+
 import variables from '@styles/variables';
+
 import {close} from '@userActions/Modal';
+
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ReactNode, RefObject} from 'react';
+import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import {deepEqual} from 'fast-equals';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
 
 type PopoverMenuItem = MenuItemProps & {
     /** Text label */
@@ -226,6 +233,17 @@ function PopoverMenuContent({shouldUseScrollView, contentContainerStyle, childre
 
 function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
     return menuItems.findIndex((option) => option.isSelected);
+}
+
+function getAvailableHeightForAnchor(anchorVertical: number, verticalAlignment: AnchorAlignment['vertical'], windowHeight: number): number {
+    if (verticalAlignment === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
+        return windowHeight - anchorVertical;
+    }
+    if (verticalAlignment === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM) {
+        return anchorVertical;
+    }
+    // CENTER alignment grows in both directions from the anchor, so the closer window edge bounds it.
+    return Math.min(anchorVertical, windowHeight - anchorVertical) * 2;
 }
 
 /**
@@ -628,11 +646,23 @@ function BasePopoverMenu({
         const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer), {width: variables.compactPopoverMenuWidth}, styles.pv2];
 
         if (shouldUseScrollView && shouldEnableMaxHeight && !isInLandscapeMode) {
-            stylesArray.push({maxHeight: Math.max(windowHeight - variables.compactPopoverMenuVerticalMargin, CONST.POPOVER_MENU_MAX_HEIGHT)});
+            const availableHeight = getAvailableHeightForAnchor(anchorPosition.vertical, anchorAlignment.vertical, windowHeight) - variables.compactPopoverMenuVerticalMargin;
+            const minHeight = Math.min(CONST.POPOVER_MENU_MAX_HEIGHT, windowHeight - variables.compactPopoverMenuVerticalMargin);
+            stylesArray.push({maxHeight: Math.max(availableHeight, minHeight)});
         }
 
         return stylesArray;
-    }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, styles.pv2, shouldUseScrollView, windowHeight, isInLandscapeMode]);
+    }, [
+        isSmallScreenWidth,
+        shouldEnableMaxHeight,
+        styles.createMenuContainer,
+        styles.pv2,
+        shouldUseScrollView,
+        windowHeight,
+        isInLandscapeMode,
+        anchorPosition.vertical,
+        anchorAlignment.vertical,
+    ]);
 
     const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} =
         (StyleSheet.flatten([isSmallScreenWidth ? styles.pv4 : styles.pv2, scrollContainerStyle]) as ViewStyle) ?? {};

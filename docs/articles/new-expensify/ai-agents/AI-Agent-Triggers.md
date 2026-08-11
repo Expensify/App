@@ -792,6 +792,12 @@ To react to this event, include phrases like:
 - When the auto-reimbursement limit is changed
 - When the threshold for automatic reimbursement is updated
 
+**A workspace admin changed who pays the currency conversion fees on reimbursements sent in a currency other than the workspace currency, either the company or the employee.**
+
+To react to this event, include phrases like:
+- When the workspace changes who pays currency conversion fees
+- When the company starts or stops absorbing conversion fees on cross-border reimbursements
+
 ---
 
 ## How to write instructions for workspace integration and card change events
@@ -862,4 +868,4 @@ To react to this event, include phrases like:
 
 ---
 
-*This reference covers all 117 events AI Agents can react to.*
+*This reference covers all 118 events AI Agents can react to.*

@@ -1,12 +1,17 @@
+import ActivityIndicator from '@components/ActivityIndicator';
+
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import ActivityIndicator from '@components/ActivityIndicator';
-import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import type {WalletStatementMessage, WalletStatementProps} from './types';
+
 import handleWalletStatementNavigation from './walletNavigationUtils';
 
 function WalletStatementModal({statementPageURL}: WalletStatementProps) {
@@ -41,10 +46,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
         <View style={styles.flex1}>
             {isLoading && (
                 <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={{context: 'WalletStatementModal'}}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             )}
             <iframe

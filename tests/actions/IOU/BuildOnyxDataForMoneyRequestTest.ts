@@ -1,11 +1,15 @@
-import Onyx from 'react-native-onyx';
 import {buildOnyxDataForMoneyRequest} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import type {OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {createSelfDM} from '../../utils/collections/reports';
+import {getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -174,6 +178,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
 
             function buildSelfDMParams(): BuildOnyxDataParams {
                 return {
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     isNewChatReport: false,
                     shouldCreateNewMoneyRequestReport: false,
                     shouldGenerateTransactionThreadReport: true,
@@ -185,6 +190,8 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     isSelfDMSplit: true,
                     selfDMReportID: selfDMReport.reportID,
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
+                    delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 };
             }
 
@@ -315,6 +322,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
         describe('when isSelfDMSplit=false (standard flow)', () => {
             function buildStandardParams(): BuildOnyxDataParams {
                 return {
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     isNewChatReport: false,
                     shouldCreateNewMoneyRequestReport: false,
                     shouldGenerateTransactionThreadReport: false,
@@ -325,6 +333,8 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     quickAction: undefined,
                     isSelfDMSplit: false,
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
+                    delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 };
             }
 
@@ -353,6 +363,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
         describe('when isSelfDMSplit=true but selfDMReportID is undefined', () => {
             function buildNoSelfDMReportIDParams(): BuildOnyxDataParams {
                 return {
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     isNewChatReport: false,
                     shouldCreateNewMoneyRequestReport: false,
                     shouldGenerateTransactionThreadReport: false,
@@ -364,6 +375,8 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     isSelfDMSplit: true,
                     selfDMReportID: undefined,
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
+                    delegateAccountID: undefined,
+                    isTrackIntentUser: false,
                 };
             }
 
@@ -390,6 +403,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
             const optimisticParams = buildBaseOptimisticParams(IOU_REPORT_ID);
 
             return {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 isNewChatReport: false,
                 shouldCreateNewMoneyRequestReport,
                 shouldGenerateTransactionThreadReport: false,
@@ -409,6 +423,8 @@ describe('buildOnyxDataForMoneyRequest', () => {
                         } as Report,
                     },
                 },
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
             };
         }
 

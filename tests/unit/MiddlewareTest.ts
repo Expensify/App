@@ -1,10 +1,11 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {READ_COMMANDS} from '@libs/API/types';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
+
+import CONST from '@src/CONST';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
+import HttpUtils from '@src/libs/HttpUtils';
 // This import is needed to initialize the Onyx connections that call replaceOptimisticReportWithActualReport
 import '@src/libs/actions/replaceOptimisticReportWithActualReport';
-import HttpUtils from '@src/libs/HttpUtils';
 import handleUnusedOptimisticID from '@src/libs/Middleware/HandleUnusedOptimisticID';
 import * as Network from '@src/libs/Network';
 import * as MainQueue from '@src/libs/Network/MainQueue';
@@ -13,6 +14,12 @@ import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as Request from '@src/libs/Request';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report as OnyxReport, PersonalDetailsList} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
@@ -78,6 +85,37 @@ describe('Middleware', () => {
             // Then the response should not be undefined — the caller may need the raw response for side effects
             expect(result).toBeDefined();
             expect(result?.jsonCode).toBe(200);
+        });
+
+        test.each([
+            ['the client watermark is behind the response', 1],
+            ['the client has no watermark yet', undefined],
+        ])('applies a sign-in response on arrival when %s', async (_case, clientLastUpdateID) => {
+            if (clientLastUpdateID) {
+                await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, clientLastUpdateID);
+            }
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
+            await waitForBatchedUpdates();
+
+            Request.addMiddleware(SaveResponseInOnyx);
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({jsonCode: 200, lastUpdateID: 501, previousUpdateID: 500});
+
+            await Request.processWithMiddleware({
+                command: READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN,
+                data: {apiRequestType: CONST.API_REQUEST_TYPE.READ},
+                finallyData: [
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+                        value: false,
+                    },
+                ],
+            });
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN)).toBe(false);
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_FROM_SERVER)).toBeUndefined();
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(clientLastUpdateID);
         });
     });
 
@@ -487,6 +525,324 @@ describe('Middleware', () => {
             });
             expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
             expect(personalDetails?.[preexistingAccountID]).not.toBeUndefined();
+        });
+
+        test('OpenReport restores the invited login when the settled participant arrives without one', async () => {
+            const optimisticReportID = '1234';
+            const optimisticAccountID = 999;
+            const settledAccountID = 333;
+            const invitedEmail = 'invited@example.com';
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}` as const]: {
+                    reportID: optimisticReportID,
+                    participants: {[optimisticAccountID]: {notificationPreference: 'always'}},
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [optimisticAccountID]: {
+                        accountID: optimisticAccountID,
+                        login: invitedEmail,
+                        isOptimisticPersonalDetail: true,
+                    },
+                },
+            });
+
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
+
+            SequentialQueue.push({
+                command: 'OpenReport',
+                data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678', emailList: invitedEmail},
+                requestIndex: 13,
+            });
+
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
+                jsonCode: 200,
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                        value: {
+                            reportID: optimisticReportID,
+                            participants: {[settledAccountID]: {notificationPreference: 'always'}},
+                        },
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [settledAccountID]: {
+                                accountID: settledAccountID,
+                            },
+                        },
+                    },
+                ],
+            });
+
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    callback: (data) => {
+                        Onyx.disconnect(connection);
+                        resolve(data);
+                    },
+                });
+            });
+            expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
+            expect(personalDetails?.[settledAccountID]?.login).toBe(invitedEmail);
+        });
+
+        test('OpenReport does not restore the invited login when the settled participant already has one', async () => {
+            const optimisticReportID = '1234';
+            const optimisticAccountID = 999;
+            const settledAccountID = 333;
+            const serverLogin = 'server@example.com';
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}` as const]: {
+                    reportID: optimisticReportID,
+                    participants: {[optimisticAccountID]: {notificationPreference: 'always'}},
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [optimisticAccountID]: {
+                        accountID: optimisticAccountID,
+                        login: 'invited@example.com',
+                        isOptimisticPersonalDetail: true,
+                    },
+                },
+            });
+
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
+
+            SequentialQueue.push({
+                command: 'OpenReport',
+                data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678', emailList: 'invited@example.com'},
+                requestIndex: 14,
+            });
+
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
+                jsonCode: 200,
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                        value: {
+                            reportID: optimisticReportID,
+                            participants: {[settledAccountID]: {notificationPreference: 'always'}},
+                        },
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [settledAccountID]: {
+                                accountID: settledAccountID,
+                                login: serverLogin,
+                            },
+                        },
+                    },
+                ],
+            });
+
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    callback: (data) => {
+                        Onyx.disconnect(connection);
+                        resolve(data);
+                    },
+                });
+            });
+            expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
+            expect(personalDetails?.[settledAccountID]?.login).toBe(serverLogin);
+        });
+
+        test('OpenReport does not restore the invited login when the response sets an explicitly empty one', async () => {
+            const optimisticReportID = '1234';
+            const optimisticAccountID = 999;
+            const settledAccountID = 333;
+            const invitedEmail = 'invited@example.com';
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}` as const]: {
+                    reportID: optimisticReportID,
+                    participants: {[optimisticAccountID]: {notificationPreference: 'always'}},
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [optimisticAccountID]: {
+                        accountID: optimisticAccountID,
+                        login: invitedEmail,
+                        isOptimisticPersonalDetail: true,
+                    },
+                },
+            });
+
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
+
+            SequentialQueue.push({
+                command: 'OpenReport',
+                data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678', emailList: invitedEmail},
+                requestIndex: 18,
+            });
+
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
+                jsonCode: 200,
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                        value: {
+                            reportID: optimisticReportID,
+                            participants: {[settledAccountID]: {notificationPreference: 'always'}},
+                        },
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [settledAccountID]: {
+                                accountID: settledAccountID,
+                                login: '',
+                            },
+                        },
+                    },
+                ],
+            });
+
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    callback: (data) => {
+                        Onyx.disconnect(connection);
+                        resolve(data);
+                    },
+                });
+            });
+            expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
+            expect(personalDetails?.[settledAccountID]?.login).toBe('');
+        });
+
+        test('OpenReport restores the invited login when the participant is already known without a login key', async () => {
+            const optimisticReportID = '1234';
+            const knownAccountID = 333;
+            const invitedEmail = 'invited@example.com';
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}` as const]: {
+                    reportID: optimisticReportID,
+                    participants: {[knownAccountID]: {notificationPreference: 'always'}},
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [knownAccountID]: {
+                        accountID: knownAccountID,
+                    },
+                },
+            });
+
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
+
+            SequentialQueue.push({
+                command: 'OpenReport',
+                data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678', emailList: invitedEmail},
+                requestIndex: 15,
+            });
+
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
+                jsonCode: 200,
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                        value: {
+                            reportID: optimisticReportID,
+                            participants: {[knownAccountID]: {notificationPreference: 'always'}},
+                        },
+                    },
+                ],
+            });
+
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    callback: (data) => {
+                        Onyx.disconnect(connection);
+                        resolve(data);
+                    },
+                });
+            });
+            expect(personalDetails?.[knownAccountID]?.login).toBe(invitedEmail);
+        });
+
+        test('OpenReport does not restore the invited login when the participant is already known with an explicitly empty one', async () => {
+            const optimisticReportID = '1234';
+            const knownAccountID = 333;
+            const invitedEmail = 'invited@example.com';
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}` as const]: {
+                    reportID: optimisticReportID,
+                    participants: {[knownAccountID]: {notificationPreference: 'always'}},
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [knownAccountID]: {
+                        accountID: knownAccountID,
+                        login: '',
+                        displayName: '',
+                    },
+                },
+            });
+
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
+
+            SequentialQueue.push({
+                command: 'OpenReport',
+                data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678', emailList: invitedEmail},
+                requestIndex: 16,
+            });
+
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
+                jsonCode: 200,
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                        value: {
+                            reportID: optimisticReportID,
+                            participants: {[knownAccountID]: {notificationPreference: 'always'}},
+                        },
+                    },
+                ],
+            });
+
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    callback: (data) => {
+                        Onyx.disconnect(connection);
+                        resolve(data);
+                    },
+                });
+            });
+            expect(personalDetails?.[knownAccountID]?.login).toBe('');
         });
     });
 });

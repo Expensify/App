@@ -1,19 +1,25 @@
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {Ref} from 'react';
-import {View} from 'react-native';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import MenuItem from '@components/MenuItem';
 import type {SearchDatePreset} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SpacerView from '@components/SpacerView';
+
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDateRangeDisplayValueFromFormValue, getEmptyDateValues, getRangeBoundariesFromFormValue, getRangeQueryValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
+
+import type {Ref} from 'react';
+
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import RangeDatePicker from './RangeDatePicker';
 
 type CustomDateModifier = Exclude<SearchDateModifier, typeof CONST.SEARCH.DATE_MODIFIERS.RANGE>;
@@ -91,6 +97,9 @@ type DatePresetFilterBaseProps = {
     /** The date presets */
     presets?: SearchDatePreset[];
 
+    /** Whether to show the "Custom date" (On/After/Before) option. Defaults to true. */
+    shouldShowCustomDate?: boolean;
+
     /** Whether the search advanced filters form Onyx data is loading or not */
     isSearchAdvancedFiltersFormLoading?: boolean;
 
@@ -119,6 +128,7 @@ function DatePresetFilterBase({
     selectedDateModifier,
     onSelectDateModifier,
     presets,
+    shouldShowCustomDate = true,
     isSearchAdvancedFiltersFormLoading,
     onDateValuesChange,
     onRangeValidationErrorChange,
@@ -128,20 +138,23 @@ function DatePresetFilterBase({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
 
     const shouldShowHorizontalRule = !!presets?.length;
     const customDateTitle = translate('search.filters.date.customDate');
     const customRangeTitle = translate('search.filters.date.customRange');
     const normalizedDefaultDateValues = useMemo(() => normalizeDateValues(defaultDateValues), [defaultDateValues]);
 
-    const getRangeDisplayTextFromDateValues = useCallback((dateValues: SearchDateValues) => {
-        const rangeValue = dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE];
-        if (!rangeValue) {
-            return '';
-        }
-        return getDateRangeDisplayValueFromFormValue(rangeValue, dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER], dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
-    }, []);
+    const getRangeDisplayTextFromDateValues = useCallback(
+        (dateValues: SearchDateValues) => {
+            const rangeValue = dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE];
+            if (!rangeValue) {
+                return '';
+            }
+            return getDateRangeDisplayValueFromFormValue(dateFnsLocale, rangeValue, dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER], dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
+        },
+        [dateFnsLocale],
+    );
 
     const getRangeEphemeralValuesFromDateValues = useCallback((dateValues: SearchDateValues) => {
         const rangeBoundaries = getRangeBoundariesFromFormValue(dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE]);
@@ -424,13 +437,15 @@ function DatePresetFilterBase({
                         style={[StyleUtils.getBorderColorStyle(theme.border), styles.mh3]}
                     />
                 )}
-                <MenuItem
-                    shouldShowRightIcon
-                    viewMode={CONST.OPTION_MODE.COMPACT}
-                    title={customDateTitle}
-                    description={customDateDescription}
-                    onPress={selectCustomDateMode}
-                />
+                {shouldShowCustomDate && (
+                    <MenuItem
+                        shouldShowRightIcon
+                        viewMode={CONST.OPTION_MODE.COMPACT}
+                        title={customDateTitle}
+                        description={customDateDescription}
+                        onPress={selectCustomDateMode}
+                    />
+                )}
                 <MenuItem
                     shouldShowRightIcon
                     viewMode={CONST.OPTION_MODE.COMPACT}
@@ -483,7 +498,7 @@ function DatePresetFilterBase({
                         isSelected: selectedDateModifier === dateModifier,
                     }}
                     onSelectRow={() => selectDateModifier(dateModifier)}
-                    wrapperStyle={styles.flexReset}
+                    wrapperStyle={[styles.flexReset, styles.optionRowCompact]}
                 />
             ))}
         </>

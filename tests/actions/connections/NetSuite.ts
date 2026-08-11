@@ -1,19 +1,24 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import {shouldUseUpdateNetSuiteTokens} from '@libs/actions/connections';
 import {
     connectPolicyToNetSuite,
+    getNetSuiteSetupLink,
     updateNetSuiteTokens,
     updateNetSuiteTravelInvoicingJournalPostingPreference,
     updateNetSuiteTravelInvoicingPayableAccount,
 } from '@libs/actions/connections/NetSuiteCommands';
 import * as API from '@libs/API';
 import type {WriteCommand} from '@libs/API/types';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {AnyOnyxData} from '@src/types/onyx/Request';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
@@ -60,6 +65,24 @@ describe('actions/connections/NetSuite', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
+    describe('getNetSuiteSetupLink', () => {
+        it('builds a ConnectPolicyToNetSuiteOAuth URL carrying the policyID and account ID', () => {
+            const setupLink = getNetSuiteSetupLink(MOCK_POLICY_ID, MOCK_CREDENTIALS.netSuiteAccountID);
+
+            expect(setupLink).toContain(`api/${READ_COMMANDS.CONNECT_POLICY_TO_NETSUITE_OAUTH}?`);
+
+            const params = new URLSearchParams(setupLink.slice(setupLink.indexOf('?') + 1));
+            expect(params.get('policyID')).toBe(MOCK_POLICY_ID);
+            expect(params.get('netSuiteAccountID')).toBe(MOCK_CREDENTIALS.netSuiteAccountID);
+        });
+
+        it('only builds the link, since the OAuth handoff happens over a browser redirect', () => {
+            getNetSuiteSetupLink(MOCK_POLICY_ID, MOCK_CREDENTIALS.netSuiteAccountID);
+
+            expect(writeSpy).not.toHaveBeenCalled();
+        });
     });
 
     describe('connectPolicyToNetSuite', () => {

@@ -1,16 +1,21 @@
-import React from 'react';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import {Circle} from 'react-native-svg';
 import SkeletonRect from '@components/SkeletonRect';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import getPlatform from '@libs/getPlatform';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+import {Circle} from 'react-native-svg';
+
 import ItemListSkeletonView from './ItemListSkeletonView';
 
 type SearchRowSkeletonProps = {
@@ -18,7 +23,6 @@ type SearchRowSkeletonProps = {
     fixedNumItems?: number;
     gradientOpacityEnabled?: boolean;
     containerStyle?: StyleProp<ViewStyle>;
-    reasonAttributes: SkeletonSpanReasonAttributes;
     isLoadMore?: boolean;
     onLayout?: (event: LayoutChangeEvent) => void;
     shouldUseNarrowLayout?: boolean;
@@ -48,7 +52,6 @@ function SearchRowSkeleton({
     fixedNumItems,
     gradientOpacityEnabled = false,
     containerStyle,
-    reasonAttributes,
     isLoadMore = false,
     onLayout,
     shouldUseNarrowLayout: shouldUseNarrowLayoutProp,
@@ -60,7 +63,6 @@ function SearchRowSkeleton({
     // global responsive breakpoint - useful when the skeleton is rendered in a context
     // whose container width doesn't match the window (e.g. inside a split pane).
     const shouldUseNarrowLayout = shouldUseNarrowLayoutProp ?? shouldUseNarrowLayoutResponsive;
-    useSkeletonSpan('SearchRowSkeleton', reasonAttributes);
 
     if (shouldUseNarrowLayout) {
         const containerWidth = windowWidth - 40;

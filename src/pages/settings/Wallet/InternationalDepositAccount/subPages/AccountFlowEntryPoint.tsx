@@ -1,5 +1,3 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import LottieAnimations from '@components/LottieAnimations';
@@ -10,19 +8,26 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@navigation/Navigation';
+
 import {clearPersonalBankAccount, updateAddPersonalBankAccountDraft} from '@userActions/BankAccounts';
 import {openExternalLink} from '@userActions/Link';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 type AccountFlowEntryPointProps = {
     /** The workspace name */
@@ -59,14 +64,14 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
         updateAddPersonalBankAccountDraft({
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
         });
-        Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
+        Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS));
     };
 
     const handleConnectPlaid = () => {
         updateAddPersonalBankAccountDraft({
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
         });
-        Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
+        Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT));
     };
 
     return (
@@ -96,7 +101,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                             src={expensifyIcons.Lightbulb}
                             fill={theme.icon}
                             additionalStyles={styles.mr2}
-                            medium
+                            size={CONST.ICON_SIZE.MEDIUM}
                         />
                         <Text
                             style={[styles.textLabelSupportingNormal, styles.flex1]}

@@ -1,6 +1,5 @@
 import {act, render, screen} from '@testing-library/react-native';
-import React, {Profiler, useCallback, useMemo} from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -10,9 +9,15 @@ import type {SearchListItem} from '@components/Search/SearchList/ListItem/types'
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
+
 import {setHasRadio} from '@libs/NetworkState';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {Profiler, useCallback, useMemo} from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -54,13 +59,6 @@ jest.mock('@hooks/useWindowDimensions', () => ({
 jest.mock('@libs/getPlatform', () => ({
     __esModule: true,
     default: jest.fn(() => 'ios'),
-}));
-
-// The grouped view imports isTransactionMatchWithGroupItem from the heavy SearchList module; stub it out.
-jest.mock('@components/Search/SearchList', () => ({
-    __esModule: true,
-    default: () => null,
-    isTransactionMatchWithGroupItem: jest.fn(() => false),
 }));
 
 // Group header/children only render on the split path; stub them so importing the view stays lightweight.
@@ -128,20 +126,24 @@ const STABLE_QUERY_JSON: SearchQueryJSON = {
     similarSearchHash: 0,
     groupBy: CONST.SEARCH.GROUP_BY.CARD,
     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
     sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
     sortOrder: 'desc',
     view: CONST.SEARCH.VIEW.TABLE,
     flatFilters: [],
     inputQuery: '',
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS, right: ''},
-    policyID: undefined,
     columns: undefined,
     limit: undefined,
     rawFilterList: undefined,
 };
 
 const STABLE_COLUMNS: SearchColumnType[] = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.ACTION];
+
+// Counts group rows whose AnimatedExitRow has a live FadeOutUp `exiting` animation. Each row's Animated.View always
+// receives an `entering` prop (identifying the wrapper) and an `exiting` prop that is only non-null when armed.
+function countArmedExitAnimations(root: ReturnType<typeof render>['UNSAFE_root']): number {
+    return root.findAll((node) => typeof node.type !== 'string' && !!node.props && 'entering' in node.props && node.props.exiting != null).length;
+}
 
 /** Builds group rows, each carrying child transactions; `deletedTransactions` marks transaction indices as pending-delete. */
 function createMockGroupData(groups: Array<{transactionCount: number; deletedTransactions?: Set<number>}>): SearchListItem[] {
@@ -312,5 +314,30 @@ describe('ExpenseGroupedSearchView', () => {
 
         expect(onSelectRow).toHaveBeenCalledTimes(1);
         expect(mockToggle).not.toHaveBeenCalled();
+    });
+
+    it('does not arm the FadeOutUp exit on a stable group row, so it cannot flicker on remount', async () => {
+        const {UNSAFE_root: root} = renderView({data: createMockGroupData([{transactionCount: 1}, {transactionCount: 1}])});
+        await waitForBatchedUpdates();
+
+        expect(countArmedExitAnimations(root)).toBe(0);
+    });
+
+    it('keeps the FadeOutUp exit armed for a group whose every child transaction is pending delete', async () => {
+        // The group carries no pendingAction of its own; the pending delete lives on its children, and once they are all
+        // deleted the group row itself leaves the list, so it must arm its exit.
+        const {UNSAFE_root: root} = renderView({data: createMockGroupData([{transactionCount: 2, deletedTransactions: new Set([0, 1])}, {transactionCount: 1}])});
+        await waitForBatchedUpdates();
+
+        expect(countArmedExitAnimations(root)).toBe(1);
+    });
+
+    it('does not arm the FadeOutUp exit on a group that survives a partial delete', async () => {
+        // Only one of the group's transactions is pending delete, so the group row stays mounted: arming its exit would
+        // bring the flicker back for that group on remount.
+        const {UNSAFE_root: root} = renderView({data: createMockGroupData([{transactionCount: 2, deletedTransactions: new Set([0])}, {transactionCount: 1}])});
+        await waitForBatchedUpdates();
+
+        expect(countArmedExitAnimations(root)).toBe(0);
     });
 });

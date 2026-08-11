@@ -1,14 +1,5 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
-import {toZonedTime} from 'date-fns-tz';
-import React from 'react';
-import {AppState, DeviceEventEmitter} from 'react-native';
-import type {TextStyle, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
 import {setSidebarLoaded} from '@libs/actions/App';
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {addComment, deleteReportComment, markCommentAsUnread, readNewestAction} from '@libs/actions/Report';
@@ -19,12 +10,28 @@ import {setHasRadio} from '@libs/NetworkState';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import {getReportActionText} from '@libs/ReportActionsUtils';
+
 import FontUtils from '@styles/utils/FontUtils';
+
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, ReportAction, ReportActions} from '@src/types/onyx';
+
+import type {TextStyle, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import * as NativeNavigation from '@react-navigation/native';
+import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
+import {toZonedTime} from 'date-fns-tz';
+import React from 'react';
+import {AppState, DeviceEventEmitter} from 'react-native';
+import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
+
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import PusherHelper from '../utils/PusherHelper';
@@ -183,7 +190,7 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     renderAppOnce();
     await waitForBatchedUpdatesWithAct();
 
-    subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined);
+    subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, () => {}, undefined);
 
     await waitForBatchedUpdates();
 
@@ -223,6 +230,7 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
 
     await Promise.all([
         Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
+        Onyx.merge(ONYXKEYS.HAS_LOADED_APP, true),
         Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails),
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report),
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, reportActions),
@@ -529,6 +537,7 @@ describe('Unread Indicators', () => {
                     timezoneParam: CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: USER_A_ACCOUNT_ID,
                     delegateAccountID: undefined,
+                    conciergeReportID: undefined,
                 });
                 return waitForBatchedUpdates();
             })
@@ -610,6 +619,7 @@ describe('Unread Indicators', () => {
                         timezoneParam: CONST.DEFAULT_TIME_ZONE,
                         currentUserAccountID: USER_A_ACCOUNT_ID,
                         delegateAccountID: undefined,
+                        conciergeReportID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -634,7 +644,7 @@ describe('Unread Indicators', () => {
 
                     const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                     if (lastReportAction) {
-                        deleteReportComment(report, lastReportAction, undefined, [], undefined, undefined, '');
+                        deleteReportComment(report, lastReportAction, undefined, undefined, [], undefined, undefined, '');
                     }
                     return waitForBatchedUpdates();
                 })
@@ -665,6 +675,7 @@ describe('Unread Indicators', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: USER_A_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -684,11 +695,12 @@ describe('Unread Indicators', () => {
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: USER_A_ACCOUNT_ID,
                 delegateAccountID: undefined,
+                conciergeReportID: undefined,
             });
 
             await waitForBatchedUpdates();
 
-            deleteReportComment(report, firstNewReportAction, undefined, [], undefined, undefined, '');
+            deleteReportComment(report, firstNewReportAction, undefined, undefined, [], undefined, undefined, '');
 
             await waitForBatchedUpdates();
         }
@@ -775,6 +787,8 @@ describe('Unread Indicators', () => {
         // When the user track an expense on the self DM
         const participant = {login: USER_A_EMAIL, accountID: USER_A_ACCOUNT_ID};
         trackExpense({
+            conciergeChat: undefined,
+            getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             report: selfDMReport,
             isDraftPolicy: true,
             action: CONST.IOU.ACTION.CREATE,
@@ -796,6 +810,8 @@ describe('Unread Indicators', () => {
             betas: [CONST.BETAS.ALL],
             isSelfTourViewed: false,
             currentUserLocalCurrency: undefined,
+            delegateAccountID: undefined,
+            reportActionsList: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -866,6 +882,7 @@ describe('Unread Indicators', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: USER_A_ACCOUNT_ID,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
         await waitForBatchedUpdates();
 

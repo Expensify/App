@@ -1,10 +1,17 @@
-import {useRoute} from '@react-navigation/native';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canUserPerformWriteAction, isReportTransactionThread as isReportTransactionThreadUtil} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, isReportTransactionThread as isReportTransactionThreadUtil, shouldReportAlignToTop} from '@libs/ReportUtils';
+
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+
 import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaData';
+
+import {useRoute} from '@react-navigation/native';
+
+import {useIsAppLoadPending} from './useInFlightRequests';
 import useLoadReportActions from './useLoadReportActions';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
@@ -19,7 +26,7 @@ import useReportIsArchived from './useReportIsArchived';
  * session-start). The guard calls it once and passes `state`/`actions` via `ReportActionsListStateContext`
  * and `ReportActionsListActionsContext` so the content doesn't re-subscribe.
  */
-function useReportActionsListModel(reportID: string) {
+function useReportActionsListModel(reportID: string, isReportLoadPending: boolean) {
     const {isOffline} = useNetworkWithOfflineStatus();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;
@@ -44,22 +51,27 @@ function useReportActionsListModel(reportID: string) {
 
     const parentReportAction = useParentReportAction(report);
 
-    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
-    const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
+    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`, {
+        selector: reportActionsListLoadingStateSelector,
+    });
     const hasOnceLoadedReportActions = reportLoadingState?.hasOnceLoadedReportActions;
+    const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
+    const isLoadingOlderReportActions = reportLoadingState?.isLoadingOlderReportActions;
+    const hasLoadingOlderReportActionsError = reportLoadingState?.hasLoadingOlderReportActionsError;
 
     const {sessionStartTime, showFullHistory: conciergeShowFullHistory, hadMessagesAtSessionStart: conciergeHadMessagesAtSessionStart} = useConciergeSessionState();
     const {setShowFullHistory: setConciergeShowFullHistory, setHadMessagesAtSessionStart: setConciergeHadMessagesAtSessionStart} = useConciergeSessionActions();
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
+    const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = !!canUserPerformWriteAction(report, isReportArchived);
 
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const isAppLoadPending = useIsAppLoadPending();
 
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`);
 
-    const {loadOlderChats, loadNewerChats} = useLoadReportActions({
+    const {loadOlderChats, loadNewerChats, currentReportOldestActionID} = useLoadReportActions({
         reportID,
         reportActions,
         allReportActionIDs,
@@ -108,10 +120,17 @@ function useReportActionsListModel(reportID: string) {
         transactionThreadReport,
         isReportArchived,
         isReportTransactionThread,
-        isLoadingInitialReportActions,
+        shouldBeAlignedToTop,
+        isReportLoadPending,
+        isLoadingOlderReportActions,
+        hasLoadingOlderReportActionsError,
         hasOnceLoadedReportActions,
-        isLoadingApp,
+        isLoadingInitialReportActions,
+        isLoadingApp: isAppLoadPending,
         reportActionsLength: reportActions.length,
+        oldestReportActionID: currentReportOldestActionID,
+        hasOlderActions,
+        hasNewerActions,
         oldestUnreadReportAction,
         isSingleExpenseReport,
         isMissingReportActions,

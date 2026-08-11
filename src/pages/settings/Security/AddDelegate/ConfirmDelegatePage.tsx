@@ -1,22 +1,27 @@
-import React from 'react';
-import type {ValueOf} from 'type-fest';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
 
 type ConfirmDelegatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
 
@@ -29,23 +34,24 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
     const {isOffline} = useNetwork();
 
-    const personalDetails = getPersonalDetailByEmail(login);
+    const personalDetails = usePersonalDetailByLogin(login);
     const avatarIcon = personalDetails?.avatar ?? icons.FallbackAvatar;
     const formattedLogin = formatPhoneNumber(login ?? '');
     const displayName = personalDetails?.displayName ?? formattedLogin;
 
     const submitButton = (
         <Button
-            success
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             isDisabled={isOffline}
-            large
-            text={translate('delegate.addCopilot')}
+            size={CONST.BUTTON_SIZE.LARGE}
             style={styles.mt6}
-            pressOnEnter
             onPress={() => {
-                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM_MAGIC_CODE.getRoute(login, role));
+                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM_VALIDATE_CODE.getRoute(login, role));
             }}
-        />
+        >
+            <Button.KeyboardShortcut />
+            <Button.Text>{translate('delegate.addCopilot')}</Button.Text>
+        </Button>
     );
 
     return (
@@ -69,9 +75,9 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
                     interactive={false}
                 />
                 <MenuItemWithTopDescription
-                    title={translate('delegate.role', {role})}
+                    title={translate('delegate.role', role)}
                     description={translate('delegate.accessLevel')}
-                    helperText={translate('delegate.roleDescription', {role})}
+                    helperText={translate('delegate.roleDescription', role)}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role, ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, role)))}
                     shouldShowRightIcon
                 />

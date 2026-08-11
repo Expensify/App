@@ -1,15 +1,20 @@
-import React from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import LongTermsForm from '@pages/EnablePayments/shared/TermsForms/LongTermsForm';
 import ShortTermsForm from '@pages/EnablePayments/shared/TermsForms/ShortTermsForm';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function FeesStep({onNext}: SubPageProps) {
     const styles = useThemeStyles();
@@ -23,12 +28,13 @@ function FeesStep({onNext}: SubPageProps) {
                 <ShortTermsForm userWallet={userWallet} />
                 <LongTermsForm />
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100, styles.mv5]}
                     onPress={onNext}
-                    text={translate('common.next')}
-                />
+                >
+                    <Button.Text>{translate('common.next')}</Button.Text>
+                </Button>
             </View>
         </ScrollView>
     );

@@ -1,18 +1,23 @@
-import {deepEqual} from 'fast-equals';
-import React, {useEffect, useRef, useState} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {shouldOptionShowTooltip} from '@libs/OptionsListUtils';
 import {getDisplayNamesWithTooltips} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import {deepEqual} from 'fast-equals';
+import React, {useEffect, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import DisplayNames from './DisplayNames';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
@@ -110,8 +115,7 @@ function OptionRow({
     const fullTitle = isMultilineSupported ? text.trimStart() : text;
     const indentsLength = text.length - fullTitle.length;
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
-    const textStyle = optionIsFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
-    const textUnreadStyle = boldStyle || option.boldStyle ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
+    const textUnreadStyle = boldStyle || option.boldStyle ? [styles.sidebarLinkText, styles.sidebarLinkTextBold] : [styles.sidebarLinkText];
     const displayNameStyle: StyleProp<TextStyle> = [
         styles.optionDisplayName,
         textUnreadStyle,
@@ -121,7 +125,7 @@ function OptionRow({
         isMultilineSupported ? {paddingLeft} : {},
     ];
     const alternateTextStyle: StyleProp<TextStyle> = [
-        textStyle,
+        styles.sidebarLinkText,
         styles.optionAlternateText,
         styles.textLabelSupporting,
         style,
@@ -142,6 +146,7 @@ function OptionRow({
         shouldUseShortFormInTooltip,
         localeCompare,
         formatPhoneNumber,
+        translate,
     );
     let subscriptColor = theme.appBG;
     if (optionIsFocused) {

@@ -1,11 +1,8 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {WebViewNavigation} from 'react-native-webview';
-import {WebView} from 'react-native-webview';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useCardFeeds from '@hooks/useCardFeeds';
 import useDuplicateFeedDetection from '@hooks/useDuplicateFeedDetection';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
@@ -15,19 +12,28 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
+
 import {updateSelectedFeed} from '@libs/actions/Card';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
+
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {getCompanyCardBankConnection} from '@userActions/getCompanyCardBankConnection';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+
+import type {WebViewNavigation} from 'react-native-webview';
+
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import {WebView} from 'react-native-webview';
 
 type BankConnectionProps = {
     /** ID of the policy */
@@ -52,7 +58,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const bankName = feed ? getBankName(getCompanyCardFeed(feed)) : (addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.cardToAssign?.plaidAccessToken;
     const isPlaid = !!plaidToken;
-    const url = getCompanyCardBankConnection(policyID, bankName);
+    const url = getCompanyCardBankConnection(policyID, bankName, feed);
     const [cardFeeds] = useCardFeeds(policyID);
     const [isConnectionCompleted, setConnectionCompleted] = useState(false);
     const prevFeedsData = usePrevious(cardFeeds);
@@ -69,22 +75,9 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const {checkForDuplicateFeed} = useDuplicateFeedDetection({policyID, isPlaid});
 
-    const activityReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'BankConnection',
-        isAllFeedsResultLoading,
-        isBlockedToAddNewFeedsWithoutFeed: isBlockedToAddNewFeeds && !feed,
-        isConnectionCompleted,
-        isPlaid,
-    };
-    const renderLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'BankConnection',
-    };
     const renderLoading = () => (
         <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-            <ActivityIndicator
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={renderLoadingReasonAttributes}
-            />
+            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
         </View>
     );
 
@@ -113,17 +106,26 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         }
 
         // Handle assign card flow
-        if (feed && !isFeedExpired) {
-            if (isFeedConnectionBroken) {
-                updateBrokenConnection();
-                Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+        if (feed) {
+            if (!isFeedExpired) {
+                if (isFeedConnectionBroken) {
+                    updateBrokenConnection();
+                    Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+                    return;
+                }
+                setAssignCardStepAndData({
+                    currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                    isEditing: false,
+                });
                 return;
             }
-            setAssignCardStepAndData({
-                currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
-                isEditing: false,
-            });
-            return;
+            // Repairing an existing Plaid feed: PlaidConnectionStep already fired importPlaidAccounts with the
+            // prefixed feed + domainAccountID. Don't queue a second import from the bare institutionId here (it would
+            // miss the `plaid.` prefix and take the server's create-new-feed branch, duplicating the feed). This
+            // mirrors the web effect, which returns for a still-expired Plaid feed.
+            if (isPlaid) {
+                return;
+            }
         }
 
         // Handle add new card flow
@@ -198,7 +200,6 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}
-                        reasonAttributes={activityReasonAttributes}
                     />
                 )}
                 {isNewFeedHasError && (
