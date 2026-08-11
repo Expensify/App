@@ -5661,6 +5661,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             subsidiarySelectDescription: 'DualEntry でデータを取り込みたい子会社を選択してください。',
             noCompaniesFound: '会社が見つかりません',
             noCompaniesFoundDescription: 'DualEntry に会社を追加して、もう一度同期してください',
+            accountTypesDescription: 'DualEntry アカウントはカテゴリとしてインポートされます。',
+            enableNewAccountsTitle: '新しくインポートした口座を有効にする',
+            enableNewAccountsDescription: '新しい DualEntry アカウントは、カテゴリとして利用できるようになります。',
+            classificationsImport: 'すべての DualEntry 分類はタグとしてインポートされます',
+            importDescription: 'DualEntry からインポートするコーディング設定を選択してください。',
         },
         type: {
             free: '無料',
