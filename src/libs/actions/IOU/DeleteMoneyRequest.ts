@@ -619,6 +619,7 @@ function getCleanUpTransactionThreadReportOnyxData({
     updatedReportPreviewAction,
     shouldAddUpdatedReportPreviewActionToOnyxData = true,
     currentUserAccountID,
+    transactionThreadReportActionsParam,
 }: {
     transactionThreadID?: string;
     shouldDeleteTransactionThread: boolean;
@@ -627,9 +628,9 @@ function getCleanUpTransactionThreadReportOnyxData({
     updatedReportPreviewAction?: ReportAction;
     shouldAddUpdatedReportPreviewActionToOnyxData?: boolean;
     currentUserAccountID: number;
+    transactionThreadReportActionsParam?: OnyxEntry<OnyxTypes.ReportActions>;
 }) {
     const allReports = getAllReports();
-    const allReportActions = getAllReportActionsFromIOU();
     const allReportNameValuePairs = getAllReportNameValuePairs();
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
@@ -641,7 +642,7 @@ function getCleanUpTransactionThreadReportOnyxData({
         let transactionThreadReportActions = null;
         if (transactionThreadID) {
             transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`] ?? null;
-            transactionThreadReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`] ?? null;
+            transactionThreadReportActions = transactionThreadReportActionsParam ?? getAllReportActionsFromIOU()?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`] ?? null;
         }
 
         optimisticData.push(

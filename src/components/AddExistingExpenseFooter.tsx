@@ -47,7 +47,7 @@ type AddExistingExpenseFooterProps = {
 };
 
 function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy, policyCategories, errorMessage, setErrorMessage}: AddExistingExpenseFooterProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -96,6 +96,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         selfDMReportActions,
                         delegateAccountID,
                         isTrackIntentUser,
+                        formatPhoneNumber,
                     });
                 } else {
                     changeTransactionsReport({
@@ -113,6 +114,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         isTrackIntentUser,
                         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                         selfDMReportActions,
+                        delegateAccountID,
                         getCurrencyDecimals,
                     });
                 }

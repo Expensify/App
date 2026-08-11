@@ -308,6 +308,7 @@ function mergeDuplicates({
                 updatedReportPreviewAction,
                 shouldAddUpdatedReportPreviewActionToOnyxData: index === actions.length - 1,
                 currentUserAccountID,
+                transactionThreadReportActionsParam: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`],
             });
             cleanUpTransactionThreadReportsOptimisticData.push(...cleanUp.optimisticData);
             cleanUpTransactionThreadReportsSuccessData.push(...cleanUp.successData);
@@ -441,6 +442,7 @@ function resolveDuplicates({
     transactionThreadReportIDMap,
     allTransactionViolations,
     allReportActionsList,
+    delegateAccountID,
     ...params
 }: MergeDuplicatesParams & {
     taxAmount?: number;
@@ -448,6 +450,7 @@ function resolveDuplicates({
     transactionThreadReportIDMap: Record<string, string | undefined>;
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
+    delegateAccountID: number | undefined;
 }) {
     if (!params.transactionID) {
         return;
@@ -513,7 +516,7 @@ function resolveDuplicates({
             continue;
         }
 
-        const createdReportAction = buildOptimisticHoldReportAction();
+        const createdReportAction = buildOptimisticHoldReportAction(delegateAccountID);
         reportActionIDList.push(createdReportAction.reportActionID);
         resolvedTransactionIDList.push(transactionID);
         optimisticHoldTransactionActions.push({
@@ -872,6 +875,7 @@ function duplicateExpenseTransaction({
         shouldDeferAutoSubmit,
         isTrackIntentUser,
         delegateAccountID,
+        formatPhoneNumber,
         getCurrencyDecimals,
     };
 
@@ -1108,6 +1112,7 @@ function duplicateReport({
             shouldDeferAutoSubmit: !isLastExpense,
             isTrackIntentUser,
             delegateAccountID,
+            formatPhoneNumber,
             getCurrencyDecimals,
         };
 

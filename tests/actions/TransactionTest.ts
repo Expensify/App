@@ -36,12 +36,12 @@ import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
-import {getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'getCurrencyDecimals'
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
@@ -58,6 +58,7 @@ function changeTransactionsReport({allTransactions, transactionIDs, transactionV
         allTransactionViolation: transactionViolations,
         personalPolicyOutputCurrency,
         selfDMReportActions,
+        delegateAccountID: undefined,
         getCurrencyDecimals: getCurrencyDecimalsLocal,
         ...rest,
     });
@@ -648,6 +649,7 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
@@ -755,6 +757,7 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
@@ -828,6 +831,7 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
@@ -935,6 +939,7 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
@@ -1013,6 +1018,7 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
@@ -1129,6 +1135,7 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
@@ -1208,6 +1215,7 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
@@ -1235,7 +1243,7 @@ describe('actions/Transaction', () => {
 
                 // Put the expense on hold
                 if (originalTransactionID && transactionThreadReportID) {
-                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, [], false);
+                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, undefined);
                 }
                 await waitForBatchedUpdates();
 
@@ -1345,6 +1353,7 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
 

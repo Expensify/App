@@ -102,6 +102,7 @@ type CreateTransactionParams = {
     currentUserLocalCurrency: string | undefined;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
@@ -146,6 +147,7 @@ function createTransaction({
     currentUserLocalCurrency,
     isTrackIntentUser,
     delegateAccountID,
+    formatPhoneNumber,
     getCurrencyDecimals,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
@@ -256,6 +258,7 @@ function createTransaction({
                 optimisticTransactionID,
                 isTrackIntentUser,
                 delegateAccountID,
+                formatPhoneNumber,
                 getCurrencyDecimals,
             });
         }

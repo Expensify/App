@@ -190,6 +190,7 @@ function IOURequestStepConfirmation({
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
 
@@ -209,8 +210,9 @@ function IOURequestStepConfirmation({
                 transactionReport,
                 routeReport: reportWithDraftFallback,
                 policy: policyReal,
+                reportNameValuePair,
             }),
-        [transaction, transactionReport, reportWithDraftFallback, policyReal],
+        [transaction, transactionReport, reportWithDraftFallback, policyReal, reportNameValuePair],
     );
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
 
@@ -862,7 +864,11 @@ function IOURequestStepConfirmation({
             shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
             testID="IOURequestStepConfirmation"
         >
-            <TelemetrySpanManager iouType={iouType} />
+            <TelemetrySpanManager
+                iouType={iouType}
+                requestType={requestType}
+                hasReceipt={!!transaction?.receipt}
+            />
             <DraftWorkspaceOpener
                 isCreatingTrackExpense={isCreatingTrackExpense}
                 policyID={policyID}
