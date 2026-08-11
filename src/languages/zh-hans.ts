@@ -5531,6 +5531,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             subsidiarySelectDescription: '请选择要从中导入数据的 DualEntry 子公司。',
             noCompaniesFound: '未找到公司',
             noCompaniesFoundDescription: '请在 DualEntry 中添加一家公司，然后再次同步连接',
+            accountTypesDescription: '您的 DualEntry 账户将作为类别导入。',
+            enableNewAccountsTitle: '启用新导入的账户',
+            enableNewAccountsDescription: '新的 DualEntry 账户将作为类别提供。',
+            classificationsImport: '所有 DualEntry 分类都会作为标签导入',
+            importDescription: '选择要从 DualEntry 导入的编码配置。',
         },
         type: {
             free: '免费',
@@ -8464,6 +8469,9 @@ ${reportName}`,
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 费用分类要求`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 费用标签要求`,
+        updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
+            return `将“${categoryName}”类别的出席者更改为 ${newValue ? '必填' : '非必填'}（之前为 ${newValue ? '非必填' : '必填'}）`;
+        },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '已启用' : '已禁用'} 次提交`,
     },
     roomMembersPage: {

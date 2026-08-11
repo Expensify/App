@@ -5750,6 +5750,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             subsidiarySelectDescription: 'Wählen Sie die Tochtergesellschaft in DualEntry aus, aus der Sie Daten importieren möchten.',
             noCompaniesFound: 'Keine Unternehmen gefunden',
             noCompaniesFoundDescription: 'Bitte fügen Sie ein Unternehmen in DualEntry hinzu und synchronisieren Sie die Verbindung erneut',
+            accountTypesDescription: 'Ihre DualEntry-Konten werden als Kategorien importiert.',
+            enableNewAccountsTitle: 'Neu importierte Konten aktivieren',
+            enableNewAccountsDescription: 'Neue DualEntry-Konten werden als Kategorien verfügbar sein.',
+            classificationsImport: 'Alle DualEntry-Klassifizierungen werden als Tags importiert',
+            importDescription: 'Wählen Sie aus, welche Buchungskonfigurationen aus DualEntry importiert werden sollen.',
         },
         type: {
             free: 'Kostenlos',
@@ -8828,6 +8833,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} die Anforderung zur Ausgabenkategorisierung`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} die Anforderung zur Ausgaben-Taggierung`,
+        updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
+            return `hat die Kategorie „${categoryName}“ für Teilnehmende auf ${newValue ? 'erforderlich' : 'nicht erforderlich'} geändert (zuvor ${newValue ? 'nicht erforderlich' : 'erforderlich'})`;
+        },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'aktiviert' : 'deaktiviert'} Einreichungen`,
     },
     roomMembersPage: {

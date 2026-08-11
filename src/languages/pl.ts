@@ -5696,6 +5696,11 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             subsidiarySelectDescription: 'Wybierz jednostkę zależną w DualEntry, z której chcesz zaimportować dane.',
             noCompaniesFound: 'Nie znaleziono firm',
             noCompaniesFoundDescription: 'Dodaj proszę firmę w DualEntry i zsynchronizuj połączenie ponownie',
+            accountTypesDescription: 'Twoje konta DualEntry zostaną zaimportowane jako kategorie.',
+            enableNewAccountsTitle: 'Włącz nowo zaimportowane konta',
+            enableNewAccountsDescription: 'Nowe konta DualEntry będą dostępne jako kategorie.',
+            classificationsImport: 'Wszystkie klasyfikacje DualEntry są importowane jako tagi',
+            importDescription: 'Wybierz, które konfiguracje kodowania zaimportować z DualEntry.',
         },
         type: {
             free: 'Darmowy',
@@ -8750,6 +8755,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'wyłączone'} wymóg kategoryzacji wydatków`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'wyłączone'} wymóg tagowania wydatków`,
+        updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
+            return `zmienił uczestników kategorii „${categoryName}” na ${newValue ? 'wymagane' : 'niewymagane'} (wcześniej ${newValue ? 'niewymagane' : 'wymagane'})`;
+        },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'włączone' : 'wyłączone'} zgłoszenia`,
     },
     roomMembersPage: {

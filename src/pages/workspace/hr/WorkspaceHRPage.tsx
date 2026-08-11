@@ -48,7 +48,7 @@ function WorkspaceHRPage({
         params: {policyID},
     },
 }: WorkspaceHRPageProps) {
-    const {translate, getLocalDateFromDatetime, localeCompare} = useLocalize();
+    const {translate, getLocalDateFromDatetime, localeCompare, formatPhoneNumber} = useLocalize();
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -76,6 +76,7 @@ function WorkspaceHRPage({
         connectionSyncProgress,
         getLocalDateFromDatetime,
         translate,
+        formatPhoneNumber,
         policyID,
         gustoIcon: icons.GustoSquare,
         trinetIcon: icons.TriNetSquare,

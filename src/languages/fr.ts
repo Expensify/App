@@ -5764,6 +5764,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             subsidiarySelectDescription: 'Choisissez la filiale dans DualEntry à partir de laquelle vous souhaitez importer des données.',
             noCompaniesFound: 'Aucune entreprise trouvée',
             noCompaniesFoundDescription: 'Veuillez ajouter une entreprise dans DualEntry et synchroniser à nouveau la connexion',
+            accountTypesDescription: 'Vos comptes DualEntry seront importés en tant que catégories.',
+            enableNewAccountsTitle: 'Activer les nouveaux comptes importés',
+            enableNewAccountsDescription: 'Les nouveaux comptes DualEntry seront disponibles en tant que catégories.',
+            classificationsImport: 'Toutes les classifications DualEntry sont importées en tant que tags',
+            importDescription: 'Choisissez les configurations de codage à importer depuis DualEntry.',
         },
         type: {
             free: 'Gratuit',
@@ -8865,6 +8870,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'Désactivé'} l’exigence de catégorisation des dépenses`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'Désactivé'} l’exigence de tag des dépenses`,
+        updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
+            return `a modifié les participants de la catégorie « ${categoryName} » en ${newValue ? 'obligatoire' : 'non obligatoire'} (précédemment ${newValue ? 'non obligatoire' : 'obligatoire'})`;
+        },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'activé' : 'Désactivé'} envois`,
     },
     roomMembersPage: {

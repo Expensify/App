@@ -5661,6 +5661,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             subsidiarySelectDescription: 'DualEntry でデータを取り込みたい子会社を選択してください。',
             noCompaniesFound: '会社が見つかりません',
             noCompaniesFoundDescription: 'DualEntry に会社を追加して、もう一度同期してください',
+            accountTypesDescription: 'DualEntry アカウントはカテゴリとしてインポートされます。',
+            enableNewAccountsTitle: '新しくインポートした口座を有効にする',
+            enableNewAccountsDescription: '新しい DualEntry アカウントは、カテゴリとして利用できるようになります。',
+            classificationsImport: 'すべての DualEntry 分類はタグとしてインポートされます',
+            importDescription: 'DualEntry からインポートするコーディング設定を選択してください。',
         },
         type: {
             free: '無料',
@@ -8689,6 +8694,9 @@ ${reportName}`,
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 経費の分類要件`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} の経費タグ付け要件`,
+        updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
+            return `「${categoryName}」カテゴリの出席者を${newValue ? '必須' : '必須ではありません'}に変更しました（以前は${newValue ? '必須ではありません' : '必須'}）`;
+        },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '有効' : '無効'} 件の提出`,
     },
     roomMembersPage: {
