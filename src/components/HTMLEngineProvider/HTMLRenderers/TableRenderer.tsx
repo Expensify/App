@@ -11,6 +11,8 @@ import HTMLTableScroll from './HTMLTableScroll';
 import TableChildrenRenderer, {getElementChildren} from './TableChildrenRenderer';
 import TableColumnAlignmentContext from './TableColumnAlignmentContext';
 import TableContentWidthContext from './TableContentWidthContext';
+import TableLinkColumnContext from './TableLinkColumnContext';
+import {getLinkColumnIndex} from './TableRowLink';
 
 /**
  * Derives the horizontal alignment for each column from the table body. Concierge expense tables put the amount in
@@ -31,23 +33,27 @@ function getColumnAlignments(tableNode: TNode): CellHorizontalAlignment[] {
 
 function TableRenderer({tnode}: CustomRendererProps<TBlock>) {
     const columnAlignments = useMemo(() => getColumnAlignments(tnode), [tnode]);
+    const linkColumnIndex = useMemo(() => getLinkColumnIndex(tnode), [tnode]);
 
     // The comment-level width fills the message exactly; fall back to the HTML content width when the table is rendered
     // outside a comment. A concrete number is required because the scroller needs a fixed viewport and content width.
     const measuredContentWidth = useContext(TableContentWidthContext);
     const fallbackContentWidth = useContentWidth();
     const viewportWidth = measuredContentWidth || fallbackContentWidth;
-    const columnsWidth = columnAlignments.length * variables.htmlTableColumnMaxWidth + 2 * variables.tableRowPaddingHorizontal;
+    const chevronWidth = linkColumnIndex === undefined ? 0 : variables.htmlTableChevronColumnWidth;
+    const columnsWidth = columnAlignments.length * variables.htmlTableColumnMaxWidth + 2 * variables.tableRowPaddingHorizontal + chevronWidth;
     const contentWidth = Math.max(viewportWidth, columnsWidth);
 
     return (
         <TableColumnAlignmentContext.Provider value={columnAlignments}>
-            <HTMLTableScroll
-                viewportWidth={viewportWidth}
-                contentWidth={contentWidth}
-            >
-                <TableChildrenRenderer tnode={tnode} />
-            </HTMLTableScroll>
+            <TableLinkColumnContext.Provider value={linkColumnIndex}>
+                <HTMLTableScroll
+                    viewportWidth={viewportWidth}
+                    contentWidth={contentWidth}
+                >
+                    <TableChildrenRenderer tnode={tnode} />
+                </HTMLTableScroll>
+            </TableLinkColumnContext.Provider>
         </TableColumnAlignmentContext.Provider>
     );
 }
