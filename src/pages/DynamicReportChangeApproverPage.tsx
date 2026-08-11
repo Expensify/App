@@ -48,7 +48,6 @@ type ApproverType = ValueOf<typeof APPROVER_TYPE>;
 type DynamicReportChangeApproverPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.DYNAMIC_ROOT>;
 
 function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: DynamicReportChangeApproverPageProps) {
-    const reportID = report?.reportID;
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -59,7 +58,6 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
-    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const hasAutoAppliedRef = useRef(false);
     const hasNavigatedToAddApproverRef = useRef(false);
@@ -96,7 +94,6 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             policy,
             hasViolations,
             isASAPSubmitBetaEnabled,
-            reportNextStep,
             isTrackIntentUser,
             formatPhoneNumber,
             translate,
@@ -110,7 +107,6 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         policy,
         hasViolations,
         isASAPSubmitBetaEnabled,
-        reportNextStep,
         isTrackIntentUser,
         formatPhoneNumber,
         translate,

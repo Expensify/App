@@ -172,17 +172,6 @@ This document lists all implemented telemetry metrics in the Expensify App.
 **End**: Immediately after start (tracking occurrence, not duration) ([`src/libs/telemetry/useAbsentPageSpan.ts`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/libs/telemetry/useAbsentPageSpan.ts#L39))
 **Attributes**: `url`, `navigationSource: 'deeplink' | 'button'`
 
-### Infinite Skeletons
-
-**Constant**: `CONST.TELEMETRY.SPAN_SKELETON`
-**Sentry Name**: `ManualSkeleton`
-**Threshold**: 10s minimum duration (only sent if visible 10+ seconds)
-**What's Measured**: Number of skeleton components visible longer than expected
-**Start**: Skeleton component mounted ([`src/libs/telemetry/useSkeletonSpan.ts`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/libs/telemetry/useSkeletonSpan.ts#L13))
-**End**: Component unmounts ([`src/libs/telemetry/useSkeletonSpan.ts`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/libs/telemetry/useSkeletonSpan.ts#L24))
-**Span ID**: `${CONST.TELEMETRY.SPAN_SKELETON}_${component}_${reactId}`
-**Minimum Duration**: `CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION` (10s)
-
 ### Authentication Failures
 
 **Constants**: `CONST.TELEMETRY.TAGS.AUTHENTICATION_FUNCTION`, `CONST.TELEMETRY.TAGS.AUTHENTICATION_ERROR_TYPE`, `CONST.TELEMETRY.TAGS.AUTHENTICATION_JSON_CODE` ([`src/CONST/index.ts`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/CONST/index.ts#L1700-L1702))
