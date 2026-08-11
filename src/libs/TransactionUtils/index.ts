@@ -136,6 +136,7 @@ type TransactionParams = {
     rate?: number;
     unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
     commentType?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
+    duplicatedFromTransactionID?: string;
 };
 
 type BuildOptimisticTransactionParams = {
@@ -375,6 +376,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         rate,
         unit,
         commentType,
+        duplicatedFromTransactionID,
     } = transactionParams;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -389,6 +391,9 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     }
     if (isDemoTransactionParam) {
         commentJSON.isDemoTransaction = true;
+    }
+    if (duplicatedFromTransactionID) {
+        commentJSON.duplicatedFromTransactionID = duplicatedFromTransactionID;
     }
     if (source) {
         commentJSON.source = source;

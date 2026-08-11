@@ -129,6 +129,9 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     waypoints?: WaypointCollection;
     comment?: string;
     originalTransactionID?: string;
+
+    /** ID of the root expense this one was intentionally copied from */
+    duplicatedFromTransactionID?: string;
     isTestDrive?: boolean;
     source?: string;
     pendingAction?: PendingAction;
@@ -1496,6 +1499,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             waypoints,
             odometerStart,
             odometerEnd,
+            duplicatedFromTransactionID: transactionParams.duplicatedFromTransactionID,
         },
         isDemoTransactionParam: transactionParams.receipt?.isTestDriveReceipt,
     });

@@ -122,6 +122,9 @@ type DistanceRequestTransactionParams = BaseTransactionParams & {
     odometerEnd?: number;
     gpsCoordinates?: string;
     distanceRequestType?: string;
+
+    /** ID of the root expense this one was intentionally copied from */
+    duplicatedFromTransactionID?: string;
 };
 
 type CreateDistanceRequestInformation = {
@@ -2021,6 +2024,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         isFromGlobalCreate,
         gpsCoordinates,
         distanceRequestType,
+        duplicatedFromTransactionID,
     } = transactionParams;
 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
@@ -2167,6 +2171,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 waypoints: validWaypoints,
                 odometerStart,
                 odometerEnd,
+                duplicatedFromTransactionID,
             },
             shouldGenerateTransactionThreadReport: false,
             isASAPSubmitBetaEnabled,
@@ -2238,6 +2243,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             gpsCoordinates,
             distanceRequestType,
             shouldDeferAutoSubmit,
+            duplicatedFromTransactionID,
         };
     }
 

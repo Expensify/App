@@ -27,6 +27,9 @@ type CreatePerDiemRequestParams = {
 
     /** When true, the backend defers auto-submit so batch expense creation (e.g. duplicate report) can finish before the report is submitted */
     shouldDeferAutoSubmit?: boolean;
+
+    /** ID of the root expense this one was intentionally copied from, so the backend skips the duplicate violation */
+    duplicatedFromTransactionID?: string;
 };
 
 export default CreatePerDiemRequestParams;
