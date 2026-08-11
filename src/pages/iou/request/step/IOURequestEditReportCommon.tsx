@@ -22,7 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isManualDistanceRequest, isOdometerDistanceRequest, isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
+import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,6 +45,8 @@ type TransactionGroupListItem = ListItem & {
 type Props = {
     backTo: Route | undefined;
     transactionIDs?: string[];
+    isManualDistanceRequest: boolean;
+    isOdometerDistanceRequest: boolean;
     selectedReportID?: string;
     selectedPolicyID?: string;
     transactionPolicyID?: string;
@@ -63,6 +65,8 @@ type Props = {
 function IOURequestEditReportCommon({
     backTo,
     transactionIDs,
+    isManualDistanceRequest,
+    isOdometerDistanceRequest,
     selectReport,
     selectedReportID,
     selectedPolicyID,
@@ -107,8 +111,8 @@ function IOURequestEditReportCommon({
 
     const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
     const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
-        isManualDistanceRequest: transactionIDs?.some((transactionID) => isManualDistanceRequest(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`])) ?? false,
-        isOdometerDistanceRequest: transactionIDs?.some((transactionID) => isOdometerDistanceRequest(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`])) ?? false,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
     });
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');

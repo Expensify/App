@@ -38,11 +38,15 @@ const renderIOURequestEditReportCommon = ({
     selectedReportID = '',
     selectedPolicyID,
     transactionIDs,
+    isManualDistanceRequest = false,
+    isOdometerDistanceRequest = false,
     selectReport = jest.fn(),
 }: {
     selectedReportID: string;
     selectedPolicyID?: string;
     transactionIDs?: string[];
+    isManualDistanceRequest?: boolean;
+    isOdometerDistanceRequest?: boolean;
     selectReport?: jest.Mock;
 }) =>
     render(
@@ -52,6 +56,8 @@ const renderIOURequestEditReportCommon = ({
                     selectedReportID={selectedReportID}
                     selectedPolicyID={selectedPolicyID}
                     transactionIDs={transactionIDs}
+                    isManualDistanceRequest={isManualDistanceRequest}
+                    isOdometerDistanceRequest={isOdometerDistanceRequest}
                     selectReport={selectReport}
                     backTo=""
                     isPerDiemRequest={false}
@@ -154,7 +160,7 @@ describe('IOURequestEditReportCommon', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            renderIOURequestEditReportCommon({selectedReportID: currentReport.reportID, transactionIDs: [FAKE_TRANSACTION_ID], selectReport});
+            renderIOURequestEditReportCommon({selectedReportID: currentReport.reportID, transactionIDs: [FAKE_TRANSACTION_ID], isManualDistanceRequest: true, selectReport});
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(screen.getByText('Expense Report'));
 
