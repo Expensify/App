@@ -702,6 +702,11 @@ function getUpdatedTransaction({
             // Use route distance directly since waypoints changed and the route was recalculated.
             // getDistanceInMeters prefers quantity which may hold a stale manually-edited value.
             const distanceInMeters = transactionChanges.routes?.route0?.distance ?? getDistanceInMeters(transaction, unit);
+            // Sync customUnit.quantity + routeDistanceMeters to the recalculated route BEFORE computing the
+            // commuter exclusion below. Without the quantity sync the prior manually-edited value would linger
+            // and drive getDistanceInMeters (which prefers quantity over routes). getTransactionCommuterExclusionData
+            // also reads routeDistanceMeters off the transaction and re-emits it, so it must be set first — the
+            // whole customUnit is then replaced by that function's return value.
             if (unit) {
                 lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)));
                 lodashSet(updatedTransaction, 'comment.customUnit.routeDistanceMeters', distanceInMeters);

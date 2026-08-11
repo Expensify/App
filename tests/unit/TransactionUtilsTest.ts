@@ -734,6 +734,7 @@ describe('TransactionUtils', () => {
                 });
 
                 const expectedExclusion = rateUnitChanged ? 4.83 : 3;
+                // A manual distance edit overrides any unit-conversion result: quantity becomes the entered value (20).
                 let expectedDistance = rateUnitChanged ? 16.09 : 10;
                 if (distanceChanged) {
                     expectedDistance = 20;

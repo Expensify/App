@@ -383,6 +383,8 @@ function getTransactionCommuterExclusionData({
         return;
     }
 
+    // Preserve the commuter exclusion stored on the expense at creation time; fall back to the current
+    // policy setting only when there is no stored exclusion (i.e. a brand-new expense being created).
     const storedCommuterExclusion = storedCustomUnit?.commuterExclusion;
     let fixedDistanceInRequestUnit: number;
     if (typeof storedCommuterExclusion === 'number' && storedCommuterExclusion > 0) {
