@@ -8,7 +8,7 @@ import type {SubPageProps} from '@hooks/useSubPage/types';
 
 import getWalletPersonalDetailsParams from '@pages/EnablePayments/shared/getWalletPersonalDetailsParams';
 import IdologyQuestions from '@pages/EnablePayments/shared/IdologyQuestions';
-import useWalletPhoneMagicCode from '@pages/EnablePayments/shared/useWalletPhoneMagicCode';
+import useWalletPhoneValidateCode from '@pages/EnablePayments/shared/useWalletPhoneValidateCode';
 import getInitialSubstepForPersonalInfo from '@pages/EnablePayments/Wallet/utils/getInitialSubstepForPersonalInfo';
 import getSubstepValues from '@pages/EnablePayments/Wallet/utils/getSubstepValues';
 
@@ -49,7 +49,7 @@ function PersonalInfoPage() {
 
     const showIdologyQuestions = walletAdditionalDetails?.questions && walletAdditionalDetails?.questions.length > 0;
 
-    const {submitPersonalDetails} = useWalletPhoneMagicCode();
+    const {submitPersonalDetails} = useWalletPhoneValidateCode();
 
     const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
 
@@ -91,7 +91,7 @@ function PersonalInfoPage() {
     };
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'EnablePaymentsPersonalInfo', isRedirecting}} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
