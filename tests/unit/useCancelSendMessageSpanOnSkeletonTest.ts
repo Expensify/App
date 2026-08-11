@@ -3,6 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import useCancelSendMessageSpanOnSkeleton from '@hooks/useCancelSendMessageSpanOnSkeleton';
 
 import {cancelAllSpans, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {startSendMessagePhase} from '@libs/telemetry/sendMessageSpans';
 
 import CONST from '@src/CONST';
 
@@ -12,6 +13,7 @@ type SpanStartListener = (span: unknown) => void;
 
 jest.mock('@sentry/react-native', () => {
     const spanStartListeners = new Set<SpanStartListener>();
+    const endOrder: string[] = [];
     const client = {
         on: (hook: string, callback: SpanStartListener) => {
             if (hook !== 'spanStart') {
@@ -34,7 +36,9 @@ jest.mock('@sentry/react-native', () => {
                     Object.assign(this.attributes, attrs);
                 },
                 setStatus() {},
-                end() {},
+                end() {
+                    endOrder.push(this.op ?? '');
+                },
             };
             // The real SDK emits spanStart synchronously during span creation, before startInactiveSpan returns.
             for (const listener of spanStartListeners) {
@@ -43,8 +47,15 @@ jest.mock('@sentry/react-native', () => {
             return span;
         },
         spanToJSON: (span: {op?: string; attributes: Record<string, unknown>}) => ({op: span.op, data: span.attributes}),
+        endOrder,
     };
 });
+
+/** Ops in the order their spans ended, recorded by the mock. */
+function getEndOrder() {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return (Sentry as unknown as {endOrder: string[]}).endOrder;
+}
 
 /** Start a send-message span the way the composer does, for a given report. Returns the (typed-as-Sentry) span. */
 function sendMessageWhileLoading(reportID: string) {
@@ -64,6 +75,7 @@ function flushMicrotasks() {
 
 afterEach(() => {
     cancelAllSpans();
+    getEndOrder().length = 0;
 });
 
 describe('useCancelSendMessageSpanOnSkeleton', () => {
@@ -122,6 +134,37 @@ describe('useCancelSendMessageSpanOnSkeleton', () => {
 
         expect(Sentry.spanToJSON(span).data[CONST.TELEMETRY.ATTRIBUTE_CANCELED]).toBeUndefined();
         expect(getSpan(spanID)).toBeDefined();
+    });
+
+    it('cancels a phase opened before the deferred cancel runs, and cancels it before its parent', async () => {
+        renderHook(() => useCancelSendMessageSpanOnSkeleton('reportPhases', CONST.TELEMETRY.CANCELED_BY_SKELETON.SKELETON_GUARD_LOADING));
+
+        // Mirrors the real flow: the composer starts the parent, then submits synchronously, opening a phase
+        // while the hook's cancel is still only scheduled.
+        const reportActionID = `${Math.random()}`;
+        const parentSpanID = `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`;
+        startSpan(parentSpanID, {
+            name: 'send-message-visible',
+            op: CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE,
+            attributes: {[CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: 'reportPhases'},
+        });
+        startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE);
+
+        const phaseSpanID = `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE}_${reportActionID}`;
+        const phaseSpan = getSpan(phaseSpanID);
+        if (!phaseSpan) {
+            throw new Error('Expected the phase span to be started while the parent was still registered');
+        }
+
+        await flushMicrotasks();
+
+        // Stamped and released, not left dangling with a dead parent.
+        expect(Sentry.spanToJSON(phaseSpan).data[CONST.TELEMETRY.ATTRIBUTE_CANCELED]).toBe(true);
+        expect(getSpan(phaseSpanID)).toBeUndefined();
+        expect(getSpan(parentSpanID)).toBeUndefined();
+
+        // Sentry drops children that end after their parent, so the order is what keeps the phase reportable.
+        expect(getEndOrder()).toEqual([CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE, CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE]);
     });
 
     it('does nothing without a reportID', async () => {
