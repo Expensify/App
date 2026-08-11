@@ -313,7 +313,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 onPress={callFunctionIfActionIsAllowed(() => switchToDelegator(login))}
                             />
                         )}
-                        {!!accountID && !isAnonymousUserSession() && (
+                        {!!accountID && !isAnonymousUserSession() && !!login && (
                             <MenuItem
                                 shouldShowRightIcon
                                 title={translate(isAgentEmail(login) ? 'profilePage.searchThisAgent' : 'profilePage.searchThisUser')}
