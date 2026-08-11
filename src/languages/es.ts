@@ -954,7 +954,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Cuenta',
                 cta: 'Validar',
             },
-            addHomeAddress: {title: 'Añade tu dirección de casa para el seguimiento de distancias', subtitle: 'Cuenta', cta: 'Añade dirección'},
+            addHomeAddress: {title: 'Añade tu dirección de casa para el seguimiento de distancias', subtitle: 'Cuenta', cta: 'Añadir dirección'},
             fixFailedBilling: {
                 title: 'No pudimos cobrar a la tarjeta registrada.',
                 subtitle: 'Suscripción',
@@ -1233,12 +1233,12 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         homeAddressRequired: {
-            title: 'La dirección de domicilio es obligatoria',
+            title: 'La dirección particular es obligatoria',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Antes de organizar distancias, tienes que añadir tu dirección de casa a tu perfil privado. ${workspaceName} usa esta dirección para las deducciones por desplazamiento al trabajo.`
-                    : 'Antes de registrar distancias, tienes que añadir tu dirección de casa a tu perfil privado. Este espacio de trabajo usa esta dirección para las deducciones por desplazamiento al trabajo.',
-            cta: 'Añadir dirección de casa',
+                    ? `Antes de registrar distancias, tienes que añadir tu dirección de casa a tu perfil privado. ${workspaceName} usa esta dirección para las deducciones por desplazamiento.`
+                    : 'Antes de registrar distancias, tienes que añadir tu dirección de casa a tu perfil privado. Este espacio de trabajo usa esa dirección para las deducciones por desplazamientos al trabajo.',
+            cta: 'Añadir dirección de domicilio',
         },
         amount: 'Importe',
         percent: 'Porcentaje',
@@ -3453,7 +3453,7 @@ ${amount} para ${merchant} - ${date}`,
         legalFirstName: 'Nombre legal',
         legalLastName: 'Apellidos legales',
         address: 'Dirección de casa',
-        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} usa esta dirección para las exclusiones de desplazamiento.`,
+        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} utiliza esta dirección para las exclusiones de desplazamientos.`,
         error: {
             dateShouldBeBefore: (dateString) => `La fecha debe ser anterior a ${dateString}`,
             dateShouldBeAfter: (dateString) => `La fecha debe ser posterior a ${dateString}`,
@@ -7071,14 +7071,14 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Excluir ${distance} ${unit} por reclamación`,
                 summaryHomeAndOffice: 'Usar ubicaciones de casa y oficina',
                 optionDisabledTitle: 'No excluir los desplazamientos al trabajo',
-                optionDisabledHelp: 'Ningún desplazamiento al trabajo se excluye de las reclamaciones.',
+                optionDisabledHelp: 'Ningún desplazamiento al trabajo se elimina de las reclamaciones.',
                 optionFixedDistanceTitle: 'Excluir una distancia fija por reclamación',
                 optionFixedDistanceHelp: 'Resta la misma distancia de desplazamiento de cada solicitud. Ideal para personas que envían una solicitud por día laborable.',
                 optionHomeAndOfficeTitle: 'Calcular por casa y oficina',
                 optionHomeAndOfficeHelp: 'Usa la dirección de casa del miembro, su modalidad de trabajo y su asignación de oficina para calcular las exclusiones de desplazamiento.',
                 distanceLabel: 'Distancia',
                 workspaceAddressRequired: {
-                    title: 'No tan rápido...',
+                    title: 'No tan deprisa...',
                     promptStart: 'No puedes habilitar la configuración de cálculo por casa y oficina hasta que primero añadas una ubicación de oficina en',
                     linkText: 'Resumen',
                     promptEnd: '.',

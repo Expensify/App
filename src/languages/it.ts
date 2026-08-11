@@ -961,7 +961,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Portafoglio',
             },
             validateAccount: {title: 'Conferma il tuo account', subtitle: 'Account', cta: 'Conferma'},
-            addHomeAddress: {title: 'Aggiungi il tuo indirizzo di casa per il tracciamento della distanza', subtitle: 'Account', cta: 'Aggiungi indirizzo'},
+            addHomeAddress: {title: 'Aggiungi il tuo indirizzo di casa per il monitoraggio delle distanze', subtitle: 'Account', cta: 'Aggiungi indirizzo'},
             fixFailedBilling: {title: 'Non abbiamo potuto addebitare la carta salvata nel profilo', subtitle: 'Abbonamento'},
             unlockBankAccount: {
                 workspaceTitle: 'Il conto bancario della tua azienda è stato bloccato',
@@ -1234,11 +1234,11 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         homeAddressRequired: {
-            title: 'L’indirizzo di casa è obbligatorio',
+            title: "L'indirizzo di casa è obbligatorio",
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Prima di poter tracciare la distanza, devi aggiungere il tuo indirizzo di casa al tuo profilo privato. ${workspaceName} utilizza questo indirizzo per le detrazioni per pendolari.`
-                    : 'Prima di tenere traccia della distanza, devi aggiungere il tuo indirizzo di casa al tuo profilo privato. Questo spazio di lavoro usa questo indirizzo per le detrazioni pendolari.',
+                    ? `Prima di registrare la distanza, devi aggiungere il tuo indirizzo di casa al tuo profilo privato. ${workspaceName} usa questo indirizzo per le detrazioni per i pendolari.`
+                    : 'Prima di poter registrare la distanza, devi aggiungere il tuo indirizzo di casa al tuo profilo privato. Questo spazio di lavoro usa questo indirizzo per le detrazioni per pendolarismo.',
             cta: 'Aggiungi indirizzo di casa',
         },
         amount: 'Importo',
@@ -3528,7 +3528,7 @@ ${amount} per ${merchant} - ${date}`,
         legalFirstName: 'Nome legale di battesimo',
         legalLastName: 'Cognome legale',
         address: 'Indirizzo di casa',
-        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} usa questo indirizzo per le esclusioni sul tragitto casa-lavoro.`,
+        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} usa questo indirizzo per le esclusioni per pendolari.`,
         error: {
             dateShouldBeBefore: (dateString: string) => `La data deve essere precedente a ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `La data deve essere successiva a ${dateString}`,
@@ -7075,13 +7075,13 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                 summaryDisabled: 'Nessuna esclusione per il tragitto',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Escludi ${distance} ${unit} per rimborso`,
                 optionDisabledTitle: 'Non escludere gli spostamenti casa-lavoro',
-                optionDisabledHelp: 'Nessun tragitto casa-lavoro viene rimosso dalle note spese.',
+                optionDisabledHelp: 'Nessun tragitto casa-lavoro viene rimosso dalle richieste.',
                 optionFixedDistanceTitle: 'Escludi una distanza fissa per richiesta',
                 optionFixedDistanceHelp: 'Detrai la stessa distanza del tragitto casa-lavoro da ogni richiesta. Ideale per chi invia una richiesta per ogni giorno lavorativo.',
                 distanceLabel: 'Distanza',
                 summaryHomeAndOffice: 'Usa gli indirizzi di casa e ufficio',
                 optionHomeAndOfficeTitle: 'Calcola per casa e ufficio',
-                optionHomeAndOfficeHelp: 'Usa l’indirizzo di casa del membro, l’accordo di lavoro e l’assegnazione all’ufficio per calcolare le esclusioni sul tragitto casa-lavoro.',
+                optionHomeAndOfficeHelp: 'Usa l’indirizzo di casa del membro, la modalità di lavoro e l’assegnazione all’ufficio per calcolare le esclusioni per il tragitto casa-lavoro.',
                 workspaceAddressRequired: {
                     title: 'Non così in fretta...',
                     promptStart: 'Non puoi abilitare l’impostazione di calcolo per casa e ufficio finché non aggiungi prima una sede dell’ufficio in',

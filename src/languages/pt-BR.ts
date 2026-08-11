@@ -1236,8 +1236,8 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Endereço residencial é obrigatório',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Antes de controlar a distância, você precisa adicionar seu endereço residencial ao seu perfil privado. ${workspaceName} usa esse endereço para deduções de deslocamento.`
-                    : 'Antes de registrar a distância, você precisa adicionar seu endereço residencial ao seu perfil privado. Este espaço de trabalho usa esse endereço para deduções de deslocamento.',
+                    ? `Antes de registrar distâncias, você precisa adicionar seu endereço residencial ao seu perfil privado. ${workspaceName} usa esse endereço para deduções de deslocamento.`
+                    : 'Antes de registrar distância, você precisa adicionar seu endereço residencial ao seu perfil privado. Este workspace usa esse endereço para deduções de deslocamento.',
             cta: 'Adicionar endereço residencial',
         },
         amount: 'Valor',
@@ -3518,7 +3518,7 @@ ${amount} para ${merchant} - ${date}`,
         legalFirstName: 'Primeiro nome legal',
         legalLastName: 'Sobrenome legal',
         address: 'Endereço residencial',
-        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} usa este endereço para as exclusões de deslocamento.`,
+        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} usa este endereço para exclusões de deslocamento.`,
         error: {
             dateShouldBeBefore: (dateString: string) => `A data deve ser anterior a ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `A data deve ser posterior a ${dateString}`,
@@ -7063,13 +7063,13 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 summaryDisabled: 'Sem exclusão de deslocamento',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Excluir ${distance} ${unit} por solicitação`,
                 optionDisabledTitle: 'Não excluir deslocamentos de casa para o trabalho',
-                optionDisabledHelp: 'Nenhum deslocamento é removido dos reembolsos.',
+                optionDisabledHelp: 'Nenhum deslocamento é removido das solicitações.',
                 optionFixedDistanceTitle: 'Excluir uma distância fixa por solicitação',
                 optionFixedDistanceHelp: 'Remova a mesma distância de deslocamento de cada reembolso. Ideal para membros que enviam um reembolso por dia de trabalho.',
                 distanceLabel: 'Distância',
-                summaryHomeAndOffice: 'Usar localizações de casa e escritório',
+                summaryHomeAndOffice: 'Usar endereços de casa e trabalho',
                 optionHomeAndOfficeTitle: 'Calcular por casa e escritório',
-                optionHomeAndOfficeHelp: 'Use o endereço residencial do membro, o regime de trabalho e a alocação de escritório para calcular as exclusões de deslocamento.',
+                optionHomeAndOfficeHelp: 'Use o endereço residencial da pessoa associada, o regime de trabalho e a designação do escritório para calcular as exclusões de deslocamento.',
                 workspaceAddressRequired: {
                     title: 'Calma lá...',
                     promptStart: 'Você não pode ativar a configuração de calcular por casa e escritório até primeiro adicionar um endereço de escritório em',
