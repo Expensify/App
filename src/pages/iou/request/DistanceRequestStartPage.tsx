@@ -68,11 +68,19 @@ function DistanceRequestStartPage({
     const targetParticipant = participants.find((participant) => participant.isPolicyExpenseChat);
     const isOnlyWorkspaceTheTarget = onlyActivePolicy?.id === targetParticipant?.policyID;
     const targetPolicy = isOnlyWorkspaceTheTarget ? onlyActivePolicy : undefined;
+    // Manual/Odometer distance can't honor commuter exclusion (exclusions are derived from the mapped
+    // route), so hide those tabs whenever the resolved destination enforces exclusion:
+    // - Report-scoped flows (workspace chat / expense report): use that report's own policy.
+    // - Global FAB flows: never hide for a Self-DM target (personal expenses are exempt); otherwise hide
+    //   when the single target workspace excludes, or when the user has multiple workspaces that ALL
+    //   exclude. `length > 1` is required because a single workspace is handled by `targetPolicy`, and
+    //   `[].every()` is vacuously true (which would wrongly hide the tabs for personal-only users).
     const isSelfDMTarget = isSelfDM(report) || participants.some((participant) => participant.isSelfDM);
-    const shouldHideManualAndOdometerTabs =
-        isPolicyExpenseChat(report) || isExpenseReport(report)
-            ? isCommuterExclusionEnabled(policy)
-            : !isSelfDMTarget && (isCommuterExclusionEnabled(targetPolicy) || (activeGroupPolicies.length > 1 && activeGroupPolicies.every(isCommuterExclusionEnabled)));
+    const isReportScopedTarget = isPolicyExpenseChat(report) || isExpenseReport(report);
+    const everyActiveWorkspaceExcludesCommuters = activeGroupPolicies.length > 1 && activeGroupPolicies.every(isCommuterExclusionEnabled);
+    const shouldHideManualAndOdometerTabs = isReportScopedTarget
+        ? isCommuterExclusionEnabled(policy)
+        : !isSelfDMTarget && (isCommuterExclusionEnabled(targetPolicy) || everyActiveWorkspaceExcludesCommuters);
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
