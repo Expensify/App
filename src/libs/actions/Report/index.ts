@@ -255,7 +255,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Dimensions} from '@src/types/utils/Layout';
 
-import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxMultiSetInput, OnyxUpdate} from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
@@ -3085,10 +3085,14 @@ function saveReportDraft(reportID: string, report: Report) {
  * immediately. Not a new entity and not an API write - the eventual backend success handler overwrites this same
  * key with confirmed data.
  */
-async function promoteDraftReportForPreMount(reportID: string, draftReport: Report) {
-    // Persist the marker first so startup cleanup can remove the speculative report if the app terminates before submit.
-    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportID}`, true);
-    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, draftReport);
+function promoteDraftReportForPreMount(reportID: string, draftReport: Report) {
+    // Write both values together so cancellation cannot run between the marker and report writes.
+    const promotionKey: `${typeof ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${string}` = `${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportID}`;
+    const reportKey: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}` = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+    const promotionData: OnyxMultiSetInput = {};
+    promotionData[promotionKey] = true;
+    promotionData[reportKey] = draftReport;
+    return Onyx.multiSet(promotionData);
 }
 
 /**

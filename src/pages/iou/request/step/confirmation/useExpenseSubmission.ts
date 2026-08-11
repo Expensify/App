@@ -19,7 +19,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
-import {getExistingTransactionID, isSelfDMSoleDestination, resolveOptimisticChatReportID} from '@libs/IOUUtils';
+import {getExistingTransactionID, getReusableP2PReportID, isSelfDMSoleDestination, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
@@ -411,10 +411,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         // Otherwise the builder mints a different ID and the screen hangs waiting on a report that never materializes.
         // Keyed off the selected participant's own chat linkage, not the page-level `report` - that prop can stay
         // bound to a previously-selected participant's chat when the user swaps recipients without remounting.
-        const isBrandNewP2PRecipient = !participant.isPolicyExpenseChat && !participant.reportID;
         const transactionReportID = transaction?.reportID;
-        const shouldReuseTransactionReportID = isBrandNewP2PRecipient && !!transactionReportID && transactionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
-        const optimisticChatReportID = shouldReuseTransactionReportID ? transactionReportID : generateReportID();
+        const optimisticChatReportID = getReusableP2PReportID(participant, transactionReportID) ?? generateReportID();
         const optimisticCreatedReportActionID = rand64();
         const optimisticReportPreviewActionID = rand64();
         let existingIOUReport: Report | undefined;
@@ -616,14 +614,13 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             }
             // Keep the pre-mounted report ID aligned with the report created for a brand-new P2P recipient.
             // existingChatReport can belong to the previously selected recipient.
-            const isBrandNewP2PRecipient = !isExpenseReport && !participant.isPolicyExpenseChat && !participant.reportID;
             // Confirmation commits this ID for new recipients.
             const transactionReportID = transaction.reportID;
             // Reuse it so the pre-mounted screen subscribes to the report created on submission.
-            const shouldReuseTransactionReportID = isBrandNewP2PRecipient && !!transactionReportID && transactionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
+            const reusableP2PReportID = !isExpenseReport ? getReusableP2PReportID(participant, transactionReportID) : undefined;
             const participantAccountIDs = [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID];
-            const reportIDs = shouldReuseTransactionReportID
-                ? {optimisticChatReportID: transactionReportID, chatReportID: transactionReportID}
+            const reportIDs = reusableP2PReportID
+                ? {optimisticChatReportID: reusableP2PReportID, chatReportID: reusableP2PReportID}
                 : resolveOptimisticChatReportID(participantAccountIDs, existingChatReport);
             const {optimisticChatReportID, chatReportID} = reportIDs;
             const activeReportID = isExpenseReport ? report?.reportID : chatReportID;

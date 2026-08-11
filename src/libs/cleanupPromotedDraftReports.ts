@@ -5,6 +5,7 @@ import type {OnyxCollection, OnyxMultiSetInput} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+/** Startup cleanup for speculative report rows left by interrupted draft promotions. */
 function getPromotedDraftReportCleanupData(promotions: OnyxCollection<boolean>, reportDrafts: OnyxCollection<Report>) {
     const cleanupData: Record<string, null> = {};
 

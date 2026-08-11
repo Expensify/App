@@ -45,6 +45,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getIsWorkspacesOnlyForTransaction,
+    getReusableP2PReportID,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     isParticipantP2P,
     isSelfDMSoleDestination,
@@ -628,9 +629,7 @@ function IOURequestStepConfirmation({
     // (e.g. "Create expense" pre-fills the last-used participant).
     const firstParticipant = participants.at(0);
     // Split creates or resolves its own group chat report ID, so it cannot reuse the transaction's P2P report ID.
-    const isBrandNewP2PRecipient = iouType !== CONST.IOU.TYPE.SPLIT && !!firstParticipant && !firstParticipant.isPolicyExpenseChat && !firstParticipant.reportID;
-    const optimisticP2PDestinationReportID =
-        isBrandNewP2PRecipient && !!transaction?.reportID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? transaction.reportID : undefined;
+    const optimisticP2PDestinationReportID = iouType !== CONST.IOU.TYPE.SPLIT && firstParticipant ? getReusableP2PReportID(firstParticipant, transaction?.reportID) : undefined;
     const preMountDestinationReportID = optimisticP2PDestinationReportID ?? destinationReportID;
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${preMountDestinationReportID}`);
     const destinationReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${preMountDestinationReportID}`];
@@ -646,8 +645,8 @@ function IOURequestStepConfirmation({
             return;
         }
 
-        promoteDraftReportForPreMount(preMountDestinationReportID, destinationReportDraft);
         promotedDraftReportIDRef.current = preMountDestinationReportID;
+        promoteDraftReportForPreMount(preMountDestinationReportID, destinationReportDraft);
     }, [preMountDestinationReportID, destinationReport, destinationReportDraft]);
 
     // All reactive inputs are in the deps; the builder's own live Navigation reads aren't reactive values so they don't belong

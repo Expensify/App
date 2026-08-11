@@ -16,6 +16,7 @@ import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils'
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportMetadata, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -1160,6 +1161,24 @@ describe('isParticipantP2P', () => {
         };
 
         expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
+    });
+});
+
+describe('getReusableP2PReportID', () => {
+    it('returns the transaction report ID for a brand-new P2P recipient', () => {
+        expect(IOUUtils.getReusableP2PReportID({} as Participant, '123')).toBe('123');
+    });
+
+    it('does not return the transaction report ID for an existing P2P chat', () => {
+        expect(IOUUtils.getReusableP2PReportID({reportID: '456'} as Participant, '123')).toBeUndefined();
+    });
+
+    it('does not return the transaction report ID for a workspace chat', () => {
+        expect(IOUUtils.getReusableP2PReportID({isPolicyExpenseChat: true} as Participant, '123')).toBeUndefined();
+    });
+
+    it('does not return the unreported report ID', () => {
+        expect(IOUUtils.getReusableP2PReportID({} as Participant, CONST.REPORT.UNREPORTED_REPORT_ID)).toBeUndefined();
     });
 });
 

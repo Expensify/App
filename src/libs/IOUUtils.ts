@@ -505,6 +505,12 @@ function resolveOptimisticChatReportID(participantAccountIDs: number[], existing
     return {optimisticChatReportID, chatReportID};
 }
 
+/** Returns the transaction report ID when it can be reused for a brand-new P2P chat. */
+function getReusableP2PReportID(participant: Participant, transactionReportID: string | undefined): string | undefined {
+    const isBrandNewP2PRecipient = !participant.isPolicyExpenseChat && !participant.reportID;
+    return isBrandNewP2PRecipient && !!transactionReportID && transactionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? transactionReportID : undefined;
+}
+
 /**
  * Whether the participant picker for this transaction should be restricted to workspaces only.
  * A negative amount (or a distance request with zero quantity) implies money is owed *to* the
@@ -644,6 +650,7 @@ export {
     calculateDefaultReimbursable,
     getInitialPerDiemTargetReport,
     getIsWorkspacesOnlyForTransaction,
+    getReusableP2PReportID,
     isParticipantP2P,
     isSelfDMSoleDestination,
     resolveOptimisticChatReportID,

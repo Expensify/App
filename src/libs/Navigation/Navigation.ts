@@ -1170,6 +1170,34 @@ function handleRHPClosedForBuffer() {
     );
 }
 
+/** Restores the route that was visible before a pre-mount buffer became stranded. */
+function recoverFromPreMountBuffer() {
+    const rootState = navigationRef.getRootState();
+    if (rootState?.routes.at(-1)?.name !== SCREENS.PRE_MOUNT_BUFFER) {
+        return;
+    }
+
+    if (bufferTransaction) {
+        handleRHPClosedForBuffer();
+        return;
+    }
+
+    // Defensive fallback for a lost transaction: restore the original tab route when pre-mount
+    // switched tabs, otherwise remove both Buffer and the speculative pushed destination.
+    const originalTabRoute = getPreInsertedOriginalTabRoute();
+    const routesWithoutBuffer = rootState.routes.slice(0, -1);
+    const tabNavIndex = originalTabRoute ? routesWithoutBuffer.findLastIndex((route) => route.name === NAVIGATORS.TAB_NAVIGATOR) : -1;
+    const routes = originalTabRoute && tabNavIndex >= 0 ? routesWithoutBuffer.map((route, index) => (index === tabNavIndex ? originalTabRoute : route)) : rootState.routes.slice(0, -2);
+    if (!routes.length) {
+        return;
+    }
+    isFullscreenPreInsertedUnderRHP = false;
+    preInsertedFullscreenRouteName = undefined;
+    clearPreInsertedOriginalTabRoute();
+    clearBufferStateListener();
+    navigationRef.current?.dispatch(CommonActions.reset({...rootState, routes, index: routes.length - 1}));
+}
+
 /**
  * Buffer is built directly into REPLACE_FULLSCREEN_UNDER_RHP's own dispatch
  * (GetStateForActionHandlers.ts), not a separate follow-up dispatch - a second dispatch was
@@ -1480,6 +1508,7 @@ export default {
     getIsFullscreenPreInsertedUnderRHP,
     getPreInsertedFullscreenRouteName,
     clearFullscreenPreInsertedFlag,
+    recoverFromPreMountBuffer,
     removePreInsertedFullscreenIfNeeded,
     getTopmostSearchReportID,
     getTopmostSuperWideRHPReportParams,
