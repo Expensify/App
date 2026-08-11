@@ -132,12 +132,26 @@ describe('BankAccounts', () => {
         test('failureData clears the pending marker and surfaces a generic error message', () => {
             resendFailedValidationAmounts(bankAccountID);
 
-            const [, , onyxData] = mockWrite.mock.calls.at(-1) ?? [];
-            const failurePatch = onyxData?.failureData?.at(0);
-            expect(failurePatch?.key).toBe(ONYXKEYS.BANK_ACCOUNT_LIST);
-            const failureValue = (failurePatch?.value as Record<number, {pendingFields: unknown; errors: unknown}>)[bankAccountID];
-            expect(failureValue.pendingFields).toEqual({accountData: null});
-            expect(failureValue.errors).toEqual(expect.any(Object));
+            expect(mockWrite).toHaveBeenLastCalledWith(
+                WRITE_COMMANDS.RESEND_FAILED_VALIDATION_AMOUNTS,
+                {bankAccountID},
+                expect.objectContaining({
+                    failureData: [
+                        expect.objectContaining({
+                            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                            value: expect.objectContaining({
+                                [bankAccountID]: expect.objectContaining({
+                                    pendingFields: {accountData: null},
+                                }),
+                            }),
+                        }),
+                    ],
+                }),
+            );
+
+            // Runtime check that the failure patch also carries an errors object (typed matcher would trigger no-unsafe-assignment).
+            const failureValue = mockWrite.mock.calls.at(-1)?.[2]?.failureData?.at(0)?.value;
+            expect(JSON.stringify(failureValue)).toContain('"errors":');
         });
     });
 });
