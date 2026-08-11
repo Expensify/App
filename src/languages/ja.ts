@@ -3499,7 +3499,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         legalName: '法的氏名',
         legalFirstName: '法的な名',
         legalLastName: '法的な姓',
-        address: '住所',
+        address: '自宅住所',
+        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `${workspaceName} はこの住所を通勤分の除外に使用します。`,
         error: {
             dateShouldBeBefore: (dateString: string) => `日付は${dateString}より前である必要があります`,
             dateShouldBeAfter: (dateString: string) => `日付は${dateString}より後の日付にしてください`,
