@@ -5,9 +5,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {accountIDSelector} from '@selectors/Session';
 import {useCallback, useMemo, useState} from 'react';
 
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePrivateIsArchivedMap from './usePrivateIsArchivedMap';
@@ -94,7 +94,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     // Sorted report actions from the RAM_ONLY_SORTED_REPORT_ACTIONS derived value; a new reference on
     // every recompute, so it doubles as the report-actions invalidation signal for the option-list cache.
     const sortedActions = useSortedActions();
-    const [currentUserAccountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
