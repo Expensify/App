@@ -30,7 +30,7 @@ describe('Concierge thread', () => {
         return waitForBatchedUpdates();
     });
 
-    it('opens the thread only once the question it hangs off is in Onyx', async () => {
+    it('opens the thread only once its parent report action is in Onyx', async () => {
         await TestHelper.signInWithTestUser(USER_ACCOUNT_ID, USER_EMAIL);
         const conciergeDM: OnyxTypes.Report = {
             reportID: CONCIERGE_DM_ID,
@@ -44,11 +44,10 @@ describe('Concierge thread', () => {
         await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_DM_ID);
         await waitForBatchedUpdates();
 
-        // The thread header reads the question to build its avatar, so record what Onyx holds when the thread opens.
-        let questionWhenThreadOpened: OnyxTypes.ReportAction | undefined;
+        // The thread header builds its avatar from the parent report action, so record what Onyx holds when the thread opens.
+        let parentReportActionWhenThreadOpened: OnyxTypes.ReportAction | undefined;
         (Navigation.navigate as jest.Mock).mockImplementation(() => {
-            const threadReportID = Object.values(getAllReportActions(CONCIERGE_DM_ID)).at(0)?.childReportID;
-            questionWhenThreadOpened = Object.values(getAllReportActions(CONCIERGE_DM_ID)).find((action) => action.childReportID === threadReportID);
+            parentReportActionWhenThreadOpened = Object.values(getAllReportActions(CONCIERGE_DM_ID)).find((action) => action.childReportID === THREAD_ID);
         });
 
         Report.addComment({
@@ -65,7 +64,7 @@ describe('Concierge thread', () => {
         await waitForBatchedUpdates();
 
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
-        expect(questionWhenThreadOpened?.actorAccountID).toBe(USER_ACCOUNT_ID);
-        expect(questionWhenThreadOpened?.childReportID).toBe(THREAD_ID);
+        expect(parentReportActionWhenThreadOpened?.actorAccountID).toBe(USER_ACCOUNT_ID);
+        expect(parentReportActionWhenThreadOpened?.childReportID).toBe(THREAD_ID);
     });
 });

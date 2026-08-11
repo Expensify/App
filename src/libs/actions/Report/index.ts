@@ -1267,7 +1267,6 @@ function addActions({
     });
 
     if (conciergeThreadReportID && resolvedReportActionID) {
-        // The thread header takes its avatar from the question it hangs off, so open the thread once Onyx has stored both.
         Onyx.update(conciergeThreadOnyxData).then(() => Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID})));
     }
     notifyNewAction(resolvedNotifyReportID, lastAction, lastAction?.actorAccountID === currentUserAccountID);
