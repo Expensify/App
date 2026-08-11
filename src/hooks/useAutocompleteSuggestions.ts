@@ -120,7 +120,7 @@ function useAutocompleteSuggestions({
     translate,
     autocompleteSubstitutions,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
-    const {localeCompare} = useLocalize();
+    const {localeCompare, dateFnsLocale} = useLocalize();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -246,6 +246,7 @@ function useAutocompleteSuggestions({
             const memberExclusions = getExpensifyTeamExclusions(personalDetails, policies, currentUserEmail);
 
             const participants = getSearchOptions({
+                dateFnsLocale,
                 options,
                 draftComments,
                 betas: betas ?? [],
@@ -286,6 +287,7 @@ function useAutocompleteSuggestions({
             }
 
             const filteredReports = getSearchOptions({
+                dateFnsLocale,
                 options,
                 draftComments,
                 betas: betas ?? [],

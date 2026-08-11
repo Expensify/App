@@ -88,7 +88,7 @@ function getEligibleCards(cardsList: OnyxEntry<WorkspaceCardsList>, expensifyCar
 function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const {policyID, ruleID} = route.params;
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const canWriteCardSpendRules = useCanWriteCardSpendRules(policyID);
     const defaultFundID = useDefaultFundID(policyID);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -127,7 +127,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const eligibleCards = expensifyCardSettings ? getEligibleCards(cardsList, expensifyCardSettings, ruleID === ROUTES.NEW ? undefined : ruleID) : [];
 
     const filterCard = (card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails);
-    const sortCards = (cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare, translate);
+    const sortCards = (cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare, translate, formatPhoneNumber);
 
     const [inputValue, setInputValue, filteredCards] = useSearchResults(eligibleCards, filterCard, sortCards);
 
@@ -135,7 +135,13 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const cardOwnerPersonalDetails = personalDetails?.[accountID] ?? undefined;
         const cardName = card.nameValuePairs?.cardTitle;
-        const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardOwnerPersonalDetails, defaultValue: '', shouldFallbackToHidden: false, translate});
+        const displayName = temporaryGetDisplayNameOrDefault({
+            passedPersonalDetails: cardOwnerPersonalDetails,
+            defaultValue: '',
+            shouldFallbackToHidden: false,
+            translate,
+            formatPhoneNumber,
+        });
         return {
             keyForList: String(card.cardID),
             text: displayName !== '' ? displayName : (cardName ?? ''),
@@ -215,14 +221,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
             shouldBeBlocked={!canWriteCardSpendRules}
         >
             {isCardSettingsLoading ? (
-                <FullScreenLoadingIndicator
-                    shouldUseGoBackButton
-                    reasonAttributes={{
-                        context: 'SpendRuleCardPage',
-                        isOffline,
-                        hasOnceLoaded: !!expensifyCardSettings?.hasOnceLoaded,
-                    }}
-                />
+                <FullScreenLoadingIndicator shouldUseGoBackButton />
             ) : (
                 <ScreenWrapper
                     testID="SpendRuleCardPage"

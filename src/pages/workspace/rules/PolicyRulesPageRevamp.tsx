@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -291,31 +291,28 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             return null;
         }
 
-        if (activeTab !== RULES_TAB.EXPENSE_DEFAULTS) {
-            return (
-                <Button
-                    success
-                    onPress={handleNewRule}
-                    text={translate('workspace.rules.merchantRules.addRuleTitle')}
-                    icon={icons.Plus}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.w100]}
-                />
-            );
-        }
-
         const moreOptions: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [
-            getImportMerchantRulesOption({policyID, canWriteRules, showReadOnlyModal, translate, icon: icons.Table}),
+            getImportMerchantRulesOption({
+                policyID,
+                canWriteRules,
+                showReadOnlyModal,
+                translate,
+                icon: icons.Table,
+                // Collect sees More on General, so gate it like New rule. backTo only applies after a successful upgrade.
+                tryNavigateToUpgrade: () => tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, ROUTES.RULES_MERCHANT_IMPORT.getRoute(policyID)),
+            }),
         ];
 
         return (
             <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.w100]}>
                 <Button
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={handleNewRule}
-                    text={translate('workspace.rules.merchantRules.addRuleTitle')}
-                    icon={icons.Plus}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                />
+                >
+                    <Button.Icon src={icons.Plus} />
+                    <Button.Text>{translate('workspace.rules.merchantRules.addRuleTitle')}</Button.Text>
+                </Button>
                 <ButtonWithDropdownMenu
                     // onPress is required by ButtonWithDropdownMenu but never fires for a non-split button, where pressing only opens the dropdown menu
                     onPress={() => {}}

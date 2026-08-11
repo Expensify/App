@@ -19,8 +19,9 @@ import {updateLastVisitedPath} from '@userActions/App';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
-import {endSpan, getSpan, startSpan} from '@src/libs/telemetry/activeSpans';
+import {endSpan, getSpan} from '@src/libs/telemetry/activeSpans';
 import {navigationIntegration} from '@src/libs/telemetry/integrations';
+import useStartSpansOnRender from '@src/libs/telemetry/useStartSpansOnRender';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -123,6 +124,17 @@ function parseAndLogRoute(state: NavigationState) {
 }
 
 function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: NavigationRootProps) {
+    useStartSpansOnRender([
+        {
+            spanId: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
+            options: {
+                name: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
+                op: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
+                parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT),
+            },
+        },
+    ]);
+
     const firstRenderRef = useRef(true);
     const themePreference = useThemePreference();
     const theme = useTheme();
@@ -198,14 +210,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             },
         };
     }, [shouldUseNarrowLayout, theme.appBG, themePreference]);
-
-    useEffect(() => {
-        startSpan(CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY, {
-            name: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
-            op: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
-            parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT),
-        });
-    }, []);
 
     useEffect(() => {
         if (firstRenderRef.current) {
