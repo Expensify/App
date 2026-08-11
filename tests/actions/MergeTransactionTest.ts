@@ -31,6 +31,7 @@ import {createExpenseReport, createRandomReport} from '../utils/collections/repo
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
+import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Helper function to create mock violations
@@ -216,6 +217,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         selfDMReportActions: undefined,
         delegateAccountID: undefined,
         isTrackIntentUser: false,
+        getCurrencyDecimals: getCurrencyDecimalsLocal,
     });
 }
 
@@ -333,6 +335,7 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
         await mockFetch?.resume?.();
@@ -451,6 +454,7 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
         await mockFetch?.resume?.();
@@ -554,6 +558,7 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
         await mockFetch?.resume?.();
@@ -719,6 +724,7 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
         await waitForBatchedUpdates();
@@ -825,6 +831,7 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
         await mockFetch?.resume?.();
@@ -1211,6 +1218,7 @@ describe('mergeTransactionRequest', () => {
                 selfDMReport: undefined,
                 selfDMReportActions: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             await mockFetch?.resume?.();
@@ -1413,6 +1421,7 @@ describe('mergeTransactionRequest', () => {
                 selfDMReport: undefined,
                 selfDMReportActions: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1564,6 +1573,7 @@ describe('mergeTransactionRequest', () => {
                 selfDMReport,
                 selfDMReportActions: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             await waitForBatchedUpdates();

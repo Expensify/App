@@ -396,6 +396,7 @@ type MergeTransactionRequestParams = {
     selfDMReportActions: OnyxEntry<ReportActions>;
     reportPolicyTags: OnyxEntry<PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 /**
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction.
@@ -426,6 +427,7 @@ function mergeTransactionRequest({
     selfDMReportActions,
     reportPolicyTags,
     isTrackIntentUser,
+    getCurrencyDecimals,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
     // This preserves the user's chosen sign while following the storage convention
@@ -694,6 +696,7 @@ function mergeTransactionRequest({
             iouReportID: optimisticDestinationReportID,
             // delegateAccountIDParam: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
             delegateAccountIDParam: undefined,
+            getCurrencyDecimals,
         });
 
         // IOU action for the surviving expense on its original report (not on mergeTransaction.reportID yet).

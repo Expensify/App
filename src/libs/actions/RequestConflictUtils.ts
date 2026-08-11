@@ -358,6 +358,7 @@ export {
     resolveReconnectDuplicationConflictAction,
     readUpdateIDFrom,
     isFullDownloadRequest,
+    isReconnectFamilyRequest,
     resolveCommentDeletionConflicts,
     resolveEditCommentWithNewAddCommentRequest,
     createUpdateCommentMatcher,
