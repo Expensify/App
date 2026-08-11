@@ -201,7 +201,7 @@ function Search({
 
     const previousReportActions = usePrevious(reportActions);
     const {translate} = useLocalize();
-    const searchListRef = useRef<SelectionListHandle<SearchListItem> | null>(null);
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const savedSearchSelector = useCallback((searches: OnyxEntry<SaveSearch>) => searches?.[hash], [hash]);
     const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {
