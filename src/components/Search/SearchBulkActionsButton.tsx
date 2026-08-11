@@ -61,7 +61,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     // Sends an unvalidated user to the verify-account (security code) screen and resumes the stored bulk pay once they validate.
-    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((retry?: () => void) => retry?.());
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((retry) => retry?.());
     const activeAdminPolicies = useSortedActiveAdminPolicies();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -137,9 +137,8 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         }, 0);
     }, [selectedTransactions, selectedTransactionsKeys, isExpenseReportType, searchData]);
 
-    const handleBulkPaySubItemSelected = (subItem: PopoverMenuItem, triggerKYCFlow: (kycParams: ContinueActionParams) => void) => {
-        console.log('herreeeeeeee');
-        return handleBulkPayItemSelected({
+    const handleBulkPaySubItemSelected = (subItem: PopoverMenuItem, triggerKYCFlow: (kycParams: ContinueActionParams) => void) =>
+        handleBulkPayItemSelected({
             item: subItem,
             triggerKYCFlow,
             isAccountLocked,
@@ -161,7 +160,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
             currentUserAccountID: currentUserPersonalDetails.accountID,
             verifyAccountAndResume,
         });
-    };
 
     const allMatchingItemsCount = currentSearchResults?.search?.count;
     const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof allMatchingItemsCount !== 'number' && !isOffline && !!currentSearchResults?.search?.isLoading;
