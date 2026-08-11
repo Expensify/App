@@ -750,6 +750,12 @@ function getUpdatedTransaction({
 
         const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
         const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
+        const quantity = transaction?.comment?.customUnit?.quantity;
+        const hasManualDistanceOverride =
+            typeof routeDistanceMeters === 'number' &&
+            typeof quantity === 'number' &&
+            !!existingDistanceUnit &&
+            Math.abs(quantity - DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, existingDistanceUnit)) > 0.01;
 
         // Get the new distance unit from the rate's unit
         const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
@@ -760,9 +766,9 @@ function getUpdatedTransaction({
         if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit && !isOdometerDistanceRequest(transaction)) {
             const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
             const distance = roundToTwoDecimalPlaces(
-                typeof routeDistanceMeters === 'number'
+                typeof routeDistanceMeters === 'number' && !hasManualDistanceOverride
                     ? DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, newDistanceUnit)
-                    : (transaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor,
+                    : (quantity ?? 0) * conversionFactor,
             );
             lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
         }
@@ -787,7 +793,7 @@ function getUpdatedTransaction({
                             newDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
                         const currentQuantity = updatedTransaction?.comment?.customUnit?.quantity ?? 0;
                         const distance =
-                            typeof routeDistanceMeters === 'number'
+                            typeof routeDistanceMeters === 'number' && !hasManualDistanceOverride
                                 ? DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, rateFromAnyPolicy.unit)
                                 : currentQuantity * fallbackConversionFactor;
                         lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(distance));
