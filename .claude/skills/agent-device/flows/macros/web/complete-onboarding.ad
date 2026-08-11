@@ -1,3 +1,4 @@
+context platform=web
 # @desc   Complete onboarding with minimal choices (skip work email, pick "Something else" purpose, enter generic name). Lands on Home.
 # @pre    text="What’s your work email?"
 # @post   text="Home"
