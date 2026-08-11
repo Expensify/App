@@ -16,7 +16,7 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
-import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useSearchShouldCalculateTotals, {getSearchRequestOffsetForMissingAllMatchingCount} from '@hooks/useSearchShouldCalculateTotals';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -180,7 +180,21 @@ function Search({
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0, areAllMatchingItemsSelected);
+    const isExpenseAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE && areAllMatchingItemsSelected;
+    const isAllMatchingItemsCountMissing = isExpenseAllMatchingSelection && typeof searchResults?.search?.count !== 'number';
+    const shouldCalculateExpenseTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0 || isAllMatchingItemsCountMissing, isExpenseAllMatchingSelection);
+    const shouldCalculateTotals = (areAllMatchingItemsSelected && !isExpenseAllMatchingSelection) || shouldCalculateExpenseTotals;
+    const previousShouldCalculateTotals = usePrevious(shouldCalculateTotals);
+    const searchRequestOffset = getSearchRequestOffsetForMissingAllMatchingCount(offset, searchResults?.search?.offset, isAllMatchingItemsCountMissing);
+
+    useEffect(() => {
+        if (searchRequestOffset === offset) {
+            return;
+        }
+        // Defer so this effect does not synchronously chain another render from setState (eslint react-hooks/set-state-in-effect).
+        const timeoutID = setTimeout(() => setOffset(searchRequestOffset), 0);
+        return () => clearTimeout(timeoutID);
+    }, [offset, searchRequestOffset]);
 
     // Retrying a failed page always resets pagination to the first page, so totals eligibility
     // must be evaluated as if we're on the first page rather than the (possibly paginated) offset.
@@ -372,7 +386,9 @@ function Search({
         const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT;
 
         const comingBackOnlineWithNoResults = prevIsOffline && !isOffline && isEmptyObject(searchResults?.data);
-        if (!comingBackOnlineWithNoResults && ((!isFocused && !isMigratedModalDisplayed) || isOffline)) {
+        const comingBackOnlineWithMissingAllMatchingTotals = prevIsOffline && !isOffline && isExpenseAllMatchingSelection && isAllMatchingItemsCountMissing;
+        const shouldRefreshOnReconnect = comingBackOnlineWithNoResults || comingBackOnlineWithMissingAllMatchingTotals;
+        if (!shouldRefreshOnReconnect && ((!isFocused && !isMigratedModalDisplayed) || isOffline)) {
             return;
         }
 
@@ -392,14 +408,32 @@ function Search({
             return;
         }
 
-        if (hasErrors && !comingBackOnlineWithNoResults) {
+        if (hasErrors && !shouldRefreshOnReconnect) {
+            return;
+        }
+
+        // Once a totals request for an already-loaded page completes, `shouldCalculateTotals` switches
+        // back to false. Do not immediately repeat that same page request without totals; the next real
+        // pagination offset change will trigger the appropriate request.
+        const didJustFinishAllMatchingTotalsRequest =
+            isExpenseAllMatchingSelection &&
+            previousShouldCalculateTotals === true &&
+            !shouldCalculateTotals &&
+            typeof searchResults?.search?.count === 'number' &&
+            searchResults.search.offset === offset;
+        if (didJustFinishAllMatchingTotalsRequest) {
+            return;
+        }
+        const didEnableAllMatchingTotalsWithExistingCount =
+            isExpenseAllMatchingSelection && previousShouldCalculateTotals === false && shouldCalculateTotals && typeof searchResults?.search?.count === 'number';
+        if (didEnableAllMatchingTotalsWithExistingCount) {
             return;
         }
 
         handleSearch({
             queryJSON,
             searchKey: currentSearchKey,
-            offset,
+            offset: searchRequestOffset,
             shouldCalculateTotals,
             prevReportsLength: filteredDataLength,
             isLoading: !!searchResults?.search?.isLoading,
@@ -407,7 +441,7 @@ function Search({
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, hasErrors, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy]);
+    }, [handleSearch, hasErrors, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy, searchRequestOffset]);
 
     useEffect(() => {
         if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
@@ -425,12 +459,22 @@ function Search({
         handleSearch({
             queryJSON,
             searchKey: currentSearchKey,
-            offset,
+            offset: searchRequestOffset,
             shouldCalculateTotals: true,
             prevReportsLength: filteredDataLength,
             isLoading: false,
         });
-    }, [filteredDataLength, handleSearch, offset, queryJSON, currentSearchKey, searchResults?.search?.count, searchResults?.search?.isLoading, shouldCalculateTotals, validGroupBy]);
+    }, [
+        filteredDataLength,
+        handleSearch,
+        queryJSON,
+        currentSearchKey,
+        searchResults?.search?.count,
+        searchResults?.search?.isLoading,
+        shouldCalculateTotals,
+        validGroupBy,
+        searchRequestOffset,
+    ]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {

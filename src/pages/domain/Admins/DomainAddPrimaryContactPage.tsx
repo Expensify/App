@@ -97,7 +97,7 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
             keyForList: String(accountID),
             accountID,
             login: details?.login ?? '',
-            text: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
+            text: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
             alternateText: formatPhoneNumber(details?.login ?? ''),
             icons: [
                 {

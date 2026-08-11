@@ -13,8 +13,8 @@ jest.mock('@libs/API', () => ({
     read: jest.fn(),
 }));
 
-function getQueryJSON() {
-    const queryJSON = buildSearchQueryJSON('');
+function getQueryJSON(query = '') {
+    const queryJSON = buildSearchQueryJSON(query);
     if (!queryJSON) {
         throw new Error('Query JSON should be defined for test setup');
     }
@@ -39,6 +39,11 @@ type SearchRequestData = {
     }>;
 };
 
+type SearchResponse = {
+    onyxData: Array<{value: {search: {offset: number; hasMoreResults: boolean}; data: Record<string, unknown>}}>;
+    jsonCode: number;
+};
+
 type SearchRequestParams = {
     hash: number;
     jsonQuery: string;
@@ -49,7 +54,8 @@ function getMakeRequestWithSideEffectsMock() {
         mock: {
             calls: Array<[unknown, SearchRequestParams, SearchRequestData?]>;
         };
-        mockResolvedValue: (value: {onyxData: Array<{value: {search: {offset: number; hasMoreResults: boolean}; data: Record<string, unknown>}}>; jsonCode: number}) => void;
+        mockResolvedValue: (value: SearchResponse) => void;
+        mockImplementationOnce: (implementation: () => Promise<SearchResponse>) => void;
         mockReturnValue: (value: Promise<unknown>) => void;
     };
 }
@@ -149,6 +155,129 @@ describe('search loading totals handling', () => {
         expect(loadingSearchData?.count).toBeUndefined();
         expect(loadingSearchData?.total).toBeUndefined();
         expect(loadingSearchData?.currency).toBeUndefined();
+    });
+
+    it('queues a totals request when the same non-totals search is already in flight', async () => {
+        const queryJSON = getQueryJSON('type:expense');
+        const response: SearchResponse = {
+            onyxData: [{value: {search: {offset: 50, hasMoreResults: true}, data: {}}}],
+            jsonCode: CONST.JSON_CODE.SUCCESS,
+        };
+        let resolveFirstRequest: (value: SearchResponse) => void = () => {};
+        const firstRequestPromise = new Promise<SearchResponse>((resolve) => {
+            resolveFirstRequest = resolve;
+        });
+        const makeRequestWithSideEffectsMock = getMakeRequestWithSideEffectsMock();
+        makeRequestWithSideEffectsMock.mockImplementationOnce(() => firstRequestPromise);
+
+        const firstSearch = search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 50,
+            shouldCalculateTotals: false,
+            isLoading: false,
+        });
+        search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 50,
+            shouldCalculateTotals: true,
+            isLoading: false,
+        });
+        search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 50,
+            shouldCalculateTotals: true,
+            isLoading: false,
+        });
+
+        await Promise.resolve();
+        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(1);
+
+        resolveFirstRequest(response);
+        await firstSearch;
+        await Promise.resolve();
+
+        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(2);
+        const [, queuedRequestParameters] = makeRequestWithSideEffectsMock.mock.calls.at(-1) ?? [];
+        const queuedQuery: unknown = JSON.parse(queuedRequestParameters?.jsonQuery ?? '{}');
+        expect(queuedQuery).toEqual(expect.objectContaining({shouldCalculateTotals: true}));
+    });
+
+    it('keeps the original expense-report deduplication when a totals request collides with an in-flight request', async () => {
+        const queryJSON = getQueryJSON('type:expense-report');
+        const response: SearchResponse = {
+            onyxData: [{value: {search: {offset: 50, hasMoreResults: true}, data: {}}}],
+            jsonCode: CONST.JSON_CODE.SUCCESS,
+        };
+        let resolveFirstRequest: (value: SearchResponse) => void = () => {};
+        const firstRequestPromise = new Promise<SearchResponse>((resolve) => {
+            resolveFirstRequest = resolve;
+        });
+        const makeRequestWithSideEffectsMock = getMakeRequestWithSideEffectsMock();
+        makeRequestWithSideEffectsMock.mockImplementationOnce(() => firstRequestPromise);
+
+        const firstSearch = search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS,
+            offset: 50,
+            shouldCalculateTotals: false,
+            isLoading: false,
+        });
+        search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS,
+            offset: 50,
+            shouldCalculateTotals: true,
+            isLoading: false,
+        });
+
+        await Promise.resolve();
+        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(1);
+
+        resolveFirstRequest(response);
+        await firstSearch;
+        await Promise.resolve();
+
+        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(1);
+    });
+
+    it('does not queue another request when the in-flight search already calculates totals', async () => {
+        const queryJSON = getQueryJSON();
+        const response: SearchResponse = {
+            onyxData: [{value: {search: {offset: 50, hasMoreResults: true}, data: {}}}],
+            jsonCode: CONST.JSON_CODE.SUCCESS,
+        };
+        let resolveFirstRequest: (value: SearchResponse) => void = () => {};
+        const firstRequestPromise = new Promise<SearchResponse>((resolve) => {
+            resolveFirstRequest = resolve;
+        });
+        const makeRequestWithSideEffectsMock = getMakeRequestWithSideEffectsMock();
+        makeRequestWithSideEffectsMock.mockImplementationOnce(() => firstRequestPromise);
+
+        const firstSearch = search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 50,
+            shouldCalculateTotals: true,
+            isLoading: false,
+        });
+        search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 50,
+            shouldCalculateTotals: true,
+            isLoading: false,
+        });
+
+        await Promise.resolve();
+        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(1);
+
+        resolveFirstRequest(response);
+        await firstSearch;
+
+        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(1);
     });
 
     it('dedupes concurrent search requests by hash and offset', async () => {

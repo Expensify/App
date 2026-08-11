@@ -9,6 +9,7 @@ import {isGroupEntry} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -44,6 +45,23 @@ function getGroupCount(group: unknown): number {
     }
 
     return 0;
+}
+
+function getTransactionCount(transactionKeys: string[], transactions: SelectedTransactions, searchData: SearchResults['data'] | undefined): number {
+    return transactionKeys.reduce((count, key) => {
+        if (isGroupEntry(key)) {
+            return count + getGroupCount(searchData?.[key]);
+        }
+        const item = transactions[key];
+        if (item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID) {
+            return count;
+        }
+        return count + 1;
+    }, 0);
+}
+
+function getTransactionTotal(transactions: SelectedTransactionInfo[]): number {
+    return transactions.reduce((total, transaction) => total - (transaction.groupAmount ?? -Math.abs(transaction.amount)), 0);
 }
 
 // The live default-currency figure a row contributes to the footer total (also what the footer falls back to before a
@@ -84,7 +102,7 @@ function areAllSelectedReportsConverted(selectedReportIDs: string[], isReportFre
 // Self-subscribing footer leaf. Owns the `selectedTransactions` read so a checkbox press re-renders only this
 // footer — not SearchPage and the <Search> list it contains.
 function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
-    const {selectedTransactions, areAllMatchingItemsSelected, selectedReports} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected, selectedReports} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true, areAllMatchingItemsSelected);
@@ -125,26 +143,25 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const metadataCurrency = metadata?.currency;
     const metadataTotal = metadata?.total;
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
+    const excludedTransactionsKeys = useMemo(() => Object.keys(excludedTransactions), [excludedTransactions]);
+    const isExpenseType = currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
     const selectedExpenseCount = useMemo(
-        () =>
-            selectedTransactionsKeys.reduce((count, key) => {
-                if (isGroupEntry(key)) {
-                    const group: unknown = currentSearchResults?.data?.[key];
-                    return count + getGroupCount(group);
-                }
-                const item = selectedTransactions[key];
-                if (item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID) {
-                    return count;
-                }
-                return count + 1;
-            }, 0),
+        () => getTransactionCount(selectedTransactionsKeys, selectedTransactions, currentSearchResults?.data),
         [currentSearchResults?.data, selectedTransactions, selectedTransactionsKeys],
+    );
+    const excludedExpenseCount = useMemo(
+        () => (isExpenseType ? getTransactionCount(excludedTransactionsKeys, excludedTransactions, currentSearchResults?.data) : 0),
+        [currentSearchResults?.data, excludedTransactions, excludedTransactionsKeys, isExpenseType],
     );
 
     // Individually-selected transactions (loose rows in a grouped view, or every row on a flat search).
     const selectedTransactionIDs = useMemo(
         () => selectedTransactionsKeys.map((key) => selectedTransactions[key]?.transaction?.transactionID).filter((transactionID): transactionID is string => !!transactionID),
         [selectedTransactions, selectedTransactionsKeys],
+    );
+    const excludedTransactionIDs = useMemo(
+        () => excludedTransactionsKeys.map((key) => excludedTransactions[key]?.transaction?.transactionID).filter((transactionID): transactionID is string => !!transactionID),
+        [excludedTransactions, excludedTransactionsKeys],
     );
     const selectedReportIDs = useMemo(() => {
         if (!isReportsSearch) {
@@ -153,27 +170,34 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         return selectedReports.map((report) => report.reportID).filter((reportID): reportID is string => !!reportID);
     }, [isReportsSearch, selectedReports]);
     const selectedGroupKeys = useMemo(() => selectedTransactionsKeys.filter(isGroupEntry), [selectedTransactionsKeys]);
+    const excludedGroupKeys = useMemo(() => excludedTransactionsKeys.filter(isGroupEntry), [excludedTransactionsKeys]);
 
     // Live default-currency source figures, keyed the same way as the conversion cache, captured from the current
     // selection/snapshot on every render. The freshness checks below compare these to the figures stamped when each
     // conversion was requested.
     const transactionSourceByID = useMemo(() => {
         const sources: Record<string, number> = {};
-        for (const key of selectedTransactionsKeys) {
-            const transactionID = selectedTransactions[key]?.transaction?.transactionID;
-            if (!isGroupEntry(key) && transactionID) {
-                sources[transactionID] = getEntrySource(selectedTransactions[key]);
+        for (const transactions of [selectedTransactions, excludedTransactions]) {
+            for (const [key, transaction] of Object.entries(transactions)) {
+                const transactionID = transaction.transaction?.transactionID;
+                if (!isGroupEntry(key) && transactionID) {
+                    sources[transactionID] = getEntrySource(transaction);
+                }
             }
         }
         return sources;
-    }, [selectedTransactions, selectedTransactionsKeys]);
+    }, [excludedTransactions, selectedTransactions]);
     const groupSourceByKey = useMemo(() => {
         const sources: Record<string, number> = {};
-        for (const key of selectedGroupKeys) {
-            sources[key] = getEntrySource(selectedTransactions[key]);
+        for (const transactions of [selectedTransactions, excludedTransactions]) {
+            for (const [key, transaction] of Object.entries(transactions)) {
+                if (isGroupEntry(key)) {
+                    sources[key] = getEntrySource(transaction);
+                }
+            }
         }
         return sources;
-    }, [selectedGroupKeys, selectedTransactions]);
+    }, [excludedTransactions, selectedTransactions]);
 
     // Source figures for every loaded group, not just the selected ones. The grouped response caches every group's
     // converted value, so stamping them all lets a later selection of another group reuse the cache instead of
@@ -277,12 +301,26 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
               );
     }, [hasCustomFooterCurrency, isGroupFresh, isReportFresh, isReportsSearch, isTransactionFresh, selectedCurrency, selectedReportIDs, selectedTransactions]);
 
+    const hasExcludedExpenses = isExpenseType && excludedTransactionsKeys.length > 0;
+    const areAllExcludedConverted = useMemo(() => {
+        if (!hasCustomFooterCurrency || !selectedCurrency || !hasExcludedExpenses) {
+            return false;
+        }
+        return areAllSelectedEntriesConverted(
+            excludedTransactions,
+            (key) => isGroupFresh(key, selectedCurrency),
+            (transactionID) => isTransactionFresh(transactionID, selectedCurrency),
+        );
+    }, [excludedTransactions, hasCustomFooterCurrency, hasExcludedExpenses, isGroupFresh, isTransactionFresh, selectedCurrency]);
+
     // Show the loading skeleton only while a conversion can still arrive — there is something to convert, the request
     // can be made (online) and hasn't failed. Otherwise the footer stays on the default-currency total instead of a
     // skeleton that would never resolve.
     const isFooterTotalConverting =
-        !isOffline && !hasConversionFailed && hasCustomFooterCurrency && (shouldUseClientTotal ? hasConvertibleSelection && !areAllSelectedConverted : !isSearchTotalFresh);
-
+        !isOffline &&
+        !hasConversionFailed &&
+        hasCustomFooterCurrency &&
+        (shouldUseClientTotal ? hasConvertibleSelection && !areAllSelectedConverted : !isSearchTotalFresh || (hasExcludedExpenses && !areAllExcludedConverted));
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
     // Fetch converted figures whenever a custom currency is chosen and no request has covered what the footer needs.
@@ -346,6 +384,29 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             return;
         }
 
+        if (excludedGroupKeys.some((key) => !wasGroupRequested(key, selectedCurrency))) {
+            const groupSources = {...loadedGroupSourceByKey, ...groupSourceByKey};
+            getFooterConvertedAmounts({
+                queryJSON: currentSearchQueryJSON,
+                searchKey: currentSearchKey,
+                targetCurrency: selectedCurrency,
+                sources: {groups: Object.fromEntries(Object.entries(groupSources).map(([key, source]) => [key, {[selectedCurrency]: source}]))},
+            });
+        }
+
+        const excludedTransactionIDsToConvert = excludedTransactionIDs.filter((transactionID) => !wasTransactionRequested(transactionID, selectedCurrency));
+        if (excludedTransactionIDsToConvert.length > 0) {
+            getFooterConvertedAmounts({
+                queryJSON: currentSearchQueryJSON,
+                searchKey: currentSearchKey,
+                targetCurrency: selectedCurrency,
+                transactionIDList: excludedTransactionIDsToConvert.join(','),
+                sources: {
+                    transactions: Object.fromEntries(excludedTransactionIDsToConvert.map((transactionID) => [transactionID, {[selectedCurrency]: transactionSourceByID[transactionID]}])),
+                },
+            });
+        }
+
         // Nothing/everything selected: fetch the whole-search converted grand total (returned keyed by the search
         // hash — flat via the window total, reports via searchTotalsMetadata, grouped via the summed groups).
         if (!wasSearchTotalRequested) {
@@ -361,6 +422,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         currentSearchHash,
         currentSearchKey,
         currentSearchQueryJSON,
+        excludedGroupKeys,
+        excludedTransactionIDs,
         groupSourceByKey,
         hasCustomFooterCurrency,
         loadedGroupSourceByKey,
@@ -426,19 +489,46 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             return {count: selectedExpenseCount, total, currency: shouldUseConvertedSelectedTotal ? selectedCurrency : fallbackCurrency};
         }
 
-        if (hasCustomFooterCurrency && isSearchTotalFresh && !hasConversionFailed && selectedCurrencyConvertedTotal) {
-            return {count: selectedCurrencyConvertedTotal.count, total: selectedCurrencyConvertedTotal.total, currency: selectedCurrency};
+        if (hasCustomFooterCurrency && isSearchTotalFresh && (!hasExcludedExpenses || areAllExcludedConverted) && !hasConversionFailed && selectedCurrencyConvertedTotal) {
+            const excludedConvertedTotal = hasExcludedExpenses
+                ? excludedTransactionsKeys.reduce((total, key) => {
+                      const transaction = excludedTransactions[key];
+                      const transactionID = transaction.transaction?.transactionID;
+                      let convertedAmount;
+                      if (isGroupEntry(key)) {
+                          convertedAmount = convertedGroups?.[key]?.[selectedCurrency];
+                      } else if (transactionID) {
+                          convertedAmount = convertedTransactions?.[transactionID]?.[selectedCurrency];
+                      }
+                      return total - (convertedAmount ?? transaction.groupAmount ?? -Math.abs(transaction.amount));
+                  }, 0)
+                : 0;
+            return {
+                count: Math.max(selectedCurrencyConvertedTotal.count - excludedExpenseCount, 0),
+                total: selectedCurrencyConvertedTotal.total - excludedConvertedTotal,
+                currency: selectedCurrency,
+            };
         }
 
-        return {count: metadataCount, total: metadataTotal, currency: effectiveDefaultCurrency ?? metadataCurrency};
+        const excludedTotal = hasExcludedExpenses ? getTransactionTotal(Object.values(excludedTransactions)) : 0;
+        return {
+            count: metadataCount === undefined ? undefined : Math.max(metadataCount - excludedExpenseCount, 0),
+            total: metadataTotal === undefined ? undefined : metadataTotal - excludedTotal,
+            currency: effectiveDefaultCurrency ?? metadataCurrency,
+        };
     }, [
         areAllSelectedConverted,
+        areAllExcludedConverted,
         convertedGroups,
         convertedReports,
         convertedTransactions,
         effectiveDefaultCurrency,
+        excludedExpenseCount,
+        excludedTransactions,
+        excludedTransactionsKeys,
         hasConversionFailed,
         hasCustomFooterCurrency,
+        hasExcludedExpenses,
         isReportsSearch,
         isSearchTotalFresh,
         metadataCount,
