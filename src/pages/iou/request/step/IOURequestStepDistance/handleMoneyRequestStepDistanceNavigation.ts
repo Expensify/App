@@ -102,7 +102,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     conciergeReportID: string | undefined;
-    /** The Concierge chat report, threaded so the onboarding data no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
     conciergeChat: OnyxEntry<Report>;
     optimisticTransactionID: string;
     optimisticChatReportID: string | undefined;

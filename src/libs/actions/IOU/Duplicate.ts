@@ -775,7 +775,6 @@ type DuplicateExpenseTransactionParams = {
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    /** The Concierge chat report, threaded so the onboarding data no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
@@ -950,7 +949,6 @@ type DuplicateReportParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    /** The Concierge chat report, threaded so the onboarding data no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
@@ -1125,7 +1123,6 @@ type BulkDuplicateExpensesParams = {
     delegateAccountID: number | undefined;
     policyTagList: OnyxTypes.PolicyTagLists;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    /** The Concierge chat report, threaded so the onboarding data no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
@@ -1291,7 +1288,6 @@ type BulkDuplicateReportsParams = {
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    /** The Concierge chat report, threaded so the onboarding data no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 

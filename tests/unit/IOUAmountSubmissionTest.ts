@@ -218,6 +218,7 @@ describe('AmountSubmission', () => {
                 amountOwed: undefined,
                 ownerBillingGracePeriodEnd: undefined,
                 conciergeReportID: undefined,
+                conciergeChat: undefined,
                 isTrackIntentUser: false,
                 ...overrides,
             };

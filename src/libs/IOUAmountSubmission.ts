@@ -104,6 +104,7 @@ type SubmitAmountArgs = {
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     conciergeReportID: OnyxEntry<string>;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
 /**
@@ -322,14 +323,12 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         storedTransaction,
         policyRecentlyUsedCurrencies,
         allPersonalDetails,
-        allReports,
-        conciergeReportID,
+        conciergeChat,
         action,
         currentUserPersonalDetails,
         isTrackIntentUser,
     } = args;
     const {currentUserAccountID, currentUserEmail, existingTransactionID, isASAPSubmitBetaEnabled, newAmount: backendAmount} = ctx;
-    const conciergeChat = conciergeReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`] : undefined;
 
     if (iouType !== CONST.IOU.TYPE.SUBMIT && iouType !== CONST.IOU.TYPE.REQUEST && iouType !== CONST.IOU.TYPE.TRACK) {
         return;

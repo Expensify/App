@@ -102,7 +102,6 @@ type CreateTransactionParams = {
     currentUserLocalCurrency: string | undefined;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
-    /** The Concierge chat report, threaded so the onboarding data no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
     conciergeChat: OnyxEntry<Report>;
 };
 
