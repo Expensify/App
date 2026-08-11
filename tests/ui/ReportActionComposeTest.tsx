@@ -21,7 +21,6 @@ import type * as NativeNavigation from '@react-navigation/native';
 import type {PropsWithChildren} from 'react';
 
 import React from 'react';
-import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -135,7 +134,7 @@ describe('ReportActionCompose Integration Tests', () => {
     });
 
     beforeEach(async () => {
-        mockUseAttachmentPicker.mockReturnValue({pickAttachments: mockPickAttachments, PDFValidationComponent: undefined, ErrorModal: <View />});
+        mockUseAttachmentPicker.mockReturnValue({pickAttachments: mockPickAttachments, PDFValidationComponent: undefined});
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${defaultReport.reportID}`, defaultReport);
         });
