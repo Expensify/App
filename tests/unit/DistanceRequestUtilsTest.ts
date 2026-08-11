@@ -418,6 +418,38 @@ describe('DistanceRequestUtils', () => {
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
             });
         });
+
+        it('clamps a stored exclusion that is larger than the distance', () => {
+            const result = DistanceRequestUtils.getCommuterExclusionDisplayData(
+                {
+                    quantity: 4,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    commuterExclusion: 20,
+                    reimbursableDistance: 0,
+                },
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            );
+
+            expect(result).toEqual({
+                commuterExclusion: 4,
+                reimbursableDistance: 0,
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            });
+        });
+
+        it('returns null when the distance is zero', () => {
+            const result = DistanceRequestUtils.getCommuterExclusionDisplayData(
+                {
+                    quantity: 0,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    commuterExclusion: 20,
+                    reimbursableDistance: 0,
+                },
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            );
+
+            expect(result).toBeNull();
+        });
     });
 
     describe('getTransactionCommuterExclusionData', () => {

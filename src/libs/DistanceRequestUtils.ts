@@ -324,14 +324,24 @@ function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): n
 }
 
 function getCommuterExclusionDisplayData(customUnit: TransactionCustomUnit | undefined, distanceUnit: Unit): CommuterExclusionData | null {
-    const commuterExclusion = customUnit?.commuterExclusion;
-    if (typeof commuterExclusion !== 'number' || commuterExclusion <= 0) {
+    const storedCommuterExclusion = customUnit?.commuterExclusion;
+    if (typeof storedCommuterExclusion !== 'number' || storedCommuterExclusion <= 0) {
+        return null;
+    }
+
+    // The backend stores the policy's full fixed distance, which can exceed the expense's distance (e.g. the
+    // exclusion was raised to 20 mi after a 4 mi expense was created). Only the part of it that was actually
+    // deducted may be displayed, otherwise the original distance (reimbursable + exclusion) overshoots the
+    // expense's own distance.
+    const quantity = customUnit?.quantity;
+    const commuterExclusion = typeof quantity === 'number' ? Math.min(storedCommuterExclusion, Math.max(0, quantity)) : storedCommuterExclusion;
+    if (commuterExclusion <= 0) {
         return null;
     }
 
     return {
         commuterExclusion,
-        reimbursableDistance: typeof customUnit?.reimbursableDistance === 'number' ? customUnit.reimbursableDistance : Math.max(0, (customUnit?.quantity ?? 0) - commuterExclusion),
+        reimbursableDistance: typeof customUnit?.reimbursableDistance === 'number' ? customUnit.reimbursableDistance : Math.max(0, (quantity ?? 0) - commuterExclusion),
         distanceUnit: customUnit?.distanceUnit ?? distanceUnit,
     };
 }
