@@ -5639,6 +5639,11 @@ ${amount} para ${merchant} - ${date}`,
             subsidiarySelectDescription: 'Elige la filial en DualEntry de la que te gustaría importar datos.',
             noCompaniesFound: 'No se han encontrado empresas',
             noCompaniesFoundDescription: 'Por favor, añade una empresa en DualEntry y sincroniza la conexión de nuevo',
+            accountTypesDescription: 'Tus cuentas de DualEntry se importarán como categorías.',
+            enableNewAccountsTitle: 'Habilitar cuentas recién importadas',
+            enableNewAccountsDescription: 'Las nuevas cuentas DualEntry estarán disponibles como categorías.',
+            classificationsImport: 'Todas las clasificaciones de DualEntry se importan como etiquetas',
+            importDescription: 'Elige qué configuraciones de codificación importar desde DualEntry.',
         },
         type: {
             free: 'Gratis',
@@ -8662,6 +8667,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             }),
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la configuración de facturas de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la configuración de viaje de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+        },
+        updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
+            return `cambió los asistentes de la categoría «${categoryName}» a ${newValue ? 'obligatorio' : 'no es obligatorio'} (previamente ${newValue ? 'no es obligatorio' : 'obligatorio'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'habilitado' : 'desactivado'} envíos`,
         updatedCurrencyConversionFee: ({preference}: {preference: 'company' | 'employee'}) =>

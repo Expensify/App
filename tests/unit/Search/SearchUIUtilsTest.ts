@@ -5327,9 +5327,8 @@ describe('SearchUIUtils', () => {
             expect(result).toHaveLength(1);
             expect(count).toBe(1);
             expect(result.at(0)?.reportName).toBe('Fix the login bug');
-            // formatPhoneNumber replaces regular spaces with non-breaking spaces (\u00A0)
-            expect(result.at(0)?.formattedAssignee).toBe('Task\u00A0Assignee');
-            expect(result.at(0)?.formattedCreatedBy).toBe('Task\u00A0Creator');
+            expect(result.at(0)?.formattedAssignee).toBe('Task Assignee');
+            expect(result.at(0)?.formattedCreatedBy).toBe('Task Creator');
             expect(result.at(0)?.keyForList).toBe(taskReportID);
         });
 
@@ -11161,6 +11160,7 @@ describe('SearchUIUtils', () => {
         const introSelectedData: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
         const currentUserLogin = 'test@example.com';
         const currentUserAccountID = 1;
+        const personalDetails: OnyxTypes.PersonalDetailsList = {[currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserLogin}};
         const baseParams = {
             item: transactionListItem,
             introSelected: introSelectedData,
@@ -11169,6 +11169,7 @@ describe('SearchUIUtils', () => {
             currentUserLogin,
             currentUserAccountID,
             betas: undefined,
+            personalDetails,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: true,
             IOUTransactionID: threadReportID,
@@ -11194,6 +11195,7 @@ describe('SearchUIUtils', () => {
                 iouReportAction: reportAction1,
                 transaction: undefined,
                 transactionViolations: undefined,
+                personalDetails,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: true,
             });

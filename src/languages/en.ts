@@ -5854,6 +5854,11 @@ const translations = {
             subsidiarySelectDescription: "Choose the subsidiary in DualEntry that you'd like to import data from.",
             noCompaniesFound: 'No companies found',
             noCompaniesFoundDescription: 'Please add a company in DualEntry and sync the connection again',
+            accountTypesDescription: 'Your DualEntry accounts will import as categories.',
+            enableNewAccountsTitle: 'Enable newly imported accounts',
+            enableNewAccountsDescription: 'New DualEntry accounts will be available as categories.',
+            classificationsImport: 'All DualEntry classifications import as tags',
+            importDescription: 'Choose which coding configurations to import from DualEntry.',
         },
         type: {
             free: 'Free',
@@ -8394,6 +8399,9 @@ const translations = {
         },
         updateAreCommentsRequired: (categoryName: string, oldValue: boolean) => {
             return `changed the "${categoryName}" category description to ${!oldValue ? 'required' : 'not required'} (previously ${!oldValue ? 'not required' : 'required'})`;
+        },
+        updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
+            return `changed the "${categoryName}" category attendees to ${newValue ? 'required' : 'not required'} (previously ${newValue ? 'not required' : 'required'})`;
         },
         updateCategoryMaxExpenseAmount: (categoryName: string, newAmount?: string, oldAmount?: string) => {
             if (newAmount && !oldAmount) {
