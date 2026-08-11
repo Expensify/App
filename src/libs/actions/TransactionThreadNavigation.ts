@@ -114,4 +114,3 @@ function clearActiveTransactionIDs() {
 }
 
 export {setActiveTransactionIDs, clearActiveTransactionIDs, getActiveTransactionIDs, getActiveTransactionIDsSyncAction, shouldPreserveActiveTransactionIDs};
-export type {ActiveTransactionIDsSyncAction};
