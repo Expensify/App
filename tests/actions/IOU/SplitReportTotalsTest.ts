@@ -22,7 +22,7 @@ import Onyx from 'react-native-onyx';
 
 import currencyList from '../../unit/currencyList.json';
 import createMock from '../../utils/createMock';
-import {getGlobalFetchMock, formatPhoneNumber} from '../../utils/TestHelper';
+import {getGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -460,6 +460,7 @@ describe('actions/IOU', () => {
                 participantsPolicyTags?: Record<string, PolicyTagLists>;
             } = {},
         ) => ({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: overrides.participants ?? [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
@@ -716,6 +717,7 @@ describe('actions/IOU', () => {
 
         function buildBaseParams(overrides: Record<string, unknown> = {}) {
             return {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 allTransactionsList: {},
                 allReportsList: {},
                 allReportActionsList: {},

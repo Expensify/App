@@ -1,5 +1,7 @@
 import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import {write as apiWrite} from '@libs/API';
 import type {RevertSplitTransactionParams, SplitTransactionParams, SplitTransactionSplitsParam} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -118,6 +120,7 @@ type UpdateSplitTransactionsParams = {
     isOffline: boolean;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 /**
@@ -199,6 +202,7 @@ function updateSplitTransactions({
     isOffline,
     delegateAccountID,
     isTrackIntentUser,
+    getCurrencyDecimals,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     // For selfDM-origin splits the caller can't resolve a real `expenseReport` (the draft/source
@@ -661,6 +665,7 @@ function updateSplitTransactions({
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
+            getCurrencyDecimals,
         } as MoneyRequestInformationParams;
 
         if (isReverseSplitOperation) {
@@ -775,6 +780,7 @@ function updateSplitTransactions({
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
+            getCurrencyDecimals,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};

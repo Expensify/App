@@ -96,7 +96,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
     const {type, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
     const {isOffline} = useNetwork();
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {convertToDisplayString} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
@@ -186,6 +186,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
         }
 
         const [filtered, allLength, hasDeletedTransactionFromSections] = getSections({
+            dateFnsLocale,
             type,
             data: searchDataWithOptimisticTransaction,
             currentAccountID: accountID,
@@ -243,6 +244,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
         convertToDisplayString,
         reportAttributesForSections,
         optimisticTransactionID,
+        dateFnsLocale,
     ]);
 
     // Stage 2: for grouped views, fetch each group's sub-snapshot and enrich it with its transactions.
@@ -266,6 +268,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
                 return item;
             }
             const [groupTransactions] = getSections({
+                dateFnsLocale,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 data: subSnapshot.data,
                 currentAccountID: accountID,
@@ -300,6 +303,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
         cardFeeds,
         conciergeReportID,
         convertToDisplayString,
+        dateFnsLocale,
     ]);
 
     // Stage 3: sort the (enriched) data. getSortedSections accepts the full section union; our

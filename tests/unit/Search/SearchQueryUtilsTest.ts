@@ -57,7 +57,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import createMock from 'tests/utils/createMock';
 
 import createRandomPolicy from '../../utils/collections/policies';
-import {localeCompare, translateLocal} from '../../utils/TestHelper';
+import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
 
 const mockGetRootState = jest.fn();
 
@@ -265,25 +265,25 @@ describe('SearchQueryUtils', () => {
 
     describe('getDateRangeDisplayValueFromFormValue', () => {
         test('returns full range display when both boundaries exist', () => {
-            const result = getDateRangeDisplayValueFromFormValue('2025-03-01,2025-03-10');
+            const result = getDateRangeDisplayValueFromFormValue(undefined, '2025-03-01,2025-03-10');
 
-            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', true));
+            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', undefined, true));
         });
 
         test('returns single boundary display when only one boundary exists', () => {
-            const result = getDateRangeDisplayValueFromFormValue('2025-03-01');
+            const result = getDateRangeDisplayValueFromFormValue(undefined, '2025-03-01');
 
-            expect(result).toBe(DateUtils.formatToReadableString('2025-03-01'));
+            expect(result).toBe(DateUtils.formatToReadableString('2025-03-01', undefined));
         });
 
         test('falls back to inclusive boundaries when range value is invalid', () => {
-            const result = getDateRangeDisplayValueFromFormValue('invalid', '2025-03-01', '2025-03-10');
+            const result = getDateRangeDisplayValueFromFormValue(undefined, 'invalid', '2025-03-01', '2025-03-10');
 
-            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-02', '2025-03-09', true));
+            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-02', '2025-03-09', undefined, true));
         });
 
         test('returns empty string when no valid range boundaries exist', () => {
-            const result = getDateRangeDisplayValueFromFormValue('invalid');
+            const result = getDateRangeDisplayValueFromFormValue(undefined, 'invalid');
 
             expect(result).toBe('');
         });
@@ -940,6 +940,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -971,6 +972,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -1007,6 +1009,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -1046,6 +1049,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -1070,6 +1074,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -1094,6 +1099,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -2094,9 +2100,10 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
-            expect(result).toBe('+15551234567');
+            expect(result).toBe(formatPhoneNumber('+15551234567@expensify.sms'));
             expect(result).not.toContain('@expensify.sms');
         });
 
@@ -2119,6 +2126,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('Jane Doe');
@@ -2143,6 +2151,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe(CONST.SEARCH.ME);
@@ -2161,6 +2170,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe(CONST.SEARCH.ME);
@@ -2179,6 +2189,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('88888');
@@ -2203,6 +2214,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('Custom Name');
@@ -2228,9 +2240,10 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
-            expect(result).toBe('+15551112222');
+            expect(result).toBe(formatPhoneNumber('+15551112222@expensify.sms'));
             expect(result).not.toContain('@expensify.sms');
         });
 
@@ -2261,9 +2274,10 @@ describe('SearchQueryUtils', () => {
                     policies: mockPolicies,
                     currentUserAccountID,
                     translate: translateLocal,
+                    formatPhoneNumber,
                 });
 
-                expect(result).toBe('+15553334444');
+                expect(result).toBe(formatPhoneNumber('+15553334444@expensify.sms'));
                 expect(result).not.toContain('@expensify.sms');
             }
         });
@@ -2731,6 +2745,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             // The result depends on getReportName internal logic, but
@@ -2750,6 +2765,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('nonexistent-report-id');
@@ -2766,6 +2782,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('1500');
@@ -2782,6 +2799,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT);
@@ -2804,6 +2822,7 @@ describe('SearchQueryUtils', () => {
                 policies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('My Workspace');
@@ -2820,6 +2839,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('GL:travel');
@@ -2846,6 +2866,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
                 bankAccountList,
             });
 
@@ -2863,6 +2884,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
                 bankAccountList: {},
             });
 
@@ -2901,6 +2923,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(2);
@@ -2929,6 +2952,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -2957,6 +2981,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -2985,6 +3010,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3005,6 +3031,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3033,6 +3060,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3061,6 +3089,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3090,6 +3119,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3111,6 +3141,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3131,6 +3162,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(0);
@@ -3171,6 +3203,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -3204,6 +3237,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -3236,6 +3270,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -3260,6 +3295,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: true,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
