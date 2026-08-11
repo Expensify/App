@@ -32,21 +32,23 @@ function WorkflowsSubmissionsTab({policyID}: WorkflowsSubmissionsTabProps) {
     const hasDelayedSubmissionError = !!(policy?.errorFields?.autoReporting ?? policy?.errorFields?.autoReportingFrequency);
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policyID)), [policyID]);
 
+    const onToggle = (isEnabled: boolean) => {
+        if (!canWriteWorkflows) {
+            showReadOnlyModal();
+            return;
+        }
+        if (!policy) {
+            return;
+        }
+        setWorkspaceAutoHarvesting(policy, isEnabled);
+    };
+
     return (
         <WorkflowsSectionCard
             title={translate('workflowsPage.submissionFrequency')}
             subtitle={translate('workflowsPage.submissionFrequencyDescription')}
             switchAccessibilityLabel={translate('workflowsPage.submissionFrequencyDescription')}
-            onToggle={(isEnabled: boolean) => {
-                if (!canWriteWorkflows) {
-                    showReadOnlyModal();
-                    return;
-                }
-                if (!policy) {
-                    return;
-                }
-                setWorkspaceAutoHarvesting(policy, isEnabled);
-            }}
+            onToggle={onToggle}
             subMenuItems={
                 <MenuItemWithTopDescription
                     title={getAutoReportingFrequencyDisplayNames(translate)[getCorrectedAutoReportingFrequency(policy) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]}
@@ -54,7 +56,6 @@ function WorkflowsSubmissionsTab({policyID}: WorkflowsSubmissionsTabProps) {
                     descriptionTextStyle={styles.textLabelSupportingNormal}
                     onPress={onPressAutoReportingFrequency}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTO_REPORTING_FREQUENCY}
-                    // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
                     description={translate('common.frequency')}
                     shouldShowRightIcon={canWriteWorkflows}
                     interactive={canWriteWorkflows}
@@ -62,6 +63,7 @@ function WorkflowsSubmissionsTab({policyID}: WorkflowsSubmissionsTabProps) {
                     brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             }
+            // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
             isActive={(policy?.autoReporting && !hasDelayedSubmissionError) ?? false}
             pendingAction={policy?.pendingFields?.autoReporting ?? policy?.pendingFields?.autoReportingFrequency}
             errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING)}
