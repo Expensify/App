@@ -539,7 +539,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             });
         };
         const handleFixValidationFailedPress =
-            bankConnectionStatus?.requiresFixHandler && bankAccountID ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(bankAccountID))) : undefined;
+            bankConnectionStatus?.requiresFixHandler && bankAccountID
+                ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(bankAccountID.toString())))
+                : undefined;
         let bankAccountMenuItemOnPress: React.ComponentProps<typeof MenuItem>['onPress'];
         if (canAccessWalletConnectionStatusFeatures) {
             bankAccountMenuItemOnPress = canInteractWithBankAccountRow ? handleBankAccountPress : undefined;
