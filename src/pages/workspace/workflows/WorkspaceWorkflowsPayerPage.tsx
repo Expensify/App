@@ -216,7 +216,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             return;
         }
 
-        // The backend only accepts the policy's withdrawal account, so without one there is nothing to share
+        // Auth accepts only the withdrawal account of the policy. If the policy has none, there is nothing to share.
         if (isManualReimbursement || !policyBankAccountID) {
             onButtonPress();
             return;

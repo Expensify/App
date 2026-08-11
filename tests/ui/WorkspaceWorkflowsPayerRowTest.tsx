@@ -416,7 +416,7 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
                 }),
             );
 
-            // Associated with the policy but not its withdrawal account, which the policy does not have
+            // This account is linked to the policy. It is not the withdrawal account, because the policy has none.
             await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
                 [bankAccountID]: {
                     methodID: bankAccountID,
