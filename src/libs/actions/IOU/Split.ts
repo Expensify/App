@@ -2229,6 +2229,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             delegateAccountID,
             isTrackIntentUser,
             optimisticChatReportID,
+            formatPhoneNumber,
             getCurrencyDecimals,
         });
 

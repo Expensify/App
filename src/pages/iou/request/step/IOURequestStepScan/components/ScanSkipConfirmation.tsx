@@ -311,6 +311,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             isTrackIntentUser,
             delegateAccountID,
             conciergeChat,
+            formatPhoneNumber,
         };
 
         const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;

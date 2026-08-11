@@ -102,10 +102,11 @@ type CreateTransactionParams = {
     currentUserLocalCurrency: string | undefined;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
-    /** The Concierge chat report, threaded so the onboarding data no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
     conciergeChat: OnyxEntry<Report>;
 };
+
 type SetMoneyRequestCommuterExclusionFieldsParams = {
     transactionID: string;
     transaction: OnyxEntry<Transaction>;
@@ -147,6 +148,7 @@ function createTransaction({
     currentUserLocalCurrency,
     isTrackIntentUser,
     delegateAccountID,
+    formatPhoneNumber,
     getCurrencyDecimals,
     conciergeChat,
 }: CreateTransactionParams) {
@@ -256,6 +258,7 @@ function createTransaction({
                 optimisticTransactionID,
                 isTrackIntentUser,
                 delegateAccountID,
+                formatPhoneNumber,
                 getCurrencyDecimals,
             });
         }

@@ -83,7 +83,7 @@ function SubmitDetailsPage({
     },
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
@@ -457,6 +457,7 @@ function SubmitDetailsPage({
                     optimisticTransactionID,
                     isTrackIntentUser,
                     delegateAccountID,
+                    formatPhoneNumber,
                     optimisticChatReportID: routeReportID,
                 });
             }

@@ -873,6 +873,7 @@ function duplicateExpenseTransaction({
         shouldDeferAutoSubmit,
         isTrackIntentUser,
         delegateAccountID,
+        formatPhoneNumber,
         getCurrencyDecimals,
     };
 
@@ -1109,6 +1110,7 @@ function duplicateReport({
             shouldDeferAutoSubmit: !isLastExpense,
             isTrackIntentUser,
             delegateAccountID,
+            formatPhoneNumber,
             getCurrencyDecimals,
         };
 
