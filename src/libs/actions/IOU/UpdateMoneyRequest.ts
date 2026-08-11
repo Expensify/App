@@ -30,6 +30,7 @@ import {
     getDistanceRateTaxUpdates,
     getMerchant,
     getUpdatedTransaction,
+    hasLocallyKnownDistance,
     hasSubmissionBlockingViolationInReport,
     haveWaypointAddressesChanged,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -1701,7 +1702,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     // Step 3: Build the modified expense report actions
     // We don't create a modified report action if:
     // - we're updating the waypoints (unless it's a split transaction with computed merchant + amount)
-    // - we're updating the distance rate while the waypoints are still pending
+    // - we're updating the distance rate while the waypoints are still pending AND the distance isn't known locally
     // - we're merging two expenses (server does not create MODIFIED_EXPENSE in this flow)
     // In these cases, there isn't a valid optimistic mileage data we can use,
     // and the report action is created on the server with the distance-related response from the MapBox API.
@@ -1721,7 +1722,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         : null;
     if (
         (!hasPendingWaypoints || hasSplitDistanceMessageFields || hasDistanceWithWaypoints) &&
-        !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction)) &&
+        !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction) && !hasLocallyKnownDistance(transaction)) &&
         updatedReportAction
     ) {
         apiParams.reportActionID = updatedReportAction.reportActionID;
@@ -2293,7 +2294,7 @@ function getUpdateTrackExpenseParams(
     // Step 3: Build the modified expense report actions
     // We don't create a modified report action if:
     // - we're updating the waypoints
-    // - we're updating the distance rate while the waypoints are still pending
+    // - we're updating the distance rate while the waypoints are still pending AND the distance isn't known locally
     // - we're merging two expenses (server does not create MODIFIED_EXPENSE in this flow)
     // In these cases, there isn't a valid optimistic mileage data we can use,
     // and the report action is created on the server with the distance-related response from the MapBox API
@@ -2301,7 +2302,7 @@ function getUpdateTrackExpenseParams(
     const updatedReportAction = shouldBuildOptimisticModifiedExpenseReportAction
         ? buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false, policy, delegateAccountID, updatedTransaction, allowNegative)
         : null;
-    if (!hasPendingWaypoints && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction)) && updatedReportAction) {
+    if (!hasPendingWaypoints && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction) && !hasLocallyKnownDistance(transaction)) && updatedReportAction) {
         apiParams.reportActionID = updatedReportAction.reportActionID;
 
         optimisticData.push({
