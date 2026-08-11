@@ -73,11 +73,15 @@ function cancelAllSpans() {
     }
 }
 
+/**
+ * Cancels children before parents, since Sentry drops a descendant still running when its parent ends. A
+ * child is always registered after the parent it hangs off, so reverse insertion order is children-first.
+ * Iterates a snapshot, so `reverse` and the deletes in `cancelSpan` never touch a live iterator.
+ */
 function cancelSpansByPrefix(prefix: string) {
-    for (const [spanID] of activeSpans.entries()) {
-        if (spanID.startsWith(prefix)) {
-            cancelSpan(spanID);
-        }
+    const spanIDs = [...activeSpans.keys()].filter((spanID) => spanID.startsWith(prefix));
+    for (const spanID of spanIDs.reverse()) {
+        cancelSpan(spanID);
     }
 }
 
