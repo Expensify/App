@@ -1,4 +1,4 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -24,19 +24,35 @@ const FAKE_TRANSACTION_ID = '2';
 const FAKE_EMAIL = 'fake@gmail.com';
 const FAKE_ACCOUNT_ID = 1;
 const FAKE_SECOND_ACCOUNT_ID = 2;
+const mockShowConfirmModal = jest.fn();
+
+jest.mock('@hooks/useConfirmModal', () => () => ({
+    showConfirmModal: mockShowConfirmModal,
+}));
 
 /**
  * Helper function to render the IOURequestEditReportCommon component with required providers.
  * This encapsulates the component setup and makes tests more readable.
  */
-const renderIOURequestEditReportCommon = ({selectedReportID = '', selectedPolicyID}: {selectedReportID: string; selectedPolicyID?: string}) =>
+const renderIOURequestEditReportCommon = ({
+    selectedReportID = '',
+    selectedPolicyID,
+    transactionIDs,
+    selectReport = jest.fn(),
+}: {
+    selectedReportID: string;
+    selectedPolicyID?: string;
+    transactionIDs?: string[];
+    selectReport?: jest.Mock;
+}) =>
     render(
         <NavigationContainer>
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                 <IOURequestEditReportCommon
                     selectedReportID={selectedReportID}
                     selectedPolicyID={selectedPolicyID}
-                    selectReport={jest.fn()}
+                    transactionIDs={transactionIDs}
+                    selectReport={selectReport}
                     backTo=""
                     isPerDiemRequest={false}
                 />
@@ -109,6 +125,41 @@ describe('IOURequestEditReportCommon', () => {
             // Then do not show RBR
             const dotIndicators = screen.queryAllByTestId(CONST.DOT_INDICATOR_TEST_ID);
             expect(dotIndicators).toHaveLength(0);
+        });
+
+        it('blocks moving a manual distance expense to a report with commuter exclusions', async () => {
+            const currentReport: Report = {
+                reportID: 'currentReport',
+                reportName: 'Current Report',
+                ownerAccountID: FAKE_ACCOUNT_ID,
+                policyID: 'currentPolicy',
+            };
+            const selectReport = jest.fn();
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${currentReport.reportID}`, currentReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}`, {
+                    transactionID: FAKE_TRANSACTION_ID,
+                    reportID: currentReport.reportID,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, {
+                    ...createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
+                    commuterExclusions: {
+                        method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                        fixedDistance: 1,
+                        fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderIOURequestEditReportCommon({selectedReportID: currentReport.reportID, transactionIDs: [FAKE_TRANSACTION_ID], selectReport});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText('Expense Report'));
+
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+            expect(selectReport).not.toHaveBeenCalled();
         });
     });
 
