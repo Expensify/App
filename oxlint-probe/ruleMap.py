@@ -76,11 +76,6 @@ PORT_PLAN = {
         'effort': 'blocked', 'proven': False,
         'notes': 'wait for typed jsPlugins',
     },
-    '@typescript-eslint/naming-convention': {
-        'mechanism': 'blocked - tsgolint explicitly lists it as not implemented',
-        'effort': 'blocked', 'proven': False,
-        'notes': 'upstream: oxlint-tsgolint README, one of only 2 unimplemented type-aware rules',
-    },
     '@typescript-eslint/no-unnecessary-type-assertion': {
         'mechanism': 'implemented in tsgolint, but tsgo (TS7) inference diverges from TS 6.0.2',
         'effort': 'blocked', 'proven': False,
@@ -117,6 +112,7 @@ HOSTED_RULE_ORIGIN = {
     'prefer-default-export': 'import',
     'order': 'import',
     'no-types': 'jsdoc',
+    'naming-convention': '@typescript-eslint',
 }
 
 
@@ -288,14 +284,25 @@ def js_plugin_rules(config_path=None):
     host whole ESLint plugins by bare package name (eslint-plugin-testing-library,
     eslint-plugin-react-native-a11y, eslint-plugin-you-dont-need-lodash-underscore,
     eslint-plugin-lodash, @dword-design/eslint-plugin-import-alias).
+
+    An entry may also be oxlint's documented object form, {"name": ..., "specifier": ...},
+    which declares the alias in the config instead of leaving it to the plugin's meta.name.
+    A declared name wins, exactly as it does in oxlint.
     """
     path = config_path or os.path.join(ROOT, '.oxlintrc.json')
     config_dir = os.path.dirname(os.path.abspath(path))
     config = load_jsonc(path)
-    plugins = list(config.get('jsPlugins') or [])
+    entries = list(config.get('jsPlugins') or [])
     for override in config.get('overrides', []):
-        plugins.extend(override.get('jsPlugins') or [])
-    plugins = list(dict.fromkeys(plugins))
+        entries.extend(override.get('jsPlugins') or [])
+    declared = {}
+    plugins = []
+    for entry in entries:
+        spec = entry['specifier'] if isinstance(entry, dict) else entry
+        if isinstance(entry, dict) and entry.get('name'):
+            declared[spec] = entry['name']
+        if spec not in plugins:
+            plugins.append(spec)
     if not plugins:
         return {}
     script = (
@@ -312,17 +319,18 @@ def js_plugin_rules(config_path=None):
         'console.log(JSON.stringify(out));'
     )
     # relative paths resolve against the config file; bare specifiers are npm packages
-    specs = [os.path.abspath(os.path.join(config_dir, spec)) if spec.startswith('.') else spec for spec in plugins]
-    out = subprocess.run(['node', '--input-type=module', '-e', script, '--', *specs], capture_output=True, text=True, cwd=ROOT)
+    resolved = {spec: (os.path.abspath(os.path.join(config_dir, spec)) if spec.startswith('.') else spec) for spec in plugins}
+    declared_by_resolved = {resolved[spec]: name for spec, name in declared.items()}
+    out = subprocess.run(['node', '--input-type=module', '-e', script, '--', *resolved.values()], capture_output=True, text=True, cwd=ROOT)
     try:
         hosted = json.loads(out.stdout.strip().splitlines()[-1])
     except (json.JSONDecodeError, IndexError):
         return {}
     mapping = {}
     for spec, plugin in hosted.items():
-        # oxlint prefixes rules with the plugin's meta.name (or the package name when meta is
-        # missing), always with the eslint-plugin- marker stripped: @scope/eslint-plugin-x -> @scope/x
-        raw = plugin['name'] or (os.path.basename(spec) if spec.startswith('/') else spec)
+        # oxlint prefixes rules with the declared name, else the plugin's meta.name (else the
+        # package name), always with the eslint-plugin- marker stripped: @scope/eslint-plugin-x -> @scope/x
+        raw = declared_by_resolved.get(spec) or plugin['name'] or (os.path.basename(spec) if spec.startswith('/') else spec)
         alias = re.sub(r'(^|/)eslint-plugin-', r'\1', raw)
         for rule in plugin['rules']:
             mapping[norm_ox_config(f'{alias}/{rule}')] = alias

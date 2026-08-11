@@ -31,6 +31,12 @@
         "why": "WIRED 2026-08-10; not implemented natively (oxfmt also enforces a stricter grouping)"
     },
     "jsdoc/no-types": {"fixture": "fixtures/jsdocNoTypes.ts", "oxlintRule": "hosted/no-types", "expected": 2, "why": "WIRED 2026-08-10; not implemented natively in oxlint"},
+    "@typescript-eslint/naming-convention": {
+        "fixture": "fixtures/namingConvention.ts",
+        "oxlintRule": "hosted/naming-convention",
+        "expected": 6,
+        "why": "tsgolint lists it unimplemented, but our options never query types -- hosted with stubbed parser services. The 6th finding is the quoted 'foo-bar' property: our options define no requiresQuotes entry, so it is checked like any other property. Both tools agree, which is what proves the stubbed compilerOptions.target is harmless"
+    },
     "rulesdir/no-inline-useOnyx-selector": {
         "fixture": "fixtures/inlineUseOnyxSelector.ts",
         "oxlintRule": "rulesdir/no-inline-useOnyx-selector",

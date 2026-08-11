@@ -34,6 +34,7 @@ export default [
             parserOptions: {ecmaFeatures: {jsx: true}},
         },
         plugins: {
+            '@typescript-eslint': tseslint.plugin,
             react: plugin(react),
             import: plugin(importPlugin),
             jsdoc: plugin(jsdoc),
@@ -52,6 +53,15 @@ export default [
             'import/prefer-default-export': 'error',
             'import/order': ['error', {groups: [['builtin', 'external', 'internal']]}],
             'jsdoc/no-types': 'error',
+            // exactly eslint-config-expensify's five selector groups (configs/public/typescript.js)
+            '@typescript-eslint/naming-convention': [
+                'error',
+                {selector: ['variable', 'property'], format: null, filter: {regex: '^__esModule$', match: true}},
+                {selector: ['variable', 'property'], format: ['camelCase', 'UPPER_CASE', 'PascalCase'], filter: {regex: '^private_[a-z][a-zA-Z0-9]*$', match: false}},
+                {selector: 'function', format: ['camelCase', 'PascalCase']},
+                {selector: ['typeLike', 'enumMember'], format: ['PascalCase']},
+                {selector: ['parameter', 'method'], format: ['camelCase', 'PascalCase'], leadingUnderscore: 'allow'},
+            ],
             'rulesdir/no-inline-useOnyx-selector': 'error',
             // already enabled on both sides, but absent from oxlint's JSON schema
             'you-dont-need-lodash-underscore/uniq': 'error',

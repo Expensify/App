@@ -12,6 +12,14 @@
         "hosted/prefer-default-export": "error",
         "hosted/order": ["error", {"groups": [["builtin", "external", "internal"]], "distinctGroup": true, "sortTypesGroup": false, "named": false, "warnOnUnassignedImports": false}],
         "hosted/no-types": "error",
+        "hosted/naming-convention": [
+            "error",
+            {"selector": ["variable", "property"], "format": null, "filter": {"regex": "^__esModule$", "match": true}},
+            {"selector": ["variable", "property"], "format": ["camelCase", "UPPER_CASE", "PascalCase"], "filter": {"regex": "^private_[a-z][a-zA-Z0-9]*$", "match": false}},
+            {"selector": "function", "format": ["camelCase", "PascalCase"]},
+            {"selector": ["typeLike", "enumMember"], "format": ["PascalCase"]},
+            {"selector": ["parameter", "method"], "format": ["camelCase", "PascalCase"], "leadingUnderscore": "allow"}
+        ],
         "rulesdir/no-inline-useOnyx-selector": "error",
         "pp/jsx-no-constructed-context-values": "error"
     },

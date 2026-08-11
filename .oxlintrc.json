@@ -10,12 +10,19 @@
     //                               (PORT_PLAN); `npm run oxlint-rule-availability` prints them.
     "$schema": "./node_modules/oxlint/configuration_schema.json",
     "plugins": ["typescript", "import", "jsx-a11y", "unicorn", "react"],
+    // Aliases are declared here (oxlint's {name, specifier} form) rather than inferred from each
+    // plugin's meta.name: the alias is the prefix every suppression comment and comparison script
+    // has to use, so it belongs where a reader looks for it. The invented names are unavoidable --
+    // `react`, `import`, `jsdoc` are reserved for oxlint's native ports, and `core` cannot match
+    // ESLint's bare core ids (`no-restricted-syntax`) because a jsPlugin rule always has a prefix.
+    // Per-override jsPlugins stay bare package specifiers: their meta.name already matches the
+    // prefix ESLint uses, so declaring it would only add noise.
     "jsPlugins": [
-        "./oxlint-probe/expensify-rules.mjs",
-        "./config/eslint/plugins/eslint-plugin-report-name-utils.mjs",
-        "./oxlint-probe/core-rules.mjs",
-        "./oxlint-probe/hosted-rules.mjs",
-        "./oxlint-probe/rh-plugin.mjs"
+        {"name": "rulesdir", "specifier": "./oxlint-probe/expensify-rules.mjs"},
+        {"name": "report-name-utils", "specifier": "./config/eslint/plugins/eslint-plugin-report-name-utils.mjs"},
+        {"name": "core", "specifier": "./oxlint-probe/core-rules.mjs"},
+        {"name": "hosted", "specifier": "./oxlint-probe/hosted-rules.mjs"},
+        {"name": "rh", "specifier": "./oxlint-probe/rh-plugin.mjs"}
     ],
     "categories": {
         "correctness": "off"
@@ -2011,7 +2018,21 @@
                 "typescript/restrict-plus-operands": "error",
                 "typescript/restrict-template-expressions": "error",
                 "typescript/triple-slash-reference": "error",
-                "typescript/unbound-method": "error"
+                "typescript/unbound-method": "error",
+                // typescript-eslint's own rule, hosted by oxlint-probe/hosted-rules.mjs because
+                // tsgolint has not implemented it. It reports under the `hosted/` alias: oxlint
+                // rejects `@typescript-eslint` as a JS-plugin name ("reserved ... already implemented
+                // natively"), so ESLint's id cannot be reused and suppression comments need this one.
+                // TS-only, exactly as eslint-config-expensify scopes it; options copied verbatim
+                // from configs/public/typescript.js.
+                "hosted/naming-convention": [
+                    "error",
+                    {"selector": ["variable", "property"], "format": null, "filter": {"regex": "^__esModule$", "match": true}},
+                    {"selector": ["variable", "property"], "format": ["camelCase", "UPPER_CASE", "PascalCase"], "filter": {"regex": "^private_[a-z][a-zA-Z0-9]*$", "match": false}},
+                    {"selector": "function", "format": ["camelCase", "PascalCase"]},
+                    {"selector": ["typeLike", "enumMember"], "format": ["PascalCase"]},
+                    {"selector": ["parameter", "method"], "format": ["camelCase", "PascalCase"], "leadingUnderscore": "allow"}
+                ]
             }
         },
         {
