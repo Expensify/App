@@ -76,12 +76,22 @@ function getActiveTransactionIDs(): {ids: string[] | null; descriptors: Record<s
     return {ids: lastSetIDs, descriptors: lastSetDescriptors};
 }
 
-function shouldRefreshActiveTransactionIDs(activeIDs: string[] | undefined, activeSnapshotHash: number | undefined, searchSnapshotHash: number, searchTransactionIDs: string[]): boolean {
-    if (activeSnapshotHash !== searchSnapshotHash || !activeIDs?.length || searchTransactionIDs.length < 2) {
-        return false;
+type ActiveTransactionIDsSyncAction = 'none' | 'refresh' | 'clear';
+
+function getActiveTransactionIDsSyncAction(
+    activeIDs: string[] | undefined,
+    activeSnapshotHash: number | undefined,
+    searchSnapshotHash: number,
+    searchTransactionIDs: string[],
+): ActiveTransactionIDsSyncAction {
+    if (activeSnapshotHash !== searchSnapshotHash || !activeIDs?.length) {
+        return 'none';
+    }
+    if (searchTransactionIDs.length < 2) {
+        return 'clear';
     }
     const isUpToDate = activeIDs.length === searchTransactionIDs.length && activeIDs.every((id, index) => id === searchTransactionIDs.at(index));
-    return !isUpToDate;
+    return isUpToDate ? 'none' : 'refresh';
 }
 
 function shouldPreserveActiveTransactionIDs(candidateIDs: string[], anchorTransactionID: string): boolean {
@@ -103,4 +113,5 @@ function clearActiveTransactionIDs() {
     ]);
 }
 
-export {setActiveTransactionIDs, clearActiveTransactionIDs, getActiveTransactionIDs, shouldRefreshActiveTransactionIDs, shouldPreserveActiveTransactionIDs};
+export {setActiveTransactionIDs, clearActiveTransactionIDs, getActiveTransactionIDs, getActiveTransactionIDsSyncAction, shouldPreserveActiveTransactionIDs};
+export type {ActiveTransactionIDsSyncAction};

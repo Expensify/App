@@ -24,7 +24,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
-import {clearActiveTransactionIDs, setActiveTransactionIDs, shouldRefreshActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {clearActiveTransactionIDs, getActiveTransactionIDsSyncAction, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -701,12 +701,19 @@ function Search({
     const [activeCarouselTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
 
     useEffect(() => {
-        if (!shouldRefreshActiveTransactionIDs(activeCarouselTransactionIDs, activeCarouselSnapshotHash, hash, carouselSiblingTransactionIDs)) {
+        if (shouldShowLoadingState) {
             return;
         }
-        setActiveTransactionIDs(carouselSiblingTransactionIDs, hash);
+        const syncAction = getActiveTransactionIDsSyncAction(activeCarouselTransactionIDs, activeCarouselSnapshotHash, hash, carouselSiblingTransactionIDs);
+        if (syncAction === 'clear') {
+            clearActiveTransactionIDs();
+            return;
+        }
+        if (syncAction === 'refresh') {
+            setActiveTransactionIDs(carouselSiblingTransactionIDs, hash);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps -- carouselSiblingsKey is an order-sensitive proxy for the array, which is rebuilt on every search data change
-    }, [carouselSiblingsKey, activeCarouselSnapshotHash, activeCarouselTransactionIDs, hash]);
+    }, [carouselSiblingsKey, activeCarouselSnapshotHash, activeCarouselTransactionIDs, hash, shouldShowLoadingState]);
 
     // getColumnsToShow allocates a fresh array on every call; preserve the previous reference
     // when contents are equal so downstream consumers don't re-render on Onyx snapshot churn

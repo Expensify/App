@@ -1,4 +1,4 @@
-import {clearActiveTransactionIDs, setActiveTransactionIDs, shouldPreserveActiveTransactionIDs, shouldRefreshActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {clearActiveTransactionIDs, getActiveTransactionIDsSyncAction, setActiveTransactionIDs, shouldPreserveActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -16,42 +16,52 @@ const SEEDED_IDS = ['A1', 'A2', 'A3'];
 const SPEND_PAGE_IDS = ['A1', 'B1', 'B2'];
 const REPORT_B_IDS = ['B1', 'B2'];
 
-describe('shouldRefreshActiveTransactionIDs', () => {
+describe('getActiveTransactionIDsSyncAction', () => {
     it('refreshes when the search gained one expense, so y grows by one', () => {
-        expect(shouldRefreshActiveTransactionIDs(SEEDED_IDS, SEARCH_HASH, SEARCH_HASH, ['A0', ...SEEDED_IDS])).toBe(true);
+        expect(getActiveTransactionIDsSyncAction(SEEDED_IDS, SEARCH_HASH, SEARCH_HASH, ['A0', ...SEEDED_IDS])).toBe('refresh');
     });
 
     it('refreshes when the search gained two expenses, so y grows by two', () => {
-        expect(shouldRefreshActiveTransactionIDs(SEEDED_IDS, SEARCH_HASH, SEARCH_HASH, ['A0', 'A00', ...SEEDED_IDS])).toBe(true);
+        expect(getActiveTransactionIDsSyncAction(SEEDED_IDS, SEARCH_HASH, SEARCH_HASH, ['A0', 'A00', ...SEEDED_IDS])).toBe('refresh');
     });
 
-    it('refreshes when the search lost an expense', () => {
-        expect(shouldRefreshActiveTransactionIDs(SEEDED_IDS, SEARCH_HASH, SEARCH_HASH, ['A1', 'A3'])).toBe(true);
+    it('refreshes when the search lost an expense but still has two to navigate between', () => {
+        expect(getActiveTransactionIDsSyncAction(SEEDED_IDS, SEARCH_HASH, SEARCH_HASH, ['A1', 'A3'])).toBe('refresh');
     });
 
     it('refreshes when the same expenses are re-sorted, because the counter index follows the list order', () => {
-        expect(shouldRefreshActiveTransactionIDs(SEEDED_IDS, SEARCH_HASH, SEARCH_HASH, ['A3', 'A2', 'A1'])).toBe(true);
+        expect(getActiveTransactionIDsSyncAction(SEEDED_IDS, SEARCH_HASH, SEARCH_HASH, ['A3', 'A2', 'A1'])).toBe('refresh');
     });
 
     it('does nothing when the carousel already matches the search', () => {
-        expect(shouldRefreshActiveTransactionIDs(SEEDED_IDS, SEARCH_HASH, SEARCH_HASH, [...SEEDED_IDS])).toBe(false);
+        expect(getActiveTransactionIDsSyncAction(SEEDED_IDS, SEARCH_HASH, SEARCH_HASH, [...SEEDED_IDS])).toBe('none');
     });
 
-    it('leaves another search’s carousel alone', () => {
-        expect(shouldRefreshActiveTransactionIDs(SEEDED_IDS, OTHER_SEARCH_HASH, SEARCH_HASH, ['A0', ...SEEDED_IDS])).toBe(false);
+    it('leaves another search\u2019s carousel alone', () => {
+        expect(getActiveTransactionIDsSyncAction(SEEDED_IDS, OTHER_SEARCH_HASH, SEARCH_HASH, ['A0', ...SEEDED_IDS])).toBe('none');
     });
 
     it('leaves a report-scoped carousel alone, since a drill-in clears the snapshot hash', () => {
-        expect(shouldRefreshActiveTransactionIDs(['B1', 'B2'], undefined, SEARCH_HASH, ['A0', ...SEEDED_IDS])).toBe(false);
+        expect(getActiveTransactionIDsSyncAction(['B1', 'B2'], undefined, SEARCH_HASH, ['A0', ...SEEDED_IDS])).toBe('none');
     });
 
-    it('does not seed a carousel that is not active yet — that is the row press’s job', () => {
-        expect(shouldRefreshActiveTransactionIDs(undefined, SEARCH_HASH, SEARCH_HASH, SEEDED_IDS)).toBe(false);
-        expect(shouldRefreshActiveTransactionIDs([], SEARCH_HASH, SEARCH_HASH, SEEDED_IDS)).toBe(false);
+    it('does not seed a carousel that is not active yet \u2014 that is the row press\u2019s job', () => {
+        expect(getActiveTransactionIDsSyncAction(undefined, SEARCH_HASH, SEARCH_HASH, SEEDED_IDS)).toBe('none');
+        expect(getActiveTransactionIDsSyncAction([], SEARCH_HASH, SEARCH_HASH, SEEDED_IDS)).toBe('none');
     });
 
-    it('does not refresh down to a single expense, which has nothing to navigate between', () => {
-        expect(shouldRefreshActiveTransactionIDs(SEEDED_IDS, SEARCH_HASH, SEARCH_HASH, ['A1'])).toBe(false);
+    // Without this the stale 3-expense list stayed active, so the RHP kept prev/next arrows that paged to expenses the
+    // search no longer contained. Pressing a row with fewer than two siblings already clears, so this matches it.
+    it('clears when the search shrinks to a single expense, which has nothing to navigate between', () => {
+        expect(getActiveTransactionIDsSyncAction(SEEDED_IDS, SEARCH_HASH, SEARCH_HASH, ['A1'])).toBe('clear');
+    });
+
+    it('clears when the search shrinks to no expenses at all', () => {
+        expect(getActiveTransactionIDsSyncAction(SEEDED_IDS, SEARCH_HASH, SEARCH_HASH, [])).toBe('clear');
+    });
+
+    it('does not clear another search\u2019s carousel when this search is empty', () => {
+        expect(getActiveTransactionIDsSyncAction(SEEDED_IDS, OTHER_SEARCH_HASH, SEARCH_HASH, [])).toBe('none');
     });
 });
 
