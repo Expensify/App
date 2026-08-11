@@ -7,6 +7,7 @@ import type {Transaction} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
@@ -15,6 +16,7 @@ import usePermissions from './usePermissions';
 function useUndeleteTransactions() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
@@ -43,6 +45,7 @@ function useUndeleteTransactions() {
             isTrackIntentUser,
             personalPolicyOutputCurrency: policy?.outputCurrency,
             delegateAccountID,
+            getCurrencyDecimals,
         });
     };
 }

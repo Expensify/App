@@ -1,3 +1,5 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {HoldMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -665,6 +667,7 @@ function getReportFromHoldRequestsOnyxData({
     betas,
     isApprovalFlow = false,
     delegateAccountID,
+    getCurrencyDecimals,
 }: {
     chatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -674,6 +677,7 @@ function getReportFromHoldRequestsOnyxData({
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isApprovalFlow?: boolean;
     delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 }): {
     optimisticHoldReportID: string;
     optimisticHoldActionID: string;
@@ -715,6 +719,7 @@ function getReportFromHoldRequestsOnyxData({
               betas,
               reportTransactions,
               createdTimestamp,
+              getCurrencyDecimals,
           })
         : buildOptimisticIOUReport(
               iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -722,6 +727,7 @@ function getReportFromHoldRequestsOnyxData({
               holdAmount,
               chatReport.reportID,
               iouReport?.currency ?? '',
+              getCurrencyDecimals,
               false,
               newParentReportActionID,
               undefined,
@@ -731,6 +737,7 @@ function getReportFromHoldRequestsOnyxData({
     const optimisticExpenseReportPreview = buildOptimisticReportPreview(
         chatReport,
         optimisticExpenseReport,
+        getCurrencyDecimals,
         '',
         firstHoldTransaction,
         optimisticExpenseReport.reportID,

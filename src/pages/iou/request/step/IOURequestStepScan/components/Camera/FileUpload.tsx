@@ -1,5 +1,5 @@
 import AttachmentPicker from '@components/AttachmentPicker';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import {useDragAndDropState} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -91,13 +91,14 @@ function FileUpload({onPicked, shouldAcceptMultipleFiles = false, onLayout, isRe
                         <AttachmentPicker allowMultiple={shouldAcceptMultipleFiles}>
                             {({openPicker}) => (
                                 <Button
-                                    success
-                                    text={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                                     accessibilityLabel={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
                                     style={[styles.p5]}
                                     onPress={() => openPicker({onPicked})}
                                     sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_FILE_UPLOAD_BUTTON}
-                                />
+                                >
+                                    <Button.Text>{translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}</Button.Text>
+                                </Button>
                             )}
                         </AttachmentPicker>
                     </View>

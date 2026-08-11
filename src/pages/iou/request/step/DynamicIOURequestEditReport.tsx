@@ -3,6 +3,7 @@ import {useSearchSelectionActions, useSearchSelectionContext} from '@components/
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -93,6 +94,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
             Navigation.dismissToSuperWideRHP();
@@ -119,6 +121,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
                 delegateAccountID,
+                getCurrencyDecimals,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -146,6 +149,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
             delegateAccountID,
+            getCurrencyDecimals,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
@@ -166,6 +170,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             policyForMovingExpenses,
             betas,
             isTrackIntentUser,
+            getCurrencyDecimals,
             false,
             shouldDismissEmptyReportsConfirmation,
             {managedCardTransactionID},

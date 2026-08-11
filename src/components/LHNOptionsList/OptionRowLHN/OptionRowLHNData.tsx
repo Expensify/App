@@ -52,7 +52,7 @@ function OptionRowLHNData({
     const styles = useThemeStyles();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
@@ -147,6 +147,7 @@ function OptionRowLHNData({
     // When getOptionData returns a fresh object with the same content, the Compiler
     // ensures that only expressions whose inputs actually changed recompute.
     const optionItem = SidebarUtils.getOptionData({
+        dateFnsLocale,
         report: fullReport,
         reportAttributes,
         oneTransactionThreadReport,

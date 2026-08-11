@@ -2,8 +2,6 @@ import {useCompanyCardBankIcons, useCompanyCardFeedIcons} from '@hooks/useCompan
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import variables from '@styles/variables';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -41,11 +39,6 @@ function PlaidCardFeedIcon({plaidUrl, style, isLarge, isSmall, useSkeletonLoader
     const iconHeight = isSmall ? variables.cardMiniatureHeight : height;
     const plaidLoadedStyle = isSmall ? styles.plaidIconExtraSmall : plaidImageStyle;
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'PlaidCardFeedIcon',
-        loading,
-    };
-
     return (
         <View style={[style]}>
             {isBrokenImage ? (
@@ -69,15 +62,11 @@ function PlaidCardFeedIcon({plaidUrl, style, isLarge, isSmall, useSkeletonLoader
                         <CardIconSkeleton
                             width={iconWidth}
                             height={iconHeight}
-                            reasonAttributes={reasonAttributes}
                         />
                     )}
                     {loading && !useSkeletonLoader && (
                         <View style={[styles.justifyContentCenter, {width: iconWidth, height: iconHeight}]}>
-                            <ActivityIndicator
-                                size={isSmall ? 10 : 20}
-                                reasonAttributes={reasonAttributes}
-                            />
+                            <ActivityIndicator size={isSmall ? 10 : 20} />
                         </View>
                     )}
                     {!loading && (
