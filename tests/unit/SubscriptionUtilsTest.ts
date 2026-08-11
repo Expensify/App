@@ -738,6 +738,27 @@ describe('SubscriptionUtils', () => {
             });
         });
 
+        it('should return OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE status while still inside the travel grace period', () => {
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0, undefined, GRACE_PERIOD_DATE)).toEqual({
+                status: PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE,
+                isError: true,
+            });
+        });
+
+        it('should return OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE_LOCKED status once the travel grace period has passed', () => {
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0, undefined, GRACE_PERIOD_DATE_OVERDUE)).toEqual({
+                status: PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE_LOCKED,
+                isError: true,
+            });
+        });
+
+        it('should rank an overdue travel invoice above the subscription grace period status', () => {
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE, GRACE_PERIOD_DATE)).toEqual({
+                status: PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE,
+                isError: true,
+            });
+        });
+
         it('should return BILLING_DISPUTE_PENDING status', async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 1,
@@ -1083,6 +1104,11 @@ describe('SubscriptionUtils', () => {
         it('should return false when no grace period is passed and none is set in Onyx', () => {
             // No Onyx value set, no parameter passed
             expect(hasGracePeriodOverdue(undefined)).toBe(false);
+        });
+
+        it('should treat the grace period as unix seconds rather than milliseconds', () => {
+            // Read as milliseconds this lands in 1970 and every future grace period looks overdue
+            expect(hasGracePeriodOverdue(getUnixTime(addDays(new Date(), 30)))).toBe(false);
         });
     });
 
