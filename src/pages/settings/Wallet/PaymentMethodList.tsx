@@ -599,9 +599,10 @@ function PaymentMethodList({
                         ...paymentMethodData,
                     }));
 
+            const methodID = paymentMethod.methodID;
             const onFixPress =
-                bankConnectionStatus?.requiresFixHandler && paymentMethod.methodID !== undefined
-                    ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(paymentMethod.methodID.toString())))
+                bankConnectionStatus?.requiresFixHandler && methodID !== undefined
+                    ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(methodID.toString())))
                     : undefined;
 
             return {
