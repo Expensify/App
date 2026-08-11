@@ -273,10 +273,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const approverDisabled = !policy?.areWorkflowsEnabled || workflowApprovalsUnavailable;
 
-    /**
-     * Collect sees the Category rules section for discoverability, but every destination is Control-only, so sell the
-     * upgrade instead of dropping them on a Not Found page. backTo is the row's own route so upgrading resumes it.
-     */
+    /** Collect sees this section but every destination is Control-only, so upgrade instead of hitting Not Found. */
     const navigateToCategoryRule = (dynamicRouteSuffix: string) => {
         const ruleRoute = createDynamicRoute(dynamicRouteSuffix);
         if (tryNavigateToControlPolicyUpgrade(policy, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ruleRoute)) {

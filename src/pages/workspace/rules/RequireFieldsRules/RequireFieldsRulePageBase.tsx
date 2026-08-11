@@ -161,8 +161,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         }
     }
 
-    // The draft is otherwise only cleared on save, so backing out left it for the next rule to inherit — which the
-    // reassignment guard below then mistook for a deliberate category change. Matches FlagForReviewRulePageBase.
+    // Otherwise cleared only on save, so backing out left the draft for the next rule to inherit.
     useEffect(() => () => clearDraftRequireFieldsRule(), []);
 
     useEffect(() => {

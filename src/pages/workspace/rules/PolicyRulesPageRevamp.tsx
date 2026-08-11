@@ -116,8 +116,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     }, [activeTab, policy]);
 
     useEffect(() => {
-        // Returning from the upgrade flow carries the tab the user was heading to. Apply it once per value so a
-        // later manual tab press isn't undone by the param still sitting in the route.
+        // Apply once per value, so a later manual tab press isn't undone by the param still sitting in the route.
         if (!requestedTab || !isRulesTab(requestedTab) || appliedRequestedTabRef.current === requestedTab) {
             return;
         }
