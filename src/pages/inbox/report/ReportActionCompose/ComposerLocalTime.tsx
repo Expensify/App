@@ -5,7 +5,6 @@ import useOnyx from '@hooks/useOnyx';
 import useReportRecipientLocalTime from '@hooks/useReportRecipientLocalTime';
 
 import {getReportOfflinePendingActionAndErrors, getReportRecipientAccountIDs} from '@libs/ReportUtils';
-import {isAgentEmail} from '@libs/SessionUtils';
 
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 
@@ -27,7 +26,7 @@ function ComposerLocalTime() {
     const reportRecipientAccountID = getReportRecipientAccountIDs(report, currentUserAccountID).at(0);
     const [reportRecipient] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(shouldShow ? reportRecipientAccountID : undefined)});
 
-    if (!shouldShow || isEmptyObject(reportRecipient) || isAgentEmail(reportRecipient?.login)) {
+    if (!shouldShow || isEmptyObject(reportRecipient) || reportRecipient?.isCustomAgent) {
         return null;
     }
 

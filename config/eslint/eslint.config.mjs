@@ -337,6 +337,7 @@ const config = defineConfig([
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
             'rulesdir/no-useOnyx-dependencies-arg': 'error',
             'rulesdir/no-raw-typography': 'error',
+            'rulesdir/require-locale-for-localized-date-format': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
                 {

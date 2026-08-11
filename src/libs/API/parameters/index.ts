@@ -57,6 +57,9 @@ export type {default as UpdateRilletSyncTravelInvoicingSettlementsParams} from '
 export type {default as UpdateRilletTravelInvoicingSettlementsAccountParams} from './UpdateRilletTravelInvoicingSettlementsAccountParams';
 export type {default as SyncPolicyToDualEntryParams} from './SyncPolicyToDualEntryParams';
 export type {default as UpdateDualEntrySubsidiaryParams} from './UpdateDualEntrySubsidiaryParams';
+export type {default as UpdateDualEntryEnableNewCategoriesParams} from './UpdateDualEntryEnableNewCategoriesParams';
+export type {default as UpdateDualEntryFieldMappingParams} from './UpdateDualEntryFieldMappingParams';
+export type {default as UpdateDualEntrySyncTaxRatesParams} from './UpdateDualEntrySyncTaxRatesParams';
 export type {default as UpdateNetSuiteAccountingMethodParams} from './UpdateNetSuiteAccountingMethodParams';
 export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './UpdateQuickbooksOnlineAccountingMethodParams';
 export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAccountingMethodParams';

@@ -4223,6 +4223,9 @@ ${amount} pour ${merchant} - ${date}`,
         proofOf: 'Justificatif de domicile personnel',
         enterOneEmail: (companyName: string) => `Saisissez l’e-mail d’un directeur de ${companyName}`,
         regulationRequiresOneMoreDirector: 'La réglementation exige au moins un autre directeur en tant que signataire.',
+        bothSignersMustBeOnIllionReport:
+            'Les deux signataires doivent être indiqués comme administrateurs sur le rapport illion de l’entreprise. Il ne peut pas s’agir de n’importe quelles deux personnes de l’entreprise.',
+        signerMustBeOnIllionReport: 'Le directeur que vous ajoutez comme signataire doit figurer sur le rapport illion de l’entreprise.',
         hangTight: 'Un instant...',
         enterTwoEmails: (companyName: string) => `Saisissez les adresses e-mail de deux directeurs de ${companyName}`,
         sendReminder: 'Envoyer un rappel',
@@ -4233,11 +4236,11 @@ ${amount} pour ${merchant} - ${date}`,
         proofOfDirectorsDescription: 'Exemples : profil d’entreprise Oncorp ou enregistrement d’entreprise.',
         codiceFiscale: 'Code fiscal',
         codiceFiscaleDescription: 'Code fiscal pour les signataires, utilisateurs autorisés et bénéficiaires effectifs.',
-        PDSandFSG: 'Documents de divulgation PDS + FSG',
+        PDSandFSG: 'Documents de divulgation PDS, FSG et TMD',
         PDSandFSGDescription: Str.dedent(`
-            Notre partenariat avec Corpay utilise une connexion API afin de tirer parti de leur vaste réseau de partenaires bancaires internationaux pour alimenter les remboursements internationaux dans Expensify. Conformément à la réglementation australienne, nous vous fournissons le Financial Services Guide (FSG) et le Product Disclosure Statement (PDS) de Corpay.
+            Notre partenariat avec Corpay utilise une connexion API pour tirer parti de son vaste réseau de partenaires bancaires internationaux afin d’alimenter les remboursements internationaux dans Expensify. Conformément à la réglementation australienne, nous vous fournissons le Financial Services Guide (FSG), le Product Disclosure Statement (PDS) et le Target Market Determination (TMD) de Corpay.
 
-            Veuillez lire attentivement les documents FSG et PDS, car ils contiennent des informations complètes et importantes sur les produits et services proposés par Corpay. Conservez ces documents pour référence ultérieure.
+            Veuillez lire attentivement les documents FSG, PDS et TMD, car ils contiennent tous les détails et des informations importantes sur les produits et services proposés par Corpay. Conservez ces documents pour référence ultérieure.
         `),
         pleaseUpload: 'Veuillez téléverser ci-dessous des documents supplémentaires pour nous aider à vérifier votre identité en tant que dirigeant(e) de l’entreprise.',
         enterSignerInfo: 'Saisir les informations du signataire',
@@ -4249,6 +4252,8 @@ ${amount} pour ${merchant} - ${date}`,
         },
     },
     agreementsStep: {
+        bankStatement: 'Relevé bancaire',
+        bankStatementDescription: 'Veuillez fournir un relevé bancaire récent, daté de moins de trois mois, pour le compte bancaire professionnel que vous connectez.',
         agreements: 'Accords',
         pleaseConfirm: 'Veuillez confirmer les accords ci-dessous',
         regulationRequiresUs: 'La réglementation nous oblige à vérifier l’identité de toute personne détenant plus de 25 % de l’entreprise.',
@@ -4257,7 +4262,7 @@ ${amount} pour ${merchant} - ${date}`,
         iAcceptTheTermsAndConditions: `J'accepte les <a href="https://www.corpay.com/cross-border/terms">conditions générales</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'J’accepte les conditions générales.',
         accept: 'Accepter et ajouter un compte bancaire',
-        iConsentToThePrivacyNotice: 'Je consens à l’<a href="https://payments.corpay.com/compliance">avis de confidentialité</a>.',
+        iConsentToThePrivacyNotice: 'Je consens à l’<a href="https://www.corpay.com/privacy-policy">avis de confidentialité</a>.',
         iConsentToThePrivacyNoticeAccessibility: 'Je consens à la notice de confidentialité.',
         error: {
             authorized: 'Vous devez être un responsable habilité, autorisé à utiliser le compte bancaire professionnel',
@@ -5686,7 +5691,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     },
                 },
             },
-            exportCompanyCard: {label: 'Exporter les dépenses de carte d’entreprise en tant que', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: 'Cartes de crédit'}}},
+            exportNonReimbursable: {
+                label: 'Exporter les dépenses de carte d’entreprise en tant que',
+                values: {[CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE]: {label: 'Cartes de crédit'}},
+            },
             defaultCompanyCardVendor: {
                 label: 'Fournisseur de carte entreprise par défaut',
                 description: 'Choisissez un fournisseur Rillet par défaut pour les dépenses qui ne correspondent pas automatiquement.',
@@ -5756,6 +5764,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             subsidiarySelectDescription: 'Choisissez la filiale dans DualEntry à partir de laquelle vous souhaitez importer des données.',
             noCompaniesFound: 'Aucune entreprise trouvée',
             noCompaniesFoundDescription: 'Veuillez ajouter une entreprise dans DualEntry et synchroniser à nouveau la connexion',
+            accountTypesDescription: 'Vos comptes DualEntry seront importés en tant que catégories.',
+            enableNewAccountsTitle: 'Activer les nouveaux comptes importés',
+            enableNewAccountsDescription: 'Les nouveaux comptes DualEntry seront disponibles en tant que catégories.',
+            classificationsImport: 'Toutes les classifications DualEntry sont importées en tant que tags',
+            importDescription: 'Choisissez les configurations de codage à importer depuis DualEntry.',
         },
         type: {
             free: 'Gratuit',
@@ -8696,7 +8709,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) =>
             `a modifié la formule du nom de note de frais personnalisée en « ${newDefaultTitle} » (précédemment « ${oldDefaultTitle} »)`,
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `a pris la responsabilité de ${policyName} à la place de ${oldOwnerName} (${oldOwnerEmail})`,
-        updatedAutoHarvesting: (enabled: boolean) => `Soumission planifiée pour ${enabled ? 'activé' : 'désactivé'}`,
         updatedIndividualBudgetNotification: (
             budgetAmount: string,
             budgetFrequency: string,
@@ -8856,6 +8868,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `paramètres de facturation copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `paramètres de déplacement copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
+        updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
+            return `a modifié les participants de la catégorie « ${categoryName} » en ${newValue ? 'obligatoire' : 'non obligatoire'} (précédemment ${newValue ? 'non obligatoire' : 'obligatoire'})`;
+        },
+        updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'activé' : 'Désactivé'} envois`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
