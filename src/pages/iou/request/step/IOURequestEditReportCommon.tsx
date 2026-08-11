@@ -7,6 +7,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -21,7 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
+import {isManualDistanceRequest, isOdometerDistanceRequest, isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -105,6 +106,10 @@ function IOURequestEditReportCommon({
     const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest, transactionPolicyID, isUnreportedManagedCardTransaction);
 
     const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
+    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        isManualDistanceRequest: transactionIDs?.some((transactionID) => isManualDistanceRequest(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`])) ?? false,
+        isOdometerDistanceRequest: transactionIDs?.some((transactionID) => isOdometerDistanceRequest(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`])) ?? false,
+    });
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const isSelectedReportUnreported = useMemo(() => !!(isUnreported ?? selectedReportID === CONST.REPORT.UNREPORTED_REPORT_ID), [isUnreported, selectedReportID]);
@@ -246,6 +251,9 @@ function IOURequestEditReportCommon({
             navigateBack();
             return;
         }
+        if (blockManualOrOdometerDistanceRequestIfNeeded(item.policyID)) {
+            return;
+        }
         const itemPolicy = item.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] : undefined;
         if (
             item?.policyID &&
@@ -264,11 +272,14 @@ function IOURequestEditReportCommon({
     };
 
     const handleCreateReport = useCallback(() => {
+        if (blockManualOrOdometerDistanceRequestIfNeeded(policyForMovingExpenses?.id)) {
+            return;
+        }
         if (!validatePerDiemMove(policyForMovingExpenses?.id)) {
             return;
         }
         createReport?.();
-    }, [validatePerDiemMove, policyForMovingExpenses?.id, createReport]);
+    }, [blockManualOrOdometerDistanceRequestIfNeeded, validatePerDiemMove, policyForMovingExpenses?.id, createReport]);
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions.length, translate]);
 
