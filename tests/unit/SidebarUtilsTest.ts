@@ -2653,6 +2653,7 @@ describe('SidebarUtils', () => {
             });
 
             const enabledResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2687,6 +2688,7 @@ describe('SidebarUtils', () => {
             });
 
             const disabledResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2728,6 +2730,7 @@ describe('SidebarUtils', () => {
             });
 
             const enabledResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2762,6 +2765,7 @@ describe('SidebarUtils', () => {
             });
 
             const disabledResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
