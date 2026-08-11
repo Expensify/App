@@ -58,9 +58,10 @@ function RuleCategoriesDisabledEmptyState({policyID}: RuleCategoriesDisabledEmpt
 
     return (
         <View style={[styles.flex1]}>
-            {/* Scrolls so the section's fixed vertical padding can't clip in landscape, and centers on the space it
-                actually has rather than on the region above the footer. */}
-            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}>
+            {/* Scrolls so the section's fixed vertical padding can't clip in landscape. alignItemsCenter is what keeps
+                it horizontally centered: workspaceSection caps the width without an alignSelf, so a stretched parent
+                pins it left once the viewport is wider than the cap. */}
+            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <WorkspaceEmptyStateSection
                     shouldStyleAsCard={false}
                     icon={illustrations.FolderOpen}
