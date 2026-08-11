@@ -26,6 +26,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createRandomReportAction from '../utils/collections/reportActions';
 import {createAdminRoom, createExpenseReport, createPolicyExpenseChat, createRegularChat, createRegularTaskReport, createSelfDM, createWorkspaceThread} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
@@ -798,17 +799,13 @@ describe('ReportNameUtils', () => {
         test('UPDATE_AUTO_HARVESTING parent action', () => {
             const thread: Report = createWorkspaceThread(151);
             const enabledParentAction: ReportAction = {
+                ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
                 reportActionID: String(thread.parentReportActionID),
-                message: [],
-                created: '',
-                lastModified: '',
-                actorAccountID: 1,
-                person: [],
                 originalMessage: {
                     value: true,
                 },
-            } as unknown as ReportAction;
+            };
 
             const parentId = String(thread.parentReportID);
             const actionId = String(thread.parentReportActionID);
@@ -829,11 +826,13 @@ describe('ReportNameUtils', () => {
             expect(enabledName).toBe('enabled submissions');
 
             const disabledParentAction: ReportAction = {
-                ...enabledParentAction,
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
+                reportActionID: String(thread.parentReportActionID),
                 originalMessage: {
                     value: false,
                 },
-            } as unknown as ReportAction;
+            };
             const disabledReportActionsCollection: Record<string, ReportActions> = {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: disabledParentAction},
             };
