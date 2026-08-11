@@ -722,5 +722,5 @@ function SearchAutocompleteList({
 SearchAutocompleteList.displayName = 'SearchAutocompleteList';
 
 export default React.memo(SearchAutocompleteList);
-export {SearchRouterItem};
+export {SearchRouterItem, INITIAL_MAX_RECENT_REPORTS, RECENT_REPORTS_BATCH_SIZE};
 export type {GetAdditionalSectionsCallback, SearchAutocompleteListProps};

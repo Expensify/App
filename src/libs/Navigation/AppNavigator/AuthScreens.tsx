@@ -13,6 +13,7 @@ import {ProductTrainingContextProvider} from '@components/ProductTrainingContext
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import {SearchRouterContextProvider} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
+import SearchRouterWarmup from '@components/Search/SearchRouter/SearchRouterWarmup';
 import SupportalPermissionDeniedModal from '@components/SupportalPermissionDeniedModal';
 import FullScreenContextProvider from '@components/VideoPlayerContexts/FullScreenContextProvider';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -164,6 +165,7 @@ function AuthScreens() {
     return (
         <>
             <AuthScreensInitHandler />
+            <SearchRouterWarmup />
             <ThreeDSAuthHandler />
             <UserStatusHandler />
             <SupportalPermissionDeniedModal />
