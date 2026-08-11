@@ -598,9 +598,11 @@ function PaymentMethodList({
                         event: e,
                         ...paymentMethodData,
                     }));
-            const onFixPress = bankConnectionStatus?.requiresFixHandler
-                ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(paymentMethod.methodID?.toString() ?? '')))
-                : undefined;
+
+            const onFixPress =
+                bankConnectionStatus?.requiresFixHandler && paymentMethod.methodID !== undefined
+                    ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(paymentMethod.methodID.toString())))
+                    : undefined;
 
             return {
                 ...paymentMethod,
