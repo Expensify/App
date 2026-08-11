@@ -1,5 +1,6 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -12,43 +13,47 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SearchSavedSearchRenameForm';
 
-import React, {useState} from 'react';
+import React from 'react';
 
 function SavedSearchRenamePage({route}: {route: {params: {q: string; name: string}}}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {q, name} = route.params;
-    const [newName, setNewName] = useState(name);
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const applyFiltersAndNavigate = () => {
+    const applyFiltersAndNavigate = (newName: string) => {
         Navigation.dismissModal();
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(
                 ROUTES.SEARCH_ROOT.getRoute({
                     query: q,
-                    name: newName?.trim(),
+                    name: newName,
                 }),
             );
         });
     };
 
-    const onSaveSearch = () => {
+    const onSaveSearch = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM>) => {
+        const newName = values[INPUT_IDS.NAME].trim();
         const queryJSON = buildSearchQueryJSON(q || buildCannedSearchQuery()) ?? ({} as SearchQueryJSON);
 
         saveSearch({
             queryJSON,
-            newName: newName?.trim() || q,
+            newName,
         });
 
-        applyFiltersAndNavigate();
+        applyFiltersAndNavigate(newName);
     };
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM> =>
+        getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate);
 
     return (
         <ScreenWrapper
@@ -62,6 +67,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
                 formID={ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM}
                 submitButtonText={translate('common.save')}
                 onSubmit={onSaveSearch}
+                validate={validate}
                 style={[styles.mh5, styles.flex1]}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
@@ -72,7 +78,6 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
                     label={translate('search.searchName')}
                     accessibilityLabel={translate('search.searchName')}
                     role={CONST.ROLE.PRESENTATION}
-                    onChangeText={(renamedName) => setNewName(renamedName)}
                     ref={inputCallbackRef}
                     defaultValue={name}
                 />
