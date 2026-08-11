@@ -142,7 +142,8 @@ function ProfilePage({route}: ProfilePageProps) {
 
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
-    const shouldShowLocalTime = !hasAutomatedExpensifyAccountIDs([accountID]) && !isAgentEmail(login) && !isEmptyObject(timezone) && isParticipantValidated;
+    const isCustomAgent = !!details?.isCustomAgent;
+    const shouldShowLocalTime = !hasAutomatedExpensifyAccountIDs([accountID]) && !isCustomAgent && !isEmptyObject(timezone) && isParticipantValidated;
     let pronouns = details?.pronouns ?? '';
     if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {
         const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
@@ -161,7 +162,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const hasStatus = !!statusEmojiCode;
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
-    const isOwnedAgent = !isCurrentUser && isAgentEmail(login) && !!agentPrompt;
+    const isOwnedAgent = !isCurrentUser && isCustomAgent && !!agentPrompt;
 
     const notificationPreferenceValue = getReportNotificationPreference(report);
 
@@ -180,11 +181,11 @@ function ProfilePage({route}: ProfilePageProps) {
     }, [accountID, loginParams, isConcierge]);
 
     useEffect(() => {
-        if (isCurrentUser || !isAgentEmail(login)) {
+        if (isCurrentUser || !isCustomAgent) {
             return;
         }
         openAgentsPage();
-    }, [isCurrentUser, login]);
+    }, [isCurrentUser, isCustomAgent]);
 
     const promotedActions: PromotedAction[] = [];
     if (report) {
