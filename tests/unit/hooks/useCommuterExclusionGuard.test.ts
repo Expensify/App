@@ -137,4 +137,28 @@ describe('useCommuterExclusionGuard', () => {
         expect(result.current('policy_forced')).toBe(false);
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
+
+    it('does not block editing an existing manual distance request', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy_forced`, {
+            id: 'policy_forced',
+            name: 'Forced workspace',
+            commuterExclusions: {
+                method: 'fixedDistance',
+                fixedDistance: 1,
+                fixedDistanceUnit: 'mi',
+            },
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() =>
+            useCommuterExclusionGuard({
+                policyID: 'policy_forced',
+                isManualDistanceRequest: true,
+                isEditingExistingDistanceRequest: true,
+            }),
+        );
+
+        expect(result.current()).toBe(false);
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+    });
 });
