@@ -91,14 +91,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const singleTransactionID = transactions.length === 1 ? transactions.at(0)?.transactionID : undefined;
 
-    // Fallback anchor for a transaction thread, read straight off its parent IOU action.
-    //
-    // `singleTransactionID` above comes from the report-transactions derived value, which is indexed by report and is
-    // not always populated for a thread that was reached without pressing a row (back navigation, or returning from a
-    // merge). When it isn't, the header could not name the expense it was showing, so it fell back to the report
-    // carousel — which renders nothing on an expense search — and the carousel vanished even though the sibling list
-    // was correct. The parent action is the thread's own definition of which expense it shows, so it doesn't depend on
-    // that index being warm. A selector keeps this to a primitive so unrelated action churn can't re-render the header.
     const threadParentReportActionID = moneyRequestReport?.parentReportActionID;
     const threadTransactionIDSelector = useCallback(
         (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
