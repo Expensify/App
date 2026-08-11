@@ -1434,7 +1434,8 @@ function isReportActionVisibleAsLastAction(
 
     return (
         (!(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction) && !isModifiedExpenseAction(reportAction)) ||
-            isActionableMentionWhisper(reportAction)) &&
+            isActionableMentionWhisper(reportAction) ||
+            isConciergeCategoryOptions(reportAction)) &&
         isReportActionVisible(reportAction, actionReportID, canUserPerformWriteAction, visibleReportActions, currentUserAccountID) &&
         reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
         reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
