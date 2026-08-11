@@ -708,7 +708,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
         ],
     );
 
-    const {styleForAM, styleForPM} = StyleUtils.getStatusAMandPMButtonStyle(amPmValue);
+    const {styleForAM, styleForPM} = StyleUtils.getStatusAMandPMButtonStyle(amPmValue, translate('common.am'), translate('common.pm'));
 
     const numberPad = useCallback(() => {
         if (!canUseTouchScreen) {

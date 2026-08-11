@@ -4,9 +4,10 @@ import type {ThemeColors} from '@src/styles/theme/types';
 import createStyleUtils from '@src/styles/utils';
 import variables from '@src/styles/variables';
 
-const mockTheme = {} as ThemeColors;
+const mockTheme = {componentBG: '#ffffff'} as ThemeColors;
 
 const mockStyles = {
+    timePickerWidth72: {width: 72},
     buttonExtraSmall: {height: 28},
     buttonSmall: {height: 32},
     buttonMedium: {height: 40},
@@ -23,7 +24,10 @@ const mockStyles = {
     buttonOpacityDisabled: {opacity: 0.5},
 } as unknown as ThemeStyles;
 
-const {getButtonSizeStyle, getButtonPaddingStyle, getButtonStyleWithIcon, getButtonVariantStyles, getReportTableColumnStyles} = createStyleUtils(mockTheme, mockStyles);
+const {getButtonSizeStyle, getButtonPaddingStyle, getButtonStyleWithIcon, getButtonVariantStyles, getReportTableColumnStyles, getStatusAMandPMButtonStyle} = createStyleUtils(
+    mockTheme,
+    mockStyles,
+);
 
 describe('getButtonSizeStyle', () => {
     it.each([
@@ -93,5 +97,38 @@ describe('getButtonVariantStyles', () => {
 describe('getReportTableColumnStyles - First approved column width', () => {
     it('uses a fixed wide width (fits the long header and a past-year date, so no year-based widening)', () => {
         expect(getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED)).toEqual({width: variables.w102});
+    });
+});
+
+describe('getStatusAMandPMButtonStyle', () => {
+    // When a button is highlighted its computed style is an empty object (no background override); when it is not,
+    // the componentBG background is applied.
+    const highlighted = [mockStyles.timePickerWidth72, {}];
+    const dimmed = [mockStyles.timePickerWidth72, {backgroundColor: mockTheme.componentBG}];
+
+    it('highlights PM for the English CONST.TIME_PERIOD marker', () => {
+        const {styleForAM, styleForPM} = getStatusAMandPMButtonStyle(CONST.TIME_PERIOD.PM, 'AM', 'PM');
+        expect(styleForPM).toEqual(highlighted);
+        expect(styleForAM).toEqual(dimmed);
+    });
+
+    it('highlights AM for the English CONST.TIME_PERIOD marker', () => {
+        const {styleForAM, styleForPM} = getStatusAMandPMButtonStyle(CONST.TIME_PERIOD.AM, 'AM', 'PM');
+        expect(styleForAM).toEqual(highlighted);
+        expect(styleForPM).toEqual(dimmed);
+    });
+
+    // Regression test for the localized AM/PM bug: the saved time yields a localized period marker (Japanese "午後"),
+    // which must still highlight the PM button by matching the localized `common.pm` label.
+    it('highlights PM for a localized period marker (ja "午後")', () => {
+        const {styleForAM, styleForPM} = getStatusAMandPMButtonStyle('午後', '午前', '午後');
+        expect(styleForPM).toEqual(highlighted);
+        expect(styleForAM).toEqual(dimmed);
+    });
+
+    it('highlights AM for a localized period marker (ja "午前")', () => {
+        const {styleForAM, styleForPM} = getStatusAMandPMButtonStyle('午前', '午前', '午後');
+        expect(styleForAM).toEqual(highlighted);
+        expect(styleForPM).toEqual(dimmed);
     });
 });
