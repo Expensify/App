@@ -30,10 +30,10 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Cache Jest cache
+      - name: Restore Jest cache
         id: cache-jest-cache
-        # v5.0.1
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+        # v5.1.0, Blacksmith sticky-disk-backed drop-in for actions/cache/restore
+        uses: useblacksmith/cache/restore@c5fe29eb0efdf1cf4186b9f7fcbbcbc0cf025662
         with:
           path: .jest-cache
           # Per-shard key: each shard only instruments the ~1/8 of suites it runs, so a single
@@ -44,6 +44,17 @@ jobs:
 
       - name: Jest tests
         run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=6 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
+
+      - name: Save Jest cache
+        # Only save on the post-merge run (test.yml called via workflow_call from preDeploy.yml on
+        # push to main). PR runs restore-only, so a PR's partial/stale shard cache never overwrites
+        # the sticky disk that other PRs restore from.
+        if: ${{ !cancelled() && github.event_name == 'workflow_call' }}
+        # v5.1.0, Blacksmith sticky-disk-backed drop-in for actions/cache/save
+        uses: useblacksmith/cache/save@c5fe29eb0efdf1cf4186b9f7fcbbcbc0cf025662
+        with:
+          path: .jest-cache
+          key: ${{ steps.cache-jest-cache.outputs.cache-primary-key }}
 
       - name: Upload coverage to Codecov (PRs - tokenless)
         if: ${{ github.event_name == 'pull_request' }}
