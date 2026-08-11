@@ -354,7 +354,11 @@ function getInvoicesChatName({
     }
 
     if (isIndividual) {
-        return formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[invoiceReceiverAccountID], translate}));
+        return temporaryGetDisplayNameOrDefault({
+            passedPersonalDetails: personalDetails?.[invoiceReceiverAccountID],
+            translate,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
+        });
     }
 
     return getPolicyName({report, policy: receiverPolicy, unavailableTranslation: translate('workspace.common.unavailable')});
@@ -395,7 +399,7 @@ function getInvoicePayerName(
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 
     if (isIndividual) {
-        return formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: invoiceReceiverPersonalDetail ?? undefined, translate}));
+        return temporaryGetDisplayNameOrDefault({passedPersonalDetails: invoiceReceiverPersonalDetail ?? undefined, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils});
     }
 
     return getPolicyName({report, policy: invoiceReceiverPolicy, unavailableTranslation: translate('workspace.common.unavailable')});

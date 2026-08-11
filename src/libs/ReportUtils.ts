@@ -3596,6 +3596,7 @@ function getDisplayNameForParticipant({
               shouldFallbackToHidden,
               shouldAddCurrentUserPostfix: shouldAddPostfix,
               translate,
+              formatPhoneNumber,
           })
         : getDisplayNameOrDefault(personalDetails, formattedLogin, shouldFallbackToHidden, shouldAddPostfix);
 
@@ -3730,7 +3731,13 @@ function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
     }, finalParticipants);
 }
 
-function getParticipantIcon(accountID: number | undefined, personalDetails: OnyxInputOrEntry<PersonalDetailsList>, translate: LocalizedTranslate, shouldUseShortForm = false): Icon {
+function getParticipantIcon(
+    accountID: number | undefined,
+    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    translate: LocalizedTranslate,
+    shouldUseShortForm = false,
+): Icon {
     if (!accountID) {
         return {
             id: CONST.DEFAULT_NUMBER_ID,
@@ -3740,7 +3747,7 @@ function getParticipantIcon(accountID: number | undefined, personalDetails: Onyx
         };
     }
     const details = personalDetails?.[accountID];
-    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, defaultValue: '', shouldFallbackToHidden: shouldUseShortForm, translate});
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, defaultValue: '', shouldFallbackToHidden: shouldUseShortForm, translate, formatPhoneNumber});
 
     return {
         id: accountID,
@@ -3831,11 +3838,11 @@ function getIconsForChatThread(
     const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
     const actorAccountID = getReportActionActorAccountID(parentReportAction, report as OnyxEntry<Report>, report as OnyxEntry<Report>);
     const actorDetails = actorAccountID ? personalDetails?.[actorAccountID] : undefined;
-    const actorDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: actorDetails, defaultValue: '', shouldFallbackToHidden: false, translate});
+    const actorDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: actorDetails, defaultValue: '', shouldFallbackToHidden: false, translate, formatPhoneNumber});
     const actorIcon = {
         id: actorAccountID,
         source: actorDetails?.avatar ?? (actorAccountID ? getDefaultAvatarURL({accountID: actorAccountID}) : FallbackAvatar),
-        name: formatPhoneNumber(actorDisplayName),
+        name: actorDisplayName,
         type: CONST.ICON_TYPE_AVATAR,
         fallbackIcon: actorDetails?.fallbackIcon,
     };
@@ -3854,9 +3861,10 @@ function getIconsForTaskReport(
     report: OnyxInputOrEntry<Report>,
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
     policy: OnyxInputOrEntry<Policy>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     translate: LocalizedTranslate,
 ): Icon[] {
-    const ownerIcon = getParticipantIcon(report?.ownerAccountID, personalDetails, translate, true);
+    const ownerIcon = getParticipantIcon(report?.ownerAccountID, personalDetails, formatPhoneNumber, translate, true);
     if (report && isWorkspaceTaskReport(report)) {
         const workspaceIcon = getWorkspaceIcon(report, translate, policy);
         return [ownerIcon, workspaceIcon];
@@ -3906,13 +3914,14 @@ function getIconsForPolicyExpenseChat(
     report: OnyxInputOrEntry<Report>,
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
     policy: OnyxInputOrEntry<Policy>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     translate: LocalizedTranslate,
 ): Icon[] {
     if (!report) {
         return [];
     }
     const workspaceIcon = getWorkspaceIcon(report, translate, policy);
-    const memberIcon = getParticipantIcon(report?.ownerAccountID, personalDetails, translate, true);
+    const memberIcon = getParticipantIcon(report?.ownerAccountID, personalDetails, formatPhoneNumber, translate, true);
     return [workspaceIcon, memberIcon];
 }
 
@@ -3923,13 +3932,14 @@ function getIconsForExpenseReport(
     report: OnyxInputOrEntry<Report>,
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
     policy: OnyxInputOrEntry<Policy>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     translate: LocalizedTranslate,
 ): Icon[] {
     if (!report) {
         return [];
     }
     const workspaceIcon = getWorkspaceIcon(report, translate, policy);
-    const memberIcon = getParticipantIcon(report?.ownerAccountID, personalDetails, translate, true);
+    const memberIcon = getParticipantIcon(report?.ownerAccountID, personalDetails, formatPhoneNumber, translate, true);
     return [memberIcon, workspaceIcon];
 }
 
@@ -4064,7 +4074,7 @@ function getIcons(
         return getIconsForExpenseRequest(report, personalDetails, policy, translate);
     }
     if (isExpenseReport(report)) {
-        return getIconsForExpenseReport(report, personalDetails, policy, translate);
+        return getIconsForExpenseReport(report, personalDetails, policy, formatPhoneNumber, translate);
     }
     if (isIOUReport(report)) {
         return getIconsForIOUReport(report, personalDetails);
@@ -4076,13 +4086,13 @@ function getIcons(
         return getIconsForChatThread(report, personalDetails, policy, formatPhoneNumber, translate);
     }
     if (isTaskReport(report)) {
-        return getIconsForTaskReport(report, personalDetails, policy, translate);
+        return getIconsForTaskReport(report, personalDetails, policy, formatPhoneNumber, translate);
     }
     if (isDomainRoom(report)) {
         return getIconsForDomainRoom(report);
     }
     if (isPolicyExpenseChat(report)) {
-        return getIconsForPolicyExpenseChat(report, personalDetails, policy, translate);
+        return getIconsForPolicyExpenseChat(report, personalDetails, policy, formatPhoneNumber, translate);
     }
     if (isUserCreatedPolicyRoom(report)) {
         return getIconsForUserCreatedPolicyRoom(report, policy, translate);

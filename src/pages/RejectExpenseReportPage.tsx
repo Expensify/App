@@ -76,7 +76,7 @@ function submitterAndLastForwardedActorEmailSelector(submitterAccountID: number 
 
 function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const {reportID} = route.params;
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -99,7 +99,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
         ? null
         : {
               accountID: lastForwardedActorDetails.accountID,
-              displayName: temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastForwardedActorDetails, translate}),
+              displayName: temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastForwardedActorDetails, translate, formatPhoneNumber}),
               email: lastForwardedActorEmail,
           };
 
@@ -118,7 +118,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
         });
     }
 
-    const submitterName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: getPersonalDetailByEmail(submitterEmail), translate});
+    const submitterName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: getPersonalDetailByEmail(submitterEmail), translate, formatPhoneNumber});
     options.push({
         text: `${submitterName} (${translate('iou.rejectReport.submitter')})`,
         alternateText: submitterEmail,
