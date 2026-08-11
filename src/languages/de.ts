@@ -4213,6 +4213,9 @@ ${amount} für ${merchant} – ${date}`,
         proofOf: 'Nachweis der Privatadresse',
         enterOneEmail: (companyName: string) => `Gib die E-Mail-Adresse einer Geschäftsführungsperson von ${companyName} ein`,
         regulationRequiresOneMoreDirector: 'Vorschriften erfordern mindestens eine weitere:n Geschäftsführer:in als Unterzeichner:in.',
+        bothSignersMustBeOnIllionReport:
+            'Beide Unterzeichner müssen im illion-Bericht des Unternehmens als Direktoren aufgeführt sein. Es können nicht beliebige zwei Personen im Unternehmen sein.',
+        signerMustBeOnIllionReport: 'Die als Unterzeichner hinzugefügte Geschäftsführungsperson muss im illion-Bericht des Unternehmens aufgeführt sein.',
         hangTight: 'Einen Moment bitte ...',
         enterTwoEmails: (companyName: string) => `Gib die E-Mail-Adressen von zwei Direktoren bei ${companyName} ein`,
         sendReminder: 'Erinnerung senden',
@@ -4223,11 +4226,11 @@ ${amount} für ${merchant} – ${date}`,
         proofOfDirectorsDescription: 'Beispiele: Oncorp-Unternehmensprofil oder Unternehmensregistrierung.',
         codiceFiscale: 'Steuernummer',
         codiceFiscaleDescription: 'Codice Fiscale für Unterzeichnende, Bevollmächtigte und wirtschaftlich Berechtigte.',
-        PDSandFSG: 'PDS- und FSG-Offenlegungsunterlagen',
+        PDSandFSG: 'PDS-, FSG- und TMD-Offenlegungsunterlagen',
         PDSandFSGDescription: Str.dedent(`
-            Unsere Partnerschaft mit Corpay nutzt eine API-Verbindung, um deren umfangreiches Netzwerk internationaler Bankpartner zu verwenden und so Globale Erstattungen in Expensify zu ermöglichen. Gemäß den australischen Vorschriften stellen wir Ihnen den Financial Services Guide (FSG) und die Product Disclosure Statement (PDS) von Corpay zur Verfügung.
+            Unsere Partnerschaft mit Corpay nutzt eine API-Verbindung, um das umfangreiche Netzwerk internationaler Bankpartner zu verwenden, das Globale Rückerstattungen in Expensify ermöglicht. Gemäß den australischen Vorschriften stellen wir Ihnen den Financial Services Guide (FSG), das Product Disclosure Statement (PDS) und die Target Market Determination (TMD) von Corpay zur Verfügung.
 
-            Bitte lesen Sie die FSG- und PDS-Dokumente sorgfältig, da sie vollständige Details und wichtige Informationen zu den Produkten und Dienstleistungen enthalten, die Corpay anbietet. Bewahren Sie diese Dokumente für zukünftige Referenzzwecke auf.
+            Bitte lesen Sie die FSG-, PDS- und TMD-Dokumente sorgfältig, da sie vollständige Details und wichtige Informationen zu den Produkten und Dienstleistungen enthalten, die Corpay anbietet. Bewahren Sie diese Dokumente für eine spätere Bezugnahme auf.
         `),
         pleaseUpload: 'Bitte laden Sie unten zusätzliche Unterlagen hoch, damit wir Ihre Identität als Geschäftsführer*in des Unternehmens verifizieren können.',
         enterSignerInfo: 'Unterzeichnerinformationen eingeben',
@@ -4239,6 +4242,8 @@ ${amount} für ${merchant} – ${date}`,
         },
     },
     agreementsStep: {
+        bankStatement: 'Kontoauszug',
+        bankStatementDescription: 'Bitte laden Sie einen aktuellen Kontoauszug hoch, der innerhalb der letzten drei Monate ausgestellt wurde, für das Geschäftskonto, das Sie verbinden.',
         agreements: 'Vereinbarungen',
         pleaseConfirm: 'Bitte bestätige die folgenden Vereinbarungen',
         regulationRequiresUs: 'Vorschriften verpflichten uns, die Identität jeder Person zu überprüfen, die mehr als 25 % des Unternehmens besitzt.',
@@ -4247,7 +4252,7 @@ ${amount} für ${merchant} – ${date}`,
         iAcceptTheTermsAndConditions: `Ich akzeptiere die <a href="https://www.corpay.com/cross-border/terms">Allgemeinen Geschäftsbedingungen</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'Ich akzeptiere die Geschäftsbedingungen.',
         accept: 'Akzeptieren und Bankkonto hinzufügen',
-        iConsentToThePrivacyNotice: 'Ich stimme der <a href="https://payments.corpay.com/compliance">Datenschutzerklärung</a> zu.',
+        iConsentToThePrivacyNotice: 'Ich stimme der <a href="https://www.corpay.com/privacy-policy">Datenschutzerklärung</a> zu.',
         iConsentToThePrivacyNoticeAccessibility: 'Ich stimme der Datenschutzerklärung zu.',
         error: {
             authorized: 'Sie müssen eine vertretungsberechtigte Führungskraft mit Vollmacht zur Führung des Geschäftskontos sein',
@@ -8663,7 +8668,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} Vorabgenehmigung von Arbeitsbereich-Beitrittsanfragen`,
         updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) => `benutzerdefinierte Berichtstitelformel in „${newDefaultTitle}“ geändert (zuvor „${oldDefaultTitle}“)`,
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `hat die Inhaberschaft von ${policyName} von ${oldOwnerName} (${oldOwnerEmail}) übernommen`,
-        updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'aktiviert' : 'deaktiviert'} geplante Einreichung`,
         updatedIndividualBudgetNotification: (
             budgetAmount: string,
             budgetFrequency: string,
@@ -8822,6 +8826,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `Rechnungseinstellungen von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `Reiseeinstellungen von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
         },
+        updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'aktiviert' : 'deaktiviert'} Einreichungen`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
