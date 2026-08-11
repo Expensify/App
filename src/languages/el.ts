@@ -6082,8 +6082,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             balanceWillBeSettledOn: (settlementDate: string) => `Το υπόλοιπο θα διακανονιστεί στις ${settlementDate}`,
             settleBalance: 'Εξόφληση υπολοίπου',
             settleBalanceConfirmationTitle: 'Εξόφληση υπολοίπου;',
-            settleBalanceConfirmationPrompt:
-                'Αυτό θα εξοφλήσει το τρέχον υπόλοιπό σας την επόμενη εργάσιμη ημέρα. Μόλις ολοκληρωθεί, το ποσό θα προστεθεί ξανά στο υπόλοιπο όριό σας.',
+            settleBalanceConfirmationPrompt: 'Αυτό θα εξοφλήσει το τρέχον υπόλοιπό σας την επόμενη εργάσιμη ημέρα. Μόλις ολοκληρωθεί, το ποσό θα προστεθεί ξανά στο υπόλοιπο όριό σας.',
             cardLimit: 'Όριο κάρτας',
             remainingLimit: 'Υπόλοιπο ορίου',
             requestLimitIncrease: 'Αίτημα αύξησης ορίου',
