@@ -7,6 +7,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import truncate from 'lodash/truncate';
@@ -207,6 +208,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     reportActions,
     originalTransaction,
     convertToDisplayString,
+    dateFnsLocale,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -222,6 +224,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     reportActions?: OnyxTypes.ReportActions;
     originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    dateFnsLocale: DateFnsLocale | undefined;
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
     const isTransactionOnHold = isOnHold(transaction);
@@ -311,7 +314,11 @@ function getTransactionPreviewTextAndTranslationPaths({
     let previewDateText: TranslationPathOrText | undefined;
     if (!isCreatedMissing(transaction)) {
         const created = getFormattedCreated(transaction);
-        const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+        const date = DateUtils.formatWithUTCTimeZone(
+            created,
+            DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+            dateFnsLocale,
+        );
         previewDateText = {text: date};
     }
 

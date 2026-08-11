@@ -1,5 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,6 +12,7 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -61,6 +64,7 @@ import {
 } from './TransactionUtils';
 
 type SubmitAmountArgs = {
+    dateFnsLocale: DateFnsLocale | undefined;
     report: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -113,6 +117,7 @@ type SubmitAmountArgs = {
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     conciergeReportID: OnyxEntry<string>;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 /**
@@ -245,7 +250,7 @@ function buildSubmitAmountContext(args: SubmitAmountArgs): SubmitAmountContext {
 }
 
 function buildReportParticipants(args: SubmitAmountArgs) {
-    const {report, policy, currentUserPersonalDetails, reportAttributesDerivedValue, allReportDrafts, allReportNVPs, allPersonalDetails, conciergeReportID, translate} = args;
+    const {report, policy, currentUserPersonalDetails, reportAttributesDerivedValue, allReportDrafts, allReportNVPs, allPersonalDetails, conciergeReportID, translate, dateFnsLocale} = args;
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const reportAttributesReports = reportAttributesDerivedValue?.reports;
     const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
@@ -255,24 +260,17 @@ function buildReportParticipants(args: SubmitAmountArgs) {
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
             ? getParticipantsOption(participant, allPersonalDetails, translate)
-            : getReportOption(
-                  participant,
-                  privateIsArchived,
-                  policy,
-                  allPersonalDetails,
-                  conciergeReportID,
-                  reportAttributesReports,
-                  reportDraft,
-                  currentUserPersonalDetails.accountID,
+            : getReportOption(participant, privateIsArchived, policy, allPersonalDetails, conciergeReportID, reportAttributesReports, reportDraft, currentUserPersonalDetails.accountID, {
                   translate,
-              );
+                  dateFnsLocale,
+              });
     });
 }
 
 type ParticipantOption = ReturnType<typeof buildReportParticipants>[number];
 
 function submitSkipConfirmationPayment(args: SubmitAmountArgs, ctx: SubmitAmountContext, participants: ParticipantOption[]): void {
-    const {report, selectedCurrency, paymentMethod, quickAction, delegateAccountID} = args;
+    const {report, selectedCurrency, paymentMethod, quickAction, delegateAccountID, getCurrencyDecimals} = args;
     const {currentUserAccountID, newAmount: backendAmount} = ctx;
     const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID([participants.at(0)?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID], report);
     const sendMoneyParams = {
@@ -286,6 +284,7 @@ function submitSkipConfirmationPayment(args: SubmitAmountArgs, ctx: SubmitAmount
         optimisticChatReportID,
         shouldStartTracking: false,
         delegateAccountID,
+        getCurrencyDecimals,
     };
 
     const executeSendMoneyWrite = (overrides?: {shouldDeferForSearch?: boolean}) => {
@@ -334,6 +333,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         action,
         currentUserPersonalDetails,
         isTrackIntentUser,
+        getCurrencyDecimals,
     } = args;
     const {currentUserAccountID, currentUserEmail, existingTransactionID, isASAPSubmitBetaEnabled, newAmount: backendAmount} = ctx;
 
@@ -380,6 +380,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 optimisticTransactionID,
                 delegateAccountID,
                 reportActionsList: undefined,
+                getCurrencyDecimals,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -419,6 +420,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 optimisticTransactionID,
                 delegateAccountID,
                 isTrackIntentUser,
+                getCurrencyDecimals,
             });
         }
         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
