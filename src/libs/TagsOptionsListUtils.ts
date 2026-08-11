@@ -102,11 +102,13 @@ function getTagListSections({
 }) {
     const tagSections = [];
     const sortedTags = sortTags(tags, localeCompare);
+    // O(1) lookup for selected/recent shims that lack the PolicyTag GL Code field.
+    const tagByName = new Map(sortedTags.map((tag) => [tag.name, tag]));
     const withGLCode = (tag: SelectedTagOption | PolicyTag): TagOptionInput => {
         if (!shouldShowGLCode) {
             return tag;
         }
-        const fullTag = 'GL Code' in tag && tag['GL Code'] ? tag : sortedTags.find((sortedTag) => sortedTag.name === tag.name);
+        const fullTag = 'GL Code' in tag ? tag : tagByName.get(tag.name);
         return {...tag, glCode: getGLCodeFromPolicyTag(fullTag)};
     };
 
@@ -166,11 +168,11 @@ function getTagListSections({
 
     const filteredRecentlyUsedTags = recentlyUsedTags
         .filter((recentlyUsedTag) => {
-            const tagObject = sortedTags.find((tag) => tag.name === recentlyUsedTag);
+            const tagObject = tagByName.get(recentlyUsedTag);
             return !!tagObject?.enabled && !selectedOptionNames.has(recentlyUsedTag) && tagObject?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         })
         .map((tagName) => {
-            const tagObject = sortedTags.find((tag) => tag.name === tagName);
+            const tagObject = tagByName.get(tagName);
             return withGLCode(tagObject ?? {name: tagName, enabled: true});
         });
 

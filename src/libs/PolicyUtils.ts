@@ -1276,8 +1276,7 @@ function getTagGLCode(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTag:
 
             const directMatch = levelTags[tagName];
             const matchingTag = matchesTagAtLevel(directMatch) ? directMatch : Object.values(levelTags).find(matchesTagAtLevel);
-            const glCode = matchingTag?.['GL Code'];
-            return glCode != null ? String(glCode).replaceAll('"', '') : '';
+            return getGLCodeFromPolicyTag(matchingTag);
         })
         .filter(Boolean)
         .join(', ');
