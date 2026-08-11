@@ -1026,8 +1026,8 @@ const translations = {
                 cta: 'Validate',
             },
             addHomeAddress: {
-                title: 'Add a home address',
-                subtitle: 'Your admin enabled commuter exclusions for distance expenses. Add a home address so we can apply them to your claims.',
+                title: 'Add your home address for distance tracking',
+                subtitle: 'Account',
                 cta: 'Add address',
             },
             fixFailedBilling: {
