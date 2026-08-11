@@ -86,6 +86,25 @@ To submit expenses to an approver:
 
 ---
 
+## How to submit a report as a PDF
+
+If you're not ready to invite your approver into Expensify, you can submit a report as a PDF and share it yourself by email or print. On a draft report in a Submit workspace, the **Submit** button includes two options:
+
+- **Submit**: Submit the report to an approver by email, as described above.
+- **Submit via PDF**: Move the report to the Outstanding status and download a PDF you can send or print.
+
+To submit a report as a PDF:
+
+1. Open the draft report you want to submit.
+2. Select the dropdown arrow on the **Submit** button.
+3. Select **Submit via PDF**.
+
+The report moves to the Outstanding status and the PDF downloads automatically. Share the PDF with your approver by email or print. Your approver opens the PDF and selects **Approve or Pay** — or scans the QR code on a printed copy — to sign in and approve the report online.
+
+Your choice is sticky: future reports default to the last method you used, including when you submit from the **Spend** page. Submitting multiple reports as PDFs at once isn't available.
+
+---
+
 ## How to mark a report as paid
 
 If you've been reimbursed outside of Expensify, you can mark an outstanding report as paid so you can track its status yourself:
@@ -100,6 +119,10 @@ Marking a report as paid lets you track which of your submitted reports are stil
 ## What happens when my approver clicks Approve?
 
 If your approver clicks **Approve**, they're prompted to upgrade the workspace to a paid plan before they can complete the approval.
+
+Your approver can reach the **Approve** button either from the email you send when submitting online, or by opening a PDF you shared and selecting **Approve or Pay** (or scanning the QR code on a printed copy). When they use the PDF, they sign in, are added to your workspace as an **Editor**, and can then approve.
+
+A PDF approval link stays active for 60 days. If it expires before your approver uses it, they'll see a "Hmm... not there" message when they sign in, and you'll get a message on the report so you can download and resend the PDF.
 
 If they upgrade:
 

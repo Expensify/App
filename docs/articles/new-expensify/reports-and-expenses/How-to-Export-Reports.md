@@ -68,6 +68,8 @@ Expensify offers pre-built export templates, or you can build your own custom ex
 
 The PDF includes all expenses, attached receipts, and report notes.
 
+For reports on a Submit workspace, the PDF also includes an Expensify header, an **Approve or Pay** button and QR code that let your approver open and approve the report online, and a promotional footer. The **To** field is hidden when a report is submitted to yourself for approval. Learn more about how to [submit a report as a PDF](/articles/new-expensify/getting-started/Submit-Workspace#how-to-submit-a-report-as-a-pdf).
+
 ## How to download multiple reports as PDFs
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**. 
@@ -76,7 +78,7 @@ The PDF includes all expenses, attached receipts, and report notes.
 4. Select **Download as PDF**.
 5. Wait for the files to finish preparing, then select **Download file** to save them to your device. You can also select **Send me the file when it's ready** to have Concierge send the files to you in a chat message instead.
 
-Each report downloads as its own PDF, including all expenses, attached receipts, and report notes.
+Each report downloads as its own PDF, including all expenses, attached receipts, and report notes. Reports on a Submit workspace also include the Expensify header, **Approve or Pay** button, QR code, and footer described above.
 
 ## How to download the receipts on a report
 
