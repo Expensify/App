@@ -2837,12 +2837,11 @@ function getValidOptions(
         hasMore = hasMore || groupedOptions.hasMore;
 
         if (selfDMChats.length > 0) {
-            selfDMChat = prepareReportOptionsForDisplay({
-                options: selfDMChats,
+            selfDMChat = prepareReportOptionsForDisplay(
+                selfDMChats,
                 policiesCollection,
-                isOffline: isOfflineNetworkState,
-                formatPhoneNumber,
-                config: {
+                isOfflineNetworkState,
+                {
                     ...getValidReportsConfig,
                     dateFnsLocale,
                     selectedOptions,
@@ -2852,25 +2851,25 @@ function getValidOptions(
                     shouldShowGBR,
                     personalDetails,
                     translate,
+                    formatPhoneNumber,
                 },
                 conciergeReportID,
                 sortedActions,
                 visibleReportActionsData,
                 reportAttributesDerived,
-                policyTags: allPolicyTags,
+                allPolicyTags,
                 isTrackIntentUser,
-            }).at(0);
+            ).at(0);
         }
 
         if (maxRecentReportElements) {
             recentReportOptions = recentReportOptions.splice(0, maxRecentReportElements);
         }
-        recentReportOptions = prepareReportOptionsForDisplay({
-            options: recentReportOptions,
+        recentReportOptions = prepareReportOptionsForDisplay(
+            recentReportOptions,
             policiesCollection,
-            isOffline: isOfflineNetworkState,
-            formatPhoneNumber,
-            config: {
+            isOfflineNetworkState,
+            {
                 ...getValidReportsConfig,
                 dateFnsLocale,
                 selectedOptions,
@@ -2880,21 +2879,21 @@ function getValidOptions(
                 shouldShowGBR,
                 personalDetails,
                 translate,
+                formatPhoneNumber,
             },
             conciergeReportID,
             sortedActions,
             visibleReportActionsData,
             reportAttributesDerived,
-            policyTags: allPolicyTags,
+            allPolicyTags,
             isTrackIntentUser,
-        });
+        );
 
-        workspaceChats = prepareReportOptionsForDisplay({
-            options: workspaceChats,
+        workspaceChats = prepareReportOptionsForDisplay(
+            workspaceChats,
             policiesCollection,
-            isOffline: isOfflineNetworkState,
-            formatPhoneNumber,
-            config: {
+            isOfflineNetworkState,
+            {
                 ...getValidReportsConfig,
                 dateFnsLocale,
                 selectedOptions,
@@ -2904,14 +2903,15 @@ function getValidOptions(
                 shouldShowGBR,
                 personalDetails,
                 translate,
+                formatPhoneNumber,
             },
             conciergeReportID,
             sortedActions,
             visibleReportActionsData,
             reportAttributesDerived,
-            policyTags: allPolicyTags,
+            allPolicyTags,
             isTrackIntentUser,
-        });
+        );
 
         if (reportIDsToExclude.size > 0) {
             workspaceChats = workspaceChats.filter((chat) => !chat.reportID || !reportIDsToExclude.has(chat.reportID));
