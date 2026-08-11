@@ -25,7 +25,7 @@ type FraudAlertContentProps = {
 };
 
 function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
-    const {translate, getLocalDateFromDatetime} = useLocalize();
+    const {translate, getLocalDateFromDatetime, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
     const reportActionID = action?.reportActionID;
@@ -53,7 +53,7 @@ function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
                   },
               },
           ];
-    const message = getActionableCardFraudAlertMessage(translate, action, getLocalDateFromDatetime, convertToDisplayString);
+    const message = getActionableCardFraudAlertMessage(translate, dateFnsLocale, action, getLocalDateFromDatetime, convertToDisplayString);
 
     return (
         <View

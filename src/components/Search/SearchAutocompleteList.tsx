@@ -185,7 +185,7 @@ function SearchAutocompleteList({
     ref,
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addOfflineIndicatorBottomSafeAreaPadding: true,
@@ -256,6 +256,7 @@ function SearchAutocompleteList({
             return defaultListOptions;
         }
         return getSearchOptions({
+            dateFnsLocale,
             options: listOptions,
             draftComments,
             betas: betas ?? [],
@@ -296,6 +297,7 @@ function SearchAutocompleteList({
         conciergeReportID,
         isTrackIntentUser,
         translate,
+        dateFnsLocale,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);

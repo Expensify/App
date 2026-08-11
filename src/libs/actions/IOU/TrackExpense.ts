@@ -206,6 +206,7 @@ type GetTrackExpenseInformationParams = {
     policyType?: CreatableWorkspaceType;
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
     isDraftChatReport?: boolean;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type DeleteTrackExpenseParams = {
@@ -872,6 +873,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         isDraftChatReport,
         currentUserLocalCurrency,
         policyType,
+        getCurrencyDecimals,
     } = params;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy} = policyParams;
@@ -1062,6 +1064,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
                 betas,
                 optimisticIOUReportID: optimisticExpenseReportID,
                 reportTransactions,
+                getCurrencyDecimals,
             });
         } else {
             iouReport = {...iouReport};
@@ -1137,6 +1140,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     // 3. The transaction thread, which requires the iouAction, and CREATED action for the transaction thread
     // 4. REPORT_PREVIEW action for the chatReport (if tracking in the Expense chat)
     const [, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] = buildOptimisticMoneyRequestEntities({
+        getCurrencyDecimals,
         iouReport: shouldUseMoneyReport && iouReport ? iouReport : chatReport,
         type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
         amount,
@@ -1157,9 +1161,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewReportAction(chatReport.reportID, iouReport.reportID);
 
         if (reportPreviewAction) {
-            reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
+            reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, false, comment, optimisticTransaction);
         } else {
-            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, undefined, delegateAccountID);
+            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimals, comment, optimisticTransaction, undefined, undefined, delegateAccountID);
             // Generated ReportPreview action is a parent report action of the iou report.
             // We are setting the iou report's parentReportActionID to display subtitle correctly in IOU page when offline.
             iouReport.parentReportActionID = reportPreviewAction.reportActionID;
@@ -1668,6 +1672,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         shouldDeferAutoSubmit,
         delegateAccountID,
         isTrackIntentUser,
+        getCurrencyDecimals,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -1778,6 +1783,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         personalDetails,
         delegateAccountID,
         isTrackIntentUser,
+        getCurrencyDecimals,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -1973,6 +1979,7 @@ function convertBulkTrackedExpensesToIOU({
     selfDMReportActions,
     delegateAccountID,
     isTrackIntentUser,
+    getCurrencyDecimals,
 }: {
     transactions: OnyxTypes.Transaction[];
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -1989,6 +1996,7 @@ function convertBulkTrackedExpensesToIOU({
     selfDMReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 }) {
     const iouReportID = iouReport?.reportID;
 
@@ -2109,6 +2117,7 @@ function convertBulkTrackedExpensesToIOU({
             },
             delegateAccountID,
             isTrackIntentUser,
+            getCurrencyDecimals,
         });
 
         const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -2441,6 +2450,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         reportActionsList,
         isDraftChatReport,
         currentUserLocalCurrency,
+        getCurrencyDecimals,
     } = params;
     const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
@@ -2607,6 +2617,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         currentUserLocalCurrency,
         // Only "Submit to my employer" creates a Submit (submit2026) workspace from a draft; everything else keeps the default (team) type.
         policyType: action === CONST.IOU.ACTION.SUBMIT && policy?.type === CONST.POLICY.TYPE.SUBMIT ? CONST.POLICY.TYPE.SUBMIT : undefined,
+        getCurrencyDecimals,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;
