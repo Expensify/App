@@ -5,6 +5,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import type {NumberWithSymbolFormProps, NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -81,6 +82,16 @@ describe('NumberWithSymbolForm', () => {
             // No BigNumberPad on this path, even though `shouldShowBigNumberPad` defaults to true on touch devices
             expect(screen.queryByTestId('button_1')).toBeNull();
             expect(screen.queryByTestId('button_<')).toBeNull();
+        });
+
+        it('does not render a ScrollView or the portrait/landscape layout wrappers', async () => {
+            renderForm({displayAsTextInput: true, value: '10'});
+            await waitForBatchedUpdatesWithAct();
+
+            // This path early-returns a bare TextInput - no ScrollView, no landscape handling
+            expect(screen.UNSAFE_queryAllByType(ScrollView)).toHaveLength(0);
+            expect(queryAllById('numberView')).toHaveLength(0);
+            expect(queryAllById('numPadContainerView')).toHaveLength(0);
         });
 
         it('does not render the flip or currency buttons by default', async () => {
@@ -440,6 +451,29 @@ describe('NumberWithSymbolForm', () => {
             expect(onSymbolButtonPress).toHaveBeenCalledTimes(1);
         });
 
+        it('renders both the currency and flip buttons when both are enabled', async () => {
+            const onSymbolButtonPress = jest.fn();
+            const toggleNegative = jest.fn();
+            renderForm({
+                value: '10',
+                currency: 'USD',
+                allowFlippingAmount: true,
+                onSymbolButtonPress,
+                toggleNegative,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('USD')).toBeTruthy();
+            expect(screen.getByText('Flip')).toBeTruthy();
+
+            fireEvent.press(screen.getByText('USD'));
+            fireEvent.press(screen.getByText('Flip'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(onSymbolButtonPress).toHaveBeenCalledTimes(1);
+            expect(toggleNegative).toHaveBeenCalledTimes(1);
+        });
+
         it('renders the error message', async () => {
             renderForm({value: '10', errorText: 'Please enter an amount'});
             await waitForBatchedUpdatesWithAct();
@@ -488,6 +522,44 @@ describe('NumberWithSymbolForm', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('-')).toBeTruthy();
+        });
+
+        describe('BigNumberPad drives setNewNumber', () => {
+            it('appends the pressed digit and reports the new value', async () => {
+                const onInputChange = jest.fn();
+                renderForm({value: '1', decimals: 2, onInputChange});
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent.press(screen.getByTestId('button_2'));
+                await waitForBatchedUpdatesWithAct();
+
+                expect(onInputChange).toHaveBeenLastCalledWith('12');
+                expect(screen.getByDisplayValue('12')).toBeTruthy();
+            });
+
+            it('deletes the last character on backspace', async () => {
+                const onInputChange = jest.fn();
+                renderForm({value: '12', decimals: 2, onInputChange});
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent.press(screen.getByTestId('button_<'));
+                await waitForBatchedUpdatesWithAct();
+
+                expect(onInputChange).toHaveBeenLastCalledWith('1');
+                expect(screen.getByDisplayValue('1')).toBeTruthy();
+            });
+
+            it('adds the leading zero in updateValueNumberPad, before setNewNumber runs', async () => {
+                const onInputChange = jest.fn();
+                renderForm({value: '', decimals: 2, onInputChange});
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent.press(screen.getByTestId('button_.'));
+                await waitForBatchedUpdatesWithAct();
+
+                // `setNewNumber` itself never calls addLeadingZero - the pad handler does it for this path
+                expect(onInputChange).toHaveBeenLastCalledWith('0.');
+            });
         });
     });
 
