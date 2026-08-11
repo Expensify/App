@@ -1,5 +1,6 @@
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -11,7 +12,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FlagCommentNavigatorParamList, SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {canAccessReport} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -55,9 +55,11 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const parentReportAction = useParentReportAction(report);
     let linkedReportAction: OnyxEntry<OnyxTypes.ReportAction> = reportActions?.[`${props.route.params.reportActionID}`];
+    const hasReportActions = !!reportActions;
 
     // Handle threads if needed
     if (!linkedReportAction?.reportActionID) {
@@ -72,9 +74,9 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
         if (!shouldUseNarrowLayout || (!isEmptyObject(report) && !isEmptyObject(linkedReportAction))) {
             return;
         }
-        openReport({reportID: props.route.params.reportID, introSelected, betas});
+        openReport({reportID: props.route.params.reportID, introSelected, betas, hasReportActions, currentUserAccountID});
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [shouldUseNarrowLayout, props.route.params.reportID]);
+    }, [shouldUseNarrowLayout, props.route.params.reportID, currentUserAccountID]);
 
     // Perform all the loading checks
     const isLoadingReport = isLoadingReportData && !report?.reportID;
@@ -83,12 +85,7 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
     const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas, isReportArchived));
 
     if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'withReportAndReportActionOrNotFound',
-            isLoadingReport,
-            isLoadingReportAction,
-        };
-        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullscreenLoadingIndicator />;
     }
 
     // Perform the access/not found checks

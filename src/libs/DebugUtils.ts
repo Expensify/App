@@ -1096,6 +1096,10 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     defaultP2PRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     distanceUnit: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    commuterExclusion: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    commuterExclusionMethod: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    commuterExclusionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    reimbursableDistance: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     rateAutoUpdated: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerStart: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerEnd: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1556,6 +1560,7 @@ function getReasonAndReportActionForRBRInLHNRow(
     hasViolations: boolean,
     reportErrors: Errors,
     isOffline: boolean,
+    currentUserAccountID: number,
     isArchivedReport = false,
 ): RBRReasonAndReportAction | null {
     const {reason, reportAction} =
@@ -1567,6 +1572,7 @@ function getReasonAndReportActionForRBRInLHNRow(
             reportErrors,
             transactions,
             isOffline,
+            currentUserAccountID,
             transactionViolations,
             isArchivedReport,
         ) ?? {};

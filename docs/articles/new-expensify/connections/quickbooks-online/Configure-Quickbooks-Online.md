@@ -60,6 +60,7 @@ To choose how data is exported from Expensify to QuickBooks Online:
   - Vendor bill
     - If exporting as vendor bills, select the AP account and optionally a default vendor
     - Vendor bill is unavailable when locations are imported as tags. To keep it available, import locations as report fields (only available on the **Control** plan)
+- **Export Consolidated Travel Billing expenses as**: This option appears only when [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled. Travel expenses export as credit card charges. Click it, then select the **Credit card account** where travel expenses will post in QuickBooks Online.
 
 ---
 
@@ -79,6 +80,7 @@ To manage automation and other connection preferences:
   - If reimbursed via ACH in Expensify, the status will sync to paid in QuickBooks
 - **QuickBooks bill payment account**: Select where payments for expense reports are recorded
 - **QuickBooks invoice collections account**: Select where payments for invoices are recorded
+- **Sync Consolidated Travel Billing settlements**: This option appears only when [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled. Turn on this toggle to continuously reconcile settlements through QuickBooks Online. When enabled, select a **Reconciliation account** to match your settlement account. Auto-sync must be enabled to use this setting.
 
 ---
 
@@ -107,3 +109,6 @@ This is likely due to the **Locations** import setting. Vendor bill and check ex
 - Turn off location imports, or
 - Import locations as report fields, which are only available on the **Control** plan
 
+## Why aren't my Items importing from QuickBooks Online?
+
+Only Items with Purchasing Information configured in QuickBooks Online can be imported into Expensify. Imported Items are created as categories.
