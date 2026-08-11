@@ -9186,6 +9186,7 @@ const translations = {
             approved: 'Approved',
             firstApprover: 'First approver',
             firstApproved: 'First approved',
+            payer: 'Payer',
             paid: 'Paid',
             exported: 'Exported',
             posted: 'Posted',

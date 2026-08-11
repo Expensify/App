@@ -928,7 +928,6 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.SUBMITTER_USER_ID ||
                     filterKey === FILTER_KEYS.SUBMITTER_PAYROLL_ID ||
                     filterKey === FILTER_KEYS.ORDER_DEAL_NUMBERS ||
-                    filterKey === FILTER_KEYS.PAYER ||
                     filterKey === FILTER_KEYS.GROUP_CURRENCY ||
                     filterKey === FILTER_KEYS.WITHDRAWAL_TYPE ||
                     filterKey === FILTER_KEYS.ACTION) &&
@@ -1017,6 +1016,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.PURCHASE_CURRENCY ||
                     filterKey === FILTER_KEYS.FROM ||
                     filterKey === FILTER_KEYS.TO ||
+                    filterKey === FILTER_KEYS.PAYER ||
                     filterKey === FILTER_KEYS.FEED ||
                     filterKey === FILTER_KEYS.IN ||
                     filterKey === FILTER_KEYS.ASSIGNEE ||
@@ -1406,7 +1406,8 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER
         ) {
             const resolvedValues = filterValues.map((id) => (id === CONST.SEARCH.ME && currentUserAccountID ? currentUserAccountID.toString() : id));
             filtersForm[addNegation(filterKey, isNegated)] = resolvedValues.filter((id) => personalDetails?.[id]);
@@ -1419,9 +1420,6 @@ function buildFilterFormValuesFromQuery(
             filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((value) => exportedToValues.has(value));
         }
 
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {
-            filtersForm[addNegation(filterKey, isNegated)] = filterValues.find((id) => personalDetails?.[id]);
-        }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY) {
             filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((currency) => validCurrencies.has(currency));
         }
