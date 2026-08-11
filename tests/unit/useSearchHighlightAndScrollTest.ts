@@ -196,6 +196,150 @@ describe('useSearchHighlightAndScroll', () => {
         expect(search).not.toHaveBeenCalled();
     });
 
+    // The `transactions` prop comes straight from `useOnyx(ONYXKEYS.COLLECTION.TRANSACTION)`, so its keys carry the
+    // `transactions_` prefix. The two tests below use that production shape rather than bare transaction IDs.
+    it('should not trigger search on a non-chat search when only a report action was added', () => {
+        const initialProps = {
+            ...baseProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    transactions_1: {transactionID: '1'},
+                },
+            },
+            transactions: {
+                transactions_1: {transactionID: '1'},
+            },
+            previousTransactions: {
+                transactions_1: {transactionID: '1'},
+            },
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                },
+            },
+            previousReportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                },
+            },
+        };
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            initialProps,
+        });
+
+        // An unrelated chat message arrives. No transaction changed, so the expense search must not refetch.
+        const updatedProps = {
+            ...initialProps,
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                    '2': {actionName: 'ADDCOMMENT', reportActionID: '2'},
+                },
+            },
+        };
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(search).not.toHaveBeenCalled();
+    });
+
+    it('should not trigger search when the added transaction is already in the search results', () => {
+        const initialProps = {
+            ...baseProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    transactions_1: {transactionID: '1'},
+                    transactions_2: {transactionID: '2'},
+                },
+            },
+            transactions: {
+                transactions_1: {transactionID: '1'},
+            },
+            previousTransactions: {
+                transactions_1: {transactionID: '1'},
+            },
+        };
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            initialProps,
+        });
+
+        // The transaction lands in the Onyx collection, but the results already list it, so there is nothing to fetch.
+        const updatedProps = {
+            ...initialProps,
+            transactions: {
+                transactions_1: {transactionID: '1'},
+                transactions_2: {transactionID: '2'},
+            },
+        };
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(search).not.toHaveBeenCalled();
+    });
+
+    it('should not trigger search on a non-chat search when a report action was added and Onyx holds a transaction the query filters out', () => {
+        const initialProps = {
+            ...baseProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    transactions_1: {transactionID: '1'},
+                },
+            },
+            // `transactions_99` belongs to a report the user opened; it does not match the current query, so it is
+            // absent from the results. That is the normal state for any filtered or paginated search.
+            transactions: {
+                transactions_1: {transactionID: '1'},
+                transactions_99: {transactionID: '99'},
+            },
+            previousTransactions: {
+                transactions_1: {transactionID: '1'},
+                transactions_99: {transactionID: '99'},
+            },
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                },
+            },
+            previousReportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                },
+            },
+        };
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            initialProps,
+        });
+
+        const updatedProps = {
+            ...initialProps,
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                    '2': {actionName: 'ADDCOMMENT', reportActionID: '2'},
+                },
+            },
+        };
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(search).not.toHaveBeenCalled();
+    });
+
     it('should not trigger search for chat when report actions removed and focused', () => {
         mockUseIsFocused.mockReturnValue(true);
 

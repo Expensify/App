@@ -104,7 +104,7 @@ function useSearchHighlightAndScroll({
         const hasReportActionsIDsChange = reportActionsIDs.some((id) => !previousReportActionsIDsSet.has(id));
 
         // Check if there is a change in the transactions or report actions list
-        if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange || hasPendingSearchRef.current) {
+        if ((!isChat && hasTransactionsIDsChange) || (isChat && hasReportActionsIDsChange) || hasPendingSearchRef.current) {
             // Skip if offline, or if the user has navigated to a different fullscreen page entirely.
             // An RHP layered on top of Search makes `isFocused` false but keeps Search as the topmost
             // fullscreen route, so we still want to refetch — otherwise the snapshot can't reflect
@@ -116,7 +116,9 @@ function useSearchHighlightAndScroll({
             }
             hasPendingSearchRef.current = false;
 
-            const newIDs = isChat ? reportActionsIDs : transactionsIDs;
+            // `transactionsIDs` are Onyx collection keys (`transactions_<id>`), while the search results yield bare
+            // transaction IDs, so the prefix has to come off before the two can be compared.
+            const newIDs = isChat ? reportActionsIDs : transactionsIDs.map((key) => key.slice(ONYXKEYS.COLLECTION.TRANSACTION.length));
             let currentSearchResultIDs: string[] = [];
             if (searchResultsData) {
                 currentSearchResultIDs = isChat ? extractReportActionIDsFromSearchResults(searchResultsData) : extractTransactionIDsFromSearchResults(searchResultsData);
