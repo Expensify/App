@@ -4,6 +4,7 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 
+import useControlOnlyRuleUpgradeRedirect from '@hooks/useControlOnlyRuleUpgradeRedirect';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -35,6 +36,7 @@ function RulesBillableDefaultPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
+    useControlOnlyRuleUpgradeRedirect(policyID);
     const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const [draftBillable, setDraftBillable] = useState<boolean>();

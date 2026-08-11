@@ -6797,7 +6797,7 @@ function disableWorkspaceBillableExpenses(policyID: string) {
 }
 
 /**
- * Persist a billable mode selection. Disabled turns tracking off; the other modes enable tracking
+ * Persist a billable mode selection. Disabled turns tracking off. The other modes enable tracking
  * and set the default billable flag.
  */
 function setPolicyBillableModeChoice(policyID: string, billableMode: PolicyBillableMode, currentDefaultBillable: boolean | undefined, currentDefaultBillableDisabled: boolean | undefined) {
