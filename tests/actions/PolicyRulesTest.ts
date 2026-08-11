@@ -1,11 +1,5 @@
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
-import {
-    addPolicyAgentRule,
-    clearPolicyAgentRuleErrors,
-    clearPolicyCodingRuleErrors,
-    deletePolicyAgentRule,
-    updatePolicyAgentRule,
-} from '@libs/actions/Policy/Rules';
+import {addPolicyAgentRule, clearPolicyAgentRuleErrors, clearPolicyCodingRuleErrors, deletePolicyAgentRule, updatePolicyAgentRule} from '@libs/actions/Policy/Rules';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
