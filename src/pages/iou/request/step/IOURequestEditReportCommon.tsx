@@ -78,7 +78,7 @@ function IOURequestEditReportCommon({
 }: Props) {
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document']);
     const {inputCallbackRef} = useAutoFocusInput();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -174,7 +174,7 @@ function IOURequestEditReportCommon({
                     isSelected: report.reportID === selectedReportID,
                     policyID: report.policyID,
                     reportID: report.reportID,
-                    icons: getIconsForExpenseReport(report, personalDetails, policy, translate),
+                    icons: getIconsForExpenseReport(report, personalDetails, policy, formatPhoneNumber, translate),
                 };
             });
     }, [
@@ -188,6 +188,7 @@ function IOURequestEditReportCommon({
         isPerDiemRequest,
         isTimeRequest,
         translate,
+        formatPhoneNumber,
     ]);
 
     const navigateBack = () => {

@@ -157,7 +157,7 @@ function WorkflowsLoadMoreCard({count, onPress}: {count: number; onPress: () => 
 
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.workflows');
-    const {translate, localeCompare} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const illustrations = useMemoizedLazyIllustrations(['Workflows']);
@@ -168,11 +168,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds] = useCardFeeds(policy?.id);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const isGlobalReimbursementsBetaEnabled = isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS);
+    const isGlobalReimbursementFXBetaEnabled = isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX);
     const isWalletConnectionStatusBetaEnabled = isBetaEnabled(CONST.BETAS.WALLET_CONNECTION_STATUS);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
@@ -215,8 +216,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 passedPersonalDetails: getPersonalDetailByEmail(policyReimburserEmail ?? ''),
                 defaultValue: policyReimburserEmail,
                 translate,
+                formatPhoneNumber,
             }),
-        [policyReimburserEmail, translate],
+        [policyReimburserEmail, translate, formatPhoneNumber],
     );
 
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
@@ -265,12 +267,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const confirmDisableApprovals = useCallback(() => {
         setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, isTrackIntentUser, {
-            reportNextSteps: allReportNextSteps,
             transactionViolations,
             betas,
             personalDetailsList: personalDetails,
         });
-    }, [allReportNextSteps, betas, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser]);
+    }, [betas, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser]);
 
     const navigateToHRSettings = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(route.params.policyID));
@@ -663,7 +664,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         currentUserEmail,
                         isTrackIntentUser,
                         {
-                            reportNextSteps: allReportNextSteps,
                             transactionViolations,
                             betas,
                             personalDetailsList: personalDetails,
@@ -932,6 +932,32 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                           />
                                       </OfflineWithFeedback>
                                   )}
+                                  {policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES &&
+                                      canWritePayments &&
+                                      isGlobalReimbursementsBetaEnabled &&
+                                      isGlobalReimbursementFXBetaEnabled && (
+                                          <OfflineWithFeedback
+                                              pendingAction={policy?.pendingFields?.globalReimbursementFXPreferCompany}
+                                              errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
+                                              onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
+                                              errorRowStyles={[styles.mt3]}
+                                          >
+                                              <MenuItemWithTopDescription
+                                                  title={
+                                                      policy?.globalReimbursementFXPreferCompany
+                                                          ? translate('workflowsCurrencyConversionFeesPage.companyPays')
+                                                          : translate('workflowsCurrencyConversionFeesPage.employeePays')
+                                                  }
+                                                  titleStyle={styles.textNormalThemeText}
+                                                  descriptionTextStyle={styles.textLabelSupportingNormal}
+                                                  description={translate('workflowsCurrencyConversionFeesPage.title')}
+                                                  onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES.getRoute(route.params.policyID))}
+                                                  sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.CURRENCY_CONVERSION_FEES}
+                                                  shouldShowRightIcon
+                                                  wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                                              />
+                                          </OfflineWithFeedback>
+                                      )}
                               </>
                           ),
                           isEndOptionRow: true,
@@ -983,7 +1009,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         updateApprovalMode,
         currentUserAccountID,
         currentUserEmail,
-        allReportNextSteps,
         transactionViolations,
         betas,
         showConfirmModal,
@@ -1000,6 +1025,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         confirmCurrencyChangeAndHideModal,
         delegateAccountID,
         canAccessSubmit2026Features,
+        isGlobalReimbursementsBetaEnabled,
+        isGlobalReimbursementFXBetaEnabled,
         canAccessWalletConnectionStatusFeatures,
         canWriteApprovals,
         canWritePayments,

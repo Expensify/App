@@ -17,7 +17,7 @@ import type * as ReportType from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 import type {KeyValueMapping} from 'react-native-onyx';
 
@@ -25,6 +25,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import {createRandomReport, createRegularChat} from '../../utils/collections/reports';
+import createMock from '../../utils/createMock';
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
@@ -43,7 +44,7 @@ jest.mock('@userActions/Report', () => ({
     joinRoom: jest.fn(),
 }));
 
-const mockUseCurrentUserPersonalDetails = useCurrentUserPersonalDetails as jest.MockedFunction<typeof useCurrentUserPersonalDetails>;
+const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 const currentUserAccountID = 1;
 
 describe('HeaderView', () => {
@@ -70,7 +71,8 @@ describe('HeaderView', () => {
         const chatReportID = '1';
         const accountID = 2;
         let displayName = 'test';
-        const report = {
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}` as const;
+        const report: Report = {
             ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.INVOICE),
             invoiceReceiver: {
                 accountID,
@@ -78,14 +80,17 @@ describe('HeaderView', () => {
             },
         };
         await act(async () => {
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]: report,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                    [accountID]: {
-                        displayName,
+            await Onyx.multiSet(
+                createMock<KeyValueMapping>({
+                    [reportKey]: report,
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                        [accountID]: {
+                            accountID,
+                            displayName,
+                        },
                     },
-                },
-            } as unknown as KeyValueMapping);
+                }),
+            );
         });
 
         render(
@@ -178,11 +183,16 @@ describe('HeaderView', () => {
         });
         await waitForBatchedUpdates();
 
-        await Onyx.multiSet({
-            [`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`]: originalReport,
-            [`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`]: parentReport,
-            [`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`]: threadReport,
-        } as unknown as KeyValueMapping);
+        const originalReportKey = `${ONYXKEYS.COLLECTION.REPORT}${originalReportID}` as const;
+        const parentReportKey = `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}` as const;
+        const threadReportKey = `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}` as const;
+        await Onyx.multiSet(
+            createMock<KeyValueMapping>({
+                [originalReportKey]: originalReport,
+                [parentReportKey]: parentReport,
+                [threadReportKey]: threadReport,
+            }),
+        );
 
         render(
             <LocaleContextProvider>
@@ -229,7 +239,7 @@ describe('HeaderView', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID), accountManagerCalendarLink});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID, accountManagerCalendarLink});
         });
 
         renderHeader(report.reportID);
@@ -246,7 +256,7 @@ describe('HeaderView', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, report.reportID);
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID), accountManagerCalendarLink});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID, accountManagerCalendarLink});
         });
 
         renderHeader(report.reportID);
@@ -263,7 +273,7 @@ describe('HeaderView', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID)});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID});
         });
 
         renderHeader(report.reportID);
@@ -280,7 +290,7 @@ describe('HeaderView', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(accountManagerAccountID), accountManagerCalendarLink});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID, accountManagerCalendarLink});
         });
 
         renderHeader(report.reportID);

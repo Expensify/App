@@ -27,6 +27,7 @@ import type {Beta, CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -119,7 +120,7 @@ function useAutocompleteSuggestions({
     translate,
     autocompleteSubstitutions,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
-    const {localeCompare} = useLocalize();
+    const {localeCompare, dateFnsLocale} = useLocalize();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -155,7 +156,8 @@ function useAutocompleteSuggestions({
     useLoadSearchCategoryData({shouldLoad: shouldLoadCategoryData});
 
     if (!autocompleteKey) {
-        return [];
+        // Returns the same array reference on every render, so the consumer's `sections` memo stays valid and the list doesn't re-render.
+        return getEmptyArray<AutocompleteItemData>();
     }
 
     const alreadyAutocompletedKeys = new Set(
@@ -244,6 +246,7 @@ function useAutocompleteSuggestions({
             const memberExclusions = getExpensifyTeamExclusions(personalDetails, policies, currentUserEmail);
 
             const participants = getSearchOptions({
+                dateFnsLocale,
                 options,
                 draftComments,
                 betas: betas ?? [],
@@ -284,6 +287,7 @@ function useAutocompleteSuggestions({
             }
 
             const filteredReports = getSearchOptions({
+                dateFnsLocale,
                 options,
                 draftComments,
                 betas: betas ?? [],
@@ -511,7 +515,7 @@ function useAutocompleteSuggestions({
             // Other filters currently continue to use value-based exclusion.
             const workspaceList: Array<{id: string; name: string}> = [];
             for (const singlePolicy of Object.values(policies)) {
-                if (!singlePolicy || singlePolicy.isJoinRequestPending || !shouldShowPolicy(singlePolicy, false, currentUserEmail)) {
+                if (!singlePolicy || singlePolicy.isJoinRequestPending || !shouldShowPolicy(singlePolicy, false, currentUserEmail, true)) {
                     continue;
                 }
                 workspaceList.push({id: singlePolicy.id, name: singlePolicy.name ?? ''});

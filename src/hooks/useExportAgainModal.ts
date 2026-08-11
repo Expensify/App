@@ -32,10 +32,7 @@ function useExportAgainModal(reportID: string | undefined, policyID: string | un
 
         showConfirmModal({
             title: translate('workspace.exportAgainModal.title'),
-            prompt: translate('workspace.exportAgainModal.description', {
-                connectionName: integrationForExport,
-                reportName,
-            }),
+            prompt: translate('workspace.exportAgainModal.description', reportName, integrationForExport),
             confirmText: translate('workspace.exportAgainModal.confirmText'),
             cancelText: translate('workspace.exportAgainModal.cancelText'),
         }).then((result) => {
