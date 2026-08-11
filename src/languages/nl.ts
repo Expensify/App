@@ -2604,7 +2604,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Bankrekening herstellen',
             debitBlockedBody:
                 "Je bank heeft de testtransacties naar deze rekening geblokkeerd.<br/><br/>Vraag hen om de ACH-ID's van Expensify op de whitelist te zetten:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Stuur daarna de testtransacties hieronder opnieuw.",
-            insufficientFundsBody: 'Testtransacties zijn mislukt vanwege onvoldoende saldo.<br/>Zodra er voldoende saldo is, gebruik dan de knop hieronder.',
+            insufficientFundsBody: 'Testtransacties zijn mislukt vanwege onvoldoende saldo. Zodra er voldoende saldo is, gebruik dan de knop hieronder.',
             resendButton: 'Transacties opnieuw verzenden',
             successTitle: 'Transacties verzonden!',
             successBody: 'Controleer je bankrekening in de komende 1–2 werkdagen.',

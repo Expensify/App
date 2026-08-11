@@ -2597,7 +2597,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Corrigir conta bancária',
             debitBlockedBody:
                 'Seu banco bloqueou as transações de teste para esta conta.<br/><br/>Peça para liberarem os IDs ACH da Expensify na lista de permissões:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Depois, reenvie as transações de teste abaixo.',
-            insufficientFundsBody: 'As transações de teste falharam por falta de fundos.<br/>Quando houver fundos disponíveis, use o botão abaixo.',
+            insufficientFundsBody: 'As transações de teste falharam por falta de fundos. Quando houver fundos disponíveis, use o botão abaixo.',
             resendButton: 'Reenviar transações',
             successTitle: 'Transações enviadas!',
             successBody: 'Confira sua conta bancária nos próximos 1 a 2 dias úteis.',

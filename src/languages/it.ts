@@ -2603,7 +2603,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Correggi conto bancario',
             debitBlockedBody:
                 'La tua banca ha bloccato le transazioni di prova verso questo conto.<br/><br/>Chiedi loro di inserire nella whitelist gli ID ACH di Expensify:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Poi reinvia le transazioni di prova qui sotto.',
-            insufficientFundsBody: 'Le transazioni di prova non sono andate a buon fine per fondi insufficienti.<br/>Quando i fondi saranno disponibili, usa il pulsante qui sotto.',
+            insufficientFundsBody: 'Le transazioni di prova non sono andate a buon fine per fondi insufficienti. Quando i fondi saranno disponibili, usa il pulsante qui sotto.',
             resendButton: 'Invia nuovamente le transazioni',
             successTitle: 'Transazioni inviate!',
             successBody: 'Controlla il tuo conto bancario entro 1-2 giorni lavorativi.',

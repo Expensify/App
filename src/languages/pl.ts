@@ -2596,7 +2596,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Napraw konto bankowe',
             debitBlockedBody:
                 'Twój bank zablokował transakcje testowe na to konto.<br/><br/>Poproś ich o dodanie do listy zaufanych identyfikatorów ACH Expensify:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Następnie wyślij ponownie poniższe transakcje testowe.',
-            insufficientFundsBody: 'Testowe transakcje nie powiodły się z powodu niewystarczających środków.<br/>Gdy środki będą dostępne, użyj przycisku poniżej.',
+            insufficientFundsBody: 'Testowe transakcje nie powiodły się z powodu niewystarczających środków. Gdy środki będą dostępne, użyj przycisku poniżej.',
             resendButton: 'Wyślij ponownie transakcje',
             successTitle: 'Transakcje wysłane!',
             successBody: 'Sprawdź swoje konto bankowe w ciągu najbliższych 1–2 dni roboczych.',
