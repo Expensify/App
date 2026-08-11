@@ -24,7 +24,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, ReportAction} from '@src/types/onyx';
+import type {BankAccountList, Report, ReportAction} from '@src/types/onyx';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 
@@ -1949,6 +1949,54 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/paid with bank account/i)).toBeOnTheScreen();
         });
 
+        it('IOU PAY VBBA manual prefers originalMessage accountNumber over current policy account', async () => {
+            const policyID = 'snapshot-policy';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    id: policyID,
+                    achAccount: {
+                        accountNumber: 'XXXX2222',
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                automaticAction: false,
+                accountNumber: 'XXXX1111',
+            });
+            const report = {
+                reportID: 'testReport',
+                ownerAccountID: ACTOR_ACCOUNT_ID,
+                policyID,
+            } as Report;
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={report}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/1111/)).toBeOnTheScreen();
+            expect(screen.queryByText(/2222/)).toBeNull();
+        });
+
         it('IOU PAY VBBA automatic renders auto-paid message', async () => {
             await act(async () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -2280,7 +2328,7 @@ describe('ReportActionItem', () => {
                 testTitle: 'UPDATE_AUTO_HARVESTING',
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
                 originalMessage: {value: true},
-                assertion: /enabled scheduled submit/i,
+                assertion: /enabled submissions/i,
             },
             {testTitle: 'SET_AUTO_JOIN', actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN, originalMessage: {enabled: true}, assertion: /enabled pre-approval/i},
             {testTitle: 'UPDATE_TIME_ENABLED', actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED, originalMessage: {enabled: true}, assertion: /time tracking/i},

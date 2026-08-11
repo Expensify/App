@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
@@ -92,16 +92,17 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: 
                     />
                 )}
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
                     isDisabled={isOffline}
                     style={styles.w100}
                     onPress={() => {
                         handleConfirmation({anyIndividualOwn25PercentOrMore: true});
                     }}
-                    text={translate('common.confirm')}
-                />
+                >
+                    <Button.Text>{translate('common.confirm')}</Button.Text>
+                </Button>
             </View>
         </ScrollView>
     );
