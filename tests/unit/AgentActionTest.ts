@@ -337,8 +337,6 @@ describe('createAgent', () => {
 
         const promptRollback = findUpdate(successData, `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
 
-        // The whole detail is no longer nulled — wiping it briefly dropped the agent's avatar, causing a flicker
-        // (issue 97844). Only the transient optimistic flag is cleared so the avatar survives until the response lands.
         expect(getPersonalDetailValue(successData, accountID)).toStrictEqual({isOptimisticPersonalDetail: null});
         expect(promptRollback?.value).toBeNull();
     });
