@@ -53,6 +53,7 @@ import {
     getSendMoneyFlowAction,
     getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
+    getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     hasNextActionMadeBySameActor,
@@ -4042,6 +4043,38 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getUpdatedAutoHarvestingMessage', () => {
+        it('should return enabled message when submissions is enabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    value: true,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getUpdatedAutoHarvestingMessage(translateLocal, action);
+            expect(result).toBe('enabled submissions');
+        });
+
+        it('should return disabled message when submissions is disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    value: false,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getUpdatedAutoHarvestingMessage(translateLocal, action);
+            expect(result).toBe('disabled submissions');
+        });
+    });
+
     describe('getUpdatedCardFeedLiabilityMessage', () => {
         it('should return enabled message when liabilityType is ALLOW', () => {
             const action = {
@@ -4317,7 +4350,7 @@ describe('ReportActionsUtils', () => {
                     newValue: true,
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('enabled the Distance rate "Default Rate"');
         });
 
@@ -4334,7 +4367,7 @@ describe('ReportActionsUtils', () => {
                     newValue: false,
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('disabled the Distance rate "Default Rate"');
         });
 
@@ -4351,7 +4384,7 @@ describe('ReportActionsUtils', () => {
                     newValue: 'Custom Rate',
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('renamed the Distance rate "Default Rate" to "Custom Rate"');
         });
 
@@ -4367,7 +4400,7 @@ describe('ReportActionsUtils', () => {
                     newStartDate: '2026-04-01',
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('updated the distance rate "Default Rate" to apply from April 1, 2026 (previously for all dates)');
         });
 
@@ -4386,7 +4419,7 @@ describe('ReportActionsUtils', () => {
                     oldEndDate: '2026-04-30',
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('updated the distance rate "Default Rate" to apply from April 1, 2026 - May 31, 2026 (previously March 1, 2026 - April 30, 2026)');
         });
 
@@ -4403,7 +4436,7 @@ describe('ReportActionsUtils', () => {
                     oldEndDate: '2026-04-30',
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('updated the distance rate "Default Rate" to apply until May 31, 2026 (previously until April 30, 2026)');
         });
 
@@ -4420,8 +4453,74 @@ describe('ReportActionsUtils', () => {
                     oldEndDate: '2026-04-30',
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('updated the distance rate "Default Rate" to apply for all dates (previously March 1, 2026 - April 30, 2026)');
+        });
+    });
+
+    describe('getWorkspaceCustomUnitUpdatedMessage', () => {
+        it('should return the correct message when the default category is changed', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    updatedField: 'defaultCategory',
+                    oldValue: 'Car',
+                    newValue: 'Travel',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('changed the Distance default category to "Travel" (previously "Car")');
+        });
+
+        it('should return the correct message when the default category is set for the first time', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    updatedField: 'defaultCategory',
+                    oldValue: '',
+                    newValue: 'Travel',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('changed the Distance default category to "Travel" ');
+        });
+
+        it('should return the correct message when tax tracking is enabled', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    updatedField: 'taxEnabled',
+                    oldValue: false,
+                    newValue: true,
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('enabled tax tracking on distance rates');
+        });
+
+        it('should return the correct message when another field is changed', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    updatedField: 'unit',
+                    oldValue: 'mi',
+                    newValue: 'km',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('changed the Distance unit to "km" (previously "mi")');
         });
     });
 
@@ -4948,7 +5047,7 @@ describe('ReportActionsUtils', () => {
                 creditBankAccountLast4: '5678',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined, convertToDisplayString, 2);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString, 2);
 
             // Then the message shows the last 4 digits of the account that funded the payment
             const expected = `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '4321')}${translateLocal('iou.reimbursedWithACH', {
@@ -4966,7 +5065,7 @@ describe('ReportActionsUtils', () => {
                 creditBankAccountLast4: '5678',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined, convertToDisplayString, 2);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString, 2);
 
             expect(result).toBe(
                 `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '9999')}${translateLocal('iou.reimbursedWithACH', {
@@ -4986,7 +5085,7 @@ describe('ReportActionsUtils', () => {
                 creditedCurrency: 'USD',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString);
 
             // Then the message reports the credited amount instead of the report total and names both accounts
             expect(result).toBe(translateLocal('iou.reimbursedCrossBorder', {amount: '$80.50', debitBankAccount: '9999', creditBankAccount: '5678'}));
@@ -5001,7 +5100,7 @@ describe('ReportActionsUtils', () => {
                 creditedAmount: 8050,
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString);
 
             // Then we describe the payment without an amount rather than guessing a currency
             expect(result).toBe(
@@ -5023,7 +5122,7 @@ describe('ReportActionsUtils', () => {
                 creditedCurrency: 'USD',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, 'submitter@expensify.com', undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, 'submitter@expensify.com', undefined, convertToDisplayString);
 
             // Then the message announces the submitter taking the report off hold rather than the credited amount
             expect(result).toBe(
@@ -5044,11 +5143,20 @@ describe('ReportActionsUtils', () => {
             const ownerAccountID = 42;
             const submitterLogin = 'submitter@example.com';
 
-            const resultCurrentUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, ownerAccountID);
+            const resultCurrentUser = ReportActionsUtils.getReimbursedMessage(
+                translateLocal,
+                undefined,
+                action,
+                ownerAccountID,
+                submitterLogin,
+                undefined,
+                convertToDisplayString,
+                ownerAccountID,
+            );
             expect(resultCurrentUser).toContain('your');
             expect(resultCurrentUser).not.toContain(submitterLogin);
 
-            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
+            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
             expect(resultOtherUser).toContain(submitterLogin);
             expect(resultOtherUser).not.toContain('your');
         });
@@ -5063,10 +5171,19 @@ describe('ReportActionsUtils', () => {
             const ownerAccountID = 42;
             const submitterLogin = 'submitter@example.com';
 
-            const resultCurrentUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, ownerAccountID);
+            const resultCurrentUser = ReportActionsUtils.getReimbursedMessage(
+                translateLocal,
+                undefined,
+                action,
+                ownerAccountID,
+                submitterLogin,
+                undefined,
+                convertToDisplayString,
+                ownerAccountID,
+            );
             expect(resultCurrentUser).toContain('your');
 
-            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
+            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
             expect(resultOtherUser).toContain(submitterLogin);
         });
     });
