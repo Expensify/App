@@ -111,7 +111,8 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
                     }
                     // Pre-warm the thumbnail cache before navigating so the confirm page
                     // doesn't flash an un-thumbnail receipt.
-                    precacheReceiptImage(source).then(() => processReceipts([file], 'camera'));
+                    precacheReceiptImage(source);
+                    processReceipts([file], 'camera');
                 }}
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
