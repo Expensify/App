@@ -4035,8 +4035,8 @@ const staticStyles = (theme: ThemeColors) =>
         // and leaves the badge alone. Badge applies its own left margin, which is cleared here.
         receiptPageCountBadge: {
             position: 'absolute',
-            bottom: 16,
-            left: 16,
+            bottom: 12,
+            left: 12,
             marginLeft: 0,
         },
 
