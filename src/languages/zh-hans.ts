@@ -929,7 +929,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
             validateAccount: {title: '验证您的账户', subtitle: '账户', cta: '验证'},
-            addHomeAddress: {title: '添加家庭住址', subtitle: '您的管理员已为里程报销启用了通勤排除。请添加家庭住址，以便我们将其应用到您的报销申请中。', cta: '添加地址'},
+            addHomeAddress: {title: '添加家庭住址以进行距离跟踪', subtitle: '账户', cta: '添加地址'},
             fixFailedBilling: {title: '我们无法向您档案中的银行卡收费', subtitle: '订阅'},
             unlockBankAccount: {
                 workspaceTitle: '您的企业银行账户已被锁定',
@@ -1184,11 +1184,11 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         homeAddressRequired: {
-            title: '需要填写家庭住址',
+            title: '家庭住址为必填项',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `在开始记录里程之前，您需要先在个人资料中添加家庭住址。${workspaceName} 会使用该地址计算通勤扣除。`
-                    : '在开始记录里程之前，您需要先在个人资料中添加家庭住址。此工作区会使用该地址计算通勤扣除。',
+                    ? `在开始记录通勤距离前，您需要在私人资料中添加家庭住址。${workspaceName} 会使用该地址计算通勤扣减。`
+                    : '在开始记录里程前，您需要在私人资料中添加家庭住址。此工作区会使用该地址计算通勤扣除。',
             cta: '添加家庭住址',
         },
         amount: '金额',
@@ -6827,19 +6827,19 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 summaryDisabled: '不排除通勤',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `每次报销排除 ${distance} ${unit}`,
                 optionDisabledTitle: '不要排除通勤',
-                optionDisabledHelp: '不会从报销申请中扣除任何通勤里程。',
+                optionDisabledHelp: '未从报销中扣除任何通勤费用。',
                 optionFixedDistanceTitle: '为每笔报销排除固定距离',
                 optionFixedDistanceHelp: '从每笔报销中扣除相同的通勤距离。最适合每个工作日提交一笔报销的成员使用。',
                 distanceLabel: '距离',
-                summaryHomeAndOffice: '使用家庭和办公地点',
+                summaryHomeAndOffice: '使用家庭和办公室位置',
                 optionHomeAndOfficeTitle: '按家庭和办公室计算',
-                optionHomeAndOfficeHelp: '使用成员的家庭住址、工作安排和办公地点分配来计算通勤扣除。',
+                optionHomeAndOfficeHelp: '使用成员的家庭住址、工作安排和办公室分配来计算通勤排除项。',
                 workspaceAddressRequired: {
-                    title: '别急……',
-                    promptStart: '您需要先在',
+                    title: '先别急……',
+                    promptStart: '在您先在 中添加一个办公地点之前，无法启用“按家庭和办公室计算”设置',
                     linkText: '概览',
                     promptEnd: '中添加办公地点，才能启用“按家庭和办公室计算”设置。',
-                    cta: '知道了',
+                    cta: '明白了',
                 },
                 errors: {distanceMustBePositive: '距离必须是一个正整数。', invalidAddress: '请输入有效地址', distanceTooLarge: '距离过大。'},
             },

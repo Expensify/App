@@ -959,11 +959,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Portemonnee',
             },
             validateAccount: {title: 'Valideer je account', subtitle: 'Account', cta: 'Valideren'},
-            addHomeAddress: {
-                title: 'Voeg een huisadres toe',
-                subtitle: 'Je beheerder heeft woon-werkuitzonderingen ingeschakeld voor afstandskosten. Voeg een huisadres toe zodat we die op je declaraties kunnen toepassen.',
-                cta: 'Adres toevoegen',
-            },
+            addHomeAddress: {title: 'Voeg je huisadres toe voor afstandsregistratie', subtitle: 'Account', cta: 'Adres toevoegen'},
             fixFailedBilling: {title: 'We konden je kaart in ons bestand niet belasten', subtitle: 'Abonnement'},
             unlockBankAccount: {
                 workspaceTitle: 'Je zakelijke bankrekening is geblokkeerd',
@@ -1240,9 +1236,9 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Huisadres is vereist',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Voordat je afstand kunt bijhouden, moet je je huisadres toevoegen aan je privéprofiel. ${workspaceName} gebruikt dit adres voor woon-werkaftrek.`
-                    : 'Voordat je afstand kunt bijhouden, moet je je huisadres toevoegen aan je privéprofiel. Deze workspace gebruikt dit adres voor woon-werkaftrek.',
-            cta: 'Huisadres toevoegen',
+                    ? `Voordat je een afstand bijhoudt, moet je je huisadres toevoegen aan je privéprofiel. ${workspaceName} gebruikt dit adres voor woon-werk­aftrek.`
+                    : 'Voordat je afstand kunt registreren, moet je je thuisadres toevoegen aan je privéprofiel. Deze workspace gebruikt dit adres voor woon-werk­aftrek.',
+            cta: 'Thuisadres toevoegen',
         },
         amount: 'Bedrag',
         percent: 'Procent',
@@ -7066,16 +7062,16 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 summaryDisabled: 'Geen woon-werkuitzondering',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Sluit ${distance} ${unit} per declaratie uit`,
                 optionDisabledTitle: 'Woon-werkverkeer niet uitsluiten',
-                optionDisabledHelp: 'Er wordt geen woon-werkverkeer uit declaraties verwijderd.',
+                optionDisabledHelp: 'Er is geen woon-werkverkeer uit declaraties verwijderd.',
                 optionFixedDistanceTitle: 'Een vaste afstand per declaratie uitsluiten',
                 optionFixedDistanceHelp: 'Trek dezelfde woon-werkafstand van elke declaratie af. Het meest geschikt voor leden die één declaratie per werkdag indienen.',
                 distanceLabel: 'Afstand',
-                summaryHomeAndOffice: 'Huis- en kantoorlocaties gebruiken',
-                optionHomeAndOfficeTitle: 'Bereken op basis van huis en kantoor',
-                optionHomeAndOfficeHelp: 'Gebruik het huisadres, de werkregeling en de kantoorindeling van het lid om woon-werkuitzonderingen te berekenen.',
+                summaryHomeAndOffice: 'Gebruik thuis- en kantoorlokaties',
+                optionHomeAndOfficeTitle: 'Berekenen per thuis en kantoor',
+                optionHomeAndOfficeHelp: 'Gebruik het woonadres, werkarrangement en kantoorindeling van het lid om woon-werkuitzonderingen te berekenen.',
                 workspaceAddressRequired: {
                     title: 'Niet zo snel...',
-                    promptStart: 'Je kunt de instelling ‘berekenen op basis van huis en kantoor’ pas inschakelen nadat je eerst een kantoorlocatie hebt toegevoegd in ',
+                    promptStart: 'Je kunt de instelling ‘berekenen op basis van thuis en kantoor’ pas inschakelen nadat je eerst een kantoorlocatie hebt toegevoegd in',
                     linkText: 'Overzicht',
                     promptEnd: '.',
                     cta: 'Begrepen',

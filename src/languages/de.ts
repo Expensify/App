@@ -960,12 +960,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Wallet',
             },
             validateAccount: {title: 'Bestätigen Sie Ihr Konto', subtitle: 'Konto', cta: 'Bestätigen'},
-            addHomeAddress: {
-                title: 'Fügen Sie eine Privatadresse hinzu',
-                subtitle:
-                    'Ihr Administrator hat Pendlerausschlüsse für Entfernungskosten aktiviert. Fügen Sie eine Privatadresse hinzu, damit wir diese auf Ihre Abrechnungen anwenden können.',
-                cta: 'Adresse hinzufügen',
-            },
+            addHomeAddress: {title: 'Fügen Sie Ihre Privatadresse für die Distanzverfolgung hinzu', subtitle: 'Konto', cta: 'Adresse hinzufügen'},
             fixFailedBilling: {title: 'Wir konnten Ihre hinterlegte Karte nicht belasten', subtitle: 'Abonnement'},
             unlockBankAccount: {
                 workspaceTitle: 'Ihr Geschäftskonto wurde gesperrt',
@@ -1243,7 +1238,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Privatadresse ist erforderlich',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `Bevor Sie Entfernungen erfassen, müssen Sie Ihre Privatadresse zu Ihrem privaten Profil hinzufügen. ${workspaceName} verwendet diese Adresse für Pendlerabzüge.`
+                    ? `Bevor Sie eine Entfernung erfassen, müssen Sie Ihre Privatadresse zu Ihrem privaten Profil hinzufügen. ${workspaceName} verwendet diese Adresse für Pendlerabzüge.`
                     : 'Bevor Sie Entfernungen erfassen, müssen Sie Ihre Privatadresse zu Ihrem privaten Profil hinzufügen. Dieser Workspace verwendet diese Adresse für Pendlerabzüge.',
             cta: 'Privatadresse hinzufügen',
         },
@@ -7108,16 +7103,16 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 summaryDisabled: 'Kein Ausschluss von Pendelstrecken',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `${distance} ${unit} pro Abrechnung ausschließen`,
                 optionDisabledTitle: 'Pendelfahrten nicht ausschließen',
-                optionDisabledHelp: 'Es wird keine Pendelstrecke von den Abrechnungen abgezogen.',
+                optionDisabledHelp: 'Es wird keine Pendelstrecke aus den Anträgen entfernt.',
                 optionFixedDistanceTitle: 'Eine feste Entfernung pro Antrag ausschließen',
                 optionFixedDistanceHelp: 'Ziehen Sie die gleiche Pendelstrecke von jeder Abrechnung ab. Am besten für Mitglieder geeignet, die eine Abrechnung pro Arbeitstag einreichen.',
                 distanceLabel: 'Entfernung',
-                summaryHomeAndOffice: 'Standort für Zuhause und Büro verwenden',
+                summaryHomeAndOffice: 'Wohn- und Bürostandorte verwenden',
                 optionHomeAndOfficeTitle: 'Nach Zuhause und Büro berechnen',
-                optionHomeAndOfficeHelp: 'Verwenden Sie die Privatadresse, die Arbeitsregelung und die Bürozuordnung des Mitglieds, um Pendlerausschlüsse zu berechnen.',
+                optionHomeAndOfficeHelp: 'Verwenden Sie die Privatadresse, die Arbeitsregelung und die Bürozuweisung der Mitglieder, um Pendelausschlüsse zu berechnen.',
                 workspaceAddressRequired: {
                     title: 'Nicht so schnell …',
-                    promptStart: 'Sie können die Einstellung „Nach Zuhause und Büro berechnen“ erst aktivieren, wenn Sie zuerst einen Bürostandort in der ',
+                    promptStart: 'Sie können die Einstellung „Nach Zuhause und Büro berechnen“ erst aktivieren, nachdem Sie zuerst einen Bürostandort in  hinzugefügt haben',
                     linkText: 'Übersicht',
                     promptEnd: ' hinzugefügt haben.',
                     cta: 'Verstanden',

@@ -948,7 +948,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'), subtitle: 'ウォレット'},
             validateAccount: {title: 'アカウントを認証してください', subtitle: 'アカウント', cta: '検証する'},
-            addHomeAddress: {title: '自宅住所を追加', subtitle: '管理者が距離経費に通勤分の除外を有効にしました。申請に適用できるよう、自宅住所を追加してください。', cta: '住所を追加'},
+            addHomeAddress: {title: '距離の追跡のために自宅住所を追加してください', subtitle: 'アカウント', cta: '住所を追加'},
             fixFailedBilling: {title: '登録されているカードから請求できませんでした', subtitle: 'サブスクリプション'},
             unlockBankAccount: {
                 workspaceTitle: 'ビジネス用銀行口座がロックされました',
@@ -1221,8 +1221,8 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '自宅住所は必須です',
             prompt: ({workspaceName}: {workspaceName: string}) =>
                 workspaceName
-                    ? `距離を記録する前に、プライベートプロフィールに自宅住所を追加する必要があります。${workspaceName} は通勤控除にこの住所を使用します。`
-                    : '距離を記録する前に、プライベートプロフィールに自宅住所を追加する必要があります。このワークスペースは通勤控除にこの住所を使用します。',
+                    ? `距離を記録する前に、プライベートプロフィールに自宅住所を追加する必要があります。${workspaceName} は通勤控除のためにこの住所を使用します。`
+                    : '距離を記録する前に、プライベートプロフィールに自宅住所を追加する必要があります。このワークスペースは通勤控除のためにこの住所を使用します。',
             cta: '自宅住所を追加',
         },
         amount: '金額',
@@ -6994,16 +6994,16 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 summaryDisabled: '通勤除外なし',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `申請ごとに ${distance} ${unit} を除外します`,
                 optionDisabledTitle: '通勤を除外しない',
-                optionDisabledHelp: '申請から通勤分は差し引かれません。',
+                optionDisabledHelp: '通勤分は申請から除外されていません。',
                 optionFixedDistanceTitle: '申請ごとに一定距離を除外します',
                 optionFixedDistanceHelp: '各申請から同じ通勤距離を差し引きます。1勤務日につき1件の申請を行うメンバーに最適です。',
                 distanceLabel: '距離',
                 summaryHomeAndOffice: '自宅と勤務先の所在地を使用する',
                 optionHomeAndOfficeTitle: '自宅とオフィス別に計算',
-                optionHomeAndOfficeHelp: 'メンバーの自宅住所、勤務形態、オフィスの割り当てを使用して、通勤分の除外を計算します。',
+                optionHomeAndOfficeHelp: 'メンバーの自宅住所、勤務形態、オフィスの割り当てを使用して、通勤の除外額を計算します。',
                 workspaceAddressRequired: {
                     title: 'ちょっと待ってください…',
-                    promptStart: '「自宅とオフィスで計算」を有効にするには、まず',
+                    promptStart: '自宅とオフィスで計算する設定は、先にオフィスの所在地を追加しないと有効にできません',
                     linkText: '概要',
                     promptEnd: 'でオフィスの住所を追加してください。',
                     cta: '了解しました',
