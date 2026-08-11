@@ -16468,7 +16468,7 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewReportActionMessage
-            const result = getReportPreviewReportActionMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction}, getCurrencyDecimalsLocal);
+            const result = getReportPreviewReportActionMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction});
 
             // Then it should return the childReportName instead of "payer owes $0"
             expect(result).toBe('Expense Report 2025-01-15');
@@ -16488,7 +16488,7 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewReportActionMessage
-            const result = getReportPreviewReportActionMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction}, getCurrencyDecimalsLocal);
+            const result = getReportPreviewReportActionMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction});
 
             // Then it should return the message from the report action (not the childReportName)
             expect(result).toBe('payer owes $100');
@@ -16580,20 +16580,14 @@ describe('ReportUtils', () => {
                     originalMessage: {...payOriginalMessage, accountNumber: 'XXXXXX4321'},
                 };
 
-                const result = getReportPreviewReportActionMessage(
-                    {reportOrID: settledReport, iouReportAction: actionWithAccountNumber, originalReportAction: actionWithAccountNumber},
-                    getCurrencyDecimalsLocal,
-                );
+                const result = getReportPreviewReportActionMessage({reportOrID: settledReport, iouReportAction: actionWithAccountNumber, originalReportAction: actionWithAccountNumber});
 
                 // Then the preview shows the last 4 digits of that account, not the policy default
                 expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '4321'));
             });
 
             it('falls back to the policy default bank account when the action has no accountNumber', () => {
-                const result = getReportPreviewReportActionMessage(
-                    {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction},
-                    getCurrencyDecimalsLocal,
-                );
+                const result = getReportPreviewReportActionMessage({reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction});
 
                 expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '0000'));
             });
@@ -16603,7 +16597,7 @@ describe('ReportUtils', () => {
                 const params = {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction};
 
                 // The hardcoded English copy must not drift from the localized function
-                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(getReportPreviewReportActionMessage(params)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
             });
 
             describe('cross-border payment', () => {
@@ -16630,9 +16624,7 @@ describe('ReportUtils', () => {
 
                 it('stores the same wording on the report action as the localized preview shows', () => {
                     // The hardcoded English copy must not drift from the localized function
-                    expect(getReportPreviewReportActionMessage(crossBorderParams, getCurrencyDecimalsLocal)).toBe(
-                        getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams),
-                    );
+                    expect(getReportPreviewReportActionMessage(crossBorderParams)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams));
                 });
 
                 it('still names the report total in the parent chat preview', () => {
@@ -16679,7 +16671,7 @@ describe('ReportUtils', () => {
                 // TODO: Re-enable this assertion once getReportPreviewReportActionMessage is refactored
                 // This will be done in the next PR https://github.com/Expensify/App/issues/66430.
 
-                // expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                // expect(getReportPreviewReportActionMessage(params)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
             });
 
             it('routes the participant display name through the injected translate function', async () => {
@@ -16723,7 +16715,7 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
-                const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
+                const result = getReportPreviewReportActionMessage({reportOrID: report});
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
                 expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report}));
@@ -20290,13 +20282,13 @@ describe('ReportUtils', () => {
     describe('buildOptimisticApprovedReportAction', () => {
         it('should set actorAccountID to the provided currentUserAccountID', () => {
             const customAccountID = 99;
-            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', customAccountID, undefined, getCurrencyDecimalsLocal);
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', customAccountID, undefined);
 
             expect(action.actorAccountID).toBe(customAccountID);
         });
 
         it('should set actionName to APPROVED', () => {
-            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID, undefined, getCurrencyDecimalsLocal);
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID, undefined);
 
             expect(action.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.APPROVED);
         });
@@ -20305,19 +20297,19 @@ describe('ReportUtils', () => {
             const amount = 1200;
             const currency = 'EUR';
             const expenseReportID = 'report42';
-            const action = buildOptimisticApprovedReportAction(amount, currency, expenseReportID, currentUserAccountID, undefined, getCurrencyDecimalsLocal);
+            const action = buildOptimisticApprovedReportAction(amount, currency, expenseReportID, currentUserAccountID, undefined);
 
             expect(getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>)).toMatchObject({amount, currency, expenseReportID});
         });
 
         it('should set pendingAction to ADD', () => {
-            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID, undefined, getCurrencyDecimalsLocal);
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID, undefined);
 
             expect(action.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
         });
 
         it('should generate a non-empty reportActionID', () => {
-            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID, undefined, getCurrencyDecimalsLocal);
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID, undefined);
 
             expect(action.reportActionID).toBeTruthy();
         });

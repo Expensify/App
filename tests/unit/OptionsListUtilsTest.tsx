@@ -97,7 +97,7 @@ import {createRandomReport, createRegularChat} from '../utils/collections/report
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
-import {formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@rnmapbox/maps', () => {
@@ -4975,17 +4975,14 @@ describe('OptionsListUtils', () => {
                     [iouAction.reportActionID]: iouAction,
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                const reportPreviewMessage = getReportPreviewReportActionMessage(
-                    {
-                        reportOrID: iouReport,
-                        iouReportAction: iouAction,
-                        shouldConsiderScanningReceiptOrPendingRoute: true,
-                        policy: null,
-                        isForListPreview: true,
-                        originalReportAction: reportPreviewAction,
-                    },
-                    getCurrencyDecimalsLocal,
-                );
+                const reportPreviewMessage = getReportPreviewReportActionMessage({
+                    reportOrID: iouReport,
+                    iouReportAction: iouAction,
+                    shouldConsiderScanningReceiptOrPendingRoute: true,
+                    policy: null,
+                    isForListPreview: true,
+                    originalReportAction: reportPreviewAction,
+                });
                 const formattedMessage = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
                 expect(formattedMessage).toBe('$1.00 for A A A');
             });

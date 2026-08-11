@@ -3,7 +3,6 @@ import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
@@ -108,7 +107,6 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const {getCurrencyDecimals} = useCurrencyListActions();
     const isCreateReportRestricted = useCreateReportRestrictionCheck(session);
     const handleGoBack = () => {
         if (isEditing) {
@@ -174,7 +172,6 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
             policyForNewReport,
             betas,
             isTrackIntentUser,
-            getCurrencyDecimals,
             false,
             shouldDismissEmptyReportsConfirmation,
             {managedCardTransactionID: isUnreportedManagedCardTransaction ? transactionID : undefined},

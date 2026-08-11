@@ -7353,7 +7353,6 @@ describe('actions/Policy', () => {
                 localeTranslate: TestHelper.translateLocal,
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
-                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
 
@@ -7394,7 +7393,6 @@ describe('actions/Policy', () => {
                 localeTranslate: TestHelper.translateLocal,
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
-                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             expect(result).toBeUndefined();
         });
@@ -7452,7 +7450,6 @@ describe('actions/Policy', () => {
                 localeTranslate: TestHelper.translateLocal,
                 reportActionsList,
                 doesEmployeePersonalDetailExist: true,
-                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
 
             // Verify the function returns a valid result (not undefined)
@@ -7506,7 +7503,6 @@ describe('actions/Policy', () => {
                 localeTranslate: TestHelper.translateLocal,
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
-                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
 
@@ -7576,7 +7572,6 @@ describe('actions/Policy', () => {
                 localeTranslate: TestHelper.translateLocal,
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
-                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
 

@@ -1011,20 +1011,9 @@ function duplicateReport({
     }
 
     const newReportName = translate('common.copyOfReportName', sourceReportName);
-    const {reportPreviewReportActionID, ...newReport} = createNewReport(
-        ownerPersonalDetails,
-        false,
-        isASAPSubmitBetaEnabled,
-        targetPolicy,
-        betas,
-        isTrackIntentUser,
-        getCurrencyDecimals,
-        false,
-        undefined,
-        {
-            reportName: newReportName,
-        },
-    );
+    const {reportPreviewReportActionID, ...newReport} = createNewReport(ownerPersonalDetails, false, isASAPSubmitBetaEnabled, targetPolicy, betas, isTrackIntentUser, false, undefined, {
+        reportName: newReportName,
+    });
 
     const isCrossWorkspace = !!sourceReport && sourceReport.policyID !== targetPolicy.id;
 

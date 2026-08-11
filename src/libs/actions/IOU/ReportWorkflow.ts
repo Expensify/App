@@ -492,14 +492,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     if (hasHeldExpenses && !full && !!unheldTotal) {
         total = unheldTotal;
     }
-    const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(
-        total,
-        expenseReport.currency ?? '',
-        expenseReport.reportID,
-        currentUserAccountIDParam,
-        delegateEmail,
-        getCurrencyDecimals,
-    );
+    const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID, currentUserAccountIDParam, delegateEmail);
 
     const isDEWPolicy = hasDynamicExternalWorkflow(expenseReportPolicy);
     const shouldAddOptimisticApproveAction = !isDEWPolicy || getIsOffline();
@@ -1149,19 +1142,12 @@ function unapproveExpenseReport(
     isASAPSubmitBetaEnabled: boolean,
     delegateEmail: string | undefined,
     isTrackIntentUser: boolean | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
     }
 
-    const optimisticUnapprovedReportAction = buildOptimisticUnapprovedReportAction(
-        expenseReport.total ?? 0,
-        expenseReport.currency ?? '',
-        expenseReport.reportID,
-        delegateEmail,
-        getCurrencyDecimals,
-    );
+    const optimisticUnapprovedReportAction = buildOptimisticUnapprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, delegateEmail);
 
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -1305,7 +1291,6 @@ function submitReport({
     managerAccountID: managerAccountIDFromPopover,
     shouldExportToPDF,
     isTrackIntentUser,
-    getCurrencyDecimals,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -1334,7 +1319,6 @@ function submitReport({
         adminAccountID,
         policy?.approvalMode,
         delegateEmail,
-        getCurrencyDecimals,
     );
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     // For DEW policies, only add optimistic submit action when offline

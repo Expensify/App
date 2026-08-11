@@ -41,7 +41,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals'
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
@@ -59,7 +59,6 @@ function changeTransactionsReport({allTransactions, transactionIDs, transactionV
         personalPolicyOutputCurrency,
         selfDMReportActions,
         delegateAccountID: undefined,
-        getCurrencyDecimals: getCurrencyDecimalsLocal,
         ...rest,
     });
 }
@@ -215,7 +214,7 @@ describe('actions/Transaction', () => {
 
             await waitForBatchedUpdates();
 
-            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL], false, getCurrencyDecimalsLocal);
+            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL], false);
             // Create a tracked expense
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),

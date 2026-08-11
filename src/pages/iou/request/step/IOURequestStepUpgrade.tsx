@@ -10,7 +10,6 @@ import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/Worksp
 import useActivePolicy from '@hooks/useActivePolicy';
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useCreateNewReport from '@hooks/useCreateNewReport';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
@@ -107,7 +106,6 @@ function IOURequestStepUpgrade({
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
-    const {getCurrencyDecimals} = useCurrencyListActions();
 
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
     const transactions = Object.values(selectedTransactions)
@@ -142,7 +140,7 @@ function IOURequestStepUpgrade({
         if (upgradePath === CONST.UPGRADE_PATHS.REPORTS && policyID && selectedTransactionsKeys.includes(transactionID)) {
             const newPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
-            const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, betas, isTrackIntentUser, getCurrencyDecimals);
+            const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, betas, isTrackIntentUser);
 
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
             const reportsForCall = {
@@ -168,7 +166,6 @@ function IOURequestStepUpgrade({
                 // Expenses move to the upgraded workspace (newPolicy), whose currency drives any distance calculation, so the personal-policy currency is never read here.
                 personalPolicyOutputCurrency: undefined,
                 delegateAccountID,
-                getCurrencyDecimals,
             });
 
             clearSelectedTransactions();
@@ -276,7 +273,6 @@ function IOURequestStepUpgrade({
         selfDMReportActions,
         isTrackIntentUser,
         delegateAccountID,
-        getCurrencyDecimals,
     ]);
 
     const participant = transaction?.participants?.[0];

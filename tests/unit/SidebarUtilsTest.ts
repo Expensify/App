@@ -4007,18 +4007,15 @@ describe('SidebarUtils', () => {
                     formatPhoneNumber,
                 });
 
-                const reportPreviewMessage = getReportPreviewReportActionMessage(
-                    {
-                        reportOrID: iouReport,
-                        iouReportAction: iouAction,
-                        shouldConsiderScanningReceiptOrPendingRoute: true,
-                        isPreviewMessageForParentChatReport: true,
-                        policy: null,
-                        isForListPreview: true,
-                        originalReportAction: lastReportPreviewAction,
-                    },
-                    getCurrencyDecimalsLocal,
-                );
+                const reportPreviewMessage = getReportPreviewReportActionMessage({
+                    reportOrID: iouReport,
+                    iouReportAction: iouAction,
+                    shouldConsiderScanningReceiptOrPendingRoute: true,
+                    isPreviewMessageForParentChatReport: true,
+                    policy: null,
+                    isForListPreview: true,
+                    originalReportAction: lastReportPreviewAction,
+                });
                 expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID, translateLocal)}: ${reportPreviewMessage}`);
             });
 
@@ -4123,18 +4120,15 @@ describe('SidebarUtils', () => {
                     formatPhoneNumber,
                 });
 
-                const reportPreviewMessage = getReportPreviewReportActionMessage(
-                    {
-                        reportOrID: iouReport,
-                        iouReportAction: iouAction,
-                        shouldConsiderScanningReceiptOrPendingRoute: true,
-                        isPreviewMessageForParentChatReport: true,
-                        policy: null,
-                        isForListPreview: true,
-                        originalReportAction: lastReportPreviewAction,
-                    },
-                    getCurrencyDecimalsLocal,
-                );
+                const reportPreviewMessage = getReportPreviewReportActionMessage({
+                    reportOrID: iouReport,
+                    iouReportAction: iouAction,
+                    shouldConsiderScanningReceiptOrPendingRoute: true,
+                    isPreviewMessageForParentChatReport: true,
+                    policy: null,
+                    isForListPreview: true,
+                    originalReportAction: lastReportPreviewAction,
+                });
                 expect(result?.alternateText).toBe(reportPreviewMessage);
             });
         });

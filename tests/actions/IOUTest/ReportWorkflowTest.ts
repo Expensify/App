@@ -2375,7 +2375,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             };
 
-            unapproveExpenseReport(expenseReport, undefined, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, DELEGATE_EMAIL, false, getCurrencyDecimalsLocal);
+            unapproveExpenseReport(expenseReport, undefined, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, DELEGATE_EMAIL, false);
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
             const calls = jest.mocked(API.write).mock.calls;

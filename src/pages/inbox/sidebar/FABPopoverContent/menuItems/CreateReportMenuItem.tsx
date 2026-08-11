@@ -1,5 +1,4 @@
 import useCreateReport from '@hooks/useCreateReport';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -63,7 +62,6 @@ function CreateReportMenuItem() {
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
@@ -92,7 +90,6 @@ function CreateReportMenuItem() {
             defaultChatEnabledPolicy,
             allBetas,
             isTrackIntentUser,
-            getCurrencyDecimals,
             false,
             shouldDismissEmptyReportsConfirmation,
         );

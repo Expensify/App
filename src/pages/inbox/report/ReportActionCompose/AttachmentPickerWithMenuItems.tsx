@@ -8,7 +8,6 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -182,7 +181,6 @@ function AttachmentPickerWithMenuItems({
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID, '');
     const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(report?.policyID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -206,18 +204,7 @@ function AttachmentPickerWithMenuItems({
         policyName: policy?.name ?? '',
         onConfirm: (shouldDismissEmptyReportsConfirmation) =>
             selectOption(
-                () =>
-                    createNewReport(
-                        currentUserPersonalDetails,
-                        isASAPSubmitBetaEnabled,
-                        hasViolations,
-                        policy,
-                        betas,
-                        isTrackIntentUser,
-                        getCurrencyDecimals,
-                        true,
-                        shouldDismissEmptyReportsConfirmation,
-                    ),
+                () => createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, isTrackIntentUser, true, shouldDismissEmptyReportsConfirmation),
                 true,
             ),
     });
@@ -226,7 +213,7 @@ function AttachmentPickerWithMenuItems({
         if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmation();
         } else {
-            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, isTrackIntentUser, getCurrencyDecimals, true, false);
+            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, isTrackIntentUser, true, false);
         }
     };
 

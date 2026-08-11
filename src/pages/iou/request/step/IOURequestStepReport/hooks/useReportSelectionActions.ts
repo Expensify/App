@@ -2,7 +2,6 @@ import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -120,7 +119,6 @@ function useReportSelectionActions({
     const reports = useChangeTransactionsReportReports(transaction ? [transaction] : [], undefined);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const delegateAccountID = useDelegateAccountID();
-    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const targetTransactionIDs = transaction?.transactionID ? [transaction.transactionID] : [];
     const targetTransactions = transaction ? [transaction] : [];
@@ -226,7 +224,6 @@ function useReportSelectionActions({
                         personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                         selfDMReportActions,
                         delegateAccountID,
-                        getCurrencyDecimals,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -255,7 +252,6 @@ function useReportSelectionActions({
                     personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                     selfDMReportActions,
                     delegateAccountID,
-                    getCurrencyDecimals,
                 });
                 removeTransaction(transaction.transactionID);
             },

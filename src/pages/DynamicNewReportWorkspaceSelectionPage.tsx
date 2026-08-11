@@ -10,7 +10,6 @@ import Text from '@components/Text';
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCreateNewReport from '@hooks/useCreateNewReport';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -93,7 +92,6 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const personalPolicy = usePersonalPolicy();
-    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions);
     const transactionIDs = selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs;
@@ -153,7 +151,6 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                     selfDMReportActions,
                     delegateAccountID,
-                    getCurrencyDecimals,
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values

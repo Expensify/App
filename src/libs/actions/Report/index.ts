@@ -460,7 +460,6 @@ type MergeReportsProps = {
     personalPolicyOutputCurrency: string | undefined;
     selfDMReportActions: OnyxEntry<ReportActions>;
     delegateAccountID: number | undefined;
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
@@ -4147,33 +4146,18 @@ function navigateToConciergeChat(
     }
 }
 
-type BuildNewReportOptimisticDataParams = {
-    policy: OnyxEntry<Policy>;
-    reportID: string;
-    reportActionID: string;
-    ownerPersonalDetails: CurrentUserPersonalDetails;
-    reportPreviewReportActionID: string;
-    hasViolationsParam: boolean;
-    isASAPSubmitBetaEnabled: boolean;
-    betas: OnyxEntry<Beta[]>;
-    isTrackIntentUser: boolean | undefined;
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
-    reportName?: string;
-};
-
-function buildNewReportOptimisticData({
-    policy,
-    reportID,
-    reportActionID,
-    ownerPersonalDetails,
-    reportPreviewReportActionID,
-    hasViolationsParam,
-    isASAPSubmitBetaEnabled,
-    betas,
-    isTrackIntentUser,
-    getCurrencyDecimals,
-    reportName,
-}: BuildNewReportOptimisticDataParams) {
+function buildNewReportOptimisticData(
+    policy: OnyxEntry<Policy>,
+    reportID: string,
+    reportActionID: string,
+    ownerPersonalDetails: CurrentUserPersonalDetails,
+    reportPreviewReportActionID: string,
+    hasViolationsParam: boolean,
+    isASAPSubmitBetaEnabled: boolean,
+    betas: OnyxEntry<Beta[]>,
+    isTrackIntentUser: boolean | undefined,
+    reportName?: string,
+) {
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
@@ -4212,7 +4196,7 @@ function buildNewReportOptimisticData({
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
-    const message = getReportPreviewReportActionMessage({reportOrID: optimisticReportData}, getCurrencyDecimals);
+    const message = getReportPreviewReportActionMessage({reportOrID: optimisticReportData});
     const createReportActionMessage = [
         {
             html: message,
@@ -4401,7 +4385,6 @@ function createNewReport(
     policy: OnyxEntry<Policy>,
     betas: OnyxEntry<Beta[]>,
     isTrackIntentUser: boolean | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
     options: {managedCardTransactionID?: string; reportName?: string} = {},
@@ -4411,9 +4394,9 @@ function createNewReport(
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
 
-    const {parentReportID, reportPreviewAction, optimisticData, successData, failureData, optimisticReportData} = buildNewReportOptimisticData({
+    const {parentReportID, reportPreviewAction, optimisticData, successData, failureData, optimisticReportData} = buildNewReportOptimisticData(
         policy,
-        reportID: optimisticReportID,
+        optimisticReportID,
         reportActionID,
         ownerPersonalDetails,
         reportPreviewReportActionID,
@@ -4421,9 +4404,8 @@ function createNewReport(
         isASAPSubmitBetaEnabled,
         betas,
         isTrackIntentUser,
-        getCurrencyDecimals,
         reportName,
-    });
+    );
 
     if (shouldDismissEmptyReportsConfirmation) {
         Onyx.merge(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, true);
@@ -8292,7 +8274,6 @@ function mergeReports({
     personalPolicyOutputCurrency,
     selfDMReportActions,
     delegateAccountID,
-    getCurrencyDecimals,
 }: MergeReportsProps) {
     const reports = allReportsParam ?? allReports;
     const destinationReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
@@ -8322,7 +8303,6 @@ function mergeReports({
         personalPolicyOutputCurrency,
         selfDMReportActions,
         delegateAccountID,
-        getCurrencyDecimals,
     });
 
     const {

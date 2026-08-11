@@ -356,7 +356,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, delegateEmail, isTrackIntentUser, getCurrencyDecimals);
+                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, delegateEmail, isTrackIntentUser);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT]: {
