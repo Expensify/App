@@ -1091,7 +1091,6 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateTitle: 'Keine aktuellen Ausgaben',
             emptyStateMessage: 'Erstellen Sie eine oder ziehen Sie eine Quittung hierher',
         },
-        insightsSection: {chartUnavailable: 'Diagramm nicht verfügbar', notEnoughData: 'Wir haben noch nicht genügend Daten, um dieses Diagramm auszufüllen'},
     },
     allSettingsScreen: {
         subscription: 'Abonnement',

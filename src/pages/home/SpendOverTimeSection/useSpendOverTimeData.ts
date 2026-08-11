@@ -1,4 +1,4 @@
-import type {ChartView, GroupedItem, SearchQueryJSON, SearchView} from '@components/Search/types';
+import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -7,8 +7,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {search} from '@libs/actions/Search';
-import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import {getSections, getSortedSections, isGroupedItemArray, isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {getSections, getSortedSections, getSuggestedSearches, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,46 +19,43 @@ import type {ValueOf} from 'type-fest';
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useEffectEvent} from 'react';
 
-const INSIGHT_STATE = {
+const SPEND_OVER_TIME_STATE = {
     OFFLINE: 'offline',
     ERROR: 'error',
     LOADING: 'loading',
-    EMPTY: 'empty',
+    HIDDEN: 'hidden',
     READY: 'ready',
 } as const;
 
-function isChartView(view: SearchView): view is ChartView {
-    return view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.LINE || view === CONST.SEARCH.VIEW.PIE;
-}
+type SpendOverTimeState = ValueOf<typeof SPEND_OVER_TIME_STATE>;
 
-function getInsightState(
+function getSpendOverTimeState(
     isOffline: boolean,
     searchResults: OnyxEntry<SearchResults>,
     queryJSON: SearchQueryJSON | undefined,
     sortedData: GroupedItem[] | undefined,
-): ValueOf<typeof INSIGHT_STATE> {
+): SpendOverTimeState {
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
 
     if (isOffline && !isDataLoaded) {
-        return INSIGHT_STATE.OFFLINE;
+        return SPEND_OVER_TIME_STATE.OFFLINE;
     }
     if (!isOffline && Object.keys(searchResults?.errors ?? {}).length > 0) {
-        return INSIGHT_STATE.ERROR;
+        return SPEND_OVER_TIME_STATE.ERROR;
     }
     if (!isDataLoaded) {
-        return INSIGHT_STATE.LOADING;
+        return SPEND_OVER_TIME_STATE.LOADING;
     }
-    if (!sortedData?.length) {
-        return INSIGHT_STATE.EMPTY;
+    if ((sortedData?.length ?? 0) < 2) {
+        return SPEND_OVER_TIME_STATE.HIDDEN;
     }
-    return INSIGHT_STATE.READY;
+    return SPEND_OVER_TIME_STATE.READY;
 }
 
-function useInsightData(config: SearchTypeMenuItem | undefined) {
-    const queryJSON = config?.searchQueryJSON;
-    const searchKey = config?.key;
-    const {groupBy} = queryJSON ?? {};
-    const view = queryJSON?.view && isChartView(queryJSON.view) ? queryJSON.view : CONST.SEARCH.VIEW.BAR;
+function useSpendOverTimeData() {
+    const config = getSuggestedSearches()[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
+    const {searchQueryJSON: queryJSON, searchQuery: query, key: searchKey} = config;
+    const {groupBy, view} = queryJSON ?? {};
 
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -97,11 +93,11 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
             return;
         }
         onConfigChanged();
-    }, [queryJSON?.hash, isOffline, isFocused]);
+    }, [config.hash, isOffline, isFocused]);
 
-    const sortedSections =
+    const sortedData =
         searchResults?.data && queryJSON && groupBy && login
-            ? getSortedSections(
+            ? (getSortedSections(
                   queryJSON.type,
                   getSections({
                       dateFnsLocale,
@@ -123,13 +119,13 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
                   queryJSON.sortBy,
                   queryJSON.sortOrder,
                   groupBy,
-              )
+              ) as GroupedItem[])
             : undefined;
-    const sortedData = sortedSections && isGroupedItemArray(sortedSections) ? sortedSections : undefined;
 
-    const state = getInsightState(isOffline, searchResults, queryJSON, sortedData);
+    const state = getSpendOverTimeState(isOffline, searchResults, queryJSON, sortedData);
 
     return {
+        query,
         queryJSON,
         groupBy,
         view,
@@ -139,5 +135,5 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
     };
 }
 
-export {INSIGHT_STATE, getInsightState};
-export default useInsightData;
+export {SPEND_OVER_TIME_STATE, getSpendOverTimeState};
+export default useSpendOverTimeData;

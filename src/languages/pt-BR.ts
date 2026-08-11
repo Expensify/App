@@ -1090,7 +1090,6 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateTitle: 'Nenhuma despesa recente',
             emptyStateMessage: 'Crie um ou arraste um recibo aqui',
         },
-        insightsSection: {chartUnavailable: 'Gráfico indisponível', notEnoughData: 'Ainda não temos dados suficientes para preencher este gráfico'},
     },
     allSettingsScreen: {
         subscription: 'Assinatura',

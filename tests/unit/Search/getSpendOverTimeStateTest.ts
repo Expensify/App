@@ -1,6 +1,6 @@
 import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
 
-import {getInsightState, INSIGHT_STATE} from '@pages/home/InsightsSection/useInsightData';
+import {getSpendOverTimeState, SPEND_OVER_TIME_STATE} from '@pages/home/SpendOverTimeSection/useSpendOverTimeData';
 
 import CONST from '@src/CONST';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -54,35 +54,34 @@ const makeData = (count: number): GroupedItem[] =>
         sortKey: i,
     }));
 
-describe('getInsightState', () => {
+describe('getSpendOverTimeState', () => {
     it('returns OFFLINE when offline with no data', () => {
-        expect(getInsightState(true, undefined, queryJSON, undefined)).toBe(INSIGHT_STATE.OFFLINE);
+        expect(getSpendOverTimeState(true, undefined, queryJSON, undefined)).toBe(SPEND_OVER_TIME_STATE.OFFLINE);
     });
 
     it('returns READY when offline but cached data exists', () => {
         const results = makeSearchResults();
-        expect(getInsightState(true, results, queryJSON, makeData(3))).toBe(INSIGHT_STATE.READY);
+        expect(getSpendOverTimeState(true, results, queryJSON, makeData(3))).toBe(SPEND_OVER_TIME_STATE.READY);
     });
 
     it('returns ERROR when online and searchResults has errors', () => {
         const results = makeSearchResults({errors: {someError: 'Something went wrong'}});
-        expect(getInsightState(false, results, queryJSON, makeData(5))).toBe(INSIGHT_STATE.ERROR);
+        expect(getSpendOverTimeState(false, results, queryJSON, makeData(5))).toBe(SPEND_OVER_TIME_STATE.ERROR);
     });
 
     it('returns LOADING when data has not loaded yet', () => {
-        expect(getInsightState(false, undefined, queryJSON, undefined)).toBe(INSIGHT_STATE.LOADING);
+        expect(getSpendOverTimeState(false, undefined, queryJSON, undefined)).toBe(SPEND_OVER_TIME_STATE.LOADING);
     });
 
-    it('returns EMPTY when loaded but no data points', () => {
+    it('returns HIDDEN when loaded but fewer than 2 data points', () => {
         const results = makeSearchResults();
-        expect(getInsightState(false, results, queryJSON, [])).toBe(INSIGHT_STATE.EMPTY);
-        expect(getInsightState(false, results, queryJSON, undefined)).toBe(INSIGHT_STATE.EMPTY);
+        expect(getSpendOverTimeState(false, results, queryJSON, [])).toBe(SPEND_OVER_TIME_STATE.HIDDEN);
+        expect(getSpendOverTimeState(false, results, queryJSON, makeData(1))).toBe(SPEND_OVER_TIME_STATE.HIDDEN);
     });
 
-    it('returns READY when loaded with 1+ data points', () => {
+    it('returns READY when loaded with 2+ data points', () => {
         const results = makeSearchResults();
-        expect(getInsightState(false, results, queryJSON, makeData(1))).toBe(INSIGHT_STATE.READY);
-        expect(getInsightState(false, results, queryJSON, makeData(2))).toBe(INSIGHT_STATE.READY);
-        expect(getInsightState(false, results, queryJSON, makeData(10))).toBe(INSIGHT_STATE.READY);
+        expect(getSpendOverTimeState(false, results, queryJSON, makeData(2))).toBe(SPEND_OVER_TIME_STATE.READY);
+        expect(getSpendOverTimeState(false, results, queryJSON, makeData(10))).toBe(SPEND_OVER_TIME_STATE.READY);
     });
 });
