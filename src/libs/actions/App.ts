@@ -445,8 +445,6 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
     });
 
-    loadPostDataForOpenOrReconnect();
-
     return openAppPromise;
 }
 
@@ -500,8 +498,6 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             }
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
         });
-
-        loadPostDataForOpenOrReconnect();
 
         return reconnectAppPromise;
     });
@@ -1000,6 +996,7 @@ export {
     openApp,
     setAppLoading,
     reconnectApp,
+    loadPostDataForOpenOrReconnect,
     triggerFullReconnect,
     handleRestrictedEvent,
     getMissingOnyxUpdates,

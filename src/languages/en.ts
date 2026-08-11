@@ -330,6 +330,7 @@ const translations = {
         miles: 'miles',
         kilometer: 'kilometer',
         kilometers: 'kilometers',
+        commuter: 'commuter',
         recent: 'Recent',
         all: 'All',
         am: 'AM',
@@ -4312,6 +4313,8 @@ const translations = {
         proofOf: 'Proof of personal address',
         enterOneEmail: (companyName: string) => `Enter the email of a director at ${companyName}`,
         regulationRequiresOneMoreDirector: 'Regulation requires at least one more director as a signer.',
+        bothSignersMustBeOnIllionReport: "Both signers must be listed as directors on the company's illion report. They can't be any two people at the business.",
+        signerMustBeOnIllionReport: "The director you add as a signer must be listed on the company's illion report.",
         hangTight: 'Hang tight...',
         enterTwoEmails: (companyName: string) => `Enter the emails of two directors at ${companyName}`,
         sendReminder: 'Send a reminder',
@@ -4322,11 +4325,11 @@ const translations = {
         proofOfDirectorsDescription: 'Examples: Oncorp Corporate Profile or Business Registration.',
         codiceFiscale: 'Codice Fiscale',
         codiceFiscaleDescription: 'Codice Fiscale for Signatories, Authorized Users and Beneficial Owners.',
-        PDSandFSG: 'PDS + FSG disclosure paperwork',
+        PDSandFSG: 'PDS, FSG + TMD disclosure paperwork',
         PDSandFSGDescription: Str.dedent(`
-            Our partnership with Corpay utilizes an API connection to take advantage of their vast network of international banking partners to power Global Reimbursements in Expensify. As per Australian regulation we are providing you with Corpay's Financial Services Guide (FSG) and Product Disclosure Statement (PDS).
+            Our partnership with Corpay utilizes an API connection to take advantage of their vast network of international banking partners to power Global Reimbursements in Expensify. As per Australian regulation we are providing you with Corpay's Financial Services Guide (FSG), Product Disclosure Statement (PDS) and Target Market Determination (TMD).
 
-            Please read the FSG and PDS documents carefully as they contain full details and important information on the products and services Corpay offers. Retain these documents for future reference.
+            Please read the FSG, PDS and TMD documents carefully as they contain full details and important information on the products and services Corpay offers. Retain these documents for future reference.
         `),
         pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a director of the business.',
         enterSignerInfo: 'Enter signer info',
@@ -4338,6 +4341,8 @@ const translations = {
         },
     },
     agreementsStep: {
+        bankStatement: 'Bank statement',
+        bankStatementDescription: "Please provide a recent bank statement, dated within the last three months, for the business bank account you're connecting.",
         agreements: 'Agreements',
         pleaseConfirm: 'Please confirm the agreements below',
         regulationRequiresUs: 'Regulation requires us to verify the identity of any individual who owns more than 25% of the business.',
@@ -4346,7 +4351,7 @@ const translations = {
         iAcceptTheTermsAndConditions: `I accept the <a href="https://www.corpay.com/cross-border/terms">terms and conditions</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'I accept the terms and conditions.',
         accept: 'Accept and add bank account',
-        iConsentToThePrivacyNotice: 'I consent to the <a href="https://payments.corpay.com/compliance">privacy notice</a>.',
+        iConsentToThePrivacyNotice: 'I consent to the <a href="https://www.corpay.com/privacy-policy">privacy notice</a>.',
         iConsentToThePrivacyNoticeAccessibility: 'I consent to the privacy notice.',
         error: {
             authorized: 'You must be a controlling officer with authorization to operate the business bank account',
@@ -5765,10 +5770,10 @@ const translations = {
                     },
                 },
             },
-            exportCompanyCard: {
+            exportNonReimbursable: {
                 label: 'Export company card expenses as',
                 values: {
-                    [CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {
+                    [CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE]: {
                         label: 'Credit cards',
                     },
                 },
@@ -5849,6 +5854,11 @@ const translations = {
             subsidiarySelectDescription: "Choose the subsidiary in DualEntry that you'd like to import data from.",
             noCompaniesFound: 'No companies found',
             noCompaniesFoundDescription: 'Please add a company in DualEntry and sync the connection again',
+            accountTypesDescription: 'Your DualEntry accounts will import as categories.',
+            enableNewAccountsTitle: 'Enable newly imported accounts',
+            enableNewAccountsDescription: 'New DualEntry accounts will be available as categories.',
+            classificationsImport: 'All DualEntry classifications import as tags',
+            importDescription: 'Choose which coding configurations to import from DualEntry.',
         },
         type: {
             free: 'Free',
@@ -8709,18 +8719,9 @@ const translations = {
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removed "${prohibitedExpense}" from prohibited expenses`,
         commuterExclusions: {
             changedToFixedDistance: 'changed exclude commutes to a fixed distance per claim',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'mile' : 'miles';
-                } else {
-                    unitLabel = isSingular ? 'kilometer' : 'kilometers';
-                }
-                return `set fixed distance exclusion to ${distance} ${unitLabel} per claim`;
-            },
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `changed fixed distance exclusion to ${newDistance} ${unit} per claim (previously ${oldDistance} ${unit})`,
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `set fixed distance exclusion to ${formattedDistance} per claim`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `changed fixed distance exclusion to ${formattedNewDistance} per claim (previously ${formattedOldDistance})`,
             disabled: 'disabled exclude commutes for distance rates',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
@@ -8730,7 +8731,7 @@ const translations = {
         updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) => `changed custom report name formula to "${newDefaultTitle}" (previously "${oldDefaultTitle}")`,
 
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `took over ownership of ${policyName} from ${oldOwnerName} (${oldOwnerEmail})`,
-        updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'enabled' : 'disabled'} scheduled submit`,
+        updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'enabled' : 'disabled'} submissions`,
 
         // This function requires 11 params to match the budget notification data model; reducing further would hurt readability
         // eslint-disable-next-line @typescript-eslint/max-params
@@ -9661,6 +9662,16 @@ const translations = {
         },
         error: {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
+            mapOrGpsDistanceRequired: {
+                title: 'Map or GPS distance required',
+                description: 'This workspace requires either map-based or GPS-tracked distance expenses.',
+            },
+        },
+        commuterExclusion: {
+            original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Removed ${distance} commuter ${unit}`,
+            systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
+                `Removed ${distance} commuter ${unit} based on ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">workspace distance settings</a>` : 'workspace distance settings'}.`,
         },
         odometer: {
             startReading: 'Start reading',

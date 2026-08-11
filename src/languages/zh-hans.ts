@@ -490,6 +490,7 @@ const translations: TranslationDeepObject<typeof en> = {
         tryAgain: '重试',
         tagGLCode: '标记总账代码',
         off: '关',
+        commuter: '通勤者',
         noResultsFoundSubtitle: '无结果。请尝试调整筛选条件或搜索内容',
         unableToDisplayChart: '无法显示图表',
         webGLNotSupported: '您的浏览器不支持 WebGL。请启用该功能或更换浏览器。',
@@ -4071,6 +4072,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         proofOf: '个人住址证明',
         enterOneEmail: (companyName: string) => `输入 ${companyName} 一位主管的邮箱地址`,
         regulationRequiresOneMoreDirector: '根据规定，至少还需要一名董事作为签署人。',
+        bothSignersMustBeOnIllionReport: '两位签署人都必须在公司提供给 illion 的报告中被列为董事，不能只是公司里的任意两个人。',
+        signerMustBeOnIllionReport: '您添加为签署人的董事，必须列在公司的 illion 报告中。',
         hangTight: '请稍候…',
         enterTwoEmails: (companyName: string) => `输入 ${companyName} 的两位董事的邮箱地址`,
         sendReminder: '发送提醒',
@@ -4081,11 +4084,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         proofOfDirectorsDescription: '示例：Oncorp 公司概况或商业注册。',
         codiceFiscale: '税号',
         codiceFiscaleDescription: '签署人、授权用户和实益所有人的税号（Codice Fiscale）。',
-        PDSandFSG: 'PDS + FSG 披露文件',
+        PDSandFSG: 'PDS、FSG 和 TMD 披露文件',
         PDSandFSGDescription: Str.dedent(`
-            我们与 Corpay 的合作通过 API 连接，利用其庞大的国际银行合作伙伴网络，为 Expensify 提供全球报销服务。根据澳大利亚相关法规，我们向您提供 Corpay 的《金融服务指南（FSG）》和《产品披露声明（PDS）》。
+            我们与 Corpay 建立的合作关系通过 API 连接，利用其庞大的国际银行合作伙伴网络，为 Expensify 的全球报销功能提供支持。根据澳大利亚相关法规，我们向您提供 Corpay 的《金融服务指南（FSG）》《产品披露声明（PDS）》以及《目标市场确定文件（TMD）》。
 
-            请仔细阅读 FSG 和 PDS 文档，因为其中包含 Corpay 所提供产品和服务的完整细节和重要信息。请妥善保留这些文档以备日后查阅。
+            请仔细阅读这些 FSG、PDS 和 TMD 文件，因为其中包含 Corpay 所提供产品和服务的完整细节和重要信息。请妥善保留这些文件，以备今后查阅。
         `),
         pleaseUpload: '请在下方上传更多证明文件，以帮助我们核实您作为该企业董事的身份。',
         enterSignerInfo: '输入签署人信息',
@@ -4097,6 +4100,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
     },
     agreementsStep: {
+        bankStatement: '银行对账单',
+        bankStatementDescription: '请提供一份在最近三个月内出具的、用于您正在连接的企业银行账户的最新银行对账单。',
         agreements: '协议',
         pleaseConfirm: '请确认以下协议',
         regulationRequiresUs: '法规要求我们核实任何持有该企业超过 25% 股权的个人身份。',
@@ -4105,7 +4110,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         iAcceptTheTermsAndConditions: `我接受<a href="https://www.corpay.com/cross-border/terms">条款和条件</a>。`,
         iAcceptTheTermsAndConditionsAccessibility: '我接受条款和条件。',
         accept: '接受并添加银行账户',
-        iConsentToThePrivacyNotice: '我同意<a href="https://payments.corpay.com/compliance">隐私声明</a>。',
+        iConsentToThePrivacyNotice: '我同意<a href="https://www.corpay.com/privacy-policy">隐私声明</a>。',
         iConsentToThePrivacyNoticeAccessibility: '我同意隐私声明。',
         error: {
             authorized: '您必须是拥有操作该企业银行账户授权的控制负责人',
@@ -5462,7 +5467,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     },
                 },
             },
-            exportCompanyCard: {label: '导出公司卡费用为', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: '信用卡'}}},
+            exportNonReimbursable: {label: '导出公司卡费用为', values: {[CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE]: {label: '信用卡'}}},
             defaultCompanyCardVendor: {label: '默认公司卡供应商', description: '为未自动匹配的报销选择一个默认的 Rillet 供应商。'},
             companyCardAccount: {label: '公司卡账户', description: '选择公司卡交易的导出位置。'},
             noBankAccountsFound: '未找到银行账户',
@@ -5526,6 +5531,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             subsidiarySelectDescription: '请选择要从中导入数据的 DualEntry 子公司。',
             noCompaniesFound: '未找到公司',
             noCompaniesFoundDescription: '请在 DualEntry 中添加一家公司，然后再次同步连接',
+            accountTypesDescription: '您的 DualEntry 账户将作为类别导入。',
+            enableNewAccountsTitle: '启用新导入的账户',
+            enableNewAccountsDescription: '新的 DualEntry 账户将作为类别提供。',
+            classificationsImport: '所有 DualEntry 分类都会作为标签导入',
+            importDescription: '选择要从 DualEntry 导入的编码配置。',
         },
         type: {
             free: '免费',
@@ -8297,26 +8307,16 @@ ${reportName}`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已将“${prohibitedExpense}”添加到禁止报销的费用中`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已从禁用报销类别中移除“${prohibitedExpense}”`,
         commuterExclusions: {
-            changedToFixedDistance: '已将“排除通勤”更改为“按每次报销固定距离”',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? '英里' : '英里';
-                } else {
-                    unitLabel = isSingular ? '公里' : '千米';
-                }
-                return `将每次报销的固定排除距离设置为 ${distance} ${unitLabel}`;
-            },
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `已将固定距离排除调整为每笔报销 ${newDistance} ${unit}（之前为 ${oldDistance} ${unit}）`,
-            disabled: '已停用“排除通勤距离费率”',
+            changedToFixedDistance: '已将“排除通勤”更改为“每次报销按固定距离计算”',
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `将每次报销的固定距离排除设置为 ${formattedDistance}`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `已将固定距离免除调整为每笔报销 ${formattedNewDistance}（之前为 ${formattedOldDistance}）`,
+            disabled: '已禁用按距离费率排除通勤',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) => `将报销方式更改为“${newReimbursementChoice}”（原为“${oldReimbursementChoice}”）`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 预先批准加入工作区的请求`,
         updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) => `将自定义报表名称公式更改为“${newDefaultTitle}”（之前为“${oldDefaultTitle}”）`,
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `从 ${oldOwnerName}（${oldOwnerEmail}）接管了 ${policyName} 的所有权`,
-        updatedAutoHarvesting: (enabled: boolean) => `已计划提交 ${enabled ? '已启用' : '已禁用'}`,
         updatedIndividualBudgetNotification: (
             budgetAmount: string,
             budgetFrequency: string,
@@ -8467,6 +8467,7 @@ ${reportName}`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制发票设置`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制出差设置`,
         },
+        updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '已启用' : '已禁用'} 次提交`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -9138,6 +9139,10 @@ ${reportName}`,
         },
         error: {
             selectSuggestedAddress: '请选择一个推荐地址或使用当前位置',
+            mapOrGpsDistanceRequired: {
+                title: '需要提供地图或 GPS 距离',
+                description: '此工作区要求里程报销必须基于地图或通过 GPS 进行轨迹跟踪。',
+            },
         },
         odometer: {
             startReading: '开始阅读',
@@ -9153,6 +9158,12 @@ ${reportName}`,
             cameraAccessRequired: '拍照需要启用相机访问权限。',
             snapPhotoStart: '<muted-text-label>在行程<strong>开始</strong>时拍一张里程表照片。</muted-text-label>',
             snapPhotoEnd: '<muted-text-label>在行程<strong>结束</strong>时拍一张里程表的照片。</muted-text-label>',
+        },
+        commuterExclusion: {
+            original: ({formattedDistance}: {formattedDistance: string}) => `原始：${formattedDistance}`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `已移除 ${distance} ${unit} 通勤距离`,
+            systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
+                `已根据 ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">工作区距离设置</a>` : '工作区距离设置'} 移除 ${distance} ${unit} 的通勤距离。`,
         },
     },
     gps: {
