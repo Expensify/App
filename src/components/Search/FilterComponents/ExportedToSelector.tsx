@@ -101,6 +101,7 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
             }
 
             const displayName = template.name ?? template.templateName ?? '';
+
             // Standard templates are filtered on by the label the backend records for them, while custom templates are filtered on by their display name
             const isStandardTemplate = isStandardExportTemplate(template.templateName);
             const filterValue = isStandardTemplate ? getStandardExportTemplateDisplayName(template.templateName) : displayName;
