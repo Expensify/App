@@ -691,7 +691,6 @@ function createExpenseByType({
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     dateFnsLocale: DateFnsLocale | undefined;
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
-    /** The destination policy's tags for the PER_DIEM case — the caller already knows the destination policy, so it resolves this directly. */
     policyTags: OnyxTypes.PolicyTagLists;
 }) {
     switch (transactionType) {
