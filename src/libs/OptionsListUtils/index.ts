@@ -2732,6 +2732,10 @@ function getValidOptions(
         const isSelfDMChat = (report: SearchOption<Report>) => shouldSeparateSelfDMChat && report.isSelfDM && !report.private_isArchived;
 
         const isSearchTermsFound = (report: SearchOption<Report>) => {
+            // An empty search matches every report, so skip building and normalizing the search text.
+            if (searchTerms.length === 0) {
+                return true;
+            }
             let searchText = `${report.text ?? ''}${report.login ?? ''}`;
             if (report.isThread) {
                 searchText += report.alternateText ?? '';
