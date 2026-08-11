@@ -57,8 +57,8 @@ type SubscriptionPlanInfo = {
 /**
  * @returns Whether the workspace owner's grace period is overdue.
  */
-function hasGracePeriodOverdue(gracePeriodEnd: OnyxEntry<number>): boolean {
-    return !!gracePeriodEnd && Date.now() > new Date(gracePeriodEnd).getTime();
+function hasGracePeriodOverdue(gracePeriodEndUnixSeconds: OnyxEntry<number>): boolean {
+    return !!gracePeriodEndUnixSeconds && isAfter(new Date(), fromUnixTime(gracePeriodEndUnixSeconds));
 }
 
 /**

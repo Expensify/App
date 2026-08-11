@@ -46,8 +46,9 @@ const billingGraceEndPeriod: BillingGraceEndPeriod = {
     value: 0,
 };
 
-const GRACE_PERIOD_DATE = new Date().getTime() + 1000 * 3600;
-const GRACE_PERIOD_DATE_OVERDUE = new Date().getTime() - 1000;
+// The grace period NVPs hold unix seconds, matching what the backend writes
+const GRACE_PERIOD_DATE = getUnixTime(new Date()) + 3600;
+const GRACE_PERIOD_DATE_OVERDUE = getUnixTime(new Date()) - 1;
 
 const AMOUNT_OWED = 100;
 const stripeCustomerId = STRIPE_CUSTOMER_ID;
