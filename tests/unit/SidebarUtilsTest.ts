@@ -43,7 +43,7 @@ import {createSidebarReportsCollection, createSidebarTestData} from '../utils/co
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import {convertToDisplayString, localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -369,6 +369,7 @@ describe('SidebarUtils', () => {
             };
 
             const optionDataPinned = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report: MOCK_REPORT_PINNED,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -392,6 +393,7 @@ describe('SidebarUtils', () => {
                 reportAttributesDerived: undefined,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report: MOCK_REPORT_UNPINNED,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -926,7 +928,7 @@ describe('SidebarUtils', () => {
                     participantAccountIDs: [actorAccountID],
                 },
             };
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, '', transaction);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, '', transaction);
 
             await act(async () => {
                 await Onyx.set(ONYXKEYS.SESSION, {accountID: 55555});
@@ -2300,6 +2302,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2367,6 +2370,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2409,6 +2413,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2450,6 +2455,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2491,6 +2497,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2538,6 +2545,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2579,6 +2587,7 @@ describe('SidebarUtils', () => {
             });
 
             const enabledResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2613,6 +2622,7 @@ describe('SidebarUtils', () => {
             });
 
             const disabledResult = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2654,6 +2664,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2695,6 +2706,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2736,6 +2748,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2777,6 +2790,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2818,6 +2832,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2859,6 +2874,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2900,6 +2916,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -2969,6 +2986,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -3023,6 +3041,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const optionData = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs,
@@ -3068,6 +3087,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const optionData = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs,
@@ -3112,6 +3132,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const optionData = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs,
@@ -3254,6 +3275,7 @@ describe('SidebarUtils', () => {
                 };
 
                 const optionData = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: policyExpenseChat,
                     reportAttributes: undefined,
                     reportNameValuePairs,
@@ -3303,6 +3325,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const optionData = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs,
@@ -3380,6 +3403,7 @@ describe('SidebarUtils', () => {
                     await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
                 });
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3445,6 +3469,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3498,6 +3523,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3593,6 +3619,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: {...iouReportR14932, lastActorAccountID: session.accountID},
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3722,6 +3749,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: MOCK_REPORT,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3813,6 +3841,7 @@ describe('SidebarUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
                 await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3915,6 +3944,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: dmChat,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -3935,15 +3965,18 @@ describe('SidebarUtils', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
-                const reportPreviewMessage = getReportPreviewReportActionMessage({
-                    reportOrID: iouReport,
-                    iouReportAction: iouAction,
-                    shouldConsiderScanningReceiptOrPendingRoute: true,
-                    isPreviewMessageForParentChatReport: true,
-                    policy: null,
-                    isForListPreview: true,
-                    originalReportAction: lastReportPreviewAction,
-                });
+                const reportPreviewMessage = getReportPreviewReportActionMessage(
+                    {
+                        reportOrID: iouReport,
+                        iouReportAction: iouAction,
+                        shouldConsiderScanningReceiptOrPendingRoute: true,
+                        isPreviewMessageForParentChatReport: true,
+                        policy: null,
+                        isForListPreview: true,
+                        originalReportAction: lastReportPreviewAction,
+                    },
+                    getCurrencyDecimalsLocal,
+                );
                 expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID, translateLocal)}: ${reportPreviewMessage}`);
             });
 
@@ -4026,6 +4059,7 @@ describe('SidebarUtils', () => {
                 });
 
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: dmChat,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -4046,15 +4080,18 @@ describe('SidebarUtils', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
-                const reportPreviewMessage = getReportPreviewReportActionMessage({
-                    reportOrID: iouReport,
-                    iouReportAction: iouAction,
-                    shouldConsiderScanningReceiptOrPendingRoute: true,
-                    isPreviewMessageForParentChatReport: true,
-                    policy: null,
-                    isForListPreview: true,
-                    originalReportAction: lastReportPreviewAction,
-                });
+                const reportPreviewMessage = getReportPreviewReportActionMessage(
+                    {
+                        reportOrID: iouReport,
+                        iouReportAction: iouAction,
+                        shouldConsiderScanningReceiptOrPendingRoute: true,
+                        isPreviewMessageForParentChatReport: true,
+                        policy: null,
+                        isForListPreview: true,
+                        originalReportAction: lastReportPreviewAction,
+                    },
+                    getCurrencyDecimalsLocal,
+                );
                 expect(result?.alternateText).toBe(reportPreviewMessage);
             });
         });
@@ -4069,6 +4106,7 @@ describe('SidebarUtils', () => {
 
                 // When getOptionData is called with matching conciergeReportID
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: MOCK_REPORT,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -4102,6 +4140,7 @@ describe('SidebarUtils', () => {
 
                 // When getOptionData is called with non-matching conciergeReportID
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: MOCK_REPORT,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -4134,6 +4173,7 @@ describe('SidebarUtils', () => {
 
                 // When getOptionData is called with empty conciergeReportID
                 const result = SidebarUtils.getOptionData({
+                    dateFnsLocale: undefined,
                     report: MOCK_REPORT,
                     reportAttributes: undefined,
                     reportNameValuePairs: {},
@@ -4183,6 +4223,7 @@ describe('SidebarUtils', () => {
             });
 
             const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
@@ -4982,6 +5023,7 @@ describe('SidebarUtils', () => {
          */
         function callGetOptionData(report: Report, lastAction: ReportAction, policy?: Policy) {
             return SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},

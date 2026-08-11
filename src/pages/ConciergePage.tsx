@@ -7,7 +7,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,19 +55,10 @@ function ConciergePage() {
         };
     }, []);
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'ConciergePage',
-        isLoadingReportData,
-        hasConciergeReportID: !!conciergeReportID,
-    };
-
     return (
         <ScreenWrapper testID="ConciergePage">
             <View style={[styles.borderBottom, styles.appContentHeader]}>
-                <ReportHeaderSkeletonView
-                    onBackButtonPress={Navigation.goBack}
-                    reasonAttributes={reasonAttributes}
-                />
+                <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
             </View>
             <ReportActionsSkeletonView />
         </ScreenWrapper>

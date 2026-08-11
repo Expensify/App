@@ -92,7 +92,7 @@ function DynamicQuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPoli
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.qbo.noAccountsFound')}
-                subtitle={translate('workspace.qbo.noAccountsFoundDescription', {integrationName})}
+                subtitle={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
                 containerStyle={styles.pb10}
             />
         ),

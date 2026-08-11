@@ -250,6 +250,12 @@ type OriginalMessagePolicyExpenseChatWelcomeWhisper = {
     type?: string;
 };
 
+/** Model of a violation captured on a submitted report action */
+type SubmittedTransactionViolation = {
+    /** Violation identifier/name captured at submit time */
+    name: string;
+};
+
 /** Model of `submitted` report action */
 type OriginalMessageSubmitted = {
     /** The login of the admin (used in admin-submit) */
@@ -284,6 +290,12 @@ type OriginalMessageSubmitted = {
 
     /** The workflow the report is submitted on */
     workflow?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+
+    /** Snapshot of transaction violations present when the report was submitted */
+    violations?: {
+        /** Violations keyed by transaction ID */
+        transactions: Record<string, SubmittedTransactionViolation[]>;
+    };
 };
 
 /** Model of `created` report action */
@@ -1531,6 +1543,19 @@ type OriginalMessagePlaidBalanceFailure = {
 };
 
 /**
+ * Original message for a COMMUTER_EXCLUSION system action,
+ * posted to the workspace chat when a distance expense has the workspace's
+ * commuter exclusion applied to it.
+ */
+type OriginalMessageCommuterExclusion = {
+    /** The distance that was deducted, formatted to 2 decimals (e.g. "1.00") */
+    distance: string;
+
+    /** Display unit ("mi" or "km") */
+    unit: string;
+};
+
+/**
  * Original message for DEW_SUBMIT_FAILED and DEW_APPROVE_FAILED actions
  */
 type OriginalMessageDEWFailed = {
@@ -1793,6 +1818,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS]: OriginalMessageConciergeDescriptionOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MAP_MCC_GROUPS]: OriginalMessageConciergeAutoMapMccGroups;
     [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN]: OriginalMessageCompanyCardConnectionBroken;
+    [CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION]: OriginalMessageCommuterExclusion;
     [CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE]: OriginalMessagePlaidBalanceFailure;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
