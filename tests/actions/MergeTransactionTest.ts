@@ -1018,6 +1018,7 @@ describe('mergeTransactionRequest', () => {
             selfDMReportActions: undefined,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
         await waitForBatchedUpdates();
