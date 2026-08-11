@@ -28,7 +28,8 @@ import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {formatReportLastMessageText, getReportOrDraftReport, getReportSubtitlePrefix} from '@libs/ReportUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight, stripSearchValueQuotes} from '@libs/SearchQueryUtils';
+import {getParsableSearchValue} from '@libs/SearchAutocompleteUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -593,7 +594,7 @@ function SearchAutocompleteList({
 
         if (autocompleteSuggestions.length > 0) {
             const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey, workspaceIcon}) => {
-                const value = mapKey && autocompleteID ? stripSearchValueQuotes(text) : text;
+                const value = mapKey && autocompleteID ? getParsableSearchValue(filterKey, text) : text;
                 return {
                     text: getAutocompleteDisplayText(filterKey, text),
                     mapKey: mapKey ? getSubstitutionMapKey(mapKey, value) : undefined,
