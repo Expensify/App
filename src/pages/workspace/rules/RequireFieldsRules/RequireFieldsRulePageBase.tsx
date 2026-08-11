@@ -224,6 +224,11 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
             isVisible: true,
         },
         {
+            key: INPUT_IDS.ATTENDEES_SETTING,
+            label: translate('iou.attendees'),
+            isVisible: isAttendeeFieldApplicable,
+        },
+        {
             key: INPUT_IDS.RECEIPT_SETTING,
             label: translate('common.receipt'),
             isVisible: true,
@@ -232,11 +237,6 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
             key: INPUT_IDS.ITEMIZED_RECEIPT_SETTING,
             label: translate('workspace.rules.requireFieldsRule.itemizedReceipt'),
             isVisible: true,
-        },
-        {
-            key: INPUT_IDS.ATTENDEES_SETTING,
-            label: translate('iou.attendees'),
-            isVisible: isAttendeeFieldApplicable,
         },
     ];
 
