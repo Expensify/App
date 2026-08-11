@@ -1,4 +1,4 @@
-import type {Beta, IntroSelected, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Beta, IntroSelected, PersonalDetailsList, Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -32,6 +32,7 @@ type ResolveReportContext = {
     betas: OnyxEntry<Beta[]>;
     currentUserEmail: string | undefined;
     currentUserAccountID: number;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 /**
@@ -76,6 +77,7 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
         iouReport: getReportOrDraftReport(reportID) ?? expense.report,
         iouReportAction: iouAction,
         transaction,
+        personalDetails: context.personalDetails,
     });
     return transactionThreadReport?.reportID ?? reportID;
 }

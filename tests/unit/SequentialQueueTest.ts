@@ -1,4 +1,4 @@
-import {resolveDuplicationConflictAction, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
+import {resolveOpenAppDuplicationConflictAction, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import * as NetworkState from '@libs/NetworkState';
 
@@ -454,13 +454,11 @@ describe('SequentialQueue - reconnect coverage collapse', () => {
         } as Request<TKey>;
     }
 
-    // Build an OpenApp wired exactly as API.writeWithNoDuplicatesConflictAction(OPEN_APP) does: the generic
-    // resolver dedupes by command against the waiting queue only and never reads the in-flight request.
-    function makeOpenAppRequest<TKey extends OnyxKey = never>(overrides: {data?: Record<string, unknown>} & Partial<Request<TKey>> = {}): Request<TKey> {
+    // Build an OpenApp wired as API.writeWithNoDuplicatesOpenAppConflictAction does.
+    function makeOpenAppRequest<TKey extends OnyxKey = never>(shouldDedupeWithInFlight = true): Request<TKey> {
         return {
-            ...overrides,
             command: 'OpenApp',
-            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests as AnyRequest[], (queued) => queued.command === 'OpenApp'),
+            checkAndFixConflictingRequest: (persistedRequests) => resolveOpenAppDuplicationConflictAction(persistedRequests as AnyRequest[], getOngoingRequest(), shouldDedupeWithInFlight),
         } as Request<TKey>;
     }
 
@@ -567,9 +565,41 @@ describe('SequentialQueue - reconnect coverage collapse', () => {
             await waitForBatchedUpdates();
             expect(getOngoingRequest()?.command).toBe('ReconnectApp');
 
-            // OpenApp dedupes against the waiting queue only, never the in-flight request, so an OpenApp that
-            // lands mid-reconnect still runs and its preservation writes are never dropped.
+            // A reconnect does not carry OpenApp's payload, so it never covers an incoming OpenApp.
             await SequentialQueue.push(makeOpenAppRequest());
+
+            expect(getLength()).toBe(2);
+            expect(getAll().at(0)?.command).toBe('OpenApp');
+        } finally {
+            await mockFetch.resume();
+        }
+    });
+
+    it('drops an incoming OpenApp enqueued while one is in flight, leaving only one full download on the wire', async () => {
+        mockFetch.pause();
+        try {
+            await SequentialQueue.push(makeOpenAppRequest());
+            await waitForBatchedUpdates();
+            expect(getOngoingRequest()?.command).toBe('OpenApp');
+
+            await SequentialQueue.push(makeOpenAppRequest());
+
+            expect(getLength()).toBe(1);
+            expect(getAll()).toHaveLength(0);
+        } finally {
+            await mockFetch.resume();
+        }
+    });
+
+    it('keeps an incoming OpenApp that opted out of the dedupe while one is in flight', async () => {
+        mockFetch.pause();
+        try {
+            await SequentialQueue.push(makeOpenAppRequest());
+            await waitForBatchedUpdates();
+            expect(getOngoingRequest()?.command).toBe('OpenApp');
+
+            // The priority-mode refetch opts out: identical params, but the in-flight response is the old report set.
+            await SequentialQueue.push(makeOpenAppRequest(false));
 
             expect(getLength()).toBe(2);
             expect(getAll().at(0)?.command).toBe('OpenApp');
