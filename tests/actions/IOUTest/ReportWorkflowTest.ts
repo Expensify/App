@@ -375,6 +375,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     comment: '',
                     participants: [],
                     transactionID: transaction.transactionID,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 reportActions[iouAction.reportActionID] = iouAction;
             }
@@ -394,8 +395,8 @@ describe('actions/IOU/ReportWorkflow', () => {
             // When submitting the report while offline (callers pass the live report, refreshed by the hold)
             mockFetch?.pause?.();
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
-            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
             submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: CARLOS_EMAIL,
                 expenseReport: freshExpenseReport,
                 policy,
@@ -403,7 +404,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: true,
-                expenseReportCurrentNextStepDeprecated: nextStep,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -492,6 +492,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 comment: '',
                 participants: [],
                 transactionID: heldTransaction.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const reportActions: ReportActions = {[iouAction.reportActionID]: iouAction};
 
@@ -509,8 +510,8 @@ describe('actions/IOU/ReportWorkflow', () => {
             // When submitting the report while offline (callers pass the live report, refreshed by the hold)
             mockFetch?.pause?.();
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
-            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
             submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: CARLOS_EMAIL,
                 expenseReport: freshExpenseReport,
                 policy,
@@ -518,7 +519,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: true,
-                expenseReportCurrentNextStepDeprecated: nextStep,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -598,6 +598,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     comment: '',
                     participants: [],
                     transactionID: transaction.transactionID,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 reportActions[iouAction.reportActionID] = iouAction;
             }
@@ -617,8 +618,8 @@ describe('actions/IOU/ReportWorkflow', () => {
             // When submitting the report while offline (callers pass the live report, refreshed by the hold)
             mockFetch?.pause?.();
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
-            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
             submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: CARLOS_EMAIL,
                 expenseReport: freshExpenseReport,
                 policy,
@@ -626,7 +627,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: true,
-                expenseReportCurrentNextStepDeprecated: nextStep,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,

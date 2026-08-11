@@ -1592,6 +1592,7 @@ function submitReport({
             // Needed only so ASAP_SUBMIT can affect the new report's initial state; no other override is required here.
             betas: isASAPSubmitBetaEnabled ? [CONST.BETAS.ASAP_SUBMIT] : [],
             delegateAccountID,
+            getCurrencyDecimals,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
