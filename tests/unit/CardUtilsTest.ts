@@ -4731,7 +4731,7 @@ describe('getCardConnectionStatusDisplay', () => {
     });
 
     it('returns the reconnect bank message for a broken personal card that needs re-auth', () => {
-        expect(getCardConnectionStatusDisplay({...defaultParams, isCardBroken: true, isCardNeedsReauth: true, isPersonalCard: true})).toEqual({
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardBroken: true, doesCardNeedReauthentication: true, isPersonalCard: true})).toEqual({
             statusKey: 'walletPage.cardStatus.inactive',
             statusTone: 'danger',
             messageKey: 'walletPage.cardStatus.reconnectBank',
@@ -4743,7 +4743,7 @@ describe('getCardConnectionStatusDisplay', () => {
     });
 
     it('asks the admin to fix a non-admin company card that needs re-auth instead of showing the reconnect bank message', () => {
-        expect(getCardConnectionStatusDisplay({...defaultParams, isCardBroken: true, isCardNeedsReauth: true, policyID: 'ABC123'})).toEqual({
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardBroken: true, doesCardNeedReauthentication: true, policyID: 'ABC123'})).toEqual({
             statusKey: 'walletPage.cardStatus.inactive',
             statusTone: 'danger',
             messageKey: 'walletPage.cardStatus.askAdminToFixConnection',
@@ -4755,7 +4755,7 @@ describe('getCardConnectionStatusDisplay', () => {
     });
 
     it('prefers the company cards link over the reconnect bank message for an admin', () => {
-        expect(getCardConnectionStatusDisplay({...defaultParams, isCardBroken: true, isCardNeedsReauth: true, isAdminForCardPolicy: true, policyID: 'ABC123'})).toEqual({
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardBroken: true, doesCardNeedReauthentication: true, isAdminForCardPolicy: true, policyID: 'ABC123'})).toEqual({
             statusKey: 'walletPage.cardStatus.inactive',
             statusTone: 'danger',
             messageKey: 'walletPage.cardStatus.fixConnectionIn',
