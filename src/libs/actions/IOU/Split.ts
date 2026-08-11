@@ -153,6 +153,7 @@ type CreateDistanceRequestInformation = {
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 
     /** Optimistic chat reportID to build the new chat report at, so it matches the ID the confirmation screen already subscribed to (brand-new P2P recipient). */
     optimisticChatReportID?: string;
@@ -182,6 +183,7 @@ type CreateSplitsAndOnyxDataParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type StartSplitBilActionParams = {
@@ -209,6 +211,7 @@ type StartSplitBilActionParams = {
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type CompleteSplitBillActionParams = {
@@ -225,6 +228,7 @@ type CompleteSplitBillActionParams = {
     isTrackIntentUser: boolean | undefined;
     sessionEmail?: string;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type SplitBillActionsParams = {
@@ -261,6 +265,7 @@ type SplitBillActionsParams = {
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 /**
@@ -300,6 +305,7 @@ function splitBill({
     isTrackIntentUser,
     formatPhoneNumber,
     participantsPolicyTags,
+    getCurrencyDecimals,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -335,6 +341,7 @@ function splitBill({
         delegateAccountID,
         isTrackIntentUser,
         formatPhoneNumber,
+        getCurrencyDecimals,
     });
 
     const parameters: SplitBillParams = {
@@ -416,6 +423,7 @@ function splitBillAndOpenReport({
     isTrackIntentUser,
     formatPhoneNumber,
     participantsPolicyTags,
+    getCurrencyDecimals,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -451,6 +459,7 @@ function splitBillAndOpenReport({
         isTrackIntentUser,
         formatPhoneNumber,
         participantsPolicyTags,
+        getCurrencyDecimals,
     });
 
     const parameters: SplitBillParams = {
@@ -525,6 +534,7 @@ function startSplitBill({
     shouldDeferForSearch = false,
     delegateAccountID,
     formatPhoneNumber,
+    getCurrencyDecimals,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -567,6 +577,7 @@ function startSplitBill({
         isOwnPolicyExpenseChat,
         iouReportID: splitChatReport.reportID,
         delegateAccountIDParam: delegateAccountID,
+        getCurrencyDecimals,
     });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
@@ -717,6 +728,7 @@ function startSplitBill({
         participantsPolicyTags,
         delegateAccountID,
         formatPhoneNumber,
+        getCurrencyDecimals,
     };
 
     if (existingSplitChatReport) {
@@ -917,6 +929,7 @@ function completeSplitBill({
     delegateAccountID,
     isTrackIntentUser,
     sessionEmail,
+    getCurrencyDecimals,
 }: CompleteSplitBillActionParams) {
     if (!reportAction) {
         return;
@@ -1063,8 +1076,16 @@ function completeSplitBill({
                       optimisticIOUReportID: optimisticExpenseReportID,
                       reportTransactions,
                       betas,
+                      getCurrencyDecimals,
                   })
-                : buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? CONST.DEFAULT_NUMBER_ID, splitAmount, oneOnOneChatReport?.reportID, currency ?? '');
+                : buildOptimisticIOUReport(
+                      sessionAccountID,
+                      participant.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                      splitAmount,
+                      oneOnOneChatReport?.reportID,
+                      currency ?? '',
+                      getCurrencyDecimals,
+                  );
         } else if (isPolicyExpenseChat) {
             if (oneOnOneIOUReport) {
                 // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
@@ -1111,6 +1132,7 @@ function completeSplitBill({
 
         const [oneOnOneCreatedActionForChat, oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
             buildOptimisticMoneyRequestEntities({
+                getCurrencyDecimals,
                 iouReport: oneOnOneIOUReport,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: splitAmount,
@@ -1125,9 +1147,18 @@ function completeSplitBill({
 
         let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
+            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, getCurrencyDecimals);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, delegateAccountID);
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(
+                oneOnOneChatReport,
+                oneOnOneIOUReport,
+                getCurrencyDecimals,
+                '',
+                oneOnOneTransaction,
+                undefined,
+                undefined,
+                delegateAccountID,
+            );
         }
         const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations, sessionAccountID, sessionEmail ?? '');
 
@@ -1165,6 +1196,7 @@ function completeSplitBill({
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
+            getCurrencyDecimals,
         });
 
         splits.push({
@@ -1456,6 +1488,7 @@ function createSplitsAndOnyxData({
     delegateAccountID,
     isTrackIntentUser,
     formatPhoneNumber,
+    getCurrencyDecimals,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -1508,6 +1541,7 @@ function createSplitsAndOnyxData({
         isOwnPolicyExpenseChat,
         iouReportID: splitChatReport.reportID,
         delegateAccountIDParam: delegateAccountID,
+        getCurrencyDecimals,
     });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
@@ -1761,8 +1795,9 @@ function createSplitsAndOnyxData({
                       optimisticIOUReportID: optimisticExpenseReportID,
                       reportTransactions,
                       betas,
+                      getCurrencyDecimals,
                   })
-                : buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
+                : buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency, getCurrencyDecimals);
         } else if (isOwnPolicyExpenseChat) {
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
             if (oneOnOneIOUReport?.currency === currency) {
@@ -1819,6 +1854,7 @@ function createSplitsAndOnyxData({
         // 5. REPORT_PREVIEW action for the chatReport
         const [oneOnOneCreatedActionForChat, oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
             buildOptimisticMoneyRequestEntities({
+                getCurrencyDecimals,
                 iouReport: oneOnOneIOUReport,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: splitAmount,
@@ -1852,9 +1888,18 @@ function createSplitsAndOnyxData({
 
         let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
+            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, getCurrencyDecimals);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, delegateAccountID);
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(
+                oneOnOneChatReport,
+                oneOnOneIOUReport,
+                getCurrencyDecimals,
+                '',
+                oneOnOneTransaction,
+                undefined,
+                undefined,
+                delegateAccountID,
+            );
         }
 
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories) : [];
@@ -1910,6 +1955,7 @@ function createSplitsAndOnyxData({
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
+            getCurrencyDecimals,
         });
 
         const individualSplit = {
@@ -1993,6 +2039,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         formatPhoneNumber,
         participantsPolicyTags,
         optimisticChatReportID,
+        getCurrencyDecimals,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -2011,6 +2058,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         taxValue,
         merchant,
         modifiedAmount,
+        modifiedMerchant,
         billable,
         reimbursable,
         validWaypoints,
@@ -2087,6 +2135,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             delegateAccountID,
             isTrackIntentUser,
             formatPhoneNumber,
+            getCurrencyDecimals,
         });
         onyxData = splitOnyxData;
 
@@ -2152,6 +2201,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             },
             transactionParams: {
                 amount,
+                modifiedAmount,
+                modifiedMerchant,
                 distance: modifiedDistance ?? distance,
                 currency,
                 comment,
@@ -2183,6 +2234,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             delegateAccountID,
             isTrackIntentUser,
             optimisticChatReportID,
+            getCurrencyDecimals,
         });
 
         onyxData = moneyRequestOnyxData;
