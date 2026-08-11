@@ -2,8 +2,10 @@ import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -38,6 +40,7 @@ type TransactionGroupListItem = ListItem & {
 
 function SearchTransactionsChangeReport() {
     const {selectedTransactions} = useSearchSelectionContext();
+    const delegateAccountID = useDelegateAccountID();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
@@ -61,6 +64,7 @@ function SearchTransactionsChangeReport() {
     const managedCardTransactionID = transactions.find((transaction) => isUnreportedManagedCardTransaction(transaction))?.transactionID;
     const hasUnreportedManagedCardTransactions = !!managedCardTransactionID;
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const reports = useChangeTransactionsReportReports(transactions, undefined);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -163,6 +167,10 @@ function SearchTransactionsChangeReport() {
             {managedCardTransactionID},
         );
         const policyTagList = policyForMovingExpenses?.id ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyForMovingExpenses.id}`] : {};
+        const reportsForCall = {
+            ...reports,
+            [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {...optimisticReport, transactionCount: 0, unheldNonReimbursableTotal: 0},
+        };
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
                 transactionIDs: selectedTransactionsKeys,
@@ -175,10 +183,11 @@ function SearchTransactionsChangeReport() {
                 policyTagList,
                 transactions,
                 allTransactionViolation: transactionViolations,
-                allReports,
+                reports: reportsForCall,
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
+                delegateAccountID,
                 getCurrencyDecimals,
             });
             clearSelectedTransactions();
@@ -244,6 +253,12 @@ function SearchTransactionsChangeReport() {
 
         const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
         const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
+        const reportsForCall = destinationReport?.reportID
+            ? {
+                  [`${ONYXKEYS.COLLECTION.REPORT}${destinationReport.reportID}`]: destinationReport,
+                  ...reports,
+              }
+            : reports;
         changeTransactionsReport({
             transactionIDs: selectedTransactionsKeys,
             isASAPSubmitBetaEnabled,
@@ -255,10 +270,11 @@ function SearchTransactionsChangeReport() {
             policyTagList,
             transactions,
             allTransactionViolation: transactionViolations,
-            allReports,
+            reports: reportsForCall,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
+            delegateAccountID,
             getCurrencyDecimals,
         });
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
@@ -278,10 +294,11 @@ function SearchTransactionsChangeReport() {
             policyTagList,
             transactions,
             allTransactionViolation: transactionViolations,
-            allReports,
+            reports,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
+            delegateAccountID,
             getCurrencyDecimals,
         });
         clearSelectedTransactions();

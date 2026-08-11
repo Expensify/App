@@ -91,21 +91,12 @@ type SettingsNavigatorParamList = {
         label?: string;
     };
     [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS]: undefined;
-    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: {
+    [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHOD_DETAILS]: {
         contactMethod: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
         shouldSkipInitialValidation?: string;
     };
-    [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
-    [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE]: {
-        newContactMethod: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
+    [SCREENS.SETTINGS.PROFILE.DYNAMIC_NEW_CONTACT_METHOD]: undefined;
+    [SCREENS.SETTINGS.PROFILE.DYNAMIC_NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE]: undefined;
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM]: {
         contactMethod: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -1292,7 +1283,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXISTING_CONNECTIONS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_COMPANY_SELECTOR]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_SUBSIDIARY_SELECTOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_IMPORT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
@@ -2342,14 +2336,12 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backToReport?: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_TIME]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
         backToReport?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes | undefined;
     };
     [SCREENS.MONEY_REQUEST.STEP_SUBRATE]: {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -2368,14 +2360,12 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backToReport?: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_TIME_EDIT]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME_EDIT]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
         backToReport?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes | undefined;
     };
     [SCREENS.MONEY_REQUEST.STEP_SUBRATE_EDIT]: {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -2770,7 +2760,6 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
         reportID: string;
         reportActionID?: string;
-        anchorTransactionID?: string;
         shouldReplaceWithExpenseReportRHP?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;

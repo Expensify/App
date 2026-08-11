@@ -1,3 +1,4 @@
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import {
@@ -507,25 +508,26 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                             isSelected={isSelected}
                         />
                     )}
-                    <ExpenseReportListItemRow
-                        item={liveReportItem}
-                        columns={columns}
-                        reportActions={reportActions}
-                        isActionLoading={isActionLoading ?? isLoading}
-                        showTooltip={showTooltip}
-                        canSelectMultiple={canSelectMultiple}
-                        onCheckboxPress={handleSelectionButtonPress}
-                        onButtonPress={handleOnButtonPress}
-                        chatReport={chatReport}
-                        isSelectAllChecked={isSelected}
-                        isIndeterminate={false}
-                        isDisabledCheckbox={isDisabledCheckbox}
-                        isHovered={hovered}
-                        isFocused={isFocused}
-                        isPendingDelete={isPendingDelete}
-                        shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
-                        isMarkAsDone={shouldUseMarkAsDoneCopy}
-                    />
+                    <AvatarTooltipsProvider isEnabled={showTooltip}>
+                        <ExpenseReportListItemRow
+                            item={liveReportItem}
+                            columns={columns}
+                            reportActions={reportActions}
+                            isActionLoading={isActionLoading ?? isLoading}
+                            canSelectMultiple={canSelectMultiple}
+                            onCheckboxPress={handleSelectionButtonPress}
+                            onButtonPress={handleOnButtonPress}
+                            chatReport={chatReport}
+                            isSelectAllChecked={isSelected}
+                            isIndeterminate={false}
+                            isDisabledCheckbox={isDisabledCheckbox}
+                            isHovered={hovered}
+                            isFocused={isFocused}
+                            isPendingDelete={isPendingDelete}
+                            shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
+                            isMarkAsDone={shouldUseMarkAsDoneCopy}
+                        />
+                    </AvatarTooltipsProvider>
                     {getDescription}
                 </View>
             )}

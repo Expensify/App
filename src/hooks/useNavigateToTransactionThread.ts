@@ -1,3 +1,4 @@
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
@@ -46,6 +47,7 @@ type NavigateToTransactionThreadParams = {
 function useNavigateToTransactionThread() {
     const {markReportRHPWidth} = useWideRHPActions();
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
@@ -68,6 +70,7 @@ function useNavigateToTransactionThread() {
                 iouReport: report,
                 iouReportAction: iouAction,
                 transaction,
+                personalDetails,
             });
             if (transactionThreadReport) {
                 reportIDToNavigate = transactionThreadReport.reportID;

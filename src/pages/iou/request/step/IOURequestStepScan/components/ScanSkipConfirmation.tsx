@@ -309,6 +309,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             isTrackIntentUser,
             delegateAccountID,
+            formatPhoneNumber,
         };
 
         const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;

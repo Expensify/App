@@ -8,9 +8,11 @@ import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 
 import useActivePolicy from '@hooks/useActivePolicy';
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useCreateNewReport from '@hooks/useCreateNewReport';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
@@ -63,6 +65,7 @@ function IOURequestStepUpgrade({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const personalDetails = usePersonalDetails();
     const activePolicy = useActivePolicy();
     const personalPolicy = usePersonalPolicy();
@@ -101,7 +104,6 @@ function IOURequestStepUpgrade({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
@@ -114,6 +116,7 @@ function IOURequestStepUpgrade({
 
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const reports = useChangeTransactionsReportReports(transactions, undefined);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const ownerAccountID = selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID;
 
@@ -142,6 +145,10 @@ function IOURequestStepUpgrade({
             const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, betas, isTrackIntentUser, getCurrencyDecimals);
 
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
+            const reportsForCall = {
+                ...reports,
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {...optimisticReport, transactionCount: 0, unheldNonReimbursableTotal: 0},
+            };
 
             // Move ALL selected transactions to the new report
             changeTransactionsReport({
@@ -155,11 +162,12 @@ function IOURequestStepUpgrade({
                 policyTagList,
                 transactions,
                 allTransactionViolation: transactionViolations,
-                allReports,
+                reports: reportsForCall,
                 selfDMReportActions,
                 isTrackIntentUser,
                 // Expenses move to the upgraded workspace (newPolicy), whose currency drives any distance calculation, so the personal-policy currency is never read here.
                 personalPolicyOutputCurrency: undefined,
+                delegateAccountID,
                 getCurrencyDecimals,
             });
 
@@ -264,9 +272,10 @@ function IOURequestStepUpgrade({
         allPolicyTags,
         createReportForCurrentUser,
         transactionViolations,
-        allReports,
+        reports,
         selfDMReportActions,
         isTrackIntentUser,
+        delegateAccountID,
         getCurrencyDecimals,
     ]);
 

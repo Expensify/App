@@ -57,6 +57,9 @@ export type {default as UpdateRilletSyncTravelInvoicingSettlementsParams} from '
 export type {default as UpdateRilletTravelInvoicingSettlementsAccountParams} from './UpdateRilletTravelInvoicingSettlementsAccountParams';
 export type {default as SyncPolicyToDualEntryParams} from './SyncPolicyToDualEntryParams';
 export type {default as UpdateDualEntrySubsidiaryParams} from './UpdateDualEntrySubsidiaryParams';
+export type {default as UpdateDualEntryEnableNewCategoriesParams} from './UpdateDualEntryEnableNewCategoriesParams';
+export type {default as UpdateDualEntryFieldMappingParams} from './UpdateDualEntryFieldMappingParams';
+export type {default as UpdateDualEntrySyncTaxRatesParams} from './UpdateDualEntrySyncTaxRatesParams';
 export type {default as UpdateNetSuiteAccountingMethodParams} from './UpdateNetSuiteAccountingMethodParams';
 export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './UpdateQuickbooksOnlineAccountingMethodParams';
 export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAccountingMethodParams';
@@ -264,6 +267,7 @@ export type {default as SetWorkspacePayerParams} from './SetWorkspacePayerParams
 export type {default as SetWorkspaceReimbursementParams} from './SetWorkspaceReimbursementParams';
 export type {default as SetWorkspaceDefaultSpendCategoryParams} from './SetWorkspaceDefaultSpendCategoryParams';
 export type {default as SetPolicyRequiresTag} from './SetPolicyRequiresTag';
+export type {default as SetPolicyShowTagGLCodesParams} from './SetPolicyShowTagGLCodesParams';
 export type {default as SetPolicyTagsRequired} from './SetPolicyTagsRequired';
 export type {default as SetPolicyTagListsRequired} from './SetPolicyTagListsRequired';
 export type {default as RenamePolicyTagListParams} from './RenamePolicyTagListParams';

@@ -26,7 +26,6 @@ import getBase62ReportID from '@libs/getBase62ReportID';
 import {isTaxCodeCustomized, getTagGLCode} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
-import {getSubmittedViolationsForTransaction} from '@libs/SearchUIUtils';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import {
     getAmount,
@@ -157,7 +156,6 @@ function TransactionItemRowWide({
     const submitterUserID = reportForCustomColumns?.submitterUserID;
     const submitterPayrollID = reportForCustomColumns?.submitterPayrollID;
     const orderDealNumbers = reportForCustomColumns?.orderDealNumbers;
-    const submittedViolations = getSubmittedViolationsForTransaction(reportActions, transactionItem.transactionID, translate);
     const hasValidationMessage = shouldShowErrors && (!!missingFieldError || !!violations?.length);
     let fullHeightMainRowStyle;
     if (shouldUseFullHeightEditableCellHoverTarget) {
@@ -206,16 +204,8 @@ function TransactionItemRowWide({
                             canEdit={canEditTag}
                             onSave={onEditTag}
                             policyID={effectivePolicyID}
+                            policy={policy}
                         />
-                    </View>
-                );
-            case CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS:
-                return (
-                    <View
-                        key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)]}
-                    >
-                        <TextCell text={submittedViolations} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
