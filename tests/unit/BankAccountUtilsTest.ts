@@ -6,6 +6,8 @@ import {
     getLastFourDigits,
     getRequiredKYBDocuments,
     hasBankAccountAllowDebit,
+    hasDebitBlockedError,
+    hasInsufficientFundsError,
     hasPartiallySetupBankAccount,
     hasPersonalBankAccountMissingInfo,
     isBankAccountPartiallySetup,
@@ -275,6 +277,50 @@ describe('BankAccountUtils', () => {
         });
     });
 
+    describe('hasInsufficientFundsError', () => {
+        it.each(CONST.BANK_ACCOUNT.NOC_CODE.INSUFFICIENT_FUNDS)('returns true when lastNocCode is %s', (code) => {
+            expect(hasInsufficientFundsError({additionalData: {lastNocCode: code}} as AccountData)).toBe(true);
+        });
+
+        it.each(CONST.BANK_ACCOUNT.NOC_CODE.DEBIT_BLOCKED)('returns false when lastNocCode is debit-blocked code %s', (code) => {
+            expect(hasInsufficientFundsError({additionalData: {lastNocCode: code}} as AccountData)).toBe(false);
+        });
+
+        it('returns false when lastNocCode is unrelated', () => {
+            expect(hasInsufficientFundsError({additionalData: {lastNocCode: 'R99'}} as AccountData)).toBe(false);
+        });
+
+        it('returns false when accountData is undefined', () => {
+            expect(hasInsufficientFundsError(undefined)).toBe(false);
+        });
+
+        it('returns false when additionalData is missing', () => {
+            expect(hasInsufficientFundsError({} as AccountData)).toBe(false);
+        });
+
+        it('returns false when lastNocCode is missing', () => {
+            expect(hasInsufficientFundsError({additionalData: {}} as AccountData)).toBe(false);
+        });
+    });
+
+    describe('hasDebitBlockedError', () => {
+        it.each(CONST.BANK_ACCOUNT.NOC_CODE.DEBIT_BLOCKED)('returns true when lastNocCode is %s', (code) => {
+            expect(hasDebitBlockedError({additionalData: {lastNocCode: code}} as AccountData)).toBe(true);
+        });
+
+        it.each(CONST.BANK_ACCOUNT.NOC_CODE.INSUFFICIENT_FUNDS)('returns false when lastNocCode is insufficient-funds code %s', (code) => {
+            expect(hasDebitBlockedError({additionalData: {lastNocCode: code}} as AccountData)).toBe(false);
+        });
+
+        it('returns false when lastNocCode is unrelated', () => {
+            expect(hasDebitBlockedError({additionalData: {lastNocCode: 'R99'}} as AccountData)).toBe(false);
+        });
+
+        it('returns false when accountData is undefined', () => {
+            expect(hasDebitBlockedError(undefined)).toBe(false);
+        });
+    });
+
     describe('getBankAccountConnectionStatus', () => {
         it('maps OPEN bank accounts to Active without an RBR', () => {
             expect(getBankAccountConnectionStatus({state: CONST.BANK_ACCOUNT.STATE.OPEN})).toEqual({
@@ -325,6 +371,50 @@ describe('BankAccountUtils', () => {
         it.each([{state: undefined}, {state: ''}, {state: 'UNKNOWN'}])('returns undefined for unsupported state "%s"', (accountData) => {
             expect(getBankAccountConnectionStatus(accountData)).toBeUndefined();
         });
+
+        it.each(CONST.BANK_ACCOUNT.NOC_CODE.INSUFFICIENT_FUNDS)('maps VALIDATION_FAILED with insufficient-funds code %s to the insufficient-funds Fix status', (code) => {
+            expect(
+                getBankAccountConnectionStatus({
+                    state: CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED,
+                    additionalData: {lastNocCode: code},
+                } as AccountData),
+            ).toEqual({
+                labelKey: 'walletPage.bankAccountStatus.pending',
+                messageKey: 'walletPage.bankAccountStatus.insufficientFunds',
+                actionKey: 'common.actionBadge.fix',
+                requiresFixHandler: true,
+                tone: 'danger',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            });
+        });
+
+        it.each(CONST.BANK_ACCOUNT.NOC_CODE.DEBIT_BLOCKED)('maps VALIDATION_FAILED with debit-blocked code %s to the debit-blocked Fix status', (code) => {
+            expect(
+                getBankAccountConnectionStatus({
+                    state: CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED,
+                    additionalData: {lastNocCode: code},
+                } as AccountData),
+            ).toEqual({
+                labelKey: 'walletPage.bankAccountStatus.pending',
+                messageKey: 'walletPage.bankAccountStatus.debitBlocked',
+                actionKey: 'common.actionBadge.fix',
+                requiresFixHandler: true,
+                tone: 'danger',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            });
+        });
+
+        it.each([{lastNocCode: undefined}, {lastNocCode: ''}, {lastNocCode: 'R99'}])(
+            'returns undefined for VALIDATION_FAILED with unknown NOC bucket (lastNocCode: "$lastNocCode")',
+            ({lastNocCode}) => {
+                expect(
+                    getBankAccountConnectionStatus({
+                        state: CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED,
+                        additionalData: {lastNocCode},
+                    } as AccountData),
+                ).toBeUndefined();
+            },
+        );
     });
 
     describe('hasPartiallySetupBankAccount', () => {
