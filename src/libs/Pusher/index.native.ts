@@ -276,10 +276,12 @@ function subscribe<EventName extends PusherEventName>(
                                     }
                                 },
                                 onSubscriptionSucceeded: () => {
+                                    // Fires again on every later handshake, so read the status before overwriting it.
                                     const wasSubscribed = channels[channelName] === CONST.PUSHER.CHANNEL_STATUS.SUBSCRIBED;
                                     channels[channelName] = CONST.PUSHER.CHANNEL_STATUS.SUBSCRIBED;
                                     if (!disposed) {
-                                        wrappedCb = bindEventToChannel(channelName, eventName, eventCallback);
+                                        // eventsBoundToChannels survives reconnects, so re-binding here would leave a second copy behind on every handshake.
+                                        wrappedCb ??= bindEventToChannel(channelName, eventName, eventCallback);
                                     } else {
                                         // Handle was disposed mid-handshake — clean up the channel
                                         // if no other subscribers have bound callbacks to it

@@ -142,6 +142,33 @@ describe('Pusher.subscribe', () => {
 
         expect(onResubscribe).toHaveBeenCalledTimes(2);
     });
+
+    it('should deliver one event per resubscribe instead of one per handshake the channel has seen', async () => {
+        const channelName = 'private-user-rebind';
+        const eventCallback = jest.fn();
+
+        await initPusher();
+
+        const handle = Pusher.subscribe(channelName, 'multipleEvents', eventCallback);
+        await jest.runAllTimersAsync();
+        await handle;
+
+        // The bound callback survives reconnects, so these must not stack up another copy of it.
+        MockedPusher.getInstance().getChannel(channelName)?.onSubscriptionSucceeded();
+        MockedPusher.getInstance().getChannel(channelName)?.onSubscriptionSucceeded();
+
+        MockedPusher.getInstance().trigger({channelName, eventName: 'multipleEvents', data: {value: 1}});
+
+        expect(eventCallback).toHaveBeenCalledTimes(1);
+        expect(eventCallback).toHaveBeenCalledWith({value: 1});
+
+        handle.unsubscribe();
+        eventCallback.mockClear();
+
+        MockedPusher.getInstance().trigger({channelName, eventName: 'multipleEvents', data: {value: 2}});
+
+        expect(eventCallback).not.toHaveBeenCalled();
+    });
 });
 
 describe('Per-callback subscription handles', () => {

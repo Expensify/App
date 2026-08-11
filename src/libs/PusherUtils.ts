@@ -34,6 +34,12 @@ function triggerMultiEventHandler<TKey extends OnyxKey>(eventType: string, data:
     return (multiEventCallbackMapping[eventType] as Callback<TKey>)(data);
 }
 
+/** Must stay module-level: Pusher keys resubscribe handlers by identity, so every event type on this one channel collapses to a single reconnect per socket drop. */
+function onPusherResubscribeToPrivateUserChannel() {
+    Log.info('[PusherUtils] Pusher re-subscribed to private user channel, triggering reconnect');
+    reconnect();
+}
+
 /**
  * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
  */
@@ -42,11 +48,6 @@ function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string
 
     function logPusherEvent(pushJSON: AnyOnyxUpdatesFromServer | PingPongEvent) {
         Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, pushJSON);
-    }
-
-    function onPusherResubscribeToPrivateUserChannel() {
-        Log.info('[PusherUtils] Pusher re-subscribed to private user channel, triggering reconnect');
-        reconnect();
     }
 
     function onEventPush(pushJSON: AnyOnyxUpdatesFromServer | PingPongEvent) {
