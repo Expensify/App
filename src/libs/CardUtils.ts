@@ -137,7 +137,7 @@ type CardConnectionStatusDisplayParams = {
     isCardInactive: boolean;
     isPersonalCard: boolean;
     isAdminForCardPolicy: boolean;
-    isCardNeedsReauth?: boolean;
+    doesCardNeedReauthentication?: boolean;
     policyID?: string;
 };
 
@@ -1375,7 +1375,7 @@ function isCardConnectionBroken(card: Card): boolean {
  * @param card the card to check
  * @returns true if the connection needs re-authentication, false otherwise
  */
-function doesCardConnectionNeedReauth(card: Card): boolean {
+function doesCardConnectionNeedReauthentication(card: Card): boolean {
     return isCardConnectionBroken(card) && !!card.lastScrapeResult && CONST.COMPANY_CARDS.REAUTH_SCRAPE_STATUSES.includes(card.lastScrapeResult);
 }
 
@@ -1386,7 +1386,7 @@ function getCardConnectionStatusDisplay({
     isCardInactive: isCardInactiveStatus,
     isPersonalCard: isPersonalCardStatus,
     isAdminForCardPolicy,
-    isCardNeedsReauth,
+    doesCardNeedReauthentication,
     policyID,
 }: CardConnectionStatusDisplayParams): CardConnectionStatusDisplay | undefined {
     if (!shouldShowConnectionStatus) {
@@ -1396,7 +1396,7 @@ function getCardConnectionStatusDisplay({
     const shouldShowMessage = isCardBroken || shouldShowRBR || isCardInactiveStatus;
     const shouldUsePersonalCardFix = shouldShowMessage && isPersonalCardStatus;
     const shouldUseCompanyCardsLink = shouldShowMessage && !isPersonalCardStatus && isAdminForCardPolicy && !!policyID;
-    const shouldUseReauthMessage = shouldShowMessage && !!isCardNeedsReauth && isPersonalCardStatus;
+    const shouldUseReauthMessage = shouldShowMessage && !!doesCardNeedReauthentication && isPersonalCardStatus;
     let messageKey: TranslationPaths | undefined;
 
     if (shouldShowMessage) {
@@ -2141,7 +2141,7 @@ export {
     getCSVFeedType,
     getFeedType,
     isCardConnectionBroken,
-    doesCardConnectionNeedReauth,
+    doesCardConnectionNeedReauthentication,
     getCardConnectionStatusDisplay,
     isBrokenConnectionPastDismissThreshold,
     isSmartLimitEnabled,
