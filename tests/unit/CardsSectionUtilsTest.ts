@@ -271,6 +271,62 @@ describe('CardSectionUtils', () => {
         });
     });
 
+    it('should return OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE variant', () => {
+        mockGetSubscriptionStatus.mockReturnValue({
+            status: PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE,
+        });
+
+        expect(
+            CardSectionUtils.getBillingStatus({
+                translate: translateMock,
+                stripeCustomerId,
+                accountData: ACCOUNT_DATA,
+                retryBillingSuccessful: false,
+                billingDisputePending: undefined,
+                retryBillingFailed: undefined,
+                creditCardEyesIcon,
+                fundList: undefined,
+                billingStatus: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                ownerTravelBillingGracePeriodEnd: TRAVEL_GRACE_PERIOD_DATE,
+            }),
+        ).toEqual({
+            title: 'subscription.billingBanner.travelInvoiceOverdue.title',
+            subtitle: 'subscription.billingBanner.travelInvoiceOverdue.subtitle',
+            isError: true,
+            isAddButtonDark: true,
+        });
+    });
+
+    it('should return OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE_LOCKED variant', () => {
+        mockGetSubscriptionStatus.mockReturnValue({
+            status: PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE_LOCKED,
+        });
+
+        expect(
+            CardSectionUtils.getBillingStatus({
+                translate: translateMock,
+                stripeCustomerId,
+                accountData: ACCOUNT_DATA,
+                retryBillingSuccessful: false,
+                billingDisputePending: undefined,
+                retryBillingFailed: undefined,
+                creditCardEyesIcon,
+                fundList: undefined,
+                billingStatus: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                ownerTravelBillingGracePeriodEnd: TRAVEL_GRACE_PERIOD_DATE,
+            }),
+        ).toEqual({
+            title: 'subscription.billingBanner.travelInvoiceOverdueLocked.title',
+            subtitle: 'subscription.billingBanner.travelInvoiceOverdueLocked.subtitle',
+            isError: true,
+            isAddButtonDark: true,
+        });
+    });
+
     it('should date the travel invoice banner from the travel grace period rather than the subscription one', () => {
         mockGetSubscriptionStatus.mockReturnValue({
             status: PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE,
