@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import {useDragAndDropState} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -106,7 +106,7 @@ function IOURequestStepOdometerImage({
         navigateBack();
     };
 
-    const {validateFiles, ErrorModal} = useFilesValidation((files: FileObject[]) => {
+    const {validateFiles} = useFilesValidation((files: FileObject[]) => {
         const file = files.at(0);
         if (!file) {
             return;
@@ -190,13 +190,14 @@ function IOURequestStepOdometerImage({
                             <Text style={[styles.subTextFileUpload]}>{translate('distance.odometer.cameraAccessRequired')}</Text>
                         )}
                         <Button
-                            success
-                            text={translate('common.continue')}
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             accessibilityLabel={translate('common.continue')}
                             style={[styles.p9, styles.pt5]}
                             onPress={capturePhoto}
                             sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.CONTINUE_BUTTON}
-                        />
+                        >
+                            <Button.Text>{translate('common.continue')}</Button.Text>
+                        </Button>
                     </View>
                 )}
                 {cameraPermissionState === 'granted' && !isEmptyObject(videoConstraints) && (
@@ -355,8 +356,7 @@ function IOURequestStepOdometerImage({
             <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                 {({openPicker}) => (
                     <Button
-                        success
-                        text={translate('common.chooseFile')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         accessibilityLabel={translate('common.chooseFile')}
                         style={[styles.p5, styles.mt4]}
                         onPress={() => {
@@ -365,7 +365,9 @@ function IOURequestStepOdometerImage({
                             });
                         }}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.ODOMETER_CHOOSE_FILE_BUTTON}
-                    />
+                    >
+                        <Button.Text>{translate('common.chooseFile')}</Button.Text>
+                    </Button>
                 )}
             </AttachmentPicker>
         </View>
@@ -394,7 +396,6 @@ function IOURequestStepOdometerImage({
                             dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
                         />
                     </DragAndDropConsumer>
-                    {ErrorModal}
                 </View>
             )}
         </StepScreenDragAndDropWrapper>
