@@ -184,12 +184,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
     }, [feature, policyID, route.params?.backTo, route.params?.featureName, featureNameAlias]);
 
-    // The header back button ("leave") and the confirmation button ("continue what I was doing") have
-    // different intents. The company cards upgrade is only ever reached from the "Add cards" flow, so
-    // acknowledging that upgrade should resume the flow rather than just leaving. We build the add-card
-    // route from `backTo` (always one of the dynamic route's entry screens) and replace the upgrade route,
-    // so backing out of the resumed flow lands on the originating page instead of re-opening the
-    // already-consumed confirmation screen.
     const afterUpgradeAcknowledged = useCallback(() => {
         if (feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id && policyID) {
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path, route.params.backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
