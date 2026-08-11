@@ -814,6 +814,7 @@ describe('Session', () => {
                     ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
                     ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
                     ONYXKEYS.ONBOARDING_COMPANY_SIZE,
+                    ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
                     ONYXKEYS.ACCOUNT,
                     ONYXKEYS.SESSION,
                 ]),

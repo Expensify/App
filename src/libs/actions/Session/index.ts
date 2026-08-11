@@ -1404,7 +1404,7 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
         // cannot race the async reconnect, then clear stale pre-2FA Onyx while deferring openApp() until
         // DynamicSuccessPage Got it so the 2FA RHP stays open through verify → success.
         // Preserve list matches login-required 2FA reconnect baseline plus onboarding resume keys
-        // so Got it can still call getRequired2FAOnboardingResumePath() after dismiss.
+        // (including work-email form state for account-merge validation after dismiss).
         if (options.shouldKeepTwoFactorAuthFlowOpen) {
             const keysToPreserveForForcedOnboarding2FA = [
                 ...KEYS_TO_PRESERVE,
@@ -1413,6 +1413,7 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
                 ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
                 ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
                 ONYXKEYS.ONBOARDING_COMPANY_SIZE,
+                ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
             ];
             updateAuthToken(response.authToken, response.encryptedAuthToken);
             clearOnyxAndSeedFullReconnect(keysToPreserveForForcedOnboarding2FA, {
