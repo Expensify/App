@@ -2833,10 +2833,6 @@ const translations = {
             lastDayOfMonth: 'Last day of the month',
             lastBusinessDayOfMonth: 'Last business day of the month',
             ordinals: {
-                one: 'st',
-                two: 'nd',
-                few: 'rd',
-                other: 'th',
                 /* eslint-disable @typescript-eslint/naming-convention */
                 '1': 'First',
                 '2': 'Second',
