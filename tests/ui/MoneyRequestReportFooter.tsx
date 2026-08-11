@@ -192,8 +192,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        const accessibilityState = reportItem.props.accessibilityState as {disabled: boolean};
-        expect(accessibilityState.disabled).toBe(false);
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 
     it('should disable report field when there is only 1 outstanding report and creating from policy chat', async () => {
@@ -224,8 +223,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        const accessibilityState = reportItem.props.accessibilityState as {disabled: boolean};
-        expect(accessibilityState.disabled).toBe(true);
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
 
     it('should disable report field when there are no reports available', async () => {
@@ -247,8 +245,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        const accessibilityState = reportItem.props.accessibilityState as {disabled: boolean};
-        expect(accessibilityState.disabled).toBe(true);
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
 
     it('should disable report field when transaction has reportID and creating from FAB with only 1 outstanding report', async () => {
@@ -279,8 +276,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        const accessibilityState = reportItem.props.accessibilityState as {disabled: boolean};
-        expect(accessibilityState.disabled).toBe(true);
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
 
     it('should allow editing report field when transaction is unReported and creating from FAB with only 1 outstanding report', async () => {
@@ -311,7 +307,6 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        const accessibilityState = reportItem.props.accessibilityState as {disabled: boolean};
-        expect(accessibilityState.disabled).toBe(false);
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 });
