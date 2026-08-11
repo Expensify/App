@@ -2,7 +2,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import type {NumberWithSymbolFormProps} from '@components/NumberWithSymbolForm';
+import type {NumberWithSymbolFormProps, NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
@@ -407,6 +407,324 @@ describe('NumberWithSymbolForm', () => {
                 expect(onInputChange).not.toHaveBeenCalled();
                 expect(screen.getByDisplayValue('1')).toBeTruthy();
             });
+        });
+    });
+
+    describe('portrait path', () => {
+        it('renders the input inside the portrait wrapper, with the pad below it', async () => {
+            renderForm({value: '10', currency: 'USD'});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByDisplayValue('10')).toBeTruthy();
+            expect(queryAllById('numberView').length).toBeGreaterThan(0);
+            expect(queryAllById('numPadContainerView').length).toBeGreaterThan(0);
+            expect(screen.getByTestId('button_1')).toBeTruthy();
+        });
+
+        it('skips the wrapper when `shouldWrapInputInContainer` is false', async () => {
+            renderForm({value: '10', shouldWrapInputInContainer: false});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(queryAllById('numberView')).toHaveLength(0);
+            expect(screen.getByDisplayValue('10')).toBeTruthy();
+        });
+
+        it('renders the currency button and delegates to onSymbolButtonPress', async () => {
+            const onSymbolButtonPress = jest.fn();
+            renderForm({value: '10', currency: 'USD', onSymbolButtonPress});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText('USD'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(onSymbolButtonPress).toHaveBeenCalledTimes(1);
+        });
+
+        it('renders the error message', async () => {
+            renderForm({value: '10', errorText: 'Please enter an amount'});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Please enter an amount')).toBeTruthy();
+        });
+
+        it('renders the footer without the pad when `shouldShowBigNumberPad` is false', async () => {
+            renderForm({value: '10', shouldShowBigNumberPad: false, footer: <Text>Portrait footer</Text>});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Portrait footer')).toBeTruthy();
+            expect(screen.queryByTestId('button_1')).toBeNull();
+        });
+
+        it('flips through the caller-supplied toggleNegative', async () => {
+            const toggleNegative = jest.fn();
+            const onInputChange = jest.fn();
+            renderForm({value: '10', toggleNegative, onInputChange});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText('Flip')).toBeNull();
+
+            screen.unmount();
+
+            renderForm({value: '10', allowFlippingAmount: true, toggleNegative, onInputChange});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText('Flip'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(toggleNegative).toHaveBeenCalledTimes(1);
+            expect(onInputChange).not.toHaveBeenCalled();
+        });
+
+        it('assigns the text input instance to the separate `ref` prop', async () => {
+            const ref = React.createRef<BaseTextInputRef>();
+            renderForm({value: '10', ref});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(ref.current).toBeTruthy();
+        });
+
+        it('renders the negative symbol when `isNegative` is set', async () => {
+            renderForm({value: '10', isNegative: true});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('-')).toBeTruthy();
+        });
+    });
+
+    describe('NumberWithSymbolFormRef imperative API', () => {
+        it('getNumber returns the current number and updateNumber replaces it', async () => {
+            const numberFormRef = React.createRef<NumberWithSymbolFormRef>();
+            renderForm({value: '10', decimals: 2, numberFormRef});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(numberFormRef.current?.getNumber()).toBe('10');
+
+            await act(async () => {
+                numberFormRef.current?.updateNumber('25');
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            expect(numberFormRef.current?.getNumber()).toBe('25');
+            expect(screen.getByDisplayValue('25')).toBeTruthy();
+        });
+
+        it('updateNumber bypasses validation and never calls onInputChange', async () => {
+            const numberFormRef = React.createRef<NumberWithSymbolFormRef>();
+            const onInputChange = jest.fn();
+            renderForm({value: '10', decimals: 0, numberFormRef, onInputChange});
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                // "1.5" is invalid for decimals: 0, but updateNumber stores it anyway
+                numberFormRef.current?.updateNumber('1.5');
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            expect(numberFormRef.current?.getNumber()).toBe('1.5');
+            expect(onInputChange).not.toHaveBeenCalled();
+        });
+
+        it('updateNumber strips the minus sign and toggles negative when `allowFlippingAmount` is set', async () => {
+            const numberFormRef = React.createRef<NumberWithSymbolFormRef>();
+            const toggleNegative = jest.fn();
+            renderForm({value: '10', decimals: 2, allowFlippingAmount: true, toggleNegative, numberFormRef});
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                numberFormRef.current?.updateNumber('-25');
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            expect(toggleNegative).toHaveBeenCalledTimes(1);
+            expect(numberFormRef.current?.getNumber()).toBe('25');
+        });
+
+        it('updateNumber moves the caret to the end of the new number', async () => {
+            const numberFormRef = React.createRef<NumberWithSymbolFormRef>();
+            renderForm({value: '10', decimals: 2, numberFormRef});
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                numberFormRef.current?.updateNumber('1234');
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            expect(screen.getByLabelText(INPUT_LABEL).props.selection).toEqual({start: 4, end: 4});
+        });
+
+        it('clearSelection collapses the selection onto its end', async () => {
+            const numberFormRef = React.createRef<NumberWithSymbolFormRef>();
+            renderForm({value: '1234', decimals: 2, numberFormRef});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent(screen.getByLabelText(INPUT_LABEL), 'selectionChange', {nativeEvent: {selection: {start: 1, end: 3}}});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText(INPUT_LABEL).props.selection).toEqual({start: 1, end: 3});
+
+            await act(async () => {
+                numberFormRef.current?.clearSelection();
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            expect(screen.getByLabelText(INPUT_LABEL).props.selection).toEqual({start: 3, end: 3});
+        });
+    });
+
+    describe('selection handling', () => {
+        it('clamps the selection to the length of the current number', async () => {
+            renderForm({value: '12', decimals: 2});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent(screen.getByLabelText(INPUT_LABEL), 'selectionChange', {nativeEvent: {selection: {start: 10, end: 10}}});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText(INPUT_LABEL).props.selection).toEqual({start: 2, end: 2});
+        });
+
+        it('ignores the selection change once after a manual update (shouldIgnoreSelectionWhenUpdatedManually)', async () => {
+            // `handleFlipPress` sets `willSelectionBeUpdatedManually` and never resets it itself, so the next
+            // selection event is swallowed. `shouldIgnoreSelectionWhenUpdatedManually` is `true` on native.
+            renderForm({displayAsTextInput: true, value: '12', decimals: 2, shouldShowFlipButton: true, allowNegativeInput: true});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText('Flip'));
+            await waitForBatchedUpdatesWithAct();
+
+            // The caret was at the end of "12" and the added sign shifted it by one
+            expect(getTextInput().props.selection).toEqual({start: 3, end: 3});
+
+            fireEvent(getTextInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
+            await waitForBatchedUpdatesWithAct();
+
+            // Swallowed
+            expect(getTextInput().props.selection).toEqual({start: 3, end: 3});
+
+            fireEvent(getTextInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
+            await waitForBatchedUpdatesWithAct();
+
+            // Applied
+            expect(getTextInput().props.selection).toEqual({start: 0, end: 0});
+        });
+
+        it('ignores selection changes while the pad backspace is long pressed (shouldUpdateSelection)', async () => {
+            renderForm({value: '1234', decimals: 2});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent(screen.getByLabelText(INPUT_LABEL), 'selectionChange', {nativeEvent: {selection: {start: 2, end: 2}}});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText(INPUT_LABEL).props.selection).toEqual({start: 2, end: 2});
+
+            fireEvent(screen.getByTestId('button_<'), 'longPress');
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent(screen.getByLabelText(INPUT_LABEL), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText(INPUT_LABEL).props.selection).toEqual({start: 2, end: 2});
+        });
+    });
+
+    describe('validation', () => {
+        it('rejects a value longer than `maxLength`', async () => {
+            const onInputChange = jest.fn();
+            renderForm({value: '12', decimals: 2, maxLength: 2, onInputChange});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.changeText(screen.getByLabelText(INPUT_LABEL), '123');
+            await waitForBatchedUpdatesWithAct();
+
+            expect(onInputChange).not.toHaveBeenCalled();
+            expect(screen.getByDisplayValue('12')).toBeTruthy();
+        });
+
+        it('accepts a value that fits `maxLength`', async () => {
+            const onInputChange = jest.fn();
+            renderForm({value: '1', decimals: 2, maxLength: 2, onInputChange});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.changeText(screen.getByLabelText(INPUT_LABEL), '12');
+            await waitForBatchedUpdatesWithAct();
+
+            expect(onInputChange).toHaveBeenCalledWith('12');
+        });
+
+        it('rejects more decimals than `decimals` allows', async () => {
+            const onInputChange = jest.fn();
+            renderForm({value: '1', decimals: 1, onInputChange});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.changeText(screen.getByLabelText(INPUT_LABEL), '1.55');
+            await waitForBatchedUpdatesWithAct();
+
+            expect(onInputChange).not.toHaveBeenCalled();
+
+            fireEvent.changeText(screen.getByLabelText(INPUT_LABEL), '1.5');
+            await waitForBatchedUpdatesWithAct();
+
+            expect(onInputChange).toHaveBeenCalledWith('1.5');
+        });
+
+        it('keeps the minus sign when `allowNegativeInput` is set and rejects it otherwise', async () => {
+            const onInputChange = jest.fn();
+            const toggleNegative = jest.fn();
+            renderForm({value: '1', decimals: 2, allowNegativeInput: true, toggleNegative, onInputChange});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.changeText(screen.getByLabelText(INPUT_LABEL), '-15');
+            await waitForBatchedUpdatesWithAct();
+
+            expect(onInputChange).toHaveBeenCalledWith('-15');
+            expect(toggleNegative).not.toHaveBeenCalled();
+
+            screen.unmount();
+            onInputChange.mockClear();
+
+            renderForm({value: '1', decimals: 2, toggleNegative, onInputChange});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.changeText(screen.getByLabelText(INPUT_LABEL), '-15');
+            await waitForBatchedUpdatesWithAct();
+
+            // Neither flipping nor direct negative input is allowed, so the value is rejected outright
+            expect(onInputChange).not.toHaveBeenCalled();
+            expect(toggleNegative).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('clearNegative on backspace', () => {
+        it('calls clearNegative when backspace is pressed on an empty negative input', async () => {
+            const clearNegative = jest.fn();
+            renderForm({value: '', decimals: 2, isNegative: true, clearNegative});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent(screen.getByLabelText(INPUT_LABEL), 'keyPress', {nativeEvent: {key: 'Backspace'}});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(clearNegative).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not call clearNegative when the amount is not negative', async () => {
+            const clearNegative = jest.fn();
+            renderForm({value: '', decimals: 2, clearNegative});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent(screen.getByLabelText(INPUT_LABEL), 'keyPress', {nativeEvent: {key: 'Backspace'}});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(clearNegative).not.toHaveBeenCalled();
+        });
+
+        it('does not call clearNegative for other keys', async () => {
+            const clearNegative = jest.fn();
+            renderForm({value: '', decimals: 2, isNegative: true, clearNegative});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent(screen.getByLabelText(INPUT_LABEL), 'keyPress', {nativeEvent: {key: '1'}});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(clearNegative).not.toHaveBeenCalled();
         });
     });
 });
