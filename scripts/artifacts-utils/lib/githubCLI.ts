@@ -37,8 +37,6 @@ function run(args: string[]): string {
 
 /**
  * Reading our Maven packages requires this scope, and a token without it only fails once we hit the API.
- * `write:packages` implies read access, so `gh auth status` lists only `write:packages` for such tokens
- * and never also lists `read:packages` alongside it.
  */
 function assertReadPackagesScope() {
     const scopes = run(['auth', 'status']);
