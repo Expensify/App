@@ -120,6 +120,19 @@ target 'NewExpensify' do
           config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
         end
       end
+
+      # ExpoModulesCore's EventEmitter.swift fails to compile on Xcode 26.2 with
+      # "sending 'emitter' risks causing data races", even though it's already
+      # marked `nonisolated(unsafe)` upstream. `-strict-concurrency=minimal` can't
+      # fix this because the podspec pins SWIFT_VERSION to 6.0, and under Swift 6
+      # language mode complete data-race checking is mandatory and ignores that
+      # flag entirely. Drop this pod to Swift 5 mode instead, until Expo ships a
+      # fix (still present as of 57.0.10).
+      if target.name == 'ExpoModulesCore'
+        target.build_configurations.each do |config|
+          config.build_settings['SWIFT_VERSION'] = '5.0'
+        end
+      end
     end
   end
 end
