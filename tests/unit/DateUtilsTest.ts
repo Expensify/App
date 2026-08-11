@@ -724,4 +724,65 @@ describe('DateUtils', () => {
             expect(DateUtils.getRemainingSecondsInWindow(Date.now() - 31 * 1000, windowMs)).toBe(0);
         });
     });
+
+    // The TimePicker AM/PM round trip must stay locale-independent: the saved time is displayed localized via
+    // extractTime12Hour, parsed back into an English CONST.TIME_PERIOD marker by get12HourTimeObjectFromDate, and the
+    // resulting `hh:mm a` string is re-parsed by combineDateAndTime. Under locales whose date-fns day-period marker or
+    // translation diverges from English (e.g. de "vorm./nachm.", el "π.μ./μ.μ."), a localized period would break the
+    // highlight comparison and, once tapped or forced to English, break the reverse parse and the time save entirely.
+    describe('TimePicker AM/PM round trip under localized locales', () => {
+        // A PM and an AM saved datetime, in the "yyyy-MM-dd HH:mm:ss" shape stored for a Custom Status "Clear after".
+        const savedPm = '2026-08-15 23:10:00';
+        const savedAm = '2026-08-15 09:05:00';
+
+        describe.each([CONST.LOCALES.DE, CONST.LOCALES.EL])('locale "%s"', (locale) => {
+            beforeEach(async () => {
+                // Awaiting load() guarantees setDefaultOptions({locale}) has run, so DateUtils' locale-less date-fns
+                // calls (extractTime12Hour display, and the parse inside get12HourTimeObjectFromDate) use this locale.
+                await IntlStore.load(locale);
+                await waitForBatchedUpdates();
+            });
+
+            it('get12HourTimeObjectFromDate returns an English PM marker for a localized saved time', () => {
+                const localizedTime = DateUtils.extractTime12Hour(savedPm);
+                const {hour, minute, period} = DateUtils.get12HourTimeObjectFromDate(localizedTime);
+                expect(hour).toBe('11');
+                expect(minute).toBe('10');
+                expect(period).toBe(CONST.TIME_PERIOD.PM);
+            });
+
+            it('get12HourTimeObjectFromDate returns an English AM marker for a localized saved time', () => {
+                const localizedTime = DateUtils.extractTime12Hour(savedAm);
+                const {hour, minute, period} = DateUtils.get12HourTimeObjectFromDate(localizedTime);
+                expect(hour).toBe('09');
+                expect(minute).toBe('05');
+                expect(period).toBe(CONST.TIME_PERIOD.AM);
+            });
+
+            it('combineDateAndTime round-trips the TimePicker string (PM) back to the saved datetime', () => {
+                const {hour, minute, period} = DateUtils.get12HourTimeObjectFromDate(DateUtils.extractTime12Hour(savedPm));
+                // This is exactly the string TimePicker submits: `${hours}:${minutes} ${amPmValue}`.
+                const timeString = `${hour}:${minute} ${period}`;
+                expect(DateUtils.combineDateAndTime(timeString, savedPm)).toBe(savedPm);
+            });
+
+            it('combineDateAndTime round-trips the TimePicker string (AM) back to the saved datetime', () => {
+                const {hour, minute, period} = DateUtils.get12HourTimeObjectFromDate(DateUtils.extractTime12Hour(savedAm));
+                const timeString = `${hour}:${minute} ${period}`;
+                expect(DateUtils.combineDateAndTime(timeString, savedAm)).toBe(savedAm);
+            });
+
+            it('combineDateAndTime parses an English AM/PM string even when the active locale localizes the marker', () => {
+                // The button-tap path always sets the English CONST.TIME_PERIOD marker. Before pinning the parse to
+                // enGB this returned '' under these locales, blocking the save; it must now parse correctly.
+                expect(DateUtils.combineDateAndTime('11:10 PM', '2026-08-15 00:00:00')).toBe(savedPm);
+                expect(DateUtils.combineDateAndTime('09:05 AM', '2026-08-15 00:00:00')).toBe(savedAm);
+            });
+        });
+
+        it('get12HourTimeObjectFromDate maps midnight and noon to the correct English markers', () => {
+            expect(DateUtils.get12HourTimeObjectFromDate('12:00 AM').period).toBe(CONST.TIME_PERIOD.AM);
+            expect(DateUtils.get12HourTimeObjectFromDate('12:00 PM').period).toBe(CONST.TIME_PERIOD.PM);
+        });
+    });
 });

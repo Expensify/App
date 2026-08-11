@@ -42,6 +42,7 @@ import {
     subMinutes,
 } from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
+import {enGB} from 'date-fns/locale/en-GB';
 import throttle from 'lodash/throttle';
 
 import {setCurrentDate} from './actions/CurrentDate';
@@ -580,8 +581,11 @@ const combineDateAndTime = (updatedTime: string, inputDateTime: string): string 
             parsedTime = tempTime;
         }
     } else if (updatedTime.includes(':')) {
-        // it's in "hh:mm a" format
-        const tempTime = parse(updatedTime, 'hh:mm a', new Date());
+        // It's in "hh:mm a" format. This branch is only ever fed by TimePicker's internal `${hours}:${minutes} ${amPmValue}`
+        // string, whose period is always the English CONST.TIME_PERIOD marker, so parse it with the English enGB locale.
+        // Without pinning the locale, the active date-fns default locale (set via IntlStore) cannot parse the English
+        // AM/PM under several locales (e.g. de/el/zh-hans), returning an Invalid Date and breaking the time save.
+        const tempTime = parse(updatedTime, 'hh:mm a', new Date(), {locale: enGB});
         if (isValid(tempTime)) {
             parsedTime = tempTime;
         }
@@ -639,8 +643,12 @@ function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {h
         minute: format(parsedTime, 'mm'),
         seconds: isFullFormat ? format(parsedTime, 'ss') : '00',
         milliseconds: isFullFormat ? format(parsedTime, 'SSS') : '000',
-        // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- this is TimePicker state compared against the English CONST.TIME_PERIOD, not text shown to the user.
-        period: format(parsedTime, 'a').toUpperCase(),
+        // The period is TimePicker state, compared against the English CONST.TIME_PERIOD and used to build the submitted
+        // time string (which combineDateAndTime re-parses with the English enGB locale). It is never shown to the user
+        // (the AM/PM buttons render their own translated labels), so it must be a locale-independent English marker.
+        // Deriving it from the 24-hour clock avoids the active date-fns locale returning a localized marker (e.g. de
+        // "NACHM.", el "Μ.Μ.") that would match neither CONST.TIME_PERIOD nor round-trip through the English parse.
+        period: parsedTime.getHours() >= 12 ? CONST.TIME_PERIOD.PM : CONST.TIME_PERIOD.AM,
     };
 }
 

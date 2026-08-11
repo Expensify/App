@@ -1705,17 +1705,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     /**
      * Get the style for the AM and PM buttons in the TimePicker
-     *
-     * `amPmValue` can be the English CONST.TIME_PERIOD marker (set when the user taps a button) or a localized
-     * period marker such as the Japanese "午後" (derived from the saved time via date-fns under the active locale).
-     * We compare against both the English CONST.TIME_PERIOD and the localized `common.am`/`common.pm` labels so the
-     * correct button stays highlighted regardless of the active language.
      */
-    getStatusAMandPMButtonStyle: (amPmValue: string, amLabel: string, pmLabel: string): {styleForAM: StyleProp<ViewStyle>; styleForPM: StyleProp<ViewStyle>} => {
-        const isAM = amPmValue === CONST.TIME_PERIOD.AM || amPmValue === amLabel;
-        const isPM = amPmValue === CONST.TIME_PERIOD.PM || amPmValue === pmLabel;
-        const computedStyleForAM: ViewStyle = !isAM ? {backgroundColor: theme.componentBG} : {};
-        const computedStyleForPM: ViewStyle = !isPM ? {backgroundColor: theme.componentBG} : {};
+    getStatusAMandPMButtonStyle: (amPmValue: string): {styleForAM: StyleProp<ViewStyle>; styleForPM: StyleProp<ViewStyle>} => {
+        const computedStyleForAM: ViewStyle = amPmValue !== CONST.TIME_PERIOD.AM ? {backgroundColor: theme.componentBG} : {};
+        const computedStyleForPM: ViewStyle = amPmValue !== CONST.TIME_PERIOD.PM ? {backgroundColor: theme.componentBG} : {};
 
         return {
             styleForAM: [styles.timePickerWidth72, computedStyleForAM],
