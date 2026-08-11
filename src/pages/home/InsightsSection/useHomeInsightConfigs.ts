@@ -10,12 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
-const HOME_INSIGHT_KEYS = [
-    CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
-    CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
-    CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
-    CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
-] as const;
+const HOME_INSIGHT_KEYS = [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME, CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS, CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES] as const;
 
 /**
  * Builds the suggested-search configs for the Home insights the current user should see, in display order.
