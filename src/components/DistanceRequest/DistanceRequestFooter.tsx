@@ -141,7 +141,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                     waypoints={waypointMarkers}
                     styleURL={CONST.MAPBOX.STYLE_URL}
                     overlayStyle={styles.mapEditView}
-                    distanceInMeters={primaryRoute?.distance !== null ? primaryRoute?.distance : undefined}
+                    distanceInMeters={primaryRoute?.distance ?? undefined}
                     unit={unit}
                 />
             </View>
