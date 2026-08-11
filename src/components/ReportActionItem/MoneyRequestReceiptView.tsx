@@ -200,7 +200,6 @@ function MoneyRequestReceiptView({
     // The thumbnail only ever renders page 1 of a PDF, so a total sitting on a later page looks like it
     // disagrees with the expense amount. Only multi-page receipts need the badge.
     const receiptPageCount = displayedTransaction?.receipt?.pageCount ?? 0;
-    const shouldShowReceiptPageCount = receiptPageCount > 1;
     const isTransactionScanning = isScanning(displayedTransaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const isInvoice = isInvoiceReport(moneyRequestReport);
@@ -550,6 +549,10 @@ function MoneyRequestReceiptView({
 
     // Map distance receipts show both hover actions just like regular receipts, so we don't exclude isMapDistanceRequest here.
     const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !mergeTransactionID;
+
+    // Held back until the receipt has loaded: the container stretches while loading, which would strand
+    // the badge at the bottom of that taller box instead of sitting on the receipt.
+    const shouldShowReceiptPageCount = receiptPageCount > 1 && !isLoading;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (
