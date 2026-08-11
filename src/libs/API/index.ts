@@ -88,9 +88,8 @@ function writeWithNoDuplicatesReconnectConflictAction<TCommand extends WriteComm
 }
 
 /**
- * Writes an OpenApp through the resolver that also compares it against the in-flight request, so a redundant
- * OpenApp is dropped instead of repeating the download. See the Conflict Resolution section of
- * contributingGuides/SEQUENTIAL_QUEUE.md.
+ * Writes an OpenApp through the resolver that also reads the in-flight request, so a redundant OpenApp is
+ * dropped instead of repeating the download. See the Conflict Resolution section of SEQUENTIAL_QUEUE.md.
  */
 function writeWithNoDuplicatesOpenAppConflictAction<TKey extends OnyxKey>(
     apiCommandParameters: ApiRequestCommandParameters[typeof WRITE_COMMANDS.OPEN_APP],

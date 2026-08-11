@@ -565,8 +565,7 @@ describe('SequentialQueue - reconnect coverage collapse', () => {
             await waitForBatchedUpdates();
             expect(getOngoingRequest()?.command).toBe('ReconnectApp');
 
-            // A reconnect does not carry OpenApp's payload, so it never covers an incoming OpenApp: that one
-            // still runs and its preservation writes are never dropped.
+            // A reconnect does not carry OpenApp's payload, so it never covers an incoming OpenApp.
             await SequentialQueue.push(makeOpenAppRequest());
 
             expect(getLength()).toBe(2);
@@ -599,8 +598,7 @@ describe('SequentialQueue - reconnect coverage collapse', () => {
             await waitForBatchedUpdates();
             expect(getOngoingRequest()?.command).toBe('OpenApp');
 
-            // The priority-mode refetch opts out: the in-flight response carries the report set the server
-            // picked when it started, so it cannot satisfy this call even though the params look identical.
+            // The priority-mode refetch opts out: identical params, but the in-flight response is the old report set.
             await SequentialQueue.push(makeOpenAppRequest(false));
 
             expect(getLength()).toBe(2);

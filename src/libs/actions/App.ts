@@ -411,8 +411,7 @@ function getOnyxDataForOpenOrReconnect(
  * @param shouldKeepPublicRooms - Whether to keep public rooms in Onyx
  * @param allReportsWithDraftComments - All reports with draft comments
  * @param forceRun - Force run even when using imported state (used when exiting imported state mode)
- * @param shouldDedupeWithInFlight - Pass false when the response has to reflect state an OpenApp already in
- * flight could not have seen, so this call is not dropped as a duplicate.
+ * @param shouldDedupeWithInFlight - Pass false when the response has to reflect state an in-flight OpenApp could not have seen.
  */
 function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Record<string, string | undefined>, forceRun = false, shouldDedupeWithInFlight = true) {
     // Don't make API calls when using imported state to avoid infinite loading
@@ -437,8 +436,7 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
 
     const params: OpenAppParams = {...getPolicyParamsForOpenOrReconnect(), enablePriorityModeFilter: true};
 
-    // Asking for public rooms or draft comments to be preserved adds successData an in-flight OpenApp knows
-    // nothing about, so such a call can never be dropped as a duplicate.
+    // Preservation adds successData an in-flight OpenApp knows nothing about, so this call cannot be dropped.
     const hasPreservationData = shouldKeepPublicRooms || !!allReportsWithDraftComments;
     const openAppPromise = API.writeWithNoDuplicatesOpenAppConflictAction(
         params,

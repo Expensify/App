@@ -804,8 +804,7 @@ describe('APITests', () => {
     });
 
     test('OpenApp with writeWithNoDuplicatesOpenAppConflictAction drops a duplicate while one is in flight, unless the caller opts out', async () => {
-        // Hold the first OpenApp on the wire so the decision is made against the in-flight request, which the
-        // generic duplicate resolver cannot see (it has already left the persisted queue).
+        // Hold the first OpenApp on the wire, so the decision is made against the in-flight request.
         const xhrCalls: XhrCalls = [];
         const xhr = jest
             .spyOn(HttpUtils, 'xhr')
@@ -839,7 +838,6 @@ describe('APITests', () => {
         await SequentialQueue.waitForIdle();
         await waitForBatchedUpdates();
 
-        // The in-flight one and the opted-out one; the dropped one never went out.
         expect(xhr.mock.calls.filter(([command]) => command === WRITE_COMMANDS.OPEN_APP)).toHaveLength(2);
     });
 

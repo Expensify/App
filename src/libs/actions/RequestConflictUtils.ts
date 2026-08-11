@@ -81,8 +81,6 @@ function resolveDuplicationConflictAction(persistedRequests: AnyRequest[], reque
  *
  * OpenApp re-fetches the whole account, so one already in flight makes an incoming one redundant. The generic
  * resolver cannot see that, because the in-flight request has already left the persisted queue.
- * `shouldDedupeWithInFlight` is false for a caller the in-flight response cannot satisfy, since the params do
- * not describe the whole response.
  */
 function resolveOpenAppDuplicationConflictAction(persistedRequests: AnyRequest[], ongoingRequest: AnyRequest | null, shouldDedupeWithInFlight: boolean): ConflictActionData {
     if (shouldDedupeWithInFlight && ongoingRequest?.command === WRITE_COMMANDS.OPEN_APP) {
