@@ -134,12 +134,17 @@ const DYNAMIC_ROUTES = {
         path: 'add-bank-account/verify-account',
         entryScreens: [
             SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.HOME,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.SEARCH.ROOT,
         ],
+        // Entry points that already know the user is adding a personal deposit account (e.g. a queued reimbursement) pass true so the
+        // bank account purpose screen isn't shown after validation.
+        getRoute: (shouldSkipPurposeSelection?: boolean) => `add-bank-account/verify-account${shouldSkipPurposeSelection ? '?shouldSkipPurposeSelection=true' : ''}` as const,
+        queryParams: ['shouldSkipPurposeSelection'],
     },
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'verify-bank-account',
