@@ -1040,7 +1040,7 @@ function IOURequestStepConfirmation({
                     </DragAndDropConsumer>
                     <SubmitExpenseOrchestrator
                         createTransaction={createTransactionAndClearPromotionMarker}
-                        destinationReportID={destinationReportID}
+                        destinationReportID={preMountDestinationReportID}
                         isFromGlobalCreate={isFromGlobalCreate}
                         iouType={iouType}
                         isSelfDMDestination={isSelfDMDestination}
