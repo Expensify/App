@@ -1,7 +1,7 @@
 ---
 title: Use a Free Submit Workspace
 description: Learn how to use a free Submit workspace in New Expensify to code expenses, submit them to an approver, and track which reports have been paid.
-keywords: [New Expensify, Submit workspace, free plan, get paid back, submit expenses, approver, Editor role, mark as paid]
+keywords: [New Expensify, Submit workspace, free plan, get paid back, submit expenses, approver, Editor role, Received Payment]
 internalScope: Audience is employees who want to get reimbursed by their employer. Covers creating a Submit workspace, submitting expenses to an approver, and tracking payment. Does not cover Collect or Control workspace configuration.
 ---
 
@@ -98,8 +98,10 @@ To submit a report as a PDF:
 1. Open the draft report you want to submit.
 2. Select the dropdown arrow on the **Submit** button.
 3. Select **Submit via PDF**.
-
-The report moves to the Outstanding status, and the PDF downloads automatically. Share the PDF with your approver by email or print. Your approver can access the report in Expensify by clicking the **Approve or Pay** button on the PDF or scanning the QR code on the PDF. 
+4. The report moves to the Outstanding status, and the PDF downloads automatically.
+5. Share the PDF with your approver outside of Expensify.
+6. Your approver can access the report to approve in Expensify by clicking the **Approve or Pay** button on the PDF or scanning the QR code on the PDF.
+7. If your report has been paid outside of Expensify, you can change the status from Outstanding to Paid by opening the report, selecting **More** and **Received Payment**.
 
 Your choice is sticky: future reports default to the last method you used, including when you submit from the **Spend** page.
 
@@ -110,7 +112,8 @@ Your choice is sticky: future reports default to the last method you used, inclu
 If you've been reimbursed outside of Expensify, you can mark an outstanding report as paid so you can track its status yourself:
 
 1. Open the outstanding report.
-2. Select **Mark as paid**.
+2. Select **More**
+3. Select **Received Payment**.
 
 Marking a report as paid lets you track which of your submitted reports are still outstanding without requiring your approver to sign in. After a report is marked as paid, your approver can no longer take action on it.
 
