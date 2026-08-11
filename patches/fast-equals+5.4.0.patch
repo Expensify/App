@@ -1,0 +1,273 @@
+diff --git a/node_modules/fast-equals/dist/cjs/index.cjs b/node_modules/fast-equals/dist/cjs/index.cjs
+index 3c4aeb3..9692b29 100644
+--- a/node_modules/fast-equals/dist/cjs/index.cjs
++++ b/node_modules/fast-equals/dist/cjs/index.cjs
+@@ -576,7 +576,85 @@ function createIsEqual({ circular, comparator, createState, equals, strict }) {
+ /**
+  * Whether the items passed are deeply-equal in value.
+  */
+-const deepEqual = createCustomEqual();
++// CANONICAL PROBE SOURCE — injected into node_modules by scratchpad/injectProbe.js.
++// Shape is shared via globalThis so whichever module loads first wins.
++function __createDeepEqualProbe() {
++    const stats = new Map();
++    const probe = {
++        // Below this, a call is too cheap to bother capturing a stack for.
++        sampleMs: 0.15,
++        // Single calls above this get logged live.
++        warnMs: 2,
++        depth: 0,
++        stats,
++        reset: () => stats.clear(),
++        record: (source, key, site, ms, wasEqual) => {
++            const id = `${source}|${key}|${site}`;
++            let entry = stats.get(id);
++            if (!entry) {
++                entry = {source, key, site, calls: 0, ms: 0, maxMs: 0, equal: 0};
++                stats.set(id, entry);
++            }
++            entry.calls++;
++            entry.ms += ms;
++            entry.equal += wasEqual ? 1 : 0;
++            if (ms > entry.maxMs) {
++                entry.maxMs = ms;
++            }
++            if (ms >= probe.warnMs) {
++                console.warn(`[deepEqualProbe] ${ms.toFixed(1)}ms ${source} key=${key} ${site}`);
++            }
++        },
++        // Only called for slow calls, so building a stack here is affordable.
++        callSite: () => {
++            const NOISE = /__deepEqualProbe|fast-equals|react-dom|react\/cjs|react-refresh|scheduler|node_modules[\\/]react[\\/]|useOnyx|Error$/;
++            const lines = (new Error().stack || '').split('\n');
++            const frames = lines.map((l) => l.trim().replace(/^at\s+/, '')).filter((l) => l && !NOISE.test(l));
++            return frames.slice(0, 3).join(' < ') || lines.slice(1, 6).join(' | ');
++        },
++        dump: (limit = 25) => {
++            const all = [...stats.values()];
++            const rows = all
++                .sort((a, b) => b.ms - a.ms)
++                .slice(0, limit)
++                .map((e) => ({
++                    source: e.source,
++                    key: e.key,
++                    calls: e.calls,
++                    ms: +e.ms.toFixed(1),
++                    avgMs: +(e.ms / e.calls).toFixed(2),
++                    maxMs: +e.maxMs.toFixed(1),
++                    wastedPct: Math.round((e.equal / e.calls) * 100),
++                    site: e.site,
++                }));
++            // console.warn, not log/table: production babel strips everything except error/warn.
++            console.warn(
++                `[deepEqualProbe] total ${all.reduce((s, e) => s + e.ms, 0).toFixed(1)}ms in ${all.reduce((s, e) => s + e.calls, 0)} calls\n${rows
++                    .map((r) => `${r.ms}ms ${r.calls}x avg${r.avgMs} max${r.maxMs} waste${r.wastedPct}% ${r.source} ${r.key}\n    ${r.site}`)
++                    .join('\n')}`,
++            );
++            return rows;
++        },
++    };
++    return probe;
++}
++const __probe = (globalThis.__onyxDeepEqual = globalThis.__onyxDeepEqual || __createDeepEqualProbe());
++// Wraps a fast-equals export so every call in the app is measured.
++// Cheap calls aggregate under one bucket; only slow ones pay for a stack.
++function __probeWrap(name, fn) {
++    return function (a, b) {
++        if (__probe.depth > 0) {
++            return fn(a, b);
++        }
++        const t0 = performance.now();
++        const result = fn(a, b);
++        const ms = performance.now() - t0;
++        __probe.record(name, '', ms >= __probe.sampleMs ? __probe.callSite() : '(fast calls)', ms, result);
++        return result;
++    };
++}
++
++const deepEqual = __probeWrap('deepEqual', createCustomEqual());
+ /**
+  * Whether the items passed are deeply-equal in value based on strict comparison.
+  */
+diff --git a/node_modules/fast-equals/dist/es/index.mjs b/node_modules/fast-equals/dist/es/index.mjs
+index 9acfef0..03640b9 100644
+--- a/node_modules/fast-equals/dist/es/index.mjs
++++ b/node_modules/fast-equals/dist/es/index.mjs
+@@ -574,7 +574,85 @@ function createIsEqual({ circular, comparator, createState, equals, strict }) {
+ /**
+  * Whether the items passed are deeply-equal in value.
+  */
+-const deepEqual = createCustomEqual();
++// CANONICAL PROBE SOURCE — injected into node_modules by scratchpad/injectProbe.js.
++// Shape is shared via globalThis so whichever module loads first wins.
++function __createDeepEqualProbe() {
++    const stats = new Map();
++    const probe = {
++        // Below this, a call is too cheap to bother capturing a stack for.
++        sampleMs: 0.15,
++        // Single calls above this get logged live.
++        warnMs: 2,
++        depth: 0,
++        stats,
++        reset: () => stats.clear(),
++        record: (source, key, site, ms, wasEqual) => {
++            const id = `${source}|${key}|${site}`;
++            let entry = stats.get(id);
++            if (!entry) {
++                entry = {source, key, site, calls: 0, ms: 0, maxMs: 0, equal: 0};
++                stats.set(id, entry);
++            }
++            entry.calls++;
++            entry.ms += ms;
++            entry.equal += wasEqual ? 1 : 0;
++            if (ms > entry.maxMs) {
++                entry.maxMs = ms;
++            }
++            if (ms >= probe.warnMs) {
++                console.warn(`[deepEqualProbe] ${ms.toFixed(1)}ms ${source} key=${key} ${site}`);
++            }
++        },
++        // Only called for slow calls, so building a stack here is affordable.
++        callSite: () => {
++            const NOISE = /__deepEqualProbe|fast-equals|react-dom|react\/cjs|react-refresh|scheduler|node_modules[\\/]react[\\/]|useOnyx|Error$/;
++            const lines = (new Error().stack || '').split('\n');
++            const frames = lines.map((l) => l.trim().replace(/^at\s+/, '')).filter((l) => l && !NOISE.test(l));
++            return frames.slice(0, 3).join(' < ') || lines.slice(1, 6).join(' | ');
++        },
++        dump: (limit = 25) => {
++            const all = [...stats.values()];
++            const rows = all
++                .sort((a, b) => b.ms - a.ms)
++                .slice(0, limit)
++                .map((e) => ({
++                    source: e.source,
++                    key: e.key,
++                    calls: e.calls,
++                    ms: +e.ms.toFixed(1),
++                    avgMs: +(e.ms / e.calls).toFixed(2),
++                    maxMs: +e.maxMs.toFixed(1),
++                    wastedPct: Math.round((e.equal / e.calls) * 100),
++                    site: e.site,
++                }));
++            // console.warn, not log/table: production babel strips everything except error/warn.
++            console.warn(
++                `[deepEqualProbe] total ${all.reduce((s, e) => s + e.ms, 0).toFixed(1)}ms in ${all.reduce((s, e) => s + e.calls, 0)} calls\n${rows
++                    .map((r) => `${r.ms}ms ${r.calls}x avg${r.avgMs} max${r.maxMs} waste${r.wastedPct}% ${r.source} ${r.key}\n    ${r.site}`)
++                    .join('\n')}`,
++            );
++            return rows;
++        },
++    };
++    return probe;
++}
++const __probe = (globalThis.__onyxDeepEqual = globalThis.__onyxDeepEqual || __createDeepEqualProbe());
++// Wraps a fast-equals export so every call in the app is measured.
++// Cheap calls aggregate under one bucket; only slow ones pay for a stack.
++function __probeWrap(name, fn) {
++    return function (a, b) {
++        if (__probe.depth > 0) {
++            return fn(a, b);
++        }
++        const t0 = performance.now();
++        const result = fn(a, b);
++        const ms = performance.now() - t0;
++        __probe.record(name, '', ms >= __probe.sampleMs ? __probe.callSite() : '(fast calls)', ms, result);
++        return result;
++    };
++}
++
++const deepEqual = __probeWrap('deepEqual', createCustomEqual());
+ /**
+  * Whether the items passed are deeply-equal in value based on strict comparison.
+  */
+diff --git a/node_modules/fast-equals/dist/umd/index.js b/node_modules/fast-equals/dist/umd/index.js
+index 8b55775..f924674 100644
+--- a/node_modules/fast-equals/dist/umd/index.js
++++ b/node_modules/fast-equals/dist/umd/index.js
+@@ -580,7 +580,85 @@
+     /**
+      * Whether the items passed are deeply-equal in value.
+      */
+-    const deepEqual = createCustomEqual();
++// CANONICAL PROBE SOURCE — injected into node_modules by scratchpad/injectProbe.js.
++// Shape is shared via globalThis so whichever module loads first wins.
++function __createDeepEqualProbe() {
++    const stats = new Map();
++    const probe = {
++        // Below this, a call is too cheap to bother capturing a stack for.
++        sampleMs: 0.15,
++        // Single calls above this get logged live.
++        warnMs: 2,
++        depth: 0,
++        stats,
++        reset: () => stats.clear(),
++        record: (source, key, site, ms, wasEqual) => {
++            const id = `${source}|${key}|${site}`;
++            let entry = stats.get(id);
++            if (!entry) {
++                entry = {source, key, site, calls: 0, ms: 0, maxMs: 0, equal: 0};
++                stats.set(id, entry);
++            }
++            entry.calls++;
++            entry.ms += ms;
++            entry.equal += wasEqual ? 1 : 0;
++            if (ms > entry.maxMs) {
++                entry.maxMs = ms;
++            }
++            if (ms >= probe.warnMs) {
++                console.warn(`[deepEqualProbe] ${ms.toFixed(1)}ms ${source} key=${key} ${site}`);
++            }
++        },
++        // Only called for slow calls, so building a stack here is affordable.
++        callSite: () => {
++            const NOISE = /__deepEqualProbe|fast-equals|react-dom|react\/cjs|react-refresh|scheduler|node_modules[\\/]react[\\/]|useOnyx|Error$/;
++            const lines = (new Error().stack || '').split('\n');
++            const frames = lines.map((l) => l.trim().replace(/^at\s+/, '')).filter((l) => l && !NOISE.test(l));
++            return frames.slice(0, 3).join(' < ') || lines.slice(1, 6).join(' | ');
++        },
++        dump: (limit = 25) => {
++            const all = [...stats.values()];
++            const rows = all
++                .sort((a, b) => b.ms - a.ms)
++                .slice(0, limit)
++                .map((e) => ({
++                    source: e.source,
++                    key: e.key,
++                    calls: e.calls,
++                    ms: +e.ms.toFixed(1),
++                    avgMs: +(e.ms / e.calls).toFixed(2),
++                    maxMs: +e.maxMs.toFixed(1),
++                    wastedPct: Math.round((e.equal / e.calls) * 100),
++                    site: e.site,
++                }));
++            // console.warn, not log/table: production babel strips everything except error/warn.
++            console.warn(
++                `[deepEqualProbe] total ${all.reduce((s, e) => s + e.ms, 0).toFixed(1)}ms in ${all.reduce((s, e) => s + e.calls, 0)} calls\n${rows
++                    .map((r) => `${r.ms}ms ${r.calls}x avg${r.avgMs} max${r.maxMs} waste${r.wastedPct}% ${r.source} ${r.key}\n    ${r.site}`)
++                    .join('\n')}`,
++            );
++            return rows;
++        },
++    };
++    return probe;
++}
++const __probe = (globalThis.__onyxDeepEqual = globalThis.__onyxDeepEqual || __createDeepEqualProbe());
++// Wraps a fast-equals export so every call in the app is measured.
++// Cheap calls aggregate under one bucket; only slow ones pay for a stack.
++function __probeWrap(name, fn) {
++    return function (a, b) {
++        if (__probe.depth > 0) {
++            return fn(a, b);
++        }
++        const t0 = performance.now();
++        const result = fn(a, b);
++        const ms = performance.now() - t0;
++        __probe.record(name, '', ms >= __probe.sampleMs ? __probe.callSite() : '(fast calls)', ms, result);
++        return result;
++    };
++}
++
++    const deepEqual = __probeWrap('deepEqual', createCustomEqual());
+     /**
+      * Whether the items passed are deeply-equal in value based on strict comparison.
+      */
