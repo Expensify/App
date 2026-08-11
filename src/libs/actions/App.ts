@@ -436,10 +436,14 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
     }
 
     const params: OpenAppParams = {...getPolicyParamsForOpenOrReconnect(), enablePriorityModeFilter: true};
+
+    // Asking for public rooms or draft comments to be preserved adds successData an in-flight OpenApp knows
+    // nothing about, so such a call can never be dropped as a duplicate.
+    const hasPreservationData = shouldKeepPublicRooms || !!allReportsWithDraftComments;
     const openAppPromise = API.writeWithNoDuplicatesOpenAppConflictAction(
         params,
         getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
-        shouldDedupeWithInFlight,
+        shouldDedupeWithInFlight && !hasPreservationData,
     ).finally(() => {
         if (!bootsplashSpan) {
             return;
