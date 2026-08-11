@@ -9776,7 +9776,7 @@ ${reportName}`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Αρχικό: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; unit: string; distanceUnit: Unit}) => ({
+            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; distanceUnit: Unit}) => ({
                 one: `Καταργήθηκε ${distance} μετακινούμενος ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'μίλι' : 'χιλιόμετρο'}`,
                 other: `Καταργήθηκε η μετακίνηση ${distance} ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'μίλια' : 'χιλιόμετρα'}`,
             }),

@@ -9403,7 +9403,7 @@ ${reportName}`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `元の距離: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; unit: string; distanceUnit: Unit}) => ({
+            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; distanceUnit: Unit}) => ({
                 one: `${distance}件の通勤${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'マイル' : 'キロメートル'}を削除しました`,
                 other: `${distance} 通勤 ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'マイル' : 'キロメートル'} を削除しました`,
             }),

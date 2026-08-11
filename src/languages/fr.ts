@@ -9592,7 +9592,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original : ${formattedDistance}`,
-            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; unit: string; distanceUnit: Unit}) => ({
+            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; distanceUnit: Unit}) => ({
                 one: `A retiré ${distance} trajet domicile-travail ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'mile' : 'kilomètre'}`,
                 other: `${distance} trajet domicile-travail ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'miles' : 'kilomètres'} supprimé`,
             }),

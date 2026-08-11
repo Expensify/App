@@ -9162,7 +9162,7 @@ ${reportName}`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `原始：${formattedDistance}`,
-            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; unit: string; distanceUnit: Unit}) => ({
+            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; distanceUnit: Unit}) => ({
                 one: `已移除 ${distance} 项通勤 ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? '英里' : '千米'}`,
                 other: `已移除 ${distance} 通勤 ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? '英里' : '千米'}`,
             }),

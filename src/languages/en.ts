@@ -9670,7 +9670,7 @@ const translations = {
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; unit: string; distanceUnit: Unit}) => ({
+            removedCommuterDistance: ({distance, distanceUnit}: {distance: string; distanceUnit: Unit}) => ({
                 one: `Removed ${distance} commuter ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'mile' : 'kilometer'}`,
                 other: `Removed ${distance} commuter ${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'miles' : 'kilometers'}`,
             }),

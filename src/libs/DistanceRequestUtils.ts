@@ -458,13 +458,11 @@ function getDistanceDisplayDetailsWithCommuter(
     const originalDistance = reimbursableDistance + commuterExclusion;
     const originalDistanceFormatted = getFormattedDistanceInUnits(originalDistance, unitToUse, translate, true);
     const commuterDistance = commuterExclusion.toFixed(CONST.DISTANCE_DECIMAL_PLACES);
-    const commuterUnit = getDistanceUnitLabel(commuterExclusion, unitToUse, translate);
 
     return {
         distanceToDisplayDescription: `${baseLabel} ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original', {formattedDistance: originalDistanceFormatted})}`,
         distanceToDisplayHintText: translate('distance.commuterExclusion.removedCommuterDistance', {
             distance: commuterDistance,
-            unit: commuterUnit,
             distanceUnit: unitToUse,
             count: commuterExclusion,
         }),
