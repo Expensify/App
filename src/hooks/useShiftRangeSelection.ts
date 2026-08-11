@@ -148,6 +148,9 @@ function protectedKeys<TItem>(params: Params<TItem>, painted: ReadonlySet<string
     const keys = new Set<string>();
     const isProtected = params.isItemProtected ?? params.isItemSelected;
     for (const row of params.items) {
+        if (isExcluded(params, row)) {
+            continue;
+        }
         const key = keyOf(params, row);
         if (key != null && !painted.has(key) && isProtected(row)) {
             keys.add(key);

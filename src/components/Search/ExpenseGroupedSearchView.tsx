@@ -147,6 +147,16 @@ function ExpenseGroupedSearchView({
         previouslyExpandedGroupsRef.current = expandedGroups;
     }, [expandedGroups, unregisterGroupChildren]);
 
+    // The provider outlives this view, so anything still registered when it unmounts (groupBy cleared, chart view) would linger.
+    useEffect(
+        () => () => {
+            for (const key of previouslyExpandedGroupsRef.current) {
+                unregisterGroupChildren(key);
+            }
+        },
+        [unregisterGroupChildren],
+    );
+
     // Only leaving the split layout strands registrations, since those rows unmount without cleaning up.
     const wasSplitRef = useRef(shouldSplit);
     useEffect(() => {

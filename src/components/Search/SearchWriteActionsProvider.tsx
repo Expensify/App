@@ -342,6 +342,17 @@ function useSyncMobileSelectionModeWithScreenSize({
     }, [isSmallScreenWidth]);
 }
 
+/** Whether two child lists hold the same rows in the same order, which is all the shift-range source cares about. */
+function haveSameKeys(previous: TransactionListItemType[] | undefined, next: TransactionListItemType[]): boolean {
+    if (previous === next) {
+        return true;
+    }
+    if (!previous || previous.length !== next.length) {
+        return false;
+    }
+    return previous.every((child, index) => child.keyForList === next.at(index)?.keyForList);
+}
+
 // Screen-level owner of the selection write path. Actions commit via `applySelection` instead of closing over
 // `selectedTransactions`, so dispatching one re-renders neither this provider's stable children nor the rows.
 function SearchWriteActionsProvider({
@@ -370,7 +381,8 @@ function SearchWriteActionsProvider({
 
     // Built once (by construction, not by React Compiler) so the register effect can't loop.
     const [shiftRangeChildrenActions] = useState<SearchShiftRangeChildrenActions>(() => ({
-        registerGroupChildren: (groupKey, groupChildren) => setGroupChildrenByKey((prev) => (prev[groupKey] === groupChildren ? prev : {...prev, [groupKey]: groupChildren})),
+        // Compared by content, not identity: a recycled row rebuilds the array, and re-registering an equal one would re-render every row.
+        registerGroupChildren: (groupKey, groupChildren) => setGroupChildrenByKey((prev) => (haveSameKeys(prev[groupKey], groupChildren) ? prev : {...prev, [groupKey]: groupChildren})),
         unregisterGroupChildren: (groupKey) =>
             setGroupChildrenByKey((prev) => {
                 if (!(groupKey in prev)) {

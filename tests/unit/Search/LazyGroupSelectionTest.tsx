@@ -2,7 +2,6 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import {useSearchRowSelectionActions, useSearchSelectionContext, useSearchShiftRangeChildren} from '@components/Search/SearchContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
-import type {TransactionCategoryGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import SearchWriteActionsProvider from '@components/Search/SearchWriteActionsProvider';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -15,6 +14,7 @@ import type * as ReactNavigation from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {buildCategoryGroup, buildTransactionRow} from '../../utils/collections/searchListItems';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => ({
@@ -31,56 +31,27 @@ jest.mock('@react-navigation/native', () => ({
 
 const GROUP_KEY = 'Advertising';
 
+/** A child as it looks once its group has been expanded and the snapshot has loaded. */
+const buildChild = (index: number, key: string) => buildTransactionRow(index, key, {currency: 'USD', amount: -642, report: {reportID: '11'}});
+
 /**
  * A `group-by:category` group. Its children are fetched into a separate snapshot only once the row is expanded,
  * so `transactions` stays empty on the group itself for the whole lifetime of the list.
  */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only the fields the selection logic reads are needed
-const categoryGroup = {
-    groupedBy: CONST.SEARCH.GROUP_BY.CATEGORY,
-    category: 'Advertising',
-    formattedCategory: 'Advertising',
-    count: 2,
-    total: -1284,
-    currency: 'USD',
-    transactions: [],
-    transactionsQueryJSON: buildSearchQueryJSON('type:expense category:Advertising'),
-    keyForList: GROUP_KEY,
-} as unknown as TransactionCategoryGroupListItemType;
+const categoryGroup = buildCategoryGroup(GROUP_KEY, [], buildSearchQueryJSON('type:expense category:Advertising'));
 
-/** The children as they look once the group has been expanded and its snapshot has loaded. */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only the fields the selection logic reads are needed
-const loadedChildren = [
-    {transactionID: '1', keyForList: '1', currency: 'USD', amount: -642, report: {reportID: '11'}},
-    {transactionID: '2', keyForList: '2', currency: 'USD', amount: -642, report: {reportID: '11'}},
-] as unknown as TransactionListItemType[];
+const loadedChildren = [buildChild(1, '1'), buildChild(2, '2')];
 
 /** The same group with a third child, for ranges that leave a row untouched on either side. */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only the fields the selection logic reads are needed
-const threeLoadedChildren = [...loadedChildren, {transactionID: '5', keyForList: '5', currency: 'USD', amount: -642, report: {reportID: '11'}}] as unknown as TransactionListItemType[];
+const threeLoadedChildren = [...loadedChildren, buildChild(5, '5')];
 
 const EARLIER_GROUP_KEY = 'Office';
 
 /** A group rendered above `categoryGroup`, used to prove a range does not start from the top of the list. */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only the fields the selection logic reads are needed
-const earlierGroup = {
-    groupedBy: CONST.SEARCH.GROUP_BY.CATEGORY,
-    category: 'Office',
-    formattedCategory: 'Office',
-    count: 2,
-    total: -1284,
-    currency: 'USD',
-    transactions: [],
-    transactionsQueryJSON: buildSearchQueryJSON('type:expense category:Office'),
-    keyForList: EARLIER_GROUP_KEY,
-} as unknown as TransactionCategoryGroupListItemType;
+const earlierGroup = buildCategoryGroup(EARLIER_GROUP_KEY, [], buildSearchQueryJSON('type:expense category:Office'));
 
 /** The earlier group's children, expanded and loaded. */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only the fields the selection logic reads are needed
-const earlierChildren = [
-    {transactionID: '3', keyForList: '3', currency: 'USD', amount: -642, report: {reportID: '11'}},
-    {transactionID: '4', keyForList: '4', currency: 'USD', amount: -642, report: {reportID: '11'}},
-] as unknown as TransactionListItemType[];
+const earlierChildren = [buildChild(3, '3'), buildChild(4, '4')];
 
 function TwoGroupWrapper({children}: {children: React.ReactNode}) {
     return (
