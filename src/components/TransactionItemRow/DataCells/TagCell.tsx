@@ -31,8 +31,6 @@ function TagCell({canEdit, onSave, shouldUseNarrowLayout, shouldShowTooltip, tra
 
     const [livePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    // Search rows can have policy fields that are absent from the live Onyx policy entry. Preserve those
-    // snapshot fields while allowing newer live values (including optimistic toggle updates) to win.
     const policy = livePolicy ? {...policyProp, ...livePolicy} : policyProp;
 
     const policyHasDependentTags = hasDependentTags(policy, policyTags);

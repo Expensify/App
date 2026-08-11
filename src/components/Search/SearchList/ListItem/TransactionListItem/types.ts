@@ -30,7 +30,6 @@ type TransactionListItemSharedProps<TItem extends ListItem> = {
     exportedReportActions: ReportAction[];
     policyCategories?: PolicyCategories;
     policyTagLists?: PolicyTagLists;
-    /** Policy fields merged from the row snapshot and live Onyx data. */
     rowPolicy?: Policy;
     nonPersonalAndWorkspaceCards?: CardList;
     isAttendeesEnabledForMovingPolicy?: boolean;

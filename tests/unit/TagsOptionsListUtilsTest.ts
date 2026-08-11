@@ -959,12 +959,11 @@ describe('TagsOptionsListUtils', () => {
     });
 
     describe('getTagListSections GL code display', () => {
-        /* eslint-disable @typescript-eslint/naming-convention -- PolicyTag GL Code field uses backend naming */
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- PolicyTag GL Code field uses backend naming
         const tagsWithGLCode: Record<string, {name: string; enabled: boolean; 'GL Code'?: string}> = {
-            ProjectA: {name: 'Project A', enabled: true, 'GL Code': 'SP4100'},
+            ProjectA: {name: 'Project A', enabled: true, 'GL Code': 'SP4100'}, // eslint-disable-line @typescript-eslint/naming-convention
             ProjectB: {name: 'Project B', enabled: true},
         };
-        /* eslint-enable @typescript-eslint/naming-convention */
 
         it('sets alternateText when shouldShowGLCode is true and tag has a GL code', () => {
             const result = getTagListSections({

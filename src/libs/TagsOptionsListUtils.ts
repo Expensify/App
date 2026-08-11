@@ -102,7 +102,6 @@ function getTagListSections({
 }) {
     const tagSections = [];
     const sortedTags = sortTags(tags, localeCompare);
-    // O(1) lookup for selected/recent shims that lack the PolicyTag GL Code field.
     const tagByName = new Map(sortedTags.map((tag) => [tag.name, tag]));
     const withGLCode = (tag: SelectedTagOption | PolicyTag): TagOptionInput => {
         if (!shouldShowGLCode) {

@@ -165,6 +165,7 @@ function TagPicker({
               data: option.data.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')),
           }))
         : tagSections;
+
     const selectedOptionKey = sections.at(0)?.data?.find((policyTag) => policyTag.searchText === selectedTag)?.keyForList;
 
     const textInputOptions = {
