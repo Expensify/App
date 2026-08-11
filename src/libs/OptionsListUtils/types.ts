@@ -23,6 +23,7 @@ import type {
 } from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /**
@@ -110,6 +111,9 @@ type LazyHydrationContext = {
     visibleReportActionsData: VisibleReportActionsDerivedValue;
     privateIsArchivedMap: PrivateIsArchivedMap;
     conciergeReportID: string | undefined;
+
+    /** Date-fns locale used when the option list was built. */
+    dateFnsLocale: DateFnsLocale | undefined;
 
     /** Locale used when the option list was built. */
     translate: LocalizedTranslate;
@@ -205,6 +209,7 @@ type GetValidOptionsSharedConfig = {
 };
 
 type GetValidReportsConfig = {
+    dateFnsLocale: DateFnsLocale | undefined;
     betas?: OnyxEntry<Beta[]>;
     includeMultipleParticipantReports?: boolean;
     showChatPreviewLine?: boolean;
@@ -261,6 +266,7 @@ type IsValidReportsConfig = Pick<
 };
 
 type GetOptionsConfig = {
+    dateFnsLocale: DateFnsLocale | undefined;
     excludeLogins?: Record<string, boolean>;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     includeCurrentUser?: boolean;
@@ -286,6 +292,7 @@ type GetOptionsConfig = {
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
+    dateFnsLocale: DateFnsLocale | undefined;
     searchValue: string | undefined;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     searchInputValue?: string;
@@ -342,6 +349,7 @@ type PreviewConfig = {
 };
 
 type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName' | 'searchInputValue'> & {
+    dateFnsLocale: DateFnsLocale | undefined;
     canInviteUser?: boolean;
     excludeLogins?: Record<string, boolean>;
 };

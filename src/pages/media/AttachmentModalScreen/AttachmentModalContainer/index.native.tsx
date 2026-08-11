@@ -14,7 +14,7 @@ import React, {memo, useCallback, useContext, useEffect} from 'react';
 
 import type AttachmentModalContainerProps from './types';
 
-function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({contentProps, navigation, onShow, onClose, ExtraContent}: AttachmentModalContainerProps<Screen>) {
+function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({contentProps, navigation, onShow, onClose}: AttachmentModalContainerProps<Screen>) {
     const attachmentsContext = useContext(AttachmentModalContext);
     const testID = typeof contentProps.source === 'string' ? contentProps.source : SafeString(contentProps.source);
 
@@ -55,21 +55,18 @@ function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({con
     }, [resetAttachmentModalAndClose, onShow]);
 
     return (
-        <>
-            <ScreenWrapper
-                navigation={navigation}
-                testID={`attachment-modal-${testID}`}
-                enableEdgeToEdgeBottomSafeAreaPadding
-            >
-                <AttachmentStateContextProvider>
-                    <AttachmentModalBaseContent
-                        {...contentProps}
-                        onClose={closeScreen}
-                    />
-                </AttachmentStateContextProvider>
-            </ScreenWrapper>
-            {ExtraContent}
-        </>
+        <ScreenWrapper
+            navigation={navigation}
+            testID={`attachment-modal-${testID}`}
+            enableEdgeToEdgeBottomSafeAreaPadding
+        >
+            <AttachmentStateContextProvider>
+                <AttachmentModalBaseContent
+                    {...contentProps}
+                    onClose={closeScreen}
+                />
+            </AttachmentStateContextProvider>
+        </ScreenWrapper>
     );
 }
 

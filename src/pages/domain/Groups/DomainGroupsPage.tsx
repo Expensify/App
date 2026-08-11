@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {DomainGroupRowData} from '@components/Tables/DomainGroupsTable';
@@ -92,14 +92,15 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const createGroupHeaderButton = (
         <Button
             accessibilityLabel={translate('domain.groups.createNewGroupButton')}
-            text={translate('domain.groups.createNewGroupButton')}
             sentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_GROUP_BUTTON}
             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE.getRoute(domainAccountID))}
-            icon={icons.Plus}
             innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
             style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : undefined}
-            success
-        />
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('domain.groups.createNewGroupButton')}</Button.Text>
+        </Button>
     );
 
     return (

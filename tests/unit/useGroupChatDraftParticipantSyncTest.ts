@@ -3,19 +3,15 @@ import {act, renderHook} from '@testing-library/react-native';
 import useOnyx from '@hooks/useOnyx';
 
 import * as OptionsListUtilsModule from '@libs/OptionsListUtils';
-import type {HydratedPersonalDetailOption, PersonalDetailOptionOrShell} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 
-import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 
 import type * as ReactNavigation from '@react-navigation/native';
 
-import type SelectedOption from '../../src/pages/NewChatPage/types';
-
 import useGroupChatDraftParticipantSync from '../../src/pages/NewChatPage/useGroupChatDraftParticipantSync';
+import {translateLocal as translate} from '../utils/TestHelper';
 
 const mockUseOnyx: jest.Mock = jest.mocked(useOnyx);
 const mockGetUserToInviteOption = jest.mocked(OptionsListUtilsModule.getUserToInviteOption);
@@ -53,16 +49,8 @@ jest.mock('@react-navigation/native', () => {
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'current@test.com';
 
-function makePersonalDetailOption(accountID: number, login: string): HydratedPersonalDetailOption {
-    return {
-        accountID,
-        login,
-        text: login,
-        keyForList: String(accountID),
-        reportID: '',
-        item: {accountID, login, displayName: login},
-        isHydrated: true,
-    };
+function makePersonalDetail(accountID: number, login: string): PersonalDetails {
+    return {accountID, login, displayName: login};
 }
 
 function makeSelectedOption(accountID: number, login: string): OptionData {
@@ -81,12 +69,12 @@ const PARTICIPANT_B: SelectedParticipant = {accountID: 20, login: 'bob@test.com'
 const PARTICIPANT_C: SelectedParticipant = {accountID: 30, login: 'carol@test.com'};
 const CURRENT_USER_PARTICIPANT: SelectedParticipant = {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL};
 
-const CURRENT_USER_OPTION = makePersonalDetailOption(CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL);
-const OPTION_A = makePersonalDetailOption(10, 'alice@test.com');
-const OPTION_B = makePersonalDetailOption(20, 'bob@test.com');
-const OPTION_C = makePersonalDetailOption(30, 'carol@test.com');
-
-const ALL_PERSONAL_DETAIL_OPTIONS = [CURRENT_USER_OPTION, OPTION_A, OPTION_B, OPTION_C];
+const ALL_PERSONAL_DETAILS: PersonalDetailsList = {
+    [CURRENT_USER_ACCOUNT_ID]: makePersonalDetail(CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL),
+    [PARTICIPANT_A.accountID]: makePersonalDetail(PARTICIPANT_A.accountID, 'alice@test.com'),
+    [PARTICIPANT_B.accountID]: makePersonalDetail(PARTICIPANT_B.accountID, 'bob@test.com'),
+    [PARTICIPANT_C.accountID]: makePersonalDetail(PARTICIPANT_C.accountID, 'carol@test.com'),
+};
 
 describe('useGroupDraftRestore', () => {
     beforeEach(() => {
@@ -107,34 +95,19 @@ describe('useGroupDraftRestore', () => {
     }
 
     function renderRestoreHook(overrides?: {
-        allPersonalDetailOptions?: PersonalDetailOptionOrShell[];
-        areAllPersonalDetailOptionsLoaded?: boolean;
+        allPersonalDetails?: PersonalDetailsList;
+        areOptionsInitialized?: boolean;
         selectedOptions?: OptionData[];
         draftParticipants?: SelectedParticipant[] | undefined;
         draftStatus?: 'loading' | 'loaded';
     }) {
-        const setSelectedOptions = jest.fn<void, [SelectedOption[]]>();
-        const {
-            allPersonalDetailOptions = ALL_PERSONAL_DETAIL_OPTIONS,
-            areAllPersonalDetailOptionsLoaded = true,
-            selectedOptions = [],
-            draftParticipants,
-            draftStatus = 'loaded',
-        } = overrides ?? {};
+        const setSelectedOptions = jest.fn<void, [OptionData[]]>();
+        const {allPersonalDetails = ALL_PERSONAL_DETAILS, areOptionsInitialized = true, selectedOptions = [], draftParticipants, draftStatus = 'loaded'} = overrides ?? {};
 
         setupUseOnyx(draftParticipants, draftStatus);
 
         const {rerender} = renderHook(() =>
-            useGroupChatDraftParticipantSync(
-                allPersonalDetailOptions,
-                areAllPersonalDetailOptionsLoaded,
-                {},
-                {},
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                selectedOptions,
-                setSelectedOptions,
-            ),
+            useGroupChatDraftParticipantSync(areOptionsInitialized, allPersonalDetails, {}, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, translate, selectedOptions, setSelectedOptions),
         );
 
         return {setSelectedOptions, rerender};
@@ -172,7 +145,7 @@ describe('useGroupDraftRestore', () => {
             const draftParticipants = [PARTICIPANT_A, PARTICIPANT_B];
             const {setSelectedOptions} = renderRestoreHook({
                 draftParticipants,
-                areAllPersonalDetailOptionsLoaded: false,
+                areOptionsInitialized: false,
             });
 
             expect(setSelectedOptions).not.toHaveBeenCalled();
@@ -182,9 +155,9 @@ describe('useGroupDraftRestore', () => {
             const draftParticipants = [PARTICIPANT_A];
             setupUseOnyx(draftParticipants);
 
-            const setSelectedOptions = jest.fn<void, [SelectedOption[]]>();
+            const setSelectedOptions = jest.fn<void, [OptionData[]]>();
             const {rerender} = renderHook(() =>
-                useGroupChatDraftParticipantSync(ALL_PERSONAL_DETAIL_OPTIONS, true, {}, {}, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, [], setSelectedOptions),
+                useGroupChatDraftParticipantSync(true, ALL_PERSONAL_DETAILS, {}, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, translate, [], setSelectedOptions),
             );
 
             expect(setSelectedOptions).toHaveBeenCalledTimes(1);
@@ -209,7 +182,7 @@ describe('useGroupDraftRestore', () => {
     describe('background sync', () => {
         it('should sync removals when draft changes while screen is in background', () => {
             const initialDraftParticipants = [CURRENT_USER_PARTICIPANT, PARTICIPANT_A, PARTICIPANT_B, PARTICIPANT_C];
-            const setSelectedOptions = jest.fn<void, [SelectedOption[]]>();
+            const setSelectedOptions = jest.fn<void, [OptionData[]]>();
             const selectedAfterRestore = [makeSelectedOption(10, 'alice@test.com'), makeSelectedOption(20, 'bob@test.com'), makeSelectedOption(30, 'carol@test.com')];
 
             setupUseOnyx(initialDraftParticipants);
@@ -218,7 +191,7 @@ describe('useGroupDraftRestore', () => {
             const {rerender} = renderHook(
                 ({draftParticipants}) => {
                     setupUseOnyx(draftParticipants);
-                    return useGroupChatDraftParticipantSync(ALL_PERSONAL_DETAIL_OPTIONS, true, {}, {}, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, selectedAfterRestore, setSelectedOptions);
+                    return useGroupChatDraftParticipantSync(true, ALL_PERSONAL_DETAILS, {}, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, translate, selectedAfterRestore, setSelectedOptions);
                 },
                 {initialProps: {draftParticipants: initialDraftParticipants}},
             );
@@ -254,7 +227,7 @@ describe('useGroupDraftRestore', () => {
 
         it('should sync to empty when all participants are removed from draft', () => {
             const initialDraftParticipants = [CURRENT_USER_PARTICIPANT, PARTICIPANT_A, PARTICIPANT_B];
-            const setSelectedOptions = jest.fn<void, [SelectedOption[]]>();
+            const setSelectedOptions = jest.fn<void, [OptionData[]]>();
             const selectedAfterRestore = [makeSelectedOption(10, 'alice@test.com'), makeSelectedOption(20, 'bob@test.com')];
 
             setupUseOnyx(initialDraftParticipants);
@@ -262,7 +235,7 @@ describe('useGroupDraftRestore', () => {
             const {rerender} = renderHook(
                 ({draftParticipants}) => {
                     setupUseOnyx(draftParticipants);
-                    return useGroupChatDraftParticipantSync(ALL_PERSONAL_DETAIL_OPTIONS, true, {}, {}, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, selectedAfterRestore, setSelectedOptions);
+                    return useGroupChatDraftParticipantSync(true, ALL_PERSONAL_DETAILS, {}, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, translate, selectedAfterRestore, setSelectedOptions);
                 },
                 {initialProps: {draftParticipants: initialDraftParticipants}},
             );
@@ -287,7 +260,7 @@ describe('useGroupDraftRestore', () => {
 
         it('should not sync when screen is focused (normal operation after restore)', () => {
             const draftParticipants = [CURRENT_USER_PARTICIPANT, PARTICIPANT_A, PARTICIPANT_B];
-            const setSelectedOptions = jest.fn<void, [SelectedOption[]]>();
+            const setSelectedOptions = jest.fn<void, [OptionData[]]>();
             const selectedAfterRestore = [makeSelectedOption(10, 'alice@test.com'), makeSelectedOption(20, 'bob@test.com')];
 
             setupUseOnyx(draftParticipants);
@@ -295,7 +268,7 @@ describe('useGroupDraftRestore', () => {
             const {rerender} = renderHook(
                 ({draft}) => {
                     setupUseOnyx(draft);
-                    return useGroupChatDraftParticipantSync(ALL_PERSONAL_DETAIL_OPTIONS, true, {}, {}, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, selectedAfterRestore, setSelectedOptions);
+                    return useGroupChatDraftParticipantSync(true, ALL_PERSONAL_DETAILS, {}, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, translate, selectedAfterRestore, setSelectedOptions);
                 },
                 {initialProps: {draft: draftParticipants}},
             );
@@ -316,14 +289,14 @@ describe('useGroupDraftRestore', () => {
     describe('selector inactivity', () => {
         it('should not react to draft changes after restore (selector returns undefined)', () => {
             const draftParticipants = [CURRENT_USER_PARTICIPANT, PARTICIPANT_A];
-            const setSelectedOptions = jest.fn<void, [SelectedOption[]]>();
+            const setSelectedOptions = jest.fn<void, [OptionData[]]>();
 
             setupUseOnyx(draftParticipants);
 
             const {rerender} = renderHook(
                 ({draft}) => {
                     setupUseOnyx(draft);
-                    return useGroupChatDraftParticipantSync(ALL_PERSONAL_DETAIL_OPTIONS, true, {}, {}, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, [], setSelectedOptions);
+                    return useGroupChatDraftParticipantSync(true, ALL_PERSONAL_DETAILS, {}, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, translate, [], setSelectedOptions);
                 },
                 {initialProps: {draft: draftParticipants}},
             );
@@ -366,12 +339,12 @@ describe('useGroupDraftRestore', () => {
 
         it('should restore after personal details load (delayed loading)', () => {
             const draftParticipants = [PARTICIPANT_A, PARTICIPANT_B];
-            const setSelectedOptions = jest.fn<void, [SelectedOption[]]>();
+            const setSelectedOptions = jest.fn<void, [OptionData[]]>();
 
             setupUseOnyx(draftParticipants);
 
             const {rerender} = renderHook(
-                ({areLoaded}) => useGroupChatDraftParticipantSync(ALL_PERSONAL_DETAIL_OPTIONS, areLoaded, {}, {}, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, [], setSelectedOptions),
+                ({areLoaded}) => useGroupChatDraftParticipantSync(areLoaded, ALL_PERSONAL_DETAILS, {}, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, translate, [], setSelectedOptions),
                 {initialProps: {areLoaded: false}},
             );
 
@@ -391,98 +364,11 @@ describe('useGroupDraftRestore', () => {
 
             const {setSelectedOptions} = renderRestoreHook({
                 draftParticipants: [invited],
-                allPersonalDetailOptions: [],
-                areAllPersonalDetailOptionsLoaded: true,
+                allPersonalDetails: {},
+                areOptionsInitialized: true,
             });
 
             expect(setSelectedOptions).toHaveBeenCalledTimes(1);
-            const restored = setSelectedOptions.mock.calls.at(0)?.at(0) ?? [];
-            expect(restored).toHaveLength(1);
-            expect(restored.at(0)?.login).toBe('invited@test.com');
-            expect(mockGetUserToInviteOption).toHaveBeenCalled();
-        });
-    });
-
-    // The options this hook receives come straight from useFilteredOptions, i.e. lightweight shells that carry
-    // only filter/rank fields — not the fully built options the other cases in this file construct by hand. A
-    // restored participant is rendered as a selected row with an avatar, so the hook has to hydrate what it
-    // finds. Nothing in the type system enforces that: a shell spread into SelectedOption typechecks fine, so
-    // this is the only thing standing between a regression and silently avatar-less restored rows.
-    describe('restore from lazy contact options', () => {
-        const LAZY_PERSONAL_DETAILS: PersonalDetailsList = {
-            [String(10)]: {accountID: 10, login: 'alice@test.com', displayName: 'Alice'},
-            [String(20)]: {accountID: 20, login: 'bob@test.com', displayName: 'Bob'},
-        };
-
-        // createOption translates imperatively, so hydration needs a loaded locale.
-        beforeAll(() => {
-            IntlStore.load(CONST.LOCALES.EN);
-        });
-
-        function buildLazyShells(): PersonalDetailOptionOrShell[] {
-            // isSearching skips the createFilteredOptionList cache, so shells never leak between tests.
-            return OptionsListUtilsModule.createFilteredOptionList(LAZY_PERSONAL_DETAILS, {}, undefined, {}, undefined, {conciergeReportID: undefined, isSearching: true}).personalDetails;
-        }
-
-        it('should hydrate a restored participant found among lazy shells', () => {
-            // Given contact options that are lightweight shells, as useFilteredOptions produces them
-            const shells = buildLazyShells();
-            // Guard against a vacuous pass: if these ever arrive fully built, the assertions below prove nothing.
-            expect(shells).toHaveLength(2);
-            expect(shells.every((shell) => !shell.isHydrated)).toBe(true);
-            expect(shells.every((shell) => !('icons' in shell))).toBe(true);
-
-            // When a draft participant matching one of them is restored
-            const {setSelectedOptions} = renderRestoreHook({
-                draftParticipants: [PARTICIPANT_A],
-                allPersonalDetailOptions: shells,
-            });
-
-            // Then the restored option is the hydrated one: it has the display fields a selected row renders,
-            // not the shell's filter/rank subset
-            expect(setSelectedOptions).toHaveBeenCalledTimes(1);
-            const restored = setSelectedOptions.mock.calls.at(0)?.at(0) ?? [];
-            expect(restored).toHaveLength(1);
-            expect(restored.at(0)?.accountID).toBe(PARTICIPANT_A.accountID);
-            expect(restored.at(0)?.login).toBe(PARTICIPANT_A.login);
-            expect(restored.at(0)?.isSelected).toBe(true);
-            expect(restored.at(0)?.icons).toBeDefined();
-            expect(restored.at(0)?.icons?.length).toBeGreaterThan(0);
-            // The thunk and the discriminant are option-list bookkeeping; neither may ride into selected options.
-            expect('hydrate' in (restored.at(0) ?? {})).toBe(false);
-            expect('isHydrated' in (restored.at(0) ?? {})).toBe(false);
-            expect('shouldShowGBR' in (restored.at(0) ?? {})).toBe(false);
-        });
-
-        it('should restore the same participant option from eager and lazy contact lists', () => {
-            // Given the same contacts represented once as full options and once as lazy shells
-            const shells = buildLazyShells();
-            const eagerOptions = shells.map(OptionsListUtilsModule.hydrateContactOption);
-            const draftParticipants = [PARTICIPANT_A];
-
-            // When the draft is restored through each representation
-            const eagerRestore = renderRestoreHook({draftParticipants, allPersonalDetailOptions: eagerOptions});
-            const lazyRestore = renderRestoreHook({draftParticipants, allPersonalDetailOptions: shells});
-            const eagerRestored = eagerRestore.setSelectedOptions.mock.calls.at(0)?.at(0) ?? [];
-            const lazyRestored = lazyRestore.setSelectedOptions.mock.calls.at(0)?.at(0) ?? [];
-
-            // Then the selected row is identical; lazy hydration changes how the option is built, not what is restored
-            expect(lazyRestored).toEqual(eagerRestored);
-        });
-
-        it('should fall back to getUserToInviteOption for a participant absent from the lazy shells', () => {
-            // Given lazy shells that do not contain the drafted participant
-            const invited: SelectedParticipant = {accountID: 999, login: 'invited@test.com'};
-            const inviteStub: OptionData = {text: 'invited@test.com', login: 'invited@test.com', accountID: 999, keyForList: '999', reportID: ''};
-            mockGetUserToInviteOption.mockReturnValue(inviteStub);
-
-            // When the draft is restored
-            const {setSelectedOptions} = renderRestoreHook({
-                draftParticipants: [invited],
-                allPersonalDetailOptions: buildLazyShells(),
-            });
-
-            // Then hydration is skipped and the invite option is used as-is
             const restored = setSelectedOptions.mock.calls.at(0)?.at(0) ?? [];
             expect(restored).toHaveLength(1);
             expect(restored.at(0)?.login).toBe('invited@test.com');
