@@ -1,4 +1,6 @@
+import Log from '@libs/Log';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {isTracking} from '@libs/telemetry/submitFollowUpAction';
 
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -25,6 +27,18 @@ type CleanupAndNavigateAfterExpenseCreateParams = {
      * Read from Onyx in render context by the calling component/hook and forwarded to `navigateAfterExpenseCreate`.
      */
     isLookingAroundUser?: boolean;
+    /** When false, runs cleanup only — use when dismiss/reveal already handled navigation.
+     * IMPORTANT: Caller must own telemetry span lifecycle. SubmitExpenseOrchestrator starts
+     * SPAN_SUBMIT_EXPENSE before calling createTransaction; when shouldNavigate=false, caller
+     * is responsible for ending the span (see useExpenseSubmission createTransaction).
+     * Skips shouldWaitForUpcomingTransition, so transition never arrives (no 1s timeout).
+     */
+    shouldNavigate?: boolean;
+    /** Pre-computed navigation report ID. When provided, used instead of recomputing
+     * from report/backToReport/optimisticChatReportID to ensure UI and state register
+     * against the same destination.
+     */
+    navigationReportID?: string;
 };
 
 function cleanupAndNavigateAfterExpenseCreate({
@@ -38,14 +52,20 @@ function cleanupAndNavigateAfterExpenseCreate({
     linkedTrackedExpenseReportAction,
     action,
     isLookingAroundUser,
+    shouldNavigate = true,
+    navigationReportID,
 }: CleanupAndNavigateAfterExpenseCreateParams) {
+    if (__DEV__ && isTracking() && !shouldNavigate) {
+        Log.warn('[cleanupAndNavigateAfterExpenseCreate] shouldNavigate=false but span is active. Caller must own span lifecycle — miss this and span hangs 60s until dropped.');
+    }
+
     cleanupAfterExpenseCreate({
         draftTransactionIDs,
         linkedTrackedExpenseReportAction,
-        shouldWaitForUpcomingTransition: true,
+        shouldWaitForUpcomingTransition: shouldNavigate,
     });
 
-    const finalActiveReportID = backToReport ?? report?.reportID ?? optimisticChatReportID;
+    const finalActiveReportID = navigationReportID ?? backToReport ?? report?.reportID ?? optimisticChatReportID;
     const hasMultipleTransactions = isInvoice ? false : isMoneyRequestReport(finalActiveReportID === report?.reportID ? report : getReportOrDraftReport(finalActiveReportID));
     const shouldAddPendingNewTransactionIDs =
         action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE ? true : !isInvoice && !!finalActiveReportID && !hasMultipleTransactions;
@@ -58,6 +78,7 @@ function cleanupAndNavigateAfterExpenseCreate({
         hasMultipleTransactions,
         shouldAddPendingNewTransactionIDs,
         isLookingAroundUser,
+        shouldNavigate,
     });
 }
 

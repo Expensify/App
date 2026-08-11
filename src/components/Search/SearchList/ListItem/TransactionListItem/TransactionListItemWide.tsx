@@ -57,7 +57,7 @@ function TransactionListItemWide<TItem extends ListItem>({
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const transactionItem = item as unknown as TransactionListItemType;
-    const {isSelected} = useRowSelection(item.keyForList);
+    const {isSelected} = useRowSelection(item.keyForList, transactionItem.selectionGroupKey);
 
     const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
     const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
