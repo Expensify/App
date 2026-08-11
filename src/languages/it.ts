@@ -4196,6 +4196,9 @@ ${amount} per ${merchant} - ${date}`,
         proofOf: 'Prova di indirizzo personale',
         enterOneEmail: (companyName: string) => `Inserisci l’email di un direttore di ${companyName}`,
         regulationRequiresOneMoreDirector: 'La normativa richiede almeno un altro direttore come firmatario.',
+        bothSignersMustBeOnIllionReport:
+            'Entrambi i firmatari devono essere indicati come amministratori nel report illion dell’azienda. Non possono essere due persone qualsiasi dell’azienda.',
+        signerMustBeOnIllionReport: "Il direttore che aggiungi come firmatario deve essere indicato nel report illion dell'azienda.",
         hangTight: 'Un attimo...',
         enterTwoEmails: (companyName: string) => `Inserisci le email di due direttori di ${companyName}`,
         sendReminder: 'Invia un promemoria',
@@ -4206,11 +4209,11 @@ ${amount} per ${merchant} - ${date}`,
         proofOfDirectorsDescription: 'Esempi: profilo aziendale Oncorp o registrazione dell’impresa.',
         codiceFiscale: 'Codice fiscale',
         codiceFiscaleDescription: 'Codice fiscale per firmatari, utenti autorizzati e titolari effettivi.',
-        PDSandFSG: 'Documentazione di informativa PDS + FSG',
+        PDSandFSG: 'Documentazione informativa PDS, FSG + TMD',
         PDSandFSGDescription: Str.dedent(`
-            La nostra partnership con Corpay utilizza una connessione API per sfruttare la loro vasta rete di partner bancari internazionali e alimentare i Rimborsi globali in Expensify. In conformità alla normativa australiana, ti forniamo la Financial Services Guide (FSG) e il Product Disclosure Statement (PDS) di Corpay.
+            La nostra partnership con Corpay utilizza una connessione API per sfruttare la loro vasta rete di partner bancari internazionali e alimentare i Rimborsi Globali in Expensify. In conformità con la normativa australiana, ti forniamo la Financial Services Guide (FSG), il Product Disclosure Statement (PDS) e il Target Market Determination (TMD) di Corpay.
 
-            Leggi attentamente i documenti FSG e PDS, poiché contengono tutti i dettagli e informazioni importanti sui prodotti e servizi offerti da Corpay. Conserva questi documenti per riferimenti futuri.
+            Leggi attentamente i documenti FSG, PDS e TMD, perché contengono tutti i dettagli e informazioni importanti sui prodotti e servizi offerti da Corpay. Conserva questi documenti per riferimento futuro.
         `),
         pleaseUpload: 'Carica ulteriore documentazione qui sotto per aiutarci a verificare la tua identità come amministratore dell’azienda.',
         enterSignerInfo: 'Inserisci le informazioni del firmatario',
@@ -4222,6 +4225,8 @@ ${amount} per ${merchant} - ${date}`,
         },
     },
     agreementsStep: {
+        bankStatement: 'Estratto conto bancario',
+        bankStatementDescription: 'Fornisci un estratto conto bancario recente, datato negli ultimi tre mesi, per il conto bancario aziendale che stai collegando.',
         agreements: 'Accordi',
         pleaseConfirm: 'Conferma gli accordi qui sotto',
         regulationRequiresUs: 'La normativa ci impone di verificare l’identità di ogni persona fisica che possiede più del 25% dell’attività.',
@@ -4230,7 +4235,7 @@ ${amount} per ${merchant} - ${date}`,
         iAcceptTheTermsAndConditions: `Accetto i <a href="https://www.corpay.com/cross-border/terms">termini e condizioni</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'Accetto i termini e le condizioni.',
         accept: 'Accetta e aggiungi conto bancario',
-        iConsentToThePrivacyNotice: 'Acconsento all’<a href="https://payments.corpay.com/compliance">informativa sulla privacy</a>.',
+        iConsentToThePrivacyNotice: 'Acconsento all’<a href="https://www.corpay.com/privacy-policy">informativa sulla privacy</a>.',
         iConsentToThePrivacyNoticeAccessibility: 'Acconsento all’informativa sulla privacy.',
         error: {
             authorized: 'Devi essere un responsabile con autorizzazione a operare sul conto bancario aziendale',
@@ -8633,7 +8638,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) =>
             `ha modificato la formula del nome del report personalizzato in "${newDefaultTitle}" (in precedenza "${oldDefaultTitle}")`,
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `ha assunto la proprietà di ${policyName} da ${oldOwnerName} (${oldOwnerEmail})`,
-        updatedAutoHarvesting: (enabled: boolean) => `Invio pianificato ${enabled ? 'abilitato' : 'disabilitato'}`,
         updatedIndividualBudgetNotification: (
             budgetAmount: string,
             budgetFrequency: string,
@@ -8795,6 +8799,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `impostazioni fattura copiate da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `impostazioni di viaggio copiate da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
+        updatedAutoHarvesting: (enabled: boolean) => `invii ${enabled ? 'abilitato' : 'disattivato'}`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
