@@ -6,6 +6,7 @@
 require 'digest'
 require 'fileutils'
 require 'json'
+require 'uri'
 
 module PatchedIOSArtifacts
     # scripts/artifacts-utils/ios/ -> repo root is three levels up.
@@ -224,7 +225,7 @@ class ReactNativeCoreUtils
             process_dsyms(release, download_stable_rncore(@@react_native_path, @@react_native_version, :release, true))
         end
 
-        {:http => ReactNativePodsUtils.local_file_uri(debug)}
+        {:http => URI::File.build(path: debug).to_s}
     end
 
     # Overriding this also keeps our artifacts out of react-native's shared cache, where their filenames

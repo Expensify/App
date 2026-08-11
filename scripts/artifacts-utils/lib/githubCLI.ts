@@ -35,9 +35,14 @@ function run(args: string[]): string {
     return output;
 }
 
-/** Reading our Maven packages requires this scope, and a token without it only fails once we hit the API. */
+/**
+ * Reading our Maven packages requires this scope, and a token without it only fails once we hit the API.
+ * `write:packages` implies read access, so `gh auth status` lists only `write:packages` for such tokens
+ * and never also lists `read:packages` alongside it.
+ */
 function assertReadPackagesScope() {
-    if (run(['auth', 'status']).includes('read:packages')) {
+    const scopes = run(['auth', 'status']);
+    if (scopes.includes('read:packages') || scopes.includes('write:packages')) {
         return;
     }
     throw new GithubCLISetupError('GitHub token does not have the required scope read:packages.');
