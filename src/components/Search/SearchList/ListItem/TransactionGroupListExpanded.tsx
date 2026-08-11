@@ -1,6 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
@@ -9,6 +10,7 @@ import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -79,7 +81,9 @@ function TransactionGroupListExpandedImpl({
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -198,12 +202,14 @@ function TransactionGroupListExpandedImpl({
             if (!transactionItem?.reportAction?.childReportID) {
                 if (isModifiedMousePress(event)) {
                     const targetReportID = createAndOpenSearchTransactionThread({
+                        getCurrencyDecimals,
                         item: transactionItem,
                         introSelected,
                         backTo,
                         currentUserLogin: currentUserDetails.email ?? '',
                         currentUserAccountID: currentUserDetails.accountID,
                         betas,
+                        personalDetails,
                         isSelfTourViewed,
                         hasCompletedGuidedSetupFlow,
                         IOUTransactionID: transactionItem?.reportAction?.childReportID,
@@ -215,12 +221,14 @@ function TransactionGroupListExpandedImpl({
                     return;
                 }
                 createAndOpenSearchTransactionThread({
+                    getCurrencyDecimals,
                     item: transactionItem,
                     introSelected,
                     backTo,
                     currentUserLogin: currentUserDetails.email ?? '',
                     currentUserAccountID: currentUserDetails.accountID,
                     betas,
+                    personalDetails,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
                     IOUTransactionID: transactionItem?.reportAction?.childReportID,

@@ -3552,6 +3552,47 @@ describe('actions/Report', () => {
     });
 
     describe('changeReportPolicy', () => {
+        it('blocks manual distance using the provided transaction list', async () => {
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'sourcePolicy',
+            };
+            const targetPolicy = {
+                ...createRandomPolicy(2),
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 1,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+            };
+            const manualDistanceTransaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            };
+
+            Report.changeReportPolicy({
+                report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                parentReport: undefined,
+                policy: targetPolicy,
+                currentUserAccountID: 1,
+                email: '',
+                managerLogin: '',
+                hasViolationsParam: false,
+                isChangePolicyTrainingModalDismissed: false,
+                ownerLogin: undefined,
+                isASAPSubmitBetaEnabled: false,
+                reportPreviewAction: undefined,
+                isTrackIntentUser: false,
+                reportTransactions: [manualDistanceTransaction],
+            });
+            await waitForBatchedUpdates();
+
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.CHANGE_REPORT_POLICY, 0);
+        });
+
         it('should unarchive the expense report', async () => {
             // Given an archived expense report
             const expenseReport: OnyxTypes.Report = {
@@ -3569,6 +3610,7 @@ describe('actions/Report', () => {
             // When moving to another workspace
             Report.changeReportPolicy({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -3580,6 +3622,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -3629,6 +3672,7 @@ describe('actions/Report', () => {
             // When moving to another workspace
             Report.changeReportPolicy({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -3640,6 +3684,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -3699,6 +3744,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicy({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -3710,6 +3756,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -3795,6 +3842,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicy({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -3806,6 +3854,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -3879,6 +3928,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicy({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -3890,6 +3940,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -3931,6 +3982,7 @@ describe('actions/Report', () => {
             // When moving to another workspace
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -3946,6 +3998,7 @@ describe('actions/Report', () => {
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4022,6 +4075,7 @@ describe('actions/Report', () => {
             // Call changeReportPolicyAndInviteSubmitter
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUser: {accountID: 1},
@@ -4035,6 +4089,7 @@ describe('actions/Report', () => {
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4066,6 +4121,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4079,6 +4135,7 @@ describe('actions/Report', () => {
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4096,6 +4153,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: targetPolicy,
                 currentUser: {accountID: 1},
@@ -4109,6 +4167,7 @@ describe('actions/Report', () => {
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4125,6 +4184,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4138,6 +4198,7 @@ describe('actions/Report', () => {
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4154,6 +4215,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4167,6 +4229,7 @@ describe('actions/Report', () => {
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4185,6 +4248,7 @@ describe('actions/Report', () => {
             // Do not set personal details for ownerAccountID so getLoginByAccountID returns empty
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4198,6 +4262,7 @@ describe('actions/Report', () => {
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4237,6 +4302,7 @@ describe('actions/Report', () => {
 
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy: targetPolicy,
                 currentUser: {accountID: 1, email: 'current-user@expensifail.com'},
@@ -4250,6 +4316,7 @@ describe('actions/Report', () => {
                 reportActionsList: {},
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             await waitForBatchedUpdates();
 
@@ -4684,6 +4751,7 @@ describe('actions/Report', () => {
             const policy = createRandomPolicy(Number(1));
             Report.buildOptimisticChangePolicyData({
                 report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -4738,6 +4806,7 @@ describe('actions/Report', () => {
 
             const {optimisticData, successData, failureData} = Report.buildOptimisticChangePolicyData({
                 report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -4802,6 +4871,7 @@ describe('actions/Report', () => {
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
                 report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -4850,6 +4920,7 @@ describe('actions/Report', () => {
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
                 report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -4911,6 +4982,7 @@ describe('actions/Report', () => {
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
                 report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -4975,6 +5047,7 @@ describe('actions/Report', () => {
 
             const {optimisticData, failureData} = Report.buildOptimisticChangePolicyData({
                 report,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport,
                 policy,
                 currentUserAccountID: 1,
@@ -8461,6 +8534,7 @@ describe('actions/Report', () => {
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
+                personalDetails: undefined,
             });
             expect(result).toBeUndefined();
         });
@@ -8472,6 +8546,7 @@ describe('actions/Report', () => {
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
+                personalDetails: undefined,
                 iouReport: reportWithoutID,
             });
             expect(result).toBeUndefined();
@@ -8498,6 +8573,7 @@ describe('actions/Report', () => {
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
+                personalDetails: undefined,
                 iouReport: parentReport,
                 iouReportAction: reportAction,
             });
@@ -8534,6 +8610,7 @@ describe('actions/Report', () => {
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
+                personalDetails: undefined,
                 iouReport: parentReport,
                 iouReportAction: reportAction,
             });
@@ -8564,6 +8641,7 @@ describe('actions/Report', () => {
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
+                personalDetails: undefined,
                 iouReport: parentReport,
                 iouReportAction: reportAction,
             });
@@ -8600,6 +8678,7 @@ describe('actions/Report', () => {
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
+                personalDetails: undefined,
                 iouReport: parentReport,
                 iouReportAction: reportAction,
                 transaction,
@@ -8632,12 +8711,61 @@ describe('actions/Report', () => {
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: testBetas,
+                personalDetails: undefined,
                 iouReport: parentReport,
                 iouReportAction: reportAction,
             });
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+        });
+
+        it('should resolve participant logins from the passed personalDetails rather than the Onyx personal details list', async () => {
+            const ACTOR_ACCOUNT_ID = 600;
+            const parentReport: OnyxTypes.Report = {
+                ...createRandomReport(501, undefined),
+                reportID: '501',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            // Given a stale login for the actor in the Onyx personal details list
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, login: 'stale@test.com'},
+            });
+            await waitForBatchedUpdates();
+
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(6),
+                reportActionID: 'action-6',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: ACTOR_ACCOUNT_ID,
+            };
+
+            // When creating the thread with personal details that carry a different login for that actor
+            const result = Report.createTransactionThreadReport({
+                introSelected: TEST_INTRO_SELECTED,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                betas: undefined,
+                personalDetails: {
+                    [TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN},
+                    [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, login: 'passed@test.com'},
+                },
+                iouReport: parentReport,
+                iouReportAction: reportAction,
+            });
+            await waitForBatchedUpdates();
+
+            if (!result) {
+                throw new Error('Expected a transaction thread report to be created');
+            }
+
+            // Then OpenReport is sent the login from the passed personal details, not the one in Onyx
+            TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 0, {
+                reportID: result.reportID,
+                emailList: `${TEST_USER_LOGIN},passed@test.com`,
+            });
         });
     });
 
@@ -9343,6 +9471,7 @@ describe('actions/Report', () => {
 
         it('sets delegateAccountID when delegateAccountIDParam is provided', () => {
             const result = ReportUtils.buildOptimisticIOUReportAction({
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 100,
                 currency: CONST.CURRENCY.USD,
@@ -9356,6 +9485,7 @@ describe('actions/Report', () => {
 
         it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
             const result = ReportUtils.buildOptimisticIOUReportAction({
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 100,
                 currency: CONST.CURRENCY.USD,
@@ -9374,14 +9504,14 @@ describe('actions/Report', () => {
         it('sets delegateAccountID when delegateAccountIDParam is provided', () => {
             const chatReport = createMock<OnyxTypes.Report>({reportID: 'chat1'});
             const iouReport = createMock<OnyxTypes.Report>({reportID: 'iou1', ownerAccountID: 1, managerID: 2});
-            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, '', null, undefined, undefined, DELEGATE_ACCOUNT_ID);
+            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, '', null, undefined, undefined, DELEGATE_ACCOUNT_ID);
             expect(result.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
 
         it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
             const chatReport = createMock<OnyxTypes.Report>({reportID: 'chat2'});
             const iouReport = createMock<OnyxTypes.Report>({reportID: 'iou2', ownerAccountID: 1, managerID: 2});
-            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, '', null, undefined, undefined, undefined);
+            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, '', null, undefined, undefined, undefined);
             expect(result.delegateAccountID).toBeUndefined();
         });
     });

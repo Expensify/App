@@ -57,7 +57,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 function SubscriptionSettings() {
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['Coins']);
     const styles = useThemeStyles();
@@ -174,7 +174,7 @@ function SubscriptionSettings() {
             </>
         ) : null;
 
-    const autoRenewalDate = formatSubscriptionEndDate(privateSubscription?.endDate);
+    const autoRenewalDate = formatSubscriptionEndDate(privateSubscription?.endDate, dateFnsLocale);
 
     const handleAutoRenewToggle = () => {
         if (isActingAsDelegate) {

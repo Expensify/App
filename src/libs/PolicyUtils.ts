@@ -930,13 +930,13 @@ function getExcludedUsers(employeeList?: PolicyEmployeeList): Record<string, boo
  * Used for filtering Guide/AM from contact lists while allowing manual entry.
  *
  * @param policy - The policy to get the assigned guide from
- * @param accountManagerAccountID - The account manager's account ID from the account object (string from ONYXKEYS.ACCOUNT)
+ * @param accountManagerAccountID - The account manager's account ID from the account object
  * @param personalDetails - Personal details collection to look up account manager login
  * @returns Object containing extracted emails/logins and exclusions record
  */
 function getGuideAndAccountManagerInfo(
     policy: OnyxEntry<Policy>,
-    accountManagerAccountID: string | undefined,
+    accountManagerAccountID: number | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList>,
 ): {
     assignedGuideEmail: string | undefined;
@@ -944,7 +944,7 @@ function getGuideAndAccountManagerInfo(
     exclusions: Record<string, boolean>;
 } {
     const assignedGuideEmail = policy?.assignedGuide?.email?.toLowerCase();
-    const accountManagerLogin = accountManagerAccountID ? personalDetails?.[Number(accountManagerAccountID)]?.login?.toLowerCase() : undefined;
+    const accountManagerLogin = accountManagerAccountID ? personalDetails?.[accountManagerAccountID]?.login?.toLowerCase() : undefined;
 
     const exclusions: Record<string, boolean> = {};
     if (assignedGuideEmail) {
@@ -1010,13 +1010,13 @@ function getExpensifyTeamExclusions(personalDetails: OnyxEntry<PersonalDetailsLi
  * but can still be manually entered by the user.
  *
  * @param policy - The policy to get the assigned guide from
- * @param accountManagerAccountID - The account manager's account ID from the account object (string from ONYXKEYS.ACCOUNT)
+ * @param accountManagerAccountID - The account manager's account ID from the account object
  * @param personalDetails - Personal details collection to look up account manager login
  * @returns Record mapping lowercase emails to true for Guide and Account Manager
  */
 function getSoftExclusionsForGuideAndAccountManager(
     policy: OnyxEntry<Policy>,
-    accountManagerAccountID: string | undefined,
+    accountManagerAccountID: number | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList>,
 ): Record<string, boolean> {
     return getGuideAndAccountManagerInfo(policy, accountManagerAccountID, personalDetails).exclusions;
@@ -1662,7 +1662,7 @@ function getAllTaxRatesNamesAndValues(policies: OnyxCollection<Policy>): Record<
 /**
  * Whether the tax rate can be deleted and disabled
  */
-function canEditTaxRate(policy: Policy, taxID: string): boolean {
+function canDisableOrDeleteTaxRate(policy: Policy, taxID: string): boolean {
     return policy.taxRates?.defaultExternalID !== taxID && policy.taxRates?.foreignTaxDefault !== taxID;
 }
 
@@ -3002,8 +3002,21 @@ function getRulesDocumentSourceURL(rulesDocumentURL: string | undefined, policyI
     );
 }
 
+/**
+ * Determines whether the tax code was explicitly defined by the user.
+ * Returns `true` only when the `previousTaxCode` field contains a value
+ */
+function isTaxCodeCustomized(taxCode: string | undefined, policy: OnyxEntry<Policy>) {
+    if (!taxCode || !policy) {
+        return false;
+    }
+
+    const currentTaxRate = policy?.taxRates?.taxes?.[taxCode];
+    return !!currentTaxRate && !!currentTaxRate.previousTaxCode;
+}
+
 export {
-    canEditTaxRate,
+    canDisableOrDeleteTaxRate,
     canPolicyAccessFeature,
     escapeTagName,
     getActivePolicies,
@@ -3212,6 +3225,7 @@ export {
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
     hasAnyPaidPolicy,
+    isTaxCodeCustomized,
     isMergeHRCompleteSetupNeededSelector,
 };
 
