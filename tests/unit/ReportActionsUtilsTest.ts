@@ -1354,6 +1354,15 @@ describe('ReportActionsUtils', () => {
             return action;
         }
 
+        it('uses the stored IES label for a pending export', () => {
+            const action = buildExportedToIntegrationAction(CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE, []);
+            action.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+            expect(ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, action)).toEqual([
+                {text: `started exporting this report to ${CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE}...`, url: ''},
+            ]);
+        });
+
         it.each([CONST.EXPORT_LABELS.INTACCT, CONST.EXPORT_LABELS.SAGE_INTACCT, CONST.EXPORT_LABELS.QBD])('does not link ID-based %s company card export records', (label) => {
             const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, buildExportedToIntegrationAction(label, ['SI-123', 'SI-456']));
 
@@ -1656,32 +1665,20 @@ describe('ReportActionsUtils', () => {
             expect(message).toBe(translateLocal('report.actions.type.integrationsMessage', errorMessage, 'NetSuite', '', ''));
         });
 
-        it('should use the IES display name for an integrations error message', () => {
+        it('should keep the stored IES label for an integrations error message after switching to QBO', () => {
             const errorMessage = 'Failed to export';
             const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
                 reportActionID: '1',
                 created: '2024-01-01 00:00:00.000',
                 actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
                 originalMessage: {
-                    label: CONST.EXPORT_LABELS.QBO,
+                    label: CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE,
                     result: {
                         messages: [errorMessage],
                     },
                 },
             };
-            const policy = createMock<Policy>({
-                connections: {
-                    quickbooksOnline: {
-                        config: {
-                            credentials: {
-                                scope: 'app-foundations.custom-dimensions.read',
-                            },
-                        },
-                    },
-                },
-            });
-
-            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action, true, policy);
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
 
             expect(message).toBe(translateLocal('report.actions.type.integrationsMessage', errorMessage, 'Intuit Enterprise Suite', '', ''));
         });
@@ -5957,7 +5954,7 @@ describe('ReportActionsUtils', () => {
             expect(result).not.toContain('Repeated');
         });
 
-        it('should use the IES display name for an IES workspace', () => {
+        it('should keep the stored IES label after switching to a QBO workspace', () => {
             const action = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
                 reportActionID: 'sync-fail-ies',
@@ -5965,24 +5962,12 @@ describe('ReportActionsUtils', () => {
                 created: '2024-01-01',
                 message: [],
                 originalMessage: {
-                    label: CONST.EXPORT_LABELS.QBO,
+                    label: CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE,
                     source: 'NEWEXPENSIFY',
                     errorMessage: 'Auth token expired',
                 },
             } as ReportAction;
-            const policy = createMock<Policy>({
-                connections: {
-                    quickbooksOnline: {
-                        config: {
-                            credentials: {
-                                scope: 'app-foundations.custom-dimensions.read',
-                            },
-                        },
-                    },
-                },
-            });
-
-            const result = getIntegrationSyncFailedMessage(translateLocal, action, testPolicyID, false, policy);
+            const result = getIntegrationSyncFailedMessage(translateLocal, action, testPolicyID);
             expect(result).toContain('Intuit Enterprise Suite');
             expect(result).not.toContain('QuickBooks Online');
         });

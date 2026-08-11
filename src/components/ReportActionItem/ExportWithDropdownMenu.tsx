@@ -112,7 +112,7 @@ function ExportWithDropdownMenu({
             return;
         }
         if (exportType === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-            exportToIntegration(reportID, connectionName);
+            exportToIntegration(reportID, connectionName, policy);
         } else if (exportType === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
             markAsManuallyExported([reportID], connectionName, policy);
         }

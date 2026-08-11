@@ -466,12 +466,7 @@ function ActionContentRouter({
         );
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE)) {
-        return (
-            <IntegrationMessage
-                action={action}
-                policyID={policyID}
-            />
-        );
+        return <IntegrationMessage action={action} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
         return (

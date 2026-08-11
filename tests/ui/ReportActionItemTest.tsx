@@ -1621,7 +1621,7 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/QuickBooks Online/)).toBeOnTheScreen();
         });
 
-        it('INTEGRATION_SYNC_FAILED action uses the IES display name', async () => {
+        it('INTEGRATION_SYNC_FAILED action keeps the stored IES label after switching to QBO', async () => {
             const policyID = 'iesPolicy';
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
@@ -1630,7 +1630,7 @@ describe('ReportActionItem', () => {
                         quickbooksOnline: {
                             config: {
                                 credentials: {
-                                    scope: 'app-foundations.custom-dimensions.read',
+                                    scope: 'com.intuit.quickbooks.accounting',
                                 },
                             },
                         },
@@ -1638,7 +1638,7 @@ describe('ReportActionItem', () => {
                 });
             });
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED, {
-                label: CONST.EXPORT_LABELS.QBO,
+                label: CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE,
                 errorMessage: 'Token expired',
             });
             render(

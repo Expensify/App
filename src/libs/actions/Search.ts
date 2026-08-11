@@ -9,6 +9,7 @@ import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchQuery
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
 
+import {getExportLabelForConnection} from '@libs/AccountingUtils';
 import {makeRequestWithSideEffects, read, waitForWrites, write} from '@libs/API';
 import type {
     ExportSearchItemsToCSVParams,
@@ -398,7 +399,7 @@ function handleActionButtonPress({
                 return;
             }
 
-            exportToIntegrationOnSearch(hash, [item.reportID], connectedIntegration, currentSearchKey);
+            exportToIntegrationOnSearch(hash, [item.reportID], connectedIntegration, exportPolicy, currentSearchKey);
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.UNDELETE:
@@ -1310,7 +1311,7 @@ function submitMoneyRequestOnSearch(
     });
 }
 
-function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connectionName: ConnectionName, currentSearchKey?: SearchKey) {
+function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connectionName: ConnectionName, policy: OnyxEntry<Policy>, currentSearchKey?: SearchKey) {
     if (!reportIDs.length) {
         return;
     }
@@ -1337,7 +1338,7 @@ function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connecti
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
 
     for (const reportID of reportIDs) {
-        const optimisticAction = buildOptimisticExportIntegrationAction(connectionName);
+        const optimisticAction = buildOptimisticExportIntegrationAction(connectionName, false, getExportLabelForConnection(connectionName, policy));
         const successAction: OptimisticExportIntegrationAction = {
             ...optimisticAction,
             pendingAction: null,

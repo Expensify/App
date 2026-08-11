@@ -24,7 +24,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
  */
 import {Str} from 'expensify-common';
 
-import {getExportIntegrationDisplayName} from './AccountingUtils';
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
@@ -511,7 +510,7 @@ function computeReportNameBasedOnReportAction(
         return translate('iou.heldExpense');
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
-        const integrationName = getExportIntegrationDisplayName(reportPolicy, getOriginalMessage(parentReportAction)?.label, translate);
+        const integrationName = getOriginalMessage(parentReportAction)?.label;
         return getExportIntegrationLastMessageText(translate, parentReportAction, integrationName);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
@@ -794,7 +793,7 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
-        return Parser.htmlToText(getIntegrationSyncFailedMessage(translate, parentReportAction, report?.policyID, false, reportPolicy));
+        return Parser.htmlToText(getIntegrationSyncFailedMessage(translate, parentReportAction, report?.policyID));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
@@ -824,7 +823,7 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isOldDotReportAction(parentReportAction)) {
-        return getMessageOfOldDotReportAction(translate, parentReportAction, true, reportPolicy);
+        return getMessageOfOldDotReportAction(translate, parentReportAction);
     }
 
     if (isRenamedAction(parentReportAction)) {

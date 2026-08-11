@@ -1,6 +1,5 @@
 import {
     getAccountingIntegrationDisplayName,
-    getExportIntegrationDisplayName,
     getExportLabelForConnection,
     getExportLabelsForConnection,
     getQuickbooksOnlineIntegrationName,
@@ -101,23 +100,6 @@ describe('AccountingUtils', () => {
                     buildQBOConnectionPolicy(INTUIT_ENTERPRISE_SUITE_SCOPE),
                 ]),
             ).toEqual([CONST.EXPORT_LABELS.QBO, CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE]);
-        });
-    });
-
-    describe('getExportIntegrationDisplayName', () => {
-        it('returns the IES name for the QBO export label in an IES workspace', () => {
-            expect(getExportIntegrationDisplayName(buildQBOConnectionPolicy(INTUIT_ENTERPRISE_SUITE_SCOPE), CONST.EXPORT_LABELS.QBO, translateLocal)).toBe('Intuit Enterprise Suite');
-        });
-
-        it('keeps the QBO export label for a standard QBO workspace', () => {
-            expect(getExportIntegrationDisplayName(buildQBOConnectionPolicy('com.intuit.quickbooks.accounting'), CONST.EXPORT_LABELS.QBO, translateLocal)).toBe(CONST.EXPORT_LABELS.QBO);
-        });
-
-        it('keeps other and missing export labels unchanged', () => {
-            const policy = buildQBOConnectionPolicy(INTUIT_ENTERPRISE_SUITE_SCOPE);
-
-            expect(getExportIntegrationDisplayName(policy, CONST.EXPORT_LABELS.XERO, translateLocal)).toBe(CONST.EXPORT_LABELS.XERO);
-            expect(getExportIntegrationDisplayName(policy, undefined, translateLocal)).toBeUndefined();
         });
     });
 });

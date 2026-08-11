@@ -6,7 +6,6 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getExportIntegrationDisplayName} from '@libs/AccountingUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExportIntegrationActionFragments, getExportIntegrationMessageHTML, getOriginalMessage, hasReasoning} from '@libs/ReportActionsUtils';
@@ -35,9 +34,8 @@ function ExportIntegration({action, originalReport}: ExportIntegrationProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action?.childReportID)}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(originalReport?.policyID)}`);
     const selectableStyle = !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone;
-    const integrationName = getExportIntegrationDisplayName(policy, getOriginalMessage(action)?.label, translate);
+    const integrationName = getOriginalMessage(action)?.label;
 
     if (hasReasoning(action)) {
         const message = getExportIntegrationMessageHTML(translate, action, integrationName);

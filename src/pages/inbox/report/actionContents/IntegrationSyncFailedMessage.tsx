@@ -27,10 +27,9 @@ type IntegrationSyncFailedMessageProps = {
 function IntegrationSyncFailedMessage({action, policyID, originalReport}: IntegrationSyncFailedMessageProps) {
     const {translate} = useLocalize();
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action?.childReportID)}`);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
-    const message = getIntegrationSyncFailedMessage(translate, action, policyID, isTryNewDotNVPDismissed, policy);
+    const message = getIntegrationSyncFailedMessage(translate, action, policyID, isTryNewDotNVPDismissed);
 
     if (hasReasoning(action)) {
         // `AskToExplain` already supplies its own leading period; strip the trailing period

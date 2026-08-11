@@ -80,13 +80,6 @@ function getAccountingIntegrationDisplayName(policy: OnyxEntry<Policy>, connecti
     return CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
 }
 
-function getExportIntegrationDisplayName(policy: OnyxEntry<Policy>, label: string | undefined, translate: LocaleContextProps['translate']): string | undefined {
-    if (label === CONST.EXPORT_LABELS.QBO && isIntuitEnterpriseSuiteConnection(policy)) {
-        return getQuickbooksOnlineIntegrationName(policy, translate);
-    }
-    return label;
-}
-
 function getStandardExportTemplateDisplayName(templateName: string): string {
     return STANDARD_EXPORT_TEMPLATE_NAME_MAPPING[templateName as keyof typeof STANDARD_EXPORT_TEMPLATE_NAME_MAPPING] ?? templateName;
 }
@@ -96,7 +89,6 @@ export {
     getConnectionNameFromRouteParam,
     getExportLabelForConnection,
     getExportLabelsForConnection,
-    getExportIntegrationDisplayName,
     getQuickbooksOnlineIntegrationName,
     getRouteParamForConnection,
     getStandardExportTemplateDisplayName,

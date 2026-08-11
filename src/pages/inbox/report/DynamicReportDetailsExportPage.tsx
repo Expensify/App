@@ -68,7 +68,7 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
     const confirmExport = useCallback(
         (type: ExportType) => {
             if (type === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-                exportToIntegration(reportID, connectionName);
+                exportToIntegration(reportID, connectionName, policy);
             } else if (type === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
                 markAsManuallyExported([reportID], connectionName, policy);
             }
