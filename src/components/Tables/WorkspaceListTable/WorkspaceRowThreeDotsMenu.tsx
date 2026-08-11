@@ -95,7 +95,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
     ];
 
     if (item.isArchived) {
-        if (isAdmin && !isOwner) {
+        if (isAdmin && !isOwner && canRenderTransferOwnerButton) {
             menuItems.push({
                 icon: icons.Transfer,
                 text: translate('workspace.people.transferOwner'),
