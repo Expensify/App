@@ -75,7 +75,7 @@ function EmojiPickerMenuItem({
             }}
             style={({pressed}) => [
                 isFocused || isHovered || isHighlighted ? themeStyles.emojiItemHighlighted : {},
-                isMobile() && StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
+                isMobile() && StyleUtils.getButtonBackgroundColorStyle(getButtonState({isPressed: pressed})),
                 themeStyles.emojiItem,
             ]}
             accessibilityLabel={emoji}

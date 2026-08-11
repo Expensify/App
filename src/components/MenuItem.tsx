@@ -893,7 +893,10 @@ function MenuItem({
                                         isCompact && styles.optionRowCompact,
                                         isCompactPopoverItem && (description ? styles.compactPopoverMenuItemBase : styles.compactPopoverMenuItem),
                                         !shouldRemoveBackground &&
-                                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
+                                            StyleUtils.getButtonBackgroundColorStyle(
+                                                getButtonState({isActive: focused || isHovered, isPressed: pressed, isComplete: success, isDisabled: disabled, isInteractive: interactive}),
+                                                true,
+                                            ),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
                                         isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
@@ -982,11 +985,17 @@ function MenuItem({
                                                                                 : typeof iconFill === 'function'
                                                                                   ? iconFill(isHovered)
                                                                                   : (iconFill ??
-                                                                                    StyleUtils.getIconFillColor(
-                                                                                        getButtonState(focused || isHovered, pressed, success, disabled, interactive),
-                                                                                        true,
-                                                                                        isPaneMenu,
-                                                                                    ))
+                                                                                    StyleUtils.getIconFillColor({
+                                                                                        buttonState: getButtonState({
+                                                                                            isActive: focused || isHovered,
+                                                                                            isPressed: pressed,
+                                                                                            isComplete: success,
+                                                                                            isDisabled: disabled,
+                                                                                            isInteractive: interactive,
+                                                                                        }),
+                                                                                        isMenuIcon: true,
+                                                                                        isPane: isPaneMenu,
+                                                                                    }))
                                                                         }
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
@@ -1023,7 +1032,16 @@ function MenuItem({
                                                                 height={iconHeight}
                                                                 fill={
                                                                     secondaryIconFill ??
-                                                                    StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true)
+                                                                    StyleUtils.getIconFillColor({
+                                                                        buttonState: getButtonState({
+                                                                            isActive: focused || isHovered,
+                                                                            isPressed: pressed,
+                                                                            isComplete: success,
+                                                                            isDisabled: disabled,
+                                                                            isInteractive: interactive,
+                                                                        }),
+                                                                        isMenuIcon: true,
+                                                                    })
                                                                 }
                                                             />
                                                         </View>
@@ -1196,7 +1214,15 @@ function MenuItem({
                                                             fill={
                                                                 shouldDimIconRight
                                                                     ? theme.icon
-                                                                    : StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))
+                                                                    : StyleUtils.getIconFillColor({
+                                                                          buttonState: getButtonState({
+                                                                              isActive: focused || isHovered,
+                                                                              isPressed: pressed,
+                                                                              isComplete: success,
+                                                                              isDisabled: disabled,
+                                                                              isInteractive: interactive,
+                                                                          }),
+                                                                      })
                                                             }
                                                             width={variables.iconSizeNormal}
                                                             height={variables.iconSizeNormal}

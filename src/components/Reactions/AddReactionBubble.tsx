@@ -130,7 +130,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
                                 src={icons.AddReaction}
                                 width={isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
                                 height={isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
-                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: hovered, isPressed: pressed})})}
                             />
                         </View>
                     </>

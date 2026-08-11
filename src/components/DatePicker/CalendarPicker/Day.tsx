@@ -38,7 +38,7 @@ function Day({disabled, selected, pressed, hovered, children}: DayProps) {
                 // does not reset a property when the style changes to {})
                 // correctly transitions the selection highlight on every render.
                 {backgroundColor: selected ? theme.success : theme.transparent},
-                !disabled && !selected ? StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed), true) : {},
+                !disabled && !selected ? StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: hovered, isPressed: pressed}), true) : {},
             ]}
         >
             <Text
