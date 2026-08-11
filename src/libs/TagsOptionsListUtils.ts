@@ -217,7 +217,10 @@ function getTagVisibility({
     const policyTagLists = getTagLists(policyTags);
 
     return policyTagLists.map(({tags, required}, index) => {
-        const isTagRequired = required || !!policy?.requiresTag;
+        // For multi-level tags each level has its own `required` flag, so mirror the per-level tag validation
+        // (see getTagViolationsForMultiLevelTags) instead of OR-ing in the workspace-wide `requiresTag`, which
+        // would incorrectly label every level as "Required".
+        const isTagRequired = isMultilevelTags ? (required ?? true) : required || !!policy?.requiresTag;
         let shouldShow = false;
 
         if (shouldShowTags) {
