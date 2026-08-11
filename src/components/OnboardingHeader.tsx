@@ -5,6 +5,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -34,6 +36,7 @@ function OnboardingHeader({onBackButtonPress, shouldShowBackButton = true}: Onbo
                 <PressableWithoutFeedback
                     onPress={onBackButtonPress}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.back')}
                     sentryLabel="OnboardingHeader-Back"
                 >
