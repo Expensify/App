@@ -16,7 +16,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {
     getChangedApproverActionMessage,
-    getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
     getForwardedReportActionMessage,
     getIOUReportIDFromReportActionPreview,
@@ -62,6 +61,7 @@ import ApprovalFlowContent, {isApprovalFlowAction} from './ApprovalFlowContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
+import CommuterExclusionContent from './CommuterExclusionContent';
 import ConciergeAutoMatchVendorContent from './ConciergeAutoMatchVendorContent';
 import ConfirmWhisperContent from './ConfirmWhisperContent';
 import FraudAlertContent from './FraudAlertContent';
@@ -480,9 +480,10 @@ function ActionContentRouter({
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION)) {
         return (
-            <ReportActionItemBasicMessage>
-                <RenderHTML html={`<comment><muted-text>${getCommuterExclusionMessage(translate, action, report?.policyID)}</muted-text></comment>`} />
-            </ReportActionItemBasicMessage>
+            <CommuterExclusionContent
+                action={action}
+                policyID={policyID}
+            />
         );
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestCreatedExpenseReport) {
