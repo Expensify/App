@@ -441,11 +441,9 @@ function evenlyDistributeSplitExpenseAmounts(
     const mileageRate = resolveSplitMileageRate({transaction, policy, isSelfDMSplit, personalPolicyOutputCurrency});
     const {unit, rate} = mileageRate;
 
-    const totalTaxAmount = Math.abs(transaction?.taxAmount ?? 0);
-
     const updatedSplitExpenses = splitExpenses.map((splitExpense, index) => {
         const amount = calculateIOUAmount(splitCount - 1, total, currency, index === lastIndex, true);
-        const splitTaxAmount = calculateIOUAmount(splitCount - 1, totalTaxAmount, currency, index === lastIndex, true);
+        const splitTaxAmount = convertToBackendAmount(calculateTaxAmount(splitExpense.taxValue, amount, getCurrencyDecimals(currency)));
         let updatedSplitExpense: SplitExpense = {
             ...splitExpense,
             amount,
@@ -518,7 +516,6 @@ function resetSplitExpensesByDateRange(
 
     const transactionDetails = getTransactionDetails(transaction);
     const total = transactionDetails?.amount ?? 0;
-    const totalTaxAmount = transactionDetails?.taxAmount ?? 0;
     const currency = transactionDetails?.currency ?? CONST.CURRENCY.USD;
 
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -530,7 +527,7 @@ function resetSplitExpensesByDateRange(
     const lastIndex = dates.length - 1;
     const newSplitExpenses: SplitExpense[] = dates.map((date, index) => {
         const amount = calculateIOUAmount(lastIndex, total, currency, index === lastIndex, true);
-        const splitTaxAmount = calculateIOUAmount(lastIndex, totalTaxAmount, currency, index === lastIndex, true);
+        const splitTaxAmount = convertToBackendAmount(calculateTaxAmount(transactionDetails?.taxValue, amount, getCurrencyDecimals(currency)));
         let splitExpense = initSplitExpenseItemData(transaction, transactionReport, {
             amount,
             taxAmount: splitTaxAmount,

@@ -190,7 +190,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 
-    const shouldShowTax = isPolicyExpenseChat && isTaxTrackingEnabled(true, effectivePolicy, isDistanceRequest(splitExpenseDraftTransaction), false, false);
+    const shouldShowTax = (isPolicyExpenseChat || isExpenseUnreported) && isTaxTrackingEnabled(true, effectivePolicy, isDistanceRequest(splitExpenseDraftTransaction), false, false);
     const taxRatesDescription = effectivePolicy?.taxRates?.name;
     const taxRateTitle = getTaxName(effectivePolicy, splitExpenseDraftTransaction);
 
