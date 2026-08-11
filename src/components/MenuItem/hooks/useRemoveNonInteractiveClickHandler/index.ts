@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useLayoutEffect} from 'react';
 
 import type UseRemoveNonInteractiveClickHandler from './types';
 
@@ -9,7 +9,7 @@ import type UseRemoveNonInteractiveClickHandler from './types';
  * its own delegated listener on the root container.
  */
 const useRemoveNonInteractiveClickHandler: UseRemoveNonInteractiveClickHandler = (ref, isInteractive) => {
-    useEffect(() => {
+    useLayoutEffect(() => {
         const element = ref.current;
         if (isInteractive || !(element instanceof HTMLElement)) {
             return;
