@@ -263,8 +263,9 @@ function IOURequestStepConfirmation({
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({
         policyID: policy?.id,
+        isDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
     });
@@ -392,7 +393,7 @@ function IOURequestStepConfirmation({
             }
             const selectedParticipant = participantsList.at(0);
             const selectedPolicyID = selectedParticipant?.policyID ?? (selectedParticipant?.reportID ? getReportOrDraftReport(selectedParticipant.reportID)?.policyID : undefined);
-            if (blockManualOrOdometerDistanceRequestIfNeeded(selectedPolicyID)) {
+            if (blockDistanceRequestIfNeeded(selectedPolicyID)) {
                 return;
             }
             // P2P chats don't support negative amounts. When a negative amount was entered before a participant
@@ -491,7 +492,7 @@ function IOURequestStepConfirmation({
             lastSelectedDistanceRates,
             transaction,
             personalPolicy?.outputCurrency,
-            blockManualOrOdometerDistanceRequestIfNeeded,
+            blockDistanceRequestIfNeeded,
             mappedPolicies,
             getCurrencyDecimals,
             policyID,
@@ -1029,7 +1030,7 @@ function IOURequestStepConfirmation({
                             // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
                             // matching standard RHP behavior, not just close the stacked participant picker.
                             onBackdropPress={() => Navigation.dismissModal()}
-                            shouldBlockParticipantSelection={blockManualOrOdometerDistanceRequestIfNeeded}
+                            shouldBlockParticipantSelection={blockDistanceRequestIfNeeded}
                         />
                     )}
                 </View>

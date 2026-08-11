@@ -5,11 +5,11 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
-import useDistanceHomeAddressCheck from '@hooks/useDistanceHomeAddressCheck';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
@@ -307,21 +307,10 @@ function IOURequestStepDistance({
         return stop;
     }, []);
 
-    // When the destination workspace requires home/office commuter exclusions, the per-member
-    // commute deduction can't be computed unless the member has a home address.
-    const {needsHomeAddressPrompt, promptForHomeAddress} = useDistanceHomeAddressCheck(policy);
-    const hasShownHomeAddressModalRef = useRef(false);
-    useEffect(() => {
-        if (!needsHomeAddressPrompt) {
-            hasShownHomeAddressModalRef.current = false;
-            return;
-        }
-        if (hasShownHomeAddressModalRef.current) {
-            return;
-        }
-        hasShownHomeAddressModalRef.current = true;
-        promptForHomeAddress();
-    }, [needsHomeAddressPrompt, promptForHomeAddress]);
+    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        policyID: policy?.id,
+        isDistanceRequest: true,
+    });
 
     useEffect(() => {
         if (numberOfWaypoints <= numberOfPreviousWaypoints) {
@@ -488,8 +477,7 @@ function IOURequestStepDistance({
     );
 
     const submitWaypoints = useCallback(() => {
-        if (needsHomeAddressPrompt) {
-            promptForHomeAddress();
+        if (blockDistanceRequestIfNeeded()) {
             return;
         }
         // If there is any error or loading state, don't let user go to next page.
@@ -570,8 +558,7 @@ function IOURequestStepDistance({
         suppressDiscardPrompt();
         navigateToNextStep();
     }, [
-        needsHomeAddressPrompt,
-        promptForHomeAddress,
+        blockDistanceRequestIfNeeded,
         duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,
         hasRouteError,
@@ -611,8 +598,7 @@ function IOURequestStepDistance({
     ]);
 
     const submitManualDistance = useCallback(() => {
-        if (needsHomeAddressPrompt) {
-            promptForHomeAddress();
+        if (blockDistanceRequestIfNeeded()) {
             return;
         }
         isManuallyEditing.current = false;
@@ -700,8 +686,7 @@ function IOURequestStepDistance({
         removeBackupTransaction(transaction?.transactionID);
         navigateBackAfterSave();
     }, [
-        needsHomeAddressPrompt,
-        promptForHomeAddress,
+        blockDistanceRequestIfNeeded,
         translate,
         distanceRate,
         transactionID,

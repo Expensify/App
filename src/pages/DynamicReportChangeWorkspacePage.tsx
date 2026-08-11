@@ -38,7 +38,7 @@ import {
     isWorkspaceEligibleForReportChange,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {hasAppliedCommuterExclusion, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
+import {hasAppliedCommuterExclusion, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -101,9 +101,11 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const navigateBackFromChangeWorkspacePath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_WORKSPACE.path);
     const hasCommuterExclusionDistanceRequest = reportTransactions.some((transaction) => hasAppliedCommuterExclusion(transaction));
+    const hasDistanceRequest = reportTransactions.some((transaction) => isDistanceRequest(transaction));
     const hasManualDistanceRequest = reportTransactions.some((transaction) => isManualDistanceRequest(transaction));
     const hasOdometerDistanceRequest = reportTransactions.some((transaction) => isOdometerDistanceRequest(transaction));
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        isDistanceRequest: hasDistanceRequest,
         isManualDistanceRequest: hasManualDistanceRequest,
         isOdometerDistanceRequest: hasOdometerDistanceRequest,
     });
@@ -114,7 +116,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         if (!policyID || !policy) {
             return;
         }
-        if (blockManualOrOdometerDistanceRequestIfNeeded(policyID)) {
+        if (blockDistanceRequestIfNeeded(policyID)) {
             return;
         }
         if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed, currentUserPersonalDetails.accountID)) {
