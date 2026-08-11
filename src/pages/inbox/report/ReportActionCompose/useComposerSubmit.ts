@@ -10,9 +10,10 @@ import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Tas
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
-import {getAllPersonalDetailLogins, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getAllReportActions} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, isConciergeChatReport} from '@libs/ReportUtils';
+import {getAllPersonalDetailLogins} from '@libs/ShortMentionLogins';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import getSendMessageListWeight from '@libs/telemetry/getSendMessageListWeight';
 import getSendMessageSource from '@libs/telemetry/getSendMessageSource';

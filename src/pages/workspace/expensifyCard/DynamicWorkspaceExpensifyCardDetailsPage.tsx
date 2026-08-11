@@ -97,7 +97,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
     const defaultFundID = useDefaultFundID(policyID);
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'FreezeCard',
@@ -152,6 +152,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
     const displayName = temporaryGetDisplayNameOrDefault({
         passedPersonalDetails: cardholder,
         translate,
+        formatPhoneNumber,
     });
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, styles, policy, card);
     const translationForLimitType = getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
