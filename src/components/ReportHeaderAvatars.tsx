@@ -124,7 +124,6 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
                 avatar={singleAvatar}
                 size={size}
                 containerStyles={[]}
-                shouldShowTooltip
             />
         </PressableWithoutFocus>
     );
