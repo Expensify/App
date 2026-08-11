@@ -506,11 +506,14 @@ function ActionContentRouter({
         );
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT)) {
-        return (
-            <ReportActionItemBasicMessage>
-                <RenderHTML html={`<comment><muted-text>${getDelegateSubmitMessage(translate, action, currentUserEmail)}</muted-text></comment>`} />
-            </ReportActionItemBasicMessage>
-        );
+        const delegateSubmitMessage = getDelegateSubmitMessage(translate, action, currentUserEmail);
+        if (delegateSubmitMessage) {
+            return (
+                <ReportActionItemBasicMessage>
+                    <RenderHTML html={`<comment><muted-text>${delegateSubmitMessage}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
+        }
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
         return (

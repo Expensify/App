@@ -1705,9 +1705,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 `このレポートは、休暇代理人の <mention-user>@${delegate}</mention-user> ではなくあなたに送信されました。このレポートのポリシーに、その代理人がメンバーとして参加していないためです。`,
             delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
                 `このレポートは、このレポートのポリシーのメンバーではないため、本来の休暇代理人である <mention-user>@${delegate}</mention-user> ではなく、<mention-user>@${originalManager}</mention-user> に送信されました`,
-            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string, delegate: string) =>
-                `<mention-user>@${delegate}</mention-user> さんはご自身のレポートを承認できないため、このレポートは承認のために <mention-user>@${originalManager}</mention-user> さんに送信されました`,
-            delegateSubmitCannotApproveOwnReportAsOriginalManager: (originalManager: string, delegate: string) =>
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `あなたはご自身のレポートを承認できないため、このレポートは承認のために <mention-user>@${originalManager}</mention-user> さんに送信されました`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
                 `このレポートは、休暇代理人の <mention-user>@${delegate}</mention-user> さんが自分のレポートを承認できないため、承認のためにあなたに送信されました`,
             delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
                 `このレポートは、休暇代理人である <mention-user>@${delegate}</mention-user> さんは自分のレポートを承認できないため、承認のために <mention-user>@${originalManager}</mention-user> さんに送信されました`,

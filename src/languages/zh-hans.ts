@@ -1662,9 +1662,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 `由于你的休假代理人 <mention-user>@${delegate}</mention-user> 不是此报销单所属政策的成员，这份报销单被发送给了你本人`,
             delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
                 `此报表已发送给 <mention-user>@${originalManager}</mention-user>，而非他们的休假代理人 <mention-user>@${delegate}</mention-user>，因为他们不是此报表所属政策的成员`,
-            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string, delegate: string) =>
-                `此报表已发送给 <mention-user>@${originalManager}</mention-user> 进行审批，因为 <mention-user>@${delegate}</mention-user> 不能审批自己的报表`,
-            delegateSubmitCannotApproveOwnReportAsOriginalManager: (originalManager: string, delegate: string) =>
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) => `此报表已发送给 <mention-user>@${originalManager}</mention-user> 进行审批，因为你不能审批自己的报表`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
                 `此报表已发送给您审批，因为您的休假代理人 <mention-user>@${delegate}</mention-user> 无法审批自己的报表`,
             delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
                 `由于其休假代理人 <mention-user>@${delegate}</mention-user> 无法审批自己的报销报告，此报销报告已发送给 <mention-user>@${originalManager}</mention-user> 审批`,

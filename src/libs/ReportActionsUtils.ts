@@ -4548,10 +4548,10 @@ function getDelegateSubmitMessage(
     }
 
     if (isWingman) {
-        return translate('iou.changeApprover.delegateSubmitCannotApproveOwnReportForWingman', originalManager, delegate);
+        return translate('iou.changeApprover.delegateSubmitCannotApproveOwnReportForWingman', originalManager);
     }
     if (isOriginalManager) {
-        return translate('iou.changeApprover.delegateSubmitCannotApproveOwnReportAsOriginalManager', originalManager, delegate);
+        return translate('iou.changeApprover.delegateSubmitCannotApproveOwnReportAsOriginalManager', delegate);
     }
     return translate('iou.changeApprover.delegateSubmitCannotApproveOwnReport', originalManager, delegate);
 }

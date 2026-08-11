@@ -1723,9 +1723,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Este informe se te envió a ti en lugar de a tu delegado de vacaciones <mention-user>@${delegate}</mention-user> porque no es miembro de la política de este informe`,
             delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
                 `Este informe se envió a <mention-user>@${originalManager}</mention-user> en lugar de a su delegado de vacaciones <mention-user>@${delegate}</mention-user> porque no es miembro de la política de este informe`,
-            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string, delegate: string) =>
-                `Este informe se envió a <mention-user>@${originalManager}</mention-user> para su aprobación ya que <mention-user>@${delegate}</mention-user> no puede aprobar tus propios informes`,
-            delegateSubmitCannotApproveOwnReportAsOriginalManager: (originalManager: string, delegate: string) =>
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `Este informe se envió a <mention-user>@${originalManager}</mention-user> para su aprobación ya que tú no puedes aprobar tus propios informes`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
                 `Este informe se te ha enviado para aprobación porque tu sustituto de vacaciones, <mention-user>@${delegate}</mention-user>, no puede aprobar sus propios informes`,
             delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
                 `Este informe se envió a <mention-user>@${originalManager}</mention-user> para su aprobación, ya que su delegado de vacaciones, <mention-user>@${delegate}</mention-user>, no puede aprobar sus propios informes`,

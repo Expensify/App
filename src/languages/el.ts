@@ -320,6 +320,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automatic: 'Αυτόματο',
         showing: 'Εμφανίζονται',
         of: 'του',
+        // @context Carousel pagination counter showing the current item's position out of the total (e.g. "3 of 50").
         currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} από ${total}`,
         default: 'Προεπιλογή',
         update: 'Ενημέρωση',
@@ -1766,9 +1767,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Αυτή η αναφορά σας στάλθηκε αντί για τον αναπληρωτή σας διακοπών <mention-user>@${delegate}</mention-user>, επειδή δεν είναι μέλος της πολιτικής αυτής της αναφοράς`,
             delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
                 `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> αντί για τον/την αναπληρωτή/τριά τους για διακοπές <mention-user>@${delegate}</mention-user>, επειδή δεν είναι μέλος της πολιτικής αυτής της αναφοράς`,
-            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string, delegate: string) =>
-                `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> για έγκριση, επειδή ο/η <mention-user>@${delegate}</mention-user> δεν μπορεί να εγκρίνει τις δικές του/της αναφορές`,
-            delegateSubmitCannotApproveOwnReportAsOriginalManager: (originalManager: string, delegate: string) =>
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> για έγκριση, επειδή δεν μπορείτε να εγκρίνετε τις δικές σας αναφορές`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
                 `Αυτή η αναφορά σας στάλθηκε για έγκριση, επειδή ο Αντικαταστάτης Διακοπών σας, <mention-user>@${delegate}</mention-user>, δεν μπορεί να εγκρίνει τις δικές του αναφορές`,
             delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
                 `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> για έγκριση, καθώς ο/η αναπληρωτής/αναπληρώτριά τους για άδεια, <mention-user>@${delegate}</mention-user>, δεν μπορεί να εγκρίνει τις δικές του/της αναφορές`,

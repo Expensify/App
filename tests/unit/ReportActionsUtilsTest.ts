@@ -3758,7 +3758,7 @@ describe('ReportActionsUtils', () => {
             const action = buildDelegateSubmitAction();
 
             expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, delegateEmail)).toBe(
-                translateLocal('iou.changeApprover.delegateSubmitCannotApproveOwnReportForWingman', originalManagerEmail, delegateEmail),
+                translateLocal('iou.changeApprover.delegateSubmitCannotApproveOwnReportForWingman', originalManagerEmail),
             );
         });
 
@@ -3766,7 +3766,7 @@ describe('ReportActionsUtils', () => {
             const action = buildDelegateSubmitAction();
 
             expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, originalManagerEmail)).toBe(
-                translateLocal('iou.changeApprover.delegateSubmitCannotApproveOwnReportAsOriginalManager', originalManagerEmail, delegateEmail),
+                translateLocal('iou.changeApprover.delegateSubmitCannotApproveOwnReportAsOriginalManager', delegateEmail),
             );
         });
 

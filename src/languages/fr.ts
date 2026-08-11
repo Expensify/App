@@ -1730,9 +1730,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Cette note de frais vous a été envoyée au lieu d’être adressée à votre remplaçant pour congés <mention-user>@${delegate}</mention-user>, car il n’est pas membre de la politique de cette note de frais`,
             delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
                 `Cette note de frais a été envoyée à <mention-user>@${originalManager}</mention-user> au lieu de son remplaçant en congé <mention-user>@${delegate}</mention-user>, car il n’est pas membre de la politique de cette note de frais`,
-            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string, delegate: string) =>
-                `Cette note de frais a été envoyée à <mention-user>@${originalManager}</mention-user> pour approbation, car <mention-user>@${delegate}</mention-user> ne peut pas approuver ses propres notes de frais`,
-            delegateSubmitCannotApproveOwnReportAsOriginalManager: (originalManager: string, delegate: string) =>
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `Cette note de frais a été envoyée à <mention-user>@${originalManager}</mention-user> pour approbation, car vous ne pouvez pas approuver vos propres notes de frais`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
                 `Cette note de frais vous a été envoyée pour approbation, car votre remplaçant pendant les vacances, <mention-user>@${delegate}</mention-user>, ne peut pas approuver ses propres notes de frais`,
             delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
                 `Cette note de frais a été envoyée à <mention-user>@${originalManager}</mention-user> pour approbation, car sa personne déléguée pour les congés, <mention-user>@${delegate}</mention-user>, ne peut pas approuver ses propres notes de frais`,

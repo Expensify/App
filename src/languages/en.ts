@@ -1794,9 +1794,9 @@ const translations = {
                 `This report was sent to you instead of your Vacation Delegate <mention-user>@${delegate}</mention-user> because they are not a member of this report's policy`,
             delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
                 `This report was sent to <mention-user>@${originalManager}</mention-user> instead of their Vacation Delegate <mention-user>@${delegate}</mention-user> because they are not a member of this report's policy`,
-            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string, delegate: string) =>
-                `This report was sent to <mention-user>@${originalManager}</mention-user> for approval since <mention-user>@${delegate}</mention-user> can't approve your own reports`,
-            delegateSubmitCannotApproveOwnReportAsOriginalManager: (originalManager: string, delegate: string) =>
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `This report was sent to <mention-user>@${originalManager}</mention-user> for approval since you can't approve your own reports`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
                 `This report was sent to you for approval since your Vacation Delegate, <mention-user>@${delegate}</mention-user> can't approve their own reports`,
             delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
                 `This report was sent to <mention-user>@${originalManager}</mention-user> for approval since their Vacation Delegate, <mention-user>@${delegate}</mention-user> can't approve their own reports`,

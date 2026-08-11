@@ -1718,9 +1718,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Este relatório foi enviado para você em vez do seu delegante de férias <mention-user>@${delegate}</mention-user> porque ele não é membro da política deste relatório`,
             delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
                 `Este relatório foi enviado para <mention-user>@${originalManager}</mention-user> em vez do Delegado de Férias deles <mention-user>@${delegate}</mention-user> porque ele não é membro da política deste relatório`,
-            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string, delegate: string) =>
-                `Este relatório foi enviado para <mention-user>@${originalManager}</mention-user> para aprovação, já que <mention-user>@${delegate}</mention-user> não pode aprovar os próprios relatórios`,
-            delegateSubmitCannotApproveOwnReportAsOriginalManager: (originalManager: string, delegate: string) =>
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `Este relatório foi enviado para <mention-user>@${originalManager}</mention-user> para aprovação, já que você não pode aprovar seus próprios relatórios`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
                 `Este relatório foi enviado para você para aprovação, pois o seu Delegado de Férias, <mention-user>@${delegate}</mention-user>, não pode aprovar os próprios relatórios`,
             delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
                 `Este relatório foi enviado para <mention-user>@${originalManager}</mention-user> para aprovação, já que o Delegado de Férias dele(a), <mention-user>@${delegate}</mention-user>, não pode aprovar os próprios relatórios`,

@@ -1719,9 +1719,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Dit rapport is naar jou gestuurd in plaats van naar je Vakantievertegenwoordiger <mention-user>@${delegate}</mention-user>, omdat die geen lid is van het beleid van dit rapport`,
             delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
                 `Dit rapport is naar <mention-user>@${originalManager}</mention-user> gestuurd in plaats van naar hun vervangende gemachtigde <mention-user>@${delegate}</mention-user>, omdat die geen lid is van het beleid van dit rapport`,
-            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string, delegate: string) =>
-                `Dit rapport is ter goedkeuring verzonden naar <mention-user>@${originalManager}</mention-user>, omdat <mention-user>@${delegate}</mention-user> je eigen rapporten niet kan goedkeuren`,
-            delegateSubmitCannotApproveOwnReportAsOriginalManager: (originalManager: string, delegate: string) =>
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `Dit rapport is ter goedkeuring verzonden naar <mention-user>@${originalManager}</mention-user>, omdat je je eigen rapporten niet kunt goedkeuren`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
                 `Dit rapport is naar je gestuurd voor goedkeuring omdat je Vakantievervanger, <mention-user>@${delegate}</mention-user>, zijn of haar eigen rapporten niet kan goedkeuren`,
             delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
                 `Dit rapport is ter goedkeuring verzonden naar <mention-user>@${originalManager}</mention-user>, omdat hun vakantieplaatsvervanger, <mention-user>@${delegate}</mention-user>, hun eigen rapporten niet kan goedkeuren`,

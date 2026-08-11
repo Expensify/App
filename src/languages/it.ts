@@ -1723,9 +1723,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Questo resoconto è stato inviato a te invece che al tuo delegato per le vacanze <mention-user>@${delegate}</mention-user> perché non è un membro della policy di questo resoconto`,
             delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
                 `Questo resoconto è stato inviato a <mention-user>@${originalManager}</mention-user> invece che al/dei suo/i sostituto/i per le ferie <mention-user>@${delegate}</mention-user> perché non fanno parte della polizza di questo resoconto`,
-            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string, delegate: string) =>
-                `Questo resoconto è stato inviato a <mention-user>@${originalManager}</mention-user> per l'approvazione perché <mention-user>@${delegate}</mention-user> non può approvare i propri resoconti`,
-            delegateSubmitCannotApproveOwnReportAsOriginalManager: (originalManager: string, delegate: string) =>
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `Questo resoconto è stato inviato a <mention-user>@${originalManager}</mention-user> per l'approvazione perché tu non puoi approvare i tuoi resoconti`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
                 `Questo rendiconto ti è stato inviato per l'approvazione perché il tuo sostituto per le ferie, <mention-user>@${delegate}</mention-user>, non può approvare i propri rendiconti`,
             delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
                 `Questo resoconto è stato inviato a <mention-user>@${originalManager}</mention-user> per l’approvazione, dato che il suo delegato per le ferie, <mention-user>@${delegate}</mention-user>, non può approvare i propri resoconti`,
