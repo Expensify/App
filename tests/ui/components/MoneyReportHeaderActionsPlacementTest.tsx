@@ -192,6 +192,30 @@ describe('MoneyReportHeader actions placement', () => {
         expect(mockedMoreContent.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({shouldRenderActionsInRow: false}));
     });
 
+    it.each([
+        ['an invoice report, whose chat report is an invoice room', {reportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM} as Report],
+        [
+            'a workspace report, whose chat report is a policy expense chat',
+            {reportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT} as Report,
+        ],
+    ])('keeps the actions on the title row for %s', (_label, chatReport) => {
+        mockedUseOnyx.mockImplementation((key) => {
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`) {
+                return [iouReport, {status: 'loaded'}];
+            }
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`) {
+                return [chatReport, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
+        mockedUseRoute.mockReturnValue({key: 'route-1', name: SCREENS.REPORT, params: {}});
+
+        const {toJSON} = renderHeader();
+
+        expect(getHeaderRowTestIDs(toJSON())).toContain(ACTIONS_TEST_ID);
+        expect(mockedMoreContent.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({shouldRenderActionsInRow: false}));
+    });
+
     it('renders the actions before the carousel so the carousel stays pinned to the top right', () => {
         mockedUseRoute.mockReturnValue({key: 'route-1', name: SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, params: {}});
 
