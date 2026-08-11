@@ -3365,7 +3365,7 @@ const ROUTES = {
     },
     WORKSPACE_RULES: {
         route: 'workspaces/:policyID/rules',
-        /** @param tab preselects a Rules tab; the page otherwise restores the last one used */
+        /** @param tab preselects a Rules tab. The page otherwise restores the last one used. */
         getRoute: (policyID: string | undefined, tab?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_RULES route');
