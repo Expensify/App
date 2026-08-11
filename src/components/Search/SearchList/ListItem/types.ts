@@ -165,6 +165,9 @@ type TransactionListItemType = ListItem &
         /** Key used internally by React */
         keyForList: string;
 
+        /** Parent selection key when this transaction is rendered inside a lazily loaded group. */
+        selectionGroupKey?: string;
+
         /** The name of the file used for a receipt */
         filename?: string;
 
