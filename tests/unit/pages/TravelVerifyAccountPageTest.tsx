@@ -3,12 +3,17 @@ import {render} from '@testing-library/react-native';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
+import type {TravelNavigatorParamList} from '@libs/Navigation/types';
+
 import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
 import VerifyAccountPage from '@pages/Travel/VerifyAccountPage';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import type {StackScreenProps} from '@react-navigation/stack';
+import type {UseOnyxResult} from 'react-native-onyx';
 
 import React from 'react';
 
@@ -24,27 +29,27 @@ const BACK_TO = ROUTES.TRAVEL_MY_TRIPS.getRoute(POLICY_ID);
 const mockedUseOnyx = jest.mocked(useOnyx);
 const mockedUsePermissions = jest.mocked(usePermissions);
 const mockedVerifyAccountPageBase = jest.mocked(VerifyAccountPageBase);
+const permissions: ReturnType<typeof usePermissions> = {isBetaEnabled: (beta) => beta === CONST.BETAS.IS_TRAVEL_VERIFIED};
+
+function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T> {
+    return [value, {status: 'loaded'}];
+}
 
 function renderVerifyAccountPage(shouldResumeBooking?: string) {
-    const route = {
+    const route: StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.VERIFY_ACCOUNT>['route'] = {
         key: 'Travel_VerifyAccount-test',
         name: SCREENS.TRAVEL.VERIFY_ACCOUNT,
         params: {policyID: POLICY_ID, backTo: BACK_TO, shouldResumeBooking},
-    } as never;
+    };
 
-    return render(
-        <VerifyAccountPage
-            route={route}
-            navigation={{} as never}
-        />,
-    );
+    return render(<VerifyAccountPage route={route} />);
 }
 
 describe('Travel VerifyAccountPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockedUseOnyx.mockReturnValue([undefined] as never);
-        mockedUsePermissions.mockReturnValue({isBetaEnabled: (beta) => beta === CONST.BETAS.IS_TRAVEL_VERIFIED} as never);
+        mockedUseOnyx.mockImplementation(() => createOnyxResult(undefined));
+        mockedUsePermissions.mockReturnValue(permissions);
     });
 
     it('continues an admin verification into Travel enablement', () => {
@@ -62,14 +67,15 @@ describe('Travel VerifyAccountPage', () => {
     it('returns a non-admin booking verification to its originating screen', () => {
         renderVerifyAccountPage('true');
 
+        const verifyAccountPageProps = mockedVerifyAccountPageBase.mock.calls.at(-1)?.[0];
         expect(mockedVerifyAccountPageBase).toHaveBeenCalledWith(
             expect.objectContaining({
                 navigateBackTo: BACK_TO,
                 navigateForwardTo: undefined,
-                handleClose: expect.any(Function),
                 onValidationSuccess: undefined,
             }),
             undefined,
         );
+        expect(typeof verifyAccountPageProps?.handleClose).toBe('function');
     });
 });

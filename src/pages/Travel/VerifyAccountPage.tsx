@@ -16,7 +16,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 
 import React, {useCallback, useEffect} from 'react';
 
-type VerifyAccountPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.VERIFY_ACCOUNT>;
+type VerifyAccountPageProps = Pick<StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.VERIFY_ACCOUNT>, 'route'>;
 
 function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const {backTo, policyID, shouldResumeBooking: shouldResumeBookingParam} = route.params;
