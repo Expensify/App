@@ -30,6 +30,7 @@ type NavigateToTransactionThreadParams = {
     /** Ordered list of sibling transaction IDs used to drive the prev/next carousel in the thread RHP */
     siblingTransactionIDs: string[];
 
+    /** When true, keep an already-active broader carousel (e.g. the Spend page's list) instead of re-seeding it with just this report's siblings */
     shouldPreserveBroaderCarousel?: boolean;
 
     /** Route to return to when navigating back; defaults to the current active route */
