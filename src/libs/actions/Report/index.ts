@@ -31,6 +31,7 @@ import type {
     RemoveFromGroupChatParams,
     RemoveFromRoomParams,
     ReportExportParams,
+    ResolveAgentRuleApplyOfferParams,
     ResolveActionableMentionWhisperParams,
     ResolveActionableReportMentionWhisperParams,
     SearchForReportsParams,
@@ -6184,6 +6185,71 @@ function dismissTrackExpenseActionableWhisper(reportID: string | undefined, repo
     API.write(WRITE_COMMANDS.DISMISS_TRACK_EXPENSE_ACTIONABLE_WHISPER, params, {optimisticData, failureData});
 }
 
+function resolveActionableApplyAgentRule(
+    reportID: string | undefined,
+    reportAction: OnyxEntry<ReportAction>,
+    resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_APPLY_AGENT_RULE_RESOLUTION>,
+): void {
+    const reportActionID = reportAction?.reportActionID;
+    if (!reportID || !reportActionID) {
+        return;
+    }
+
+    // errors is cleared explicitly so a retry after a failed resolution doesn't keep the stale
+    // error attached to the action once it succeeds.
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: {
+                    originalMessage: {
+                        resolution,
+                    },
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    errors: null,
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: {
+                    pendingAction: null,
+                    errors: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: {
+                    originalMessage: {
+                        resolution: null,
+                    },
+                    pendingAction: null,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+    ];
+
+    const params: ResolveAgentRuleApplyOfferParams = {
+        reportActionID,
+        resolution,
+    };
+
+    API.write(WRITE_COMMANDS.RESOLVE_AGENT_RULE_APPLY_OFFER, params, {optimisticData, successData, failureData});
+}
+
 function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
     Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, newGroupDraft);
 }
@@ -8455,6 +8521,7 @@ export {
     readNewestAction,
     removeFromGroupChat,
     removeFromRoom,
+    resolveActionableApplyAgentRule,
     resolveActionableMentionWhisper,
     resolveActionableMentionConfirmWhisper,
     resolveActionableReportMentionWhisper,

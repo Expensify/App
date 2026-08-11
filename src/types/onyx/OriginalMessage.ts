@@ -186,6 +186,27 @@ type OriginalMessageActionableMentionWhisper = {
     parentReportActionID?: string;
 };
 
+/** Model of the `actionable apply agent rule` report action — RuleBot's offer to retroactively apply a new/edited agent rule */
+type OriginalMessageActionableApplyAgentRule = {
+    /** ID of the policy (workspace) the agent rule belongs to */
+    policyID: string;
+
+    /** ID of the agent rule the offer is about */
+    ruleID: string;
+
+    /** Title of the agent rule at offer time */
+    ruleTitle: string;
+
+    /** Estimated number of open expenses/reports the rule would affect */
+    estimatedCount: number;
+
+    /** Date of the oldest item the rule would match */
+    oldestMatchDate?: string;
+
+    /** Decision on whether to retroactively apply the rule or ignore the offer */
+    resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_APPLY_AGENT_RULE_RESOLUTION> | null;
+};
+
 /** Model of `actionable card fraud alert` report action */
 type OriginalMessageCardFraudAlert = {
     /** Card ID */
@@ -1697,6 +1718,7 @@ type OriginalMessageTravelNudge = {
 /* eslint-disable jsdoc/require-jsdoc */
 type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD]: OriginalMessageAddPaymentCard;
+    [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_APPLY_AGENT_RULE]: OriginalMessageActionableApplyAgentRule;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL]: OriginalMessageActionableCard3DSTransactionApproval;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT]: OriginalMessageCardFraudAlert;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST]: OriginalMessageJoinPolicy;

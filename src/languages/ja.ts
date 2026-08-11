@@ -7785,6 +7785,12 @@ ${reportName}`,
                 describeRuleForConcierge: 'ルールの内容を入力すると、Concierge が自動作成します',
                 gotIt: '了解しました',
                 createRule: 'ルールを作成',
+                applyOffer: {
+                    message: ({ruleTitle, count}: {ruleTitle: string; count: number}) =>
+                        `エージェントルール「${ruleTitle}」を${count}件の未処理の経費に適用することを提案しました。遡って適用しますか？`,
+                    applyButtonText: '遡って適用',
+                    dismissButtonText: '適用しない',
+                },
             },
             tabs: {
                 general: '一般',

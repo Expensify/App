@@ -8322,6 +8322,13 @@ ${reportName}`,
                 unableToChangeRoleTitle: 'Αδυναμία αλλαγής ρόλου',
                 unableToChangeRolePrompt: (rulesRoute: string) =>
                     `Οι <a href="${rulesRoute}">κανόνες πράκτορα</a> που εφαρμόζει το RuleBot πρέπει πρώτα να αφαιρεθούν από τον χώρο εργασίας σας προτού μπορέσετε να αλλάξετε τον ρόλο αυτού του πράκτορα.`,
+                applyRetroactively: 'Εφαρμογή του κανόνα και σε παλαιότερες δαπάνες',
+                applyOffer: {
+                    message: ({ruleTitle, count}: {ruleTitle: string; count: number}) =>
+                        `προσφέρθηκε να εφαρμόσει τον κανόνα πράκτορα «${ruleTitle}» σε ${count} ${count === 1 ? 'ανοιχτή δαπάνη' : 'ανοιχτές δαπάνες'}. Θέλετε να εφαρμοστεί αναδρομικά;`,
+                    applyButtonText: 'Αναδρομική εφαρμογή',
+                    dismissButtonText: 'Να μην εφαρμοστεί',
+                },
             },
             agentRulesEmptyState: {
                 title: 'Δεν προστέθηκαν κανόνες πράκτορα',
