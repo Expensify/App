@@ -771,6 +771,78 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.modifiedMerchant).not.toContain('20');
         });
 
+        it('recalculates commuter exclusion data when an alternate route is selected', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 3,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            default: {
+                                customUnitRateID: '1',
+                                currency: CONST.CURRENCY.USD,
+                                rate: 1,
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            // A 10 mile primary route and a 20 mile alternate one.
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    selectedRouteKey: CONST.TRANSACTION.DEFAULT_ROUTE_KEY,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                        routeDistanceMeters: 16093.44,
+                        commuterExclusion: 3,
+                        reimbursableDistance: 7,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    },
+                },
+                routes: {
+                    route0: {
+                        distance: 16093.44,
+                        geometry: {coordinates: [[0, 0] as [number, number], [1, 1] as [number, number]]},
+                    },
+                    route1: {
+                        distance: 32186.88,
+                        geometry: {coordinates: [[0, 0] as [number, number], [2, 2] as [number, number]]},
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+            });
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {selectedRouteKey: 'route1'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            // The commute is excluded from the new route's distance, so only the 17 reimbursable miles are charged.
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(20);
+            expect(updatedTransaction.comment?.customUnit?.routeDistanceMeters).toBe(32186.88);
+            expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBe(3);
+            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBe(17);
+            expect(updatedTransaction.modifiedAmount).toBe(17);
+            expect(updatedTransaction.modifiedMerchant).toContain('17');
+            expect(updatedTransaction.modifiedMerchant).not.toContain('20');
+        });
+
         it('converts commuter exclusion data when the distance rate unit is changed', () => {
             // Given a policy with a 3 mile fixed distance commuter exclusion and a kilometer rate
             const fakePolicy: Policy = {

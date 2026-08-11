@@ -292,7 +292,7 @@ function MapViewImpl({
                 // Only the interactive route layers report hover, so the pointer cursor shows up exclusively when there is an alternate route to pick.
                 onMouseEnter={() => setIsHoveringDirection(true)}
                 onMouseLeave={() => setIsHoveringDirection(false)}
-                cursor={isHoveringDirection ? 'pointer' : undefined}
+                cursor={isHoveringDirection && hasAlternateDirection ? 'pointer' : undefined}
             >
                 {interactive && shouldDisplayCurrentLocation && (
                     <Marker

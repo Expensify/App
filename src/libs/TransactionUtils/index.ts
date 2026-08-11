@@ -973,22 +973,48 @@ function getUpdatedTransaction({
         if (selectedRouteDistanceInMeters) {
             const mileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, personalPolicyOutputCurrency});
             const {unit, rate} = mileageRate;
-            const amount = DistanceRequestUtils.getDistanceRequestAmount(selectedRouteDistanceInMeters, unit, rate ?? 0);
+
+            // `getDistanceInMeters` prefers `customUnit.quantity`, so it has to follow the new route or the displayed
+            // distance would keep showing the previously selected route. This is done before the commuter exclusion is
+            // re-derived below, because that reads the quantity as the route distance to subtract the commute from.
+            if (unit) {
+                lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(selectedRouteDistanceInMeters, unit)));
+                lodashSet(updatedTransaction, 'comment.customUnit.routeDistanceMeters', selectedRouteDistanceInMeters);
+            }
+
+            // The commute is excluded from the new route's distance the same way the distance/rate edits above do it,
+            // so the optimistic amount and the modified expense message charge only the reimbursable distance instead
+            // of the whole route. The stored `commuterExclusion`/`reimbursableDistance` also have to be recomputed or
+            // the distance field would keep describing the previously selected route's breakdown.
+            const commuterExclusionTransactionData = hasAppliedCommuterExclusion(updatedTransaction)
+                ? DistanceRequestUtils.getTransactionCommuterExclusionData({
+                      transaction: updatedTransaction,
+                      policy,
+                      personalPolicyOutputCurrency,
+                  })
+                : undefined;
+
+            if (commuterExclusionTransactionData) {
+                lodashSet(updatedTransaction, 'comment.customUnit', commuterExclusionTransactionData.customUnit);
+            }
+
+            const amount = commuterExclusionTransactionData?.modifiedAmount ?? DistanceRequestUtils.getDistanceRequestAmount(selectedRouteDistanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
             const updatedCurrency = mileageRate.currency ?? transaction.currency ?? CONST.CURRENCY.USD;
 
             updatedTransaction.modifiedAmount = updatedAmount;
-            updatedTransaction.modifiedMerchant = getRecalculatedDistanceMerchant(transaction, selectedRouteDistanceInMeters, unit, rate, updatedCurrency, getCurrencySymbol);
+            updatedTransaction.modifiedMerchant = getRecalculatedDistanceMerchant(
+                transaction,
+                selectedRouteDistanceInMeters,
+                unit,
+                rate,
+                updatedCurrency,
+                getCurrencySymbol,
+                DistanceRequestUtils.getCommuterExclusionDisplayData(commuterExclusionTransactionData?.customUnit, unit),
+            );
 
             if (getCurrency(updatedTransaction) !== updatedCurrency) {
                 updatedTransaction.modifiedCurrency = updatedCurrency;
-            }
-
-            // `getDistanceInMeters` prefers `customUnit.quantity`, so it has to follow the new route or the displayed
-            // distance would keep showing the previously selected route.
-            if (unit) {
-                lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(selectedRouteDistanceInMeters, unit)));
-                lodashSet(updatedTransaction, 'comment.customUnit.routeDistanceMeters', selectedRouteDistanceInMeters);
             }
         }
     }
