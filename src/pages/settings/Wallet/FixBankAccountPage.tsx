@@ -43,8 +43,9 @@ function FixBankAccountPage() {
     const illustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenBank', 'ScissorsCuttingMoney']);
 
     const bankAccountID = route.params?.bankAccountID ? Number(route.params?.bankAccountID) : undefined;
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const bankAccount = route.params?.bankAccountID ? bankAccountList?.[route.params?.bankAccountID] : undefined;
+    const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
+        selector: (list) => (route.params?.bankAccountID ? list?.[route.params?.bankAccountID] : undefined),
+    });
     const accountData = bankAccount?.accountData;
 
     const isInsufficientFunds = hasInsufficientFundsError(accountData);
