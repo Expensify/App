@@ -410,7 +410,7 @@ describe('DistanceRequestUtils', () => {
             [1, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, 'Removed 1.00 commuter kilometer'],
             [2, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, 'Removed 2.00 commuter kilometers'],
         ])('localizes a commuter exclusion of %s %s', (commuterExclusion, unit, expected) => {
-            const translation = en.distance.commuterExclusion.removedCommuterDistance({distance: commuterExclusion.toFixed(2), unit: '', distanceUnit: unit});
+            const translation = en.distance.commuterExclusion.removedCommuterDistance({distance: commuterExclusion.toFixed(2), distanceUnit: unit});
 
             expect(commuterExclusion === 1 ? translation.one : translation.other).toBe(expected);
         });
@@ -434,7 +434,6 @@ describe('DistanceRequestUtils', () => {
 
             expect(translateMock).toHaveBeenCalledWith('distance.commuterExclusion.removedCommuterDistance', {
                 distance: '1.00',
-                unit: translateLocal('common.mile'),
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
                 count: 1,
             });
