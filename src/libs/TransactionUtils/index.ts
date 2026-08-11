@@ -749,6 +749,7 @@ function getUpdatedTransaction({
         shouldStopSmartscan = true;
 
         const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+        const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
 
         // Get the new distance unit from the rate's unit
         const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
@@ -758,7 +759,11 @@ function getUpdatedTransaction({
         // Skip conversion for odometer transactions — odometer readings are physical car readings and should be retained as-is.
         if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit && !isOdometerDistanceRequest(transaction)) {
             const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
-            const distance = roundToTwoDecimalPlaces((transaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor);
+            const distance = roundToTwoDecimalPlaces(
+                typeof routeDistanceMeters === 'number'
+                    ? DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, newDistanceUnit)
+                    : (transaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor,
+            );
             lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
         }
 
@@ -781,7 +786,11 @@ function getUpdatedTransaction({
                         const fallbackConversionFactor =
                             newDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
                         const currentQuantity = updatedTransaction?.comment?.customUnit?.quantity ?? 0;
-                        lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(currentQuantity * fallbackConversionFactor));
+                        const distance =
+                            typeof routeDistanceMeters === 'number'
+                                ? DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, rateFromAnyPolicy.unit)
+                                : currentQuantity * fallbackConversionFactor;
+                        lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(distance));
                     }
                 }
             }
