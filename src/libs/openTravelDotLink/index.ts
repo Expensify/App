@@ -12,7 +12,7 @@ const openTravelDotLink = (activePolicyID?: string, postLoginPath?: string, spot
     openTravelDotLinkWeb(activePolicyID, postLoginPath)
         ?.then(() => {})
         ?.catch(() => {
-            // Callers that render their own inline error (e.g. BookTravelButton) pass onError; the Manage Trips
+            // Callers that render their own inline error (e.g. BookTravelButton) pass onError. The Manage Trips
             // redirect is the fallback for entry points that have nowhere to show one.
             if (onError) {
                 onError();
