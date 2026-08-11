@@ -441,6 +441,7 @@ function resolveDuplicates({
     transactionThreadReportIDMap,
     allTransactionViolations,
     allReportActionsList,
+    delegateAccountID,
     ...params
 }: MergeDuplicatesParams & {
     taxAmount?: number;
@@ -448,6 +449,7 @@ function resolveDuplicates({
     transactionThreadReportIDMap: Record<string, string | undefined>;
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
+    delegateAccountID: number | undefined;
 }) {
     if (!params.transactionID) {
         return;
@@ -513,7 +515,7 @@ function resolveDuplicates({
             continue;
         }
 
-        const createdReportAction = buildOptimisticHoldReportAction();
+        const createdReportAction = buildOptimisticHoldReportAction(delegateAccountID);
         reportActionIDList.push(createdReportAction.reportActionID);
         resolvedTransactionIDList.push(transactionID);
         optimisticHoldTransactionActions.push({

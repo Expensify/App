@@ -3350,6 +3350,7 @@ describe('actions/Report', () => {
                 reportTransactions: {},
                 allTransactionViolations: {},
                 bankAccountList: {},
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3462,6 +3463,7 @@ describe('actions/Report', () => {
                 },
                 allTransactionViolations: {},
                 bankAccountList: {},
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3534,6 +3536,7 @@ describe('actions/Report', () => {
                 reportTransactions: {},
                 allTransactionViolations: {},
                 bankAccountList: {},
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -9687,6 +9690,7 @@ describe('actions/Report', () => {
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
                 selfDMReportActions: undefined,
+                delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
@@ -9755,6 +9759,7 @@ describe('actions/Report', () => {
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
                 selfDMReportActions: undefined,
+                delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
@@ -9813,6 +9818,7 @@ describe('actions/Report', () => {
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
                 selfDMReportActions: undefined,
+                delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();

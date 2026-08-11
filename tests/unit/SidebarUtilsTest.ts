@@ -1499,6 +1499,7 @@ describe('SidebarUtils', () => {
                 translate: translateWithHiddenMarker,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toContain('HiddenMarker');
         });
@@ -1525,6 +1526,7 @@ describe('SidebarUtils', () => {
                 translate: translateWithUnavailableMarker,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
         });
@@ -1550,6 +1552,7 @@ describe('SidebarUtils', () => {
                 translate: translateWithUnavailableMarker,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
         });
@@ -1575,6 +1578,7 @@ describe('SidebarUtils', () => {
                 translate: translateWithUnavailableMarker,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toContain('UnavailableWorkspaceMarker');
         });
@@ -1609,6 +1613,7 @@ describe('SidebarUtils', () => {
                             translate: translateLocal,
                             localeCompare,
                             conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                            formatPhoneNumber,
                         });
                         expect(result.messageHtml).toContain('This chat is with');
                         expect(result.messageHtml).toContain('<user-details accountid="1">');
@@ -1641,6 +1646,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toBe('This chat is with Email One.');
             expect(result.messageHtml).toContain('<user-details accountid="1">Email One</user-details>');
@@ -1672,6 +1678,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toMatch(/^This chat is with .+ and .+\.$/);
             expect(result.messageText).toContain(' and ');
@@ -1705,6 +1712,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toMatch(/^This chat is with .+, .+, and .+\.$/);
             expect(result.messageText).toContain(', and ');
@@ -1750,6 +1758,7 @@ describe('SidebarUtils', () => {
                             conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
                             derivedReportName: 'Report (archived)',
                             isReportArchived: isReportArchived.current,
+                            formatPhoneNumber,
                         });
                     })
 
@@ -1789,6 +1798,7 @@ describe('SidebarUtils', () => {
                             localeCompare,
                             conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
                             isReportArchived: isReportArchived.current,
+                            formatPhoneNumber,
                         });
                     })
 
@@ -1830,6 +1840,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
 
             expect(result.messageText).toContain('Client Corporation');
@@ -1866,6 +1877,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
 
             // When invoiceReceiverPolicy is undefined (individual payer), it should handle gracefully
@@ -1902,6 +1914,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
 
             // Should not contain invoice-specific messaging
@@ -1946,6 +1959,7 @@ describe('SidebarUtils', () => {
                 derivedReportName: `${senderPolicy.name} owes ${invoiceReceiverPolicy.name}`,
                 isReportArchived: true,
                 reportDetailsLink: 'https://example.com/report',
+                formatPhoneNumber,
             });
 
             // Should show archived message
@@ -1980,6 +1994,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
 
             // Should still return a message, even if invoiceReceiverPolicy is missing
@@ -2015,6 +2030,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toBe('Concierge can answer questions, update expenses, and more.');
         });
@@ -2044,6 +2060,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toBe('This chat is with Email One.');
             expect(result.messageText).not.toContain('Concierge');
@@ -2066,6 +2083,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toBeUndefined();
             expect(result.messageText).toBeUndefined();
@@ -2086,6 +2104,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toBeTruthy();
             expect(result.messageText).not.toContain('Concierge');
@@ -2124,6 +2143,7 @@ describe('SidebarUtils', () => {
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
                 isTrackIntentUser: true,
                 currentUserAccountID,
+                formatPhoneNumber,
             });
             expect(result.messageText).toBe("This is where you'll track expenses.");
         });
@@ -2170,6 +2190,7 @@ describe('SidebarUtils', () => {
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
                 isTrackIntentUser: true,
                 currentUserAccountID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toContain('will submit expenses to');
         });
@@ -2207,6 +2228,7 @@ describe('SidebarUtils', () => {
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
                 isTrackIntentUser: false,
                 currentUserAccountID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toContain('will submit expenses to');
         });
@@ -2245,6 +2267,7 @@ describe('SidebarUtils', () => {
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
                 isTrackIntentUser: true,
                 currentUserAccountID,
+                formatPhoneNumber,
             });
             expect(result.messageHtml).toBe('Custom workspace description');
         });
@@ -3305,6 +3328,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: 0,
 
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
 
                     reportAttributesDerived: mockReportAttributesDerived,
                     formatPhoneNumber,
@@ -3660,6 +3684,7 @@ describe('SidebarUtils', () => {
                             [lastAction.reportActionID]: true,
                         },
                     },
+                    formatPhoneNumber,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
