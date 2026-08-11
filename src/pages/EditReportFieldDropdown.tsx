@@ -2,6 +2,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
@@ -34,13 +35,26 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
 
     const validFieldOptions = fieldOptions?.filter((option) => !!option)?.sort(localeCompare);
 
+    // Freeze the value selected when the picker opened so it drives the pinned "Selected" section for the whole open/focus cycle.
+    // The live value still drives the checkmark, so tapping a row marks it without reordering the list; the reorder happens only on reopen.
+    const initialFieldValue = useInitialSelection(fieldValue, {resetOnFocus: true});
+
     const sections = getReportFieldOptionsSection({
         searchValue: debouncedSearchValue,
+        // Live value drives the checkmark, so tapping a row marks it immediately.
         selectedOptions: [
             {
                 keyForList: fieldValue,
                 searchText: fieldValue,
                 text: fieldValue,
+            },
+        ],
+        // Frozen value drives the pinned section, so the list doesn't reorder while selecting.
+        initiallySelectedOptions: [
+            {
+                keyForList: initialFieldValue,
+                searchText: initialFieldValue,
+                text: initialFieldValue,
             },
         ],
         options: validFieldOptions,
@@ -49,7 +63,7 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
     });
 
     const policyReportFieldData = sections.at(0)?.data ?? [];
-    const selectedOptionKey = policyReportFieldData.filter((option) => option.searchText === fieldValue)?.at(0)?.keyForList;
+    const selectedOptionKey = policyReportFieldData.filter((option) => option.searchText === initialFieldValue)?.at(0)?.keyForList;
 
     const textInputOptions = {
         value: searchValue,
@@ -66,6 +80,7 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
             textInputOptions={textInputOptions}
             onSelectRow={(option) => onSubmit({[fieldKey]: !option?.text || fieldValue === option.text ? '' : option.text})}
             initiallyFocusedItemKey={selectedOptionKey}
+            shouldUpdateFocusedIndex
         />
     );
 }
