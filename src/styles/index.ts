@@ -1701,9 +1701,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         labelStrong: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightNormal,
+            ...textVariants.labelStrong,
         },
 
         textLabelSupporting: {

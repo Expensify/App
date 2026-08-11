@@ -10,6 +10,7 @@ import variables from './variables';
  * and variables.ts (enforced by the `rulesdir/no-raw-typography` lint rule).
  */
 const fontScale = {
+    finePrint: variables.fontSizeExtraSmall,
     micro: variables.fontSizeSmall,
     label: variables.fontSizeLabel,
     text: variables.fontSizeNormal,
@@ -20,6 +21,7 @@ const fontScale = {
 } as const;
 
 const lineHeightScale = {
+    finePrint: variables.lineHeightFinePrint,
     micro: variables.lineHeightSmall,
     label: variables.lineHeightNormal,
     text: variables.fontSizeNormalHeight,
@@ -33,6 +35,8 @@ const fontFamilyScale = {
     regular: FontUtils.fontFamily.platform.EXP_NEUE,
     strong: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
     heading: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
+    mono: FontUtils.fontFamily.platform.MONOSPACE,
+    monoStrong: FontUtils.fontFamily.platform.MONOSPACE_BOLD,
 } as const;
 
 /**
@@ -41,6 +45,16 @@ const fontFamilyScale = {
  * never here.
  */
 const textVariants = {
+    finePrint: {
+        ...fontFamilyScale.regular,
+        fontSize: fontScale.finePrint,
+        lineHeight: lineHeightScale.finePrint,
+    },
+    finePrintStrong: {
+        ...fontFamilyScale.strong,
+        fontSize: fontScale.finePrint,
+        lineHeight: lineHeightScale.finePrint,
+    },
     micro: {
         ...fontFamilyScale.regular,
         fontSize: fontScale.micro,
@@ -56,6 +70,11 @@ const textVariants = {
         fontSize: fontScale.label,
         lineHeight: lineHeightScale.label,
     },
+    labelStrong: {
+        ...fontFamilyScale.strong,
+        fontSize: fontScale.label,
+        lineHeight: lineHeightScale.label,
+    },
     text: {
         ...fontFamilyScale.regular,
         fontSize: fontScale.text,
@@ -63,6 +82,16 @@ const textVariants = {
     },
     textStrong: {
         ...fontFamilyScale.strong,
+        fontSize: fontScale.text,
+        lineHeight: lineHeightScale.text,
+    },
+    mono: {
+        ...fontFamilyScale.mono,
+        fontSize: fontScale.text,
+        lineHeight: lineHeightScale.text,
+    },
+    monoStrong: {
+        ...fontFamilyScale.monoStrong,
         fontSize: fontScale.text,
         lineHeight: lineHeightScale.text,
     },
