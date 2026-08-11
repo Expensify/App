@@ -111,7 +111,7 @@ describe('LoadTestState', () => {
             setLoadTestParameters(JSON.stringify({multiplier: 3, expire: FUTURE}));
 
             // When we ask for the duplicate count
-            // Then we should fan out to 2 duplicate requests per real request
+            // Then we should make 2 duplicate requests per real request
             expect(getDuplicateRequestCount()).toBe(2);
 
             // And given we change the multiplier to 10
@@ -126,7 +126,7 @@ describe('LoadTestState', () => {
             setLoadTestParameters(JSON.stringify({multiplier: 1_000_000, expire: FUTURE}));
 
             // When we ask for the duplicate count
-            // Then we never fan out to more than MAX_MULTIPLIER - 1 duplicates per real request
+            // Then we never send more than MAX_MULTIPLIER - 1 duplicates per real request
             expect(getDuplicateRequestCount()).toBe(MAX_MULTIPLIER - 1);
         });
 

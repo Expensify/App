@@ -77,6 +77,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {ColorValue} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
@@ -4907,6 +4908,7 @@ function getTransactionDetails(
     allowNegativeAmount = false,
     disableOppositeConversion = false,
     reportOwnerAsAttendee?: Attendee,
+    dateFnsLocale?: DateFnsLocale,
 ): TransactionDetails | undefined {
     if (!transaction) {
         return;
@@ -4916,7 +4918,7 @@ function getTransactionDetails(
     const isFromExpenseReport = (!isEmptyObject(report) && isExpenseReport(report)) || isGroupPolicyPolicyUtils(policy);
 
     return {
-        created: getFormattedCreated(transaction, createdDateFormat),
+        created: getFormattedCreated(transaction, createdDateFormat, dateFnsLocale),
         amount: getTransactionAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
         attendees: getAttendees(transaction, reportOwnerAsAttendee),
         taxAmount: getTaxAmount(transaction, isFromExpenseReport),

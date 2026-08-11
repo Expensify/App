@@ -100,12 +100,14 @@ jest.mock('@react-navigation/native', () => {
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
 const CURRENT_USER_ACCOUNT_ID = 1;
 const options = createFilteredOptionList(personalDetails, reports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
-    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+    dateFnsLocale: undefined,
     conciergeReportID: undefined,
     isSearching: true,
+    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
 });
 
 const ValidOptionsConfig = {
+    dateFnsLocale: undefined,
     betas: mockedBetas,
     includeRecentReports: true,
     includeTasks: true,
@@ -141,6 +143,7 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
             getSearchOptions({
+                dateFnsLocale: undefined,
                 translate: translateLocal,
                 options,
                 betas: mockedBetas,
@@ -205,6 +208,7 @@ describe('OptionsListUtils', () => {
                 MOCK_CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    dateFnsLocale: undefined,
                     betas: mockedBetas,
                     includeMultipleParticipantReports: true,
                     showChatPreviewLine: true,
@@ -270,6 +274,7 @@ describe('OptionsListUtils', () => {
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 undefined,
                 translateLocal,
+                undefined,
                 mockedPersonalDetails,
                 true,
             ),
@@ -283,7 +288,7 @@ describe('OptionsListUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], {}, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, mockedPersonalDetails, true),
+            formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], {}, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, undefined, mockedPersonalDetails, true),
         );
     });
 
@@ -294,6 +299,7 @@ describe('OptionsListUtils', () => {
             clearFilteredOptionListCache();
             return createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 maxRecentReports: 500,
                 isSearching: false,
@@ -306,6 +312,7 @@ describe('OptionsListUtils', () => {
         await measureFunction(() =>
             createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 maxRecentReports: 500,
                 isSearching: true,
@@ -317,6 +324,7 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
         const optionLists = createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            dateFnsLocale: undefined,
             conciergeReportID: undefined,
             maxRecentReports: 500,
             isSearching: true,
@@ -324,6 +332,7 @@ describe('OptionsListUtils', () => {
 
         await measureFunction(() =>
             getSearchOptions({
+                dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: optionLists,
                 betas: mockedBetas,

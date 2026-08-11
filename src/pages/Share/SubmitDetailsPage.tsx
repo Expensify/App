@@ -83,7 +83,7 @@ function SubmitDetailsPage({
     },
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
@@ -224,17 +224,10 @@ function SubmitDetailsPage({
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
         return participant?.accountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(
-                  participant,
-                  privateIsArchived,
-                  policy,
-                  personalDetails,
-                  conciergeReportID,
-                  reportAttributesDerived,
-                  reportDraft,
-                  currentUserPersonalDetails.accountID,
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID, {
                   translate,
-              );
+                  dateFnsLocale,
+              });
     });
 
     const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
