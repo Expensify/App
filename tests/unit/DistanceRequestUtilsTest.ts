@@ -421,7 +421,7 @@ describe('DistanceRequestUtils', () => {
     });
 
     describe('getTransactionCommuterExclusionData', () => {
-        it('builds optimistic commuter fields from route distance in meters', () => {
+        it('uses the policy commuter exclusion when no stored custom unit exists', () => {
             const getCurrencySymbolMock = (currency: string): string | undefined => (currency === CONST.CURRENCY.USD ? '$' : undefined);
             const toLocaleDigitMock = (digit: string) => digit;
             const transaction = {
@@ -447,6 +447,7 @@ describe('DistanceRequestUtils', () => {
             const result = DistanceRequestUtils.getTransactionCommuterExclusionData({
                 transaction,
                 policy,
+                storedCustomUnit: undefined,
                 translate: translateLocal,
                 toLocaleDigit: toLocaleDigitMock,
                 getCurrencySymbol: getCurrencySymbolMock,
