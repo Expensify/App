@@ -2217,7 +2217,6 @@ const CONST = {
         SPAN_SEND_MESSAGE_PHASE: {
             SUBMIT: 'ManualSendMessageSubmit',
             PROPAGATE: 'ManualSendMessagePropagate',
-            COMMIT: 'ManualSendMessageCommit',
             PAINT: 'ManualSendMessagePaint',
         },
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',

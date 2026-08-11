@@ -1,6 +1,5 @@
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
-import {markSendMessageRowRendered} from '@libs/telemetry/sendMessageSpans';
 
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -80,8 +79,6 @@ function ReportActionsListItemRenderer({
     isHarvestCreatedExpenseReport = false,
     shouldDisableContextMenuForConciergeDraft = false,
 }: ReportActionsListItemRendererProps) {
-    markSendMessageRowRendered(reportAction);
-
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
     /**
