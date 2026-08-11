@@ -9,6 +9,7 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePrevious from '@hooks/usePrevious';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStallLogger from '@hooks/useStallLogger';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
@@ -363,6 +364,15 @@ function ReportFetchHandler() {
         }
         updateLoadingInitialReportAction(reportIDFromRoute, true);
     }, [reportIDFromRoute, reportLoadingState.hasOnceLoadedReportActions]);
+
+    // isLoadingInitialReportActions only clears via OpenReport's success/failure Onyx update (no client timeout), so
+    // a reconciliation stall that pauses the queue before that response arrives leaves the skeleton stuck with
+    // nothing else to log it. See Expensify#667674.
+    useStallLogger(
+        isFocused && !!reportIDFromRoute && !!reportLoadingState.isLoadingInitialReportActions && !reportLoadingState.hasOnceLoadedReportActions,
+        '[OpenReportStall] isLoadingInitialReportActions never cleared while the report screen was focused',
+        {reportID: reportIDFromRoute},
+    );
 
     useEffect(() => {
         // Both `Navigation.setParams` and `forceReplace` below act on the currently focused route, but this effect

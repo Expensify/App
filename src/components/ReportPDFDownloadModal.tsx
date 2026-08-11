@@ -1,6 +1,7 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStallLogger from '@hooks/useStallLogger';
 
 import {downloadReportPDF} from '@libs/actions/Report';
 
@@ -33,6 +34,10 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide, onCa
     const reportName = report?.reportName ?? '';
 
     const hasFinishedPDFDownload = !!reportPDFFilename && reportPDFFilename !== CONST.REPORT_DETAILS_MENU_ITEM.ERROR;
+
+    // reportPDFFilename only ever resolves via a backend-pushed Onyx update (no client timeout), so a filename
+    // that never arrives and never errors leaves the spinner stuck with nothing else to log it. See Expensify#667674.
+    useStallLogger(isVisible && !reportPDFFilename, '[PDFStall] reportPDFFilename never resolved to a filename or error while the download modal was open', {reportID});
 
     const message = (() => {
         if (reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR) {
