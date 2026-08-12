@@ -1,3 +1,5 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
 
 import type {ReactElement, ReactNode} from 'react';
@@ -13,6 +15,7 @@ import type {FeatureTrainingCarouselProps} from './types';
 import {FeatureTrainingActionsContext, FeatureTrainingStateContext} from './context';
 import useScrollableWrapper from './hooks/useScrollableWrapper';
 import Body from './primitives/Body';
+import BodyText from './primitives/BodyText';
 import CloseButton from './primitives/CloseButton';
 import Illustration from './primitives/Illustration';
 import Page from './primitives/Page';
@@ -23,11 +26,15 @@ const CAROUSEL_VIEWABILITY_CONFIG: ViewabilityConfig = {itemVisiblePercentThresh
 const WEB_CAROUSEL_PAGE_SNAP_STYLE: ViewStyle = Platform.OS === 'web' ? ({scrollSnapAlign: 'start', scrollSnapStop: 'always'} as ViewStyle) : {};
 
 type BodyElement = ReactElement<React.ComponentProps<typeof Body>>;
+type BodyTextElement = ReactElement<React.ComponentProps<typeof BodyText>>;
 type IllustrationElement = ReactElement<IllustrationProps>;
 type PageElement = ReactElement<React.ComponentProps<typeof Page>>;
 
 function isBodyElement(child: ReactElement): child is BodyElement {
     return child.type === Body;
+}
+function isBodyTextElement(child: ReactElement): child is BodyTextElement {
+    return child.type === BodyText;
 }
 function isIllustrationElement(child: ReactElement): child is IllustrationElement {
     return child.type === Illustration;
@@ -39,11 +46,13 @@ function isPageElement(child: ReactElement): child is PageElement {
 type SplitPage = {
     illustration: IllustrationElement | null;
     body: BodyElement | null;
+    bodyText: BodyTextElement | null;
 };
 
 function splitPageChildren(pageChildren: ReactNode): SplitPage {
     let illustration: IllustrationElement | null = null;
     let body: BodyElement | null = null;
+    let bodyText: BodyTextElement | null = null;
     React.Children.forEach(pageChildren, (child) => {
         if (!isValidElement(child)) {
             return;
@@ -54,9 +63,15 @@ function splitPageChildren(pageChildren: ReactNode): SplitPage {
         }
         if (isBodyElement(child)) {
             body = child;
+            React.Children.forEach(child.props.children, (bodyChild) => {
+                if (!isValidElement(bodyChild) || !isBodyTextElement(bodyChild)) {
+                    return;
+                }
+                bodyText = bodyChild;
+            });
         }
     });
-    return {illustration, body};
+    return {illustration, body, bodyText};
 }
 
 function FeatureTrainingCarousel({
@@ -202,13 +217,13 @@ function FeatureTrainingCarousel({
                             style={probeStyle}
                         >
                             {pages.map((probePage, index) =>
-                                probePage.body == null ? null : (
+                                probePage.bodyText == null ? null : (
                                     <ProbePage
                                         // Static per pages array lifetime — the carousel's page count is fixed at mount.
                                         // eslint-disable-next-line react/no-array-index-key
                                         key={`FeatureTrainingCarousel-probe-${index}`}
                                         index={index}
-                                        body={probePage.body}
+                                        bodyText={probePage.bodyText}
                                         onMeasure={recordPageHeight}
                                     />
                                 ),
@@ -255,13 +270,18 @@ FeatureTrainingCarousel.displayName = 'FeatureTraining.Carousel';
 
 type ProbePageProps = {
     index: number;
-    body: BodyElement;
+    bodyText: BodyTextElement;
     onMeasure: (index: number, height: number) => void;
 };
 
-function ProbePage({index, body, onMeasure}: ProbePageProps) {
+// The probe measures only the BodyText block (title/subtitle/description) — buttons and checkboxes are
+// excluded so the locked minHeight matches the area it is later applied to. The mh5 wrapper mirrors
+// Body's horizontal margins so the probe text wraps at the same width as the visible page.
+function ProbePage({index, bodyText, onMeasure}: ProbePageProps) {
+    const styles = useThemeStyles();
     const onLayout = useCallback((event: LayoutChangeEvent) => onMeasure(index, event.nativeEvent.layout.height), [index, onMeasure]);
-    return cloneElement(body, {onLayout});
+
+    return <View style={styles.mh5}>{cloneElement(bodyText, {onLayout})}</View>;
 }
 
 export default FeatureTrainingCarousel;
