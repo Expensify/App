@@ -29,7 +29,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import type {SearchListItem, TransactionListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SearchRowSelectionActionsValue, SearchShiftRangeChildrenActions, SelectedTransactionInfo, SelectedTransactions} from './types';
@@ -425,6 +425,8 @@ function SearchWriteActionsProvider({
     // Group-by children load lazily, so the rows that render them publish them here.
     const [groupChildrenByKey, setGroupChildrenByKey] = useState<Record<string, TransactionListItemType[]>>({});
 
+    const pendingSeedGroupKeyRef = useRef<string | undefined>(undefined);
+
     // Built once (by construction, not by React Compiler) so the register effect can't loop.
     const [shiftRangeChildrenActions] = useState<SearchShiftRangeChildrenActions>(() => ({
         // Compared by value: an equal array must not re-register and re-render every row, but changed rows must replace the stale copy.
@@ -591,9 +593,24 @@ function SearchWriteActionsProvider({
         isHeaderItem: isShiftRangeHeaderItem,
     });
 
+    // Every other gesture drops the pending key, so a seed arriving this late can never overwrite a session started in between.
+    const seedPendingGroup = () => {
+        const groupKey = pendingSeedGroupKeyRef.current;
+        pendingSeedGroupKeyRef.current = undefined;
+        const groupChildren = groupKey ? (childrenByGroupKey.get(groupKey) ?? []) : [];
+        if (!groupKey || groupChildren.length === 0 || !isGroupSelected(getSelectedTransactions(), groupKey, groupChildren)) {
+            return;
+        }
+        rangeApi.seedRangeFromSelection(new Set(groupChildren.map((child) => child.keyForList).filter(Boolean)));
+    };
+
     const toggle: SearchRowSelectionActionsValue['toggle'] = (item, itemTransactions, shiftKey) => {
         if (isReportActionListItemType(item) || isTaskListItemType(item)) {
             return;
+        }
+
+        if (shiftKey) {
+            seedPendingGroup();
         }
 
         // The hook rejects headers as range targets, so shift+click on one falls through to the group toggle.
@@ -607,16 +624,22 @@ function SearchWriteActionsProvider({
         if (isShiftRangeHeaderItem(item) && isTransactionGroupListItemType(item)) {
             // A header click selects a whole block, so seed it and a later shift+click can narrow it (like Select All).
             const groupWasSelected = isGroupSelected(getSelectedTransactions(), item.keyForList, groupTransactions);
+            pendingSeedGroupKeyRef.current = undefined;
             if (groupWasSelected) {
                 // Deselecting paints no block, so reset instead of leaving a stale span to collapse.
                 rangeApi.clearAnchor();
-            } else {
+            } else if (groupTransactions.length > 0) {
                 // Seed just this block: seeding the whole selection would span unrelated rows and deselect them.
                 rangeApi.seedRangeFromSelection(new Set(groupTransactions.map((child) => child.keyForList).filter(Boolean)));
+            } else {
+                // Nothing to seed yet, so hold the block for the next shift+click.
+                rangeApi.clearAnchor();
+                pendingSeedGroupKeyRef.current = item.keyForList;
             }
         } else if (!isShiftRangeHeaderItem(item)) {
             // Seed the anchor so a later shift+click continues from here. The hook ignores rows a range can't reach.
             rangeApi.notifyAnchor(item);
+            pendingSeedGroupKeyRef.current = undefined;
         }
 
         if (isTransactionListItemType(item)) {
@@ -725,6 +748,7 @@ function SearchWriteActionsProvider({
 
     const toggleAll: SearchRowSelectionActionsValue['toggleAll'] = () => {
         // Decide select-all vs clear before the updater so the range seed/clear (a ref write) stays out of the reducer.
+        pendingSeedGroupKeyRef.current = undefined;
         if (Object.keys(getSelectedTransactions()).length > 0) {
             rangeApi.clearAnchor();
         } else {

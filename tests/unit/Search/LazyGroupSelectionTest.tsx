@@ -438,6 +438,33 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
     });
 
+    it('anchors in the group just selected, not at a row selected earlier in another group', async () => {
+        const {result} = renderSelection(TwoGroupWrapper);
+        const [earlierFirstChild] = earlierChildren;
+        const [, secondChild] = loadedChildren;
+
+        // Given a child selected in the group above, then the lower group selected while it was still collapsed
+        await act(async () => {
+            result.current.registerGroupChildren(EARLIER_GROUP_KEY, earlierChildren);
+            result.current.toggle(earlierFirstChild);
+            result.current.toggle(categoryGroup, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When that group's children load and a shift+click lands on its second child
+        await act(async () => {
+            result.current.registerGroupChildren(GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the range stays inside the group the user just selected, leaving the other group's second child alone
+        expect(result.current.selectedTransactions['4']).toBeUndefined();
+    });
+
     it('selects every child of a group that was not already selected once its children loaded', async () => {
         const {result} = renderSelection();
 
