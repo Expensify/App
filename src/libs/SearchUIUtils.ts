@@ -1912,7 +1912,7 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
     // The payer is the actor on the latest payment action. Payment actions are collected first because
     // whether the owner's ones count depends on a receipt confirmation that may appear later in the scan.
     const paymentActions: OnyxTypes.ReportAction[] = [];
-    let ownerConfirmedReceipt = false;
+    let lastOwnerReceiptConfirmedTime = -Infinity;
     let lastPaymentCanceledTime = -Infinity;
 
     for (const action of Object.values(actions)) {
@@ -1950,7 +1950,7 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
         }
 
         if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REDEEMED && action.actorAccountID === reportOwnerAccountID) {
-            ownerConfirmedReceipt = true;
+            lastOwnerReceiptConfirmedTime = Math.max(lastOwnerReceiptConfirmedTime, new Date(action.created).getTime());
         }
 
         if (
@@ -1984,15 +1984,16 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
         ctx.firstApprovedActionByReportID.set(reportID, firstApprovalAction);
     }
 
-    // A payment action from an owner who also confirmed receipt (MARKEDREDEEMED) is a receipt
-    // confirmation, not a payment, matching the backend
+    // An owner payment action followed by the owner's receipt confirmation (MARKEDREDEEMED) is itself a
+    // receipt confirmation, not a payment. A confirmation older than the payment does not discard it, so a
+    // genuine self-payment after a canceled-and-confirmed one still counts, matching the backend
     let lastReimbursedTime = -Infinity;
     let lastReimbursedAction: OnyxTypes.ReportAction | undefined;
     for (const action of paymentActions) {
-        if (ownerConfirmedReceipt && action.actorAccountID === reportOwnerAccountID) {
+        const currentTime = new Date(action.created).getTime();
+        if (action.actorAccountID === reportOwnerAccountID && lastOwnerReceiptConfirmedTime >= currentTime) {
             continue;
         }
-        const currentTime = new Date(action.created).getTime();
         // Ties on created are broken by the higher reportActionID (numeric-string compare), matching the backend ORDER BY
         const previousActionID = lastReimbursedAction?.reportActionID;
         const currentActionID = action.reportActionID;
