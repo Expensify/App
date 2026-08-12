@@ -31,7 +31,7 @@ type AccountListItem = ListItem & {
     value: DualEntryAccount['id'];
 };
 
-function DualEntryCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
+function DualEntryExpensifyCardAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
@@ -90,7 +90,7 @@ function DualEntryCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="DualEntryCompanyCardAccountPage"
+            displayName="DualEntryExpensifyCardAccountPage"
             title="workspace.dualentry.expensifyCardAccount.label"
             data={filteredData}
             textInputOptions={textInputOptions}
@@ -110,4 +110,4 @@ function DualEntryCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-export default withPolicyConnections(DualEntryCompanyCardAccountPage);
+export default withPolicyConnections(DualEntryExpensifyCardAccountPage);
