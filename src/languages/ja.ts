@@ -6604,6 +6604,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 chooseLimitType: '上限の種類を選択',
                 smartLimit: 'スマート制限',
                 smartLimitDescription: '承認が必要になる前に、一定額まで支出できる',
+                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
+                    `<muted-text-label>承認が必要になる前に、一定額まで支出できます。このオプションを選択するには<a href="${workspaceWorkflowsLink}">承認を有効化</a>してください。</muted-text-label>`,
                 monthly: '毎月',
                 monthlyDescription: '毎月、一定額まで利用する',
                 fixedAmount: '固定額',
@@ -8999,7 +9001,7 @@ ${reportName}`,
             description: 'おっと、アイテムがたくさんありますね！まとめて整理して、間もなくConciergeからファイルをお送りします。',
         },
         exportedTo: 'エクスポート先',
-        exportAll: {selectAllMatchingItems: '一致する項目をすべて選択', allMatchingItemsSelected: '一致する項目をすべて選択済み', selectAllOnThisPage: 'このページのすべてを選択'},
+        exportAll: {selectAllMatchingItems: '一致する項目をすべて選択', selectAllOnThisPage: 'このページのすべてを選択'},
         errors: {
             pleaseSelectDatesForBothFromAndTo: '開始日と終了日の両方を選択してください',
         },

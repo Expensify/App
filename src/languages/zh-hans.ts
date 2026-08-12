@@ -6444,6 +6444,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 chooseLimitType: '选择限额类型',
                 smartLimit: '智能限额',
                 smartLimitDescription: '在需要审批前可支出至指定金额上限',
+                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
+                    `<muted-text-label>在需要审批前可支出至指定金额上限。<a href="${workspaceWorkflowsLink}">启用审批</a>后即可选择此选项。</muted-text-label>`,
                 monthly: '每月',
                 monthlyDescription: '每月消费上限为特定金额',
                 fixedAmount: '固定金额',
@@ -8764,7 +8766,7 @@ ${reportName}`,
             description: '哇，项目真不少！我们会把它们打包好，Concierge 很快就会给你发送一个文件。',
         },
         exportedTo: '已导出到',
-        exportAll: {selectAllMatchingItems: '选择所有匹配的项目', allMatchingItemsSelected: '已选择所有匹配的项目', selectAllOnThisPage: '选择本页全部内容'},
+        exportAll: {selectAllMatchingItems: '选择所有匹配的项目', selectAllOnThisPage: '选择本页全部内容'},
         errors: {
             pleaseSelectDatesForBothFromAndTo: '请选择起始和结束日期',
         },

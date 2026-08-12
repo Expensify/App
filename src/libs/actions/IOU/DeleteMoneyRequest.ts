@@ -278,7 +278,7 @@ function prepareToCleanUpMoneyRequest({
                     overlay[priorTxn.transactionID] = {...priorTxn, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
                 }
             }
-            updatedIOUReport = maybeUpdateReportNameForFormulaTitle(updatedIOUReport, policy, overlay);
+            updatedIOUReport = maybeUpdateReportNameForFormulaTitle(updatedIOUReport, policy, getCurrencyDecimals, overlay);
         }
     }
 
