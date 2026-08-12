@@ -75,9 +75,6 @@ function IOURequestStepCategory({
     const transactionReport = useReportOrReportDraft(transaction?.reportID);
     const participantReport = useReportOrReportDraft(transaction?.participants?.at(0)?.reportID);
     const report = reportReal ?? reportDraft ?? transactionReport ?? participantReport;
-    // The workspace picked on the confirmation page wins over the route report, which can be a stale workspace chat. See #98230.
-    // The self-DM a submissions-disabled workspace flow is seeded onto carries the placeholder '_FAKE_' policy;
-    // don't let that shadow the selected workspace chat's real policy, or this page's categories never load. See #96576.
     const policyIdReal = getSelectedWorkspacePolicyID(transaction, action) ?? getIOURequestPolicyID(transaction, pickReportForPolicy(reportReal, transactionReport, participantReport));
     const policyIdDraft = getIOURequestPolicyID(transaction, reportDraft);
     const isEditing = action === CONST.IOU.ACTION.EDIT;

@@ -64,8 +64,6 @@ function DynamicIOURequestStepTaxRatePage({
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.path);
 
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.participants?.at(0)?.reportID)}`);
-    // The workspace picked on the confirmation page wins over the route report, which can be a stale workspace chat. See #98230.
-    // Skip the placeholder '_FAKE_' self-DM policy so it doesn't shadow the selected workspace chat's real policy. See #96576.
     const reportPolicyID = getSelectedWorkspacePolicyID(transaction, action) ?? getIOURequestPolicyID(transaction, pickReportForPolicy(report, participantReport));
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID, action, iouType});
 

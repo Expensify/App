@@ -68,8 +68,6 @@ function DynamicIOURequestStepTag({
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.participants?.at(0)?.reportID)}`);
     const {policy: policyFromTransaction} = usePolicyForTransaction({
         transaction,
-        // The workspace picked on the confirmation page wins over the route report, which can be a stale workspace chat. See #98230.
-        // Skip the placeholder '_FAKE_' self-DM policy so it doesn't shadow the selected workspace chat's real policy. See #96576.
         reportPolicyID: getSelectedWorkspacePolicyID(transaction, action) ?? getIOURequestPolicyID(transaction, pickReportForPolicy(report, participantReport)),
         action,
         iouType,

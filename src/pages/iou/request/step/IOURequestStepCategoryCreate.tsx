@@ -64,8 +64,6 @@ function IOURequestStepCategoryCreate({
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
 
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.participants?.at(0)?.reportID)}`);
-    // The workspace picked on the confirmation page wins over the route report, which can be a stale workspace chat. See #98230.
-    // Skip the placeholder '_FAKE_' self-DM policy so it doesn't shadow the selected workspace chat's real policy. See #96576.
     const policyIdReal = getSelectedWorkspacePolicyID(transaction, action) ?? getIOURequestPolicyID(transaction, pickReportForPolicy(reportReal, participantReport));
     const policyIdDraft = getIOURequestPolicyID(transaction, reportDraft);
     const {policy: policyFromTransaction} = usePolicyForTransaction({
