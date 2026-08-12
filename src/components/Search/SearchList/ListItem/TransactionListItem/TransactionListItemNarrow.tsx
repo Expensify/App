@@ -41,7 +41,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     handleActionButtonPress,
     shouldDisableActionPointerEvents,
     transactionPreviewData,
-    reportActions,
+    exportedReportActions,
     nonPersonalAndWorkspaceCards,
     isAttendeesEnabledForMovingPolicy,
 }: TransactionListItemNarrowProps<TItem>) {
@@ -130,7 +130,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                             onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, transactionPreviewData, event)}
                             isHover={false}
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                            reportActions={reportActions}
+                            reportActions={exportedReportActions}
                             isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                         />
                     </>

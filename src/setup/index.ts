@@ -15,7 +15,7 @@ import addUtilsToWindow from './addUtilsToWindow';
 import platformSetup from './platformSetup';
 import telemetry from './telemetry';
 
-const enableDevTools = Config?.USE_REDUX_DEVTOOLS ? Config.USE_REDUX_DEVTOOLS === 'true' : true;
+const enableDevTools = Config?.USE_REDUX_DEVTOOLS === 'true';
 
 export default function () {
     telemetry();

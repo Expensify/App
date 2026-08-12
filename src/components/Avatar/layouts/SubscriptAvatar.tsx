@@ -1,4 +1,4 @@
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import AvatarTooltip from '@components/Avatar/tooltips/AvatarTooltip';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -10,7 +10,6 @@ import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import type {BaseAvatarProps} from './types';
 
@@ -33,7 +32,7 @@ type SubscriptAvatarProps = BaseAvatarProps & {
 };
 
 /** `SubscriptAvatar` renders a primary avatar with a smaller secondary avatar overlaid as a subscript in the bottom-right corner. */
-function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, shouldShowTooltip, subscriptAvatarBorderColor, fallbackDisplayName, containerStyle}: SubscriptAvatarProps) {
+function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, subscriptAvatarBorderColor, fallbackDisplayName, containerStyle}: SubscriptAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -45,51 +44,41 @@ function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, shouldShowToolti
             size={size}
             containerStyle={containerStyle}
             primary={
-                <UserDetailsTooltip
-                    shouldRender={shouldShowTooltip}
-                    accountID={Number(primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
-                    icon={primaryAvatar}
-                    fallbackUserDetails={{
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        displayName: fallbackDisplayName || primaryAvatar.name,
-                    }}
+                <AvatarTooltip
+                    avatar={primaryAvatar}
+                    fallbackDisplayName={fallbackDisplayName}
                 >
-                    <View>
-                        <Avatar
-                            containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
-                            type={primaryAvatar.type}
-                            source={primaryAvatar.source}
-                            name={primaryAvatar.name ?? ''}
-                            avatarID={primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
-                            fallbackIcon={primaryAvatar.fallbackIcon}
-                            fill={primaryAvatar.fill}
-                            size={size}
-                            testID="ReportActionAvatars-Subscript-MainAvatar"
-                        />
-                    </View>
-                </UserDetailsTooltip>
+                    <Avatar
+                        containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
+                        type={primaryAvatar.type}
+                        source={primaryAvatar.source}
+                        name={primaryAvatar.name ?? ''}
+                        avatarID={primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
+                        fallbackIcon={primaryAvatar.fallbackIcon}
+                        fill={primaryAvatar.fill}
+                        size={size}
+                        testID="ReportActionAvatars-Subscript-MainAvatar"
+                    />
+                </AvatarTooltip>
             }
             secondary={
                 secondaryAvatar ? (
-                    <UserDetailsTooltip
-                        shouldRender={shouldShowTooltip}
-                        accountID={Number(secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
-                        icon={secondaryAvatar}
+                    <AvatarTooltip
+                        avatar={secondaryAvatar}
+                        style={styles[containerStyleKey]}
                     >
-                        <View style={styles[containerStyleKey]}>
-                            <Avatar
-                                iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(borderWidthSize), StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor ?? theme.componentBG)]}
-                                type={secondaryAvatar.type}
-                                source={secondaryAvatar.source}
-                                name={secondaryAvatar.name ?? ''}
-                                avatarID={secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
-                                fallbackIcon={secondaryAvatar.fallbackIcon}
-                                fill={secondaryAvatar.fill}
-                                size={subscriptSize}
-                                testID="ReportActionAvatars-Subscript-SecondaryAvatar"
-                            />
-                        </View>
-                    </UserDetailsTooltip>
+                        <Avatar
+                            iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(borderWidthSize), StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor ?? theme.componentBG)]}
+                            type={secondaryAvatar.type}
+                            source={secondaryAvatar.source}
+                            name={secondaryAvatar.name ?? ''}
+                            avatarID={secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
+                            fallbackIcon={secondaryAvatar.fallbackIcon}
+                            fill={secondaryAvatar.fill}
+                            size={subscriptSize}
+                            testID="ReportActionAvatars-Subscript-SecondaryAvatar"
+                        />
+                    </AvatarTooltip>
                 ) : undefined
             }
         />

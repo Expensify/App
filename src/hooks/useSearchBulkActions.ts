@@ -36,6 +36,7 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
+import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
 import type {ExpensifyCardStatementParams} from '@libs/ExpensifyCardStatementUtils';
 import Log from '@libs/Log';
@@ -1131,6 +1132,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     reportTransactions: validTransactions,
                     allTransactionViolations,
                     bankAccountList,
+                    delegateAccountID,
                     hash,
                 });
             }
@@ -1180,6 +1182,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     reportTransactions: validTransactions,
                     allTransactionViolations: transactionsViolations,
                     bankAccountList,
+                    delegateAccountID,
                 });
             }
         }
@@ -1205,6 +1208,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         deleteTransactionsFromHook,
         duplicateTransactions,
         duplicateTransactionViolations,
+        delegateAccountID,
     ]);
 
     const onBulkPaySelected = useCallback(
@@ -1214,7 +1218,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
             if (isOffline) {
-                setIsOfflineModalVisible(true);
+                // On iOS, presenting the offline modal while the payment popover is still dismissing freezes the app,
+                // so defer it until the popover transition completes (matching the delegate/locked-account guards).
+                deferModalPresentationAfterPopoverDismiss(() => setIsOfflineModalVisible(true));
                 return;
             }
 
@@ -2122,7 +2128,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
         const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs, personalPolicyID);
 
-        const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
+        // Keep Pay visible while offline: selecting it is handled by onBulkPaySelected, which shows the offline modal
+        // rather than attempting a payment. Gating on !isOffline here would hide Pay entirely offline, which is wrong.
+        const shouldShowPayOption = !isAnyTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
 
         if (shouldShowPayOption) {
             const shouldShowPaySubmenu = !!bulkPayButtonOptions?.length;
@@ -2248,6 +2256,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             accountID,
                             transactionViolations,
                             isTrackIntentUser,
+                            delegateAccountID,
                         );
                     }
                     clearSelectedTransactions();
@@ -2510,6 +2519,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         allReportsShouldMarkAsDone,
         noReportsShouldMarkAsDone,
         queryJSON?.groupBy,
+        delegateAccountID,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
