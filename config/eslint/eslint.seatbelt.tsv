@@ -1676,14 +1676,14 @@
 "../../tests/unit/ExpenseRuleUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/ExportDownloadStatusModalTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/ExportOnyxStateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	12
-"../../tests/unit/FailureNotifierTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../tests/tooling/failureNotifier.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/FileUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	13
 "../../tests/unit/FlashListTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/FocusTrapForModalTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/FormulaTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	21
 "../../tests/unit/FormulaTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/FraudProtectionTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/unit/GithubUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../tests/tooling/GithubUtils.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/HomePage/YourSpendSection/YourSpendSectionTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/HomePage/YourSpendSection/useYourSpendDataTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/HrUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -1763,9 +1763,9 @@
 "../../tests/unit/WorkflowUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../tests/unit/WorkspaceReportFieldUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/WorkspacesSettingsUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	23
-"../../tests/unit/awaitStagingDeploysTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../tests/tooling/awaitStagingDeploys.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/canEditFieldOfMoneyRequestTest.ts"	"@typescript-eslint/no-deprecated/randomReportAction.originalMessage"	3
-"../../tests/unit/checkDeployBlockersTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../tests/tooling/checkDeployBlockers.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/cleanupAfterSkipConfirmSubmitTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/cleanupAndNavigateAfterExpenseCreateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/unit/components/Charts/VictoryTheme.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1777,7 +1777,7 @@
 "../../tests/unit/components/ScreenWrapperPreventRemoveTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/components/reportDetails/DynamicReportDetailsPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/compoundParamsKeyTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/unit/createOrUpdateDeployChecklistTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../tests/tooling/createOrUpdateDeployChecklist.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/deferredLayoutWriteTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/dismissModalAndOpenReportInInboxTabTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/findUnusedStylesTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -1827,8 +1827,8 @@
 "../../tests/unit/hooks/useTimeSensitiveLockedBankAccount.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/hooks/useTransactionThreadReportIDs.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/inlineEditing/editableCellHooks.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/unit/isAuthorizedContributorTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/unit/isDeployChecklistLockedTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../tests/tooling/isAuthorizedContributor.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../tests/tooling/isDeployChecklistLocked.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/isReportMessageAttachmentTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/isReportOpenOrUnsubmittedTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/keyboard/AndroidKeyboardUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1841,7 +1841,7 @@
 "../../tests/unit/libs/TravelUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/libs/getClipboardTextTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/libs/navigateAfterOnboarding.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/unit/markPullRequestsAsDeployedTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../tests/tooling/markPullRequestsAsDeployed.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/navigateAfterOnboardingTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/navigateAfterOnboardingTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/navigateToWorkspacesPageTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
@@ -1886,7 +1886,7 @@
 "../../tests/unit/useTodoCountsTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/useTodosTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/useTransactionViolationsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	21
-"../../tests/unit/waitForPreviousRunsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../tests/tooling/waitForPreviousRuns.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/utils/collections/card.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/utils/collections/paymentMethods.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/utils/collections/reportActions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
