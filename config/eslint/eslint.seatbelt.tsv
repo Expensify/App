@@ -220,6 +220,7 @@
 "../../src/components/KYCWall/BaseKYCWall.tsx"	"react-hooks/refs"	2
 "../../src/components/LHNOptionsList/LHNEmptyState.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/LHNOptionsList/OptionRowLHN/OptionRow/Pressable.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/components/LocaleContextProvider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/LocaleContextProvider.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Lottie/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/MapView/GPSMapView.tsx"	"no-restricted-imports"	1
@@ -607,7 +608,6 @@
 "../../src/libs/KeyboardShortcut/isEnterWhileComposition.ts"	"@typescript-eslint/no-deprecated/event.keyCode"	1
 "../../src/libs/KeyboardShortcut/isEnterWhileComposition.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/KeyboardShortcut/isEnterWhileComposition.ts"	"no-restricted-syntax"	1
-"../../src/libs/LocaleDigitUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/LocalePhoneNumber.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/Localize/index.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/Localize/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2

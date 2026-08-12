@@ -1166,6 +1166,7 @@ const translations: TranslationDeepObject<typeof en> = {
         importSpreadsheetLibraryError: 'Caricamento del modulo foglio di calcolo non riuscito. Controlla la connessione a Internet e riprova.',
         importSpreadsheet: 'Importa foglio di calcolo',
         importWorkflows: 'Importa flussi di lavoro',
+        downloadWorkflows: 'Scarica flussi di lavoro',
         downloadCSV: 'Scarica CSV',
         importMemberConfirmation: () => ({
             one: `Conferma i dettagli seguenti per il nuovo membro dello spazio di lavoro che verrà aggiunto come parte di questo caricamento. I membri esistenti non riceveranno aggiornamenti di ruolo né messaggi di invito.`,
@@ -2737,10 +2738,6 @@ ${amount} per ${merchant} - ${date}`,
             lastDayOfMonth: 'Ultimo giorno del mese',
             lastBusinessDayOfMonth: 'Ultimo giorno lavorativo del mese',
             ordinals: {
-                one: 'st',
-                two: 'nd',
-                few: 'rd',
-                other: 'gio',
                 '1': 'Primo',
                 '2': 'Secondo',
                 '3': 'Terzo',
@@ -6221,7 +6218,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 cardFeedAllowDeletingTransaction: 'Consenti l’eliminazione delle transazioni',
                 removeCardFeed: 'Rimuovi flusso carta',
                 removeCardFeedTitle: (feedName: string) => `Rimuovi feed ${feedName}`,
-                removeCardFeedDescription: 'Sei sicuro di voler rimuovere questo flusso di carte? Questo rimuoverà l’assegnazione di tutte le carte.',
+                removeCardFeedDescription:
+                    'Sei sicuro di voler rimuovere questo collegamento della carta? Questo rimuoverà l’assegnazione di tutte le carte ed eliminerà le transazioni non inviate.',
                 error: {
                     feedNameRequired: 'Il nome del feed della carta è obbligatorio',
                     statementCloseDateRequired: 'Seleziona una data di chiusura dell’estratto conto.',
@@ -6470,6 +6468,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 one: '1 giorno',
                 other: (count: number) => `${count} tag`,
             }),
+            showTagGLCodes: 'Mostra i codici GL quando selezioni un tag',
         },
         taxes: {
             subtitle: 'Aggiungi nomi e aliquote delle imposte e imposta i valori predefiniti.',
@@ -7663,6 +7662,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 expenseDefaultsSubtitle: 'Aggiorna i campi senza che chi invia debba fare nulla',
                 ifAnyExpenseMatches: 'Se una qualsiasi spesa corrisponde a:',
                 thenApplyFollowingDefaults: 'Quindi applica le seguenti impostazioni predefinite:',
+                vendorUnavailable: 'Fornitore non disponibile',
+                supplierUnavailable: 'Fornitore non disponibile',
             },
             categoryRules: {
                 title: 'Regole di categoria',
@@ -10367,6 +10368,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         basicExport: 'Esportazione di base',
         reportLevelExport: 'Tutti i dati - livello report',
         expenseLevelExport: 'Tutti i dati - livello spesa',
+        multipleTaxExport: 'Esportazione canadese con imposte multiple',
         exportInProgress: 'Esportazione in corso',
         conciergeWillSend: 'Concierge ti invierà il file a breve.',
         currentView: 'Vista corrente',
