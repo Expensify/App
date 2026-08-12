@@ -34,7 +34,7 @@ jest.mock('@hooks/useAndroidBackButtonHandler', () => ({
     },
 }));
 
-// SignInPage renders a full themed layout with form children; none of it participates in navigateBack.
+// SignInPage renders a full themed layout with form children. None of it participates in navigateBack.
 jest.mock('@pages/signin/SignInPageLayout', () => 'SignInPageLayout');
 jest.mock('@pages/signin/LoginForm', () => 'LoginForm');
 jest.mock('@pages/signin/ValidateCodeForm', () => 'ValidateCodeForm');
@@ -46,7 +46,7 @@ jest.mock('@pages/signin/SignUpWelcomeForm', () => 'SignUpWelcomeForm');
 jest.mock('@components/ColorSchemeWrapper', () => 'ColorSchemeWrapper');
 jest.mock('@components/CustomStatusBarAndBackground', () => 'CustomStatusBarAndBackground');
 
-// SignInModal reads the session to decide when to dismiss itself; the back listener does not depend on it.
+// SignInModal reads the session to decide when to dismiss itself. The back listener does not depend on it.
 jest.mock('@components/OnyxListItemProvider', () => ({useSession: () => undefined}));
 jest.mock('@components/ScreenWrapper', () => 'ScreenWrapper');
 jest.mock('@components/HeaderWithBackButton', () => 'HeaderWithBackButton');
