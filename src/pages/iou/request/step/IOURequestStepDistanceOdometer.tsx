@@ -107,9 +107,10 @@ function IOURequestStepDistanceOdometer({
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['GalleryPlus']);
 
-    // `keyboardActiveHeight` is used rather than `keyboardHeight` because it is set from `keyboardWillShow` rather than
-    // `keyboardDidShow`, so the padding is applied as the keyboard starts animating instead of a beat after it has
-    // settled. It is applied in a single step at its final value, so the buttons do not follow the keyboard's easing.
+    // `keyboardActiveHeight`/`isKeyboardActive` are used rather than `keyboardHeight` because they track
+    // `keyboardWillShow`/`keyboardWillHide` rather than the `did` events, so the padding changes as the keyboard starts
+    // animating instead of a beat after it settles. It is applied in a single step at its final value, so the buttons do
+    // not follow the keyboard's easing.
     const {isKeyboardActive, keyboardActiveHeight} = useKeyboardState();
     const {bottom: bottomSafeAreaInset} = useSafeAreaInsets();
 
@@ -633,14 +634,22 @@ function IOURequestStepDistanceOdometer({
             {/*
                 The create flow renders this step without its own ScreenWrapper (`shouldShowWrapper` is false), and the
                 shared tab ScreenWrapper keeps keyboard avoidance off so its offset cannot leak into the other tabs, so
-                the bottom padding is applied here. It comes from `useKeyboardState`, which is plain React state reset
-                to 0 on `keyboardDidHide`. A KeyboardAvoidingView is deliberately not used: its offset is written by a
+                the bottom padding is applied here. It comes from `useKeyboardState`, which is plain React state that is
+                cleared when the keyboard starts hiding. A KeyboardAvoidingView is deliberately not used: its offset is written by a
                 Reanimated worklet that can leave the last keyboard height applied after the keyboard is already gone,
                 which strands these buttons in the middle of the page.
             */}
             <View
                 testID="odometerContentContainer"
-                style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5, !!keyboardPaddingBottom && {paddingBottom: keyboardPaddingBottom}]}
+                style={[
+                    styles.flex1,
+                    styles.flexColumn,
+                    styles.justifyContentBetween,
+                    styles.ph5,
+                    styles.pt5,
+                    styles.mb5,
+                    !!keyboardPaddingBottom && StyleUtils.getPaddingBottom(keyboardPaddingBottom),
+                ]}
             >
                 <View>
                     {/* Start Reading */}
