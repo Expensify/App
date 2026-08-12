@@ -8,6 +8,8 @@ import {AppStartTimeNitroModule} from '@expensify/nitro-utils';
 import reportModuleInitTimes from './reportModuleInitTimes';
 import setupSentry from './setupSentry';
 
+// On a prewarmed process the app can be created long before the user actually opens it, leaving a stale start time that
+// would inflate the startup span to minutes/hours. Discard any start time older than this threshold as a prewarm/stale value.
 const MAX_PREWARMING_APP_START_AGE_MS = 60 * 1000;
 
 export default function (): void {
