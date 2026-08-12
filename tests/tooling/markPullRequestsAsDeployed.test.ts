@@ -1,5 +1,6 @@
-import * as core from '@actions/core';
 import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest} from 'bun:test';
+
+import * as core from '@actions/core';
 
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 

@@ -8,7 +8,7 @@ const VERSION_NUMBER = [2, 3, 9, 80] as const;
 describe('versionUpdater', () => {
     describe('getVersionNumberFromString', () => {
         it('should return a list with version levels numbers', () => {
-            expect(versionUpdater.getVersionNumberFromString(VERSION)).toStrictEqual(VERSION_NUMBER);
+            expect(versionUpdater.getVersionNumberFromString(VERSION)).toStrictEqual([...VERSION_NUMBER]);
         });
 
         it('should return build as zero if not present in string', () => {

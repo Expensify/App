@@ -1,6 +1,6 @@
 import type {Mock} from 'bun:test';
-
 import {afterEach, beforeEach, describe, expect, it, jest, mock} from 'bun:test';
+
 import * as childProcess from 'child_process';
 import {Str} from 'expensify-common';
 import fs from 'fs';
@@ -11,7 +11,9 @@ import createMock from '../utils/createMock';
 // `child_process`'s named exports are read-only live bindings, so replace the whole module. This must run before
 // `Git` (which imports execSync internally) is imported below, and `bun test --isolate` keeps the replacement from
 // leaking into the other files in tests/tooling.
-const mockExecSync = jest.fn<typeof childProcess.execSync>();
+// Typed to the single overload Git.ts actually uses (it always passes `encoding: 'utf8'`), so the test's
+// string-returning stubs type-check against it.
+const mockExecSync = jest.fn<(command: string, options?: childProcess.ExecSyncOptions) => string>();
 await mock.module('child_process', () => ({...childProcess, execSync: mockExecSync}));
 
 // Must be imported after the mock.module() call above so it picks up the mock.

@@ -1,13 +1,13 @@
+import type {Mock} from 'bun:test';
+import {beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
+
 import run from '@github/actions/javascript/awaitStagingDeploys/awaitStagingDeploys';
 import CONST from '@github/libs/CONST';
 import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
-import type {Mock} from 'bun:test';
-
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
-import {beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
 
 type Workflow = {
     workflow_id: string;

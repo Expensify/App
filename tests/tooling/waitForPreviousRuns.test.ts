@@ -1,10 +1,11 @@
+import {beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
+
 import run from '@github/actions/javascript/waitForPreviousRuns/waitForPreviousRuns';
 import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
-import {beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
 
 const CURRENT_RUN_ID = 1000;
 const WORKFLOW_ID = 'testBuildOnPush.yml';

@@ -1,3 +1,5 @@
+import {afterEach, beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
+
 import CONST from '@github/libs/CONST';
 import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
@@ -5,7 +7,6 @@ import GithubUtils from '@github/libs/GithubUtils';
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import {RequestError} from '@octokit/request-error';
-import {afterEach, beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
 
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();

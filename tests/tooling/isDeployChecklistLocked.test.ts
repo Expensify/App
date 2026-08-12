@@ -1,5 +1,6 @@
-import * as core from '@actions/core';
 import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, jest, mock, test} from 'bun:test';
+
+import * as core from '@actions/core';
 
 import CONST from '../../.github/libs/CONST';
 import * as DeployChecklistUtils from '../../.github/libs/DeployChecklistUtils';

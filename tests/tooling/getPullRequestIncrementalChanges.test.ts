@@ -1,14 +1,14 @@
+import type {Mock} from 'bun:test';
+import {beforeAll, beforeEach, describe, expect, it, jest} from 'bun:test';
+
 import run from '@github/actions/javascript/getPullRequestIncrementalChanges/getPullRequestIncrementalChanges';
 import GitHubUtils from '@github/libs/GithubUtils';
 import type {InternalOctokit} from '@github/libs/GithubUtils';
 
 import Git from '@scripts/utils/Git';
 
-import type {Mock} from 'bun:test';
-
 import * as core from '@actions/core';
 import {context} from '@actions/github';
-import {beforeAll, beforeEach, describe, expect, it, jest} from 'bun:test';
 
 import createMock from '../utils/createMock';
 
@@ -70,7 +70,7 @@ describe('getPullRequestIncrementalChanges', () => {
         };
 
         // Default mocks
-        mockGetInput.mockReturnValue(null);
+        mockGetInput.mockReturnValue('');
         mockGitEnsureRef.mockResolvedValue(undefined);
         mockGetPullRequestDiff.mockReset();
         paginateSpy.mockReset();
@@ -250,7 +250,7 @@ describe('getPullRequestIncrementalChanges', () => {
             if (inputName === 'PULL_REQUEST_NUMBER') {
                 return '456';
             }
-            return null;
+            return '';
         });
 
         // Mock paginate to return PR files

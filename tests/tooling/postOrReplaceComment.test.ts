@@ -1,13 +1,13 @@
+import type {Mock} from 'bun:test';
+import {beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
+
 import ghAction from '@github/actions/javascript/postOrReplaceComment/postOrReplaceComment';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 
-import type {Mock} from 'bun:test';
-
 import * as core from '@actions/core';
 import {context} from '@actions/github';
 import * as GitHubEnvironment from '@actions/github/lib/utils';
-import {beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
 
 import createMock from '../utils/createMock';
 
@@ -62,7 +62,7 @@ const commentsFetchResponse = createMock<Response>({
     headers: commentsResponseHeaders,
     json: () => Promise.resolve(previousCommentsResponse.data),
 });
-const fetchComments: typeof globalThis.fetch = () => Promise.resolve(commentsFetchResponse);
+const fetchComments: typeof globalThis.fetch = Object.assign(() => Promise.resolve(commentsFetchResponse), {preconnect: () => {}});
 
 beforeAll(() => {
     const getOctokitOptions = GitHubEnvironment.getOctokitOptions;
@@ -92,7 +92,7 @@ beforeAll(() => {
     listCommentsSpy = jest.spyOn(internalOctokit.rest.issues.listComments, 'endpoint');
     jest.spyOn(internalOctokit, 'paginate');
     graphqlSpy = jest.spyOn(internalOctokit, 'graphql');
-    graphqlSpy.mockImplementation(() => Promise.resolve({}));
+    graphqlSpy.mockResolvedValue({});
 });
 
 const androidLink = 'https://expensify.app/ANDROID_LINK';

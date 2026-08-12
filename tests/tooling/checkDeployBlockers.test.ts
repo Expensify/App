@@ -1,9 +1,10 @@
+import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
+
 import run from '@github/actions/javascript/checkDeployBlockers/checkDeployBlockers';
 import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
 import * as core from '@actions/core';
-import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
 
 type CommentData = {body: string};
 

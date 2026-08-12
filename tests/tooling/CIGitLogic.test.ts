@@ -1,3 +1,5 @@
+import {afterAll, beforeAll, describe, expect, jest, setDefaultTimeout, test} from 'bun:test';
+
 import getPreviousVersion from '@github/actions/javascript/getPreviousVersion/getPreviousVersion';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
@@ -6,7 +8,6 @@ import * as VersionUpdater from '@github/libs/versionUpdater';
 import type {SemverLevel} from '@github/libs/versionUpdater';
 
 import * as core from '@actions/core';
-import {afterAll, beforeAll, describe, expect, jest, setDefaultTimeout, test} from 'bun:test';
 import {execSync} from 'child_process';
 import fs from 'fs';
 import os from 'os';
@@ -183,6 +184,7 @@ function initGithubAPIMocking() {
             }),
         );
     });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the stub omits octokit's `defaults`/`endpoint` statics, which this action never touches
     GithubUtils.octokit.repos.compareCommits = mockCompareCommits as unknown as typeof GithubUtils.octokit.repos.compareCommits;
 }
 

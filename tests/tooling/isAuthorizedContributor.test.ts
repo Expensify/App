@@ -1,5 +1,6 @@
-import {RequestError} from '@octokit/request-error';
 import {afterEach, beforeEach, describe, expect, jest, test} from 'bun:test';
+
+import {RequestError} from '@octokit/request-error';
 
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 
