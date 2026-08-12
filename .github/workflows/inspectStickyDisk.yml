@@ -11,6 +11,10 @@ on:
         description: 'Exact sticky disk key to inspect (e.g. Expensify/App-Linux-X64-node-modules-0bf21fdb...). Overrides the computed keys.'
         type: string
         default: ''
+      delete_key:
+        description: 'Exact sticky disk key to DELETE (destructive: next run on this key pays a full npm ci / native rebuild).'
+        type: string
+        default: ''
   push:
     paths:
       - '.github/workflows/inspectStickyDisk.yml'
@@ -24,6 +28,9 @@ jobs:
     env:
       # On push there are no inputs, so fall back to the hardcoded key under investigation
       RAW_KEY: ${{ inputs.raw_key || 'Expensify/App-Linux-X64-node-modules-ebc680713b61d9a80ed52a0d3e4dc41b4c7d5393baa5db8b3929c01bbfb9675f' }}
+      # Set to a key (or hardcode one here for push runs) to delete that disk. fstrim/discard is not
+      # supported on sticky disks, so deletion is the only way to reclaim already-allocated blocks.
+      DELETE_KEY: ${{ inputs.delete_key || '' }}
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
@@ -115,6 +122,12 @@ jobs:
           echo "=== after cleanup ==="
           df -h raw-disk
           sudo fstrim -v raw-disk || echo "::warning::fstrim failed (discard may be unsupported)"
+
+      - name: Delete sticky disk by key
+        if: env.DELETE_KEY != ''
+        uses: useblacksmith/stickydisk-delete@b41313d28b8647d72114c9ba3c96bb04061562b6 # v1
+        with:
+          delete-key: ${{ env.DELETE_KEY }}
 
       - name: Summary
         shell: bash

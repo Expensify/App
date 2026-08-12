@@ -1,0 +1,51 @@
+name: Seed sticky disks
+
+# The only workflow allowed to commit node_modules sticky disk snapshots (see setupNode's
+# SEED_STICKY_DISKS input). It runs whenever the files that make up the disk keys change,
+# installs dependencies once, and commits a clean snapshot for every other workflow to consume.
+# Consumers that race ahead of the seed on a fresh key simply pay their own npm ci (commit: false),
+# exactly like a regular cache miss.
+
+# Runs on every push and pull request, not just changes to the files the keys hash: a seed job whose
+# key already has a snapshot mounts it and exits (commit: if-missing makes it a no-op), so the steady
+# state costs one short 2vCPU job per run and guarantees no consumer ever races a missing snapshot.
+on:
+  push:
+    branches:
+      - main
+      - staging
+      - production
+  pull_request:
+    types: [opened, synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  seedStandalone:
+    name: Seed standalone node_modules
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+
+      - name: Setup Node (seed)
+        uses: ./.github/actions/composite/setupNode
+        with:
+          SEED_STICKY_DISKS: 'true'
+
+  seedHybrid:
+    name: Seed hybrid node_modules
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        with:
+          submodules: true
+
+      - name: Setup Node (seed)
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: 'true'
+          SEED_STICKY_DISKS: 'true'
