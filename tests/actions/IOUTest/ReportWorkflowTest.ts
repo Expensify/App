@@ -37,7 +37,7 @@ import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
-import {AnyOnyxData} from '@src/types/onyx/Request';
+import type {AnyOnyxData} from '@src/types/onyx/Request';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
@@ -2527,18 +2527,20 @@ describe('actions/IOU/ReportWorkflow', () => {
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}` as const;
 
             approveMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 expenseReportPolicy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
 
