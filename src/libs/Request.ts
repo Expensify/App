@@ -11,7 +11,7 @@ import HttpUtils from './HttpUtils';
 import Log from './Log';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
-import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
+import {endSpan, startSpan} from './telemetry/activeSpans';
 import trackStartupDataRender from './telemetry/trackStartupDataRender';
 
 let middlewares: Middleware[] = [];
@@ -38,7 +38,6 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
             startSpan(applySpanId, {
                 name: CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY,
                 op: CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY,
-                parentSpan: getSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.ROOT),
                 forceTransaction: true,
                 attributes: {[CONST.TELEMETRY.ATTRIBUTE_COMMAND]: request.command, [CONST.TELEMETRY.ATTRIBUTE_ATTEMPT]: attempt},
             });

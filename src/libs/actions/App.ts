@@ -15,7 +15,7 @@ import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
-import {cancelAllSpans, cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelAllSpans, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptQueueSnapshot} from '@libs/telemetry/ReceiptObservability';
 
 import CONST from '@src/CONST';
@@ -434,15 +434,6 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         });
     }
 
-    // Unlike the span above this one is unconditional, so no-splash flows still get an end-to-end number. It covers the
-    // queue wait, the storage read, every retry, and the Authenticate round trip, none of which the per-attempt spans see.
-    startSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.ROOT, {
-        name: CONST.TELEMETRY.SPAN_STARTUP_DATA.ROOT,
-        op: CONST.TELEMETRY.SPAN_STARTUP_DATA.ROOT,
-        forceTransaction: true,
-        attributes: {[CONST.TELEMETRY.ATTRIBUTE_COMMAND]: WRITE_COMMANDS.OPEN_APP},
-    });
-
     const params: OpenAppParams = {...getPolicyParamsForOpenOrReconnect(), enablePriorityModeFilter: true};
 
     // Preservation adds successData an in-flight OpenApp knows nothing about, so this call cannot be dropped.
@@ -452,7 +443,6 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
         shouldDedupeWithInFlight && !hasPreservationData,
     ).finally(() => {
-        endSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.ROOT);
         if (!bootsplashSpan) {
             return;
         }
@@ -477,17 +467,9 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
         });
     }
 
-    startSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.ROOT, {
-        name: CONST.TELEMETRY.SPAN_STARTUP_DATA.ROOT,
-        op: CONST.TELEMETRY.SPAN_STARTUP_DATA.ROOT,
-        forceTransaction: true,
-        attributes: {[CONST.TELEMETRY.ATTRIBUTE_COMMAND]: WRITE_COMMANDS.RECONNECT_APP},
-    });
-
     hasLoadedAppPromise.then(() => {
         if (!hasLoadedApp) {
             // If app hasn't loaded yet, call openApp instead (which has its own span)
-            cancelSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.ROOT);
             if (bootsplashSpan) {
                 endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
             }
@@ -497,7 +479,6 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
 
         // Don't make API calls when using imported state to avoid infinite loading
         if (isUsingImportedState) {
-            cancelSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.ROOT);
             return;
         }
 
@@ -516,7 +497,6 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             params,
             getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded, undefined, true),
         ).finally(() => {
-            endSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.ROOT);
             if (!bootsplashSpan) {
                 return;
             }

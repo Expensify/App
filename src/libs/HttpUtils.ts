@@ -21,7 +21,7 @@ import {setLoadTestParameters} from './Network/LoadTestState';
 import preparePrefetchRequest from './Prefetch/preparePrefetchRequest';
 import registerPrefetchOnAppStart from './Prefetch/registerPrefetchOnAppStart';
 import prepareRequestPayload from './prepareRequestPayload';
-import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
+import {endSpan, startSpan} from './telemetry/activeSpans';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
 
 let shouldFailAllRequests = false;
@@ -76,7 +76,6 @@ function startStartupNetworkPhaseSpan(spanName: string, attempt: number, command
     startSpan(`${spanName}_${attempt}`, {
         name: spanName,
         op: spanName,
-        parentSpan: getSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.ROOT),
         forceTransaction: true,
         attributes: {
             [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: command,

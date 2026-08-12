@@ -2184,9 +2184,8 @@ const CONST = {
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
         SPAN_APP_STARTUP_NETWORK_REQUEST: 'ManualAppStartupNetworkRequest',
-        /** Phases of the OpenApp/ReconnectApp data load. ROOT covers the whole thing, including queue wait and retries the phases cannot see. */
+        /** Phases of the OpenApp/ReconnectApp data load. */
         SPAN_STARTUP_DATA: {
-            ROOT: 'StartupData',
             WAIT: 'StartupData.Wait',
             DOWNLOAD: 'StartupData.Download',
             APPLY: 'StartupData.Apply',
