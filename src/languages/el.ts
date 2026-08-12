@@ -8021,6 +8021,8 @@ ${reportName}`,
                 importColumnUpdatedCategory: 'Ενημερωμένη κατηγορία',
                 importColumnUpdatedTag: 'Ενημερωμένη ετικέτα',
                 importColumnUpdatedDescription: 'Ενημερωμένη περιγραφή',
+                vendorUnavailable: 'Ο προμηθευτής δεν είναι διαθέσιμος',
+                supplierUnavailable: 'Ο προμηθευτής δεν είναι διαθέσιμος',
             },
             newRule: {
                 title: 'Νέος κανόνας',

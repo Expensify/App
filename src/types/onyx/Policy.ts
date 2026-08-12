@@ -2756,6 +2756,9 @@ type CodingRule = {
     /** Tax configuration for the expense */
     tax?: CodingRuleTax;
 
+    /** The external ID of the vendor to set on matching expenses */
+    vendorID?: string;
+
     /** When this rule was created */
     created?: string;
 

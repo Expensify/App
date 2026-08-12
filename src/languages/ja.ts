@@ -7570,6 +7570,8 @@ ${reportName}`,
                 expenseDefaultsSubtitle: '申請者が何も操作しなくてもフィールドを更新する',
                 ifAnyExpenseMatches: 'いずれかの経費が次の条件に一致する場合：',
                 thenApplyFollowingDefaults: '次に、以下のデフォルトを適用します。',
+                vendorUnavailable: 'ベンダーを利用できません',
+                supplierUnavailable: 'サプライヤーを利用できません',
             },
             categoryRules: {
                 title: 'カテゴリルール',

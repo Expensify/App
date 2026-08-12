@@ -7385,6 +7385,8 @@ ${reportName}`,
                 expenseDefaultsSubtitle: '在提交人无须执行任何操作的情况下更新字段',
                 ifAnyExpenseMatches: '如果任一报销符合以下条件：',
                 thenApplyFollowingDefaults: '然后应用以下默认设置：',
+                vendorUnavailable: '供应商不可用',
+                supplierUnavailable: '供应商不可用',
             },
             categoryRules: {
                 title: '类别规则',

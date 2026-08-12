@@ -7622,6 +7622,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 expenseDefaultsSubtitle: 'Aktualizuj pola bez wymagania działania od osoby zgłaszającej',
                 ifAnyExpenseMatches: 'Jeśli którykolwiek wydatek pasuje:',
                 thenApplyFollowingDefaults: 'Następnie zastosuj następujące domyślne ustawienia:',
+                vendorUnavailable: 'Dostawca niedostępny',
+                supplierUnavailable: 'Dostawca niedostępny',
             },
             categoryRules: {
                 title: 'Reguły kategorii',

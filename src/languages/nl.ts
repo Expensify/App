@@ -7644,6 +7644,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 expenseDefaultsSubtitle: 'Velden bijwerken zonder dat de indiener iets hoeft te doen',
                 ifAnyExpenseMatches: 'Als een uitgave overeenkomt:',
                 thenApplyFollowingDefaults: 'Pas vervolgens de volgende standaardinstellingen toe:',
+                vendorUnavailable: 'Leverancier niet beschikbaar',
+                supplierUnavailable: 'Leverancier niet beschikbaar',
             },
             categoryRules: {
                 title: 'Categorisatieregels',
