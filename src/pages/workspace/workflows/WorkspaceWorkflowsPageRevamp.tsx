@@ -60,7 +60,7 @@ const WORKFLOWS_TABS_BY_KEY = new Map<string, WorkflowsTab>(Object.values(WORKFL
 
 type WorkspaceWorkflowsPageRevampProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
-function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWorkflowsPageRevampProps) {
+function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRevampProps) {
     const {policyID} = route.params;
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.workflows');
     const {translate} = useLocalize();
@@ -109,20 +109,25 @@ function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWork
     }, [showConfirmModal, translate]);
 
     const [lastSelectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.WORKFLOWS_TAB_TYPE}`);
-    // A `?tab=` deep link wins over the persisted tab until the user picks a tab themselves, at which point the param is cleared below.
+    // A `?tab=` deep link wins over the persisted tab until it has been handed over to Onyx by the effect below.
     const routeTab = route.params?.tab;
     const persistedTab = WORKFLOWS_TABS_BY_KEY.get(lastSelectedTab ?? '') ?? WORKFLOWS_TAB.SUBMISSIONS;
     const requestedTab = routeTab ?? persistedTab;
 
     useEffect(() => {
-        // Persist a deep-linked tab so returning here later — including via a `backTo` that intentionally carries no
-        // tab, since `goBack` compares route params and a tab param would stop it matching the mounted page — reopens it.
         if (!routeTab) {
             return;
         }
 
-        Tab.setSelectedTab(CONST.TAB.WORKFLOWS_TAB_TYPE, routeTab);
-    }, [routeTab]);
+        // Persist the deep-linked tab first so reopening this page lands on it again.
+        if (persistedTab !== routeTab) {
+            Tab.setSelectedTab(CONST.TAB.WORKFLOWS_TAB_TYPE, routeTab);
+            return;
+        }
+
+        // Onyx now holds the tab, so drop the param — `goBack` compares params, and a leftover one stops child flows returning here with the plain route from popping.
+        Navigation.setParams({tab: undefined});
+    }, [routeTab, persistedTab]);
 
     // Each tab reuses its section's existing title so the tab label and the card heading can never drift apart.
     // A tab this member can't open is disabled rather than hidden, so they stay aware the feature exists and can ask an
@@ -166,9 +171,10 @@ function WorkspaceWorkflowsPageRevamp({policy, route, navigation}: WorkspaceWork
 
         Tab.setSelectedTab(CONST.TAB.WORKFLOWS_TAB_TYPE, tab);
 
-        // Drop the deep-linked tab so the persisted tab drives the page from here on.
+        // Drop the deep-linked tab so the persisted tab drives the page from here on. Without this, a press landing
+        // before the effect above cleared the param would be overwritten by it on the next render.
         if (routeTab) {
-            Navigation.setParams({tab: undefined}, route.key, navigation.getState()?.key);
+            Navigation.setParams({tab: undefined});
         }
     };
 
