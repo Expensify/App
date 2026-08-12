@@ -4495,8 +4495,7 @@ ${amount} für ${merchant} – ${date}`,
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Reisen ist nicht aktiviert',
-            message: ({workspaceName}: {workspaceName: string}) =>
-                `Ihr aktueller Standard-Arbeitsbereich ist ${workspaceName}, in dem Reisen nicht aktiviert ist. Bitte ändern Sie Ihren Standard-Arbeitsbereich, um buchen zu können!`,
+            message: 'Um zu buchen, aktivieren Sie bitte Reisen in Ihrem Standard-Arbeitsbereich oder wechseln Sie Ihren Standard-Arbeitsbereich zu einem, in dem Reisen aktiviert ist.',
         },
     },
     workspace: {

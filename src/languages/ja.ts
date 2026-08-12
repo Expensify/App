@@ -4435,8 +4435,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
         defaultWorkspaceTravelDisabled: {
             title: '出張機能は有効になっていません',
-            message: ({workspaceName}: {workspaceName: string}) =>
-                `現在のデフォルトワークスペースは ${workspaceName} で、出張手配機能が有効になっていません。予約するには、デフォルトワークスペースを変更してください。`,
+            message: '予約するには、デフォルトのワークスペースで出張機能を有効にするか、出張機能が有効になっているワークスペースをデフォルトとして設定してください。',
         },
     },
     workspace: {

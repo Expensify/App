@@ -4469,8 +4469,7 @@ ${amount} voor ${merchant} - ${date}`,
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Reizen is niet ingeschakeld',
-            message: ({workspaceName}: {workspaceName: string}) =>
-                `Je huidige standaardwerkruimte is ${workspaceName} en heeft reizen niet ingeschakeld. Wijzig je standaardwerkruimte om te kunnen boeken!`,
+            message: 'Om te boeken, schakel reizen in op je standaardwerkruimte of stel een standaardwerkruimte in die reizen ondersteunt.',
         },
     },
     workspace: {

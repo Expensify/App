@@ -4453,9 +4453,8 @@ ${amount} dla ${merchant} - ${date}`,
                 'Wiesz, że możesz rezerwować i zarządzać przejazdami pociągiem bezpośrednio w Expensify? I że paragony są automatycznie przesyłane za Ciebie? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a>',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Podróże nie są włączone',
-            message: ({workspaceName}: {workspaceName: string}) =>
-                `Twoje domyślne miejsce pracy to ${workspaceName}, w którym podróże nie są włączone. Zmień domyślne miejsce pracy, żeby móc rezerwować!`,
+            title: 'Podróże są wyłączone',
+            message: 'Aby dokonać rezerwacji, włącz podróże w swojej domyślnej przestrzeni roboczej lub ustaw jako domyślną inną przestrzeń roboczą, w której podróże są włączone.',
         },
     },
     workspace: {

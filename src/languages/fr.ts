@@ -4504,8 +4504,7 @@ ${amount} pour ${merchant} - ${date}`,
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Voyage n’est pas activé',
-            message: ({workspaceName}: {workspaceName: string}) =>
-                `Votre espace de travail par défaut actuel est ${workspaceName}, qui n’a pas le voyage activé. Veuillez changer d’espace de travail par défaut pour pouvoir réserver !`,
+            message: 'Pour réserver, veuillez activer les voyages sur votre espace de travail par défaut ou définir par défaut un espace de travail sur lequel les voyages sont activés.',
         },
     },
     workspace: {

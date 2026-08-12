@@ -4462,9 +4462,8 @@ ${amount} para ${merchant} - ${date}`,
                 'Você sabia que dá para reservar e gerenciar viagens de trem direto no Expensify? E que os recibos são enviados automaticamente para você? Da próxima vez, é só reservar pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Viagens não estão ativadas',
-            message: ({workspaceName}: {workspaceName: string}) =>
-                `Seu espaço de trabalho padrão atual é ${workspaceName}, que não tem viagens ativadas. Altere seu espaço de trabalho padrão para poder reservar!`,
+            title: 'Viagem não está ativada',
+            message: 'Para fazer uma reserva, ative viagens no seu espaço de trabalho padrão ou altere seu espaço de trabalho padrão para um que tenha viagens ativadas.',
         },
     },
     workspace: {

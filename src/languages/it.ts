@@ -4470,9 +4470,8 @@ ${amount} per ${merchant} - ${date}`,
                 'Sapevi che puoi prenotare e gestire i viaggi in treno direttamente in Expensify? E che le ricevute vengono caricate automaticamente per te? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Viaggi non è abilitato',
-            message: ({workspaceName}: {workspaceName: string}) =>
-                `Il tuo spazio di lavoro predefinito attuale è ${workspaceName}, che non ha i viaggi abilitati. Cambia il tuo spazio di lavoro predefinito per poter prenotare!`,
+            title: 'Viaggi non abilitato',
+            message: 'Per prenotare, abilita i viaggi sul tuo spazio di lavoro predefinito oppure imposta come predefinito uno spazio di lavoro con viaggi abilitati.',
         },
     },
     workspace: {
