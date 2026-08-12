@@ -119,6 +119,7 @@ function makeSyncProgress(connectionName: ConnectionName, stage: PolicyConnectio
 
 const stubGetLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'] = (datetime) => (datetime ? new Date(datetime) : new Date(0));
 const stubTranslate = ((key: string) => key) as unknown as LocaleContextProps['translate'];
+const stubFormatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = (phoneNumber) => phoneNumber;
 
 function getRow(card: HRCardDescriptor | undefined, field: string) {
     return card?.configRows?.find((row) => row.field === field);
@@ -130,6 +131,7 @@ function makeGetHRCardsParams(overrides: Partial<GetHRCardsParams> = {}): GetHRC
         connectionSyncProgress: undefined,
         getLocalDateFromDatetime: stubGetLocalDateFromDatetime,
         translate: stubTranslate,
+        formatPhoneNumber: stubFormatPhoneNumber,
         policyID: POLICY_ID,
         gustoIcon: STUB_ICON,
         trinetIcon: STUB_ICON,

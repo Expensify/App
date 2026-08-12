@@ -94,7 +94,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             return {
                 keyForList: String(accountID),
                 accountID,
-                name: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
+                name: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
                 email: formatPhoneNumber(login),
                 isPrimaryContact: !!technicalContactEmail && !!login && technicalContactEmail === login,
                 errors: getLatestError(errors),
