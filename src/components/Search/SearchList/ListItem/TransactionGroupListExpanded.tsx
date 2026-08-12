@@ -256,12 +256,12 @@ function TransactionGroupListExpandedImpl({
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
         if (isModifiedMousePress(event)) {
-            setActiveTransactionIDs(siblingTransactionIDs, transactionsQueryJSON?.hash);
+            setActiveTransactionIDs(siblingTransactionIDs);
             navigateToTransactionThread();
             return;
         }
 
-        setActiveTransactionIDs(siblingTransactionIDs, transactionsQueryJSON?.hash).then(navigateToTransactionThread);
+        setActiveTransactionIDs(siblingTransactionIDs).then(navigateToTransactionThread);
     };
 
     const onShowMoreButtonPress = () => {
@@ -332,7 +332,7 @@ function TransactionGroupListExpandedImpl({
             )}
             {visibleTransactions.map((transaction, index) => {
                 const shouldShowBottomBorder = !isLastTransaction(index);
-                const reportActions = Object.values(transactionsSnapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {});
+                const exportedReportActions = Object.values(transactionsSnapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {});
                 const isDeletedOrPendingDelete = isDeletedTransaction(transaction) || isTransactionPendingDelete(transaction);
 
                 return (
@@ -380,7 +380,7 @@ function TransactionGroupListExpandedImpl({
                                     shouldShowBottomBorder={shouldShowBottomBorder}
                                     onArrowRightPress={isDeletedOrPendingDelete ? undefined : (event) => openReportInRHP(transaction, event)}
                                     shouldShowArrowRightOnNarrowLayout
-                                    reportActions={reportActions}
+                                    reportActions={exportedReportActions}
                                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                                     isActionColumnWide={isActionColumnWide}
                                     isHover={hovered}

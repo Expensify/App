@@ -797,7 +797,7 @@ describe('ReportNameUtils', () => {
         });
 
         test('UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE parent action', () => {
-            const thread: Report = createWorkspaceThread(151);
+            const thread: Report = createWorkspaceThread(152);
             const companyPaysParentAction: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE,
@@ -838,6 +838,59 @@ describe('ReportNameUtils', () => {
                 currentUserAccountID,
             );
             expect(employeePaysName).toBe('updated the currency conversion fee setting to "Employee pays"');
+        });
+
+        test('UPDATE_AUTO_HARVESTING parent action', () => {
+            const thread: Report = createWorkspaceThread(151);
+            const enabledParentAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
+                reportActionID: String(thread.parentReportActionID),
+                originalMessage: {
+                    value: true,
+                },
+            };
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: enabledParentAction},
+            };
+
+            const enabledName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(enabledName).toBe('enabled submissions');
+
+            const disabledParentAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
+                reportActionID: String(thread.parentReportActionID),
+                originalMessage: {
+                    value: false,
+                },
+            };
+            const disabledReportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: disabledParentAction},
+            };
+            const disabledName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                disabledReportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(disabledName).toBe('disabled submissions');
         });
 
         test('UPDATE_CATEGORY_TAX_RATE parent action renders the rendered category default tax rate change', () => {
