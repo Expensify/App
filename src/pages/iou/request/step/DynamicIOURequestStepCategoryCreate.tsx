@@ -19,6 +19,8 @@ import {updateMoneyRequestCategory} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {createPolicyCategory} from '@libs/actions/Policy/Category';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {pickReportForPolicy} from '@libs/IOUUtils';
+import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
+import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasTags} from '@libs/PolicyUtils';
 import {isSelfDM} from '@libs/ReportUtils';
@@ -28,7 +30,7 @@ import CategoryForm from '@pages/workspace/categories/CategoryForm';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 
@@ -61,6 +63,8 @@ function DynamicIOURequestStepCategoryCreate({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {currentSearchHash} = useSearchQueryContext();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.path);
+    const categorySuffixMatch = findAllMatchingDynamicSuffixes(backPath).find((match) => match.pattern === DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.path);
+    const basePath = categorySuffixMatch ? getPathWithoutDynamicSuffix(categorySuffixMatch.pathUsedForMatching, categorySuffixMatch.actualSuffix, categorySuffixMatch.pattern) : backPath;
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
@@ -178,15 +182,7 @@ function DynamicIOURequestStepCategoryCreate({
             setMoneyRequestCategory(transactionID, categoryName, policy, getCurrencyDecimals);
         }
 
-        // A categorize flow may already have an existing Confirmation screen in the stack (e.g. reached via
-        // the Participants step) or not (fresh tracked expense categorized directly from a report). goBack
-        // with the Confirmation route pops back to it when present, or replaces forward into it otherwise -
-        // either way avoiding a duplicated Confirmation entry.
-        if (!isEditing && action === CONST.IOU.ACTION.CATEGORIZE) {
-            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? reportID));
-            return;
-        }
-        Navigation.goBack(backPath);
+        Navigation.goBack(basePath);
     };
 
     const navigateBackToCategoryList = () => Navigation.goBack(backPath);
