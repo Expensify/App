@@ -1,13 +1,12 @@
-/**
- * @jest-environment node
- */
+import {beforeEach, describe, expect, it, jest} from 'bun:test';
+
 import OpenAIUtils from '@scripts/utils/OpenAIUtils';
 import ChatGPTTranslator from '@scripts/utils/Translator/ChatGPTTranslator';
 
 import type Locale from '@src/types/onyx/Locale';
 
-jest.mock('@scripts/utils/OpenAIUtils');
-
+// Only `promptResponses` needs stubbing: the OpenAIUtils constructor just stores the key and builds a client, so
+// there is nothing to gain from replacing the whole module (which Bun has no automock for anyway).
 const mockedPromptResponses = jest.spyOn(OpenAIUtils.prototype, 'promptResponses');
 
 /**

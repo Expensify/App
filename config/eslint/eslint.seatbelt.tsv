@@ -1781,7 +1781,7 @@
 "../../tests/unit/deferredLayoutWriteTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/dismissModalAndOpenReportInInboxTabTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/findUnusedStylesTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../tests/unit/generateTranslationsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../tests/tooling/generateTranslations.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/getChartSkiaTypefaceTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/getTimeDifferenceIntervalsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/goBackFromWorkspaceSettingPagesTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
