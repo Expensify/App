@@ -20,8 +20,6 @@ import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import variables from '@styles/variables';
 
 import type {LayoutChangeEvent} from 'react-native';
@@ -236,13 +234,9 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, left: yAxisLabelWidth + GLYPH_PADDING};
 
     if (isLoading || !fontManager) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'BarChartContent', isLoading, isFontLoading: !fontManager};
         return (
             <View style={styles.chartActivityIndicator}>
-                <ActivityIndicator
-                    size="large"
-                    reasonAttributes={reasonAttributes}
-                />
+                <ActivityIndicator size="large" />
             </View>
         );
     }
