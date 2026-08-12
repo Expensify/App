@@ -130,21 +130,6 @@ describe('AccountAvatarWithCardFeed (connected)', () => {
         expect(mockCapturedSubscriptCardFeedAvatarProps.size).toBe(expectedSize);
     });
 
-    it.each([
-        ['default to showing the tooltip', undefined, true],
-        ['forward an explicit tooltip opt-out', false, false],
-    ])('should %s', (_case, shouldShowTooltip, expected) => {
-        render(
-            <AccountAvatarWithCardFeed
-                accountID={ACCOUNT_ID}
-                cardFeed={CARD_FEED}
-                shouldShowTooltip={shouldShowTooltip}
-            />,
-        );
-
-        expect(mockCapturedSubscriptCardFeedAvatarProps.shouldShowTooltip).toBe(expected);
-    });
-
     it('should forward the tooltip fallback display name', () => {
         render(
             <AccountAvatarWithCardFeed

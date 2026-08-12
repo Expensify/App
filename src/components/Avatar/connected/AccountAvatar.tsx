@@ -18,9 +18,6 @@ type AccountAvatarProps = {
     /** Size of the avatar */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
-    /** Whether to show the tooltip on hover */
-    shouldShowTooltip?: boolean;
-
     /** Display name used as a fallback for the avatar tooltip */
     fallbackDisplayName?: string;
 
@@ -33,7 +30,7 @@ type AccountAvatarProps = {
  * Use whenever exactly one account is rendered. Reach for `AccountAvatars` when several accounts share one slot,
  * or pass `Avatar/UserAvatar` a `source` instead when the avatar is already resolved.
  */
-function AccountAvatar({accountID, size = CONST.AVATAR_SIZE.DEFAULT, shouldShowTooltip = true, fallbackDisplayName, containerStyle}: AccountAvatarProps) {
+function AccountAvatar({accountID, size = CONST.AVATAR_SIZE.DEFAULT, fallbackDisplayName, containerStyle}: AccountAvatarProps) {
     const StyleUtils = useStyleUtils();
     const [icon] = useAccountIcons([accountID]);
 
@@ -42,7 +39,6 @@ function AccountAvatar({accountID, size = CONST.AVATAR_SIZE.DEFAULT, shouldShowT
             avatar={icon}
             size={size}
             containerStyles={containerStyle ?? StyleUtils.getContainerStyles(size)}
-            shouldShowTooltip={shouldShowTooltip}
             fallbackDisplayName={fallbackDisplayName}
         />
     );

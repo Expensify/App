@@ -37,9 +37,6 @@ type AccountAvatarsProps = {
     /** Set the size of avatars */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
-    /** Whether to show the tooltip on hover */
-    shouldShowTooltip?: boolean;
-
     /** Display name used as a fallback for the avatar tooltip */
     fallbackDisplayName?: string;
 
@@ -79,7 +76,6 @@ function AccountAvatars({
     sort,
     invitedEmailsToAccountIDs,
     size = CONST.AVATAR_SIZE.DEFAULT,
-    shouldShowTooltip = true,
     fallbackDisplayName,
     isInReportAction = false,
 }: AccountAvatarsProps) {
@@ -99,7 +95,6 @@ function AccountAvatars({
                 avatar={placeholderIcon}
                 size={size}
                 containerStyles={[]}
-                shouldShowTooltip={shouldShowTooltip}
                 fallbackDisplayName={fallbackDisplayName}
             />
         );
@@ -111,7 +106,6 @@ function AccountAvatars({
             size={size}
             icons={sortIcons(icons, sort, personalDetails, localeCompare)}
             isInReportAction={isInReportAction}
-            shouldShowTooltip={shouldShowTooltip}
             fallbackDisplayName={fallbackDisplayName}
         />
     );

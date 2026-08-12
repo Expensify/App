@@ -1,4 +1,5 @@
 import AccountAvatars from '@components/Avatar/connected/AccountAvatars';
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
@@ -130,7 +131,7 @@ function WorkspaceInviteMessageComponent({
     const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
     const memberNames = Object.values(personalDetailsOfInvitedEmails)
         .map((personalDetail) => {
-            const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: '', shouldFallbackToHidden: false, translate});
+            const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: '', shouldFallbackToHidden: false, translate, formatPhoneNumber});
             if (displayName) {
                 return displayName;
             }
@@ -291,15 +292,16 @@ function WorkspaceInviteMessageComponent({
                         <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>
                     )}
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                        <AccountAvatars
-                            size={CONST.AVATAR_SIZE.XXX_LARGE}
-                            accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
-                            horizontalOptions={{
-                                maxRows: 2,
-                            }}
-                            invitedEmailsToAccountIDs={invitedEmailsToAccountIDsDraft}
-                            shouldShowTooltip={shouldShowTooltip}
-                        />
+                        <AvatarTooltipsProvider isEnabled={shouldShowTooltip}>
+                            <AccountAvatars
+                                size={CONST.AVATAR_SIZE.XXX_LARGE}
+                                accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
+                                horizontalOptions={{
+                                    maxRows: 2,
+                                }}
+                                invitedEmailsToAccountIDs={invitedEmailsToAccountIDsDraft}
+                            />
+                        </AvatarTooltipsProvider>
                     </View>
                     <View style={styles.mb3}>
                         <View style={[styles.mhn5, styles.mb3]}>
@@ -340,6 +342,7 @@ function WorkspaceInviteMessageComponent({
                                         defaultValue: workspaceInviteApproverDraft,
                                         shouldFallbackToHidden: false,
                                         translate,
+                                        formatPhoneNumber,
                                     })}
                                     description={translate('workflowsPage.approver')}
                                     shouldShowRightIcon

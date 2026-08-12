@@ -1,4 +1,5 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
@@ -94,30 +95,31 @@ function UserListItemContent<TItem extends ListItem>({
             role={shouldDisableAccessibleGrouping ? CONST.ROLE.BUTTON : undefined}
             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
         >
-            {(!!reportExists || !!itemAccountID || !!policyID) &&
-                (!reportExists && !policyID && !!itemAccountID ? (
-                    <AccountAvatar
-                        accountID={itemAccountID}
-                        shouldShowTooltip={showTooltip}
-                        containerStyle={[styles.actionAvatar, styles.mr3]}
-                        fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
-                    />
-                ) : (
-                    <ReportActionAvatars
-                        subscriptAvatarBorderColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                        shouldShowTooltip={showTooltip}
-                        secondaryAvatarContainerStyle={[
-                            StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                            isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                            isHovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                        ]}
-                        reportID={reportExists ? item.reportID : undefined}
-                        accountIDs={!reportExists && !!itemAccountID ? [itemAccountID] : []}
-                        policyID={!reportExists && !!policyID ? policyID : undefined}
-                        singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
-                        fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
-                    />
-                ))}
+            {(!!reportExists || !!itemAccountID || !!policyID) && (
+                <AvatarTooltipsProvider isEnabled={showTooltip}>
+                    {!reportExists && !policyID && !!itemAccountID ? (
+                        <AccountAvatar
+                            accountID={itemAccountID}
+                            containerStyle={[styles.actionAvatar, styles.mr3]}
+                            fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
+                        />
+                    ) : (
+                        <ReportActionAvatars
+                            subscriptAvatarBorderColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                            secondaryAvatarContainerStyle={[
+                                StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                isHovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                            ]}
+                            reportID={reportExists ? item.reportID : undefined}
+                            accountIDs={!reportExists && !!itemAccountID ? [itemAccountID] : []}
+                            policyID={!reportExists && !!policyID ? policyID : undefined}
+                            singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+                            fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
+                        />
+                    )}
+                </AvatarTooltipsProvider>
+            )}
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                 <TextWithTooltip
                     shouldShowTooltip={showTooltip}

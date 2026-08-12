@@ -139,20 +139,6 @@ describe('AccountAvatar (connected)', () => {
         expect(mockGetContainerStyles).not.toHaveBeenCalled();
     });
 
-    it.each([
-        ['default to showing the tooltip', undefined, true],
-        ['forward an explicit tooltip opt-out', false, false],
-    ])('should %s', (_case, shouldShowTooltip, expected) => {
-        render(
-            <AccountAvatar
-                accountID={ACCOUNT_ID}
-                shouldShowTooltip={shouldShowTooltip}
-            />,
-        );
-
-        expect(mockCapturedSingleAvatarProps.shouldShowTooltip).toBe(expected);
-    });
-
     it('should forward the tooltip fallback display name', () => {
         render(
             <AccountAvatar

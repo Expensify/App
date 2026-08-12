@@ -26,9 +26,6 @@ type AccountAvatarWithCardFeedProps = {
     /** Size of the avatar */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
-    /** Whether to show the tooltip on hover */
-    shouldShowTooltip?: boolean;
-
     /** Display name used as a fallback for the avatar tooltip */
     fallbackDisplayName?: string;
 
@@ -46,7 +43,6 @@ function AccountAvatarWithCardFeed({
     cardFeedIconSize,
     borderColor,
     size = CONST.AVATAR_SIZE.DEFAULT,
-    shouldShowTooltip = true,
     fallbackDisplayName,
     containerStyle,
 }: AccountAvatarWithCardFeedProps) {
@@ -58,7 +54,6 @@ function AccountAvatarWithCardFeed({
             cardFeed={cardFeed}
             cardFeedIconSize={cardFeedIconSize}
             size={size}
-            shouldShowTooltip={shouldShowTooltip}
             containerStyle={containerStyle}
             subscriptAvatarBorderColor={borderColor}
             fallbackDisplayName={fallbackDisplayName}
