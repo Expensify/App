@@ -1005,7 +1005,7 @@ describe('ReportNameUtils', () => {
             };
 
             const name = computeReportName(thread, emptyCollections.reports, policies, undefined, undefined, participantsPersonalDetails, reportActionsCollection, currentUserAccountID);
-            expect(name).toContain('€50');
+            expect(name).toBe('changed the "Advertising" category to €50 • Default (previously Always require receipts)');
         });
 
         test('DELETE_CARD_FEED parent action', () => {
