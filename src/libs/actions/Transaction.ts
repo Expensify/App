@@ -11,7 +11,6 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -1943,22 +1942,6 @@ function getChangeTransactionsReportOnyxData({
                 nextStep: affectedReport.nextStep ?? null,
                 pendingFields: failurePendingFields,
             },
-        });
-    }
-
-    // Surface a user-visible error when the backend rejects the move (e.g. the destination report already holds the
-    // maximum number of transactions). Without this, failureData silently reverts the optimistic move and the user
-    // sees nothing. See https://github.com/Expensify/App/issues/97894.
-    if (destinationReportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && !skippedReportIDsSet.has(destinationReportID)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`,
-            value: {errorFields: {changeReport: null}},
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`,
-            value: {errorFields: {changeReport: getMicroSecondOnyxErrorWithTranslationKey('iou.error.changeReportMaxTransactionsExceeded')}},
         });
     }
 

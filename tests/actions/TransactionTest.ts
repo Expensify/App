@@ -30,7 +30,7 @@ import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import createRandomReportAction from 'tests/utils/collections/reportActions';
 
-import {changeTransactionsReport as changeTransactionsReportAction, getChangeTransactionsReportOnyxData} from '../../src/libs/actions/Transaction';
+import {changeTransactionsReport as changeTransactionsReportAction} from '../../src/libs/actions/Transaction';
 import currencyList from '../unit/currencyList.json';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -557,70 +557,6 @@ describe('actions/Transaction', () => {
                 // Then the moved message is still created, because the expense leaves the report entirely
                 expect(actions.filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)).toHaveLength(1);
             });
-        });
-
-        it('surfaces a user-visible error on the destination report in failureData when the move is rejected', async () => {
-            // Given an expense sitting in a source report, being moved to a destination report
-            const policyID = generatePolicyID();
-            const policy: Policy = {...createRandomPolicy(9, CONST.POLICY.TYPE.TEAM, 'Max Transactions Workspace'), id: policyID};
-            const sourceReportID = 'src-max-txn';
-            const destinationReportID = 'dest-max-txn';
-
-            const transaction: Transaction = {
-                transactionID: 'txn-max',
-                reportID: sourceReportID,
-                amount: -1000,
-                currency: CONST.CURRENCY.USD,
-                merchant: 'Test Merchant',
-                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-            };
-            const sourceReport = {...createRandomReport(1), reportID: sourceReportID, type: CONST.REPORT.TYPE.EXPENSE, policyID} as Report;
-            const destinationReport = {...createRandomReport(2), reportID: destinationReportID, type: CONST.REPORT.TYPE.EXPENSE, policyID} as Report;
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`, sourceReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`, destinationReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-            await waitForBatchedUpdates();
-
-            // When we build the optimistic/failure onyx data for the move
-            const onyxData = getChangeTransactionsReportOnyxData({
-                transactionIDs: [transaction.transactionID],
-                transactions: [transaction],
-                isASAPSubmitBetaEnabled: false,
-                accountID: RORY_ACCOUNT_ID,
-                email: RORY_EMAIL,
-                newReport: destinationReport,
-                policy,
-                policyTagList: undefined,
-                allTransactionViolation: {},
-                allReports: {
-                    [`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`]: sourceReport,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`]: destinationReport,
-                },
-                isTrackIntentUser: false,
-                personalPolicyOutputCurrency: undefined,
-                selfDMReportActions: undefined,
-            });
-
-            // Then failureData sets an error on the destination report so a rejected move isn't silent...
-            const destinationKey = `${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`;
-            const getChangeReportError = (value: unknown): unknown => {
-                if (typeof value !== 'object' || value === null || !('errorFields' in value)) {
-                    return undefined;
-                }
-                const {errorFields} = value;
-                if (typeof errorFields !== 'object' || errorFields === null || !('changeReport' in errorFields)) {
-                    return undefined;
-                }
-                return errorFields.changeReport;
-            };
-            const failureErrorUpdate = onyxData?.failureData.find((update) => update.key === destinationKey && !!getChangeReportError(update.value));
-            expect(failureErrorUpdate).toBeDefined();
-
-            // ...and optimisticData clears any previous error when the move is re-attempted
-            const optimisticClearUpdate = onyxData?.optimisticData.find((update) => update.key === destinationKey && getChangeReportError(update.value) === null);
-            expect(optimisticClearUpdate).toBeDefined();
         });
 
         describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
