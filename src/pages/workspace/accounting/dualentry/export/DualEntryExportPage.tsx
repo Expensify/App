@@ -24,8 +24,8 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const policyOwner = policy?.owner;
-    const dualentryConfig = policy?.connections?.dualentry?.config;
-    const dualentryData = policy?.connections?.dualentry?.data;
+    const dualentryConfig = policy?.connections?.dualEntry?.config;
+    const dualentryData = policy?.connections?.dualEntry?.data;
     const exporter = dualentryConfig?.export?.exporter ?? policyOwner;
     const exportReimbursable = dualentryConfig?.export?.reimbursable ?? CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL;
     const exportDate = dualentryConfig?.export?.exportDate ?? CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE;
@@ -51,7 +51,7 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
             shouldBeBlocked
         >
             <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualentry.exportDescription')}</Text>
+                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualEntry.exportDescription')}</Text>
             </View>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.EXPORTER], dualentryConfig?.pendingFields)}>
                 <MenuItemWithTopDescription
@@ -65,8 +65,8 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.REIMBURSABLE], dualentryConfig?.pendingFields)}>
                 <MenuItemWithTopDescription
-                    title={translate(`workspace.dualentry.exportReimbursable.values.${exportReimbursable}.label`)}
-                    description={translate('workspace.dualentry.exportReimbursable.label')}
+                    title={translate(`workspace.dualEntry.exportReimbursable.values.${exportReimbursable}.label`)}
+                    description={translate('workspace.dualEntry.exportReimbursable.label')}
                     onPress={() => {}}
                     interactive={false}
                     brickRoadIndicator={areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.REIMBURSABLE], dualentryConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
@@ -74,8 +74,8 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.EXPORT_DATE], dualentryConfig?.pendingFields)}>
                 <MenuItemWithTopDescription
-                    title={translate(`workspace.dualentry.exportDate.values.${exportDate}.label`)}
-                    description={translate('workspace.dualentry.exportDate.label')}
+                    title={translate(`workspace.dualEntry.exportDate.values.${exportDate}.label`)}
+                    description={translate('workspace.dualEntry.exportDate.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_VENDOR_BILL_DATE.getRoute(policyID)) : undefined)}
                     shouldShowRightIcon
                     brickRoadIndicator={areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.EXPORT_DATE], dualentryConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
@@ -84,8 +84,8 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.NON_REIMBURSABLE], dualentryConfig?.pendingFields)}>
                 <MenuItemWithTopDescription
-                    title={translate(`workspace.dualentry.exportNonReimbursable.values.${exportNonReimbursable}.label`)}
-                    description={translate('workspace.dualentry.exportNonReimbursable.label')}
+                    title={translate(`workspace.dualEntry.exportNonReimbursable.values.${exportNonReimbursable}.label`)}
+                    description={translate('workspace.dualEntry.exportNonReimbursable.label')}
                     onPress={() => {}}
                     interactive={false}
                     brickRoadIndicator={
@@ -96,7 +96,7 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.DEFAULT_VENDORID], dualentryConfig?.pendingFields)}>
                 <MenuItemWithTopDescription
                     title={defaultCompanyCardVendor?.name}
-                    description={translate('workspace.dualentry.defaultCompanyCardVendor.label')}
+                    description={translate('workspace.dualEntry.defaultCompanyCardVendor.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_DEFAULT_COMPANY_CARD_VENDOR.getRoute(policyID)) : undefined)}
                     shouldShowRightIcon
                     brickRoadIndicator={
@@ -107,7 +107,7 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.CREDIT_CARD_ACCOUNT_ID], dualentryConfig?.pendingFields)}>
                 <MenuItemWithTopDescription
                     title={companyCardAccount ? `${companyCardAccount?.id} ${companyCardAccount?.name}` : undefined}
-                    description={translate('workspace.dualentry.companyCardAccount.label')}
+                    description={translate('workspace.dualEntry.companyCardAccount.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_COMPANY_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
                     shouldShowRightIcon
                     brickRoadIndicator={
@@ -119,7 +119,7 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID], dualentryConfig?.pendingFields)}>
                     <MenuItemWithTopDescription
                         title={expensifyCardAccount ? `${expensifyCardAccount?.id} ${expensifyCardAccount?.name}` : undefined}
-                        description={translate('workspace.dualentry.expensifyCardAccount.label')}
+                        description={translate('workspace.dualEntry.expensifyCardAccount.label')}
                         onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPENSIFY_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
                         shouldShowRightIcon
                         brickRoadIndicator={

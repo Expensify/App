@@ -36,8 +36,8 @@ function DualEntryExpensifyCardAccountPage({policy}: WithPolicyConnectionsProps)
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
-    const dualentryConfig = policy?.connections?.dualentry?.config;
-    const dualentryData = policy?.connections?.dualentry?.data;
+    const dualentryConfig = policy?.connections?.dualEntry?.config;
+    const dualentryData = policy?.connections?.dualEntry?.data;
     const companyCardAccountID = dualentryConfig?.export?.creditCardAccountID;
     const expensifyCardAccountID = dualentryConfig?.export?.expensifyCardAccountID ?? companyCardAccountID;
     const allCardSettings = useExpensifyCardFeeds(policyID);
@@ -60,7 +60,7 @@ function DualEntryExpensifyCardAccountPage({policy}: WithPolicyConnectionsProps)
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualentry.expensifyCardAccount.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualEntry.expensifyCardAccount.description')}</Text>
         </View>
     );
 
@@ -69,8 +69,8 @@ function DualEntryExpensifyCardAccountPage({policy}: WithPolicyConnectionsProps)
             icon={illustrations.Telescope}
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.dualentry.noAccountsFound')}
-            subtitle={translate('workspace.dualentry.noAccountsFoundDescription')}
+            title={translate('workspace.dualEntry.noAccountsFound')}
+            subtitle={translate('workspace.dualEntry.noAccountsFoundDescription')}
             containerStyle={styles.pb10}
         />
     );
@@ -91,7 +91,7 @@ function DualEntryExpensifyCardAccountPage({policy}: WithPolicyConnectionsProps)
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="DualEntryExpensifyCardAccountPage"
-            title="workspace.dualentry.expensifyCardAccount.label"
+            title="workspace.dualEntry.expensifyCardAccount.label"
             data={filteredData}
             textInputOptions={textInputOptions}
             shouldBeBlocked={!isExpensifyCardsEnabled}

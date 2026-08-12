@@ -5868,11 +5868,62 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             subsidiarySelectDescription: 'Επιλέξτε τη θυγατρική στο DualEntry από την οποία θέλετε να εισαγάγετε δεδομένα.',
             noCompaniesFound: 'Δεν βρέθηκαν εταιρείες',
             noCompaniesFoundDescription: 'Παρακαλούμε προσθέστε μια εταιρεία στο DualEntry και συγχρονίστε ξανά τη σύνδεση',
+            noVendorsFound: 'Δεν βρέθηκαν προμηθευτές',
+            noVendorsFoundDescription: 'Παρακαλούμε προσθέστε προμηθευτές στο DualEntry και συγχρονίστε ξανά τη σύνδεση',
+            noAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
+            noAccountsFoundDescription: 'Παρακαλούμε προσθέστε λογαριασμούς στο DualEntry και συγχρονίστε ξανά τη σύνδεση',
             accountTypesDescription: 'Οι λογαριασμοί DualEntry θα εισαχθούν ως κατηγορίες.',
             enableNewAccountsTitle: 'Ενεργοποίηση νέων εισαγόμενων λογαριασμών',
             enableNewAccountsDescription: 'Οι νέοι λογαριασμοί DualEntry θα είναι διαθέσιμοι ως κατηγορίες.',
             classificationsImport: 'Όλες οι κατηγοριοποιήσεις DualEntry εισάγονται ως ετικέτες',
             importDescription: 'Επιλέξτε ποιες ρυθμίσεις κωδικοποίησης θέλετε να εισαγάγετε από το DualEntry.',
+            exportDescription: 'Ρυθμίστε τον τρόπο με τον οποίο τα δεδομένα του Expensify εξάγονται στο DualEntry.',
+            exportReimbursable: {
+                label: 'Εξαγωγή αποζημιώσιμων εξόδων ως',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: 'Τιμολόγια προμηθευτών',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Ημερομηνία τιμολογίου προμηθευτή',
+                description: 'Χρησιμοποιήστε αυτήν την ημερομηνία κατά την εξαγωγή αναφορών στο DualEntry.',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Ημερομηνία τελευταίας δαπάνης',
+                        description: 'Ημερομηνία της πιο πρόσφατης δαπάνης στην αναφορά.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Ημερομηνία εξαγωγής',
+                        description: 'Ημερομηνία εξαγωγής της αναφοράς στο DualEntry.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Ημερομηνία υποβολής',
+                        description: 'Ημερομηνία που η αναφορά υποβλήθηκε για έγκριση.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Εξαγωγή εξόδων εταιρικής κάρτας ως',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: 'Άμεσα έξοδα',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Προεπιλεγμένος προμηθευτής για όλες τις εταιρικές κάρτες',
+                description: 'Επιλέξτε έναν προεπιλεγμένο προμηθευτή DualEntry για έξοδα που δεν αντιστοιχίζονται αυτόματα.',
+            },
+            companyCardAccount: {
+                label: 'Λογαριασμός εταιρικής κάρτας',
+                description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.',
+            },
+            expensifyCardAccount: {
+                label: 'Λογαριασμός Expensify Card',
+                description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές της Expensify Card.',
+            },
         },
         type: {
             free: 'Δωρεάν',

@@ -5531,11 +5531,62 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             subsidiarySelectDescription: '请选择要从中导入数据的 DualEntry 子公司。',
             noCompaniesFound: '未找到公司',
             noCompaniesFoundDescription: '请在 DualEntry 中添加一家公司，然后再次同步连接',
+            noVendorsFound: '未找到供应商',
+            noVendorsFoundDescription: '请在 DualEntry 中添加供应商，然后再次同步连接',
+            noAccountsFound: '未找到账户',
+            noAccountsFoundDescription: '请在 DualEntry 中添加账户，然后再次同步连接',
             accountTypesDescription: '您的 DualEntry 账户将作为类别导入。',
             enableNewAccountsTitle: '启用新导入的账户',
             enableNewAccountsDescription: '新的 DualEntry 账户将作为类别提供。',
             classificationsImport: '所有 DualEntry 分类都会作为标签导入',
             importDescription: '选择要从 DualEntry 导入的编码配置。',
+            exportDescription: '配置 Expensify 数据导出到 DualEntry 的方式。',
+            exportReimbursable: {
+                label: '将可报销费用导出为',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: '供应商账单',
+                    },
+                },
+            },
+            exportDate: {
+                label: '供应商账单日期',
+                description: '将报表导出到 DualEntry 时使用此日期。',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: '最新支出日期',
+                        description: '报告中最近一次支出的日期。',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: '导出日期',
+                        description: '报告导出至 DualEntry 的日期。',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: '提交日期',
+                        description: '报告提交审批的日期。',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: '导出公司卡费用为',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: '直接费用',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: '所有公司卡的默认供应商',
+                description: '为未自动匹配的费用选择一个默认的 DualEntry 供应商。',
+            },
+            companyCardAccount: {
+                label: '公司卡账户',
+                description: '选择公司卡交易的导出位置。',
+            },
+            expensifyCardAccount: {
+                label: 'Expensify Card 账户',
+                description: '选择 Expensify Card 交易的导出位置。',
+            },
         },
         type: {
             free: '免费',

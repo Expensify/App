@@ -30,7 +30,7 @@ function DualEntryPreferredExporterPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const policyOwner = policy?.owner;
-    const dualentryConfig = policy?.connections?.dualentry?.config;
+    const dualentryConfig = policy?.connections?.dualEntry?.config;
     const exporter = dualentryConfig?.export?.exporter ?? policyOwner;
     const exporters = getAdminEmployees(policy);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();

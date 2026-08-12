@@ -34,8 +34,8 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
-    const dualentryConfig = policy?.connections?.dualentry?.config;
-    const dualentryData = policy?.connections?.dualentry?.data;
+    const dualentryConfig = policy?.connections?.dualEntry?.config;
+    const dualentryData = policy?.connections?.dualEntry?.data;
     const defaultCompanyCardVendorID = dualentryConfig?.export?.defaultVendorID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT.getRoute(policyID) : undefined;
 
@@ -52,7 +52,7 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualentry.defaultCompanyCardVendor.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualEntry.defaultCompanyCardVendor.description')}</Text>
         </View>
     );
 
@@ -61,8 +61,8 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
             icon={illustrations.Telescope}
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.dualentry.noVendorsFound')}
-            subtitle={translate('workspace.dualentry.noVendorsFoundDescription')}
+            title={translate('workspace.dualEntry.noVendorsFound')}
+            subtitle={translate('workspace.dualEntry.noVendorsFoundDescription')}
             containerStyle={styles.pb10}
         />
     );
@@ -80,7 +80,7 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="DualEntryDefaultCompanyCardVendorPage"
-            title="workspace.dualentry.defaultCompanyCardVendor.label"
+            title="workspace.dualEntry.defaultCompanyCardVendor.label"
             data={filteredData}
             textInputOptions={textInputOptions}
             headerContent={headerContent}

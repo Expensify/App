@@ -293,7 +293,7 @@ function prepareDualEntryExportOnyxData<TSettingName extends keyof DualEntryExpo
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             export: {
                                 [settingName]: settingValue ?? null,
@@ -317,7 +317,7 @@ function prepareDualEntryExportOnyxData<TSettingName extends keyof DualEntryExpo
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             pendingFields: {
                                 [settingName]: null,
@@ -335,7 +335,7 @@ function prepareDualEntryExportOnyxData<TSettingName extends keyof DualEntryExpo
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    dualentry: {
+                    dualEntry: {
                         config: {
                             export: {
                                 [settingName]: oldSettingValue ?? null,

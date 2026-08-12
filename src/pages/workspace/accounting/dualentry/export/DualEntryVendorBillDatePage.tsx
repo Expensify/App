@@ -28,21 +28,21 @@ function DualEntryVendorBillDatePage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const dualentryConfig = policy?.connections?.dualentry?.config;
+    const dualentryConfig = policy?.connections?.dualEntry?.config;
     const exportDate = dualentryConfig?.export?.exportDate ?? CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT.getRoute(policyID) : undefined;
 
     const data: ExportDateListItem[] = Object.values(CONST.DUALENTRY_EXPORT_DATE).map((exportDateItem) => ({
         value: exportDateItem,
-        text: translate(`workspace.dualentry.exportDate.values.${exportDateItem}.label`),
-        alternateText: translate(`workspace.dualentry.exportDate.values.${exportDateItem}.description`),
+        text: translate(`workspace.dualEntry.exportDate.values.${exportDateItem}.label`),
+        alternateText: translate(`workspace.dualEntry.exportDate.values.${exportDateItem}.description`),
         keyForList: exportDateItem,
         isSelected: exportDate === exportDateItem,
     }));
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualentry.exportDate.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualEntry.exportDate.description')}</Text>
         </View>
     );
 
@@ -59,7 +59,7 @@ function DualEntryVendorBillDatePage({policy}: WithPolicyConnectionsProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="DualEntryVendorBillDatePage"
-            title="workspace.dualentry.exportDate.label"
+            title="workspace.dualEntry.exportDate.label"
             data={data}
             headerContent={headerContent}
             onSelectRow={selectExportDate}

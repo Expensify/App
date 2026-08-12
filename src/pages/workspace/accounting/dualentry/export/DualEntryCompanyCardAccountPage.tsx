@@ -34,8 +34,8 @@ function DualEntryCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
-    const dualentryConfig = policy?.connections?.dualentry?.config;
-    const dualentryData = policy?.connections?.dualentry?.data;
+    const dualentryConfig = policy?.connections?.dualEntry?.config;
+    const dualentryData = policy?.connections?.dualEntry?.data;
     const creditCardAccountID = dualentryConfig?.export?.creditCardAccountID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT.getRoute(policyID) : undefined;
 
@@ -55,7 +55,7 @@ function DualEntryCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualentry.companyCardAccount.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualEntry.companyCardAccount.description')}</Text>
         </View>
     );
 
@@ -64,8 +64,8 @@ function DualEntryCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
             icon={illustrations.Telescope}
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.dualentry.noAccountsFound')}
-            subtitle={translate('workspace.dualentry.noAccountsFoundDescription')}
+            title={translate('workspace.dualEntry.noAccountsFound')}
+            subtitle={translate('workspace.dualEntry.noAccountsFoundDescription')}
             containerStyle={styles.pb10}
         />
     );
@@ -83,7 +83,7 @@ function DualEntryCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="DualEntryCompanyCardAccountPage"
-            title="workspace.dualentry.companyCardAccount.label"
+            title="workspace.dualEntry.companyCardAccount.label"
             data={filteredData}
             textInputOptions={textInputOptions}
             headerContent={headerContent}
