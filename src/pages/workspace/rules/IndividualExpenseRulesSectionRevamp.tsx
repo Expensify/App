@@ -10,6 +10,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getBillableExpensesPendingAction, getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     getCleanedTagName,
@@ -33,7 +34,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
 import PublicReceiptVisibilityToggle from './PublicReceiptVisibilityToggle';
@@ -126,6 +127,12 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
+
+    useEffect(() => {
+        // The subtitle names the required tag lists, and only the Tags pages fetch them, so it would otherwise read
+        // stale until Tags is opened. This section mounts only while the General tab is active.
+        openPolicyTagsPage(policyID);
+    }, [policyID]);
 
     const tagLists = getTagLists(policyTags);
     const hasPerLevelTagRequired = isMultiLevelTagsUtil(policyTags) && !hasDependentTagsUtil(policy, policyTags);
