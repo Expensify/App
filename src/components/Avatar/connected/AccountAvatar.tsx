@@ -20,9 +20,6 @@ type AccountAvatarProps = {
     /** Size of the avatar */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
-    /** Whether to show the tooltip on hover */
-    shouldShowTooltip?: boolean;
-
     /** Display name used as a fallback for the avatar tooltip */
     fallbackDisplayName?: string;
 
@@ -34,7 +31,7 @@ type AccountAvatarProps = {
  * Renders a single account's avatar, resolving the icon from the personal-details context (zero Onyx subscriptions).
  * Use whenever exactly one account is rendered. Pass `Avatar/UserAvatar` a `source` instead when the avatar is already resolved.
  */
-function AccountAvatar({accountID, size = CONST.AVATAR_SIZE.DEFAULT, shouldShowTooltip = true, fallbackDisplayName, containerStyle}: AccountAvatarProps) {
+function AccountAvatar({accountID, size = CONST.AVATAR_SIZE.DEFAULT, fallbackDisplayName, containerStyle}: AccountAvatarProps) {
     const personalDetails = usePersonalDetails();
     const defaultAvatars = useDefaultAvatars();
     const StyleUtils = useStyleUtils();
@@ -46,7 +43,6 @@ function AccountAvatar({accountID, size = CONST.AVATAR_SIZE.DEFAULT, shouldShowT
             avatar={icon}
             size={size}
             containerStyles={containerStyle ?? StyleUtils.getContainerStyles(size)}
-            shouldShowTooltip={shouldShowTooltip}
             fallbackDisplayName={fallbackDisplayName}
         />
     );

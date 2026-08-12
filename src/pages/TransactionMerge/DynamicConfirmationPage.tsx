@@ -25,7 +25,8 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
-import {findSelfDMReportID} from '@libs/ReportUtils';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {findSelfDMReportID, getReportTransactions} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -78,6 +79,10 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const selfDMReport = useSelfDMReport();
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReport?.reportID)}`);
 
+    const [sourceReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(sourceTransaction?.reportID)}`);
+    const sourceIOUAction = sourceTransaction ? getIOUActionForTransactionID(Object.values(sourceReportActions ?? {}), sourceTransaction.transactionID) : undefined;
+    const [sourceTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(sourceIOUAction?.childReportID)}`);
+
     // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
 
@@ -86,6 +91,12 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
             return;
         }
         const reportID = mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? (findSelfDMReportID() ?? CONST.REPORT.UNREPORTED_REPORT_ID) : mergeTransaction.reportID;
+
+        // When the surviving expense is moved off its original report and that report held only this one expense,
+        // mergeTransactionRequest optimistically deletes the report. Capture that here (before the optimistic update runs)
+        // so we can replace the now-deleted report screen instead of pushing on top of it — otherwise the stale screen
+        // lingers in the stack and briefly flashes the "not found" page when the user taps back. Must be read pre-merge.
+        const willDeleteTargetTransactionReport = getReportTransactions(targetTransaction.reportID).length === 1;
 
         setIsMergingExpenses(true);
 
@@ -110,6 +121,8 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
             selfDMReport,
             selfDMReportActions,
             reportPolicyTags,
+            sourceTransactionThreadReportActions,
+            sourceIOUAction,
         });
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;
@@ -126,7 +139,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
         }
 
         if (reportIDToDismiss && reportID !== targetTransaction.reportID) {
-            Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
+            Navigation.dismissModalWithReport({reportID: reportIDToDismiss}, undefined, {forceReplace: willDeleteTargetTransactionReport});
             return;
         }
 
