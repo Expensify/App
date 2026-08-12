@@ -1896,7 +1896,11 @@ function createPreprocessingContext(): PreprocessingContext {
  */
 function processReportActionEntry(ctx: PreprocessingContext, key: string, actions: Record<string, OnyxTypes.ReportAction>, data: OnyxTypes.SearchResults['data']): void {
     const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-    const reportOwnerAccountID = data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.ownerAccountID;
+    const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const reportOwnerAccountID = report?.ownerAccountID;
+
+    // Only paid reports carry a payer-determining payment action, matching the backend status gate
+    const isReportPaid = report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
     let latestExportTime = -Infinity;
     let latestExportAction: OnyxTypes.ReportAction | undefined;
@@ -1940,7 +1944,7 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
             action.actionName === CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION
         ) {
             // A payment action from the report owner is a receipt confirmation, not a payment, matching the backend
-            if (action.actorAccountID !== reportOwnerAccountID) {
+            if (isReportPaid && action.actorAccountID !== reportOwnerAccountID) {
                 const currentTime = new Date(action.created).getTime();
                 // Ties on created are broken by the higher reportActionID (numeric-string compare), matching the backend ORDER BY
                 const previousActionID = lastReimbursedAction?.reportActionID;
