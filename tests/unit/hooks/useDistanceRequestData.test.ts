@@ -7,6 +7,16 @@ import type {Participant} from '@src/types/onyx/IOU';
 
 const mockSetMoneyRequestAmount = jest.fn();
 const mockSetSplitShares = jest.fn();
+const mockGetCurrencyDecimals = jest.fn(() => 2);
+
+jest.mock('@hooks/useCurrencyList', () => ({
+    useCurrencyListActions: () => ({
+        convertToDisplayString: (amount?: number, currency?: string) => `${currency ?? 'USD'} ${(amount ?? 0).toFixed(2)}`,
+        convertToDisplayStringWithoutCurrency: (amount: number) => `${(amount ?? 0).toFixed(2)}`,
+        getCurrencySymbol: () => '$',
+        getCurrencyDecimals: mockGetCurrencyDecimals,
+    }),
+}));
 
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     setMoneyRequestAmount: (...args: unknown[]) => {
@@ -77,7 +87,7 @@ describe('useDistanceRequestData', () => {
         result.current([personalParticipant, otherParticipant]);
 
         expect(mockSetSplitShares).toHaveBeenCalledTimes(1);
-        expect(mockSetSplitShares).toHaveBeenCalledWith(baseParams.transaction, 300, 'USD', [1, 2], 1);
+        expect(mockSetSplitShares).toHaveBeenCalledWith(baseParams.transaction, 300, 'USD', [1, 2], 1, mockGetCurrencyDecimals);
     });
 
     it('skips setSplitShares for split requests against a policy expense chat', () => {

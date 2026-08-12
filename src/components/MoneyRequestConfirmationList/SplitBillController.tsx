@@ -66,7 +66,7 @@ function SplitBillController({transaction, isTypeSplit, iouAmount, iouCurrencyCo
             return;
         }
         adjustRemainingSplitShares(transaction, getCurrencyDecimals);
-    }, [isTypeSplit, transaction]);
+    }, [isTypeSplit, transaction, getCurrencyDecimals]);
 
     return null;
 }

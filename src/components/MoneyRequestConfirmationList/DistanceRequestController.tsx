@@ -182,6 +182,7 @@ function DistanceRequestController({
         selectedParticipantsProp,
         transaction,
         currentUserAccountID,
+        getCurrencyDecimals,
     ]);
 
     useEffect(() => {
