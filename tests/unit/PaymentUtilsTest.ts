@@ -16,6 +16,7 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import createMockPaymentMethod from '../utils/collections/paymentMethods';
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
+import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -136,6 +137,7 @@ describe('PaymentUtils', () => {
 
         const baseParams: SelectPaymentTypeParams = {
             event: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             iouPaymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             triggerKYCFlow: mockTriggerKYCFlow,
             expenseReportPolicy: testPolicy,
@@ -242,6 +244,7 @@ describe('PaymentUtils', () => {
             selectPaymentType(params);
 
             expect(approveMoneyRequest).toHaveBeenCalledWith({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
                 currentUserAccountIDParam: params.currentAccountID,
@@ -271,6 +274,7 @@ describe('PaymentUtils', () => {
             selectPaymentType(params);
 
             expect(approveMoneyRequest).toHaveBeenCalledWith({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
                 currentUserAccountIDParam: params.currentAccountID,

@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -59,6 +60,7 @@ type GetReportNextStepParams = {
 function buildNextStepMessage(
     nextStep: ReportNextStep,
     translate: LocaleContextProps['translate'],
+    dateFnsLocale: DateFnsLocale | undefined,
     currentUserAccountID: number,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): string {
@@ -80,7 +82,7 @@ function buildNextStepMessage(
         etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
     } else if (nextStep.eta?.dateTime) {
         const formatString = nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT ? CONST.DATE.ORDINAL_DAY_OF_MONTH : CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY;
-        eta = format(new Date(nextStep.eta.dateTime), formatString);
+        eta = format(new Date(nextStep.eta.dateTime), formatString, {locale: dateFnsLocale});
         etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
     }
 
