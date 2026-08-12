@@ -136,10 +136,11 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
 
     // The "Set vendor to" row gate below reads policy.connections (via hasVendorFeature and
     // isMatchingVendorListLoaded), which is empty on a non-active workspace until a page requiring
-    // connections is opened. This editor only fetches categories/tags, so prefetch connections here,
-    // gated on the beta alone (not hasVendorFeature, which itself depends on the connection data — a
-    // chicken-and-egg) so the row appears and resolves the stored vendor once connections hydrate.
-    usePolicyConnectionsPrefetch(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    // connections is opened. This editor only fetches categories/tags, so prefetch connections here
+    // unconditionally (it can't be narrowed by hasVendorFeature, which itself depends on the
+    // connection data — a chicken-and-egg) so the row appears and resolves the stored vendor once
+    // connections hydrate. The hook self-guards on offline / accounting-disabled / already-fetched.
+    usePolicyConnectionsPrefetch(policy, true);
 
     // Get the existing rule from the policy (for edit mode)
     const existingRule = ruleID ? policy?.rules?.codingRules?.[ruleID] : undefined;
