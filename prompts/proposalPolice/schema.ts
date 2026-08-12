@@ -4,12 +4,10 @@ import type {ResponseFormatTextJSONSchemaConfig} from 'openai/resources/response
 
 type TemplateCheckResponse = {
     action: typeof CONST.NO_ACTION | typeof CONST.ACTION_REQUIRED;
-    message: string;
 };
 
 type EditCheckResponse = {
     action: typeof CONST.NO_ACTION | typeof CONST.ACTION_EDIT;
-    message: string;
 };
 
 type DuplicateCheckResponse = {
@@ -26,9 +24,8 @@ const TEMPLATE_CHECK_RESPONSE_FORMAT: ResponseFormatTextJSONSchemaConfig = {
         type: 'object',
         properties: {
             action: {type: 'string', enum: [CONST.NO_ACTION, CONST.ACTION_REQUIRED]},
-            message: {type: 'string'},
         },
-        required: ['action', 'message'],
+        required: ['action'],
         additionalProperties: false,
     },
 };
@@ -41,9 +38,8 @@ const EDIT_CHECK_RESPONSE_FORMAT: ResponseFormatTextJSONSchemaConfig = {
         type: 'object',
         properties: {
             action: {type: 'string', enum: [CONST.NO_ACTION, CONST.ACTION_EDIT]},
-            message: {type: 'string'},
         },
-        required: ['action', 'message'],
+        required: ['action'],
         additionalProperties: false,
     },
 };
@@ -68,16 +64,16 @@ function isTemplateCheckResponse(value: unknown): value is TemplateCheckResponse
     if (typeof value !== 'object' || value === null) {
         return false;
     }
-    const {action, message} = value as Partial<TemplateCheckResponse>;
-    return (action === CONST.NO_ACTION || action === CONST.ACTION_REQUIRED) && typeof message === 'string';
+    const {action} = value as Partial<TemplateCheckResponse>;
+    return action === CONST.NO_ACTION || action === CONST.ACTION_REQUIRED;
 }
 
 function isEditCheckResponse(value: unknown): value is EditCheckResponse {
     if (typeof value !== 'object' || value === null) {
         return false;
     }
-    const {action, message} = value as Partial<EditCheckResponse>;
-    return (action === CONST.NO_ACTION || action === CONST.ACTION_EDIT) && typeof message === 'string';
+    const {action} = value as Partial<EditCheckResponse>;
+    return action === CONST.NO_ACTION || action === CONST.ACTION_EDIT;
 }
 
 function isDuplicateCheckResponse(value: unknown): value is DuplicateCheckResponse {

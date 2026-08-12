@@ -5,7 +5,13 @@ import isProposal from '@github/libs/ProposalUtils';
 
 import {buildDuplicateCheckInput, buildDuplicateCheckSeedItem, buildEditCheckInput, buildTemplateCheckInput} from '@prompts/proposalPolice/input';
 import {buildDuplicateCheckInstructions, buildEditCheckInstructions, buildTemplateCheckInstructions} from '@prompts/proposalPolice/instructions';
-import {buildDuplicateCheckNoticeMessage, DUPLICATE_CHECK_WITHDRAW_MESSAGE} from '@prompts/proposalPolice/messages';
+import {
+    buildDuplicateCheckNoticeMessage,
+    buildSubstantiveEditMessage,
+    buildTemplateReminderMessage,
+    DUPLICATE_CHECK_WITHDRAW_MESSAGE,
+    SUBSTANTIVE_EDIT_MESSAGE_PREFIX,
+} from '@prompts/proposalPolice/messages';
 import {
     DUPLICATE_CHECK_RESPONSE_FORMAT,
     EDIT_CHECK_RESPONSE_FORMAT,
@@ -67,7 +73,7 @@ async function run() {
     }
 
     // If event is `edited` and comment was already edited by the bot, return early
-    if (isCommentEditedEvent(payload) && payload.comment?.body.trim().includes('Edited by **proposal-police**')) {
+    if (isCommentEditedEvent(payload) && payload.comment?.body.trim().includes(SUBSTANTIVE_EDIT_MESSAGE_PREFIX)) {
         console.log('Comment was already edited by proposal-police once.\n', payload.comment?.body);
         return;
     }
@@ -202,36 +208,25 @@ async function run() {
     console.log('parsedResponse: ', parsedResponse);
     core.endGroup();
 
-    // fallback to empty strings to avoid crashing in case parsing fails
-    const {action = '', message = ''} = parsedResponse ?? {};
-    const isNoAction = action.trim() === CONST.NO_ACTION;
-    const isActionEdit = action.trim() === CONST.ACTION_EDIT;
-    const isActionRequired = action.trim() === CONST.ACTION_REQUIRED;
-
-    // If the response is NO_ACTION and there's no message, return early
-    if (isNoAction && !message) {
+    // Fall back to NO_ACTION so a parse failure leaves the comment untouched
+    const action = parsedResponse?.action ?? CONST.NO_ACTION;
+    if (action === CONST.NO_ACTION) {
         console.log('Detected NO_ACTION for comment, returning early.');
         return;
     }
 
-    if (isCommentCreatedEvent(payload) && isActionRequired) {
-        const formattedResponse = message
-            // replace {user} from response template with @username
-            .replaceAll('{user}', `@${payload.comment?.user.login}`);
-
-        // Create a comment with the response
+    if (isCommentCreatedEvent(payload) && action === CONST.ACTION_REQUIRED) {
         console.log('ProposalPolice™ commenting on issue...');
-        await GithubUtils.createComment(CONST.APP_REPO, issueNumber, formattedResponse);
+        await GithubUtils.createComment(CONST.APP_REPO, issueNumber, buildTemplateReminderMessage(payload.comment?.user.login));
 
         // edit comment if substantial changes were detected
-    } else if (isActionEdit) {
-        const formattedResponse = message.replace('{updated_timestamp}', formattedDate);
+    } else if (action === CONST.ACTION_EDIT) {
         console.log('ProposalPolice™ editing issue comment...', commentID);
         await GithubUtils.octokit.issues.updateComment({
             ...context.repo,
             /* eslint-disable @typescript-eslint/naming-convention */
             comment_id: commentID,
-            body: `${formattedResponse}\n\n${payload.comment?.body}`,
+            body: `${buildSubstantiveEditMessage(formattedDate)}\n\n${payload.comment?.body}`,
         });
     }
 }

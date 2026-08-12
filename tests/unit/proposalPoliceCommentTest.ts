@@ -5,6 +5,8 @@
 import run, {PROPOSAL_POLICE_MODEL} from '@github/actions/javascript/proposalPoliceComment/proposalPoliceComment';
 import GithubUtils from '@github/libs/GithubUtils';
 
+import {buildTemplateReminderMessage, SUBSTANTIVE_EDIT_MESSAGE_PREFIX} from '@prompts/proposalPolice/messages';
+
 import OpenAIUtils from '@scripts/utils/OpenAIUtils';
 import type {ProposalComment} from '@scripts/utils/ProposalPolice/ProposalPoliceConversation';
 
@@ -121,7 +123,7 @@ describe('proposalPoliceComment', () => {
         setPayload({action: 'created'});
         MockedOpenAIUtils.prototype.promptResponses
             .mockResolvedValueOnce({text: duplicateCheckResult(), responseID: 'resp_dup'})
-            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION', message: ''}), responseID: 'resp_tpl'});
+            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl'});
 
         await run();
 
@@ -134,7 +136,7 @@ describe('proposalPoliceComment', () => {
         setPayload({action: 'created'});
         MockedOpenAIUtils.prototype.promptResponses
             .mockResolvedValueOnce({text: duplicateCheckResult(), responseID: 'resp_dup'})
-            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION', message: ''}), responseID: 'resp_tpl'});
+            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl'});
         await run();
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenNthCalledWith(1, expect.objectContaining({model: PROPOSAL_POLICE_MODEL}));
@@ -143,7 +145,7 @@ describe('proposalPoliceComment', () => {
 
         jest.clearAllMocks();
         setPayload({action: 'edited', comment: makeComment({body: `${VALID_PROPOSAL_BODY}\nedited`}), changes: {body: {from: VALID_PROPOSAL_BODY}}});
-        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION', message: ''}), responseID: 'resp_edit'});
+        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_edit'});
         await run();
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledWith(expect.objectContaining({model: PROPOSAL_POLICE_MODEL}));
@@ -154,18 +156,18 @@ describe('proposalPoliceComment', () => {
         setPayload({action: 'created'});
         MockedOpenAIUtils.prototype.promptResponses
             .mockResolvedValueOnce({text: duplicateCheckResult(), responseID: 'resp_dup'})
-            .mockResolvedValueOnce({text: JSON.stringify({action: 'ACTION_REQUIRED', message: '⚠️ {user} please fix your proposal'}), responseID: 'resp_tpl'});
+            .mockResolvedValueOnce({text: JSON.stringify({action: 'ACTION_REQUIRED'}), responseID: 'resp_tpl'});
 
         await run();
 
-        expect(mockCreateComment).toHaveBeenCalledWith('App', 1, expect.stringContaining('@contributor'));
+        expect(mockCreateComment).toHaveBeenCalledWith('App', 1, buildTemplateReminderMessage('contributor'));
     });
 
     it('edits the comment when a proposal edit is classified as substantial', async () => {
         const editedComment = makeComment({body: `${VALID_PROPOSAL_BODY}\nedited`});
         setPayload({action: 'edited', comment: editedComment, changes: {body: {from: VALID_PROPOSAL_BODY}}});
         MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({
-            text: JSON.stringify({action: 'ACTION_EDIT', message: '🚨 Edited at {updated_timestamp}'}),
+            text: JSON.stringify({action: 'ACTION_EDIT'}),
             responseID: 'resp_edit',
         });
 
@@ -173,8 +175,11 @@ describe('proposalPoliceComment', () => {
 
         // Duplicate-check never runs for edited events
         expect(mockGetAllCommentDetails).not.toHaveBeenCalled();
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- expect.stringContaining is typed as `any`
-        expect(mockUpdateComment).toHaveBeenCalledWith(expect.objectContaining({comment_id: 1, body: expect.stringContaining('Edited at')}));
+        // The flagged body is the bot's message followed by the comment it was applied to
+        expect(mockUpdateComment).toHaveBeenCalledWith(
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- expect.stringContaining is typed as `any`
+            expect.objectContaining({comment_id: 1, body: expect.stringContaining(SUBSTANTIVE_EDIT_MESSAGE_PREFIX)}),
+        );
     });
 
     it('withdraws and flags a duplicate proposal without ever running the template check', async () => {
@@ -202,7 +207,7 @@ describe('proposalPoliceComment', () => {
         setPayload({action: 'created', comment: makeComment({id: 99})});
         MockedOpenAIUtils.prototype.promptResponses
             .mockResolvedValueOnce({text: duplicateCheckResult({action: 'NO_ACTION', similarity: 95, duplicateCommentId: 42}), responseID: 'resp_dup'})
-            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION', message: ''}), responseID: 'resp_tpl'});
+            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl'});
 
         await run();
 
@@ -215,7 +220,7 @@ describe('proposalPoliceComment', () => {
         setPayload({action: 'created', comment: makeComment({id: 8, created_at: '2026-01-02T00:00:00Z'})});
         MockedOpenAIUtils.prototype.promptResponses
             .mockResolvedValueOnce({text: duplicateCheckResult(), responseID: 'resp_dup'})
-            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION', message: ''}), responseID: 'resp_tpl'});
+            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl'});
 
         await run();
 
@@ -232,7 +237,7 @@ describe('proposalPoliceComment', () => {
         setPayload({action: 'created', comment: makeComment({id: 100, created_at: '2026-01-02T00:00:00Z'})});
         MockedOpenAIUtils.prototype.promptResponses
             .mockResolvedValueOnce({text: duplicateCheckResult(), responseID: 'resp_dup'})
-            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION', message: ''}), responseID: 'resp_tpl'});
+            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl'});
 
         await run();
 
@@ -256,7 +261,7 @@ describe('proposalPoliceComment', () => {
     it('skips the duplicate-check call when the issue has no prior proposals at all', async () => {
         // mockGetAllCommentDetails already resolves [] by default (see beforeEach)
         setPayload({action: 'created'});
-        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION', message: ''}), responseID: 'resp_tpl'});
+        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl'});
 
         await run();
 
@@ -277,7 +282,7 @@ describe('proposalPoliceComment', () => {
         // First proposal on a fresh issue: no prior proposals, so the Conversation is created but the
         // duplicate-check call is skipped (and the proposal is recorded directly instead - see above).
         setPayload({action: 'created', comment: makeComment({id: 1, created_at: '2026-01-01T00:00:00Z'})});
-        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION', message: ''}), responseID: 'resp_tpl_1'});
+        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl_1'});
         await run();
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(MockedOpenAIUtils.prototype.createConversation).toHaveBeenCalledTimes(1);
@@ -289,7 +294,7 @@ describe('proposalPoliceComment', () => {
         setPayload({action: 'created', comment: makeComment({id: 2, created_at: '2026-01-02T00:00:00Z'})});
         MockedOpenAIUtils.prototype.promptResponses
             .mockResolvedValueOnce({text: duplicateCheckResult({action: 'ACTION_HIDE_DUPLICATE', similarity: 96, duplicateCommentId: 1}), responseID: 'resp_dup_2'})
-            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION', message: ''}), responseID: 'resp_tpl_2'});
+            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl_2'});
         await run();
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -302,7 +307,7 @@ describe('proposalPoliceComment', () => {
         setPayload({action: 'created'});
         MockedOpenAIUtils.prototype.promptResponses
             .mockResolvedValueOnce({text: duplicateCheckResult(), responseID: 'resp_dup'})
-            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION', message: ''}), responseID: 'resp_tpl'});
+            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl'});
 
         await run();
 
