@@ -13,6 +13,7 @@ import createMock from '../utils/createMock';
 
 const mockFullPageNotFoundView = jest.fn(({children}: {children: React.ReactNode}) => children);
 let mockActiveRoute: string | undefined;
+let mockIsWorkspacesTabFocused = true;
 
 jest.mock('@libs/actions/Policy/Policy', () => ({
     clearErrors: jest.fn(),
@@ -38,7 +39,7 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@hooks/useCardFeedErrors', () => () => ({shouldShowRbrForWorkspaceAccountID: {}}));
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: () => ({convertToDisplayString: jest.fn()})}));
 jest.mock('@hooks/useGetReceiptPartnersIntegrationData', () => () => ({shouldShowEnterCredentialsError: false}));
-jest.mock('@hooks/useIsWorkspacesTabFocused', () => () => true);
+jest.mock('@hooks/useIsWorkspacesTabFocused', () => () => mockIsWorkspacesTabFocused);
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => new Proxy({}, {get: () => 'icon'}),
 }));
@@ -90,6 +91,7 @@ describe('WorkspaceInitialPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockActiveRoute = undefined;
+        mockIsWorkspacesTabFocused = true;
     });
 
     it('waits for route params before fetching policy data, showing Not Found, or closing the RHP', async () => {
@@ -110,5 +112,17 @@ describe('WorkspaceInitialPage', () => {
         const secondProps = createMock<React.ComponentProps<typeof WorkspaceInitialPage>>({route: {params: {policyID: 'policy-2'}}});
         rerender(<WorkspaceInitialPage {...secondProps} />);
         await waitFor(() => expect(Navigation.closeRHPFlow).toHaveBeenCalledTimes(2));
+    });
+
+    it('does not retain Not Found after the route policy changes', () => {
+        const firstProps = createMock<React.ComponentProps<typeof WorkspaceInitialPage>>({route: {params: {policyID: 'policy-1'}}});
+        const {rerender} = render(<WorkspaceInitialPage {...firstProps} />);
+        expect(mockFullPageNotFoundView).toHaveBeenLastCalledWith(expect.objectContaining({shouldShow: true}));
+
+        mockIsWorkspacesTabFocused = false;
+        const secondProps = createMock<React.ComponentProps<typeof WorkspaceInitialPage>>({route: {params: {policyID: 'policy-2'}}});
+        rerender(<WorkspaceInitialPage {...secondProps} />);
+
+        expect(mockFullPageNotFoundView).toHaveBeenLastCalledWith(expect.objectContaining({shouldShow: false}));
     });
 });
