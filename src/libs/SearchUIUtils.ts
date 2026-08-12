@@ -1942,7 +1942,12 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
             // A payment action from the report owner is a receipt confirmation, not a payment, matching the backend
             if (action.actorAccountID !== reportOwnerAccountID) {
                 const currentTime = new Date(action.created).getTime();
-                if (currentTime > lastReimbursedTime) {
+                // Ties on created are broken by the higher reportActionID (numeric-string compare), matching the backend ORDER BY
+                const previousActionID = lastReimbursedAction?.reportActionID;
+                const currentActionID = action.reportActionID;
+                const hasHigherActionID =
+                    !!previousActionID && (currentActionID.length === previousActionID.length ? currentActionID > previousActionID : currentActionID.length > previousActionID.length);
+                if (currentTime > lastReimbursedTime || (currentTime === lastReimbursedTime && hasHigherActionID)) {
                     lastReimbursedTime = currentTime;
                     lastReimbursedAction = action;
                 }
