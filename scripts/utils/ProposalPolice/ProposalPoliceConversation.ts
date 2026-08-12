@@ -1,5 +1,5 @@
 import isBotUser from '@github/libs/isBotUser';
-import getIsProposal from '@github/libs/ProposalUtils';
+import isProposal from '@github/libs/ProposalUtils';
 
 import {buildDuplicateCheckSeedItem} from '@prompts/proposalPolice/input';
 
@@ -61,7 +61,7 @@ function buildSeedItems(comments: ProposalComment[], beforeCreatedAt: number): R
     return comments
         .filter(
             (comment) =>
-                getIsProposal(comment.body) && !(comment.user && isBotUser(comment.user.login ?? '', comment.user.type ?? '')) && new Date(comment.created_at).getTime() < beforeCreatedAt,
+                isProposal(comment.body) && !(comment.user && isBotUser(comment.user.login ?? '', comment.user.type ?? '')) && new Date(comment.created_at).getTime() < beforeCreatedAt,
         )
         .map((comment) => buildDuplicateCheckSeedItem(comment.body ?? '', comment.id));
 }

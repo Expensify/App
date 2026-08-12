@@ -1,11 +1,11 @@
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 import isBotUser from '@github/libs/isBotUser';
-import getIsProposal from '@github/libs/ProposalUtils';
+import isProposal from '@github/libs/ProposalUtils';
 
 import {buildDuplicateCheckInput, buildDuplicateCheckSeedItem, buildEditCheckInput, buildTemplateCheckInput} from '@prompts/proposalPolice/input';
 import {buildDuplicateCheckInstructions, buildEditCheckInstructions, buildTemplateCheckInstructions} from '@prompts/proposalPolice/instructions';
-import {getDuplicateCheckNoticeMessage, getDuplicateCheckWithdrawMessage} from '@prompts/proposalPolice/messages';
+import {buildDuplicateCheckNoticeMessage, buildDuplicateCheckWithdrawMessage} from '@prompts/proposalPolice/messages';
 import {
     DUPLICATE_CHECK_RESPONSE_FORMAT,
     EDIT_CHECK_RESPONSE_FORMAT,
@@ -106,7 +106,7 @@ async function run() {
         console.log('commentsResponse', commentsResponse);
         core.endGroup();
 
-        const isNewCommentAProposal = getIsProposal(newProposalBody);
+        const isNewCommentAProposal = isProposal(newProposalBody);
         if (!isNewCommentAProposal) {
             console.log('New comment is not a proposal. Skipping duplicate check.');
             return;
@@ -151,12 +151,14 @@ async function run() {
             const similarityPercentage = parsedDuplicateCheckResponse?.similarity ?? 0;
             if (parsedDuplicateCheckResponse?.action === CONST.ACTION_HIDE_DUPLICATE && similarityPercentage >= 85) {
                 console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
+
                 // Sanity-check the model's reported duplicateCommentId against the real comment list before trusting it for the notice link
                 const originalProposal = commentsResponse.find(
-                    (comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentId && comment.id !== commentID && getIsProposal(comment.body),
+                    (comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentId && comment.id !== commentID && isProposal(comment.body),
                 );
-                const duplicateCheckWithdrawMessage = getDuplicateCheckWithdrawMessage();
-                const duplicateCheckNoticeMessage = getDuplicateCheckNoticeMessage(newProposalAuthor, originalProposal?.html_url);
+                const duplicateCheckWithdrawMessage = buildDuplicateCheckWithdrawMessage();
+                const duplicateCheckNoticeMessage = buildDuplicateCheckNoticeMessage(newProposalAuthor, originalProposal?.html_url);
+
                 // If a duplicate proposal is detected, update the comment to withdraw it
                 console.log('ProposalPolice™ withdrawing duplicated proposal...');
                 await GithubUtils.octokit.issues.updateComment({
@@ -165,6 +167,7 @@ async function run() {
                     comment_id: commentID,
                     body: duplicateCheckWithdrawMessage,
                 });
+
                 // Post a comment to notify the user about the withdrawn duplicated proposal
                 console.log('ProposalPolice™ notifying contributor of withdrawn proposal...');
                 await GithubUtils.createComment(CONST.APP_REPO, issueNumber, duplicateCheckNoticeMessage);

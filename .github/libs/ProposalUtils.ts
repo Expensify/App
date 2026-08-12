@@ -3,7 +3,7 @@ import CONST from './CONST';
 /**
  * Checks if a comment body matches the criteria for a Proposal.
  */
-function getIsProposal(body: string | null | undefined): boolean {
+function isProposal(body: string | null | undefined): boolean {
     if (!body) {
         return false;
     }
@@ -11,4 +11,4 @@ function getIsProposal(body: string | null | undefined): boolean {
     return body.includes(CONST.PROPOSAL_KEYWORD) && lowerCaseBody.includes(CONST.PROPOSAL_HEADER_A) && lowerCaseBody.includes(CONST.PROPOSAL_HEADER_B);
 }
 
-export default getIsProposal;
+export default isProposal;
