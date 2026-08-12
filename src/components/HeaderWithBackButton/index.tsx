@@ -1,8 +1,6 @@
-import React, {useMemo} from 'react';
-import {Keyboard, StyleSheet, View} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
 import ActivityIndicator from '@components/ActivityIndicator';
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
@@ -12,7 +10,9 @@ import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
+
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
+import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -20,12 +20,21 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
+
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import type {SvgProps} from 'react-native-svg';
+
+import React, {useMemo} from 'react';
+import {Keyboard, StyleSheet, View} from 'react-native';
+
 import type HeaderWithBackButtonProps from './types';
 
 function HeaderWithBackButton({
@@ -40,7 +49,6 @@ function HeaderWithBackButton({
     onRotateButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report,
-    policy,
     policyAvatar,
     shouldShowReportAvatarWithDisplay = false,
     shouldDisplayStatus,
@@ -79,6 +87,7 @@ function HeaderWithBackButton({
     subTitleLink = '',
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
+    shouldSkipFocusAfterTransition = false,
 }: HeaderWithBackButtonProps) {
     // Avatar-header routes skip Header, so register the dialog label here.
     useDialogLabelRegistration(shouldShowReportAvatarWithDisplay ? (report?.reportName ?? '') : '');
@@ -90,26 +99,12 @@ function HeaderWithBackButton({
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
-
-    const downloadReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
-        () => ({
-            context: 'HeaderWithBackButton.Download',
-            isDownloading,
-        }),
-        [isDownloading],
-    );
-
-    const rotateReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
-        () => ({
-            context: 'HeaderWithBackButton.Rotate',
-            isRotating,
-        }),
-        [isRotating],
-    );
+    const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
     const middleContent = useMemo(() => {
+        const stepCounterTranslation = stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : undefined;
         if (progressBarPercentage) {
-            const progressBarLabel = stepCounter ? `${translate('common.progressBarLabel')}, ${translate('stepCounter', stepCounter)}` : undefined;
+            const progressBarLabel = stepCounter ? `${translate('common.progressBarLabel')}, ${stepCounterTranslation}` : undefined;
             return (
                 <>
                     {/* Reserves as much space for the middleContent as possible */}
@@ -137,7 +132,6 @@ function HeaderWithBackButton({
             return (
                 <AvatarWithDisplayName
                     report={report}
-                    policy={policy}
                     shouldDisplayStatus={shouldDisplayStatus}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     openParentReportInCurrentTab={openParentReportInCurrentTab}
@@ -148,11 +142,12 @@ function HeaderWithBackButton({
         return (
             <Header
                 title={title}
-                subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
+                subtitle={stepCounterTranslation ?? subtitle}
                 textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
                 subTitleLink={subTitleLink}
                 numberOfTitleLines={1}
                 isScreenHeader
+                shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
             />
         );
     }, [
@@ -161,7 +156,6 @@ function HeaderWithBackButton({
         shouldUseHeadlineHeader,
         progressBarPercentage,
         report,
-        policy,
         shouldEnableDetailPageNavigation,
         shouldShowReportAvatarWithDisplay,
         stepCounter,
@@ -176,6 +170,7 @@ function HeaderWithBackButton({
         translate,
         openParentReportInCurrentTab,
         shouldDisplayStatus,
+        shouldSkipFocusAfterTransition,
     ]);
     const ThreeDotMenuButton = useMemo(() => {
         if (shouldShowThreeDotsButton) {
@@ -244,6 +239,7 @@ function HeaderWithBackButton({
                 {shouldShowBackButton && (
                     <Tooltip text={translate('common.back')}>
                         <PressableWithoutFeedback
+                            ref={setBackButtonRef}
                             onPress={() => {
                                 if (Keyboard.isVisible()) {
                                     Keyboard.dismiss();
@@ -277,15 +273,21 @@ function HeaderWithBackButton({
                         fill={iconFill}
                     />
                 )}
-                {!!policyAvatar && (
-                    <Avatar
-                        containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
-                        source={policyAvatar?.source}
-                        name={policyAvatar?.name}
-                        avatarID={policyAvatar?.id}
-                        type={policyAvatar?.type}
-                    />
-                )}
+                {!!policyAvatar &&
+                    (policyAvatar.type === CONST.ICON_TYPE_WORKSPACE ? (
+                        <WorkspaceAvatar
+                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                            source={policyAvatar.source}
+                            name={policyAvatar.name ?? ''}
+                            avatarID={policyAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
+                        />
+                    ) : (
+                        <UserAvatar
+                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                            source={policyAvatar.source}
+                            accountID={getAccountIDFromAvatarID(policyAvatar.id)}
+                        />
+                    ))}
                 {middleContent}
                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                     <View style={[styles.pr2, styles.flexRow, styles.alignItemsCenter]}>
@@ -318,10 +320,7 @@ function HeaderWithBackButton({
                                     </PressableWithoutFeedback>
                                 </Tooltip>
                             ) : (
-                                <ActivityIndicator
-                                    style={[styles.touchableButtonImage]}
-                                    reasonAttributes={downloadReasonAttributes}
-                                />
+                                <ActivityIndicator style={[styles.touchableButtonImage]} />
                             ))}
                         {shouldShowRotateButton &&
                             (!isRotating ? (
@@ -340,10 +339,7 @@ function HeaderWithBackButton({
                                     </PressableWithoutFeedback>
                                 </Tooltip>
                             ) : (
-                                <ActivityIndicator
-                                    style={[styles.touchableButtonImage]}
-                                    reasonAttributes={rotateReasonAttributes}
-                                />
+                                <ActivityIndicator style={[styles.touchableButtonImage]} />
                             ))}
                         {shouldShowPinButton && !!report && <PinButton report={report} />}
                     </View>

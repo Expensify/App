@@ -1,8 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import {subYears} from 'date-fns';
-import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import CountrySelector from '@components/CountrySelector';
 import DatePicker from '@components/DatePicker';
@@ -17,9 +12,11 @@ import type {State} from '@components/StateSelector';
 import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearDraftValues, setDraftValues} from '@libs/actions/FormActions';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
@@ -27,8 +24,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {doesContainReservedWord, getAgeRequirementError, isRequiredFulfilled, isValidDisplayName, isValidPhoneNumber} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,6 +33,12 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
+import {useRoute} from '@react-navigation/native';
+import {subYears} from 'date-fns';
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 // StateSelector keys on 2-letter codes, but stored addresses may use full state names (e.g. "California").
 function resolveStateCode(stateValue: string): string {
@@ -50,6 +53,7 @@ function PrivatePersonalDetailsPage() {
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS>>();
     const fieldToFocus = route.params?.fieldToFocus;
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [defaultCountry] = useOnyx(ONYXKEYS.COUNTRY);
@@ -70,11 +74,23 @@ function PrivatePersonalDetailsPage() {
     const country = address?.country ?? '';
 
     const normalizedState = resolveStateCode(state);
-    const [selectedCountry, setSelectedCountry] = useState<Country | ''>(country || ((defaultCountry as Country | undefined) ?? ''));
-    const [selectedState, setSelectedState] = useState(normalizedState);
 
+    // Draft values seed local state on remount (e.g. returning from the confirm-validate-code page) so the address-search
+    // suggestion's country/state choices survive a back-navigation instead of reverting to geolocation defaults.
+    const draftCountry = draftValues?.[INPUT_IDS.COUNTRY] ?? '';
+    const draftState = draftValues?.[INPUT_IDS.STATE] ?? '';
+    const [selectedCountry, setSelectedCountry] = useState<Country | ''>(draftCountry || country || ((defaultCountry as Country | undefined) ?? ''));
+    const [selectedState, setSelectedState] = useState(draftState || normalizedState);
+
+    // The draft is what feeds the confirm-validate-code page; clearing it on every unmount wipes the submission
+    // payload as soon as we navigate to the confirm-validate-code RHP. Skip clearing in that case and let the confirm-validate-code
+    // success path (or the next intentional back out) handle cleanup.
+    const skipClearDraftOnUnmountRef = useRef(false);
     useEffect(
         () => () => {
+            if (skipClearDraftOnUnmountRef.current) {
+                return;
+            }
             clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
         },
         [],
@@ -135,8 +151,8 @@ function PrivatePersonalDetailsPage() {
             errors[INPUT_IDS.CITY] = translate('common.error.fieldRequired');
         }
 
-        const stateValue = values[INPUT_IDS.STATE] || selectedState || '';
-        const effectiveCountry = (values[INPUT_IDS.COUNTRY] || selectedCountry) ?? '';
+        const stateValue = values[INPUT_IDS.STATE] ?? '';
+        const effectiveCountry = values[INPUT_IDS.COUNTRY] ?? '';
         if (!stateValue.trim()) {
             errors[INPUT_IDS.STATE] = translate('common.error.fieldRequired');
         }
@@ -205,18 +221,12 @@ function PrivatePersonalDetailsPage() {
         // UI-prefilled values (geolocation country, normalized state) only live in component state until the user touches
         // a field, so write the full form values to the draft before navigating so the confirm step submits them.
         setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, values);
-        Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE);
+        skipClearDraftOnUnmountRef.current = true;
+        Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE);
     };
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'PrivatePersonalDetailsPage', isLoadingApp};
-
     if (isLoadingApp) {
-        return (
-            <FullScreenLoadingIndicator
-                reasonAttributes={reasonAttributes}
-                shouldUseGoBackButton
-            />
-        );
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     return (
@@ -305,6 +315,7 @@ function PrivatePersonalDetailsPage() {
                             defaultValue={initialStreet1}
                             shouldSaveDraft
                             autoComplete="address-line1"
+                            autoFocus={fieldToFocus === INPUT_IDS.ADDRESS_LINE_1}
                             renamedInputKeys={{
                                 street: INPUT_IDS.ADDRESS_LINE_1,
                                 street2: INPUT_IDS.ADDRESS_LINE_2,
@@ -366,7 +377,8 @@ function PrivatePersonalDetailsPage() {
                                 label={translate('common.stateOrProvince')}
                                 aria-label={translate('common.stateOrProvince')}
                                 role={CONST.ROLE.PRESENTATION}
-                                defaultValue={state}
+                                value={selectedState}
+                                onValueChange={(value: unknown) => setSelectedState((value ?? '') as string)}
                                 shouldSaveDraft
                                 spellCheck={false}
                             />
@@ -392,13 +404,20 @@ function PrivatePersonalDetailsPage() {
                             value={selectedCountry}
                             onValueChange={(value: unknown) => {
                                 const newCountry = (value ?? '') as Country | '';
+                                if (newCountry === selectedCountry) {
+                                    return;
+                                }
                                 setSelectedCountry(newCountry);
                                 if (newCountry === CONST.COUNTRY.US) {
                                     const resolved = resolveStateCode(selectedState);
                                     if (resolved !== selectedState) {
                                         setSelectedState(resolved);
                                     }
+                                    return;
                                 }
+                                // A previously selected US state (or another country's value) does not apply to the new country.
+                                setSelectedState('');
+                                setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, {[INPUT_IDS.STATE]: ''});
                             }}
                             shouldSaveDraft
                         />

@@ -1,12 +1,16 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardList} from '@src/types/onyx';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getLastFourDigits} from './BankAccountUtils';
 import fileDownload from './fileDownload';
+import {buildSecureDownloadURL} from './UrlUtils';
 
 /**
  * Checks whether Travel Invoicing is enabled based on the card settings.
@@ -40,6 +44,13 @@ function getIsTravelInvoicingEnabled(cardSettings: ExpensifyCardSettingsBase | u
 }
 
 /**
+ * Checks whether the workspace pays its Travel Invoicing settlement by invoice (wire) instead of an ACH debit.
+ */
+function getIsTravelBillingPayByInvoice(cardSettings: ExpensifyCardSettingsBase | undefined): boolean {
+    return typeof cardSettings?.invoiceTo === 'string' && cardSettings.invoiceTo.length > 0;
+}
+
+/**
  * Checks if a settlement account is configured for Travel Invoicing.
  */
 function hasTravelInvoicingSettlementAccount(cardSettings: ExpensifyCardSettingsBase | undefined): boolean {
@@ -60,13 +71,23 @@ function getTravelLimit(cardSettings: ExpensifyCardSettingsBase | undefined): nu
 }
 
 /**
+ * Gets the amount (in cents) awaiting payment on a sent Consolidated Travel Billing invoice.
+ * Non-zero for pay-by-invoice customers between the invoice being sent and paid.
+ * Returns 0 if no settings are available.
+ */
+function getPendingTravelInvoiceAmount(cardSettings: ExpensifyCardSettingsBase | undefined): number {
+    return cardSettings?.pendingInvoiceAmount ?? 0;
+}
+
+/**
  * Checks if the workspace has an outstanding Travel Invoicing balance.
- * Returns true if there is unpaid travel spend, blocking disable.
+ * Returns true if there is unpaid travel spend, a queued settlement, or an unpaid invoice, blocking disable.
  */
 function hasOutstandingTravelBalance(cardSettings: ExpensifyCardSettingsBase | undefined): boolean {
     const currentBalance = cardSettings?.currentBalance ?? 0;
     const pendingSettlementAmount = cardSettings?.pendingSettlementAmount ?? 0;
-    return currentBalance > 0 || pendingSettlementAmount > 0;
+    const pendingInvoiceAmount = cardSettings?.pendingInvoiceAmount ?? 0;
+    return currentBalance > 0 || pendingSettlementAmount > 0 || pendingInvoiceAmount > 0;
 }
 
 /**
@@ -134,6 +155,13 @@ function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeo
 }
 
 /**
+ * Builds the card-feed ID for a Travel Invoicing card feed (the `_TRAVEL_US` variant).
+ */
+function getTravelInvoicingFeedID(fundID: number | string): `${string}_${typeof CONST.EXPENSIFY_CARD.BANK}_${typeof CONST.TRAVEL.PROGRAM_TRAVEL_US}` {
+    return `${fundID}_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`;
+}
+
+/**
  * Downloads a cached Travel Invoice Statement PDF.
  * Constructs a secure URL with encrypted auth token and triggers the download.
  */
@@ -147,7 +175,7 @@ function downloadTravelInvoiceStatementPDF(
     encryptedAuthToken: string,
 ): Promise<void> {
     const downloadFileName = `Travel_Statement_${startDate}_${endDate}.pdf`;
-    const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}&email=${encodeURIComponent(currentUserEmail)}`;
+    const pdfURL = buildSecureDownloadURL({baseURL, secureType: CONST.SECURE_DOWNLOAD_TYPE.PDF_REPORT, fileName, downloadName: downloadFileName, email: currentUserEmail});
     return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '');
 }
 
@@ -166,22 +194,24 @@ function getTravelInvoicingCard(cardList: OnyxEntry<CardList>) {
 
 /**
  * Checks if user is eligible to see Travel CVV in Wallet.
- * Requires: TRAVEL_INVOICING beta AND having a travel card.
+ * Requires having a travel card.
  */
-function isTravelCVVEligible(isTravelInvoicingBetaEnabled: boolean, cardList: OnyxEntry<CardList>): boolean {
-    const hasTravelCard = !!getTravelInvoicingCard(cardList);
-    return isTravelInvoicingBetaEnabled && hasTravelCard;
+function isTravelCVVEligible(cardList: OnyxEntry<CardList>): boolean {
+    return !!getTravelInvoicingCard(cardList);
 }
 
 export {
     getIsTravelInvoicingEnabled,
+    getIsTravelBillingPayByInvoice,
     hasTravelInvoicingSettlementAccount,
     hasOutstandingTravelBalance,
     getTravelLimit,
     getTravelSpend,
+    getPendingTravelInvoiceAmount,
     getTravelSettlementAccount,
     getTravelSettlementFrequency,
     getTravelInvoicingCardSettingsKey,
+    getTravelInvoicingFeedID,
     downloadTravelInvoiceStatementPDF,
     getTravelInvoicingCard,
     isTravelCVVEligible,

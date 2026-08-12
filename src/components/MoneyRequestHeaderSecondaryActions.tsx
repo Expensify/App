@@ -1,32 +1,33 @@
-import {useRoute} from '@react-navigation/native';
-import {shouldFailAllRequestsSelector} from '@selectors/Network';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import React, {useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
+import useEnvironment from '@hooks/useEnvironment';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useHasMultipleSplitChildren from '@hooks/useHasMultipleSplitChildren';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRestrictedActionPolicyID from '@hooks/useRestrictedActionPolicyID';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
+import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -34,9 +35,12 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {sortAndSectionPopoverMenuItems, TRANSACTION_MORE_MENU_SECTIONS} from '@libs/PopoverMenuSections';
 import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
@@ -58,23 +62,38 @@ import {
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
     isDistanceRequest,
+    isPending,
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
+
+import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
-import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+
+import type {ValueOf} from 'type-fest';
+
+import {useRoute} from '@react-navigation/native';
+import {shouldFailAllRequestsSelector} from '@selectors/Network';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
+import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
+import React, {useRef, useState} from 'react';
+
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
+
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import {ModalActions} from './Modal/Global/ModalContext';
 import {usePersonalDetails} from './OnyxListItemProvider';
-import {useSearchActionsContext, useSearchStateContext} from './Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionActions} from './Search/SearchContext';
 import {useWideRHPState} from './WideRHPContextProvider';
 
 type MoneyRequestHeaderSecondaryActionsProps = {
@@ -82,7 +101,7 @@ type MoneyRequestHeaderSecondaryActionsProps = {
     reportID: string | undefined;
 
     /** Method to trigger when pressing close button of the header */
-    onBackButtonPress: (prioritizeBackTo?: boolean) => void;
+    onBackButtonPress: (prioritizeBackTo?: boolean, options?: {afterTransition?: () => void}) => void;
 };
 
 function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: MoneyRequestHeaderSecondaryActionsProps) {
@@ -95,8 +114,10 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     >();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, localeCompare} = useLocalize();
-    const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
+    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const isInSidePanel = useIsInSidePanel();
+    const {login: currentUserLogin, accountID, localCurrencyCode} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const personalDetails = usePersonalDetails();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -118,6 +139,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     // Per-key Onyx subscriptions
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const [parentOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [grandParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`);
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
@@ -130,7 +153,9 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
     // Collection Onyx subscriptions (isolated here to prevent parent header re-renders)
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const rawTransactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`];
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     // NVP subscriptions
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -146,27 +171,31 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const splitEffectivePolicy = useSplitEffectivePolicy(report, undefined, transaction);
+    const personalPolicy = usePersonalPolicy();
+    const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     // Custom hooks
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [defaultPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(defaultExpensePolicy?.id)}`);
     const [defaultPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(defaultExpensePolicy?.id)}`);
-    const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest(transaction));
-    const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
+    const {shouldNavigateToUpgradePath} = usePolicyForMovingExpenses(isPerDiemRequest(transaction));
     const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
+    const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {showConfirmModal} = useConfirmModal();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {currentSearchHash} = useSearchStateContext();
-    const {removeTransaction} = useSearchActionsContext();
+    const {currentSearchHash} = useSearchQueryContext();
+    const {removeTransaction} = useSearchSelectionActions();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
     const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     // State
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
@@ -180,7 +209,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         report &&
         parentReport &&
         transaction &&
-        getTransactionThreadPrimaryAction(currentUserLogin ?? '', accountID, report, parentReport, transaction, transactionViolations, policy, false)
+        getTransactionThreadPrimaryAction(currentUserLogin ?? '', accountID, report, parentReport, parentOwnerLogin, transaction, transactionViolations, policy, false)
     );
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
     const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && defaultExpensePolicy?.id !== policy?.id;
@@ -197,8 +226,11 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
     const shouldShowEditSplitOnDeleteAction = !!transaction?.transactionID && shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
-    const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
     const targetPolicyTags = defaultPolicyTags ?? {};
+
+    const policyTagList = useMoneyRequestPolicyTagsForReport({report: activePolicyExpenseChat, currentUserAccountID: accountID});
+    const participants = getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID);
+    const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
     // Duplicate action throttle
     const handleDuplicateReset = () => {
@@ -223,6 +255,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
             duplicateTransactionAction({
+                dateFnsLocale,
+                getCurrencyDecimals,
                 transaction: item,
                 optimisticChatReportID,
                 optimisticIOUReportID,
@@ -236,13 +270,17 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 targetPolicyCategories: activePolicyCategoriesMap,
                 targetReport: activePolicyExpenseChat,
                 existingTransactionDraft,
-                draftTransactionIDs,
                 betas,
                 personalDetails,
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID,
                 currentUser: {accountID, email: currentUserLogin ?? ''},
+                currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
+                isTrackIntentUser,
+                delegateAccountID,
+                policyTagList,
+                formatPhoneNumber,
+                participantsPolicyTags,
             });
         }
     };
@@ -251,7 +289,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (parentReportAction) {
-            changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID);
+            changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID, rawTransactionViolations, isTrackIntentUser, delegateAccountID);
         }
     };
 
@@ -259,7 +297,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (parentReportAction) {
-                changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID);
+                changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID, rawTransactionViolations, isTrackIntentUser, delegateAccountID);
             }
         } else {
             dismissRejectUseExplanation();
@@ -270,23 +308,28 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         setRejectModalAction(null);
     };
 
+    const {isProduction} = useEnvironment();
+
     // Secondary actions
     const secondaryActions = (() => {
         if (!transaction || !parentReportAction || !parentReport) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(
-            currentUserLogin ?? '',
-            accountID,
+        return getSecondaryTransactionThreadActions({
+            currentUserLogin: currentUserLogin ?? '',
+            currentUserAccountID: accountID,
             parentReport,
-            transaction,
-            parentReportAction,
+            reportTransaction: transaction,
+            reportAction: parentReportAction,
             originalTransaction,
             policy,
-            report,
+            transactionThreadReport: report,
             outstandingReportsByPolicyID,
-            isChatIOUReportArchived,
-        );
+            reportNameValuePairs,
+            isChatReportArchived: isChatIOUReportArchived,
+            grandParentReport,
+            isProduction,
+        });
     })();
 
     const secondaryActionsImplementation: Partial<
@@ -306,10 +349,20 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     return;
                 }
 
-                const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
-                if (isDismissed || isParentChatReportDM) {
-                    changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID);
-                } else if (isReportSubmitter) {
+                const shouldShowHoldEducationalModal = isReportSubmitter || isParentChatReportDM;
+                const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+                if (isDismissed) {
+                    changeMoneyRequestHoldStatus(
+                        parentReportAction,
+                        transaction,
+                        isOffline,
+                        currentUserLogin ?? '',
+                        accountID,
+                        rawTransactionViolations,
+                        isTrackIntentUser,
+                        delegateAccountID,
+                    );
+                } else if (shouldShowHoldEducationalModal) {
                     setIsHoldEducationalModalVisible(true);
                 } else {
                     setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
@@ -330,7 +383,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID);
+                changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID, rawTransactionViolations, isTrackIntentUser, delegateAccountID);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT]: {
@@ -338,7 +391,17 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             icon: expensifyIcons.ArrowSplit,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
-                initSplitExpense(transaction, policy);
+                initSplitExpense(
+                    transaction,
+                    report,
+                    splitEffectivePolicy,
+                    selfDMReportID,
+                    restrictedActionPolicyID,
+                    personalPolicy?.outputCurrency,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
+                    {isProduction},
+                );
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE]: {
@@ -349,8 +412,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 if (!transaction) {
                     return;
                 }
-                const isOnSearch = route.name.toLowerCase().startsWith('search');
-                setupMergeTransactionDataAndNavigate(transaction.transactionID, [transaction], localeCompare, getCurrencyDecimals, [], false, isOnSearch);
+                setupMergeTransactionDataAndNavigate(transaction.transactionID, [transaction], localeCompare, getCurrencyDecimals, [], false, isReportInSearch);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE]: {
@@ -359,7 +421,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE,
             onSelected: () => {
-                if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                     dropdownMenuRef.current?.setIsMenuVisible(false);
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
                     return;
@@ -409,7 +471,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: translate('iou.viewDetails'),
             icon: expensifyIcons.Info,
             onSelected: () => {
-                navigateToDetailsPage(report, Navigation.getActiveRoute());
+                navigateToDetailsPage(report, isInSidePanel);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE]: {
@@ -424,7 +486,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
                 showConfirmModal({
                     title: translate('iou.deleteExpense', {count: 1}),
-                    prompt: translate('iou.deleteConfirmation', {count: 1}),
+                    prompt: isPending(transaction) ? translate('iou.deleteConfirmationPendingBYOC') : translate('iou.deleteConfirmation', {count: 1}),
                     confirmText: translate('common.delete'),
                     cancelText: translate('common.cancel'),
                     danger: true,
@@ -438,10 +500,13 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     }
                     const backToRoute = route.params?.backTo ?? Navigation.getActiveRoute();
                     setDeleteTransactionNavigateBackUrl(backToRoute);
-                    if (isTrackExpenseAction(parentReportAction)) {
+
+                    let afterDelete: (() => void) | undefined;
+                    if (isTrackExpenseAction(parentReportAction) && !isExpenseSplit) {
                         deleteTrackExpense({
                             chatReportID: report?.parentReportID,
                             chatReport: parentReport,
+                            chatReportActions: parentReportActions,
                             transactionID: transaction.transactionID,
                             reportAction: parentReportAction,
                             iouReport,
@@ -454,14 +519,15 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             allTransactionViolationsParam: allTransactionViolations,
                             currentUserAccountID: accountID,
                             currentUserEmail: currentUserLogin ?? '',
+                            policy: iouPolicy,
+                            getCurrencyDecimals,
                         });
                     } else {
                         if (shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID])) {
                             deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
                             return;
                         }
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        InteractionManager.runAfterInteractions(() => {
+                        afterDelete = () => {
                             const deleteResult = deleteTransactions(
                                 [transaction.transactionID],
                                 duplicateTransactions,
@@ -475,14 +541,19 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             }
 
                             removeTransaction(transaction.transactionID);
-                        });
+                        };
                     }
                     if (isInNarrowPaneModal) {
-                        Navigation.navigateBackToLastSuperWideRHPScreen();
+                        // The super wide RHP close animation was changed, and because of that the report was deleted right after
+                        // the animation finished, which caused flickering in the reports list. We want the user to see
+                        // the expense in the list for a little bit longer, so we wait for the animation to finish and then
+                        // add an additional delay before removing it.
+                        // See https://github.com/Expensify/App/issues/92036
+                        Navigation.navigateBackToLastSuperWideRHPScreen({afterTransition: () => setTimeout(() => afterDelete?.(), CONST.EXPENSE_REPORT_DELETE_DELAY_MS)});
                         return;
                     }
 
-                    onBackButtonPress();
+                    onBackButtonPress(false, {afterTransition: afterDelete});
                 });
             },
         },
@@ -527,13 +598,16 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     return;
                 }
                 Navigation.navigate(
-                    ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, parentReport.reportID, true, Navigation.getActiveRoute(), transaction.transactionID),
+                    createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, parentReport.reportID, true, transaction.transactionID)),
                 );
             },
         },
     };
 
-    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]).filter((action): action is NonNullable<typeof action> => !!action);
+    const applicableSecondaryActions = sortAndSectionPopoverMenuItems(
+        secondaryActions.map((action) => secondaryActionsImplementation[action]).filter((action): action is NonNullable<typeof action> => !!action),
+        TRANSACTION_MORE_MENU_SECTIONS,
+    );
 
     if (!applicableSecondaryActions.length) {
         return null;
@@ -545,7 +619,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         <>
             <ButtonWithDropdownMenu
                 ref={dropdownMenuRef}
-                success={false}
                 onPress={() => {}}
                 shouldAlwaysShowDropdownMenu
                 customText={translate('common.more')}
@@ -564,6 +637,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 <HoldSubmitterEducationalModal
                     onClose={dismissModalAndUpdateUseHold}
                     onConfirm={dismissModalAndUpdateUseHold}
+                    isDM={isParentChatReportDM}
                 />
             )}
         </>

@@ -1,24 +1,33 @@
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
-import {useState} from 'react';
-import type {PermissionStatus} from 'react-native-permissions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useFilteredOptions from '@hooks/useFilteredOptions';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSortedActions from '@hooks/useSortedActions';
-import type {GetOptionsConfig, Option, Options, SearchOption} from '@libs/OptionsListUtils';
+
+import type {GetOptionsConfig, Option, OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
 import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
 import {getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import type {OptionData} from '@libs/ReportUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import type {PermissionStatus} from 'react-native-permissions';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
+import {useState} from 'react';
+
 type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<
     typeof CONST.SEARCH_SELECTOR,
-    'SEARCH_CONTEXT_GENERAL' | 'SEARCH_CONTEXT_SEARCH' | 'SEARCH_CONTEXT_MEMBER_INVITE' | 'SEARCH_CONTEXT_SHARE_DESTINATION' | 'SEARCH_CONTEXT_ATTENDEES'
+    'SEARCH_CONTEXT_GENERAL' | 'SEARCH_CONTEXT_SEARCH' | 'SEARCH_CONTEXT_SHARE_DESTINATION' | 'SEARCH_CONTEXT_ATTENDEES'
 >];
 type SearchSelectorSelectionMode = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<typeof CONST.SEARCH_SELECTOR, 'SELECTION_MODE_SINGLE' | 'SELECTION_MODE_MULTI'>];
 
@@ -145,6 +154,8 @@ type UseSearchSelectorReturn = {
     onListEndReached: () => void;
 };
 
+const emptyOptionList: OptionList = {reports: [], personalDetails: []};
+
 const doOptionsMatch = (option1: OptionData, option2: OptionData) => {
     return (
         (option1.accountID && option1.accountID === option2.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
@@ -179,27 +190,14 @@ function useSearchSelectorBase({
     shouldKeepSelectedInAvailableOptions = false,
     shouldSeparateNonExistingSelectedOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
-    const {options: defaultOptions, areOptionsInitialized} = useOptionsList({
-        shouldInitialize,
-    });
-
-    const optionsWithContacts = (() => {
-        if (!contactOptions?.length || !areOptionsInitialized) {
-            return defaultOptions;
-        }
-        const personalDetailsWithContacts = defaultOptions.personalDetails.concat(contactOptions);
-        return {
-            ...defaultOptions,
-            personalDetails: personalDetailsWithContacts,
-        };
-    })();
+    const {translate, dateFnsLocale} = useLocalize();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected ?? []);
     const [maxResults, setMaxResults] = useState(maxResultsPerPage);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
@@ -210,15 +208,67 @@ function useSearchSelectorBase({
     const personalDetails = usePersonalDetails();
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const onListEndReached = useDebounce(() => {
-        setMaxResults((previous) => previous + maxResultsPerPage);
-    }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    // Searching bypasses the recent-reports pre-filter so a typed query can still match reports outside the top 500 most recently active ones.
+    const isSearchingOptions = !!debouncedSearchTerm.trim();
+    const {
+        options: filteredOptions,
+        isLoading: isLoadingOptions,
+        loadMore: loadMoreReports,
+        hasMore: hasMoreReports,
+    } = useFilteredOptions({
+        enabled: shouldInitialize,
+        isSearching: isSearchingOptions,
+        batchSize: maxResultsPerPage,
+    });
+    const areOptionsInitialized = !isLoadingOptions;
+    const defaultOptions = filteredOptions ?? emptyOptionList;
+
+    const optionsWithContacts = (() => {
+        if (!contactOptions?.length || !areOptionsInitialized) {
+            return defaultOptions;
+        }
+
+        // Imported contacts get a generated accountID, so one sharing a login with a real Onyx user would show a duplicate
+        // row and be treated as a new invite. Track already-represented logins and drop contacts whose login is present.
+        const existingLogins = new Set<string>();
+
+        // Seed with real personal details only; optimistic ones are filtered out by getValidOptions and mustn't suppress a contact.
+        for (const option of defaultOptions.personalDetails) {
+            if (option.isOptimisticPersonalDetail) {
+                continue;
+            }
+            const login = addSMSDomainIfPhoneNumber(option.login ?? '').toLowerCase();
+            if (login) {
+                existingLogins.add(login);
+            }
+        }
+
+        // Keep a contact only if its login is new, deduping against both the seeded accounts and earlier contacts.
+        const dedupedContactOptions = contactOptions.filter((contact) => {
+            const login = addSMSDomainIfPhoneNumber(contact.login ?? '').toLowerCase();
+            if (!login || existingLogins.has(login)) {
+                return false;
+            }
+            existingLogins.add(login);
+            return true;
+        });
+
+        if (!dedupedContactOptions.length) {
+            return defaultOptions;
+        }
+
+        return {
+            ...defaultOptions,
+            personalDetails: defaultOptions.personalDetails.concat(dedupedContactOptions),
+        };
+    })();
 
     const computedSearchTerm = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
     const trimmedSearchInput = debouncedSearchTerm.trim();
 
-    const baseOptions = (() => {
+    const {options: baseOptions, hasMore} = (() => {
         if (!areOptionsInitialized) {
             return getEmptyOptions();
         }
@@ -228,6 +278,7 @@ function useSearchSelectorBase({
                 return getSearchOptions({
                     options: optionsWithContacts,
                     draftComments,
+                    dateFnsLocale,
                     betas: betas ?? [],
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
@@ -243,102 +294,135 @@ function useSearchSelectorBase({
                     personalDetails,
                     sortedActions,
                     conciergeReportID,
-                });
-            case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
-                    betas: betas ?? [],
-                    includeP2P: true,
-                    includeSelectedOptions: false,
-                    excludeLogins,
-                    excludeFromSuggestionsOnly,
-                    includeRecentReports,
-                    maxElements: maxResults,
-                    maxRecentReportElements: maxRecentReportsToShow,
-                    searchString: computedSearchTerm,
-                    searchInputValue: trimmedSearchInput,
-                    includeUserToInvite,
-                    personalDetails,
-                    includeCurrentUser,
-                    includeSelfDM,
-                    countryCode,
-                    reportAttributesDerived: reportAttributesDerived?.reports,
-                    allPolicyTags,
-                    sortedActions,
+                    isTrackIntentUser,
+                    translate,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
-                    betas: betas ?? [],
-                    searchString: computedSearchTerm,
-                    searchInputValue: trimmedSearchInput,
-                    maxElements: maxResults,
-                    maxRecentReportElements: maxRecentReportsToShow,
-                    includeUserToInvite,
-                    excludeLogins,
-                    excludeFromSuggestionsOnly,
-                    personalDetails,
-                    loginsToExclude: excludeLogins,
-                    includeCurrentUser,
-                    includeSelfDM,
-                    shouldAcceptName: shouldAllowNameOnlyOptions,
-                    recentAttendees,
-                    includeRecentReports: !shouldAllowNameOnlyOptions,
-                    countryCode,
-                    reportAttributesDerived: reportAttributesDerived?.reports,
-                    allPolicyTags,
-                    sortedActions,
-                    ...getValidOptionsConfig,
-                });
+                return getValidOptions(
+                    optionsWithContacts,
+                    allPolicies,
+                    draftComments,
+                    loginList,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    conciergeReportID,
+                    {
+                        dateFnsLocale,
+                        betas: betas ?? [],
+                        searchString: computedSearchTerm,
+                        searchInputValue: trimmedSearchInput,
+                        maxElements: maxResults,
+                        maxRecentReportElements: maxRecentReportsToShow,
+                        includeUserToInvite,
+                        excludeLogins,
+                        excludeFromSuggestionsOnly,
+                        personalDetails,
+                        loginsToExclude: excludeLogins,
+                        includeCurrentUser,
+                        includeSelfDM,
+                        shouldAcceptName: shouldAllowNameOnlyOptions,
+                        recentAttendees,
+                        includeRecentReports: !shouldAllowNameOnlyOptions,
+                        countryCode,
+                        reportAttributesDerived: reportAttributesDerived?.reports,
+                        allPolicyTags,
+                        sortedActions,
+                        isTrackIntentUser,
+                        ...getValidOptionsConfig,
+                    },
+                    translate,
+                );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
-                    betas,
-                    selectedOptions,
-                    includeMultipleParticipantReports: true,
-                    showChatPreviewLine: true,
-                    forcePolicyNamePreview: true,
-                    includeThreads: true,
-                    includeMoneyRequests: true,
-                    includeTasks: true,
-                    excludeLogins,
-                    loginsToExclude: excludeLogins,
-                    includeOwnedWorkspaceChats: true,
-                    includeSelfDM: true,
-                    searchString: computedSearchTerm,
-                    searchInputValue: trimmedSearchInput,
-                    maxElements: maxResults,
-                    includeUserToInvite,
-                    personalDetails,
-                    countryCode,
-                    reportAttributesDerived: reportAttributesDerived?.reports,
-                    allPolicyTags,
-                    sortedActions,
-                });
+                return getValidOptions(
+                    optionsWithContacts,
+                    allPolicies,
+                    draftComments,
+                    loginList,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    conciergeReportID,
+                    {
+                        dateFnsLocale,
+                        betas,
+                        selectedOptions,
+                        includeMultipleParticipantReports: true,
+                        showChatPreviewLine: true,
+                        forcePolicyNamePreview: true,
+                        includeThreads: true,
+                        includeMoneyRequests: true,
+                        includeTasks: true,
+                        excludeLogins,
+                        loginsToExclude: excludeLogins,
+                        includeOwnedWorkspaceChats: true,
+                        includeSelfDM: true,
+                        searchString: computedSearchTerm,
+                        searchInputValue: trimmedSearchInput,
+                        maxElements: maxResults,
+                        includeUserToInvite,
+                        personalDetails,
+                        countryCode,
+                        reportAttributesDerived: reportAttributesDerived?.reports,
+                        allPolicyTags,
+                        sortedActions,
+                        isTrackIntentUser,
+                    },
+                    translate,
+                );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
-                    betas: betas ?? [],
-                    includeP2P: true,
-                    includeSelectedOptions: false,
-                    excludeLogins,
-                    excludeFromSuggestionsOnly,
-                    loginsToExclude: excludeLogins,
-                    includeRecentReports,
-                    maxElements: maxResults,
-                    maxRecentReportElements: maxRecentReportsToShow,
-                    searchString: computedSearchTerm,
-                    searchInputValue: trimmedSearchInput,
-                    includeUserToInvite,
-                    includeCurrentUser,
-                    shouldAcceptName: true,
-                    personalDetails,
-                    countryCode,
-                    reportAttributesDerived: reportAttributesDerived?.reports,
-                    allPolicyTags,
-                    sortedActions,
-                    ...getValidOptionsConfig,
-                });
+                return getValidOptions(
+                    optionsWithContacts,
+                    allPolicies,
+                    draftComments,
+                    loginList,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    conciergeReportID,
+                    {
+                        dateFnsLocale,
+                        betas: betas ?? [],
+                        includeP2P: true,
+                        includeSelectedOptions: false,
+                        excludeLogins,
+                        excludeFromSuggestionsOnly,
+                        loginsToExclude: excludeLogins,
+                        includeRecentReports,
+                        maxElements: maxResults,
+                        maxRecentReportElements: maxRecentReportsToShow,
+                        searchString: computedSearchTerm,
+                        searchInputValue: trimmedSearchInput,
+                        includeUserToInvite,
+                        includeCurrentUser,
+                        shouldAcceptName: true,
+                        personalDetails,
+                        countryCode,
+                        reportAttributesDerived: reportAttributesDerived?.reports,
+                        allPolicyTags,
+                        sortedActions,
+                        isTrackIntentUser,
+                        ...getValidOptionsConfig,
+                    },
+                    translate,
+                );
             default:
                 return getEmptyOptions();
         }
     })();
+
+    // Two independent pagination cursors are checked here on purpose:
+    // - hasMore/maxResults track how many relevance-sorted options are rendered.
+    // - hasMoreReports/loadMoreReports track the raw Onyx report pool size by useFilteredOptions
+    const onListEndReached = useDebounce(() => {
+        if (!areOptionsInitialized) {
+            return;
+        }
+
+        if (hasMore) {
+            setMaxResults((previous) => previous + maxResultsPerPage);
+        }
+        if (hasMoreReports) {
+            loadMoreReports();
+        }
+    }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
 
     const isOptionSelected = (option: OptionData) => selectedOptions.some((selected) => doOptionsMatch(selected, option));
 

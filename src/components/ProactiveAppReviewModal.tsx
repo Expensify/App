@@ -1,10 +1,13 @@
-import React from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Button from './Button';
 import ImageSVG from './ImageSVG';
 import Modal from './Modal';
@@ -34,6 +37,7 @@ function ProactiveAppReviewModal({isVisible, onPositive, onNegative, onSkip}: Pr
         <Modal
             onClose={onSkip}
             isVisible={isVisible}
+            shouldTreatModalAsCovering
             type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
         >

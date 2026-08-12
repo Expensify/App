@@ -1,15 +1,21 @@
-import React from 'react';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+
+import getSearchHeaderIconSize from './getSearchHeaderIconSize';
 
 function SearchSaveButton() {
     const {translate} = useLocalize();
@@ -23,6 +29,8 @@ function SearchSaveButton() {
     };
 
     if (shouldUseNarrowLayout || isMediumScreenWidth) {
+        const iconSize = getSearchHeaderIconSize(isMediumScreenWidth, shouldUseNarrowLayout);
+
         return (
             <PressableWithFeedback
                 accessibilityLabel={translate('common.save')}
@@ -35,8 +43,7 @@ function SearchSaveButton() {
                 <Icon
                     src={expensifyIcons.Bookmark}
                     fill={theme.icon}
-                    small={shouldUseNarrowLayout}
-                    extraSmall={isMediumScreenWidth}
+                    size={iconSize}
                 />
             </PressableWithFeedback>
         );

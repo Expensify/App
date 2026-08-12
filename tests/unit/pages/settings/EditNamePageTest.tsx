@@ -1,11 +1,16 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import useOnyx from '@hooks/useOnyx';
+
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import EditNamePage from '@pages/settings/Agents/Fields/EditNamePage';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
 
 jest.mock('@userActions/Agent', () => ({
     updateAgentName: jest.fn(),
@@ -44,6 +49,8 @@ jest.mock('@react-navigation/native', () => {
         ...actual,
         useIsFocused: () => true,
         useRoute: jest.fn(() => ({name: '', key: '', params: {}})),
+        useNavigation: jest.fn(() => ({addListener: jest.fn(() => jest.fn())})),
+        useFocusEffect: jest.fn(),
     };
 });
 

@@ -1,16 +1,21 @@
-import React from 'react';
 import type {SelectorType} from '@components/SelectionScreen';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+
 import {updateSageIntacctTravelInvoicingPayableAccount} from '@libs/actions/connections/SageIntacct';
 import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSageIntacctCreditCards, settingsPendingAction} from '@libs/PolicyUtils';
+
 import TravelInvoicingPayableAccountSelectPage from '@pages/workspace/accounting/common/TravelInvoicingPayableAccountSelectPage';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React from 'react';
 
 function DynamicSageIntacctTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);

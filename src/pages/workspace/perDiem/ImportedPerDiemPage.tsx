@@ -1,21 +1,24 @@
-import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
-import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
+import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+
 import {generateCustomUnitID, importPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -23,6 +26,8 @@ import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Rate} from '@src/types/onyx/Policy';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useState} from 'react';
 
 function generatePerDiemUnits(perDiemDestination: string[], perDiemSubRate: string[], perDiemCurrency: string[], perDiemAmount: string[]) {
     const perDiemUnits: Record<string, Rate> = {};
@@ -59,6 +64,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {setIsClosing} = useCloseImportPage();
+    const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
 
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
@@ -104,7 +110,13 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
         return errors;
     };
 
-    const importRates = () => {
+    const closeImportPageAndModal = () => {
+        setIsClosing(true);
+        setIsImportingPerDiemRates(false);
+        Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID));
+    };
+
+    const importRates = async () => {
         setIsValidationEnabled(true);
         const errors = validate();
         if (Object.keys(errors).length > 0 || !perDiemCustomUnit?.customUnitID) {
@@ -131,7 +143,13 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
 
         if (perDiemUnits) {
             setIsImportingPerDiemRates(true);
-            importPerDiemRates(policyID, perDiemCustomUnit.customUnitID, perDiemUnits, rowsLength);
+            const importFinalModal = await importPerDiemRates(policyID, perDiemCustomUnit.customUnitID, perDiemUnits, rowsLength);
+            const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal);
+            if (!didShowImportFinalModal) {
+                setIsImportingPerDiemRates(false);
+                return;
+            }
+            closeImportPageAndModal();
         }
     };
 
@@ -143,12 +161,6 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
     if (!spreadsheetColumns) {
         return <NotFoundPage />;
     }
-
-    const closeImportPageAndModal = () => {
-        setIsClosing(true);
-        setIsImportingPerDiemRates(false);
-        Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID));
-    };
 
     return (
         <ScreenWrapper
@@ -168,11 +180,6 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
                 columnRoles={columnRoles}
                 isButtonLoading={isImportingPerDiemRates}
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.CATEGORIES_ARTICLE_LINK}
-            />
-
-            <ImportSpreadsheetConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened}
-                closeImportPageAndModal={closeImportPageAndModal}
             />
         </ScreenWrapper>
     );

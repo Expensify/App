@@ -1,17 +1,22 @@
-import React from 'react';
-import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {MergeFieldData, MergeFieldKey} from '@libs/MergeTransactionUtils';
+import type {TransactionDetails} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 
+import React from 'react';
+import {View} from 'react-native';
+
 type MergeFieldReviewProps = {
     mergeField: MergeFieldData;
-    onValueSelected: (transaction: Transaction, field: MergeFieldKey) => void;
+    onValueSelected: (transaction: Transaction, transactionDetails: TransactionDetails, field: MergeFieldKey) => void;
     errorText: string | undefined;
 };
 
@@ -23,12 +28,12 @@ function MergeFieldReview({mergeField, onValueSelected, errorText}: MergeFieldRe
         <View style={[styles.mb3, styles.pv5, styles.borderRadiusComponentLarge, styles.highlightBG]}>
             <Text style={[styles.textSupporting, styles.pb3, styles.ph5]}>{label}</Text>
             {options.map((option) => {
-                const {transaction, displayValue, isSelected} = option;
+                const {transaction, transactionDetails, displayValue, isSelected} = option;
 
                 return (
                     <PressableWithoutFeedback
                         key={`${field}-${transaction.transactionID}`}
-                        onPress={() => onValueSelected(transaction, field)}
+                        onPress={() => onValueSelected(transaction, transactionDetails, field)}
                         accessibilityLabel={displayValue}
                         accessible={false}
                         hoverStyle={styles.hoveredComponentBG}
@@ -38,7 +43,7 @@ function MergeFieldReview({mergeField, onValueSelected, errorText}: MergeFieldRe
                         <Text style={[styles.flex1, styles.mr1, styles.textBold, styles.breakWord]}>{displayValue}</Text>
                         <RadioButton
                             isChecked={isSelected}
-                            onPress={() => onValueSelected(transaction, field)}
+                            onPress={() => onValueSelected(transaction, transactionDetails, field)}
                             accessibilityLabel={displayValue}
                         />
                     </PressableWithoutFeedback>

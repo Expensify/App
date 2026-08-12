@@ -1,20 +1,26 @@
-import React, {useCallback, useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useMemo} from 'react';
+
+import type {SearchColumnType, SearchGroupBy, SearchSortBy, SortOrder} from './types';
+
 import SortableTableHeader from './SortableTableHeader';
-import type {SearchColumnType, SearchGroupBy, SortOrder} from './types';
 
 type SearchColumnConfig = {
     columnName: SearchColumnType;
     translationKey: TranslationPaths | undefined;
     icon?: IconAsset;
     isColumnSortable?: boolean;
+    sortColumnName?: SearchSortBy;
     canEdit?: boolean;
 };
 
@@ -88,6 +94,11 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canEdit: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
+        translationKey: 'common.categoryGLCode',
+        sortColumnName: CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
         translationKey: 'iou.attendees',
     },
@@ -101,12 +112,25 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canEdit: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
+        translationKey: 'common.tagGLCode',
+        sortColumnName: CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
         translationKey: 'common.reimbursable',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
         translationKey: 'common.billable',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.MCC,
+        translationKey: 'common.mcc',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_CODE,
+        translationKey: 'workspace.taxes.taxCode',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
@@ -122,7 +146,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
-        translationKey: 'common.originalAmount',
+        translationKey: 'common.purchaseAmount',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
@@ -131,6 +155,18 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
         translationKey: 'common.withdrawalID',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
+        translationKey: 'workspace.common.customField1',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
+        translationKey: 'workspace.common.customField2',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+        translationKey: 'common.internationalReimbursementIDs',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
@@ -156,7 +192,6 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
         translationKey: 'search.exportedTo',
-        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -194,7 +229,6 @@ const taskHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
         translationKey: 'search.exportedTo',
-        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -223,12 +257,24 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'search.filters.approved',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER,
+        translationKey: 'search.filters.firstApprover',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED,
+        translationKey: 'search.filters.firstApproved',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
         translationKey: 'search.filters.exported',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.STATUS,
         translationKey: 'common.status',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS,
+        translationKey: 'common.paidStatus',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
@@ -259,6 +305,18 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'common.total',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
+        translationKey: 'workspace.common.customField1',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
+        translationKey: 'workspace.common.customField2',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+        translationKey: 'common.internationalReimbursementIDs',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
         translationKey: 'common.reportID',
     },
@@ -269,7 +327,6 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
         translationKey: 'search.exportedTo',
-        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -279,18 +336,17 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
 ];
 
 const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderIcons): SearchColumnConfig[] => {
-    const commonGroupHeaders: SearchColumnConfig[] = [
-        {
-            columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-            translationKey: 'common.expenses' as TranslationPaths,
-            isColumnSortable: true,
-        },
-        {
-            columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-            translationKey: 'common.total' as TranslationPaths,
-            isColumnSortable: true,
-        },
-    ];
+    const groupExpensesHeader: SearchColumnConfig = {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+        translationKey: 'common.expenses' as TranslationPaths,
+        isColumnSortable: true,
+    };
+    const groupTotalHeader: SearchColumnConfig = {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+        translationKey: 'common.total' as TranslationPaths,
+        isColumnSortable: true,
+    };
+    const commonGroupHeaders: SearchColumnConfig[] = [groupExpensesHeader, groupTotalHeader];
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.FROM:
             return [
@@ -348,7 +404,18 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
                     translationKey: 'common.withdrawalID',
                 },
-                ...commonGroupHeaders,
+                groupExpensesHeader,
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+                    translationKey: 'common.amountDebited',
+                    isColumnSortable: true,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
+                    translationKey: 'common.amountReimbursed',
+                    isColumnSortable: true,
+                },
+                groupTotalHeader,
             ];
         case CONST.SEARCH.GROUP_BY.CATEGORY:
             return [
@@ -442,9 +509,9 @@ function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, icons: 
 type SearchTableHeaderProps = {
     columns: SearchColumnType[];
     type: SearchDataTypes;
-    sortBy?: SearchColumnType;
+    sortBy?: SearchSortBy;
     sortOrder?: SortOrder;
-    onSortPress: (column: SearchColumnType, order: SortOrder) => void;
+    onSortPress: (column: SearchSortBy, order: SortOrder) => void;
     shouldShowYear: boolean;
     shouldShowYearSubmitted?: boolean;
     shouldShowYearApproved?: boolean;

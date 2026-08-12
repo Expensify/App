@@ -1,20 +1,27 @@
-import type * as reactNavigationNativeImport from '@react-navigation/native';
 import {act, screen} from '@testing-library/react-native';
-import type {ComponentType} from 'react';
-import Onyx from 'react-native-onyx';
-import type {OnyxMultiSetInput} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import DateUtils from '@libs/DateUtils';
 import {setHasRadio} from '@libs/NetworkState';
 import {buildOptimisticExpenseReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+
 import FontUtils from '@styles/utils/FontUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction, ViolationName} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+
+import type * as reactNavigationNativeImport from '@react-navigation/native';
+import type {ComponentType} from 'react';
+import type {OnyxMultiSetInput} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import {chatReportR14932} from '../../__mocks__/reportData/reports';
 import createRandomReportAction from '../utils/collections/reportActions';
 import getOnyxValue from '../utils/getOnyxValue';
@@ -352,8 +359,8 @@ describe('SidebarLinksData', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // That the GBR icon should be shown.
-            expect(screen.getAllByTestId('GBR Icon', {includeHiddenElements: true})).toHaveLength(1);
+            // That the Task action badge should be shown.
+            expect(screen.getByText('Task')).toBeOnTheScreen();
         });
 
         it('should display the report awaiting user action', async () => {
@@ -426,10 +433,13 @@ describe('SidebarLinksData', () => {
         it('should display the unread report in the focus mode with the bold text', async () => {
             // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
+            // The last action must be by another user (account 2) so the report is genuinely unread.
+            // A report whose last action is the current user's own is treated as read (see isUnread in ReportUtils).
+            const OTHER_USER_ACCOUNT_ID = 2;
             const report: Report = {
                 ...createReport(undefined, undefined, undefined, undefined, undefined, true),
                 lastMessageText: 'fake last message',
-                lastActorAccountID: TEST_USER_ACCOUNT_ID,
+                lastActorAccountID: OTHER_USER_ACCOUNT_ID,
             };
 
             await initializeState({
@@ -601,6 +611,7 @@ describe('SidebarLinksData', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const expenseReport = buildOptimisticExpenseReport({
                 chatReportID: chatReportR14932.reportID,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 policyID: '123',
                 payeeAccountID: 100,
                 total: 122,
@@ -615,6 +626,7 @@ describe('SidebarLinksData', () => {
                 },
             });
             const expenseCreatedAction = buildOptimisticIOUReportAction({
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 type: 'create',
                 amount: 100,
                 currency: 'USD',
@@ -783,8 +795,8 @@ describe('SidebarLinksData', () => {
             // Then the sidebar should display the outstanding report.
             expect(getDisplayNames()).toHaveLength(1);
 
-            // And the GBR icon should be shown, indicating there is require action from current user.
-            expect(screen.getByTestId('GBR Icon', {includeHiddenElements: true})).toBeOnTheScreen();
+            // And the Task action badge should be shown, indicating there is required action from current user.
+            expect(screen.getByText('Task')).toBeOnTheScreen();
         });
 
         it('should display the report with GRB when the report has unread mention', async () => {

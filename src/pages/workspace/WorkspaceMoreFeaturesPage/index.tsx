@@ -1,10 +1,9 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useEffect} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -15,34 +14,39 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePolicyData from '@hooks/usePolicyData';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
 import {enablePolicyTravel} from '@libs/actions/Policy/Travel';
 import {filterInactiveCards, getAllCardsForWorkspace, getCardSettings, getCompanyFeeds, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import {getConnectedHRProvider, isAnyHRConnected, isGustoConnected, isMergeHRConnected, isZenefitsConnected} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
+    arePolicyRulesEnabled,
     canPolicyAccessFeature,
-    getConnectedHRProvider,
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     hasAccountingConnections,
     hasAccountingFeatureConnection,
-    isAnyHRConnected,
+    hasVendorFeature,
     isControlPolicy,
-    isGustoConnected,
-    isMergeHRConnected,
+    isPerDiemEnabled,
     isTimeTrackingEnabled,
-    isZenefitsConnected,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
+import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import {enablePolicyCategories} from '@userActions/Policy/Category';
 import {enablePolicyDistanceRates} from '@userActions/Policy/DistanceRate';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
@@ -62,11 +66,16 @@ import {
 } from '@userActions/Policy/Policy';
 import {enablePolicyTags} from '@userActions/Policy/Tag';
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useEffect} from 'react';
+
 import MoreFeaturesSection from './MoreFeaturesSection';
 import MoreFeatureToggle from './MoreFeatureToggle';
 
@@ -78,9 +87,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const isVendorMatchingEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const illustrations = useMemoizedLazyIllustrations([
         'FolderOpen',
         'Accounting',
@@ -88,10 +98,12 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'Workflows',
         'InvoiceBlue',
         'Rules',
+        'Flash',
         'Tag',
         'PerDiem',
         'HandCard',
         'Coins',
+        'Briefcase',
         'Luggage',
         'Car',
         'Gears',
@@ -101,7 +113,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     ]);
 
     const policyID = policy?.id;
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasAccountingConnection = hasAccountingConnections(policy);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
     const isSyncTaxEnabled =
@@ -114,6 +126,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
     const [cardFeeds] = useCardFeeds(policyID);
     const policyData = usePolicyData(policyID);
+    const {categories: policyCategories} = policyData;
     const defaultFundID = useDefaultFundID(policyID);
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -127,10 +140,20 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
 
+    const [travelCardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
     const settings = getCardSettings(cardSettings);
     const paymentBankAccountID = settings?.paymentBankAccountID;
+    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
+    const {canWrite: canWriteMoreFeatures, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
+
+    // The Vendors toggle's active state reads policy.connections (via hasVendorFeature), which is
+    // empty on a non-active workspace until a connections-aware read runs. OpenPolicyMoreFeaturesPage
+    // doesn't hydrate the detailed connection config, so prefetch it here (gated on the beta) to keep
+    // the toggle from showing off/non-navigable when the workspace actually supports vendors.
+    usePolicyConnectionsPrefetch(policy, isVendorMatchingEnabled);
 
     const warnAccountingManagesOrganizeFeature = async () => {
         if (!hasAccountingConnection || !policyID) {
@@ -209,6 +232,19 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
     };
 
+    const promptDisableTravelViaInvoicing = async () => {
+        const {action} = await showConfirmModal({
+            title: translate('workspace.moreFeatures.travel.disableTravelTitle'),
+            prompt: translate('workspace.moreFeatures.travel.disableTravelPrompt'),
+            confirmText: translate('workspace.moreFeatures.travel.disableTravelButton'),
+            cancelText: translate('common.cancel'),
+        });
+        if (action !== ModalActions.CONFIRM || !policyID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policyID));
+    };
+
     const promptDisableCompanyCardsViaConcierge = async () => {
         const {action} = await showConfirmModal({
             title: translate('workspace.moreFeatures.companyCards.disableCardTitle'),
@@ -248,6 +284,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={route.params.policyID}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -274,13 +311,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             subtitle={translate('workspace.moreFeatures.connections.subtitle')}
                             isActive={isAccountingEnabled}
                             pendingAction={policy?.pendingFields?.areConnectionsEnabled}
-                            disabled={hasAccountingConnection}
-                            disabledAction={warnDisconnectAccountingFirst}
+                            disabled={!canWriteMoreFeatures || hasAccountingConnection}
+                            disabledAction={withReadOnlyFallback(warnDisconnectAccountingFirst)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
                                 }
-                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias, isSubmit2026BetaEnabled)) {
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias)) {
                                     return;
                                 }
                                 enablePolicyConnections(policyID, isEnabled);
@@ -300,13 +337,40 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             }}
                         />
                         <MoreFeatureToggle
+                            icon={illustrations.Members}
+                            title={translate('workspace.hr.title')}
+                            subtitle={translate('workspace.hr.subtitle')}
+                            isActive={((policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false}
+                            pendingAction={policy?.pendingFields?.isHREnabled}
+                            disabled={!canWriteMoreFeatures || isAnyHRConnected(policy)}
+                            disabledAction={withReadOnlyFallback(warnDisconnectHRFirst)}
+                            onToggle={(isEnabled) => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                if (isEnabled && !isControlPolicy(policy)) {
+                                    Navigation.navigate(
+                                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
+                                    );
+                                    return;
+                                }
+                                enablePolicyHR(policyID, isEnabled);
+                            }}
+                            onPress={() => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
+                            }}
+                        />
+                        <MoreFeatureToggle
                             icon={illustrations.ReceiptPartners}
                             title={translate('workspace.moreFeatures.receiptPartners.title')}
                             subtitle={translate('workspace.moreFeatures.receiptPartners.subtitle')}
                             isActive={policy?.receiptPartners?.enabled ?? false}
                             pendingAction={policy?.pendingFields?.receiptPartners}
-                            disabled={isUberConnected}
-                            disabledAction={warnReceiptPartnersStillConnected}
+                            disabled={!canWriteMoreFeatures || isUberConnected}
+                            disabledAction={withReadOnlyFallback(warnReceiptPartnersStillConnected)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
@@ -327,35 +391,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
                             }}
                         />
-                        {(isBetaEnabled(CONST.BETAS.GUSTO) || isBetaEnabled(CONST.BETAS.ZENEFITS) || isBetaEnabled(CONST.BETAS.MERGE_HR)) && (
-                            <MoreFeatureToggle
-                                icon={illustrations.Members}
-                                title={translate('workspace.hr.title')}
-                                subtitle={translate('workspace.hr.subtitle')}
-                                isActive={((policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false}
-                                pendingAction={policy?.pendingFields?.isHREnabled}
-                                disabled={isAnyHRConnected(policy)}
-                                disabledAction={warnDisconnectHRFirst}
-                                onToggle={(isEnabled) => {
-                                    if (!policyID) {
-                                        return;
-                                    }
-                                    if (isEnabled && !isControlPolicy(policy)) {
-                                        Navigation.navigate(
-                                            ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
-                                        );
-                                        return;
-                                    }
-                                    enablePolicyHR(policyID, isEnabled);
-                                }}
-                                onPress={() => {
-                                    if (!policyID) {
-                                        return;
-                                    }
-                                    Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
-                                }}
-                            />
-                        )}
                     </MoreFeaturesSection>
 
                     <MoreFeaturesSection title={translate('workspace.moreFeatures.organizeSection.title')}>
@@ -365,8 +400,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             subtitle={translate('workspace.moreFeatures.categories.subtitle')}
                             isActive={policy?.areCategoriesEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areCategoriesEnabled}
-                            disabled={hasAccountingConnection}
-                            disabledAction={warnAccountingManagesOrganizeFeature}
+                            disabled={!canWriteMoreFeatures || hasAccountingConnection}
+                            disabledAction={withReadOnlyFallback(warnAccountingManagesOrganizeFeature)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
@@ -386,8 +421,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             subtitle={translate('workspace.moreFeatures.tags.subtitle')}
                             isActive={policy?.areTagsEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areTagsEnabled}
-                            disabled={hasAccountingConnection}
-                            disabledAction={warnAccountingManagesOrganizeFeature}
+                            disabled={!canWriteMoreFeatures || hasAccountingConnection}
+                            disabledAction={withReadOnlyFallback(warnAccountingManagesOrganizeFeature)}
                             onToggle={(isEnabled) => {
                                 enablePolicyTags(policyData, isEnabled);
                             }}
@@ -404,17 +439,17 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             subtitle={translate('workspace.moreFeatures.taxes.subtitle')}
                             isActive={(policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled}
                             pendingAction={policy?.pendingFields?.tax}
-                            disabled={hasAccountingConnection}
-                            disabledAction={warnAccountingManagesOrganizeFeature}
+                            disabled={!canWriteMoreFeatures || hasAccountingConnection}
+                            disabledAction={withReadOnlyFallback(warnAccountingManagesOrganizeFeature)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
                                 }
                                 if (isEnabled) {
-                                    enablePolicyTaxes(policyID, true, policy?.taxRates);
+                                    enablePolicyTaxes(policyID, true, policy?.taxRates, policyData);
                                     return;
                                 }
-                                enablePolicyTaxes(policyID, false);
+                                enablePolicyTaxes(policyID, false, undefined, policyData);
                             }}
                             onPress={() => {
                                 if (!policyID) {
@@ -423,6 +458,28 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID));
                             }}
                         />
+                        {isVendorMatchingEnabled && (
+                            <MoreFeatureToggle
+                                icon={illustrations.Briefcase}
+                                title={translate('workspace.moreFeatures.vendors.title')}
+                                subtitle={translate('workspace.moreFeatures.vendors.subtitle')}
+                                isActive={hasVendorFeature(policy, isVendorMatchingEnabled)}
+                                // The Vendors switch is locked for everyone until the EnablePolicyVendors backend command exists.
+                                // Its active state is derived from policy.connections (via hasVendorFeature), so there's nothing
+                                // to toggle yet; locking it avoids shipping a switch that silently no-ops. Read-only users still
+                                // get the read-only modal via withReadOnlyFallback(). Row-body navigation stays active when the
+                                // feature is available. This will be unlocked in the follow-up PR that wires up the toggle.
+                                disabled
+                                disabledAction={withReadOnlyFallback()}
+                                onToggle={() => {}}
+                                onPress={() => {
+                                    if (!policyID) {
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.WORKSPACE_VENDORS.getRoute(policyID));
+                                }}
+                            />
+                        )}
                     </MoreFeaturesSection>
 
                     <MoreFeaturesSection title={translate('workspace.moreFeatures.manageSection.title')}>
@@ -432,8 +489,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             subtitle={translate('workspace.moreFeatures.workflows.subtitle')}
                             isActive={policy?.areWorkflowsEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areWorkflowsEnabled}
-                            disabled={isSmartLimitEnabled}
-                            disabledAction={promptDisableSmartLimitForWorkflows}
+                            disabled={!canWriteMoreFeatures || isSmartLimitEnabled}
+                            disabledAction={withReadOnlyFallback(promptDisableSmartLimitForWorkflows)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
@@ -448,16 +505,22 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             }}
                         />
                         <MoreFeatureToggle
-                            icon={illustrations.Rules}
+                            icon={isRulesRevampEnabled ? illustrations.Flash : illustrations.Rules}
                             title={translate('workspace.moreFeatures.rules.title')}
                             subtitle={translate('workspace.moreFeatures.rules.subtitle')}
-                            isActive={policy?.areRulesEnabled ?? false}
+                            isActive={arePolicyRulesEnabled(policy, policyCategories, isRulesRevampEnabled)}
                             pendingAction={policy?.pendingFields?.areRulesEnabled}
+                            disabled={!canWriteMoreFeatures}
+                            disabledAction={withReadOnlyFallback()}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
                                 }
-                                if (isEnabled && !isControlPolicy(policy)) {
+                                // Only Control always has Rules, and Collect gains them with the revamp beta. Anything
+                                // else (Submit) can't hold Rules at all — arePolicyRulesEnabled would keep reading
+                                // false — so it has to keep going to the upgrade page rather than writing a flag that
+                                // never takes effect.
+                                if (isEnabled && !canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, isRulesRevampEnabled)) {
                                     Navigation.navigate(
                                         ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
                                     );
@@ -481,6 +544,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             subtitle={translate('workspace.moreFeatures.distanceRates.subtitle')}
                             isActive={policy?.areDistanceRatesEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areDistanceRatesEnabled}
+                            disabled={!canWriteMoreFeatures}
+                            disabledAction={withReadOnlyFallback()}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
@@ -500,11 +565,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             subtitle={translate('workspace.moreFeatures.travel.subtitle')}
                             isActive={policy?.isTravelEnabled ?? false}
                             pendingAction={policy?.pendingFields?.isTravelEnabled}
+                            disabled={!canWriteMoreFeatures || isTravelInvoicingEnabled}
+                            disabledAction={withReadOnlyFallback(promptDisableTravelViaInvoicing)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
                                 }
-                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.alias, isSubmit2026BetaEnabled)) {
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.alias)) {
                                     return;
                                 }
                                 enablePolicyTravel(policyID, isEnabled);
@@ -522,13 +589,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             subtitle={translate('workspace.moreFeatures.expensifyCard.subtitle')}
                             isActive={policy?.areExpensifyCardsEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areExpensifyCardsEnabled}
-                            disabled={(!!policy?.areExpensifyCardsEnabled && !!paymentBankAccountID) || !isEmptyObject(cardsList)}
-                            disabledAction={promptDisableExpensifyCardViaConcierge}
+                            disabled={!canWriteMoreFeatures || (!!policy?.areExpensifyCardsEnabled && !!paymentBankAccountID) || !isEmptyObject(cardsList)}
+                            disabledAction={withReadOnlyFallback(promptDisableExpensifyCardViaConcierge)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
                                 }
-                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.alias, isSubmit2026BetaEnabled)) {
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.alias)) {
                                     return;
                                 }
                                 enableExpensifyCard(policyID, isEnabled);
@@ -546,13 +613,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             subtitle={translate('workspace.moreFeatures.companyCards.subtitle')}
                             isActive={policy?.areCompanyCardsEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areCompanyCardsEnabled}
-                            disabled={!isEmptyObject(getCompanyFeeds(cardFeeds))}
-                            disabledAction={promptDisableCompanyCardsViaConcierge}
+                            disabled={!canWriteMoreFeatures || !isEmptyObject(getCompanyFeeds(cardFeeds))}
+                            disabledAction={withReadOnlyFallback(promptDisableCompanyCardsViaConcierge)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
                                 }
-                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.alias, isSubmit2026BetaEnabled)) {
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.alias)) {
                                     return;
                                 }
                                 enableCompanyCards(policyID, isEnabled, true);
@@ -568,8 +635,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={illustrations.PerDiem}
                             title={translate('workspace.moreFeatures.perDiem.title')}
                             subtitle={translate('workspace.moreFeatures.perDiem.subtitle')}
-                            isActive={(policy?.arePerDiemRatesEnabled && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED)) ?? false}
+                            isActive={isPerDiemEnabled(policy) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED)}
                             pendingAction={policy?.pendingFields?.arePerDiemRatesEnabled}
+                            disabled={!canWriteMoreFeatures}
+                            disabledAction={withReadOnlyFallback()}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
@@ -595,6 +664,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             subtitle={translate('workspace.moreFeatures.timeTracking.subtitle')}
                             isActive={isTimeTrackingEnabled(policy)}
                             pendingAction={policy?.pendingFields?.isTimeTrackingEnabled}
+                            disabled={!canWriteMoreFeatures}
+                            disabledAction={withReadOnlyFallback()}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
@@ -617,11 +688,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             subtitle={translate('workspace.moreFeatures.invoices.subtitle')}
                             isActive={policy?.areInvoicesEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areInvoicesEnabled}
+                            disabled={!canWriteMoreFeatures}
+                            disabledAction={withReadOnlyFallback()}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
                                     return;
                                 }
-                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.alias, isSubmit2026BetaEnabled)) {
+                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.alias)) {
                                     return;
                                 }
                                 enablePolicyInvoicing(policyID, isEnabled);

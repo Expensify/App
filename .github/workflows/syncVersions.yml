@@ -13,7 +13,8 @@ jobs:
     runs-on: blacksmith-6vcpu-macos-latest
     steps:
       - name: Check out
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        # Upstream checkout on macOS - Blacksmith's git-mirror cache can't work there (see workflows/README.md)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: main
           submodules: true
@@ -200,21 +201,18 @@ jobs:
 
       - name: Announce sync in Slack
         if: steps.checkVersions.outputs.IN_SYNC != 'true'
-        # v3
-        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
-          status: custom
-          custom_payload: |
+          webhook: ${{ secrets.SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
             {
-              channel: '#deployer',
-              attachments: [{
-                color: "good",
-                text: `✅ Version sync completed. E/App and Mobile-Expensify are at ${{ steps.verifySync.outputs.POST_SYNC_APP_VERSION }}; submodule matches Mobile-Expensify main.`
+              "channel": "#deployer",
+              "attachments": [{
+                "color": "good",
+                "text": "✅ Version sync completed. E/App and Mobile-Expensify are at ${{ steps.verifySync.outputs.POST_SYNC_APP_VERSION }}; submodule matches Mobile-Expensify main."
               }]
             }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}

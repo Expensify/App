@@ -1,5 +1,3 @@
-import {useCallback} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import {
     getCardSettings,
     getFundIdFromSettingsKey,
@@ -7,9 +5,15 @@ import {
     getPreferredPolicyFromExpensifyCardSettings,
     isPolicyIDInLinkedExpensifyCardPolicyList,
 } from '@libs/CardUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardSettings} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useCallback} from 'react';
+
 import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
 
@@ -46,13 +50,9 @@ function useDefaultFundID(policyID: string | undefined) {
         [policyID, workspaceAccountID],
     );
 
-    const [domainFundID] = useOnyx(
-        ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS,
-        {
-            selector: getDomainFundID,
-        },
-        [getDomainFundID],
-    );
+    const [domainFundID] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
+        selector: getDomainFundID,
+    });
 
     const isFeedPendingDelete = lastSelectedCardSettings?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 

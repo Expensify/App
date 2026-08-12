@@ -1,10 +1,15 @@
+import useLocalize from '@hooks/useLocalize';
+
+import {cleanFileName} from '@libs/fileDownload/FileUtils';
+import fileURIToPath from '@libs/fileURIToPath';
+
+import type {FileObject} from '@src/types/utils/Attachment';
+
 import {keepLocalCopy, pick, types} from '@react-native-documents/picker';
 import React, {useCallback, useRef} from 'react';
 import {Alert} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
-import useLocalize from '@hooks/useLocalize';
-import {cleanFileName} from '@libs/fileDownload/FileUtils';
-import type {FileObject} from '@src/types/utils/Attachment';
+
 import type FilePickerProps from './types';
 
 type LocalCopy = {
@@ -31,7 +36,7 @@ const getDataForUpload = (fileData: LocalCopy): Promise<FileObject> => {
         return Promise.resolve(fileResult);
     }
 
-    return RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
+    return RNFetchBlob.fs.stat(fileURIToPath(fileData.uri)).then((stats) => {
         fileResult.size = stats.size;
         return fileResult;
     });

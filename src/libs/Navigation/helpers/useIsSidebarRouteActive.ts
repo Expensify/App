@@ -1,11 +1,23 @@
-import type {NavigationState} from '@react-navigation/native';
-import {findFocusedRoute} from '@react-navigation/native';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+
 import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {SplitNavigatorName} from '@libs/Navigation/types';
 
+import type {NavigationState} from '@react-navigation/native';
+
+import {findFocusedRoute} from '@react-navigation/native';
+
+import {getTabState} from './tabNavigatorUtils';
+
 function useIsSidebarRouteActive(splitNavigatorName: SplitNavigatorName, isNarrowLayout: boolean) {
-    const currentSplitNavigatorRoute = useRootNavigationState((rootState) => rootState?.routes.at(-1));
+    const currentSplitNavigatorRoute = useRootNavigationState((rootState) => {
+        const lastRoute = rootState?.routes.at(-1);
+        const tabState = getTabState(lastRoute);
+        if (!tabState) {
+            return lastRoute;
+        }
+        return tabState.routes.at(tabState.index ?? 0);
+    });
 
     if (currentSplitNavigatorRoute?.name !== splitNavigatorName) {
         return false;

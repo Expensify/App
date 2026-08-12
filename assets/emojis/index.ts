@@ -1,6 +1,8 @@
 import type {FullySupportedLocale} from '@src/CONST/LOCALES';
-import emojis from './common';
+
 import type {Emoji, EmojisList} from './types';
+
+import emojis from './common';
 
 type EmojiTable = Record<string, Emoji>;
 
@@ -33,6 +35,7 @@ const findEmojiByHexCode = (hexcode: string): Emoji | undefined => emojiHexcodeT
 const localeEmojis: LocaleEmojis = {
     en: undefined,
     es: undefined,
+    fr: undefined,
 };
 
 const importEmojiLocale = (locale: FullySupportedLocale) => {

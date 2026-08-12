@@ -1,5 +1,5 @@
-import Onyx from 'react-native-onyx';
 import {INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
+
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {generatePolicyID} from '@src/libs/actions/Policy/Policy';
@@ -9,10 +9,14 @@ import {calculateApprovers} from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Policy as PolicyType, Report} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
+
+import Onyx from 'react-native-onyx';
+
+import type {MockFetch} from '../utils/TestHelper';
+
 import createRandomPolicy from '../utils/collections/policies';
 import getOnyxValue from '../utils/getOnyxValue';
 import {getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/WorkflowUtils', () => {

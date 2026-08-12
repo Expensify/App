@@ -1,16 +1,21 @@
 import CONST from '@src/CONST';
 import {
+    getIsTravelBillingPayByInvoice,
     getIsTravelInvoicingEnabled,
+    getPendingTravelInvoiceAmount,
     getTravelInvoicingCard,
     getTravelLimit,
     getTravelSettlementAccount,
     getTravelSettlementFrequency,
     getTravelSpend,
+    hasOutstandingTravelBalance,
     hasTravelInvoicingSettlementAccount,
     isTravelCVVEligible,
 } from '@src/libs/TravelInvoicingUtils';
 import type {BankAccountList, CardList} from '@src/types/onyx';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
+
+import createMock from '../utils/createMock';
 
 describe('TravelInvoicingUtils', () => {
     describe('PROGRAM_TRAVEL_US constant', () => {
@@ -58,6 +63,31 @@ describe('TravelInvoicingUtils', () => {
         it('Should return true when isEnabled is true with paymentBankAccountID', () => {
             const travelSettings = {isEnabled: true, paymentBankAccountID: 12345} as ExpensifyCardSettingsBase;
             const result = getIsTravelInvoicingEnabled(travelSettings);
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('getIsTravelBillingPayByInvoice', () => {
+        it('Should return false when travelSettings is undefined', () => {
+            const result = getIsTravelBillingPayByInvoice(undefined);
+            expect(result).toBe(false);
+        });
+
+        it('Should return false when invoiceTo is not set', () => {
+            const travelSettings = {isEnabled: true} as ExpensifyCardSettingsBase;
+            const result = getIsTravelBillingPayByInvoice(travelSettings);
+            expect(result).toBe(false);
+        });
+
+        it('Should return false when invoiceTo is an empty string', () => {
+            const travelSettings = {invoiceTo: ''} as ExpensifyCardSettingsBase;
+            const result = getIsTravelBillingPayByInvoice(travelSettings);
+            expect(result).toBe(false);
+        });
+
+        it('Should return true when invoiceTo is a non-empty string', () => {
+            const travelSettings = {invoiceTo: 'billing@example.com'} as ExpensifyCardSettingsBase;
+            const result = getIsTravelBillingPayByInvoice(travelSettings);
             expect(result).toBe(true);
         });
     });
@@ -119,6 +149,56 @@ describe('TravelInvoicingUtils', () => {
         });
     });
 
+    describe('getPendingTravelInvoiceAmount', () => {
+        it('Should return 0 when travelSettings is undefined', () => {
+            const result = getPendingTravelInvoiceAmount(undefined);
+            expect(result).toBe(0);
+        });
+
+        it('Should return 0 when pendingInvoiceAmount is not set', () => {
+            const travelSettings = {currentBalance: 0} as ExpensifyCardSettingsBase;
+            const result = getPendingTravelInvoiceAmount(travelSettings);
+            expect(result).toBe(0);
+        });
+
+        it('Should return the pendingInvoiceAmount value when set', () => {
+            const travelSettings = {pendingInvoiceAmount: 45000} as ExpensifyCardSettingsBase;
+            const result = getPendingTravelInvoiceAmount(travelSettings);
+            expect(result).toBe(45000);
+        });
+    });
+
+    describe('hasOutstandingTravelBalance', () => {
+        it('Should return false when travelSettings is undefined', () => {
+            const result = hasOutstandingTravelBalance(undefined);
+            expect(result).toBe(false);
+        });
+
+        it('Should return false when there is no balance, queued settlement, or pending invoice', () => {
+            const travelSettings = {currentBalance: 0, pendingSettlementAmount: 0, pendingInvoiceAmount: 0} as ExpensifyCardSettingsBase;
+            const result = hasOutstandingTravelBalance(travelSettings);
+            expect(result).toBe(false);
+        });
+
+        it('Should return true when there is unpaid travel spend', () => {
+            const travelSettings = {currentBalance: 25000} as ExpensifyCardSettingsBase;
+            const result = hasOutstandingTravelBalance(travelSettings);
+            expect(result).toBe(true);
+        });
+
+        it('Should return true when a settlement is queued', () => {
+            const travelSettings = {pendingSettlementAmount: 25000} as ExpensifyCardSettingsBase;
+            const result = hasOutstandingTravelBalance(travelSettings);
+            expect(result).toBe(true);
+        });
+
+        it('Should return true when an invoice is awaiting payment even if the balance is 0', () => {
+            const travelSettings = {currentBalance: 0, pendingSettlementAmount: 0, pendingInvoiceAmount: 45000} as ExpensifyCardSettingsBase;
+            const result = hasOutstandingTravelBalance(travelSettings);
+            expect(result).toBe(true);
+        });
+    });
+
     describe('getTravelSettlementFrequency', () => {
         it('Should return monthly (default) when travelSettings is undefined', () => {
             const result = getTravelSettlementFrequency(undefined);
@@ -139,8 +219,9 @@ describe('TravelInvoicingUtils', () => {
     });
 
     describe('getTravelSettlementAccount', () => {
+        const mockBankAccountID = '12345';
         const mockBankAccountList: BankAccountList = {
-            bankAccountID: {
+            [mockBankAccountID]: {
                 bankCurrency: 'USD',
                 bankCountry: 'US',
                 accountData: {
@@ -176,9 +257,9 @@ describe('TravelInvoicingUtils', () => {
         });
 
         it('Should fallback to bank account data when paymentBankAccountAddressName is not set', () => {
-            const travelSettings = {
-                paymentBankAccountID: 'bankAccountID' as unknown as number,
-            } as ExpensifyCardSettingsBase;
+            const travelSettings = createMock<ExpensifyCardSettingsBase>({
+                paymentBankAccountID: 12345,
+            });
             const result = getTravelSettlementAccount(travelSettings, mockBankAccountList);
             expect(result).toBeDefined();
             expect(result?.displayName).toBe('Test Company');
@@ -217,7 +298,7 @@ describe('TravelInvoicingUtils', () => {
         });
 
         it('Should return undefined when no travel card exists', () => {
-            const cardList = {
+            const cardList = createMock<CardList>({
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1234': {
                     cardID: 1234,
@@ -227,13 +308,13 @@ describe('TravelInvoicingUtils', () => {
                         feedCountry: 'OTHER_COUNTRY',
                     },
                 },
-            } as unknown as CardList;
+            });
             const result = getTravelInvoicingCard(cardList);
             expect(result).toBeUndefined();
         });
 
         it('Should return the travel card when feedCountry is PROGRAM_TRAVEL_US', () => {
-            const cardList = {
+            const cardList = createMock<CardList>({
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1234': {
                     cardID: 1234,
@@ -243,14 +324,14 @@ describe('TravelInvoicingUtils', () => {
                         feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
                     },
                 },
-            } as unknown as CardList;
+            });
             const result = getTravelInvoicingCard(cardList);
             expect(result).toBeDefined();
             expect(result?.cardID).toBe(1234);
         });
 
         it('Should return first travel card when multiple cards exist', () => {
-            const cardList = {
+            const cardList = createMock<CardList>({
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1111': {
                     cardID: 1111,
@@ -269,7 +350,7 @@ describe('TravelInvoicingUtils', () => {
                         feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
                     },
                 },
-            } as unknown as CardList;
+            });
             const result = getTravelInvoicingCard(cardList);
             expect(result).toBeDefined();
             expect(result?.nameValuePairs?.feedCountry).toBe(CONST.TRAVEL.PROGRAM_TRAVEL_US);
@@ -277,7 +358,7 @@ describe('TravelInvoicingUtils', () => {
     });
 
     describe('isTravelCVVEligible', () => {
-        const mockTravelCardList = {
+        const mockTravelCardList = createMock<CardList>({
             // eslint-disable-next-line @typescript-eslint/naming-convention
             '1234': {
                 cardID: 1234,
@@ -287,9 +368,9 @@ describe('TravelInvoicingUtils', () => {
                     feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
                 },
             },
-        } as unknown as CardList;
+        });
 
-        const mockNonTravelCardList = {
+        const mockNonTravelCardList = createMock<CardList>({
             // eslint-disable-next-line @typescript-eslint/naming-convention
             '5678': {
                 cardID: 5678,
@@ -300,30 +381,20 @@ describe('TravelInvoicingUtils', () => {
                     feedCountry: 'OTHER_COUNTRY',
                 },
             },
-        } as unknown as CardList;
-
-        it('Should return false when beta is false', () => {
-            const result = isTravelCVVEligible(false, mockTravelCardList);
-            expect(result).toBe(false);
         });
 
         it('Should return false when cardList is undefined', () => {
-            const result = isTravelCVVEligible(true, undefined);
+            const result = isTravelCVVEligible(undefined);
             expect(result).toBe(false);
         });
 
         it('Should return false when no travel card exists', () => {
-            const result = isTravelCVVEligible(true, mockNonTravelCardList);
+            const result = isTravelCVVEligible(mockNonTravelCardList);
             expect(result).toBe(false);
         });
 
-        it('Should return false when beta is false even with travel card', () => {
-            const result = isTravelCVVEligible(false, mockTravelCardList);
-            expect(result).toBe(false);
-        });
-
-        it('Should return true when beta is true and travel card exists', () => {
-            const result = isTravelCVVEligible(true, mockTravelCardList);
+        it('Should return true when a travel card exists', () => {
+            const result = isTravelCVVEligible(mockTravelCardList);
             expect(result).toBe(true);
         });
     });

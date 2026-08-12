@@ -1,15 +1,21 @@
-import React, {useEffect} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+import createDynamicRoute from '@src/libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@src/libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import {PressableWithoutFeedback} from './Pressable';
 import RenderHTML from './RenderHTML';
@@ -19,12 +25,15 @@ type ReferralProgramCTAProps = {
     referralContentType: typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT;
     style?: StyleProp<ViewStyle>;
     onDismiss?: () => void;
+
+    /** Called right before navigating to the referral details route. Lets a caller dismiss an overlay (e.g. a docked modal) that would otherwise cover the referral RHP. */
+    onBeforeNavigate?: () => void;
 };
 
 // Width of the close button (touchableButtonImage) + the gap between text and button.
 const CLOSE_BUTTON_OFFSET = variables.componentSizeNormal + 10;
 
-function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralProgramCTAProps) {
+function ReferralProgramCTA({referralContentType, style, onDismiss, onBeforeNavigate}: ReferralProgramCTAProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -55,7 +64,8 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
             <PressableWithoutFeedback
                 sentryLabel={CONST.SENTRY_LABEL.REFERRAL_PROGRAM.CTA}
                 onPress={() => {
-                    Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(referralContentType, Navigation.getActiveRouteWithoutParams()));
+                    onBeforeNavigate?.();
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REFERRAL_DETAILS.getRoute(referralContentType), Navigation.getActiveRouteWithoutParams()));
                 }}
                 style={[styles.pAbsolute, styles.t0, styles.b0, styles.l0, {right: CLOSE_BUTTON_OFFSET}]}
                 accessibilityLabel={translate(`referralProgram.${referralContentType}.header`)}

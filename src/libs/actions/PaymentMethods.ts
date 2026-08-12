@@ -1,8 +1,5 @@
-import type {RefObject} from 'react';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {KYCWallRef} from '@components/KYCWall/types';
+
 import * as API from '@libs/API';
 import type {
     AddPaymentCardParams,
@@ -22,6 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import {isPolicyUser} from '@libs/PolicyUtils';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -32,6 +30,12 @@ import type Policy from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Session from '@src/types/onyx/Session';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
+
+import type {RefObject} from 'react';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
 
 /**
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
@@ -436,7 +440,7 @@ function hasPaymentMethodError(
             return true;
         }
         const workspaceAccountID = Number(card?.fundID);
-        const policy = policyList.find((p) => p?.workspaceAccountID === workspaceAccountID);
+        const policy = policyList.find((p) => p?.policyAccountID === workspaceAccountID);
         return !!policy && isPolicyUser(policy, currentUserLogin);
     });
     // If there is card with errors, we should display the RBR if user is a member of the workspace.

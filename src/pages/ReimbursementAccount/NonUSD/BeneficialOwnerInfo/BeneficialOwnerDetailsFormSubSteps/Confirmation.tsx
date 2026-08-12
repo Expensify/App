@@ -1,18 +1,22 @@
-import React, {useMemo} from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getNeededDocumentsStatusForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForBeneficialOwner';
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForBeneficialOwner';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
+
+import {SafeString} from 'expensify-common';
+import React, {useMemo} from 'react';
 
 type ConfirmationProps = SubPageProps & {ownerBeingModifiedID: string};
 
-const {PREFIX, NATIONALITY} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+const {PREFIX, NATIONALITY, COUNTRY} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
 function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: ConfirmationProps) {
     const {translate} = useLocalize();
@@ -21,14 +25,17 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
     const values = useMemo(() => getValuesForBeneficialOwner(ownerBeingModifiedID, reimbursementAccountDraft), [ownerBeingModifiedID, reimbursementAccountDraft]);
     const beneficialOwnerNationalityInputID = `${PREFIX}_${ownerBeingModifiedID}_${NATIONALITY}` as const;
     const beneficialOwnerNationality = SafeString(reimbursementAccountDraft?.[beneficialOwnerNationalityInputID]);
+    const beneficialOwnerAddressCountryInputID = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
+    const beneficialOwnerAddressCountry = SafeString(reimbursementAccountDraft?.[beneficialOwnerAddressCountryInputID]);
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {country, currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
-    const isDocumentNeededStatus = getNeededDocumentsStatusForBeneficialOwner(currency, country, beneficialOwnerNationality);
+    const isDocumentNeededStatus = getNeededDocumentsStatusForBeneficialOwner(currency, country, beneficialOwnerAddressCountry);
 
     const summaryItems = useMemo(
         () => [
             {
+                id: 'legal-name',
                 title: `${values.firstName} ${values.lastName}`,
                 description: translate('ownershipInfoStep.legalName'),
                 shouldShowRightIcon: true,
@@ -37,6 +44,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                 },
             },
             {
+                id: 'nationality',
                 title: CONST.ALL_COUNTRIES[values.nationality as keyof typeof CONST.ALL_COUNTRIES],
                 description: translate('ownershipInfoStep.countryOfCitizenship'),
                 shouldShowRightIcon: true,
@@ -45,6 +53,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                 },
             },
             {
+                id: 'ownership-percentage',
                 title: values.ownershipPercentage,
                 description: translate('ownershipInfoStep.ownershipPercentage'),
                 shouldShowRightIcon: true,
@@ -53,6 +62,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                 },
             },
             {
+                id: 'date-of-birth',
                 title: values.dob,
                 description: translate('common.dob'),
                 shouldShowRightIcon: true,
@@ -63,6 +73,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
             ...(beneficialOwnerNationality === CONST.COUNTRY.US
                 ? [
                       {
+                          id: 'ssn',
                           title: values.ssnLast4,
                           description: translate('ownershipInfoStep.last4'),
                           shouldShowRightIcon: true,
@@ -73,6 +84,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                   ]
                 : []),
             {
+                id: 'address',
                 title: `${values.street}, ${values.city}, ${values.state} ${values.zipCode}`,
                 description: translate('ownershipInfoStep.address'),
                 shouldShowRightIcon: true,
@@ -83,6 +95,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
             ...(isDocumentNeededStatus.isProofOfOwnershipNeeded
                 ? [
                       {
+                          id: 'proof-of-ownership',
                           title: values.proofOfOwnership.map((file) => file.name).join(', '),
                           description: translate('ownershipInfoStep.proofOfBeneficialOwner'),
                           shouldShowRightIcon: true,
@@ -95,6 +108,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
             ...(isDocumentNeededStatus.isCopyOfIDNeeded
                 ? [
                       {
+                          id: 'copy-of-id',
                           title: values.copyOfID.map((file) => file.name).join(', '),
                           description: translate('ownershipInfoStep.copyOfID'),
                           shouldShowRightIcon: true,
@@ -107,6 +121,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
             ...(isDocumentNeededStatus.isProofOfAddressNeeded
                 ? [
                       {
+                          id: 'address-proof',
                           title: values.addressProof.map((file) => file.name).join(', '),
                           description: translate('ownershipInfoStep.proofOfAddress'),
                           shouldShowRightIcon: true,
@@ -119,6 +134,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
             ...(isDocumentNeededStatus.isCodiceFiscaleNeeded
                 ? [
                       {
+                          id: 'codice-fiscale',
                           title: values.codiceFiscale.map((file) => file.name).join(', '),
                           description: translate('ownershipInfoStep.codiceFiscale'),
                           shouldShowRightIcon: true,

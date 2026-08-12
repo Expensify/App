@@ -1,18 +1,24 @@
+import ConfirmModal from '@components/ConfirmModal';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import Navigation from '@navigation/Navigation';
+
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
+import {clearDomainSecurityGroupSettingError, updateDomainSecurityGroup} from '@userActions/Domain';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+
 import {domainSecurityGroupSettingErrorsSelector, domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
 import {createAdminPoliciesSelector, policyNameSelector} from '@selectors/Policy';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@navigation/Navigation';
-import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {clearDomainSecurityGroupSettingError, updateDomainSecurityGroup} from '@userActions/Domain';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 type PreferredWorkspaceToggleProps = {
     /** The account ID of the domain */
@@ -40,6 +46,7 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
     const isEnabled = !!group?.enableRestrictedPrimaryPolicy;
     const preferredPolicyID = group?.restrictedPrimaryPolicyID;
 
+    // When the requester is not a member of the preferred policy, BE adds a minimal {avatarURL, id, name} policy Onyx data for the policy to the policy collection, so this resolves to the configured workspace's name even for domain admins without access to that policy.
     const [preferredPolicyName] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicyID}`, {selector: policyNameSelector});
 
     const [enableRestrictedPrimaryPolicyPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
@@ -105,7 +112,7 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
             />
-            {hasAdminPolicies && (
+            {(hasAdminPolicies || !!preferredPolicyName) && (
                 <OfflineWithFeedback
                     pendingAction={restrictedPrimaryPolicyIDPendingAction}
                     errors={restrictedPrimaryPolicyIDErrors}
@@ -117,7 +124,7 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                         title={preferredPolicyName ?? firstAdminPolicy?.name}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE.getRoute(domainAccountID, groupID))}
-                        disabled={!isEnabled}
+                        disabled={!isEnabled || (!hasAdminPolicies && !!preferredPolicyName)}
                     />
                 </OfflineWithFeedback>
             )}

@@ -25,7 +25,7 @@ Workspace Admins with an email on a private domain can share a company card feed
  - On the **Collect** plan, you can add one company card feed per Workspace. 
  - On the **Control** plan, you can add unlimited company card feeds. 
 
-[Learn about the different plan types available in Expensify.](/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing)
+[Learn about the different plan types available in Expensify](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Compare-Collect-and-Control-Plans#common-feature-differences-between-collect-and-control).
 
 ---
 
@@ -37,13 +37,6 @@ Workspace Admins with an email on a private domain can share a company card feed
 3. Click **Add cards**.
 4. Select your existing card connection.
 5. In **From other workspaces**, choose a company card feed to add to the Workspace.
-
----
-
-<!-- SCREENSHOT:
-Suggestion: Show From other workspaces
-Design request:https://github.com/Expensify/Expensify/issues/XXXX
--->
 
 ---
 

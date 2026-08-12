@@ -4,7 +4,7 @@ about: A template to follow when creating a new issue in this repository that wa
 labels: Monthly, Not a priority
 ---
 
-If you haven’t already, check out our [contributing guidelines](https://github.com/Expensify/ReactNativeChat/blob/main/contributingGuides/CONTRIBUTING.md) for onboarding and email contributors@expensify.com to request to join our Slack channel!
+If you haven’t already, check out our [contributing guidelines](https://github.com/Expensify/ReactNativeChat/blob/main/contributingGuides/CONTRIBUTING.md) for onboarding. To join our Slack channel, fill out [this form](https://forms.gle/Q7hnhUJPnQCK7Fe56). 
 ___
 **For all Exploratory issues, start the title of the issue with `[Exploratory]`** (and, do **not** add the `External` label.
 

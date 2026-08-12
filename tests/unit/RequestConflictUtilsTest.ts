@@ -1,4 +1,3 @@
-import Onyx from 'react-native-onyx';
 import {
     enablePolicyFeatureCommand,
     resolveCommentDeletionConflicts,
@@ -6,10 +5,16 @@ import {
     resolveDuplicationConflictAction,
     resolveEditCommentWithNewAddCommentRequest,
     resolveEnableFeatureConflicts,
+    resolveOpenAppDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
+    resolveReconnectDuplicationConflictAction,
 } from '@libs/actions/RequestConflictUtils';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {WriteCommand} from '@libs/API/types';
+
+import type {AnyRequest} from '@src/types/onyx/Request';
+
+import Onyx from 'react-native-onyx';
 
 describe('RequestConflictUtils', () => {
     it.each([['OpenApp'], ['ReconnectApp']])('resolveDuplicationConflictAction when %s do not exist in the queue should push %i', (command) => {
@@ -226,6 +231,64 @@ describe('RequestConflictUtils', () => {
 
             const result = resolveDetachReceiptConflicts(persistedRequests, {transactionID: '1'} as never);
             expect(result).toEqual({conflictAction: {type: 'delete', indices: [0, 2], pushNewRequest: true}});
+        });
+    });
+
+    const openApp = (): AnyRequest => ({command: WRITE_COMMANDS.OPEN_APP});
+    const fullReconnect = (): AnyRequest => ({command: WRITE_COMMANDS.RECONNECT_APP});
+    const drop = {conflictAction: {type: 'noAction'}};
+    const push = {conflictAction: {type: 'push'}};
+
+    describe('resolveReconnectDuplicationConflictAction', () => {
+        const incrementalReconnect = (updateIDFrom: number): AnyRequest => ({command: WRITE_COMMANDS.RECONNECT_APP, data: {updateIDFrom}});
+
+        // Redundant incoming reconnect is dropped (noAction); a wider one is pushed. A wider one also
+        // deletes a narrower request that is only queued (redundant now), but can't delete an in-flight one.
+        const replaceQueued = {conflictAction: {type: 'delete', indices: [0], pushNewRequest: true}};
+        it.each([
+            ['full', 'full', drop, drop, fullReconnect(), fullReconnect()],
+            ['full', 'incremental', drop, drop, fullReconnect(), incrementalReconnect(500)],
+            ['incremental(500)', 'incremental(600)', drop, drop, incrementalReconnect(500), incrementalReconnect(600)],
+            ['incremental(500)', 'incremental(500)', drop, drop, incrementalReconnect(500), incrementalReconnect(500)],
+            ['incremental(500)', 'full', push, replaceQueued, incrementalReconnect(500), fullReconnect()],
+            ['incremental(500)', 'incremental(400)', push, replaceQueued, incrementalReconnect(500), incrementalReconnect(400)],
+            ['OpenApp', 'incremental', drop, drop, openApp(), incrementalReconnect(500)],
+        ])('live %s vs incoming reconnect %s', (_live, _incoming, expectedOngoing, expectedQueued, live: AnyRequest, incoming: AnyRequest) => {
+            // Decided against the in-flight (ongoing) request, which can never be deleted.
+            expect(resolveReconnectDuplicationConflictAction([], live, incoming)).toEqual(expectedOngoing);
+            // And against a waiting-queue request, which a wider incoming one can replace.
+            expect(resolveReconnectDuplicationConflictAction([live], null, incoming)).toEqual(expectedQueued);
+        });
+
+        // OpenApp only ever appears on the live side here (it covers an incoming reconnect because it
+        // re-fetches everything). An incoming OpenApp does not use this resolver: it goes through
+        // resolveOpenAppDuplicationConflictAction, covered below and end-to-end by "OpenApp should replace
+        // same requests" in tests/actions/SessionTest.ts.
+        it('pushes when no reconnect-family request is live', () => {
+            expect(resolveReconnectDuplicationConflictAction([], null, fullReconnect())).toEqual({conflictAction: {type: 'push'}});
+        });
+
+        it('ignores unrelated commands in the queue when deciding coverage', () => {
+            const persistedRequests: AnyRequest[] = [{command: 'AddComment'}, {command: 'OpenReport', data: {reportID: '1'}}];
+            // No reconnect-family request is live, so an incoming reconnect is pushed.
+            expect(resolveReconnectDuplicationConflictAction(persistedRequests, null, fullReconnect())).toEqual({conflictAction: {type: 'push'}});
+            // A queued full reconnect alongside unrelated commands still covers an incoming incremental one.
+            expect(resolveReconnectDuplicationConflictAction([...persistedRequests, fullReconnect()], null, incrementalReconnect(500))).toEqual({conflictAction: {type: 'noAction'}});
+        });
+    });
+
+    describe('resolveOpenAppDuplicationConflictAction', () => {
+        const replaceQueued = (index: number) => ({conflictAction: {type: 'replace', index}});
+        it.each([
+            ['an OpenApp is in flight', [], openApp(), true, drop],
+            ['an OpenApp is in flight and the caller opted out', [], openApp(), false, push],
+            ['an OpenApp is both in flight and queued', [openApp()], openApp(), true, drop],
+            ['only a reconnect is in flight', [], fullReconnect(), true, push],
+            ['nothing is live', [], null, true, push],
+            ['an OpenApp is queued behind unrelated commands', [{command: 'AddComment'}, openApp()], null, true, replaceQueued(1)],
+            ['an OpenApp is queued and the caller opted out', [openApp()], null, false, replaceQueued(0)],
+        ])('%s', (_case, persistedRequests: AnyRequest[], ongoingRequest: AnyRequest | null, shouldDedupeWithInFlight: boolean, expected) => {
+            expect(resolveOpenAppDuplicationConflictAction(persistedRequests, ongoingRequest, shouldDedupeWithInFlight)).toEqual(expected);
         });
     });
 });

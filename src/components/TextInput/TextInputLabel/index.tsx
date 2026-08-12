@@ -1,13 +1,18 @@
-import React, {useEffect, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {Text} from 'react-native';
-import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import textRef from '@src/types/utils/textRef';
+
+// eslint-disable-next-line no-restricted-imports
+import type {Text} from 'react-native';
+
+import React, {useEffect, useRef} from 'react';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
+
 import type TextInputLabelProps from './types';
 
-function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale, isMultiline}: TextInputLabelProps) {
+function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale, isMultiline, shouldLabelStayOnSingleLine}: TextInputLabelProps) {
+    const shouldClipToSingleLine = !isMultiline || shouldLabelStayOnSingleLine;
     const styles = useThemeStyles();
     const labelRef = useRef<Text | HTMLFormElement>(null);
 
@@ -23,8 +28,8 @@ function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale, 
 
     return (
         <Animated.Text
-            numberOfLines={!isMultiline ? 1 : undefined}
-            ellipsizeMode={!isMultiline ? 'tail' : undefined}
+            numberOfLines={shouldClipToSingleLine ? 1 : undefined}
+            ellipsizeMode={shouldClipToSingleLine ? 'tail' : undefined}
             ref={textRef(labelRef)}
             role={CONST.ROLE.PRESENTATION}
             accessible={false}

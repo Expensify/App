@@ -1,7 +1,8 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
+
+import type {ValueOf} from 'type-fest';
 
 type TrackExpenseParams = {
     amount: number;
@@ -37,7 +38,9 @@ type TrackExpenseParams = {
     customUnitRateID?: string;
     description?: string;
     distance?: number;
+    modifiedDistance?: number;
     gpsCoordinates?: string;
+    distanceRequestType?: string;
     isDistance?: boolean;
     odometerStart?: number;
     odometerEnd?: number;

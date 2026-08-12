@@ -1,4 +1,3 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Beta, Policy, Report} from '@src/types/onyx';
@@ -6,8 +5,11 @@ import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import getIconForAction from './getIconForAction';
-import {getPerDiemCustomUnit, isControlPolicy, isTimeTrackingEnabled} from './PolicyUtils';
+import {getPerDiemCustomUnit, isControlPolicy, isPerDiemEnabled, isTimeTrackingEnabled} from './PolicyUtils';
 import {canCreateRequest} from './ReportUtils';
 
 const getQuickActionIcon = (
@@ -98,10 +100,6 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
             return '' as TranslationPaths;
     }
 };
-const isManagerMcTestQuickActionReport = (report: Report | undefined) => {
-    return !!report?.participants?.[CONST.ACCOUNT_ID.MANAGER_MCTEST];
-};
-
 const isQuickActionAllowed = (
     quickAction: QuickAction,
     quickActionReport: Report | undefined,
@@ -111,7 +109,7 @@ const isQuickActionAllowed = (
     isRestrictedToPreferredPolicy = false,
 ) => {
     if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM || quickAction?.action === CONST.QUICK_ACTIONS.TRACK_PER_DIEM) {
-        if (!isControlPolicy(quickActionPolicy) || !quickActionPolicy?.arePerDiemRatesEnabled) {
+        if (!isControlPolicy(quickActionPolicy) || !isPerDiemEnabled(quickActionPolicy)) {
             return false;
         }
         const perDiemCustomUnit = getPerDiemCustomUnit(quickActionPolicy);
@@ -127,11 +125,6 @@ const isQuickActionAllowed = (
 
     const iouType = getIOUType(quickAction?.action);
     if (iouType) {
-        // We're disabling QAB for Manager McTest reports to prevent confusion when submitting real data for Manager McTest
-        const isReportHasManagerMCTest = isManagerMcTestQuickActionReport(quickActionReport);
-        if (isReportHasManagerMCTest) {
-            return false;
-        }
         return canCreateRequest(quickActionReport, quickActionPolicy, iouType, isReportArchived, betas, isRestrictedToPreferredPolicy);
     }
     return true;

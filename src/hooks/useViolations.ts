@@ -1,12 +1,16 @@
-import {useCallback, useMemo} from 'react';
-import type {TupleToUnion} from 'type-fest';
+import {isHardViolationOrRateDateWarning} from '@libs/Violations/ViolationsUtils';
+
 import CONST from '@src/CONST';
 import type {TransactionViolation, ViolationName} from '@src/types/onyx';
+
+import type {TupleToUnion} from 'type-fest';
+
+import {useCallback, useMemo} from 'react';
 
 /**
  * Names of Fields where violations can occur.
  */
-const validationFields = ['amount', 'billable', 'category', 'comment', 'date', 'merchant', 'receipt', 'tag', 'tax', 'attendees', 'customUnitRateID', 'waypoints', 'none'] as const;
+const validationFields = ['amount', 'billable', 'category', 'comment', 'date', 'merchant', 'receipt', 'tag', 'tax', 'attendees', 'customUnitRateID', 'vendor', 'waypoints', 'none'] as const;
 
 type ViolationField = TupleToUnion<typeof validationFields>;
 
@@ -21,9 +25,11 @@ const violationNameToField: Record<ViolationName, (violation: TransactionViolati
     categoryOutOfPolicy: () => 'category',
     conversionSurcharge: () => 'amount',
     customUnitOutOfPolicy: () => 'customUnitRateID',
+    customUnitRateOutOfDateRange: () => 'customUnitRateID',
     duplicatedTransaction: () => 'merchant',
     fieldRequired: () => 'merchant',
     futureDate: () => 'date',
+    inactiveVendor: () => 'vendor',
     invoiceMarkup: () => 'amount',
     maxAge: () => 'date',
     missingCategory: () => 'category',
@@ -76,7 +82,7 @@ function useViolations(violations: TransactionViolation[], shouldShowOnlyViolati
     const violationsByField = useMemo((): ViolationsMap => {
         const filteredViolations = violations.filter((violation) => {
             if (shouldShowOnlyViolations) {
-                return violation.type === CONST.VIOLATION_TYPES.VIOLATION;
+                return isHardViolationOrRateDateWarning(violation);
             }
             return true;
         });

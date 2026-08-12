@@ -1,6 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
+
 import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialSelection from '@hooks/useInitialSelection';
@@ -15,18 +13,22 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getPlaidCountry, isPlaidSupportedCountry} from '@libs/CardUtils';
 import searchOptions from '@libs/searchOptions';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
+
 import Navigation from '@navigation/Navigation';
-import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
-import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+
 import {clearAddNewCardFlow, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type CountryStepProps = {
     policyID?: string;
@@ -34,7 +36,6 @@ type CountryStepProps = {
 
 function SelectCountryStep({policyID}: CountryStepProps) {
     const {translate} = useLocalize();
-    const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW>>();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const {currencyList} = useCurrencyListState();
@@ -55,7 +56,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
         if (!currentCountry) {
             setHasError(true);
         } else {
-            if (addNewCard?.data.selectedCountry !== currentCountry) {
+            if (addNewCard?.data?.selectedCountry !== currentCountry) {
                 clearAddNewCardFlow();
             }
             setAddNewCompanyCardStepAndData({
@@ -70,10 +71,6 @@ function SelectCountryStep({policyID}: CountryStepProps) {
     };
 
     const handleBackButtonPress = () => {
-        if (route?.params?.backTo) {
-            Navigation.navigate(route.params.backTo);
-            return;
-        }
         Navigation.goBack();
     };
 

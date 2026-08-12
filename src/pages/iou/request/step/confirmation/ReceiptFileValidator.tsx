@@ -1,17 +1,21 @@
-import {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect} from 'react';
 
 type ReceiptFileValidatorProps = {
     transactions: Transaction[];
@@ -24,6 +28,12 @@ type ReceiptFileValidatorProps = {
     report: OnyxEntry<Report>;
     participants: Participant[];
     draftTransactionIDs: string[] | undefined;
+    /**
+     * False if an upstream writer is still finalizing transaction receipts. The validator skips
+     * validation entirely while this is false. Pass `true` when nothing else is contending with
+     * the validator.
+     */
+    isReceiptReady: boolean;
     onReceiptFilesChange: (files: Record<string, Receipt>) => void;
 };
 
@@ -43,6 +53,7 @@ function ReceiptFileValidator({
     report,
     participants,
     draftTransactionIDs,
+    isReceiptReady,
     onReceiptFilesChange,
 }: ReceiptFileValidatorProps) {
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
@@ -50,6 +61,12 @@ function ReceiptFileValidator({
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
+        // Skip validation while an upstream writer is finalizing receipts. When
+        // isReceiptReady flips true, this effect re-runs and validates from scratch.
+        if (!isReceiptReady) {
+            return;
+        }
+
         let ignore = false;
         let newReceiptFiles: Record<string, Receipt> = {};
         let isScanFilesCanBeRead = true;
@@ -71,6 +88,9 @@ function ReceiptFileValidator({
 
                 const onSuccess = (file: File) => {
                     const receipt: Receipt = file;
+                    // Rebuilding the receipt from disk makes a fresh File without the trace id from capture, so copy it
+                    // back from the saved draft. This keeps the capture, submit, and enqueue logs tied to one receipt.
+                    receipt.receiptTraceId = item.receipt?.receiptTraceId;
                     if (item?.receipt?.isTestReceipt) {
                         receipt.isTestReceipt = true;
                         receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
@@ -96,11 +116,12 @@ function ReceiptFileValidator({
                 return validateReceiptFile(itemReceiptFilename, itemReceiptPath, itemReceiptType, onSuccess, onFailure) ?? Promise.resolve();
             }),
         ).then(() => {
-            if (resetInitialTransactionReceipt) {
-                setMoneyRequestReceipt(initialTransactionID, '', '', true, '');
-            }
+            // Bail if the effect already re-ran on a newer transactions emission — the fresh closure validates from scratch.
             if (ignore) {
                 return;
+            }
+            if (resetInitialTransactionReceipt) {
+                setMoneyRequestReceipt(initialTransactionID, '', '', true, '');
             }
             if (isScanFilesCanBeRead) {
                 onReceiptFilesChange(newReceiptFiles);
@@ -120,7 +141,7 @@ function ReceiptFileValidator({
             ignore = true;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- draftTransactionIDs is intentionally excluded to avoid re-running on draft changes
-    }, [requestType, iouType, initialTransactionID, reportID, action, backToReport, report, transactions, participants, onReceiptFilesChange]);
+    }, [requestType, iouType, initialTransactionID, reportID, action, backToReport, report, transactions, participants, isReceiptReady, onReceiptFilesChange]);
 
     return null;
 }

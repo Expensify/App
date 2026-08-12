@@ -16,7 +16,8 @@ end
 node_require('react-native/scripts/react_native_pods.rb')
 node_require('react-native-permissions/scripts/setup.rb')
 
-platform :ios, min_ios_version_supported
+MIN_IOS_VERSION = '16.4'
+platform :ios, MIN_IOS_VERSION
 prepare_react_native_project!
 
 
@@ -63,6 +64,10 @@ project 'NewExpensify',
   'Debug' => :debug
 
 target 'NewExpensify' do
+  # Certificate pinning (Iteration 1 - NewDot). TrustKit swizzles NSURLSession delegates so the
+  # pinning policy in CertificatePinning.swift applies to all URLSession traffic (fetch(),
+  # react-native-blob-util, etc.) without per-call code changes.
+  pod 'TrustKit', '~> 3.0'
   use_expo_modules!
   post_integrate do |installer|
     begin
@@ -106,6 +111,8 @@ target 'NewExpensify' do
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
         config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
+        config.build_settings['HEADER_SEARCH_PATHS'] ||= '$(inherited) '
+        config.build_settings['HEADER_SEARCH_PATHS'] << '"${PODS_ROOT}/../../node_modules/react-native/ReactCommon/jsitooling" '
       end
 
       if target.respond_to?(:product_type) and target.product_type == "com.apple.product-type.bundle"
@@ -123,4 +130,4 @@ target 'NotificationServiceExtension' do
   pod 'AppLogs', :path => '../node_modules/react-native-app-logs/AppLogsPod'
 end
 
-pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.68.3-xcframework.tar.gz'
+pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.70.1-xcframework.tar.gz'

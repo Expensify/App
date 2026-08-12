@@ -1,9 +1,13 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import Log from '@libs/Log';
+
 import React, {useEffect} from 'react';
 import {AppState, Keyboard} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
-import Log from '@libs/Log';
-import BaseTextInput from './BaseTextInput';
+
 import type {BaseTextInputProps} from './BaseTextInput/types';
+
+import BaseTextInput from './BaseTextInput';
 
 function TextInput({ref, navigation, ...props}: BaseTextInputProps) {
     const styles = useThemeStyles();

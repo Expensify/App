@@ -1,8 +1,10 @@
-import {subDays} from 'date-fns';
-import Onyx from 'react-native-onyx';
 import {hasBeenInNewDot30Days, isOldAppRedirectBlocked, shouldBlockOldAppExit, shouldHideOldAppRedirect, shouldUseOldApp} from '@src/libs/TryNewDotUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TryNewDot} from '@src/types/onyx';
+
+import {subDays} from 'date-fns';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 Onyx.init({keys: ONYXKEYS});
@@ -11,7 +13,6 @@ function getTryNewDot(): Promise<TryNewDot | null> {
     return new Promise((resolve) => {
         const connectionID = Onyx.connect({
             key: ONYXKEYS.NVP_TRY_NEW_DOT,
-            initWithStoredValues: true,
             callback: (value) => {
                 Onyx.disconnect(connectionID);
                 resolve(value ?? null);

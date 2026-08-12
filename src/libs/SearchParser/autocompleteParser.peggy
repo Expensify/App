@@ -90,11 +90,14 @@ autocompleteKey "key"
       / createdBy
       / assignee
       / expenseType
+      / receiptType
       / withdrawalType
       / withdrawalStatus
+      / paidStatus
       / type
       / status
       / cardID
+      / bankAccount
       / feed
       / groupBy
       / view
@@ -120,6 +123,9 @@ autocompleteKey "key"
       / reportID
       / withdrawalID
       / title
+      / submitterUserID
+      / submitterPayrollID
+      / orderDealNumbers
       / reportFieldDynamic
       / columns
       / limit

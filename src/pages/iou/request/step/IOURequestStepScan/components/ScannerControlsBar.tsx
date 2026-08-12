@@ -1,17 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
-import {RESULTS} from 'react-native-permissions';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import React from 'react';
+import {View} from 'react-native';
+import {RESULTS} from 'react-native-permissions';
 
 type ScannerControlsBarProps = {
     /** Whether the device is currently in landscape orientation */
@@ -41,11 +45,11 @@ type ScannerControlsBarProps = {
     /** Sets whether the attachment picker modal is open */
     setIsAttachmentPickerActive: (value: boolean) => void;
 
-    /** Sets visibility of the full-screen loading indicator */
-    setIsLoaderVisible: (value: boolean) => void;
+    /** Notifies the consumer when the attachment picker opens or closes */
+    onAttachmentPickerStatusChange?: (isOpen: boolean) => void;
 
-    /** Validates picked files and begins the receipt upload flow */
-    validateFiles: (files: FileObject[], items?: DataTransferItem[]) => void;
+    /** Called when files are selected from the gallery picker */
+    onPicked: (files: FileObject[], items?: DataTransferItem[]) => void;
 
     /** Triggers photo capture from the camera */
     capturePhoto: () => void;
@@ -64,8 +68,8 @@ function ScannerControlsBar({
     hasFlash,
     setFlash,
     setIsAttachmentPickerActive,
-    setIsLoaderVisible,
-    validateFiles,
+    onAttachmentPickerStatusChange,
+    onPicked,
     capturePhoto,
     toggleMultiScan,
 }: ScannerControlsBarProps) {
@@ -80,7 +84,7 @@ function ScannerControlsBar({
             <AttachmentPicker
                 onOpenPicker={() => {
                     setIsAttachmentPickerActive(true);
-                    setIsLoaderVisible(true);
+                    onAttachmentPickerStatusChange?.(true);
                 }}
                 fileLimit={shouldAcceptMultipleFiles ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
                 shouldValidateImage={false}
@@ -91,17 +95,16 @@ function ScannerControlsBar({
                         accessibilityLabel={translate('receipt.gallery')}
                         sentryLabel={shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE}
                         style={[styles.alignItemsStart, isMultiScanEnabled && styles.opacity0]}
-                        onPress={() => {
+                        onPress={() =>
                             openPicker({
-                                onPicked: (data) => validateFiles(data),
-                                onCanceled: () => setIsLoaderVisible(false),
-                                // makes sure the loader is not visible anymore e.g. when there is an error while uploading a file
+                                onPicked,
+                                onCanceled: () => onAttachmentPickerStatusChange?.(false),
                                 onClosed: () => {
                                     setIsAttachmentPickerActive(false);
-                                    setIsLoaderVisible(false);
+                                    onAttachmentPickerStatusChange?.(false);
                                 },
-                            });
-                        }}
+                            })
+                        }
                     >
                         <Icon
                             height={variables.iconSizeMenuItem}

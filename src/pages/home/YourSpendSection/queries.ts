@@ -1,4 +1,5 @@
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 
@@ -11,19 +12,21 @@ function get30DaysAgoDateString(): string {
     return `${year}-${month}-${day}`;
 }
 
-function buildAwaitingApprovalQuery(accountID: number): string {
+function buildAwaitingApprovalQuery(accountID: number, policyIDs: string[]): string {
     return buildQueryStringFromFilterFormValues({
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-        status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+        status: [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
         from: [String(accountID)],
         reimbursable: CONST.SEARCH.BOOLEAN.YES,
+        // Limit to the user's workspaces so IOU and personal expenses aren't counted.
+        ...(policyIDs.length > 0 ? {[FILTER_KEYS.POLICY_ID]: policyIDs} : {}),
     });
 }
 
 function buildRepaidLast30DaysQuery(accountID: number): string {
     return buildQueryStringFromFilterFormValues({
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-        status: CONST.SEARCH.STATUS.EXPENSE.PAID,
+        status: [CONST.SEARCH.STATUS.EXPENSE.PAID],
         from: [String(accountID)],
         reimbursable: CONST.SEARCH.BOOLEAN.YES,
         [FILTER_KEYS.DATE_AFTER]: get30DaysAgoDateString(),

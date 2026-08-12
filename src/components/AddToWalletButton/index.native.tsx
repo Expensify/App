@@ -1,18 +1,23 @@
-import {AddToWalletButton as RNAddToWalletButton} from '@expensify/react-native-wallet';
-import type {TokenizationStatus} from '@expensify/react-native-wallet';
-import React, {useCallback, useEffect, useState} from 'react';
-import {Alert, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Text from '@components/Text';
+
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '@libs/Wallet/index';
+
 import CONST from '@src/CONST';
+
+import type {TokenizationStatus} from '@expensify/react-native-wallet';
+
+import {AddToWalletButton as RNAddToWalletButton} from '@expensify/react-native-wallet';
+import React, {useCallback, useEffect, useState} from 'react';
+import {Alert, View} from 'react-native';
+
 import type AddToWalletButtonProps from './types';
 
 function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddToWalletButtonProps) {
@@ -92,13 +97,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
     }
 
     if (isLoading) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddToWalletButton', isLoading};
-        return (
-            <ActivityIndicator
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={reasonAttributes}
-            />
-        );
+        return <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />;
     }
 
     if (isInWallet) {

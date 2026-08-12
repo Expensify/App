@@ -1,5 +1,6 @@
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
+
 import useOnyx from './useOnyx';
 
 /**

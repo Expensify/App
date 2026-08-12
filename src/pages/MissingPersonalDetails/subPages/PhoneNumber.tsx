@@ -1,15 +1,20 @@
-import React, {useCallback} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
+
 import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
 import {isRequiredFulfilled, isValidPhoneNumber} from '@libs/ValidationUtils';
+
 import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
+
+import React, {useCallback} from 'react';
 
 const STEP_FIELDS = [INPUT_IDS.PHONE_NUMBER];
 

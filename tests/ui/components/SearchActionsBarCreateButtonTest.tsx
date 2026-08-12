@@ -1,19 +1,26 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import {getUnixTime, subDays} from 'date-fns';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import SearchActionsBarCreateButton from '@components/Search/SearchPageHeader/SearchActionsBarCreateButton';
+
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import {getUnixTime, subDays} from 'date-fns';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -106,6 +113,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpensesID: undefined,
             policyForMovingExpenses: undefined,
             shouldSelectPolicy: false,
+            shouldNavigateToUpgradePath: true,
         });
 
         await act(async () => {
@@ -166,6 +174,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpensesID: 'some-policy',
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
+            shouldNavigateToUpgradePath: false,
         });
 
         // Set up multiple policies with chat enabled
@@ -194,7 +203,7 @@ describe('SearchActionsBarCreateButton', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then it navigates to workspace selection
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+        expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path));
     });
 
     it('should create report directly when a single default workspace exists', async () => {
@@ -203,6 +212,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpensesID: MOCK_POLICY_ID,
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
+            shouldNavigateToUpgradePath: false,
         });
 
         await act(async () => {
@@ -269,6 +279,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpensesID: MOCK_POLICY_ID,
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
+            shouldNavigateToUpgradePath: false,
         });
 
         await act(async () => {
@@ -298,6 +309,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpensesID: MOCK_POLICY_ID,
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
+            shouldNavigateToUpgradePath: false,
         });
 
         await act(async () => {
@@ -330,7 +342,7 @@ describe('SearchActionsBarCreateButton', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then it navigates to workspace selection since there are multiple workspaces and the default is restricted
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+        expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path));
     });
 
     it('should open confirmation modal when an empty report exists and confirmation is not dismissed', async () => {
@@ -338,6 +350,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpensesID: MOCK_POLICY_ID,
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
+            shouldNavigateToUpgradePath: false,
         });
 
         await act(async () => {
@@ -376,6 +389,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpensesID: MOCK_POLICY_ID,
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
+            shouldNavigateToUpgradePath: false,
         });
 
         await act(async () => {
@@ -417,6 +431,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpensesID: MOCK_POLICY_ID,
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
+            shouldNavigateToUpgradePath: false,
         });
 
         await act(async () => {

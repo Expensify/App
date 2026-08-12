@@ -1,7 +1,9 @@
-import {useEffect} from 'react';
-import {useSearchActionsContext} from '@components/Search/SearchContext';
+import {useSearchResultsActions} from '@components/Search/SearchContext';
+
 import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+
+import {useEffect} from 'react';
 
 /**
  * Persists sorted report IDs to Search context so that MoneyRequestReportNavigation
@@ -10,7 +12,7 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
  * to force the fallback computation in the navigation header.
  */
 function useSaveSortedReportIDs(type: SearchDataTypes, items: Array<{reportID?: string | undefined}>) {
-    const {setSortedReportIDs} = useSearchActionsContext();
+    const {setSortedReportIDs} = useSearchResultsActions();
 
     useEffect(() => {
         // Only expense-report searches produce report-level IDs suitable for navigation arrows.

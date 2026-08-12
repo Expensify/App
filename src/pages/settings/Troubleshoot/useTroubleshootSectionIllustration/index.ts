@@ -1,5 +1,6 @@
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type UseTroubleshootSectionIllustration from './types';
 
 const useTroubleshootSectionIllustration: UseTroubleshootSectionIllustration = () => {

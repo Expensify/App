@@ -1,14 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
 import type {Attachment} from '@components/Attachments/types';
 import Button from '@components/Button';
 import Tooltip from '@components/Tooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type CarouselButtonsProps = {
     /** Where the arrows should be visible */

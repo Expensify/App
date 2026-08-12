@@ -1,11 +1,16 @@
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+
+import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {AvatarSource} from '@libs/UserAvatarUtils';
-import CONST from '@src/CONST';
+
 import Avatar from './Avatar';
 import Text from './Text';
 import UserDetailsTooltip from './UserDetailsTooltip';
@@ -34,7 +39,7 @@ function UserPill({avatar, displayName, accountID, email, style}: UserPillProps)
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.userPill, shouldUseNarrowLayout && styles.mw100, style]}>
                 <Avatar
                     source={avatar}
-                    size={CONST.AVATAR_SIZE.MENTION_ICON}
+                    size={CONST.AVATAR_SIZE.XXX_SMALL}
                     type={CONST.ICON_TYPE_AVATAR}
                     avatarID={accountID}
                     name={displayName}

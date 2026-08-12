@@ -1,16 +1,14 @@
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {SendInvoiceParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
-import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -24,9 +22,10 @@ import {
 import playSound, {SOUNDS} from '@libs/Sound';
 import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report';
-import {removeDraftTransaction} from '@userActions/TransactionEdit';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -35,11 +34,17 @@ import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report'
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type BasePolicyParams from './types/BasePolicyParams';
+
 import {getAllPersonalDetails} from '.';
 import {getReceiptError, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
-import {handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import {getSearchOnyxUpdate} from './SearchUpdate';
-import type BasePolicyParams from './types/BasePolicyParams';
 
 type SendInvoiceInformation = {
     senderWorkspaceID: string | undefined;
@@ -56,6 +61,7 @@ type SendInvoiceInformation = {
     onyxData: OnyxData<
         | typeof ONYXKEYS.COLLECTION.REPORT
         | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+        | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
         | typeof ONYXKEYS.COLLECTION.TRANSACTION
         | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
         | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES
@@ -64,6 +70,7 @@ type SendInvoiceInformation = {
         | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
         | typeof ONYXKEYS.COLLECTION.POLICY
         | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+        | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
     >;
 };
 
@@ -83,7 +90,9 @@ type SendInvoiceOptions = {
     policyRecentlyUsedTags?: OnyxEntry<OnyxTypes.RecentlyUsedTags>;
     isFromGlobalCreate?: boolean;
     senderPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    shouldHandleNavigation?: boolean;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -121,6 +130,7 @@ function buildOnyxDataForInvoice(
 ): OnyxData<
     | typeof ONYXKEYS.COLLECTION.REPORT
     | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+    | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
     | typeof ONYXKEYS.COLLECTION.TRANSACTION
     | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
     | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES
@@ -129,6 +139,7 @@ function buildOnyxDataForInvoice(
     | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
     | typeof ONYXKEYS.COLLECTION.POLICY
     | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+    | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
 > {
     const {chat, iou, transactionParams, policyParams, optimisticData: optimisticDataParams, companyName, companyWebsite, participant} = invoiceParams;
     const transaction = transactionParams.transaction;
@@ -138,6 +149,7 @@ function buildOnyxDataForInvoice(
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.REPORT
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES
@@ -165,6 +177,14 @@ function buildOnyxDataForInvoice(
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report?.reportID}`,
             value: {
                 isOptimisticReport: true,
+            },
+        },
+        {
+            // The optimistic data below is the complete local truth for this offline-created invoice report, so its initial actions are already "loaded".
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${iou.report?.reportID}`,
+            value: {
+                hasOnceLoadedReportActions: true,
             },
         },
         {
@@ -246,13 +266,25 @@ function buildOnyxDataForInvoice(
         });
 
         if (chat.isNewReport) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
-                value: {
-                    isOptimisticReport: true,
+            optimisticData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
+                    value: {
+                        isOptimisticReport: true,
+                    },
                 },
-            });
+                {
+                    // The invoice room is an optimistic CHAT, so ReportFetchHandler never fires openReport for it and
+                    // nothing else would ever clear its initial-load state. Stamp it as loaded so it doesn't hang on an
+                    // infinite skeleton once online.
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chat.report?.reportID}`,
+                    value: {
+                        hasOnceLoadedReportActions: true,
+                    },
+                },
+            );
         }
     }
 
@@ -415,7 +447,13 @@ function buildOnyxDataForInvoice(
     const errorKey = DateUtils.getMicroseconds();
 
     const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.POLICY>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -474,6 +512,18 @@ function buildOnyxDataForInvoice(
             },
         },
     ];
+
+    // Only failed new invoice rooms need this seed; successful rooms rely on OpenReport to own the loading lifecycle.
+    if (chat.isNewReport) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chat.report?.reportID}`,
+            value: {
+                hasOnceLoadedReportActions: true,
+                isLoadingInitialReportActions: false,
+            },
+        });
+    }
 
     if (transactionParams.threadCreatedReportAction?.reportActionID) {
         failureData.push({
@@ -587,6 +637,9 @@ function getSendInvoiceInformation({
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     senderPolicyTags,
+    formatPhoneNumber,
+    delegateAccountID,
+    getCurrencyDecimals,
 }: SendInvoiceOptions): SendInvoiceInformation {
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
@@ -620,6 +673,7 @@ function getSendInvoiceInformation({
         receiver.displayName ?? (receiverParticipant as Participant)?.login ?? '',
         amount,
         currency,
+        getCurrencyDecimals,
     );
 
     // STEP 3: Build optimistic receipt and transaction
@@ -665,11 +719,21 @@ function getSendInvoiceInformation({
     }
 
     // STEP 5: Build optimistic reportActions.
-    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction);
+    const reportPreviewAction = buildOptimisticReportPreview(
+        chatReport,
+        optimisticInvoiceReport,
+        getCurrencyDecimals,
+        trimmedComment,
+        optimisticTransaction,
+        undefined,
+        undefined,
+        delegateAccountID,
+    );
     optimisticInvoiceReport.parentReportActionID = reportPreviewAction.reportActionID;
     chatReport.lastVisibleActionCreated = reportPreviewAction.created;
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
         buildOptimisticMoneyRequestEntities({
+            getCurrencyDecimals,
             iouReport: optimisticInvoiceReport,
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             amount,
@@ -679,6 +743,7 @@ function getSendInvoiceInformation({
             participants: [receiver],
             transactionID: optimisticTransaction.transactionID,
             currentUserAccountID,
+            delegateAccountIDParam: delegateAccountID,
         });
 
     // STEP 6: Build Onyx Data
@@ -734,7 +799,9 @@ function sendInvoice({
     policyRecentlyUsedTags,
     isFromGlobalCreate = false,
     senderPolicyTags,
-    shouldHandleNavigation = true,
+    formatPhoneNumber,
+    delegateAccountID,
+    getCurrencyDecimals,
 }: SendInvoiceOptions) {
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
@@ -769,6 +836,9 @@ function sendInvoice({
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
         senderPolicyTags: senderPolicyTags ?? {},
+        formatPhoneNumber,
+        delegateAccountID,
+        getCurrencyDecimals,
     });
 
     const parameters: SendInvoiceParams = {
@@ -802,23 +872,12 @@ function sendInvoice({
     };
 
     deferOrExecuteWrite(apiWrite, {
-        shouldDeferForSearch: shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator(),
+        shouldDeferForSearch: false,
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
 
-    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-
     highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transactionID, CONST.SEARCH.DATA_TYPES.INVOICE);
-
-    if (shouldHandleNavigation) {
-        handleNavigateAfterExpenseCreate({
-            activeReportID: invoiceRoom.reportID,
-            transactionID,
-            isFromGlobalCreate,
-            isInvoice: true,
-        });
-    }
 
     notifyNewAction(invoiceRoom.reportID, undefined, true);
 }

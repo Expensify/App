@@ -1,36 +1,50 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
 import DecisionModal from '@components/DecisionModal';
 import WorkspaceCompanyCardsTable from '@components/Tables/WorkspaceCompanyCardsTable';
+import type {WorkspaceCompanyCardsTableHandle} from '@components/Tables/WorkspaceCompanyCardsTable';
+
 import useAssignCard from '@hooks/useAssignCard';
 import useCompanyCards from '@hooks/useCompanyCards';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import {canMemberWrite, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+
 import {openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
 function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const policyID = route.params.policyID;
     const {translate} = useLocalize();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const memoizedIllustrations = useMemoizedLazyIllustrations(['CompanyCard']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const companyCardsTableRef = useRef<WorkspaceCompanyCardsTableHandle>(null);
 
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.companyCards');
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const companyCards = useCompanyCards({policyID});
     const {
@@ -87,27 +101,46 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, setShouldShowOfflineModal});
+    const canWriteCompanyCards = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
+    const isSelectionModeEnabled = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+
+    const handleBackButtonPress = () => {
+        if (isMobileSelectionModeEnabled) {
+            companyCardsTableRef.current?.clearSelection();
+            turnOffMobileSelectionMode();
+            return;
+        }
+
+        Navigation.goBack();
+    };
 
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
         >
             <WorkspacePageWithSections
-                icon={memoizedIllustrations.CompanyCard}
-                headerText={translate('workspace.common.companyCards')}
+                icon={isSelectionModeEnabled ? undefined : memoizedIllustrations.CompanyCard}
+                headerText={translate(isSelectionModeEnabled ? 'common.selectMultiple' : 'workspace.common.companyCards')}
                 route={route}
+                policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+                onBackButtonPress={handleBackButtonPress}
+                shouldUseHeadlineHeader={!isSelectionModeEnabled}
                 shouldShowOfflineIndicatorInWideScreen
                 showLoadingAsFirstRender={false}
                 addBottomSafeAreaPadding
             >
                 <WorkspaceCompanyCardsTable
+                    ref={companyCardsTableRef}
                     policyID={policyID}
                     isPolicyLoaded={!!policy}
                     domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
                     companyCards={companyCards}
                     onAssignCard={assignCard}
-                    isAssigningCardDisabled={isAssigningCardDisabled}
+                    isAssigningCardDisabled={isAssigningCardDisabled || !canWriteCompanyCards}
+                    canWriteCompanyCards={canWriteCompanyCards}
+                    isSelectionModeEnabled={isSelectionModeEnabled}
                     onReloadPage={loadPolicyCompanyCardsPage}
                     onReloadFeed={loadPolicyCompanyCardsFeed}
                 />

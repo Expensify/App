@@ -1,14 +1,13 @@
-import React from 'react';
-import {View} from 'react-native';
 import type {IllustrationName} from '@components/Icon/chunks/illustrations.chunk';
-import ImageSVG from '@components/ImageSVG';
-import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
+
+import HomeSectionEmptyState from '@pages/home/HomeSectionEmptyState';
+
 import type {TranslationPaths} from '@src/languages/types';
 
-const ILLUSTRATION_SIZE = 68;
+import React from 'react';
 
 const MSG = 'homePage.forYouSection.emptyStateMessages' as const;
 
@@ -39,6 +38,7 @@ type EmptyStateConfig = {
 const lcFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
 const EMPTY_STATE_CONFIGS: EmptyStateConfig[] = ILLUSTRATIONS.map((name) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- lowercasing the first char keeps the literal value, so it matches Uncapitalize<typeof name> which TS can't infer from runtime string ops
     const uncapitalizedName = lcFirst(name) as Uncapitalize<typeof name>;
     const titleKey: TranslationPaths = `${MSG}.${uncapitalizedName}Title`;
     const descriptionKey: TranslationPaths = `${MSG}.${uncapitalizedName}Description`;
@@ -57,22 +57,15 @@ const RANDOM_INDEX = Math.floor(Math.random() * EMPTY_STATE_CONFIGS.length);
 const CONFIG = EMPTY_STATE_CONFIGS.at(RANDOM_INDEX) ?? EMPTY_STATE_CONFIGS[0];
 
 function EmptyState() {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(ILLUSTRATION_NAMES);
 
     return (
-        <View style={styles.forYouEmptyStateContainer}>
-            <ImageSVG
-                src={illustrations[CONFIG.illustrationName]}
-                width={ILLUSTRATION_SIZE}
-                height={ILLUSTRATION_SIZE}
-            />
-            <View style={styles.forYouEmptyStateTextContainer}>
-                <Text style={styles.forYouEmptyStateTitle}>{translate(CONFIG.titleKey)}</Text>
-                <Text style={styles.forYouEmptyStateDescription}>{translate(CONFIG.descriptionKey)}</Text>
-            </View>
-        </View>
+        <HomeSectionEmptyState
+            illustration={illustrations[CONFIG.illustrationName]}
+            title={translate(CONFIG.titleKey)}
+            description={translate(CONFIG.descriptionKey)}
+        />
     );
 }
 

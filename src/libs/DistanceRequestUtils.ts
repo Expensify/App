@@ -1,16 +1,26 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
+import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
+import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {replaceAllDigits} from './MoneyRequestUtils';
+
+import type {Locale as DateFnsLocale} from 'date-fns';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {format, parseISO} from 'date-fns';
+
+import DateUtils from './DateUtils';
+import {getDistanceUnitLabel, getFormattedDistanceInUnits} from './DistanceDisplayUtils';
+import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
+import replaceAllDigits from './replaceAllDigits';
 import {getCurrency, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
+import {getUnitTranslationKey} from './WorkspacesSettingsUtils';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -20,19 +30,15 @@ type MileageRate = {
     name?: string;
     enabled?: boolean;
     index?: number;
+    startDate?: string | null;
+    endDate?: string | null;
 };
 
-/** @private Only for getRate function */
-let allPolicies: OnyxCollection<Policy>;
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
+type CommuterExclusionData = Required<Pick<TransactionCustomUnit, 'commuterExclusion' | 'reimbursableDistance' | 'distanceUnit'>>;
 
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
 const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
+const DEFAULT_P2P_RATE_CENTS_PER_MILE = 67;
 
 function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates = false, selectedRateID?: string): Record<string, MileageRate> {
     const mileageRates: Record<string, MileageRate> = {};
@@ -63,6 +69,8 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
             customUnitRateID: rate.customUnitRateID,
             enabled: rate.enabled,
             index: rate.index,
+            startDate: rate.startDate,
+            endDate: rate.endDate,
         };
     }
 
@@ -205,35 +213,30 @@ function getRateForExpenseDisplay(
  * @param rate Expensable amount allowed per unit
  * @param translate Translate function
  * @param useShortFormUnit If true, the unit will be returned in short form (e.g., "mi", "km").
+ * @param isZeroDistanceAllowed If true, a zero distance is formatted instead of returning an empty string.
+ * @param commuterExclusionData When provided, the reimbursable distance (after the commuter exclusion) is displayed instead of the full route distance.
  * @returns A string that describes the distance traveled
  */
 function getDistanceForDisplay(
     hasRoute: boolean,
     distanceInMeters: number,
     unit: Unit | undefined,
-    rate: number | undefined,
     translate: LocaleContextProps['translate'],
     useShortFormUnit?: boolean,
     isZeroDistanceAllowed?: boolean,
+    commuterExclusionData?: CommuterExclusionData | null,
 ): string {
-    if (!hasRoute || !unit) {
+    const displayUnit = unit ?? commuterExclusionData?.distanceUnit;
+    if (!hasRoute || !displayUnit) {
         return translate('iou.fieldPending');
     }
 
-    if (!distanceInMeters && !isZeroDistanceAllowed) {
+    const distanceToDisplayInMeters = commuterExclusionData ? convertToDistanceInMeters(commuterExclusionData.reimbursableDistance, displayUnit) : distanceInMeters;
+    if (!distanceToDisplayInMeters && !isZeroDistanceAllowed && !commuterExclusionData) {
         return '';
     }
 
-    const distanceInUnits = getRoundedDistanceInUnits(distanceInMeters, unit);
-    if (useShortFormUnit) {
-        return `${distanceInUnits} ${unit}`;
-    }
-
-    const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
-    const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
-    const unitString = distanceInUnits === '1' ? singularDistanceUnit : distanceUnit;
-
-    return `${distanceInUnits} ${unitString}`;
+    return getFormattedDistanceInUnits(convertDistanceUnit(distanceToDisplayInMeters, displayUnit), displayUnit, translate, useShortFormUnit);
 }
 
 function getDistanceForDisplayLabel(distanceInMeters: number, unit: Unit): string {
@@ -249,6 +252,7 @@ function getDistanceForDisplayLabel(distanceInMeters: number, unit: Unit): strin
  * @param currency The currency associated with the rate
  * @param translate Translate function
  * @param toLocaleDigit Function to convert to localized digit
+ * @param commuterExclusionData When provided, the reimbursable distance (after the commuter exclusion) is shown instead of the full route distance.
  * @returns A string that describes the distance traveled and the rate used for expense calculation
  */
 function getDistanceMerchant(
@@ -261,26 +265,20 @@ function getDistanceMerchant(
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     isZeroDistanceAllowed?: boolean,
+    commuterExclusionData?: CommuterExclusionData | null,
 ): string {
     if (!hasRoute || !rate) {
         return translate('iou.fieldPending');
     }
 
-    if (!distanceInMeters && !isZeroDistanceAllowed) {
+    if (!distanceInMeters && !isZeroDistanceAllowed && !commuterExclusionData) {
         return '';
     }
 
-    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true, isZeroDistanceAllowed);
+    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, translate, true, isZeroDistanceAllowed, commuterExclusionData);
     const ratePerUnit = getFormattedRateValue(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, undefined, true);
 
     return `${distanceInUnits} ${CONST.DISTANCE_MERCHANT_SEPARATOR} ${ratePerUnit}`;
-}
-
-function ensureRateDefined(rate: number | undefined): asserts rate is number {
-    if (rate !== undefined) {
-        return;
-    }
-    throw new Error('All default P2P rates should have a rate defined');
 }
 
 /**
@@ -292,16 +290,16 @@ function ensureRateDefined(rate: number | undefined): asserts rate is number {
  * @returns The rate and unit in MileageRate object.
  */
 function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): MileageRate {
-    const currencyWithExistingRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ? currency : CONST.CURRENCY.USD;
-    const mileageRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currencyWithExistingRate];
-    ensureRateDefined(mileageRate.rate);
+    const defaultRate = getStoredDefaultP2PMileageRate();
+    const p2pRate: DefaultP2PMileageRate = defaultRate ?? {rate: DEFAULT_P2P_RATE_CENTS_PER_MILE, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES};
+    const rate = transaction && getCurrency(transaction) === currency ? (transaction.comment?.customUnit?.defaultP2PRate ?? p2pRate.rate) : p2pRate.rate;
 
-    // Ensure the rate is updated when the currency changes, otherwise use the stored rate
-    const rate = getCurrency(transaction) === currency ? (transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate) : mileageRate.rate;
+    // If a distance expense is being edited, the defaultP2PRate may not have been loaded yet, so use data from the existing transaction.
+    const fallbackUnit = transaction?.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     return {
-        ...mileageRate,
-        currency: currencyWithExistingRate,
         rate,
+        unit: defaultRate ? p2pRate.unit : fallbackUnit,
+        currency: defaultRate ? currency : getCurrency(transaction),
     };
 }
 
@@ -326,6 +324,149 @@ function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): n
     return roundDistanceAmount(convertDistanceUnit(distance, unit), rate);
 }
 
+function getCommuterExclusionDisplayData(customUnit: TransactionCustomUnit | undefined, distanceUnit: Unit): CommuterExclusionData | null {
+    const commuterExclusion = customUnit?.commuterExclusion;
+    if (typeof commuterExclusion !== 'number' || commuterExclusion <= 0) {
+        return null;
+    }
+
+    return {
+        commuterExclusion,
+        reimbursableDistance: typeof customUnit?.reimbursableDistance === 'number' ? customUnit.reimbursableDistance : Math.max(0, (customUnit?.quantity ?? 0) - commuterExclusion),
+        distanceUnit: customUnit?.distanceUnit ?? distanceUnit,
+    };
+}
+
+function getTransactionCommuterExclusionData({
+    transaction,
+    policy,
+    customUnit,
+    translate,
+    toLocaleDigit,
+    getCurrencySymbol,
+    personalPolicyOutputCurrency,
+}: {
+    transaction: OnyxEntry<Transaction>;
+    policy: OnyxEntry<Policy>;
+    customUnit?: TransactionCustomUnit;
+    translate?: LocaleContextProps['translate'];
+    toLocaleDigit?: LocaleContextProps['toLocaleDigit'];
+    getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];
+    personalPolicyOutputCurrency?: string;
+}): (Pick<Transaction, 'modifiedMerchant'> & {modifiedAmount: number; customUnit: TransactionCustomUnit}) | undefined {
+    const policyCommuterExclusions = policy?.commuterExclusions;
+    if (
+        transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
+        transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER ||
+        policyCommuterExclusions?.method !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE
+    ) {
+        return;
+    }
+
+    const existingCustomUnit = customUnit ?? transaction?.comment?.customUnit;
+    const selectedRate = existingCustomUnit?.customUnitRateID
+        ? (getRateByCustomUnitRateID({customUnitRateID: existingCustomUnit.customUnitRateID, policy}) ?? getRate({transaction, policy, personalPolicyOutputCurrency}))
+        : getRate({transaction, policy, personalPolicyOutputCurrency});
+    const requestDistanceUnit = existingCustomUnit?.distanceUnit ?? selectedRate.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    let routeDistanceInMeters: number | undefined;
+    if (typeof existingCustomUnit?.routeDistanceMeters === 'number') {
+        routeDistanceInMeters = existingCustomUnit.routeDistanceMeters;
+    } else if (typeof transaction?.routes?.route0?.distance === 'number') {
+        routeDistanceInMeters = transaction.routes.route0.distance;
+    }
+
+    let routeDistance: number | undefined;
+    if (typeof existingCustomUnit?.quantity === 'number') {
+        routeDistance = existingCustomUnit.quantity;
+    } else if (routeDistanceInMeters !== undefined) {
+        routeDistance = convertDistanceUnit(routeDistanceInMeters, requestDistanceUnit);
+    }
+    if (routeDistance === undefined) {
+        return;
+    }
+
+    const fixedDistanceUnit: Unit =
+        policyCommuterExclusions.fixedDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const fixedDistanceInRequestUnit = convertDistanceUnit(convertToDistanceInMeters(policyCommuterExclusions.fixedDistance ?? 0, fixedDistanceUnit), requestDistanceUnit);
+
+    if (fixedDistanceInRequestUnit <= 0) {
+        return;
+    }
+
+    const commuterExclusion = Math.min(fixedDistanceInRequestUnit, routeDistance);
+    if (commuterExclusion <= 0) {
+        return;
+    }
+
+    const reimbursableDistance = Math.max(0, routeDistance - commuterExclusion);
+    const reimbursableDistanceInMeters = convertToDistanceInMeters(reimbursableDistance, requestDistanceUnit);
+    const distanceRate = selectedRate.rate ?? 0;
+    const modifiedMerchant =
+        translate && toLocaleDigit && getCurrencySymbol
+            ? getDistanceMerchant(
+                  true,
+                  reimbursableDistanceInMeters,
+                  requestDistanceUnit,
+                  distanceRate,
+                  selectedRate.currency ?? transaction?.currency ?? CONST.CURRENCY.USD,
+                  translate,
+                  toLocaleDigit,
+                  getCurrencySymbol,
+                  true,
+              )
+            : undefined;
+
+    return {
+        modifiedAmount: getDistanceRequestAmount(reimbursableDistanceInMeters, requestDistanceUnit, distanceRate),
+        modifiedMerchant,
+        customUnit: {
+            ...existingCustomUnit,
+            customUnitRateID: existingCustomUnit?.customUnitRateID ?? selectedRate.customUnitRateID,
+            distanceUnit: requestDistanceUnit,
+            quantity: routeDistance,
+            name: existingCustomUnit?.name ?? CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            ...(routeDistanceInMeters !== undefined && {routeDistanceMeters: routeDistanceInMeters}),
+            commuterExclusion,
+            reimbursableDistance,
+            commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+        },
+    };
+}
+
+/**
+ * Returns the description label and hint text for a distance field, incorporating commuter exclusion details when present.
+ *
+ * @param commuterExclusionData - The commuter exclusion breakdown, or null/undefined when not applicable
+ * @param distanceUnit - The unit to use for display formatting (falls back to data's unit or miles)
+ * @param translate - Translate function
+ */
+function getDistanceDisplayDetailsWithCommuter(
+    commuterExclusionData: CommuterExclusionData | null | undefined,
+    distanceUnit: Unit | undefined,
+    translate: LocaleContextProps['translate'],
+): {distanceToDisplayDescription: string; distanceToDisplayHintText: string | undefined} {
+    const baseLabel = translate('common.distance');
+
+    if (!commuterExclusionData) {
+        return {
+            distanceToDisplayDescription: baseLabel,
+            distanceToDisplayHintText: undefined,
+        };
+    }
+
+    const unitToUse = distanceUnit ?? commuterExclusionData.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const {commuterExclusion, reimbursableDistance} = commuterExclusionData;
+    const originalDistance = reimbursableDistance + commuterExclusion;
+    const originalDistanceFormatted = getFormattedDistanceInUnits(originalDistance, unitToUse, translate, true);
+    const commuterDistance = commuterExclusion.toFixed(CONST.DISTANCE_DECIMAL_PLACES);
+    const commuterUnit = translate(getUnitTranslationKey(unitToUse));
+
+    return {
+        distanceToDisplayDescription: `${baseLabel} ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original', {formattedDistance: originalDistanceFormatted})}`,
+        distanceToDisplayHintText: translate('distance.commuterExclusion.removedCommuterDistance', {distance: commuterDistance, unit: commuterUnit}),
+    };
+}
+
 /**
  * Converts the distance from kilometers or miles to meters.
  *
@@ -341,7 +482,116 @@ function convertToDistanceInMeters(distance: number, unit: Unit): number {
 }
 
 /**
- * Returns custom unit rate ID for the distance transaction
+ * Returns whether the distance custom unit rate ID is unset or represents a non-workspace rate (P2P or placeholder).
+ */
+function isUnsetDistanceCustomUnitRateID(customUnitRateID: string | undefined): boolean {
+    if (!customUnitRateID) {
+        return true;
+    }
+
+    return customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || customUnitRateID === CONST.CUSTOM_UNITS.UNSET_DISTANCE_RATE_ID;
+}
+
+/**
+ * Checks if a mileage rate is eligible for a given expense date.
+ * A rate is eligible if the date falls within its startDate/endDate bounds (inclusive).
+ * Missing bounds mean unbounded in that direction.
+ */
+function isRateEligibleForDate(rate: MileageRate, expenseDate: string): boolean {
+    const normalizedExpenseDate = DateUtils.formatMachineDateWithUTCTimeZone(expenseDate, CONST.DATE.FNS_FORMAT_STRING);
+    if (!normalizedExpenseDate) {
+        return true;
+    }
+
+    if (rate.startDate && normalizedExpenseDate < rate.startDate) {
+        return false;
+    }
+    if (rate.endDate && normalizedExpenseDate > rate.endDate) {
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Returns a boundedness score: 2 = fully bounded (both dates), 1 = partially bounded (one date), 0 = unbounded.
+ */
+function getBoundednessScore(rate: MileageRate): number {
+    if (rate.startDate && rate.endDate) {
+        return 2;
+    }
+    if (rate.startDate || rate.endDate) {
+        return 1;
+    }
+    return 0;
+}
+
+function getFullyBoundedDateRangeMs(rate: MileageRate): number | undefined {
+    if (!rate.startDate || !rate.endDate) {
+        return undefined;
+    }
+
+    return new Date(rate.endDate).getTime() - new Date(rate.startDate).getTime();
+}
+
+/**
+ * Finds the best eligible rate for a given expense date from a set of mileage rates.
+ * Selection order per design doc:
+ * 1. Most specific date range (fully bounded > partially bounded > unbounded)
+ * 2. Narrower date range for two fully bounded ranges
+ * 3. Latest start date
+ * 4. Lowest index (creation order)
+ */
+function getBestEligibleRate(mileageRates: Record<string, MileageRate>, expenseDate: string): MileageRate | undefined {
+    const eligibleRates = Object.values(mileageRates).filter((rate) => rate.enabled !== false && isRateEligibleForDate(rate, expenseDate));
+
+    if (eligibleRates.length === 0) {
+        return undefined;
+    }
+
+    eligibleRates.sort((a, b) => {
+        const aScore = getBoundednessScore(a);
+        const bScore = getBoundednessScore(b);
+        if (aScore !== bScore) {
+            return bScore - aScore;
+        }
+
+        if (aScore === 2 && bScore === 2) {
+            const aRange = getFullyBoundedDateRangeMs(a);
+            const bRange = getFullyBoundedDateRangeMs(b);
+            if (aRange !== undefined && bRange !== undefined && aRange !== bRange) {
+                return aRange - bRange;
+            }
+        }
+
+        const aStart = a.startDate ?? '';
+        const bStart = b.startDate ?? '';
+        if (aStart !== bStart) {
+            return aStart < bStart ? 1 : -1;
+        }
+
+        const aIndex = a.index ?? CONST.DEFAULT_NUMBER_ID;
+        const bIndex = b.index ?? CONST.DEFAULT_NUMBER_ID;
+        return aIndex - bIndex;
+    });
+
+    return eligibleRates.at(0);
+}
+
+function getBestEligibleRateOrPolicyDefault(mileageRates: Record<string, MileageRate>, expenseDate: string, policy: OnyxEntry<Policy>): MileageRate | undefined {
+    const bestRate = getBestEligibleRate(mileageRates, expenseDate);
+    if (bestRate) {
+        return bestRate;
+    }
+
+    return getDefaultMileageRate(policy);
+}
+
+/**
+ * Returns custom unit rate ID for the distance transaction.
+ * When an expenseDate is provided, uses date-aware rate selection:
+ * 1. Last selected rate, if enabled and valid for the expense date
+ * 2. Best eligible rate for the expense date
+ * 3. Default rate fallback
  */
 function getCustomUnitRateID({
     reportID,
@@ -349,14 +599,16 @@ function getCustomUnitRateID({
     policy,
     isTrackDistanceExpense = false,
     lastSelectedDistanceRates,
+    expenseDate,
 }: {
     reportID: string | undefined;
     isPolicyExpenseChat: boolean;
     policy: OnyxEntry<Policy> | undefined;
     lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
     isTrackDistanceExpense?: boolean;
+    expenseDate?: string;
 }): string {
-    let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+    const customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
     if (!reportID) {
         return customUnitRateID;
@@ -371,14 +623,32 @@ function getCustomUnitRateID({
         const distanceUnit = Object.values(policy.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy.id];
         const lastSelectedDistanceRate = lastSelectedDistanceRateID ? distanceUnit?.rates[lastSelectedDistanceRateID] : undefined;
-        if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
-            customUnitRateID = lastSelectedDistanceRateID;
-        } else {
-            const defaultMileageRate = getDefaultMileageRate(policy);
-            if (!defaultMileageRate?.customUnitRateID) {
-                return customUnitRateID;
+
+        if (!expenseDate) {
+            if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
+                return lastSelectedDistanceRateID;
             }
-            customUnitRateID = defaultMileageRate.customUnitRateID;
+
+            const defaultMileageRate = getDefaultMileageRate(policy);
+            if (defaultMileageRate?.customUnitRateID) {
+                return defaultMileageRate.customUnitRateID;
+            }
+
+            return customUnitRateID;
+        }
+
+        const mileageRates = getMileageRates(policy);
+        if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
+            const lastSelectedMileageRate = mileageRates[lastSelectedDistanceRateID];
+            // mileageRates may be empty when the distance unit has no attributes. Guard against undefined before calling isRateEligibleForDate, and preserve the user's last selected ID when rate metadata is unavailable.
+            if (!lastSelectedMileageRate || isRateEligibleForDate(lastSelectedMileageRate, expenseDate)) {
+                return lastSelectedDistanceRateID;
+            }
+        }
+
+        const bestRate = getBestEligibleRateOrPolicyDefault(mileageRates, expenseDate, policy);
+        if (bestRate?.customUnitRateID) {
+            return bestRate.customUnitRateID;
         }
     }
 
@@ -405,11 +675,6 @@ function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxE
     return transaction?.comment?.customUnit?.distanceUnit ?? mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
 }
 
-/** @private This is only for internal use for getRate function */
-function getPersonalPolicy() {
-    return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
-}
-
 /**
  * Get the selected rate for a transaction, from the policy or P2P default rate.
  * Use the distanceUnit stored on the transaction by default to prevent policy changes modifying existing transactions. Otherwise, get the unit from the rate.
@@ -433,14 +698,14 @@ function getRate({
     useTransactionDistanceUnit?: boolean;
     isFakeP2PRate?: boolean;
     isMovingTransactionFromTrackExpense?: boolean;
-    personalPolicyOutputCurrency?: string;
+    personalPolicyOutputCurrency: string | undefined;
 }): MileageRate {
     let mileageRates = getMileageRates(policy, true, transaction?.comment?.customUnit?.customUnitRateID);
     if (isEmptyObject(mileageRates) && policyDraft) {
         mileageRates = getMileageRates(policyDraft, true, transaction?.comment?.customUnit?.customUnitRateID);
     }
     const mileageRatesForMovingExpenses = getMileageRates(policyForMovingExpenses, true, transaction?.comment?.customUnit?.customUnitRateID);
-    const policyCurrency = policy?.outputCurrency ?? personalPolicyOutputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
+    const policyCurrency = policy?.outputCurrency ?? personalPolicyOutputCurrency ?? CONST.CURRENCY.USD;
     const isUnreportedExpense = isExpenseUnreported(transaction);
     const defaultMileageRate = getDefaultMileageRate(policy);
     const customUnitRateID = getRateID(transaction);
@@ -463,18 +728,10 @@ function getRate({
  * For example, if an expense is '10 mi @ $1.00 / mi' and the rate is updated to '$1.00 / km',
  * then the updated distance unit should be 'km' from the updated rate, not 'mi' from the currently stored transaction distance unit.
  */
-function getUpdatedDistanceUnit({
-    transaction,
-    policy,
-    policyDraft,
-    personalPolicyOutputCurrency,
-}: {
-    transaction: OnyxEntry<Transaction>;
-    policy: OnyxEntry<Policy>;
-    policyDraft?: OnyxEntry<Policy>;
-    personalPolicyOutputCurrency?: string;
-}) {
-    return getRate({transaction, policy, policyDraft, useTransactionDistanceUnit: false, personalPolicyOutputCurrency}).unit;
+function getUpdatedDistanceUnit({transaction, policy, policyDraft}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; policyDraft?: OnyxEntry<Policy>}) {
+    // The distance unit doesn't depend on the currency (the rate is selected by ID/P2P, not currency), so
+    // personalPolicyOutputCurrency isn't accepted here and is passed as undefined to getRate.
+    return getRate({transaction, policy, policyDraft, useTransactionDistanceUnit: false, personalPolicyOutputCurrency: undefined}).unit;
 }
 
 /**
@@ -483,6 +740,48 @@ function getUpdatedDistanceUnit({
  */
 function getRateByCustomUnitRateID({customUnitRateID, policy}: {customUnitRateID: string; policy: OnyxEntry<Policy>}): MileageRate | undefined {
     return getMileageRates(policy, true, customUnitRateID)[customUnitRateID];
+}
+
+/**
+ * Resolve an enabled mileage rate by its ID across every policy the user belongs to.
+ * Useful when the caller doesn't know which policy owns the rate (e.g. a self-DM split on the personal rate).
+ * Returns `undefined` for the P2P rate, a missing ID, or a disabled/deleted rate.
+ */
+function getEnabledRateByCustomUnitRateIDFromAnyPolicy(customUnitRateID: string | undefined, policies: OnyxCollection<Policy>): MileageRate | undefined {
+    if (!customUnitRateID || customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) {
+        return undefined;
+    }
+    for (const policy of Object.values(policies ?? {})) {
+        const rate = getMileageRates(policy)[customUnitRateID];
+        if (rate) {
+            return rate;
+        }
+    }
+    return undefined;
+}
+
+/**
+ * Returns whether the selected custom unit rate is out of its valid date range for the given expense date.
+ */
+function isCustomUnitRateOutOfDateRange({
+    customUnitRateID,
+    policy,
+    expenseDate,
+}: {
+    customUnitRateID: string | undefined;
+    policy: OnyxEntry<Policy>;
+    expenseDate: string | undefined;
+}): boolean {
+    if (!expenseDate || isUnsetDistanceCustomUnitRateID(customUnitRateID) || !policy?.customUnits || !customUnitRateID) {
+        return false;
+    }
+
+    const mileageRate = getRateByCustomUnitRateID({customUnitRateID, policy});
+    if (!mileageRate || mileageRate.enabled === false) {
+        return false;
+    }
+
+    return !isRateEligibleForDate(mileageRate, expenseDate);
 }
 
 /**
@@ -522,28 +821,62 @@ function prepareTextForDisplay(text: string): string {
     return text.replaceAll(/[^0-9., ]/g, '').replace(/^0+(?=\d)/, '');
 }
 
+function getRateDateLabel(rate: MileageRate, translate: LocaleContextProps['translate'], dateFnsLocale: DateFnsLocale | undefined): string {
+    const dateFormat = CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT;
+
+    try {
+        if (rate.startDate && rate.endDate) {
+            return translate('iou.rateValidDateRange', {
+                startDate: format(parseISO(rate.startDate), dateFormat, {locale: dateFnsLocale}),
+                endDate: format(parseISO(rate.endDate), dateFormat, {locale: dateFnsLocale}),
+            });
+        }
+        if (rate.startDate) {
+            return translate('iou.rateValidFrom', {startDate: format(parseISO(rate.startDate), dateFormat, {locale: dateFnsLocale})});
+        }
+        if (rate.endDate) {
+            return translate('iou.rateValidUntil', {endDate: format(parseISO(rate.endDate), dateFormat, {locale: dateFnsLocale})});
+        }
+    } catch {
+        return '';
+    }
+
+    return '';
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
     getDistanceRequestAmount,
+    getCommuterExclusionDisplayData,
+    getTransactionCommuterExclusionData,
+    getDistanceDisplayDetailsWithCommuter,
     getFormattedRateValue,
     getMileageRates,
     getDistanceForDisplay,
+    getFormattedDistanceInUnits,
     getRoundedDistanceInUnits,
     getRateForP2P,
     getCustomUnitRateID,
     convertToDistanceInMeters,
     getTaxableAmount,
     getDistanceUnit,
+    getDistanceUnitLabel,
     getUpdatedDistanceUnit,
     getRate,
     getRateByCustomUnitRateID,
+    getEnabledRateByCustomUnitRateIDFromAnyPolicy,
     getDistanceForDisplayLabel,
     convertDistanceUnit,
     getRateForExpenseDisplay,
     isDistanceAmountWithinLimit,
     normalizeOdometerText,
     prepareTextForDisplay,
+    isCustomUnitRateOutOfDateRange,
+    isRateEligibleForDate,
+    isUnsetDistanceCustomUnitRateID,
+    getBestEligibleRate,
+    getRateDateLabel,
 };
 
 export type {MileageRate};

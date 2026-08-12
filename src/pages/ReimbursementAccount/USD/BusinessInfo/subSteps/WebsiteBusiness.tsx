@@ -1,26 +1,33 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
+import ActivityIndicator from '@components/ActivityIndicator';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors, isValidWebsite} from '@libs/ValidationUtils';
+
 import {addBusinessWebsiteForDraft} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import {Str} from 'expensify-common';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+
 const COMPANY_WEBSITE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_WEBSITE;
 const STEP_FIELDS = [COMPANY_WEBSITE_KEY];
 
-function WebsiteBusiness({onNext, onMove, isEditing}: SubStepProps) {
+function WebsiteBusiness({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -52,11 +59,11 @@ function WebsiteBusiness({onNext, onMove, isEditing}: SubStepProps) {
     });
 
     if (isLoadingReimbursementAccount) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'WebsiteBusiness',
-            isLoadingReimbursementAccount,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return (
+            <View style={[styles.flex1, styles.fullScreenLoading]}>
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+            </View>
+        );
     }
 
     return (
@@ -74,6 +81,7 @@ function WebsiteBusiness({onNext, onMove, isEditing}: SubStepProps) {
             defaultValue={defaultCompanyWebsite}
             inputMode={CONST.INPUT_MODE.URL}
             shouldShowHelpLinks={false}
+            shouldDelayAutoFocus
         />
     );
 }

@@ -1,11 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import BaseSelectListItem from './BaseSelectListItem';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {ListItem, MultiSelectListItemProps} from './types';
+
+import BaseSelectListItem from './BaseSelectListItem';
 
 /**
  * A compact row with a checkbox and optional avatar, used in multi-choice picker lists
@@ -28,6 +33,7 @@ function MultiSelectListItem<TItem extends ListItem>({
     wrapperStyle,
     titleStyles,
     shouldHighlightSelectedItem,
+    titleNumberOfLines,
 }: MultiSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
     const icon = item.icons?.at(0);
@@ -36,7 +42,7 @@ function MultiSelectListItem<TItem extends ListItem>({
         ...item,
         leftElement: icon ? <AvatarLeftElement icon={icon} /> : item.leftElement,
     };
-    const computedWrapperStyle = [wrapperStyle, icon ? [styles.pv0, styles.mnh13] : styles.optionRowCompact];
+    const computedWrapperStyle = [icon ? [styles.pv0, styles.mnh13] : styles.optionRowCompact, wrapperStyle];
 
     return (
         <BaseSelectListItem
@@ -59,6 +65,7 @@ function MultiSelectListItem<TItem extends ListItem>({
             wrapperStyle={computedWrapperStyle}
             titleStyles={titleStyles}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+            titleNumberOfLines={titleNumberOfLines}
         />
     );
 }
@@ -70,7 +77,7 @@ function AvatarLeftElement({icon}: {icon: Icon}) {
         <View style={[styles.mentionSuggestionsAvatarContainer, styles.mr3]}>
             <Avatar
                 source={icon.source}
-                size={CONST.AVATAR_SIZE.SMALLER}
+                size={CONST.AVATAR_SIZE.X_SMALL}
                 name={icon.name}
                 avatarID={icon.id}
                 type={icon.type ?? CONST.ICON_TYPE_AVATAR}

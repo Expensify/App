@@ -1,14 +1,21 @@
-import React from 'react';
-import type {ValueOf} from 'type-fest';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+
 import {createTagDisplaySelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -27,7 +34,6 @@ type TagFieldsProps = {
 
     /** The global tag index used for navigation and display */
     tagIndex: number;
-    isEditingSplitBill: boolean;
 };
 
 function TagFields({
@@ -43,19 +49,18 @@ function TagFields({
     reportActionID,
     formError,
     tagIndex,
-    isEditingSplitBill,
 }: TagFieldsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
 
     const tagDisplaySelector = createTagDisplaySelector(tagIndex);
-    const tagDisplay = useTransactionSelector(transactionID, tagDisplaySelector, isEditingSplitBill);
+    const tagDisplay = useTransactionSelector(transactionID, tagDisplaySelector);
 
     const displayedTag = tagDisplay ?? '';
 
     return (
-        <MenuItemWithTopDescription
+        <HighlightableMenuItemWithTopDescription
             highlighted={!displayedTag && !previousShouldShow}
             shouldShowRightIcon={!isReadOnly}
             title={displayedTag}
@@ -68,7 +73,7 @@ function TagFields({
                     return;
                 }
 
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, tagIndex, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, tagIndex, transactionID, reportID, reportActionID)));
             }}
             style={[styles.moneyRequestMenuItem]}
             brickRoadIndicator={shouldDisplayTagError && !!displayedTag ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}

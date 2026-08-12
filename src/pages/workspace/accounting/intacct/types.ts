@@ -1,7 +1,9 @@
-import type {SharedValue} from 'react-native-reanimated';
 import type {MenuItemProps} from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
+
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
+import type {SharedValue} from 'react-native-reanimated';
 
 type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
 
@@ -12,6 +14,15 @@ type ExtendedMenuItemWithSubscribedSettings = MenuItemToRender | ToggleItemWithK
 type MenuItemToRender = MenuItemWithSubscribedSettings & {
     /** Optional hint text passed to the MenuItemWithTopDescription */
     hintText?: string;
+
+    /** Optional muted helper text rendered below the MenuItemWithTopDescription */
+    helperText?: string;
+
+    /** Optional error message to surface via OfflineWithFeedback */
+    errors?: OfflineWithFeedbackProps['errors'];
+
+    /** Optional callback to clear the surfaced error */
+    onCloseError?: OfflineWithFeedbackProps['onClose'];
 };
 
 type MenuItem = MenuItemProps & {

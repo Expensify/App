@@ -4,20 +4,28 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+
 import IOURequestStepDistance from '@pages/iou/request/step/IOURequestStepDistance';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import type * as IOU from '../../src/libs/actions/IOU';
+
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -70,6 +78,8 @@ jest.mock('@libs/actions/IOU/UpdateMoneyRequest', () => ({
 
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     handleMoneyRequestStepDistanceNavigation: jest.fn(),
+    getMoneyRequestParticipantsFromReport: jest.fn(() => []),
+    getMoneyRequestParticipantOptions: jest.fn(() => []),
 }));
 
 jest.mock('@libs/actions/MapboxToken', () => ({
@@ -153,12 +163,13 @@ jest.mock('@react-navigation/native', () => {
         getState: jest.fn(() => ({})),
     };
     return {
+        ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
         createNavigationContainerRef: jest.fn(() => mockRef),
         useIsFocused: () => true,
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
         useFocusEffect: jest.fn(),
         usePreventRemove: jest.fn(),
-        useRoute: jest.fn(),
+        useRoute: jest.fn(() => ({name: 'Money_Request_Step_Distance'})),
     };
 });
 
@@ -177,6 +188,20 @@ const ACCOUNT_LOGIN = 'test@user.com';
 const REPORT_ID = 'report-1';
 const TRANSACTION_ID = 'txn-1';
 const PARTICIPANT_ACCOUNT_ID = 2;
+type IOURequestStepDistanceProps = React.ComponentProps<typeof IOURequestStepDistance>;
+
+const mockNavigation = createMock<IOURequestStepDistanceProps['navigation']>({});
+const createRoute = (action: IOURequestStepDistanceProps['route']['params']['action']): IOURequestStepDistanceProps['route'] =>
+    createMock<IOURequestStepDistanceProps['route']>({
+        key: 'Money_Request_Step_Distance-test',
+        name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
+        params: {
+            action,
+            iouType: CONST.IOU.TYPE.SUBMIT,
+            reportID: REPORT_ID,
+            transactionID: TRANSACTION_ID,
+        },
+    });
 
 function createTestReport(): Report {
     return {
@@ -226,19 +251,8 @@ function renderEditMode() {
         <OnyxListItemProvider>
             <CurrentUserPersonalDetailsProvider>
                 <IOURequestStepDistance
-                    route={{
-                        key: 'Money_Request_Step_Distance-test',
-                        name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
-                        params: {
-                            action: CONST.IOU.ACTION.EDIT as never,
-                            iouType: CONST.IOU.TYPE.SUBMIT,
-                            reportID: REPORT_ID,
-                            transactionID: TRANSACTION_ID,
-                            backTo: undefined as never,
-                        },
-                    }}
-                    // @ts-expect-error minimal navigation for test
-                    navigation={undefined}
+                    route={createRoute(CONST.IOU.ACTION.EDIT)}
+                    navigation={mockNavigation}
                 />
             </CurrentUserPersonalDetailsProvider>
         </OnyxListItemProvider>,
@@ -274,19 +288,8 @@ describe('IOURequestStepDistance - draft transactions coverage', () => {
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
                     <IOURequestStepDistance
-                        route={{
-                            key: 'Money_Request_Step_Distance-test',
-                            name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
-                            params: {
-                                action: CONST.IOU.ACTION.CREATE as never,
-                                iouType: CONST.IOU.TYPE.SUBMIT,
-                                reportID: REPORT_ID,
-                                transactionID: TRANSACTION_ID,
-                                backTo: undefined as never,
-                            },
-                        }}
-                        // @ts-expect-error minimal navigation for test
-                        navigation={undefined}
+                        route={createRoute(CONST.IOU.ACTION.CREATE)}
+                        navigation={mockNavigation}
                     />
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,
@@ -317,19 +320,8 @@ describe('IOURequestStepDistance - draft transactions coverage', () => {
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
                     <IOURequestStepDistance
-                        route={{
-                            key: 'Money_Request_Step_Distance-test',
-                            name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
-                            params: {
-                                action: CONST.IOU.ACTION.CREATE as never,
-                                iouType: CONST.IOU.TYPE.SUBMIT,
-                                reportID: REPORT_ID,
-                                transactionID: TRANSACTION_ID,
-                                backTo: undefined as never,
-                            },
-                        }}
-                        // @ts-expect-error minimal navigation for test
-                        navigation={undefined}
+                        route={createRoute(CONST.IOU.ACTION.CREATE)}
+                        navigation={mockNavigation}
                     />
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,
@@ -524,19 +516,8 @@ describe('IOURequestStepDistance - navigateToWaypointEditPage backTo (GH #90037)
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
                     <IOURequestStepDistance
-                        route={{
-                            key: 'Money_Request_Step_Distance-test',
-                            name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
-                            params: {
-                                action: CONST.IOU.ACTION.CREATE as never,
-                                iouType: CONST.IOU.TYPE.SUBMIT,
-                                reportID: REPORT_ID,
-                                transactionID: TRANSACTION_ID,
-                                backTo: undefined as never,
-                            },
-                        }}
-                        // @ts-expect-error minimal navigation for test
-                        navigation={undefined}
+                        route={createRoute(CONST.IOU.ACTION.CREATE)}
+                        navigation={mockNavigation}
                     />
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,
@@ -562,7 +543,13 @@ describe('IOURequestStepDistance - manual tab follows the recalculated route dis
     });
     // `getAllByLabelText` matches both the field label <Text> and the underlying <TextInput>; pick the input.
     const distanceInput = () => screen.getAllByLabelText(/common\.distance/).find((element) => 'value' in element.props)!;
-    const displayedDistance = () => distanceInput().props.value as string;
+    const displayedDistance = () => {
+        const value = distanceInput().props.value;
+        if (typeof value !== 'string') {
+            throw new Error('Expected distance input value to be a string.');
+        }
+        return value;
+    };
     const distanceUnit = () =>
         String(distanceInput().props.accessibilityLabel ?? '').includes(`common.${CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}`)
             ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS

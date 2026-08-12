@@ -1,6 +1,8 @@
-import React from 'react';
 import type {AppStateStatus} from 'react-native';
+
+import React from 'react';
 import {AppState} from 'react-native';
+
 import type AppStateType from './types';
 import type {UseAppStateProps} from './types';
 

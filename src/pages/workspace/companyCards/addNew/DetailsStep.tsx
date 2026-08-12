@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -9,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import type {CombinedCardFeeds} from '@hooks/useCardFeeds';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -16,16 +15,23 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addNewCompanyCardsFeed} from '@libs/actions/CompanyCards';
 import {getBankName} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
 import variables from '@styles/variables';
+
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddNewCardFeedForm';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type DetailsStepProps = {
     /** ID of the current policy */
@@ -128,7 +134,7 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
                             ref={inputCallbackRef}
-                            defaultValue={addNewCard?.data.feedDetails?.processorID}
+                            defaultValue={addNewCard?.data?.feedDetails?.processorID}
                         />
                         <InputWrapper
                             InputComponent={TextInput}
@@ -136,7 +142,7 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.bankLabel')}
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
-                            defaultValue={addNewCard?.data.feedDetails?.bankID}
+                            defaultValue={addNewCard?.data?.feedDetails?.bankID}
                         />
                         <InputWrapper
                             InputComponent={TextInput}
@@ -144,7 +150,7 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.companyLabel')}
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mb6]}
-                            defaultValue={addNewCard?.data.feedDetails?.companyID}
+                            defaultValue={addNewCard?.data?.feedDetails?.companyID}
                         />
                     </>
                 );
@@ -157,7 +163,7 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}
-                        defaultValue={addNewCard?.data.feedDetails?.distributionID}
+                        defaultValue={addNewCard?.data?.feedDetails?.distributionID}
                     />
                 );
             case CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX:
@@ -169,7 +175,7 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}
-                        defaultValue={addNewCard?.data.feedDetails?.deliveryFileName}
+                        defaultValue={addNewCard?.data?.feedDetails?.deliveryFileName}
                     />
                 );
             default:

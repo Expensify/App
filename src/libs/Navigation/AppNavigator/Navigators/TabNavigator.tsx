@@ -1,20 +1,26 @@
+import ActivityIndicator from '@components/ActivityIndicator';
+
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {TabNavigatorParamList} from '@libs/Navigation/types';
+import {getSpan} from '@libs/telemetry/activeSpans';
+
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
+
 /**
  * Tab Navigator containing Home, Inbox (Reports), Search, Settings, and Workspaces pages.
  */
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
+
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {findFocusedRoute, useNavigation, useNavigationState} from '@react-navigation/native';
 import React, {lazy, Suspense, useEffect} from 'react';
 import {View} from 'react-native';
-import ActivityIndicator from '@components/ActivityIndicator';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {TabNavigatorParamList} from '@libs/Navigation/types';
-import {getSpan} from '@libs/telemetry/activeSpans';
-import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
-import SCREENS from '@src/SCREENS';
+
 // Do not lazy load Search navigator for performance reasons
 import SearchFullscreenNavigator from './SearchFullscreenNavigator';
 import TabNavigatorBar from './TabNavigatorBar';
@@ -42,10 +48,7 @@ function LazyFallback({tabSpanName}: LazyFallbackProps) {
 
     return (
         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.appBG]}>
-            <ActivityIndicator
-                size="large"
-                reasonAttributes={{context: 'TabNavigator.LazyTab'}}
-            />
+            <ActivityIndicator size="large" />
         </View>
     );
 }
@@ -90,7 +93,6 @@ function TabNavigator() {
     const navigation = useNavigation();
     const parentNavigation = navigation.getParent();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
-
     useEffect(() => {
         if (!shouldUseNarrowLayout || !parentNavigation) {
             return;

@@ -1,36 +1,47 @@
-import type {NavigationState} from '@react-navigation/native';
-import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
-import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
-import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+
 import {useCurrentReportIDActions} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
+
 import FS from '@libs/Fullstory';
+import {buildPageViewedEvent, trackFullstoryEvent} from '@libs/Fullstory/utils';
 import Log from '@libs/Log';
 import {setupNavigationFocusReturn, teardownNavigationFocusReturn} from '@libs/NavigationFocusReturn';
 import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
 import {getPathFromURL} from '@libs/Url';
-import {getBaseTheme} from '@styles/theme/utils';
+
 import {updateLastVisitedPath} from '@userActions/App';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
-import {endSpan, getSpan, startSpan} from '@src/libs/telemetry/activeSpans';
+import {endSpan, getSpan} from '@src/libs/telemetry/activeSpans';
 import {navigationIntegration} from '@src/libs/telemetry/integrations';
+import useStartSpansOnRender from '@src/libs/telemetry/useStartSpansOnRender';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {NavigationState} from '@react-navigation/native';
+
+import {findFocusedRoute, NavigationContainer} from '@react-navigation/native';
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
+import * as Sentry from '@sentry/react-native';
+import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+
 import AppNavigator from './AppNavigator';
-import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {cleanPreservedNavigatorStates, clearPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import getNavigationBaseTheme from './getNavigationBaseTheme';
+import createDynamicRoute from './helpers/dynamicRoutesUtils/createDynamicRoute';
 import getActiveTabName from './helpers/getActiveTabName';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import getPathFromState from './helpers/getPathFromState';
+import getStateToResetAfterLogout from './helpers/getStateToResetAfterLogout';
 import {isSplitNavigatorName} from './helpers/isNavigatorName';
 import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
@@ -49,6 +60,21 @@ type NavigationRootProps = {
     /** Fired when react-navigation is ready */
     onReady: () => void;
 };
+
+let previousFullstoryPath: string | undefined;
+
+function trackFullstoryPageView(state: NavigationState) {
+    const currentPath = getPathFromState(state);
+    const isTransitionRoute = currentPath.startsWith(`/${ROUTES.TRANSITION_BETWEEN_APPS}`);
+    const focusedRouteName = findFocusedRoute(state)?.name;
+    if (!focusedRouteName || isTransitionRoute) {
+        return;
+    }
+
+    new FS.Page(focusedRouteName, {path: currentPath}).start();
+    trackFullstoryEvent('Page_viewed', buildPageViewedEvent(focusedRouteName, currentPath, previousFullstoryPath));
+    previousFullstoryPath = currentPath;
+}
 
 /**
  * Intercept navigation state changes and log it
@@ -94,14 +120,21 @@ function parseAndLogRoute(state: NavigationState) {
         }
     }
 
-    // Fullstory Page navigation tracking
-    const focusedRouteName = focusedRoute?.name;
-    if (focusedRouteName) {
-        new FS.Page(focusedRouteName, {path: currentPath}).start();
-    }
+    trackFullstoryPageView(state);
 }
 
 function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: NavigationRootProps) {
+    useStartSpansOnRender([
+        {
+            spanId: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
+            options: {
+                name: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
+                op: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
+                parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT),
+            },
+        },
+    ]);
+
     const firstRenderRef = useRef(true);
     const themePreference = useThemePreference();
     const theme = useTheme();
@@ -119,9 +152,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const initialState = useMemo(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
-        if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL.route) && shouldOpenLastVisitedPath(lastVisitedPath) && isOnboardingCompleted && authenticated) {
+        if (path?.includes(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path) && shouldOpenLastVisitedPath(lastVisitedPath) && isOnboardingCompleted && authenticated) {
             Navigation.isNavigationReady().then(() => {
-                Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path, lastVisitedPath));
             });
 
             return getAdaptedStateFromPath(lastVisitedPath);
@@ -160,7 +193,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     // https://reactnavigation.org/docs/themes
     const navigationTheme = useMemo(() => {
-        const defaultNavigationTheme = getBaseTheme(themePreference) === CONST.THEME.DARK ? DarkTheme : DefaultTheme;
+        const defaultNavigationTheme = getNavigationBaseTheme(themePreference);
 
         return {
             ...defaultNavigationTheme,
@@ -177,14 +210,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             },
         };
     }, [shouldUseNarrowLayout, theme.appBG, themePreference]);
-
-    useEffect(() => {
-        startSpan(CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY, {
-            name: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
-            op: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
-            parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT),
-        });
-    }, []);
 
     useEffect(() => {
         if (firstRenderRef.current) {
@@ -215,33 +240,36 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     }, [shouldUseNarrowLayout]);
 
     useEffect(() => {
-        // Since the NAVIGATORS.REPORTS_SPLIT_NAVIGATOR url is "/" and it has to be used as an URL for SignInPage,
-        // this navigator should be the only one in the navigation state after logout.
+        // After logout, reset the nav state so a logged-out user can't stay on a protected or
+        // consumed route.
         const hasUserLoggedOut = !authenticated && !!previousAuthenticated;
-        if (!hasUserLoggedOut || !navigationRef.isReady()) {
+        if (!hasUserLoggedOut) {
             return;
         }
 
-        const rootState = navigationRef.getRootState();
-        const lastRoute = rootState.routes.at(-1);
-        if (!lastRoute) {
+        previousFullstoryPath = undefined;
+
+        if (!navigationRef.isReady()) {
             return;
         }
 
-        // REPORTS_SPLIT_NAVIGATOR will persist after user logout, because it is used both for logged-in and logged-out users
-        // That's why for ReportsSplit we need to explicitly clear params when resetting navigation state,
-        // However in case other routes (related to login/logout) appear in nav state, then we want to preserve params for those
-        const isReportSplitNavigatorMounted = lastRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
-        navigationRef.reset({
-            ...rootState,
-            index: 0,
-            routes: [
-                {
-                    ...lastRoute,
-                    params: isReportSplitNavigatorMounted ? undefined : lastRoute.params,
-                },
-            ],
-        });
+        // Drop the previous session's preserved navigator states. Otherwise restoreTabNavigatorRoutes
+        // reattaches the prior TAB_NAVIGATOR subtree to the public sign-in route (which shares that name).
+        clearPreservedNavigatorStates();
+
+        const stateToReset = getStateToResetAfterLogout(navigationRef.getRootState());
+        if (!stateToReset) {
+            return;
+        }
+
+        try {
+            navigationRef.reset(stateToReset);
+        } catch (error) {
+            // A synthesized reset state can be rejected by RN; fall back to a known-valid
+            // TAB_NAVIGATOR (PublicScreens maps "/" → SignInPage) instead of leaving a blank screen.
+            Log.alert('[NavigationRoot] Post-logout navigation reset failed', {error: String(error)});
+            navigationRef.reset({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
+        }
     }, [authenticated, previousAuthenticated]);
 
     const handleStateChange = (state: NavigationState | undefined) => {
@@ -264,8 +292,15 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION);
         onReady();
         navigationIntegration.registerNavigationContainer(navigationRef);
+        trackFullstoryPageView(navigationRef.getRootState());
         setupNavigationFocusReturn();
-    }, [onReady]);
+
+        // React Navigation does not fire onStateChange for the initial state, so on a cold start that
+        // restores directly into a report (via initialState) currentReportID would stay unset. Seed it
+        // from the restored root state so isTopMostReportId is correct on the first report screen
+        // (e.g. the composer's keyboard avoiding view is enabled right away).
+        updateCurrentReportID(navigationRef.getRootState());
+    }, [onReady, updateCurrentReportID]);
 
     // Re-establish on (re)mount — StrictMode's cleanup-then-remount otherwise leaves us listener-less; setup is idempotent.
     useEffect(() => {

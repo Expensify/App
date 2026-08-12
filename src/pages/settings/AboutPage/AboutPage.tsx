@@ -1,8 +1,3 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useMemo, useRef} from 'react';
-import {View} from 'react-native';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import DeviceInfo from 'react-native-device-info';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
 import RenderHTML from '@components/RenderHTML';
@@ -10,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -18,19 +14,32 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+
 import {isInternalTestBuild} from '@libs/Environment/Environment';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import colors from '@styles/theme/colors';
+
 import {openExternalLink} from '@userActions/Link';
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useCallback, useMemo, useRef} from 'react';
+import {View} from 'react-native';
+import DeviceInfo from 'react-native-device-info';
+
 import pkg from '../../../../package.json';
 import useAboutSectionIllustration from './useAboutSectionIllustration';
 

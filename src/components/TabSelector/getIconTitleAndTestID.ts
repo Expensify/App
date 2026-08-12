@@ -1,8 +1,10 @@
-import type {TupleToUnion} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {TupleToUnion} from 'type-fest';
 
 type IconTitleAndTestID = WithSentryLabel & {
     icon?: IconAsset;

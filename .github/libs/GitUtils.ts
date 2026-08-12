@@ -1,10 +1,12 @@
 import * as core from '@actions/core';
 import {execSync} from 'child_process';
+
+import type {CommitType} from './GithubUtils';
+import type {SemverLevel} from './versionUpdater';
+
 import CONST from './CONST';
 import GithubUtils from './GithubUtils';
-import type {CommitType} from './GithubUtils';
 import {getPreviousVersion} from './versionUpdater';
-import type {SemverLevel} from './versionUpdater';
 
 type MergedPR = {
     prNumber: number;

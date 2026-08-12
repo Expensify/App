@@ -1,14 +1,14 @@
-import React from 'react';
-import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+
 import {updateNetSuiteAllowForeignCurrency, updateNetSuiteExportToNextOpenPeriod} from '@libs/actions/connections/NetSuiteCommands';
 import {getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -16,7 +16,9 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+
 import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
+
 import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
 import {
     shouldHideExportForeignCurrencyAmount,
@@ -31,9 +33,14 @@ import {
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
 
@@ -62,7 +69,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
-    const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING) && getIsTravelInvoicingEnabled(travelSettings);
+    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
 
     let invoiceItemValue = translate('workspace.netsuite.invoiceItem.values.create.label');
     if (config?.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {

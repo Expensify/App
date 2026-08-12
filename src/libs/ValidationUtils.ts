@@ -1,19 +1,29 @@
-import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
-import {PUBLIC_DOMAINS_SET, Str, TLD_REGEX, Url} from 'expensify-common';
-import isEmpty from 'lodash/isEmpty';
-import isObject from 'lodash/isObject';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report, TaxRates} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
+import {CONST as COMMON_CONST, PUBLIC_DOMAINS_SET, Str, TLD_REGEX, Url} from 'expensify-common';
+import isEmpty from 'lodash/isEmpty';
+import isObject from 'lodash/isObject';
+
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 import DateUtils from './DateUtils';
 import {getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
+
+type CountryZipRegex = {
+    regex?: RegExp;
+    samples?: string;
+};
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -43,18 +53,40 @@ function validateCardNumber(value: string): boolean {
 }
 
 /**
- * Validating that this is a valid address (PO boxes are not allowed)
+ * Returns whether the value is a PO box or a private mailbox (PMB / mail drop), which are not accepted as physical addresses.
  */
-function isValidAddress(value: FormValue): boolean {
+function isPOBoxOrMailDrop(value: FormValue): boolean {
     if (typeof value !== 'string') {
         return false;
     }
 
-    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.ALL_EMOJIS)) {
-        return false;
+    return CONST.REGEX.PO_BOX.test(value) || CONST.REGEX.PMB.test(value);
+}
+
+/**
+ * Returns the translation path for the error to display on an invalid address input, or undefined when the value is valid.
+ */
+function getInvalidAddressErrorTranslationPath(value: FormValue): TranslationPaths | undefined {
+    if (typeof value !== 'string') {
+        return 'bankAccount.error.addressStreet';
     }
 
-    return !CONST.REGEX.PO_BOX.test(value);
+    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.ALL_EMOJIS)) {
+        return 'bankAccount.error.addressStreet';
+    }
+
+    if (isPOBoxOrMailDrop(value)) {
+        return 'bankAccount.error.physicalAddressRequired';
+    }
+
+    return undefined;
+}
+
+/**
+ * Validating that this is a valid address (PO boxes and PMBs are not allowed)
+ */
+function isValidAddress(value: FormValue): boolean {
+    return getInvalidAddressErrorTranslationPath(value) === undefined;
 }
 
 /**
@@ -180,6 +212,25 @@ function isValidIndustryCode(code: string): boolean {
 
 function isValidZipCode(zipCode: string): boolean {
     return CONST.REGEX.ZIP_CODE.test(zipCode);
+}
+
+function getCountryZipRegexDetails(country?: Country | ''): CountryZipRegex | undefined {
+    if (!country) {
+        return undefined;
+    }
+
+    return COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex | undefined;
+}
+
+function isValidZipCodeForCountry(zipCode: string, country?: Country | ''): boolean {
+    const normalizedZipCode = zipCode.trim().toUpperCase();
+    const countrySpecificZipRegex = getCountryZipRegexDetails(country)?.regex;
+
+    if (countrySpecificZipRegex) {
+        return countrySpecificZipRegex.test(normalizedZipCode);
+    }
+
+    return COMMON_CONST.GENERIC_ZIP_CODE_REGEX.test(normalizedZipCode);
 }
 
 function isValidPaymentZipCode(zipCode: string): boolean {
@@ -354,6 +405,14 @@ function isValidDisplayName(name: string): boolean {
  */
 function isValidLegalName(name: string): boolean {
     return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name);
+}
+
+/**
+ * Checks that the provided name on card does not contain HTML-like tags (e.g. `<script>`).
+ * Lone `<` or `>` characters are allowed; the backend sanitizes the value before embossing.
+ */
+function isValidNameOnCard(name: string): boolean {
+    return !CONST.REGEX.NAME_ON_CARD_INVALID_CHARS.test(name);
 }
 
 /**
@@ -687,7 +746,10 @@ function isValidRegistrationNumber(registrationNumber: string, country: Country 
  */
 function isValidInputLength(inputValue: string, byteLength: number) {
     const valueByteLength = StringUtils.getUTF8ByteLength(inputValue);
-    return {isValid: valueByteLength <= byteLength, byteLength: valueByteLength};
+    return {
+        isValid: valueByteLength <= byteLength,
+        byteLength: valueByteLength,
+    };
 }
 
 /**
@@ -767,11 +829,51 @@ function isValidPIN(pin: string): boolean {
     return !(CONST.EXPENSIFY_CARD.PIN.INVALID_PINS as readonly string[]).includes(pin);
 }
 
+/**
+ * Returns true if the given string contains a non-whitelisted HTML-like tag.
+ *
+ * Mirrors the HTML-tag check in FormProvider.onValidate so callers that don't go through
+ * FormProvider (e.g. inline edit-in-place sections) can produce the same `Invalid character`
+ * error for inputs like `<script>...</script>` while still allowing the harmless tokens listed
+ * in CONST.WHITELISTED_TAGS (`<>`, `<->`, `<br>`, etc.).
+ *
+ * @param strict - When true, uses STRICT_VALIDATE_FOR_HTML_TAG_REGEX, which also flags
+ * non-standard angle-bracket content (e.g. `<✓>`). Defaults to the non-strict variant
+ * to match FormProvider's default.
+ */
+function containsHtmlTag(value: string, strict = false): boolean {
+    if (!value) {
+        return false;
+    }
+    const tagRegex = strict ? CONST.STRICT_VALIDATE_FOR_HTML_TAG_REGEX : CONST.VALIDATE_FOR_HTML_TAG_REGEX;
+    const foundHtmlTagIndex = value.search(tagRegex);
+    const leadingSpaceIndex = value.search(CONST.VALIDATE_FOR_LEADING_SPACES_HTML_TAG_REGEX);
+
+    if (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) {
+        return false;
+    }
+
+    const matchedHtmlTags = value.match(tagRegex);
+    let isWhitelisted = CONST.WHITELISTED_TAGS.some((regex) => regex.test(value));
+    if (matchedHtmlTags) {
+        for (const htmlTag of matchedHtmlTags) {
+            isWhitelisted = CONST.WHITELISTED_TAGS.some((regex) => regex.test(htmlTag));
+            if (!isWhitelisted) {
+                break;
+            }
+        }
+    }
+
+    return !(isWhitelisted && leadingSpaceIndex === -1);
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
     getAgeRequirementError,
     isValidAddress,
+    isPOBoxOrMailDrop,
+    getInvalidAddressErrorTranslationPath,
     isValidDate,
     isValidPastDate,
     isValidSecurityCode,
@@ -779,6 +881,8 @@ export {
     isValidDebitCard,
     isValidIndustryCode,
     isValidZipCode,
+    getCountryZipRegexDetails,
+    isValidZipCodeForCountry,
     isValidPaymentZipCode,
     isRequiredFulfilled,
     getFieldRequiredErrors,
@@ -797,6 +901,7 @@ export {
     isValidTaxID,
     isValidValidateCode,
     isValidCompanyName,
+    isValidNameOnCard,
     isValidDisplayName,
     isValidLegalName,
     doesContainReservedWord,
@@ -822,4 +927,5 @@ export {
     isValidTaxIDEINNumber,
     isInvalidMerchantValue,
     isValidPIN,
+    containsHtmlTag,
 };

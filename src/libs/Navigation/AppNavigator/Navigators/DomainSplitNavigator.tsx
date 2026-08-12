@@ -1,14 +1,18 @@
-import React from 'react';
-import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList, WorkspaceNavigatorParamList} from '@libs/Navigation/types';
+
 import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const loadDomainInitialPage = () => require<ReactComponentModule>('../../../../pages/domain/DomainInitialPage').default;
 const loadDomainSamlPage = () => require<ReactComponentModule>('../../../../pages/domain/DomainSamlPage').default;

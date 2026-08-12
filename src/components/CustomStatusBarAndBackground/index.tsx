@@ -1,14 +1,19 @@
+import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
+import useTheme from '@hooks/useTheme';
+
+import {navigationRef} from '@libs/Navigation/Navigation';
+import StatusBar from '@libs/StatusBar';
+
+import type {StatusBarStyle} from '@styles/index';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import {isClosingReactNativeAppSelector} from '@selectors/HybridApp';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {interpolateColor, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
-import useTheme from '@hooks/useTheme';
-import {navigationRef} from '@libs/Navigation/Navigation';
-import StatusBar from '@libs/StatusBar';
-import type {StatusBarStyle} from '@styles/index';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import {useCustomStatusBarAndBackgroundActions, useCustomStatusBarAndBackgroundState} from './CustomStatusBarAndBackgroundContext';
 import updateGlobalBackgroundColor from './updateGlobalBackgroundColor';
 import updateStatusBarAppearance from './updateStatusBarAppearance';

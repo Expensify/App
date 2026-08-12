@@ -1,9 +1,5 @@
-import type {CONST as COMMON_CONST} from 'expensify-common';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {ConnectPolicyToAccountingIntegrationParams, UpdateQuickbooksOnlineAccountingMethodParams} from '@libs/API/parameters';
+import type {UpdateQuickbooksOnlineAccountingMethodParams} from '@libs/API/parameters';
 import type UpdateQuickbooksOnlineAutoCreateVendorParams from '@libs/API/parameters/UpdateQuickbooksOnlineAutoCreateVendorParams';
 import type UpdateQuickbooksOnlineGenericTypeParams from '@libs/API/parameters/UpdateQuickbooksOnlineGenericTypeParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -11,18 +7,31 @@ import {getCommandURL} from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Connections, QBOConnectionConfig} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 
-function getQuickbooksOnlineSetupLink(policyID: string) {
-    const params: ConnectPolicyToAccountingIntegrationParams = {policyID};
+import type {CONST as COMMON_CONST} from 'expensify-common';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
+function getQuickbooksOnlineSetupLink(policyID: string, isIntuitEnterpriseSuite = false, isSandbox = false) {
+    const params = new URLSearchParams({policyID});
+    if (isIntuitEnterpriseSuite) {
+        params.set('isIntuitEnterpriseSuite', 'true');
+    }
+    if (isSandbox) {
+        params.set('isSandbox', 'true');
+    }
     const commandURL = getCommandURL({
         command: READ_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_ONLINE,
         shouldSkipWebProxy: true,
     });
-    return commandURL + new URLSearchParams(params).toString();
+    return commandURL + params.toString();
 }
 
 function shouldShowQBOReimbursableExportDestinationAccountError(policy: OnyxEntry<Policy>): boolean {
@@ -242,6 +251,20 @@ function updateQuickbooksOnlineSyncPeople<TSettingValue extends Connections['qui
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_PEOPLE, parameters, onyxData);
 }
 
+function updateQuickbooksOnlineSyncItems<TSettingValue extends Connections['quickbooksOnline']['config']['syncItems']>(policyID: string | undefined, settingValue: TSettingValue) {
+    if (!policyID) {
+        return;
+    }
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_ITEMS, settingValue, !settingValue);
+
+    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.SYNC_ITEMS),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_ITEMS, parameters, onyxData);
+}
+
 function updateQuickbooksOnlineReimbursableExpensesAccount<TSettingValue extends Connections['quickbooksOnline']['config']['reimbursableExpensesAccount']>(
     policyID: string,
     settingValue: TSettingValue,
@@ -323,6 +346,21 @@ function updateQuickbooksOnlineNonReimbursableBillDefaultVendor<TSettingValue ex
         idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR),
     };
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, parameters, onyxData);
+}
+
+function updateQuickbooksOnlineNonReimbursableCreditCardDefaultVendor<TSettingValue extends Connections['quickbooksOnline']['config']['nonReimbursableCreditCardDefaultVendor']>(
+    policyID: string,
+    settingValue: TSettingValue,
+    oldSettingValue?: TSettingValue,
+) {
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR, settingValue, oldSettingValue);
+
+    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR, parameters, onyxData);
 }
 
 function updateQuickbooksOnlineReceivableAccount<TSettingValue extends QBOConnectionConfig['receivableAccount']>(
@@ -506,6 +544,7 @@ export {
     updateQuickbooksOnlineReimbursableExpensesAccount,
     updateQuickbooksOnlineAutoSync,
     updateQuickbooksOnlineSyncPeople,
+    updateQuickbooksOnlineSyncItems,
     updateQuickbooksOnlineReimbursementAccountID,
     updateQuickbooksOnlinePreferredExporter,
     updateQuickbooksOnlineReceivableAccount,
@@ -514,6 +553,7 @@ export {
     updateQuickbooksOnlineCollectionAccountID,
     updateQuickbooksOnlineSyncReimbursedReports,
     updateQuickbooksOnlineNonReimbursableBillDefaultVendor,
+    updateQuickbooksOnlineNonReimbursableCreditCardDefaultVendor,
     updateQuickbooksOnlineSyncTax,
     updateQuickbooksOnlineSyncClasses,
     updateQuickbooksOnlineSyncLocations,

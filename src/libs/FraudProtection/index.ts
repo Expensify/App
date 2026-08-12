@@ -1,8 +1,12 @@
-import {Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Session} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import {init, sendEvent, setAttribute, setAuthenticationData} from './GroupIBSdkBridge';
 
 let sessionID = Str.guid();
@@ -10,11 +14,26 @@ let lastSentIdentity: string | undefined;
 let cachedAccount: OnyxEntry<Account>;
 let cachedSession: OnyxEntry<Session>;
 
+// Tracks whether we've observed a signed-out state during this app lifetime. Stays false while the very first
+// session callback shows an existing authToken (restored from disk on app boot), which lets us report
+// `infiniteSession` instead of the stored `authMethod` until the user actively signs out.
+let hasObservedSignedOut = false;
+
+function getAuthenticationAttribute(): string {
+    if (!cachedSession?.authToken) {
+        return '';
+    }
+    if (!hasObservedSignedOut) {
+        return CONST.AUTH_METHOD.INFINITE_SESSION;
+    }
+    return cachedSession?.authMethod ?? '';
+}
+
 function sendAccountAttributes() {
     setAttribute('email', cachedAccount?.primaryLogin ?? '', false, true);
     setAttribute('mfa', cachedAccount?.requiresTwoFactorAuth ? '2fa_enabled' : '2fa_disabled', false, true);
     setAttribute('is_validated', cachedAccount?.validated ? 'true' : 'false', false, true);
-    setAttribute('authentication', cachedSession?.authMethod ?? '', false, true);
+    setAttribute('authentication', getAuthenticationAttribute(), false, true);
 }
 
 function trySendToFraudProtection() {
@@ -54,6 +73,10 @@ Onyx.connectWithoutView({
         const wasAuthenticated = !!(cachedSession?.authToken ?? null);
         cachedSession = session;
         const isAuthenticated = !!(session?.authToken ?? null);
+
+        if (!isAuthenticated) {
+            hasObservedSignedOut = true;
+        }
 
         if (wasAuthenticated && !isAuthenticated) {
             sessionID = Str.guid();

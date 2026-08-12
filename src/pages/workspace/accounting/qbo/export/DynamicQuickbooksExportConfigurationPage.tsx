@@ -1,35 +1,41 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {getCardSettings} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+
 import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {useRoute} from '@react-navigation/native';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT>>();
     const backTo = route?.params?.backTo;
     const policyID = policy?.id;
@@ -42,7 +48,7 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
-    const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING) && getIsTravelInvoicingEnabled(travelSettings);
+    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
 
     const shouldShowVendorMenuItems = useMemo(
         () => qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
@@ -112,6 +118,7 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
             displayName="DynamicQuickbooksExportConfigurationPage"
             headerTitle="workspace.accounting.export"
             title="workspace.qbo.exportDescription"
+            titleAlreadyTranslated={translate('workspace.qbo.exportDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             onBackButtonPress={goBack}

@@ -1,32 +1,55 @@
-import React, {useMemo} from 'react';
-import type {ColorValue} from 'react-native';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReportSearchHeader from '@components/ReportSearchHeader';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {
+    ReportSubmitToPopoverAnchor,
+    SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT,
+    useOpenReportSubmitToPopover,
+    useSearchSubmitPopoverGuard,
+} from '@components/ReportSubmitToPopoverAnchor';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
+import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
+
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+
 import {handleActionButtonPress} from '@userActions/Search';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
+
+import type {ColorValue} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+// Use the original useOnyx hook to get the real-time personal details list data from Onyx and not from the snapshot
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+
+import type {SearchListActionProps, TransactionReportGroupListItemType} from './types';
+
 import ActionCell from './ActionCell';
 import TotalCell from './TotalCell';
-import type {SearchListActionProps, TransactionReportGroupListItemType} from './types';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 type ReportListItemHeaderProps<TItem extends ListItem> = SearchListActionProps & {
@@ -94,6 +117,12 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
 
     /** Whether the down arrow is expanded */
     isExpanded?: boolean;
+
+    /** Whether the action button should be disabled */
+    shouldDisableActionPointerEvents?: boolean;
+
+    /** Parent chat report resolved from live Onyx with search snapshot fallback */
+    chatReport?: OnyxEntry<Report>;
 };
 
 function HeaderFirstRow<TItem extends ListItem>({
@@ -107,6 +136,8 @@ function HeaderFirstRow<TItem extends ListItem>({
     isIndeterminate,
     onDownArrowClick,
     isExpanded,
+    shouldDisableActionPointerEvents = false,
+    chatReport,
 }: FirstRowReportHeaderProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
     const styles = useThemeStyles();
@@ -114,6 +145,7 @@ function HeaderFirstRow<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`, {selector: isActionLoadingSelector});
+    const {isSelected} = useRowSelection(reportItem.keyForList);
 
     let total = reportItem.total ?? 0;
     if (total) {
@@ -168,7 +200,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                                     src={isExpanded ? icons.UpArrow : icons.DownArrow}
                                     fill={theme.icon}
                                     additionalStyles={!hovered && styles.opacitySemiTransparent}
-                                    small
+                                    size={CONST.ICON_SIZE.SMALL}
                                 />
                             )}
                         </PressableWithFeedback>
@@ -180,13 +212,14 @@ function HeaderFirstRow<TItem extends ListItem>({
                     <ActionCell
                         action={reportItem.action}
                         onButtonPress={handleOnButtonPress}
-                        isSelected={reportItem.isSelected}
+                        isSelected={isSelected}
                         isLoading={isActionLoading}
                         policyID={reportItem.policyID}
                         reportID={reportItem.reportID}
                         hash={reportItem.hash}
                         amount={reportItem.total}
-                        extraSmall={!isLargeScreenWidth}
+                        shouldDisablePointerEvents={shouldDisableActionPointerEvents}
+                        chatReport={chatReport}
                     />
                 </View>
             )}
@@ -194,7 +227,18 @@ function HeaderFirstRow<TItem extends ListItem>({
     );
 }
 
-function ReportListItemHeader<TItem extends ListItem>({
+function ReportListItemHeader<TItem extends ListItem>(props: ReportListItemHeaderProps<TItem>) {
+    return (
+        <ReportSubmitToPopoverAnchor
+            reportID={props.report.reportID}
+            anchorAlignment={SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}
+        >
+            <ReportListItemHeaderInner {...props} />
+        </ReportSubmitToPopoverAnchor>
+    );
+}
+
+function ReportListItemHeaderInner<TItem extends ListItem>({
     report: reportItem,
     onSelectRow,
     onCheckboxPress,
@@ -214,7 +258,8 @@ function ReportListItemHeader<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {currentSearchHash, currentSearchKey, currentSearchResults: snapshot} = useSearchStateContext();
+    const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
+    const {currentSearchResults: snapshot} = useSearchResultsContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
@@ -224,23 +269,44 @@ function ReportListItemHeader<TItem extends ListItem>({
     const snapshotPolicy = useMemo(() => {
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
     }, [snapshot, reportItem.policyID]);
+    const snapshotChatReport = useMemo(() => {
+        const chatReportID = snapshotReport?.chatReportID ?? reportItem.parentReportID;
+        return chatReportID ? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
+    }, [snapshot, snapshotReport?.chatReportID, reportItem.parentReportID]);
     const [parentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(snapshotReport?.policyID ?? reportItem.policyID)}`);
+    const [submitterLogin] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(reportItem.ownerAccountID)});
+    const [parentChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? reportItem.parentReportID)}`);
+    const chatReport = parentChatReport ?? snapshotChatReport;
+    const [chatReportActions] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? snapshotReport?.chatReportID ?? snapshotReport.parentReportID)}`,
+    );
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+
+    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID, conciergeChat} =
+        useReportPaymentContext({
+            chatReportPolicyID: chatReport?.policyID,
+        });
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
+    const {isSelected} = useRowSelection(reportItem.keyForList);
     const avatarBorderColor =
-        StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
-        theme.highlightBG;
+        StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
+
+    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
+    const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
 
     const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
         handleActionButtonPress({
+            getCurrencyDecimals,
             hash: currentSearchHash,
             item: reportItem,
             goToItem: () => onSelectRow(reportItem as unknown as TItem, event),
             snapshotReport,
             snapshotPolicy,
+            submitterLogin,
             policy: parentPolicy,
             lastPaymentMethod,
             userBillingGracePeriodEnds,
@@ -250,7 +316,24 @@ function ReportListItemHeader<TItem extends ListItem>({
             personalPolicyID,
             ownerBillingGracePeriodEnd,
             amountOwed,
+            openReportSubmitToPopover,
+            shouldDisableSearchSubmitPress,
+            consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
+            currentUserAccountID,
+            currentUserLogin,
+            introSelected,
+            betas,
+            isSelfTourViewed,
+            activePolicy,
+            chatReport,
+            chatReportPolicy,
+            searchData: snapshot?.data,
+            chatReportActions,
+            delegateEmail,
+            delegateAccountID,
+            isTrackIntentUser,
+            conciergeChat,
         });
     };
     return !isLargeScreenWidth ? (
@@ -261,18 +344,20 @@ function ReportListItemHeader<TItem extends ListItem>({
                 containerStyles={[styles.pr3, styles.mb2]}
                 stateNum={reportItem.stateNum}
                 statusNum={reportItem.statusNum}
-                isSelected={!!reportItem.isSelected}
+                isSelected={isSelected}
             />
             <HeaderFirstRow
                 report={reportItem}
                 onCheckboxPress={onCheckboxPress}
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
+                handleOnButtonPress={handleOnButtonPress}
                 avatarBorderColor={avatarBorderColor}
                 isSelectAllChecked={isSelectAllChecked}
                 isIndeterminate={isIndeterminate}
                 onDownArrowClick={onDownArrowClick}
                 isExpanded={isExpanded}
+                shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
             />
         </View>
     ) : (
@@ -288,6 +373,8 @@ function ReportListItemHeader<TItem extends ListItem>({
                 isIndeterminate={isIndeterminate}
                 onDownArrowClick={onDownArrowClick}
                 isExpanded={isExpanded}
+                shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
+                chatReport={chatReport}
             />
         </View>
     );

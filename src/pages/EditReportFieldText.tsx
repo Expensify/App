@@ -1,17 +1,21 @@
-import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {hasCircularReferences} from '@libs/Formula';
 import type {FieldList} from '@libs/Formula';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {Str} from 'expensify-common';
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 type EditReportFieldTextPageProps = {
     /** Value of the policy report field */

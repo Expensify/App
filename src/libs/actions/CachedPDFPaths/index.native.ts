@@ -1,6 +1,8 @@
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import {exists, unlink} from 'react-native-fs';
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import type {Add, Clear, ClearByKey} from './types';
 
 /*

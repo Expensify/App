@@ -5,6 +5,11 @@ type CreateAgentParams = {
     customExpensifyAvatarID?: string;
     file?: File | CustomRNImageManipulatorResult;
     prompt: string;
+    policyID?: string;
+    optimisticAccountID: string;
+    isPersonalAgent: boolean;
+    optimisticReportID: string;
+    createdReportActionID: string;
 };
 
 export default CreateAgentParams;

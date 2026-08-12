@@ -1,6 +1,3 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsOwnWorkspaceChatRef from '@hooks/useIsOwnWorkspaceChatRef';
@@ -8,19 +5,29 @@ import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDeletedParentAction} from '@libs/ReportActionsUtils';
 import {isAdminRoom, isAnnounceRoom, isGroupChat, isMoneyRequest, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isPolicyExpenseChat} from '@libs/ReportUtils';
+
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
+
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useEffect, useEffectEvent, useRef} from 'react';
+
 import useReportWasDeleted from './hooks/useReportWasDeleted';
 
 type ReportScreenRoute =
@@ -81,6 +88,7 @@ function ReportNavigateAwayHandler() {
 
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
     const {wasDeleted: reportWasDeleted, parentReportID: deletedReportParentID} = useReportWasDeleted(reportIDFromRoute, report, isOptimisticDelete, userLeavingStatus);
+    const previousReportWasDeleted = usePrevious(reportWasDeleted);
 
     // Track whether the current route is an own workspace chat. A vacation delegate split sends
     // a temporary Onyx SET that wipes the report; by the time effects fire, report is undefined
@@ -102,6 +110,15 @@ function ReportNavigateAwayHandler() {
             typeof currentRoute.params === 'object' &&
             'reportID' in currentRoute.params &&
             reportIDFromRoute === currentRoute.params.reportID;
+        // A thread open at the top of the search RHP just became empty - its parent message and last reply were both
+        // deleted, so the parent action went from a "[Deleted message]" placeholder to fully removed. Pop only that
+        // screen (any wider RHP below stays open) instead of letting the narrow-pane guard leave an empty report on
+        // screen. Scoped to this trigger so deleting an expense in the search RHP still no-ops here (the original
+        // reason for the guard below). See https://github.com/Expensify/App/issues/91603.
+        if (prevDeletedParentAction && !deletedParentAction && isFocused && isTopmostSearchReportID) {
+            Navigation.goBack();
+            return;
+        }
         // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
         // Prevent auto navigation for report in RHP
         if ((!isFocused && !isHoldScreenOpenInRHP && !isReportDetailOpenInRHP) || (!isHoldScreenOpenInRHP && isInNarrowPaneModal)) {
@@ -183,12 +200,10 @@ function ReportNavigateAwayHandler() {
 
     // Navigate on deletion
     useEffect(() => {
-        if (!reportWasDeleted) {
-            return;
-        }
-
-        // Only redirect if focused
-        if (!isFocused) {
+        // Only navigate on the transition into "deleted" (the moment the report is removed), and only if this
+        // screen is focused at that moment. A screen deleted while it was underneath (unfocused) must NOT navigate
+        // when the user later presses back and refocuses it — that re-focus is what traps the user in a navigation loop.
+        if (!reportWasDeleted || previousReportWasDeleted || !isFocused) {
             return;
         }
 
@@ -203,19 +218,24 @@ function ReportNavigateAwayHandler() {
             return;
         }
 
-        // Try to navigate to parent report if available
-        if (deletedReportParentID && !isMoneyRequestReportPendingDeletion(deletedReportParentID)) {
-            Navigation.isNavigationReady().then(() => {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(deletedReportParentID));
-            });
-            return;
-        }
-
-        // Fallback to Concierge
         Navigation.isNavigationReady().then(() => {
+            // Drop the deleted report from the split navigator stack before navigating away. Otherwise, it stays
+            // mounted underneath the destination, and tapping back refocuses it and re-triggers this effect,
+            // trapping the user in a navigation loop
+            if (Navigation.getTopmostReportId() === reportIDFromRoute) {
+                Navigation.popToSidebar();
+            }
+
+            // Try to navigate to parent report if available
+            if (deletedReportParentID && !isMoneyRequestReportPendingDeletion(deletedReportParentID)) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(deletedReportParentID));
+                return;
+            }
+
+            // Fallback to Concierge
             navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas]);
+    }, [reportWasDeleted, previousReportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, reportIDFromRoute]);
 
     return null;
 }

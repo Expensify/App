@@ -1,10 +1,12 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env bun
+import GithubUtils from '@github/libs/GithubUtils';
+
+import type {PluginConfig} from 'svgo';
+
 import * as github from '@actions/github';
 import * as fs from 'fs';
 import * as path from 'path';
-import type {PluginConfig} from 'svgo';
 import {optimize} from 'svgo';
-import GithubUtils from '@github/libs/GithubUtils';
 
 type CompressionResult = {
     filePath: string;

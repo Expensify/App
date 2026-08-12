@@ -1,6 +1,9 @@
-import React from 'react';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+
 import type WorkspacesListRowDisplayNameProps from './types';
 
 function WorkspacesListRowDisplayName({isDeleted, ownerName}: WorkspacesListRowDisplayNameProps) {
@@ -9,7 +12,7 @@ function WorkspacesListRowDisplayName({isDeleted, ownerName}: WorkspacesListRowD
     return (
         <Text
             numberOfLines={1}
-            style={[styles.labelStrong, isDeleted ? styles.offlineFeedbackDeleted : {}]}
+            style={[isDeleted ? styles.offlineFeedbackDeleted : {}]}
         >
             {ownerName}
         </Text>

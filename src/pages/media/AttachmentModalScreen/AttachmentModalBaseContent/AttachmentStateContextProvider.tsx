@@ -1,5 +1,6 @@
-import React, {createContext, useCallback, useMemo, useState} from 'react';
 import type {AttachmentSource} from '@components/Attachments/types';
+
+import React, {createContext, useCallback, useMemo, useState} from 'react';
 
 function convertSourceToString(source: AttachmentSource) {
     if (typeof source === 'string' || typeof source === 'number') {
@@ -47,7 +48,7 @@ function AttachmentStateContextProvider({children}: Props) {
         setAttachmentLoadedState({});
     }, []);
 
-    const isAttachmentLoaded = useCallback((key: AttachmentSource) => attachmentLoaded?.[convertSourceToString(key)] !== false, [attachmentLoaded]);
+    const isAttachmentLoaded = useCallback((key: AttachmentSource) => attachmentLoaded?.[convertSourceToString(key)] === true, [attachmentLoaded]);
     const value = useMemo(() => ({setAttachmentLoaded, clearAttachmentLoaded, isAttachmentLoaded}), [setAttachmentLoaded, clearAttachmentLoaded, isAttachmentLoaded]);
     return <AttachmentStateContext.Provider value={value}>{children}</AttachmentStateContext.Provider>;
 }

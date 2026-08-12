@@ -1,17 +1,22 @@
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import Tooltip from '@components/Tooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import colors from '@styles/theme/colors';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type LocationErrorMessageProps from './types';
 
 type BaseLocationErrorMessageProps = LocationErrorMessageProps & {

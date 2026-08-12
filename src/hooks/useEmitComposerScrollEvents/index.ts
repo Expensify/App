@@ -1,6 +1,7 @@
+import CONST from '@src/CONST';
+
 import {useRef} from 'react';
 import {DeviceEventEmitter} from 'react-native';
-import CONST from '@src/CONST';
 
 type UseEmitComposerScrollEventsOptions = {
     enabled?: boolean;

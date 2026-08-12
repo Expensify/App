@@ -1,10 +1,12 @@
+import type CONST from '@src/CONST';
+import type {AnyOnyxUpdatesFromServer, ReportUserIsTyping} from '@src/types/onyx';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
 import type {PusherChannel} from '@pusher/pusher-websocket-react-native';
 import type PusherClass from 'pusher-js/with-encryption';
 import type {Channel, ChannelAuthorizerGenerator} from 'pusher-js/with-encryption';
 import type {LiteralUnion, ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
-import type {AnyOnyxUpdatesFromServer, ReportUserIsTyping} from '@src/types/onyx';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
 import type TYPE from './EventType';
 
 type SocketEventName = LiteralUnion<'error' | 'connected' | 'disconnected' | 'state_change', string>;
@@ -37,6 +39,12 @@ type ConciergeReasoningEvent = {
     reasoning: string;
     agentZeroRequestID: string;
     loopCount: number;
+    /**
+     * Persona accountID the reasoning should be attributed to — Concierge for Concierge runs,
+     * the custom agent's accountID for agent runs. Optional for backward compatibility; absent
+     * payloads default to Concierge.
+     */
+    actorAccountID?: number;
 };
 
 type ConciergeDraftEvent = {
@@ -59,11 +67,16 @@ type ConciergeDraftEvent = {
     actorAccountID?: number;
 };
 
+type ConciergeDraftEventsEvent = {
+    events: ConciergeDraftEvent[];
+};
+
 type PusherEventMap = {
     [TYPE.USER_IS_TYPING]: UserIsTypingEvent;
     [TYPE.USER_IS_LEAVING_ROOM]: UserIsLeavingRoomEvent;
     [TYPE.PONG]: PingPongEvent;
     [TYPE.CONCIERGE_REASONING]: ConciergeReasoningEvent;
+    [TYPE.CONCIERGE_DRAFT_EVENTS]: ConciergeDraftEventsEvent;
     [TYPE.CONCIERGE_DRAFT_STARTED]: ConciergeDraftEvent;
     [TYPE.CONCIERGE_DRAFT_UPDATED]: ConciergeDraftEvent;
     [TYPE.CONCIERGE_DRAFT_COMPLETED]: ConciergeDraftEvent;
@@ -128,6 +141,7 @@ export type {
     UserIsLeavingRoomEvent,
     PingPongEvent,
     ConciergeDraftEvent,
+    ConciergeDraftEventsEvent,
     EventData,
     EventCallbackError,
     ChunkedDataEvents,

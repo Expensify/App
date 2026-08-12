@@ -1,8 +1,10 @@
-import React, {useRef} from 'react';
-import type {ForwardedRef} from 'react';
-import {Button, View} from 'react-native';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle, InteractiveStepSubHeaderProps} from '@components/InteractiveStepSubHeader';
+
+import type {ForwardedRef} from 'react';
+
+import React, {useRef} from 'react';
+import {Button, View} from 'react-native';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -43,12 +45,14 @@ const Default: StoryType = Template.bind({});
 Default.args = {
     stepNames: ['Initial', 'Step 1', 'Step 2', 'Step 3'],
     startStepIndex: 1,
+    currentStepAccessibilityDescription: 'Step 1',
     onStepSelected: () => {},
 };
 
 BaseInteractiveStepSubHeader.args = {
     stepNames: ['Initial', 'Step 1', 'Step 2', 'Step 3', 'Confirmation'],
     startStepIndex: 0,
+    currentStepAccessibilityDescription: 'Initial',
     onStepSelected: () => {},
 };
 

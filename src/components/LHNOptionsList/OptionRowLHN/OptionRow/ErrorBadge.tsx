@@ -1,13 +1,18 @@
-import React from 'react';
-import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
+import getActionBadgeText from '@components/utils/getActionBadgeText';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {OptionData} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ErrorBadgeProps = {
     /** Brick road indicator for the row. The badge only renders when this equals ERROR (RBR). */
@@ -15,9 +20,12 @@ type ErrorBadgeProps = {
 
     /** Action badge key used to derive the badge label. */
     actionBadge: OptionData['actionBadge'];
+
+    /** Whether to show the "Mark as Done" state for this row. */
+    isMarkAsDone?: boolean;
 };
 
-function ErrorBadge({brickRoadIndicator, actionBadge}: ErrorBadgeProps) {
+function ErrorBadge({brickRoadIndicator, actionBadge, isMarkAsDone}: ErrorBadgeProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -27,7 +35,7 @@ function ErrorBadge({brickRoadIndicator, actionBadge}: ErrorBadgeProps) {
         return null;
     }
 
-    const actionBadgeText = actionBadge ? translate(`common.actionBadge.${actionBadge}`) : '';
+    const actionBadgeText = getActionBadgeText(actionBadge, translate, isMarkAsDone);
 
     return (
         <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>

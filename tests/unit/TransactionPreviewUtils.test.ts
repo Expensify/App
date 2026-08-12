@@ -1,5 +1,4 @@
-import Onyx from 'react-native-onyx';
-import {convertAmountToDisplayString, convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
     compareByRBR,
@@ -11,15 +10,21 @@ import {
     transactionHasRBR,
 } from '@libs/TransactionPreviewUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
-import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, Transaction} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
+import {convertToDisplayString, getCurrencyDecimalsLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const basicProps = {
-    iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD'),
+    dateFnsLocale: undefined,
+    iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD', getCurrencyDecimalsLocal),
+    iouReportOwnerLogin: undefined,
     policy: undefined,
     transaction: buildOptimisticTransaction({
         transactionParams: {
@@ -34,6 +39,7 @@ const basicProps = {
     }),
     translate: jest.fn().mockImplementation((key: string) => key),
     action: buildOptimisticIOUReportAction({
+        getCurrencyDecimals: getCurrencyDecimalsLocal,
         type: 'create',
         amount: 100,
         currency: 'USD',
@@ -231,11 +237,16 @@ describe('TransactionPreviewUtils', () => {
         it('should include "Approved" in the preview when the report is approved, regardless of whether RBR is shown', () => {
             const functionArgs = {
                 ...basicProps,
-                iouReport: {...basicProps.iouReport, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
+                iouReport: {
+                    ...basicProps.iouReport,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                },
+                policy: createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                 shouldShowRBR: true,
                 originalTransaction: undefined,
             };
-            jest.spyOn(ReportUtils, 'isPaidGroupPolicyExpenseReport').mockReturnValue(true);
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
 
             expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.approved'});
@@ -589,12 +600,17 @@ describe('TransactionPreviewUtils', () => {
         const reviewRequired = {translationPath: 'violations.reviewRequired'};
         const longMessage = 'x'.repeat(CONST.REPORT_VIOLATIONS.RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW + 1);
 
-        const receiptRequiredViolation = {name: CONST.VIOLATIONS.RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {formattedLimit: '$25.00'}};
+        const receiptRequiredViolation = {
+            name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
+            data: {amount: 2500, currency: CONST.CURRENCY.USD},
+        };
         const itemizedReceiptRequiredViolation = {
             name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED,
             type: CONST.VIOLATION_TYPES.VIOLATION,
             showInReview: true,
-            data: {formattedLimit: '$75.00'},
+            data: {amount: 7500, currency: CONST.CURRENCY.USD},
         };
 
         const mockViolations = (count: number) =>
@@ -641,6 +657,26 @@ describe('TransactionPreviewUtils', () => {
         test('returns text when only receiptRequired exists', () => {
             expect(getViolationTranslatePath([receiptRequiredViolation], false, message, false, false)).toEqual({text: message});
         });
+
+        test('returns text for customUnitRateOutOfDateRange when shouldShowOnlyViolations is true', () => {
+            const rateDateViolation = {
+                name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                type: CONST.VIOLATION_TYPES.WARNING,
+                showInReview: true,
+                data: {startDate: '2025-01-01', endDate: '2025-12-31'},
+            };
+
+            expect(getViolationTranslatePath([rateDateViolation], false, message, false, true)).toEqual({text: message});
+        });
+
+        test('filters other warning violations when shouldShowOnlyViolations is true', () => {
+            const warnings = [
+                {name: CONST.VIOLATIONS.MODIFIED_AMOUNT, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true},
+                {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true},
+            ];
+
+            expect(getViolationTranslatePath(warnings, false, message, false, true)).toEqual({text: message});
+        });
     });
 
     describe('getReviewNavigationRoute', () => {
@@ -665,7 +701,7 @@ describe('TransactionPreviewUtils', () => {
             });
 
             const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], undefined, undefined, {}, fakeReport);
-            expect(route).toContain('duplicates/confirm');
+            expect(route).toContain('backRoute/confirm');
         });
 
         it('should navigate to merchant review page when merchants differ', () => {
@@ -683,7 +719,7 @@ describe('TransactionPreviewUtils', () => {
             };
 
             const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], undefined, undefined, {}, fakeReport);
-            expect(route).toContain('duplicates/review/merchant');
+            expect(route).toContain('backRoute/merchant');
         });
 
         it('should navigate to tag review page when tags differ with single-level policyTags', () => {
@@ -714,7 +750,7 @@ describe('TransactionPreviewUtils', () => {
 
             const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
             const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], fakePolicy, undefined, policyTags, fakeReport);
-            expect(route).toContain('duplicates/review/tag');
+            expect(route).toContain('backRoute/transaction-duplicate-tag');
         });
 
         it('should skip tag review when policyTags filters out disabled tags', () => {
@@ -746,7 +782,7 @@ describe('TransactionPreviewUtils', () => {
             const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
             const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], fakePolicy, undefined, policyTags, fakeReport);
             // Since Marketing is disabled, only 1 enabled tag available, so tag review is skipped
-            expect(route).toContain('duplicates/confirm');
+            expect(route).toContain('backRoute/confirm');
         });
     });
 
@@ -797,28 +833,28 @@ describe('TransactionPreviewUtils', () => {
         const rbrPolicy = basicProps.policy;
 
         it('should return false for a clean transaction with no violations', () => {
-            expect(transactionHasRBR(basicProps.transaction, [], rbrEmail, rbrAccountID, rbrReport, rbrPolicy)).toBe(false);
+            expect(transactionHasRBR(basicProps.transaction, [], rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy)).toBe(false);
         });
 
         it('should return true for a transaction with violation-type violations', () => {
             const violations = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
-            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, rbrReport, rbrPolicy)).toBe(true);
+            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy)).toBe(true);
         });
 
         it('should return true for a transaction with warning-type violations', () => {
             const violations = [{name: CONST.VIOLATIONS.CUSTOM_RULES, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}];
-            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, rbrReport, rbrPolicy)).toBe(true);
+            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy)).toBe(true);
         });
 
         it('should return true for a transaction on hold', () => {
             const heldTransaction = {...basicProps.transaction, comment: {hold: 'true'}};
-            expect(transactionHasRBR(heldTransaction, [], rbrEmail, rbrAccountID, rbrReport, rbrPolicy)).toBe(true);
+            expect(transactionHasRBR(heldTransaction, [], rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy)).toBe(true);
         });
 
         it('should return true for a transaction with missing merchant on an expense report', () => {
             const expenseReport = {...basicProps.iouReport, type: CONST.REPORT.TYPE.EXPENSE};
             const transactionMissingMerchant = {...basicProps.transaction, merchant: '', modifiedMerchant: '', created: '2024-01-01'};
-            expect(transactionHasRBR(transactionMissingMerchant, [], rbrEmail, rbrAccountID, expenseReport, rbrPolicy)).toBe(true);
+            expect(transactionHasRBR(transactionMissingMerchant, [], rbrEmail, rbrAccountID, expenseReport, undefined, rbrPolicy)).toBe(true);
         });
 
         it('should return true for a transaction with receipt error', () => {
@@ -834,16 +870,16 @@ describe('TransactionPreviewUtils', () => {
                     },
                 },
             };
-            expect(transactionHasRBR(transactionWithReceiptError, [], rbrEmail, rbrAccountID, rbrReport, rbrPolicy)).toBe(true);
+            expect(transactionHasRBR(transactionWithReceiptError, [], rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy)).toBe(true);
         });
 
         it('should return false for undefined transaction', () => {
-            expect(transactionHasRBR(undefined, [], rbrEmail, rbrAccountID, rbrReport, rbrPolicy)).toBe(false);
+            expect(transactionHasRBR(undefined, [], rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy)).toBe(false);
         });
 
         it('should return false for notice-type violations only', () => {
             const violations = [{name: CONST.VIOLATIONS.CUSTOM_RULES, type: CONST.VIOLATION_TYPES.NOTICE, showInReview: true}];
-            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, rbrReport, rbrPolicy)).toBe(false);
+            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy)).toBe(false);
         });
 
         it('should return false for dismissed violation-type violations', () => {
@@ -858,7 +894,7 @@ describe('TransactionPreviewUtils', () => {
                     },
                 },
             };
-            expect(transactionHasRBR(transactionWithDismissal, violations, userEmail, rbrAccountID, rbrReport, rbrPolicy)).toBe(false);
+            expect(transactionHasRBR(transactionWithDismissal, violations, userEmail, rbrAccountID, rbrReport, undefined, rbrPolicy)).toBe(false);
         });
 
         it('should return false for held transaction on a fully settled report', async () => {
@@ -869,7 +905,7 @@ describe('TransactionPreviewUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${settledReport.reportID}`, settledReport);
             await waitForBatchedUpdates();
             const heldTransaction = {...basicProps.transaction, comment: {hold: 'true'}};
-            expect(transactionHasRBR(heldTransaction, [], rbrEmail, rbrAccountID, settledReport, rbrPolicy)).toBe(false);
+            expect(transactionHasRBR(heldTransaction, [], rbrEmail, rbrAccountID, settledReport, undefined, rbrPolicy)).toBe(false);
         });
 
         it('should return false for held transaction on a fully approved report', () => {
@@ -879,7 +915,7 @@ describe('TransactionPreviewUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             };
             const heldTransaction = {...basicProps.transaction, comment: {hold: 'true'}};
-            expect(transactionHasRBR(heldTransaction, [], rbrEmail, rbrAccountID, approvedReport, rbrPolicy)).toBe(false);
+            expect(transactionHasRBR(heldTransaction, [], rbrEmail, rbrAccountID, approvedReport, undefined, rbrPolicy)).toBe(false);
         });
 
         it('should return true for notice-type violations on a paid group policy', async () => {
@@ -895,19 +931,20 @@ describe('TransactionPreviewUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${paidGroupPolicy.id}`, paidGroupPolicy);
             await waitForBatchedUpdates();
             const violations = [{name: CONST.VIOLATIONS.CUSTOM_RULES, type: CONST.VIOLATION_TYPES.NOTICE, showInReview: true}];
-            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, expenseReport, paidGroupPolicy)).toBe(true);
+            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, expenseReport, undefined, paidGroupPolicy)).toBe(true);
         });
 
         it('should return true for a distance request with MODIFIED_AMOUNT violation', () => {
             const distanceTransaction = {
                 ...basicProps.transaction,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {customUnitRateID: 'rate1', name: CONST.CUSTOM_UNITS.NAME_DISTANCE},
                 },
             };
             const violations = [{name: CONST.VIOLATIONS.MODIFIED_AMOUNT, type: CONST.VIOLATION_TYPES.NOTICE, showInReview: true}];
-            expect(transactionHasRBR(distanceTransaction, violations, rbrEmail, rbrAccountID, rbrReport, rbrPolicy)).toBe(true);
+            expect(transactionHasRBR(distanceTransaction, violations, rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy)).toBe(true);
         });
 
         it('should return true when there are report action errors for the transaction', () => {
@@ -922,7 +959,7 @@ describe('TransactionPreviewUtils', () => {
                     pendingAction: null,
                 },
             } as unknown as ReportActions;
-            expect(transactionHasRBR(basicProps.transaction, [], rbrEmail, rbrAccountID, rbrReport, rbrPolicy, reportActionsWithErrors)).toBe(true);
+            expect(transactionHasRBR(basicProps.transaction, [], rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy, reportActionsWithErrors)).toBe(true);
         });
 
         it('should return true when policy has DEW and there is a submit failure', () => {
@@ -940,12 +977,13 @@ describe('TransactionPreviewUtils', () => {
                     pendingAction: null,
                 },
             } as unknown as ReportActions;
-            expect(transactionHasRBR(basicProps.transaction, [], rbrEmail, rbrAccountID, rbrReport, dewPolicy, dewReportActions)).toBe(true);
+            expect(transactionHasRBR(basicProps.transaction, [], rbrEmail, rbrAccountID, rbrReport, undefined, dewPolicy, dewReportActions)).toBe(true);
         });
 
         it('should return false for a distance request with missing merchant (guarded by hasMissingSmartscanFields)', () => {
             const distanceTransaction = {
                 ...basicProps.transaction,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 merchant: '',
                 modifiedMerchant: '',
                 comment: {
@@ -954,7 +992,7 @@ describe('TransactionPreviewUtils', () => {
                 },
             };
             const expenseReport = {...basicProps.iouReport, type: CONST.REPORT.TYPE.EXPENSE};
-            expect(transactionHasRBR(distanceTransaction, [], rbrEmail, rbrAccountID, expenseReport, rbrPolicy)).toBe(false);
+            expect(transactionHasRBR(distanceTransaction, [], rbrEmail, rbrAccountID, expenseReport, undefined, rbrPolicy)).toBe(false);
         });
 
         it('should return false for a scanning receipt with missing fields (guarded by hasMissingSmartscanFields)', () => {
@@ -966,7 +1004,7 @@ describe('TransactionPreviewUtils', () => {
                 created: '2024-01-01',
             };
             const expenseReport = {...basicProps.iouReport, type: CONST.REPORT.TYPE.EXPENSE};
-            expect(transactionHasRBR(scanningTransaction, [], rbrEmail, rbrAccountID, expenseReport, rbrPolicy)).toBe(false);
+            expect(transactionHasRBR(scanningTransaction, [], rbrEmail, rbrAccountID, expenseReport, undefined, rbrPolicy)).toBe(false);
         });
     });
 
@@ -981,20 +1019,20 @@ describe('TransactionPreviewUtils', () => {
 
         it('should return 0 when both transactions have RBR', () => {
             const secondRbrTransaction = {...basicProps.transaction, transactionID: 'rbr_txn_2', comment: {hold: 'true'}};
-            expect(compareByRBR(rbrTransaction, secondRbrTransaction, undefined, cbrEmail, cbrAccountID, cbrReport, cbrPolicy)).toBe(0);
+            expect(compareByRBR(rbrTransaction, secondRbrTransaction, undefined, cbrEmail, cbrAccountID, cbrReport, undefined, cbrPolicy)).toBe(0);
         });
 
         it('should return 0 when neither transaction has RBR', () => {
             const secondCleanTransaction = {...basicProps.transaction, transactionID: 'clean_txn_2'};
-            expect(compareByRBR(cleanTransaction, secondCleanTransaction, undefined, cbrEmail, cbrAccountID, cbrReport, cbrPolicy)).toBe(0);
+            expect(compareByRBR(cleanTransaction, secondCleanTransaction, undefined, cbrEmail, cbrAccountID, cbrReport, undefined, cbrPolicy)).toBe(0);
         });
 
         it('should return -1 when only the first transaction has RBR', () => {
-            expect(compareByRBR(rbrTransaction, cleanTransaction, undefined, cbrEmail, cbrAccountID, cbrReport, cbrPolicy)).toBe(-1);
+            expect(compareByRBR(rbrTransaction, cleanTransaction, undefined, cbrEmail, cbrAccountID, cbrReport, undefined, cbrPolicy)).toBe(-1);
         });
 
         it('should return 1 when only the second transaction has RBR', () => {
-            expect(compareByRBR(cleanTransaction, rbrTransaction, undefined, cbrEmail, cbrAccountID, cbrReport, cbrPolicy)).toBe(1);
+            expect(compareByRBR(cleanTransaction, rbrTransaction, undefined, cbrEmail, cbrAccountID, cbrReport, undefined, cbrPolicy)).toBe(1);
         });
     });
 });

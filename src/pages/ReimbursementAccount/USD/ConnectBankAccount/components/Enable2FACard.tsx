@@ -1,15 +1,18 @@
-import React from 'react';
-import {View} from 'react-native';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
+
 import Navigation from '@navigation/Navigation';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function Enable2FACard() {
     const styles = useThemeStyles();

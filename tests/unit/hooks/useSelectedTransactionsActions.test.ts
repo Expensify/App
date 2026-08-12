@@ -1,17 +1,26 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SelectedTransactions} from '@components/Search/types';
+
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
+
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import initSplitExpense from '@libs/actions/SplitExpenses';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ReportAction, Session} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
@@ -25,7 +34,31 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
-    getExportTemplates: jest.fn(() => []),
+    // Mirror the real getExportTemplates: templates are returned pre-grouped, and the basic export (CSV download) template
+    // is only included in the default group when includeBasicExport is true
+    getExportTemplates: jest.fn(
+        (
+            _integrations: unknown,
+            _layouts: unknown,
+            translate: (key: string) => string,
+            _localeCompare: unknown,
+            _policy: unknown,
+            _includeReportLevelExport: unknown,
+            includeBasicExport = false,
+        ) => ({
+            customTemplates: [],
+            defaultTemplates: includeBasicExport
+                ? [
+                      {
+                          templateName: 'downloadCSV',
+                          name: translate('export.basicExport'),
+                          type: 'integrations',
+                          description: '',
+                      },
+                  ]
+                : [],
+        }),
+    ),
 }));
 
 jest.mock('@libs/actions/SplitExpenses.ts', () => ({
@@ -71,12 +104,13 @@ const mockSelectedTransactions: SelectedTransactions = {};
 const mockCurrentSearchHash = 12345;
 
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchStateContext: () => ({
+    useSearchQueryContext: () => ({currentSearchHash: mockCurrentSearchHash}),
+    useSearchResultsContext: () => ({currentSearchResults: undefined}),
+    useSearchSelectionContext: () => ({
         selectedTransactionIDs: mockSelectedTransactionIDs,
-        currentSearchHash: mockCurrentSearchHash,
         selectedTransactions: mockSelectedTransactions,
     }),
-    useSearchActionsContext: () => ({
+    useSearchSelectionActions: () => ({
         clearSelectedTransactions: mockClearSelectedTransactions,
     }),
 }));
@@ -140,6 +174,8 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     })),
 }));
 
+const renderHookWithProvider: typeof renderHook = (callback, options) => renderHook(callback, {...options, wrapper: OnyxListItemProvider});
+
 describe('useSelectedTransactionsActions', () => {
     const mockBeginExportWithTemplate = jest.fn();
     const mockOnExportFailed = jest.fn();
@@ -171,7 +207,7 @@ describe('useSelectedTransactionsActions', () => {
         const report = createRandomReport(1, undefined);
         const reportActions: ReportAction[] = [];
 
-        const {result} = renderHook(() =>
+        const {result} = renderHookWithProvider(() =>
             useSelectedTransactionsActions({
                 report,
                 reportActions,
@@ -195,7 +231,7 @@ describe('useSelectedTransactionsActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
-        const {result} = renderHook(() =>
+        const {result} = renderHookWithProvider(() =>
             useSelectedTransactionsActions({
                 report,
                 reportActions,
@@ -234,7 +270,7 @@ describe('useSelectedTransactionsActions', () => {
 
         jest.spyOn(require('@libs/ReportUtils'), 'canEditMultipleTransactions').mockReturnValue(true);
 
-        const {result} = renderHook(() =>
+        const {result} = renderHookWithProvider(() =>
             useSelectedTransactionsActions({
                 report,
                 reportActions,
@@ -267,7 +303,7 @@ describe('useSelectedTransactionsActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
-        const {result} = renderHook(() =>
+        const {result} = renderHookWithProvider(() =>
             useSelectedTransactionsActions({
                 report,
                 reportActions,
@@ -325,7 +361,7 @@ describe('useSelectedTransactionsActions', () => {
         // Mock offline status by changing the mock variable
         mockIsOffline = true;
 
-        const {result} = renderHook(() =>
+        const {result} = renderHookWithProvider(() =>
             useSelectedTransactionsActions({
                 report,
                 reportActions,
@@ -357,8 +393,8 @@ describe('useSelectedTransactionsActions', () => {
                 reportActionID: 'action1',
                 actorAccountID: 1,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -377,7 +413,7 @@ describe('useSelectedTransactionsActions', () => {
         jest.spyOn(require('@libs/ReportActionsUtils'), 'isDeletedAction').mockReturnValue(false);
         jest.spyOn(require('@libs/ReportActionsUtils'), 'getIOUActionForTransactionID').mockReturnValue(reportActions.at(0) as OnyxEntry<ReportAction>);
 
-        const {result} = renderHook(() =>
+        const {result} = renderHookWithProvider(() =>
             useSelectedTransactionsActions({
                 report,
                 reportActions,
@@ -408,7 +444,7 @@ describe('useSelectedTransactionsActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
-        const {result} = renderHook(() =>
+        const {result} = renderHookWithProvider(() =>
             useSelectedTransactionsActions({
                 report,
                 reportActions,
@@ -437,8 +473,8 @@ describe('useSelectedTransactionsActions', () => {
                 reportActionID: 'action1',
                 actorAccountID: 1,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -459,7 +495,7 @@ describe('useSelectedTransactionsActions', () => {
         jest.spyOn(require('@libs/ReportActionsUtils'), 'isDeletedAction').mockReturnValue(false);
         jest.spyOn(require('@libs/ReportActionsUtils'), 'getIOUActionForTransactionID').mockReturnValue(reportActions.at(0) as OnyxEntry<ReportAction>);
 
-        const {result} = renderHook(() =>
+        const {result} = renderHookWithProvider(() =>
             useSelectedTransactionsActions({
                 report,
                 reportActions,
@@ -496,7 +532,7 @@ describe('useSelectedTransactionsActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
-        const {result} = renderHook(() =>
+        const {result} = renderHookWithProvider(() =>
             useSelectedTransactionsActions({
                 report,
                 reportActions,
@@ -519,7 +555,7 @@ describe('useSelectedTransactionsActions', () => {
         const report = createRandomReport(1, undefined);
         const reportActions: ReportAction[] = [];
 
-        const {result} = renderHook(() =>
+        const {result} = renderHookWithProvider(() =>
             useSelectedTransactionsActions({
                 report,
                 reportActions,
@@ -550,8 +586,8 @@ describe('useSelectedTransactionsActions', () => {
                 ...createRandomReportAction(1),
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -570,7 +606,7 @@ describe('useSelectedTransactionsActions', () => {
             canUnholdRequest: false,
         });
 
-        const {result} = renderHook(() =>
+        const {result} = renderHookWithProvider(() =>
             useSelectedTransactionsActions({
                 report,
                 reportActions,
@@ -598,8 +634,8 @@ describe('useSelectedTransactionsActions', () => {
                 ...createRandomReportAction(1),
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -618,7 +654,7 @@ describe('useSelectedTransactionsActions', () => {
             canUnholdRequest: false,
         });
 
-        const {result} = renderHook(() =>
+        const {result} = renderHookWithProvider(() =>
             useSelectedTransactionsActions({
                 report,
                 reportActions,
@@ -634,7 +670,7 @@ describe('useSelectedTransactionsActions', () => {
         const holdOption = result.current.options.find((option) => option.value === 'hold');
         holdOption?.onSelected?.();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.getRoute({reportID: report.reportID}));
+        expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.HOLD_TRANSACTIONS.path));
     });
 
     it('should show unhold option and handle unhold action', async () => {
@@ -647,8 +683,8 @@ describe('useSelectedTransactionsActions', () => {
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 childReportID: 'child123',
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -668,7 +704,7 @@ describe('useSelectedTransactionsActions', () => {
         });
         jest.spyOn(require('@libs/ReportActionsUtils'), 'getIOUActionForTransactionID').mockReturnValue(reportActions.at(0) as OnyxEntry<ReportAction>);
 
-        const {result} = renderHook(() =>
+        const {result} = renderHookWithProvider(() =>
             useSelectedTransactionsActions({
                 report,
                 reportActions,
@@ -687,7 +723,7 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, false, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID);
+        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, false, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID, undefined, false, undefined);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
@@ -701,8 +737,8 @@ describe('useSelectedTransactionsActions', () => {
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 childReportID: 'child123',
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -723,7 +759,7 @@ describe('useSelectedTransactionsActions', () => {
         });
         jest.spyOn(require('@libs/ReportActionsUtils'), 'getIOUActionForTransactionID').mockReturnValue(reportActions.at(0) as OnyxEntry<ReportAction>);
 
-        const {result} = renderHook(() =>
+        const {result} = renderHookWithProvider(() =>
             useSelectedTransactionsActions({
                 report,
                 reportActions,
@@ -741,7 +777,7 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, true, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID);
+        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, true, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID, undefined, false, undefined);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
@@ -754,8 +790,8 @@ describe('useSelectedTransactionsActions', () => {
                 ...createRandomReportAction(1),
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -772,7 +808,7 @@ describe('useSelectedTransactionsActions', () => {
         jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
         jest.spyOn(require('@libs/ReportUtils'), 'canUserPerformWriteAction').mockReturnValue(true);
 
-        const {result} = renderHook(() =>
+        const {result} = renderHookWithProvider(() =>
             useSelectedTransactionsActions({
                 report,
                 reportActions,
@@ -802,8 +838,8 @@ describe('useSelectedTransactionsActions', () => {
                 ...createRandomReportAction(1),
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -820,7 +856,7 @@ describe('useSelectedTransactionsActions', () => {
         const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
         jest.spyOn(require('@libs/ReportUtils'), 'canUserPerformWriteAction').mockReturnValue(true);
 
-        const {result} = renderHook(() =>
+        const {result} = renderHookWithProvider(() =>
             useSelectedTransactionsActions({
                 report,
                 reportActions,
@@ -878,7 +914,7 @@ describe('useSelectedTransactionsActions', () => {
 
         jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isSplitAction').mockReturnValue(true);
 
-        const {result} = renderHook(() =>
+        const {result} = renderHookWithProvider(() =>
             useSelectedTransactionsActions({
                 report,
                 reportActions,
@@ -924,7 +960,7 @@ describe('useSelectedTransactionsActions', () => {
         jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isMergeActionForSelectedTransactions').mockReturnValue(true);
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
-        const {result} = renderHook(() =>
+        const {result} = renderHookWithProvider(() =>
             useSelectedTransactionsActions({
                 report,
                 reportActions,
@@ -948,6 +984,17 @@ describe('useSelectedTransactionsActions', () => {
 
         mergeOption?.onSelected?.();
 
-        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, mockGetCurrencyDecimals, [], false, false, undefined);
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(
+            transaction.transactionID,
+            [transaction],
+            mockLocalCompare,
+            mockGetCurrencyDecimals,
+            [],
+            false,
+            false,
+            undefined,
+            CURRENT_USER_ACCOUNT_ID,
+            undefined,
+        );
     });
 });

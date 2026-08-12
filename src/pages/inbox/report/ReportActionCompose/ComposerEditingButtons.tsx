@@ -1,17 +1,16 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
-import {useComposerEditActions} from './ComposerContext';
+
+import {useComposerEditActions, useComposerState} from './ComposerContext';
 import ComposerExpandCollapseButton from './ComposerExpandCollapseButton';
 import MessageEditCancelButton from './MessageEditCancelButton';
 
-type ComposerEditingButtonsProps = {
-    /** The report ID */
-    reportID: string;
-};
-
-function ComposerEditingButtons({reportID}: ComposerEditingButtonsProps) {
+function ComposerEditingButtons() {
+    const {reportID} = useComposerState();
     const styles = useThemeStyles();
 
     const {deleteDraft} = useComposerEditActions();

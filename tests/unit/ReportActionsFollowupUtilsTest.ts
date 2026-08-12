@@ -1,7 +1,9 @@
+import type {ReportAction} from '../../src/types/onyx';
+
 import CONST from '../../src/CONST';
 import {containsActionableFollowUps, parseFollowupsFromHtml} from '../../src/libs/ReportActionFollowupUtils';
 import {stripFollowupListFromHtml} from '../../src/libs/ReportActionsUtils';
-import type {ReportAction} from '../../src/types/onyx';
+import createMock from '../utils/createMock';
 
 describe('ReportActionsFollowupUtils', () => {
     describe('parseFollowupsFromHtml', () => {
@@ -160,51 +162,51 @@ describe('ReportActionsFollowupUtils', () => {
         });
 
         it('should return false for non-ADD_COMMENT action types', () => {
-            const action = {
+            const action = createMock<ReportAction>({
                 reportActionID: '123',
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                 message: [{html: '<followup-list><followup><followup-text>Question</followup-text></followup></followup-list>', text: '', type: 'COMMENT'}],
-            } as ReportAction;
+            });
 
             expect(containsActionableFollowUps(action)).toBe(false);
         });
 
         it('should return false for ADD_COMMENT without message html', () => {
-            const action = {
+            const action = createMock<ReportAction>({
                 reportActionID: '123',
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 message: [{text: 'Just text', type: 'COMMENT'}],
-            } as ReportAction;
+            });
 
             expect(containsActionableFollowUps(action)).toBe(false);
         });
 
         it('should return false for ADD_COMMENT without followup-list', () => {
-            const action = {
+            const action = createMock<ReportAction>({
                 reportActionID: '123',
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 message: [{html: '<p>Regular message</p>', text: 'Regular message', type: 'COMMENT'}],
-            } as ReportAction;
+            });
 
             expect(containsActionableFollowUps(action)).toBe(false);
         });
 
         it('should return false for ADD_COMMENT with resolved followup-list (selected attribute)', () => {
-            const action = {
+            const action = createMock<ReportAction>({
                 reportActionID: '123',
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 message: [{html: '<p>Message</p><followup-list selected><followup><followup-text>Question</followup-text></followup></followup-list>', text: 'Message', type: 'COMMENT'}],
-            } as ReportAction;
+            });
 
             expect(containsActionableFollowUps(action)).toBe(false);
         });
 
         it('should return true for ADD_COMMENT with unresolved followup-list', () => {
-            const action = {
+            const action = createMock<ReportAction>({
                 reportActionID: '123',
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 message: [{html: '<p>Message</p><followup-list><followup><followup-text>Question</followup-text></followup></followup-list>', text: 'Message', type: 'COMMENT'}],
-            } as ReportAction;
+            });
 
             expect(containsActionableFollowUps(action)).toBe(true);
         });

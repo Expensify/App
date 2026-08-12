@@ -2,6 +2,7 @@ import CONST from '@src/CONST';
 import type {ThemeStyles} from '@src/styles';
 import type {ThemeColors} from '@src/styles/theme/types';
 import createStyleUtils from '@src/styles/utils';
+import variables from '@src/styles/variables';
 
 const mockTheme = {} as ThemeColors;
 
@@ -20,10 +21,9 @@ const mockStyles = {
     buttonSuccess: {backgroundColor: 'green'},
     buttonDanger: {backgroundColor: 'red'},
     buttonOpacityDisabled: {opacity: 0.5},
-    buttonDisabled: {backgroundColor: 'gray'},
 } as unknown as ThemeStyles;
 
-const {getButtonSizeStyle, getButtonPaddingStyle, getButtonStyleWithIcon, getButtonVariantStyles} = createStyleUtils(mockTheme, mockStyles);
+const {getButtonSizeStyle, getButtonPaddingStyle, getButtonStyleWithIcon, getButtonVariantStyles, getReportTableColumnStyles} = createStyleUtils(mockTheme, mockStyles);
 
 describe('getButtonSizeStyle', () => {
     it.each([
@@ -79,7 +79,6 @@ describe('getButtonVariantStyles', () => {
         expect(variantStyles.normal).toEqual({
             success: mockStyles.buttonSuccess,
             danger: mockStyles.buttonDanger,
-            link: {},
         });
     });
 
@@ -87,7 +86,12 @@ describe('getButtonVariantStyles', () => {
         expect(variantStyles.disabled).toEqual({
             success: [mockStyles.buttonOpacityDisabled],
             danger: [mockStyles.buttonOpacityDisabled],
-            link: [mockStyles.buttonOpacityDisabled, mockStyles.buttonDisabled],
         });
+    });
+});
+
+describe('getReportTableColumnStyles - First approved column width', () => {
+    it('uses a fixed wide width (fits the long header and a past-year date, so no year-based widening)', () => {
+        expect(getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED)).toEqual({width: variables.w102});
     });
 });

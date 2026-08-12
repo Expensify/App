@@ -1,29 +1,37 @@
-import React, {useEffect, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
+
 import {startIssueNewCardFlow} from '@libs/actions/Card';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {IssueNewCard, IssueNewCardStep} from '@src/types/onyx/Card';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect, useMemo} from 'react';
+
 import AssigneeStep from './AssigneeStep';
 import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
 import ConfirmationStep from './ConfirmationStep';
 import InviteNewMemberStep from './InviteNewMemberStep';
 import LimitTypeStep from './LimitTypeStep';
-import SetExpiryOptionsStep from './SetExpiryOptionsStep';
+import SetSpendRulesStep from './spendRules/SetSpendRulesStep';
 
 type IssueNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW>;
 
@@ -37,7 +45,7 @@ function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
         [CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER]: 0,
         [CONST.EXPENSIFY_CARD.STEP.CARD_TYPE]: 1,
         [CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE]: 2,
-        [CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS]: 3,
+        [CONST.EXPENSIFY_CARD.STEP.SPEND_RULES]: 3,
         [CONST.EXPENSIFY_CARD.STEP.CARD_NAME]: 4,
         [CONST.EXPENSIFY_CARD.STEP.CONFIRMATION]: 5,
     };
@@ -47,7 +55,7 @@ function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
 }
 
 function DynamicIssueNewCardPage({policy, route}: IssueNewCardPageProps) {
-    const policyID = policy?.id;
+    const policyID = route.params.policyID;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const {currentStep} = issueNewCard ?? {};
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path);
@@ -100,10 +108,10 @@ function DynamicIssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                         startStepIndex={startStepIndex}
                     />
                 );
-            case CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS:
+            case CONST.EXPENSIFY_CARD.STEP.SPEND_RULES:
                 return (
-                    <SetExpiryOptionsStep
-                        policy={policy}
+                    <SetSpendRulesStep
+                        policyID={policyID}
                         stepNames={stepNames}
                         startStepIndex={startStepIndex}
                     />
@@ -147,9 +155,10 @@ function DynamicIssueNewCardPage({policy, route}: IssueNewCardPageProps) {
 
     return (
         <AccessOrNotFoundWrapper
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             {getCurrentStep()}
         </AccessOrNotFoundWrapper>

@@ -1,11 +1,16 @@
-import React, {useCallback} from 'react';
-import type {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
@@ -47,6 +52,9 @@ type BadgeProps = {
     /** Any additional styles to pass to the left icon container. */
     iconStyles?: StyleProp<ViewStyle>;
 
+    /** Override fill color for the icon */
+    iconFill?: string;
+
     /** Additional styles from OfflineWithFeedback applied to the row */
     style?: StyleProp<ViewStyle>;
 
@@ -67,6 +75,7 @@ function Badge({
     onPress = () => {},
     icon,
     iconStyles = [],
+    iconFill,
     style,
     shouldUseXXSmallIcon = false,
 }: BadgeProps) {
@@ -111,7 +120,7 @@ function Badge({
                         width={iconSize}
                         height={iconSize}
                         src={icon}
-                        fill={iconColor}
+                        fill={iconFill ?? iconColor}
                     />
                 </View>
             )}

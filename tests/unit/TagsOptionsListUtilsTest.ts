@@ -1,9 +1,12 @@
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+
 import type {SelectedTagOption, TagOption} from '@libs/TagsOptionsListUtils';
 import {getEnabledTags, getTagListSections, getTagVisibility, sortTags} from '@libs/TagsOptionsListUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {PolicyTagLists, PolicyTags} from '@src/types/onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomTransaction from '../utils/collections/transaction';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
@@ -952,6 +955,70 @@ describe('TagsOptionsListUtils', () => {
             const result = getEnabledTags(tags, 'Texas:City', 1);
 
             expect(result).toEqual([]);
+        });
+    });
+
+    describe('getTagListSections GL code display', () => {
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- PolicyTag GL Code field uses backend naming
+        const tagsWithGLCode: Record<string, {name: string; enabled: boolean; 'GL Code'?: string}> = {
+            ProjectA: {name: 'Project A', enabled: true, 'GL Code': 'SP4100'}, // eslint-disable-line @typescript-eslint/naming-convention
+            ProjectB: {name: 'Project B', enabled: true},
+        };
+
+        it('sets alternateText when shouldShowGLCode is true and tag has a GL code', () => {
+            const result = getTagListSections({
+                searchValue: '',
+                tags: tagsWithGLCode,
+                localeCompare,
+                translate: translateLocal,
+                shouldShowGLCode: true,
+            });
+
+            const projectA = result.at(0)?.data.find((option) => option.keyForList === 'Project A');
+            const projectB = result.at(0)?.data.find((option) => option.keyForList === 'Project B');
+
+            expect(projectA?.alternateText).toBe('SP4100');
+            expect(projectA?.text).toBe('Project A');
+            expect(projectA?.searchText).toBe('Project A');
+            expect(projectB?.alternateText).toBeUndefined();
+        });
+
+        it('does not set alternateText when shouldShowGLCode is false', () => {
+            const result = getTagListSections({
+                searchValue: '',
+                tags: tagsWithGLCode,
+                localeCompare,
+                translate: translateLocal,
+                shouldShowGLCode: false,
+            });
+
+            const projectA = result.at(0)?.data.find((option) => option.keyForList === 'Project A');
+            expect(projectA?.alternateText).toBeUndefined();
+        });
+
+        it('finds tags by GL code when shouldShowGLCode is true', () => {
+            const result = getTagListSections({
+                searchValue: 'SP4100',
+                tags: tagsWithGLCode,
+                localeCompare,
+                translate: translateLocal,
+                shouldShowGLCode: true,
+            });
+
+            expect(result.at(0)?.data).toHaveLength(1);
+            expect(result.at(0)?.data.at(0)?.keyForList).toBe('Project A');
+        });
+
+        it('does not find tags by GL code when shouldShowGLCode is false', () => {
+            const result = getTagListSections({
+                searchValue: 'SP4100',
+                tags: tagsWithGLCode,
+                localeCompare,
+                translate: translateLocal,
+                shouldShowGLCode: false,
+            });
+
+            expect(result.at(0)?.data).toHaveLength(0);
         });
     });
 });

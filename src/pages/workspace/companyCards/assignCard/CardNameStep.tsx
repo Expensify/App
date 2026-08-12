@@ -1,4 +1,3 @@
-import React from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -6,21 +5,29 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addErrorMessage} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
+
+import React from 'react';
 
 type CardNameStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_NAME>;
 
@@ -59,6 +66,8 @@ function CardNameStep({route}: CardNameStepProps) {
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 testID="CardNameStep"

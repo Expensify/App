@@ -1,6 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -10,17 +7,24 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {formatRequiredFieldsTitle} from '@libs/AttendeeUtils';
+import getCategoryContextualRules from '@libs/CategoryContextualRulesUtils';
 import {
     formatDefaultTaxRateText,
     formatRequireItemizedReceiptsOverText,
@@ -35,40 +39,70 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getWorkflowApprovalsUnavailable, hasTags, isAttendeeTrackingEnabled, isControlPolicy} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, getWorkflowApprovalsUnavailable, hasTags, isAttendeeTrackingEnabled, isControlPolicy} from '@libs/PolicyUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {clearCategoryErrors, deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {View} from 'react-native';
+
 type CategorySettingsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS>
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS>;
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS>;
 
 function CategorySettingsPage({route: {params, name}, navigation}: CategorySettingsPageProps) {
     const {policyID, categoryName} = params;
-    const backTo = 'backTo' in params ? params.backTo : undefined;
+    const backTo = 'backTo' in params && typeof params.backTo === 'string' ? params.backTo : undefined;
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan', 'Plus', 'Bolt']);
     const {showConfirmModal} = useConfirmModal();
     const policyData = usePolicyData(policyID);
     const {policy, categories: policyCategories} = policyData;
+    const {canWrite: canWriteCategories, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
+    const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const {environmentURL} = useEnvironment();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {isOffline} = useNetwork();
 
     const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories).find((category) => category.previousCategoryName === categoryName);
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
     const decodedCategoryName = getDecodedCategoryName(policyCategory?.name ?? '');
+    const categoryRulesEnabled = arePolicyRulesEnabled(policy, policyCategories);
+
+    const contextualRules = useMemo(() => {
+        if (!isRulesRevampEnabled || !policyCategory) {
+            return [];
+        }
+
+        return getCategoryContextualRules({
+            policy,
+            category: policyCategory,
+            categoryName: policyCategory.name,
+            translate,
+            convertToDisplayString,
+            isOffline,
+        });
+    }, [convertToDisplayString, isOffline, isRulesRevampEnabled, policy, policyCategory, translate]);
 
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
-    const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS;
+    const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS;
+    const settingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.path);
     const {
         taskReport: setupCategoryTaskReport,
         taskParentReport: setupCategoryTaskParentReport,
@@ -90,7 +124,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const policyHasTags = hasTags(policyTags);
 
     const navigateBack = () => {
-        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
+        Navigation.goBack(isQuickSettingsFlow ? settingsBackPath : undefined);
     };
 
     const isFocused = useIsFocused();
@@ -248,6 +282,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.CATEGORIES}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -281,7 +316,9 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     isOn={policyCategory.enabled}
                                     accessibilityLabel={translate('workspace.categories.enableCategory')}
                                     onToggle={updateWorkspaceCategoryEnabled}
-                                    showLockIcon={shouldPreventDisableOrDelete}
+                                    disabled={!canWriteCategories}
+                                    disabledAction={withReadOnlyFallback()}
+                                    showLockIcon={!canWriteCategories || shouldPreventDisableOrDelete}
                                 />
                             </View>
                         </View>
@@ -291,7 +328,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                             title={decodedCategoryName}
                             description={translate('common.name')}
                             onPress={navigateToEditCategory}
-                            shouldShowRightIcon
+                            interactive={canWriteCategories}
+                            shouldShowRightIcon={canWriteCategories}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['GL Code']}>
@@ -317,7 +355,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                         : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path),
                                 );
                             }}
-                            shouldShowRightIcon
+                            interactive={canWriteCategories}
+                            shouldShowRightIcon={canWriteCategories}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['Payroll Code']}>
@@ -341,10 +380,54 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                         : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path),
                                 );
                             }}
-                            shouldShowRightIcon
+                            interactive={canWriteCategories}
+                            shouldShowRightIcon={canWriteCategories}
                         />
                     </OfflineWithFeedback>
-                    {!isThereAnyAccountingConnection && (
+                    {categoryRulesEnabled && isRulesRevampEnabled && (
+                        <>
+                            <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
+                                <MenuItemWithTopDescription
+                                    title={policyCategory?.commentHint}
+                                    description={translate('workspace.rules.categoryRules.descriptionHint')}
+                                    onPress={() => {
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.path));
+                                    }}
+                                    interactive={canWriteCategories}
+                                    shouldShowRightIcon={canWriteCategories}
+                                    shouldRenderAsHTML
+                                />
+                            </OfflineWithFeedback>
+                            <MenuItemWithTopDescription
+                                title={approverText}
+                                description={translate('workspace.rules.categoryRules.approver')}
+                                onPress={() => {
+                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_APPROVER.path));
+                                }}
+                                interactive={canWriteCategories}
+                                shouldShowRightIcon={canWriteCategories}
+                                disabled={approverDisabled}
+                                helperText={
+                                    approverDisabled
+                                        ? translate('workspace.rules.categoryRules.enableWorkflows', `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`)
+                                        : undefined
+                                }
+                                shouldParseHelperText
+                            />
+                            {!!policy?.tax?.trackingEnabled && (
+                                <MenuItemWithTopDescription
+                                    title={defaultTaxRateText}
+                                    description={translate('workspace.rules.categoryRules.defaultTaxRate')}
+                                    onPress={() => {
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path));
+                                    }}
+                                    interactive={canWriteCategories}
+                                    shouldShowRightIcon={canWriteCategories}
+                                />
+                            )}
+                        </>
+                    )}
+                    {canWriteCategories && !isThereAnyAccountingConnection && (
                         <MenuItem
                             icon={expensifyIcons.Trashcan}
                             title={translate('workspace.categories.deleteCategory')}
@@ -367,7 +450,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                         />
                     )}
 
-                    {!!policy?.areRulesEnabled && (
+                    {categoryRulesEnabled && !isRulesRevampEnabled && (
                         <>
                             <View style={[styles.mh5, styles.pt3, styles.borderTop]}>
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.rules.categoryRules.title')}</Text>
@@ -378,7 +461,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 onPress={() => {
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_APPROVER.path));
                                 }}
-                                shouldShowRightIcon
+                                interactive={canWriteCategories}
+                                shouldShowRightIcon={canWriteCategories}
                                 disabled={approverDisabled}
                                 helperText={
                                     approverDisabled
@@ -394,10 +478,15 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     onPress={() => {
                                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path));
                                     }}
-                                    shouldShowRightIcon
+                                    interactive={canWriteCategories}
+                                    shouldShowRightIcon={canWriteCategories}
                                 />
                             )}
-
+                            {/*
+                             * Legacy category rule entry points. When removing the RULES_REVAMP beta,
+                             * delete this entire non-revamp block (and related useMemo values) instead
+                             * of keeping these Category settings routes.
+                             */}
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxExpenseAmount}>
                                 <MenuItemWithTopDescription
                                     title={flagAmountsOverText}
@@ -405,7 +494,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     onPress={() => {
                                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.path));
                                     }}
-                                    shouldShowRightIcon
+                                    interactive={canWriteCategories}
+                                    shouldShowRightIcon={canWriteCategories}
                                 />
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoReceipt}>
@@ -415,7 +505,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     onPress={() => {
                                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.path));
                                     }}
-                                    shouldShowRightIcon
+                                    interactive={canWriteCategories}
+                                    shouldShowRightIcon={canWriteCategories}
                                 />
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoItemizedReceipt}>
@@ -425,7 +516,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     onPress={() => {
                                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.path));
                                     }}
-                                    shouldShowRightIcon
+                                    interactive={canWriteCategories}
+                                    shouldShowRightIcon={canWriteCategories}
                                 />
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={requireFieldsPendingAction}>
@@ -435,7 +527,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     onPress={() => {
                                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.path));
                                     }}
-                                    shouldShowRightIcon
+                                    interactive={canWriteCategories}
+                                    shouldShowRightIcon={canWriteCategories}
                                 />
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
@@ -445,10 +538,43 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     onPress={() => {
                                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.path));
                                     }}
-                                    shouldShowRightIcon
+                                    interactive={canWriteCategories}
+                                    shouldShowRightIcon={canWriteCategories}
                                     shouldRenderAsHTML
                                 />
                             </OfflineWithFeedback>
+                        </>
+                    )}
+
+                    {categoryRulesEnabled && isRulesRevampEnabled && (contextualRules.length > 0 || canWriteRules) && (
+                        <>
+                            <View style={[styles.mh5, styles.pt3, styles.borderTop]}>
+                                <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.rules.categoryRules.title')}</Text>
+                            </View>
+                            {contextualRules.map((rule) => (
+                                <OfflineWithFeedback
+                                    key={rule.key}
+                                    pendingAction={rule.pendingAction}
+                                >
+                                    <MenuItem
+                                        icon={expensifyIcons.Bolt}
+                                        title={rule.summary}
+                                        numberOfLinesTitle={3}
+                                        shouldShowBasicTitle
+                                        onPress={() => Navigation.navigate(createDynamicRoute(rule.dynamicRoutePath))}
+                                        shouldShowRightIcon={!rule.isDisabled}
+                                        interactive={!rule.isDisabled}
+                                        disabled={rule.isDisabled}
+                                    />
+                                </OfflineWithFeedback>
+                            ))}
+                            {canWriteRules && (
+                                <MenuItem
+                                    icon={expensifyIcons.Plus}
+                                    title={translate('workspace.rules.categoryRules.createNewRule')}
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_NEW.path))}
+                                />
+                            )}
                         </>
                     )}
                 </ScrollView>

@@ -1,4 +1,5 @@
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+
 import type {TranslationPaths} from '@src/languages/types';
 
 type ImageData = {

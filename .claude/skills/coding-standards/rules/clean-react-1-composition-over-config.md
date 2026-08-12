@@ -213,7 +213,6 @@ function Section({title, renderSubtitle, renderTitle, overlayContent}: SectionPr
 
 ```tsx
 <Table data={items} columns={columns}>
-  <Table.SearchBar />
   <Table.Header />
   <Table.Body />
 </Table>

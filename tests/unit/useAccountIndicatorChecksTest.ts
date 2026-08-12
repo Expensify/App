@@ -1,17 +1,23 @@
 import {act, renderHook} from '@testing-library/react-native';
-import type {OnyxMultiSetInput} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+
 import useAccountIndicatorChecks from '@hooks/useAccountIndicatorChecks';
+
 import CONST from '@src/CONST';
 import initOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {OnyxMultiSetInput} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const userID = 'johndoe12@expensify.com';
 
 const cardFeed = {
     feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-    workspaceAccountID: 12345,
+    policyAccountID: 12345,
 };
 
 describe('useAccountIndicatorChecks', () => {
@@ -25,13 +31,15 @@ describe('useAccountIndicatorChecks', () => {
     describe('account error statuses', () => {
         it('returns HAS_USER_WALLET_ERRORS when wallet has errors', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.USER_WALLET]: {
-                        bankAccountID: 12345,
-                        errors: {error: 'Something went wrong'},
-                    },
-                    [ONYXKEYS.SESSION]: {email: userID},
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {
+                            bankAccountID: 12345,
+                            errors: {error: 'Something went wrong'},
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -43,17 +51,19 @@ describe('useAccountIndicatorChecks', () => {
 
         it('returns HAS_PAYMENT_METHOD_ERROR when bank account has errors', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.USER_WALLET]: {},
-                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        12345: {
-                            methodID: 12345,
-                            errors: {error: 'Something went wrong'},
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            12345: {
+                                methodID: 12345,
+                                errors: {error: 'Something went wrong'},
+                            },
                         },
-                    },
-                    [ONYXKEYS.SESSION]: {email: userID},
-                } as unknown as OnyxMultiSetInput);
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -65,15 +75,17 @@ describe('useAccountIndicatorChecks', () => {
 
         it('returns HAS_REIMBURSEMENT_ACCOUNT_ERRORS when reimbursement account has errors', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.USER_WALLET]: {},
-                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
-                    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {
-                        achData: {bankAccountID: 12345},
-                        errors: {error: 'Something went wrong'},
-                    },
-                    [ONYXKEYS.SESSION]: {email: userID},
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {
+                            achData: {bankAccountID: 12345},
+                            errors: {error: 'Something went wrong'},
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -85,20 +97,22 @@ describe('useAccountIndicatorChecks', () => {
 
         it('returns HAS_LOGIN_LIST_ERROR when login list has errors', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.USER_WALLET]: {},
-                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
-                    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {
-                        [userID]: {
-                            partnerName: 'John Doe',
-                            partnerUserID: userID,
-                            validatedDate: new Date().toISOString(),
-                            errorFields: {field: {error: 'Something went wrong'}},
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                        [ONYXKEYS.LOGINS]: {
+                            [`1_${userID}`]: {
+                                partnerID: 1,
+                                partnerUserID: userID,
+                                validatedDate: new Date().toISOString(),
+                                errorFields: {addedLogin: {error: 'Something went wrong'}},
+                            },
                         },
-                    },
-                    [ONYXKEYS.SESSION]: {email: userID},
-                } as unknown as OnyxMultiSetInput);
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -110,16 +124,18 @@ describe('useAccountIndicatorChecks', () => {
 
         it('returns HAS_WALLET_TERMS_ERRORS when wallet terms has errors without chatReportID', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.USER_WALLET]: {},
-                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
-                    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {},
-                    [ONYXKEYS.WALLET_TERMS]: {
-                        errors: {error: 'Something went wrong'},
-                    },
-                    [ONYXKEYS.SESSION]: {email: userID},
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                        [ONYXKEYS.LOGINS]: {},
+                        [ONYXKEYS.WALLET_TERMS]: {
+                            errors: {error: 'Something went wrong'},
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -131,17 +147,19 @@ describe('useAccountIndicatorChecks', () => {
 
         it('does not return wallet terms error when chatReportID exists', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.USER_WALLET]: {},
-                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
-                    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {},
-                    [ONYXKEYS.WALLET_TERMS]: {
-                        errors: {error: 'Something went wrong'},
-                        chatReportID: '123',
-                    },
-                    [ONYXKEYS.SESSION]: {email: userID},
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                        [ONYXKEYS.LOGINS]: {},
+                        [ONYXKEYS.WALLET_TERMS]: {
+                            errors: {error: 'Something went wrong'},
+                            chatReportID: '123',
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -153,17 +171,19 @@ describe('useAccountIndicatorChecks', () => {
 
         it('returns HAS_PHONE_NUMBER_ERROR when phone number has errors', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.USER_WALLET]: {},
-                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
-                    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {},
-                    [ONYXKEYS.WALLET_TERMS]: {},
-                    [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {
-                        errorFields: {phoneNumber: 'Invalid phone number'},
-                    },
-                    [ONYXKEYS.SESSION]: {email: userID},
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                        [ONYXKEYS.LOGINS]: {},
+                        [ONYXKEYS.WALLET_TERMS]: {},
+                        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {
+                            errorFields: {phoneNumber: {error: 'Invalid phone number'}},
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -175,16 +195,18 @@ describe('useAccountIndicatorChecks', () => {
 
         it('returns HAS_SUBSCRIPTION_ERRORS when subscription has billing dispute', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.USER_WALLET]: {},
-                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
-                    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {},
-                    [ONYXKEYS.WALLET_TERMS]: {},
-                    [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
-                    [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 1,
-                    [ONYXKEYS.SESSION]: {email: userID},
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                        [ONYXKEYS.LOGINS]: {},
+                        [ONYXKEYS.WALLET_TERMS]: {},
+                        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                        [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 1,
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -196,23 +218,25 @@ describe('useAccountIndicatorChecks', () => {
 
         it('returns HAS_EMPLOYEE_CARD_FEED_ERRORS for non-admin with broken card connection', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.USER_WALLET]: {},
-                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
-                    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {},
-                    [ONYXKEYS.WALLET_TERMS]: {},
-                    [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
-                    [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 0,
-                    [ONYXKEYS.CARD_LIST]: {
-                        card1: {
-                            bank: cardFeed.feedName,
-                            fundID: String(cardFeed.workspaceAccountID),
-                            lastScrapeResult: 403,
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                        [ONYXKEYS.LOGINS]: {},
+                        [ONYXKEYS.WALLET_TERMS]: {},
+                        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                        [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 0,
+                        [ONYXKEYS.CARD_LIST]: {
+                            card1: {
+                                bank: cardFeed.feedName,
+                                fundID: String(cardFeed.policyAccountID),
+                                lastScrapeResult: 403,
+                            },
                         },
-                    },
-                    [ONYXKEYS.SESSION]: {email: userID},
-                } as unknown as OnyxMultiSetInput);
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -231,22 +255,24 @@ describe('useAccountIndicatorChecks', () => {
 
         it('returns HAS_LOGIN_LIST_INFO when login list has unvalidated contact', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.LOGIN_LIST]: {
-                        [userID]: {
-                            partnerName: 'John Doe',
-                            partnerUserID: userID,
-                            validatedDate: new Date().toISOString(),
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.LOGINS]: {
+                            [`1_${userID}`]: {
+                                partnerID: 1,
+                                partnerUserID: userID,
+                                validatedDate: new Date().toISOString(),
+                            },
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            '1_otheruser@expensify.com': {
+                                partnerID: 1,
+                                partnerUserID: 'different@expensify.com',
+                                validatedDate: undefined,
+                            },
                         },
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        'otheruser@expensify.com': {
-                            partnerName: 'Other User',
-                            partnerUserID: 'different@expensify.com',
-                            validatedDate: undefined,
-                        },
-                    },
-                    [ONYXKEYS.SESSION]: {email: userID},
-                } as unknown as OnyxMultiSetInput);
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -258,19 +284,21 @@ describe('useAccountIndicatorChecks', () => {
 
         it('returns HAS_PENDING_CARD_INFO when card has pending action', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.LOGIN_LIST]: {},
-                    [ONYXKEYS.CARD_LIST]: {
-                        card1: {
-                            cardID: 'card1',
-                            bank: CONST.EXPENSIFY_CARD.BANK,
-                            nameValuePairs: {isVirtual: false},
-                            state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED,
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.LOGINS]: {},
+                        [ONYXKEYS.CARD_LIST]: {
+                            card1: {
+                                cardID: 1,
+                                bank: CONST.EXPENSIFY_CARD.BANK,
+                                nameValuePairs: {isVirtual: false},
+                                state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED,
+                            },
                         },
-                    },
-                    [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
-                    [ONYXKEYS.SESSION]: {email: userID},
-                } as unknown as OnyxMultiSetInput);
+                        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -282,13 +310,15 @@ describe('useAccountIndicatorChecks', () => {
 
         it('returns HAS_SUBSCRIPTION_INFO when retry billing was successful', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.LOGIN_LIST]: {},
-                    [ONYXKEYS.CARD_LIST]: {},
-                    [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
-                    [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: true,
-                    [ONYXKEYS.SESSION]: {email: userID},
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.LOGINS]: {},
+                        [ONYXKEYS.CARD_LIST]: {},
+                        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                        [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: true,
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -300,20 +330,22 @@ describe('useAccountIndicatorChecks', () => {
 
         it('returns HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO when bank account is partially setup', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.LOGIN_LIST]: {},
-                    [ONYXKEYS.CARD_LIST]: {},
-                    [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
-                    [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: false,
-                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        12345: {
-                            methodID: 12345,
-                            accountData: {state: CONST.BANK_ACCOUNT.STATE.SETUP},
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.LOGINS]: {},
+                        [ONYXKEYS.CARD_LIST]: {},
+                        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                        [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: false,
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            12345: {
+                                methodID: 12345,
+                                accountData: {state: CONST.BANK_ACCOUNT.STATE.SETUP},
+                            },
                         },
-                    },
-                    [ONYXKEYS.SESSION]: {email: userID},
-                } as unknown as OnyxMultiSetInput);
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -327,16 +359,18 @@ describe('useAccountIndicatorChecks', () => {
     describe('no errors or info', () => {
         beforeAll(async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
-                    [ONYXKEYS.USER_WALLET]: {},
-                    [ONYXKEYS.WALLET_TERMS]: {},
-                    [ONYXKEYS.LOGIN_LIST]: {},
-                    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
-                    [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
-                    [ONYXKEYS.CARD_LIST]: {},
-                    [ONYXKEYS.SESSION]: {email: userID},
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.WALLET_TERMS]: {},
+                        [ONYXKEYS.LOGINS]: {},
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                        [ONYXKEYS.CARD_LIST]: {},
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
         });
@@ -353,16 +387,18 @@ describe('useAccountIndicatorChecks', () => {
     describe('missing data', () => {
         beforeAll(async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.BANK_ACCOUNT_LIST]: null,
-                    [ONYXKEYS.USER_WALLET]: null,
-                    [ONYXKEYS.WALLET_TERMS]: null,
-                    [ONYXKEYS.LOGIN_LIST]: null,
-                    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: null,
-                    [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: null,
-                    [ONYXKEYS.CARD_LIST]: null,
-                    [ONYXKEYS.SESSION]: null,
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: null,
+                        [ONYXKEYS.USER_WALLET]: null,
+                        [ONYXKEYS.WALLET_TERMS]: null,
+                        [ONYXKEYS.LOGINS]: null,
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: null,
+                        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: null,
+                        [ONYXKEYS.CARD_LIST]: null,
+                        [ONYXKEYS.SESSION]: null,
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
         });
@@ -379,31 +415,33 @@ describe('useAccountIndicatorChecks', () => {
     describe('error takes priority over info', () => {
         it('returns both accountStatus and infoStatus independently', async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.USER_WALLET]: {
-                        bankAccountID: 12345,
-                        errors: {error: 'Wallet error'},
-                    },
-                    [ONYXKEYS.LOGIN_LIST]: {
-                        [userID]: {
-                            partnerName: 'John Doe',
-                            partnerUserID: userID,
-                            validatedDate: new Date().toISOString(),
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {
+                            bankAccountID: 12345,
+                            errors: {error: 'Wallet error'},
                         },
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        'otheruser@expensify.com': {
-                            partnerName: 'Other User',
-                            partnerUserID: 'different@expensify.com',
-                            validatedDate: undefined,
+                        [ONYXKEYS.LOGINS]: {
+                            [`1_${userID}`]: {
+                                partnerID: 1,
+                                partnerUserID: userID,
+                                validatedDate: new Date().toISOString(),
+                            },
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            '1_otheruser@expensify.com': {
+                                partnerID: 1,
+                                partnerUserID: 'different@expensify.com',
+                                validatedDate: undefined,
+                            },
                         },
-                    },
-                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
-                    [ONYXKEYS.WALLET_TERMS]: {},
-                    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
-                    [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
-                    [ONYXKEYS.CARD_LIST]: {},
-                    [ONYXKEYS.SESSION]: {email: userID},
-                } as unknown as OnyxMultiSetInput);
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                        [ONYXKEYS.WALLET_TERMS]: {},
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                        [ONYXKEYS.CARD_LIST]: {},
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
 

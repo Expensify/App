@@ -1,6 +1,6 @@
 # `html-entities` patches
 
-### [html-entities+2.5.2+001+use-worklet.patch](html-entities+2.5.2+001+use-worklet.patch)
+### [html-entities+2.5.3+001+use-worklet.patch](html-entities+2.5.3+001+use-worklet.patch)
 
 - Reason:
   

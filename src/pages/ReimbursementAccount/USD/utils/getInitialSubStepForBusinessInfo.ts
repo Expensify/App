@@ -1,8 +1,10 @@
-import {Str} from 'expensify-common';
 import {isValidWebsite} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {CompanyStepProps} from '@src/types/form/ReimbursementAccountForm';
+
+import {Str} from 'expensify-common';
 
 const businessInfoStepKeys = INPUT_IDS.BUSINESS_INFO_STEP;
 

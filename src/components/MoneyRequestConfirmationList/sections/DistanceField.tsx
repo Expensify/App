@@ -1,19 +1,23 @@
-import React from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Unit} from '@src/types/onyx/Policy';
+import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
+
+import React from 'react';
 
 type DistanceFieldProps = {
     hasRoute: boolean;
     distance: number;
     unit: Unit | undefined;
-    rate: number | undefined;
     isManualDistanceRequest: boolean;
     isOdometerDistanceRequest: boolean;
     isGPSDistanceRequest: boolean;
@@ -24,13 +28,13 @@ type DistanceFieldProps = {
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     reportID: string;
     reportActionID: string | undefined;
+    customUnit?: TransactionCustomUnit;
 };
 
 function DistanceField({
     hasRoute,
     distance,
     unit,
-    rate,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     isGPSDistanceRequest,
@@ -41,15 +45,22 @@ function DistanceField({
     iouType,
     reportID,
     reportActionID,
+    customUnit,
 }: DistanceFieldProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const displayUnit = unit ?? customUnit?.distanceUnit;
+    const commuterExclusionData = DistanceRequestUtils.getCommuterExclusionDisplayData(customUnit, displayUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+    const displayTitle = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, translate, true, isManualDistanceRequest, commuterExclusionData);
+    const {distanceToDisplayDescription, distanceToDisplayHintText} = DistanceRequestUtils.getDistanceDisplayDetailsWithCommuter(commuterExclusionData, displayUnit, translate);
+
     return (
         <MenuItemWithTopDescription
             shouldShowRightIcon={!isReadOnly && !isGPSDistanceRequest}
-            title={DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest)}
-            description={translate('common.distance')}
+            title={displayTitle}
+            description={distanceToDisplayDescription}
+            hintText={distanceToDisplayHintText}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}
             onPress={() => {

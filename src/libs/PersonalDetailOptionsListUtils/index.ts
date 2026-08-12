@@ -1,18 +1,25 @@
-import {Str} from 'expensify-common';
-import deburr from 'lodash/deburr';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
+
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {optionsOrderBy, personalDetailsComparator, processSearchString} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import {generateAccountID} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LoginList, OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+import type {Attendee} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import deburr from 'lodash/deburr';
+
 import type {GetContactConfig, GetOptionsConfig, GetUserToInviteConfig, OptionData, Options, PreviewConfig, PrivateIsArchivedMap} from './types';
 
 /**
@@ -25,6 +32,7 @@ function createOption(
     config?: PreviewConfig,
     reportAttributesDerived?: ReportAttributes,
     isReportArchived?: boolean,
+    translate?: LocaleContextProps['translate'],
 ): OptionData {
     const {selected = false, isSelected = false, isDisabled = false, shouldStoreReportErrors = false, shouldShowBrickRoadIndicator = false} = config ?? {};
     const result: OptionData = {
@@ -65,7 +73,13 @@ function createOption(
     result.keyForList = String(personalDetail.accountID);
     result.alternateText = formatPhoneNumber(personalDetail.login ?? '');
 
-    result.text = getDisplayNameForParticipant({accountID: personalDetail.accountID, formatPhoneNumber}) || formatPhoneNumber(personalDetail.login ?? '');
+    result.text =
+        getDisplayNameForParticipant({
+            accountID: personalDetail.accountID,
+            formatPhoneNumber,
+            personalDetailsData: {[personalDetail.accountID]: personalDetail},
+            translate,
+        }) || formatPhoneNumber(personalDetail.login ?? '');
     result.icons = [
         {
             id: personalDetail.accountID,
@@ -293,8 +307,9 @@ function getValidOptions(
             !personalDetail.login ||
             !personalDetail.accountID ||
             (!includeDomainEmail && Str.isDomainEmail(personalDetail.login)) ||
-            // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
-            personalDetail.login === CONST.SETUP_SPECIALIST_LOGIN
+            // Exclude the account executive (and its legacy "Setup Specialist" login) from the list of personal details as it's a fallback if guide is not assigned
+            personalDetail.login === CONST.ACCOUNT_EXECUTIVE_LOGIN ||
+            personalDetail.login === CONST.ACCOUNT_EXECUTIVE_LEGACY_LOGIN
         ) {
             return false;
         }
@@ -305,7 +320,7 @@ function getValidOptions(
         return matchesSearchTerms(personalDetail, searchTerms);
     };
 
-    const selectedOptions = optionsOrderBy(extendedOptions, personalDetailsComparator, maxElements, selectedFilteringFunction, true);
+    const selectedOptions = optionsOrderBy(extendedOptions, personalDetailsComparator, maxElements, selectedFilteringFunction, true).options;
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
     // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
@@ -353,23 +368,24 @@ function getValidOptions(
                 }
             }
         }
+        recentOptions = optionsOrderBy(recentOptions, personalDetailsComparator, recentMaxElements, undefined, true).options;
     } else if (includeRecentReports) {
         // if maxElements is passed, filter the recent reports by searchString and return only most recent reports (@see recentReportsComparator)
         const filteringFunction = (option: OptionData) => {
             const searchTermsFound = matchesSearchTerms(option, searchTerms);
 
-            if (!searchTermsFound || !option.reportID) {
+            if (!searchTermsFound || !option.reportID || !option.login) {
                 return false;
             }
 
-            if (!!option.login && loginsToExcludeFromSuggestions[option.login]) {
+            if (loginsToExcludeFromSuggestions[option.login]) {
                 return false;
             }
 
             return true;
         };
 
-        recentOptions = optionsOrderBy(options, recentReportComparator, recentMaxElements, filteringFunction);
+        recentOptions = optionsOrderBy(options, recentReportComparator, recentMaxElements, filteringFunction).options;
     }
 
     // Get valid personal details and check if we can find the current user:
@@ -383,8 +399,9 @@ function getValidOptions(
             !personalDetail.accountID ||
             !!personalDetail.isOptimisticPersonalDetail ||
             (!includeDomainEmail && Str.isDomainEmail(personalDetail.login)) ||
-            // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
-            personalDetail.login === CONST.SETUP_SPECIALIST_LOGIN ||
+            // Exclude the account executive (and its legacy "Setup Specialist" login) from the list of personal details as it's a fallback if guide is not assigned
+            personalDetail.login === CONST.ACCOUNT_EXECUTIVE_LOGIN ||
+            personalDetail.login === CONST.ACCOUNT_EXECUTIVE_LEGACY_LOGIN ||
             // Exclude any recent options from the personal details
             recentOptionsByAccountID.has(personalDetail.accountID)
         ) {
@@ -397,7 +414,7 @@ function getValidOptions(
         return matchesSearchTerms(personalDetail, searchTerms);
     };
 
-    personalDetailsOptions = optionsOrderBy(options, personalDetailsComparator, maxElements, filteringFunction, true);
+    personalDetailsOptions = optionsOrderBy(options, personalDetailsComparator, maxElements, filteringFunction, true).options;
 
     let userToInvite: OptionData | null = null;
     if (includeUserToInvite) {
@@ -427,6 +444,7 @@ function createOptionList(
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     privateIsArchivedMap: PrivateIsArchivedMap,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    translate: LocaleContextProps['translate'],
     config?: PreviewConfig,
 ) {
     if (isEmptyObject(personalDetails)) {
@@ -448,7 +466,7 @@ function createOptionList(
         const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         const reportAttributes = report?.reportID ? reportAttributesDerived?.[report.reportID] : undefined;
         const isReportArchived = privateIsArchivedMap[reportID];
-        const option = createOption(personalDetail, report, formatPhoneNumber, config, reportAttributes, isReportArchived);
+        const option = createOption(personalDetail, report, formatPhoneNumber, config, reportAttributes, isReportArchived, translate);
         allPersonalDetailsOptions.push(option);
         if (option.accountID === currentUserAccountID) {
             currentUserRef.current = option;
@@ -459,6 +477,21 @@ function createOptionList(
         currentUserOption: currentUserRef.current,
         options: allPersonalDetailsOptions,
     };
+}
+
+/**
+ * Keeps only the personal details whose login is in the given set. Meant to be applied before createOptionList so that no
+ * option is built for the accounts that are going to be filtered out anyway (e.g. everyone outside of a workspace).
+ */
+function filterPersonalDetailsByLogins(personalDetails: OnyxEntry<PersonalDetailsList>, logins: Set<string>): PersonalDetailsList {
+    const filteredPersonalDetails: PersonalDetailsList = {};
+    for (const [accountID, personalDetail] of Object.entries(personalDetails ?? {})) {
+        if (!personalDetail?.login || !logins.has(personalDetail.login)) {
+            continue;
+        }
+        filteredPersonalDetails[accountID] = personalDetail;
+    }
+    return filteredPersonalDetails;
 }
 
 /**
@@ -486,6 +519,49 @@ function getHeaderMessage(translate: LocaleContextProps['translate'], searchValu
     return translate('common.noResultsFound');
 }
 
-export {createOption, getContactOption, canCreateOptimisticPersonalDetailOption, filterOption, matchesSearchTerms, getValidOptions, createOptionList, getHeaderMessage};
+/**
+ * Returns the logins of recent attendees to suggest, ensuring the current user is included, deduplicated,
+ * and excluding attendees that are already selected. The returned logins are fed to getValidOptions as
+ * `recentAttendees`, which rebuilds the full options (matching personal details or creating optimistic ones).
+ */
+function getFilteredRecentAttendees(attendees: Attendee[], recentAttendees: Attendee[], currentUserEmail: string): string[] {
+    const allRecentAttendees = [...recentAttendees];
+    if (currentUserEmail && !allRecentAttendees.some((attendee) => attendee.email === currentUserEmail)) {
+        allRecentAttendees.push({email: currentUserEmail, displayName: currentUserEmail, avatarUrl: ''});
+    }
+
+    const seenAttendees = new Set<string>();
+    return (
+        allRecentAttendees
+            .filter((attendee) => {
+                // Deduplicate: use email for regular users, displayName for name-only attendees
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                const key = attendee.email || attendee.displayName || '';
+                if (!key || seenAttendees.has(key)) {
+                    return false;
+                }
+                seenAttendees.add(key);
+                return true;
+            })
+            .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
+            // Use || to fall back to displayName for name-only attendees (empty email)
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            .map((attendee) => attendee.email || attendee.displayName)
+    );
+}
+
+export {
+    createOption,
+    getContactOption,
+    canCreateOptimisticPersonalDetailOption,
+    filterOption,
+    matchesSearchTerms,
+    getValidOptions,
+    createOptionList,
+    filterPersonalDetailsByLogins,
+    getHeaderMessage,
+    getUserToInviteOption,
+    getFilteredRecentAttendees,
+};
 
 export type {OptionData};

@@ -1,10 +1,13 @@
-import type {StyleProp, ViewStyle} from 'react-native';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
+
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import type {CardList, PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
+
+import type {CardList, PersonalDetails, Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
+
+import type {StyleProp, ViewStyle} from 'react-native';
 
 type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** The action that can be performed for the transaction */
@@ -53,7 +56,10 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 type TransactionItemRowProps = {
     transactionItem: TransactionWithOptionalSearchFields;
     report?: Report;
+    chatReport?: Report;
     policy?: Policy;
+    policyCategories?: PolicyCategories;
+    policyTagLists?: PolicyTagLists;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
@@ -64,7 +70,7 @@ type TransactionItemRowProps = {
     exportedColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
-    onCheckboxPress?: (transactionID: string) => void;
+    onCheckboxPress?: (transactionID: string, shiftKey?: boolean) => void;
     shouldShowCheckbox?: boolean;
     columns?: SearchColumnType[];
     onButtonPress?: (event?: ModifiedMouseEvent) => void;
@@ -74,15 +80,22 @@ type TransactionItemRowProps = {
     isInSingleTransactionReport?: boolean;
     shouldShowRadioButton?: boolean;
     onRadioButtonPress?: (transactionID: string) => void;
+    shouldStopRadioButtonMouseDownPropagation?: boolean;
+    radioButtonContainerStyle?: StyleProp<ViewStyle>;
+    radioButtonWrapperStyle?: StyleProp<ViewStyle>;
     shouldShowErrors?: boolean;
     shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;
+    shouldDisableActionPointerEvents?: boolean;
     violations?: TransactionViolation[];
     shouldShowBottomBorder?: boolean;
     onArrowRightPress?: (event?: ModifiedMouseEvent) => void;
     isHover?: boolean;
     shouldShowArrowRightOnNarrowLayout?: boolean;
     reportActions?: ReportAction[];
+    /** Precomputed transaction-thread report ID. When provided, skips the per-row report-actions scan used to derive it
+     * (lets callers that already know the thread mapping avoid O(transactions × actions) work). */
+    transactionThreadReportID?: string;
     checkboxSentryLabel?: string;
     isLargeScreenWidth?: boolean;
     /** Precomputed shouldShowAttendees(SUBMIT, policyForMovingExpenses); drilled instead of the policy object
@@ -91,6 +104,8 @@ type TransactionItemRowProps = {
     nonPersonalAndWorkspaceCards?: CardList;
     isActionColumnWide?: boolean;
     shouldRemoveTotalColumnFlex?: boolean;
+    /** Enables the full-height hover target layout for the main table row content. */
+    shouldUseFullHeightEditableCellHoverTarget?: boolean;
     /** Callbacks for inline cell editing */
     onEditDate?: (newDate: string) => void;
     onEditMerchant?: (newMerchant: string) => void;
@@ -106,7 +121,19 @@ type TransactionItemRowProps = {
     canEditCategory?: boolean;
     canEditAmount?: boolean;
     canEditTag?: boolean;
+
+    /** When true, RBR content renders immediately instead of via useDeferredValue. Use in FlashList contexts. */
+    shouldSkipDeferRBR?: boolean;
 };
+
+/** Derived from shouldSkipDeferRBR; passed to layout variants for DeferredTransactionItemRowRBR. */
+type TransactionItemRowRBRDeferControlProps = {
+    /** When false, RBR content renders immediately instead of via useDeferredValue. */
+    shouldDeferRBR?: boolean;
+};
+
+/** Window position of the hovered cell used to anchor the receipt preview beside the row. */
+type AnchorPosition = {top: number; left: number; width: number; height: number};
 
 /**
  * Data computed by the dispatcher and consumed by the Narrow variant.
@@ -133,6 +160,14 @@ type TransactionItemRowWideComputedData = Omit<TransactionItemRowNarrowComputedD
     transactionAttendees: Attendee[];
     shouldShowAttendees: boolean;
     totalPerAttendee: number | undefined;
+    isMarkAsDone: boolean;
 };
 
-export type {TransactionWithOptionalSearchFields, TransactionItemRowProps, TransactionItemRowNarrowComputedData, TransactionItemRowWideComputedData};
+export type {
+    AnchorPosition,
+    TransactionWithOptionalSearchFields,
+    TransactionItemRowProps,
+    TransactionItemRowRBRDeferControlProps,
+    TransactionItemRowNarrowComputedData,
+    TransactionItemRowWideComputedData,
+};

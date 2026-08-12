@@ -1,25 +1,32 @@
-import React from 'react';
-import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import CustomUnitDefaultCategorySelector from '@components/CustomUnitDefaultCategorySelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearPolicyPerDiemRatesErrorFields} from '@libs/actions/Policy/PerDiem';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {CustomUnit} from '@src/types/onyx/Policy';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type WorkspacePerDiemSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_SETTINGS>;
 
@@ -31,6 +38,7 @@ function WorkspacePerDiemSettingsPage({route}: WorkspacePerDiemSettingsPageProps
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const customUnit = getPerDiemCustomUnit(policy);
+    const {canWrite: canWritePerDiem} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.PER_DIEM);
     const customUnitID = customUnit?.customUnitID;
 
     const defaultCategory = customUnit?.defaultCategory;
@@ -50,6 +58,7 @@ function WorkspacePerDiemSettingsPage({route}: WorkspacePerDiemSettingsPageProps
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.PER_DIEM}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -78,6 +87,7 @@ function WorkspacePerDiemSettingsPage({route}: WorkspacePerDiemSettingsPageProps
                                     defaultValue={defaultCategory}
                                     wrapperStyle={[styles.ph5, styles.mt3]}
                                     customUnitID={customUnitID}
+                                    interactive={canWritePerDiem}
                                 />
                             </OfflineWithFeedback>
                         )}

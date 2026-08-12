@@ -1,4 +1,3 @@
-import Onyx from 'react-native-onyx';
 import HttpUtils from '@src/libs/HttpUtils';
 import LoadTest from '@src/libs/Middleware/LoadTest';
 import {setLoadTestParameters} from '@src/libs/Network/LoadTestState';
@@ -7,6 +6,10 @@ import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as Request from '@src/libs/Request';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
@@ -21,9 +24,7 @@ Onyx.init({
     keys: ONYXKEYS,
 });
 
-beforeAll(() => {
-    global.fetch = TestHelper.getGlobalFetchMock();
-});
+const fetchMock = TestHelper.setupGlobalFetchMock();
 
 beforeEach(async () => {
     await Onyx.clear();
@@ -38,30 +39,22 @@ beforeEach(async () => {
     setLoadTestParameters(null);
 });
 
-type FetchMockCall = [string, RequestInit];
-
-function getMockCallsForTestUrl(): FetchMockCall[] {
-    const calls = (global.fetch as jest.Mock).mock.calls as FetchMockCall[];
+function getMockCallsForTestUrl(): Array<Parameters<typeof fetch>> {
+    const calls = fetchMock.mock.calls;
     return calls.filter((call) => call[0] === TEST_URL);
 }
 
-function getFormBodyAt(index: number): TestHelper.FormData {
+function getFormBodyAt(index: number): FormData {
     const calls = getMockCallsForTestUrl();
     const call = calls.at(index);
     if (!call) {
         throw new Error(`Expected a fetch call at index ${index}, but only ${calls.length} call(s) were made`);
     }
-    return call[1].body as unknown as TestHelper.FormData;
-}
-
-function formBodyToObject(formData: TestHelper.FormData): Record<string, string | Blob> {
-    return Array.from(formData.entries()).reduce(
-        (acc, [key, val]) => {
-            acc[key] = val;
-            return acc;
-        },
-        {} as Record<string, string | Blob>,
-    );
+    const body = call[1]?.body;
+    if (!(body instanceof FormData)) {
+        throw new Error(`Expected a FormData body at fetch call ${index}`);
+    }
+    return body;
 }
 
 describe('LoadTest middleware', () => {
@@ -90,15 +83,15 @@ describe('LoadTest middleware', () => {
         expect(getMockCallsForTestUrl()).toHaveLength(3);
 
         // And the real request should NOT carry mockRequest in its form body
-        const realBody = formBodyToObject(getFormBodyAt(0));
-        expect(realBody.mockRequest).toBeUndefined();
+        const realBody = getFormBodyAt(0);
+        expect(realBody.has('mockRequest')).toBe(false);
 
         // And every duplicate should carry mockRequest=true so the server treats them as load-test traffic
         // (sent as a form param rather than a header to avoid CORS preflight requests for cross-origin traffic)
-        const firstDuplicateBody = formBodyToObject(getFormBodyAt(1));
-        const secondDuplicateBody = formBodyToObject(getFormBodyAt(2));
-        expect(firstDuplicateBody.mockRequest).toBe('true');
-        expect(secondDuplicateBody.mockRequest).toBe('true');
+        const firstDuplicateBody = getFormBodyAt(1);
+        const secondDuplicateBody = getFormBodyAt(2);
+        expect(firstDuplicateBody.get('mockRequest')).toBe('true');
+        expect(secondDuplicateBody.get('mockRequest')).toBe('true');
     });
 
     it('does not duplicate when the load-test window has expired', async () => {
@@ -118,7 +111,7 @@ describe('LoadTest middleware', () => {
         // Given the LoadTest middleware is registered, load testing is active, and the real request will fail
         Request.addMiddleware(LoadTest);
         setLoadTestParameters(JSON.stringify({multiplier: 3, expire: FUTURE}));
-        (global.fetch as jest.Mock).mockImplementationOnce(() => Promise.reject(new Error('network down')));
+        fetchMock.mockImplementationOnce(() => Promise.reject(new Error('network down')));
 
         // When we process a request whose fetch call rejects
         await Request.processWithMiddleware({command: TEST_COMMAND, data: {authToken: 'testToken', reportID: '1'}}).catch(() => {
@@ -128,8 +121,8 @@ describe('LoadTest middleware', () => {
 
         // Then duplicates should still have been fired (mirrors Web-Expensify's deferred.always behavior)
         expect(getMockCallsForTestUrl()).toHaveLength(3);
-        expect(formBodyToObject(getFormBodyAt(1)).mockRequest).toBe('true');
-        expect(formBodyToObject(getFormBodyAt(2)).mockRequest).toBe('true');
+        expect(getFormBodyAt(1).get('mockRequest')).toBe('true');
+        expect(getFormBodyAt(2).get('mockRequest')).toBe('true');
     });
 
     it('duplicates do not themselves trigger another round of duplicates (no infinite loop)', async () => {
@@ -157,13 +150,13 @@ describe('LoadTest middleware', () => {
 
         // Then the duplicate should hit the same URL and carry the same reportID as the real request
         expect(getMockCallsForTestUrl()).toHaveLength(2);
-        const realBody = formBodyToObject(getFormBodyAt(0));
-        const duplicateBody = formBodyToObject(getFormBodyAt(1));
-        expect(realBody.reportID).toBe('99');
-        expect(duplicateBody.reportID).toBe('99');
+        const realBody = getFormBodyAt(0);
+        const duplicateBody = getFormBodyAt(1);
+        expect(realBody.get('reportID')).toBe('99');
+        expect(duplicateBody.get('reportID')).toBe('99');
         // And the duplicate is the only one tagged with mockRequest=true
-        expect(realBody.mockRequest).toBeUndefined();
-        expect(duplicateBody.mockRequest).toBe('true');
+        expect(realBody.has('mockRequest')).toBe(false);
+        expect(duplicateBody.get('mockRequest')).toBe('true');
     });
 
     it('reads the X-Load-Test response header and applies it to subsequent fan-out', async () => {
@@ -171,19 +164,21 @@ describe('LoadTest middleware', () => {
         Request.addMiddleware(LoadTest);
 
         // And the next response will carry an X-Load-Test header advertising multiplier 3
-        (global.fetch as jest.Mock).mockImplementationOnce(() =>
-            Promise.resolve({
-                ok: true,
-                headers: new Headers([['X-Load-Test', JSON.stringify({multiplier: 3, expire: FUTURE})]]),
-                json: () => Promise.resolve({jsonCode: 200}),
-            }),
+        fetchMock.mockImplementationOnce(() =>
+            Promise.resolve(
+                createMock<Response>({
+                    ok: true,
+                    headers: new Headers([['X-Load-Test', JSON.stringify({multiplier: 3, expire: FUTURE})]]),
+                    json: () => Promise.resolve({jsonCode: 200}),
+                }),
+            ),
         );
 
         // When we process the first request
         await Request.processWithMiddleware({command: TEST_COMMAND, data: {authToken: 'testToken', reportID: '1'}});
         await waitForNetworkPromises();
 
-        // Then the first request itself fans out to 1 real + 2 duplicates because the header is parsed in
+        // Then the first request itself makes 1 real + 2 duplicates because the header is parsed in
         // HttpUtils.processHTTPRequest before the LoadTest middleware's .finally runs (matches Web-Expensify's
         // setLoadTestParametersCallback running before duplicateMockPostRequest in api.js).
         expect(getMockCallsForTestUrl()).toHaveLength(3);
@@ -192,7 +187,7 @@ describe('LoadTest middleware', () => {
         await Request.processWithMiddleware({command: TEST_COMMAND, data: {authToken: 'testToken', reportID: '2'}});
         await waitForNetworkPromises();
 
-        // Then it should also fan out to 3 calls (1 real + 2 duplicates) using the previously stored multiplier
+        // Then it should also make 3 calls (1 real + 2 duplicates) using the previously stored multiplier
         expect(getMockCallsForTestUrl()).toHaveLength(3 + 3);
     });
 
@@ -205,16 +200,18 @@ describe('LoadTest middleware', () => {
         await Request.processWithMiddleware({command: TEST_COMMAND, data: {authToken: 'testToken', reportID: '1'}});
         await waitForNetworkPromises();
 
-        // Then it should fan out to 3 calls (1 real + 2 duplicates)
+        // Then it should make 3 calls (1 real + 2 duplicates)
         expect(getMockCallsForTestUrl()).toHaveLength(3);
 
         // And given the next response explicitly returns Headers without an X-Load-Test entry
-        (global.fetch as jest.Mock).mockImplementationOnce(() =>
-            Promise.resolve({
-                ok: true,
-                headers: new Headers({}),
-                json: () => Promise.resolve({jsonCode: 200}),
-            }),
+        fetchMock.mockImplementationOnce(() =>
+            Promise.resolve(
+                createMock<Response>({
+                    ok: true,
+                    headers: new Headers({}),
+                    json: () => Promise.resolve({jsonCode: 200}),
+                }),
+            ),
         );
 
         // When we process a second request

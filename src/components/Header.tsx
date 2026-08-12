@@ -1,11 +1,17 @@
-import type {ReactNode} from 'react';
-import React, {useMemo} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {Linking, View} from 'react-native';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useDialogContainerFocus from '@hooks/useDialogContainerFocus';
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useMemo} from 'react';
+import {Linking, View} from 'react-native';
+
 import EnvironmentBadge from './EnvironmentBadge';
 import Text from './Text';
 import TextLink from './TextLink';
@@ -37,6 +43,9 @@ type HeaderProps = {
 
     /** Whether this is the screen-level header (registers dialog label and focus). Only HeaderWithBackButton should set this. */
     isScreenHeader?: boolean;
+
+    /** Whether to skip focus of the first interactive element inside the header after the RHP transition for screen reader announcement.  */
+    shouldSkipFocusAfterTransition?: boolean;
 };
 
 function Header({
@@ -49,11 +58,24 @@ function Header({
     subTitleLink = '',
     numberOfTitleLines = 2,
     isScreenHeader = false,
+    shouldSkipFocusAfterTransition = false,
 }: HeaderProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const {isTransitionReady, claimInitialFocus, containerRef} = useDialogLabelRegistration(isScreenHeader ? title : '');
 
-    useDialogContainerFocus(containerRef, isTransitionReady, claimInitialFocus);
+    useDialogContainerFocus(containerRef, isTransitionReady, claimInitialFocus, shouldSkipFocusAfterTransition);
+
+    const dialogTitle = isScreenHeader && typeof title === 'string' ? title : '';
+    const dialogAnnouncement = dialogTitle ? `${dialogTitle}, ${translate('common.dialogOpened')}` : '';
+    // Polite so JAWS can finish the tab-title "(1) …" (left paren…) before "{title}, dialog" — assertive was cutting it off at "lef".
+    // Keep announcing even when shouldSkipFocusAfterTransition is set — that flag only skips focus moves (e.g. New Task / IOU confirmation).
+    // Web-only: iOS VoiceOver must not speak this (index.ios honors shouldAnnounceOnNative; default would announce).
+    useAccessibilityAnnouncement(dialogAnnouncement, isTransitionReady && !!dialogTitle, {
+        shouldAnnounceOnWeb: true,
+        shouldAnnounceOnNative: false,
+        politeness: 'polite',
+    });
 
     const renderedSubtitle = useMemo(
         () => (

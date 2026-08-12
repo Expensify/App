@@ -1,9 +1,8 @@
+/*  eslint-disable rulesdir/no-multiple-api-calls */
 // cspell:ignore SOMESECRETKEY
 import {beforeEach, jest, test} from '@jest/globals';
-import {openAuthSessionAsync} from 'expo-web-browser';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
-import {confirmReadyToOpenApp, openApp, reconnectApp} from '@libs/actions/App';
+
+import {openApp, reconnectApp} from '@libs/actions/App';
 import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
@@ -15,16 +14,26 @@ import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import {setHasRadio} from '@libs/NetworkState';
 import PushNotification from '@libs/Notification/PushNotification';
-// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-import '@libs/Notification/PushNotification/subscribeToPushNotifications';
 import reauthenticate from '@libs/Reauthentication';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import * as SessionUtil from '@src/libs/actions/Session';
+// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
+import '@libs/Notification/PushNotification/subscribeToPushNotifications';
+
 import {KEYS_TO_PRESERVE_SUPPORTAL, signOutAndRedirectToSignIn} from '@src/libs/actions/Session';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials, Session} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+import {openAuthSessionAsync} from 'expo-web-browser';
+import {clearTokenRefresh, removeAllFromAutoprefetch} from 'react-native-nitro-fetch';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -65,6 +74,34 @@ beforeEach(() => {
 });
 
 describe('Session', () => {
+    describe('isSupportalSession', () => {
+        test('returns true when the session uses a support auth token', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
+            await waitForBatchedUpdates();
+
+            expect(SessionUtil.isSupportalSession()).toBe(true);
+        });
+
+        test('returns true mid-transition when isSupportAuthTokenUsed is set', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {isSupportAuthTokenUsed: true});
+            await waitForBatchedUpdates();
+
+            expect(SessionUtil.isSupportalSession()).toBe(true);
+        });
+
+        test('returns false for a non-supportal session', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@example.com'});
+            await waitForBatchedUpdates();
+
+            expect(SessionUtil.isSupportalSession()).toBe(false);
+        });
+
+        test('returns false when there is no session', () => {
+            // beforeEach clears Onyx, so the module-level session is empty here
+            expect(SessionUtil.isSupportalSession()).toBe(false);
+        });
+    });
+
     test('reauthenticate redirects to sign in with "No credentials available" when credentials are missing', async () => {
         // Given no signed-in user — beforeEach calls Onyx.clear(), so NetworkStore's credentials are null
 
@@ -79,6 +116,133 @@ describe('Session', () => {
         expect(redirectToSignInSpy).toHaveBeenCalledWith('No credentials available');
 
         redirectToSignInSpy.mockRestore();
+    });
+
+    test('reauthenticate aborts when RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN is true', async () => {
+        // Given a SignIn with short lived token is currently in flight
+        await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
+        await waitForBatchedUpdates();
+
+        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+        // When reauthenticate is called
+        const result = await reauthenticate('TestCommand');
+        await waitForBatchedUpdates();
+
+        // Then it aborts cleanly without redirecting to sign in
+        expect(result).toBe(false);
+        expect(redirectToSignInSpy).not.toHaveBeenCalled();
+
+        redirectToSignInSpy.mockRestore();
+    });
+
+    test('setIsAuthenticatingWithShortLivedToken(true) makes reauthenticate abort (blocks the SAML resume race)', async () => {
+        let isAuthenticatingWithShortLivedToken: OnyxEntry<boolean>;
+        Onyx.connect({
+            key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+            callback: (val) => (isAuthenticatingWithShortLivedToken = val),
+        });
+
+        // Given the SAML sign-in flow set the guard before opening the in-app browser
+        SessionUtil.setIsAuthenticatingWithShortLivedToken(true);
+        await waitForBatchedUpdates();
+        expect(isAuthenticatingWithShortLivedToken).toBe(true);
+
+        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+        // When the app resumes and reconnectApp's 407 triggers reauthenticate
+        const result = await reauthenticate('TestCommand');
+        await waitForBatchedUpdates();
+
+        // Then reauthenticate aborts without redirecting to sign in, so the SAML callback can complete
+        expect(result).toBe(false);
+        expect(redirectToSignInSpy).not.toHaveBeenCalled();
+
+        // When the browser is cancelled/fails, the guard is cleared so future reauthentication isn't blocked
+        SessionUtil.setIsAuthenticatingWithShortLivedToken(false);
+        await waitForBatchedUpdates();
+        expect(isAuthenticatingWithShortLivedToken).toBe(false);
+
+        redirectToSignInSpy.mockRestore();
+    });
+
+    test('reauthenticate proceeds even when a legacy session.isAuthenticatingWithShortLivedToken=true is persisted (recovers stuck users)', async () => {
+        // Given a session in Onyx that still carries the legacy stuck flag from before the RAM-only migration.
+        // The Session type no longer declares the field, so cast to write the legacy shape.
+        await Onyx.merge(ONYXKEYS.SESSION, {isAuthenticatingWithShortLivedToken: true} as unknown as Session);
+        await waitForBatchedUpdates();
+
+        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+        // When reauthenticate is called with no credentials stored
+        const result = await reauthenticate('TestCommand');
+        await waitForBatchedUpdates();
+
+        // Then the legacy persisted flag does NOT block reauth. Reauth proceeds, finds no credentials, and redirects to sign in.
+        expect(result).toBe(false);
+        expect(redirectToSignInSpy).toHaveBeenCalledWith('No credentials available');
+
+        redirectToSignInSpy.mockRestore();
+    });
+
+    describe('SAML reauthentication redirect coalescing', () => {
+        beforeEach(async () => {
+            // Reset the module-level coalescing guard between tests. Setting the short-lived-token flag to
+            // true is what clears the guard, so toggle it on and back off to start each test from a clean state.
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, false);
+            await waitForBatchedUpdates();
+        });
+
+        test('coalesces a burst of concurrent SAML reauthentication calls into a single sign-in redirect', async () => {
+            // Given a SAML-required account whose session token has expired
+            await Onyx.set(ONYXKEYS.ACCOUNT, {isSAMLRequired: true, isLoading: true});
+            await waitForBatchedUpdates();
+
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+            // When several requests fail with 407 in the same tick and each triggers reauthenticate
+            const results = await Promise.all([reauthenticate('ReconnectApp'), reauthenticate('OpenApp'), reauthenticate('AuthenticatePusher')]);
+            await waitForBatchedUpdates();
+
+            // Then only the first request redirects to the SAML sign-in page; the rest are skipped, so the page
+            // is not torn down and re-mounted (and SAML re-initiated) once per concurrent 407
+            expect(results).toEqual([false, false, false]);
+            expect(redirectToSignInSpy).toHaveBeenCalledTimes(1);
+            expect(redirectToSignInSpy).toHaveBeenCalledWith(undefined, true);
+
+            redirectToSignInSpy.mockRestore();
+        });
+
+        test('allows a fresh SAML sign-in redirect once a new short-lived-token exchange has begun', async () => {
+            // Given a SAML-required account that has already been redirected to sign in
+            await Onyx.set(ONYXKEYS.ACCOUNT, {isSAMLRequired: true, isLoading: true});
+            await waitForBatchedUpdates();
+
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+            await reauthenticate('ReconnectApp');
+            await waitForBatchedUpdates();
+            expect(redirectToSignInSpy).toHaveBeenCalledTimes(1);
+
+            // A later 407 in the same burst is still coalesced and does not redirect again
+            await reauthenticate('OpenApp');
+            await waitForBatchedUpdates();
+            expect(redirectToSignInSpy).toHaveBeenCalledTimes(1);
+
+            // When the user begins a new SAML sign-in, the short-lived-token exchange starts and then settles
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
+            await waitForBatchedUpdates();
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, false);
+            await waitForBatchedUpdates();
+
+            // Then a later token expiry is allowed to redirect to SAML again
+            await reauthenticate('ReconnectApp');
+            await waitForBatchedUpdates();
+            expect(redirectToSignInSpy).toHaveBeenCalledTimes(2);
+
+            redirectToSignInSpy.mockRestore();
+        });
     });
 
     test('Authenticate is called with saved credentials when a session expires', async () => {
@@ -138,7 +302,6 @@ describe('Session', () => {
             );
 
         // When we attempt to fetch the initial app data via the API
-        confirmReadyToOpenApp();
         openApp();
         await waitForBatchedUpdates();
 
@@ -165,7 +328,6 @@ describe('Session', () => {
         setHasRadio(false);
         await waitForBatchedUpdates();
 
-        confirmReadyToOpenApp();
         reconnectApp();
 
         await waitForBatchedUpdates();
@@ -187,7 +349,6 @@ describe('Session', () => {
         setHasRadio(false);
         await waitForBatchedUpdates();
 
-        confirmReadyToOpenApp();
         reconnectApp();
 
         await waitForBatchedUpdates();
@@ -209,7 +370,6 @@ describe('Session', () => {
         setHasRadio(false);
         await waitForBatchedUpdates();
 
-        confirmReadyToOpenApp();
         reconnectApp();
         reconnectApp();
         reconnectApp();
@@ -294,6 +454,36 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         expect(getAllPersistedRequests().length).toBe(0);
+    });
+
+    test('SignOut should clear native startup prefetch state', async () => {
+        await TestHelper.signInWithTestUser();
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+
+        await SessionUtil.signOut({authToken: 'testAuthToken'});
+
+        expect(clearTokenRefresh).toHaveBeenCalledWith('fetch');
+        expect(removeAllFromAutoprefetch).toHaveBeenCalled();
+
+        setHasRadio(true);
+        await waitForBatchedUpdates();
+    });
+
+    test('SignOut should clear native startup prefetch state before LOG_OUT', async () => {
+        const clearTokenRefreshMock = jest.mocked(clearTokenRefresh);
+        const removeAllFromAutoprefetchMock = jest.mocked(removeAllFromAutoprefetch);
+        const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
+
+        await SessionUtil.signOut({authToken: 'testAuthToken'});
+
+        expect(clearTokenRefreshMock).toHaveBeenCalledWith('fetch');
+        expect(removeAllFromAutoprefetchMock).toHaveBeenCalled();
+        expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, expect.objectContaining({authToken: 'testAuthToken'}), {});
+        expect(clearTokenRefreshMock.mock.invocationCallOrder.at(0)).toBeLessThan(makeRequestSpy.mock.invocationCallOrder.at(0) ?? 0);
+        expect(removeAllFromAutoprefetchMock.mock.invocationCallOrder.at(0)).toBeLessThan(makeRequestSpy.mock.invocationCallOrder.at(0) ?? 0);
+
+        makeRequestSpy.mockRestore();
     });
 
     describe('SignOutAndRedirectToSignIn', () => {
@@ -502,7 +692,7 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             mockedOpenAuthSessionAsync.mockClear();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
             mockedGetPlatform.mockReturnValue(CONST.PLATFORM.ANDROID);
 
@@ -520,7 +710,7 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             mockedOpenAuthSessionAsync.mockImplementationOnce(() => Promise.reject(new Error('Browser session failed')));
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
 
             await SessionUtil.signOut({signedInWithSAML: true, authToken: 'testAuthToken', autoGeneratedLogin: 'testLogin'});
@@ -535,7 +725,7 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             mockedOpenAuthSessionAsync.mockClear();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
 
             await SessionUtil.signOut({authToken: 'testAuthToken', autoGeneratedLogin: 'testLogin'});
@@ -549,7 +739,6 @@ describe('Session', () => {
 
     describe('replaceTwoFactorDevice', () => {
         test('sets isLoading and clears errors optimistically for both steps', () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             SessionUtil.replaceTwoFactorDevice('verify_old', '123456');
@@ -562,7 +751,6 @@ describe('Session', () => {
         });
 
         test('verify_old success data does not clear twoFactorAuthSecretKey', () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             SessionUtil.replaceTwoFactorDevice('verify_old', '123456');
@@ -575,7 +763,6 @@ describe('Session', () => {
         });
 
         test('verify_new success data clears twoFactorAuthSecretKey to signal step completion', () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             SessionUtil.replaceTwoFactorDevice('verify_new', '654321');
@@ -635,6 +822,210 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             expect(session?.signedInWithSAML).toBe(false);
+        });
+    });
+
+    describe('resendValidateCode', () => {
+        test('sends the login argument as the email param, independent of the CREDENTIALS Onyx cache', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // CREDENTIALS is empty (cleared in beforeEach), so a correct email here proves the value comes from the param, not the module cache.
+            SessionUtil.resendValidateCode({reasonCode: null}, 'passed-in@expensify.com');
+            await waitForBatchedUpdates();
+
+            const call = writeSpy.mock.calls.at(0);
+            expect(call?.at(0)).toBe(WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE);
+            expect(call?.at(1)).toEqual(expect.objectContaining({email: 'passed-in@expensify.com'}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('forwards the reasonCode from reasonParams to the API call', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.resendValidateCode({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.SIGN_IN}, 'passed-in@expensify.com');
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.SIGN_IN}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('sends an undefined email when the login argument is undefined', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.resendValidateCode({reasonCode: null}, undefined);
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({email: undefined}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('optimistically sets loadingForm to RESEND_VALIDATE_CODE_FORM', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.resendValidateCode({reasonCode: null}, 'passed-in@expensify.com');
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(2)).toEqual(
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({key: ONYXKEYS.ACCOUNT, value: expect.objectContaining({loadingForm: CONST.FORMS.RESEND_VALIDATE_CODE_FORM})}),
+                    ]),
+                }),
+            );
+
+            writeSpy.mockRestore();
+        });
+    });
+
+    describe('signUpUser', () => {
+        test('sends the login argument as the email param, independent of the CREDENTIALS Onyx cache', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // CREDENTIALS is empty (cleared in beforeEach), so a correct email here proves the value comes from the param, not the module cache.
+            SessionUtil.signUpUser('new-user@expensify.com', undefined);
+            await waitForBatchedUpdates();
+
+            const call = writeSpy.mock.calls.at(0);
+            expect(call?.at(0)).toBe(WRITE_COMMANDS.SIGN_UP_USER);
+            expect(call?.at(1)).toEqual(expect.objectContaining({email: 'new-user@expensify.com'}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('forwards the preferredLocale to the API call', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.signUpUser('new-user@expensify.com', CONST.LOCALES.EN);
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({preferredLocale: CONST.LOCALES.EN}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('includes hasSMSMarketingConsent when it is provided', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.signUpUser('new-user@expensify.com', undefined, true);
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({hasSMSMarketingConsent: true}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('omits hasSMSMarketingConsent when it is undefined', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.signUpUser('new-user@expensify.com', undefined);
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).not.toHaveProperty('hasSMSMarketingConsent');
+
+            writeSpy.mockRestore();
+        });
+    });
+
+    describe('setupNewDotAfterTransitionFromOldDot', () => {
+        const buildHybridAppSettings = (isDelegateAccess: boolean) => ({
+            [ONYXKEYS.HYBRID_APP]: {
+                // false so `clearOnyxIfSigningIn` resolves without hitting redirectToSignIn
+                useNewDotSignInPage: false,
+                delegateAccessData: {
+                    isDelegateAccess,
+                    oldDotCurrentUserEmail: 'delegate@od.com',
+                    oldDotCurrentAuthToken: 'odAuthToken',
+                    oldDotCurrentEncryptedAuthToken: 'odEncryptedAuthToken',
+                    oldDotCurrentAccountID: 999,
+                    oldDotAutoGeneratedLogin: 'odAutoLogin',
+                    oldDotAutoGeneratedPassword: 'odAutoPassword',
+                },
+            },
+        });
+
+        test('writes the passed credentials into CREDENTIALS and STASHED_CREDENTIALS instead of reading the module cache', async () => {
+            // Take the imported-state branch to avoid clearing Onyx / redirecting.
+            await Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, true);
+            await waitForBatchedUpdates();
+
+            const onyxMultiSetSpy = jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
+
+            const credentialsParam = {login: 'nd@user.com', autoGeneratedLogin: 'ndAutoLogin', autoGeneratedPassword: 'ndAutoPassword'};
+            await SessionUtil.setupNewDotAfterTransitionFromOldDot(buildHybridAppSettings(true), undefined, credentialsParam);
+            await waitForBatchedUpdates();
+
+            expect(onyxMultiSetSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    [ONYXKEYS.STASHED_CREDENTIALS]: credentialsParam,
+                    [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'ndAutoLogin', autoGeneratedPassword: 'ndAutoPassword'},
+                }),
+            );
+
+            onyxMultiSetSpy.mockRestore();
+        });
+
+        test('falls back to the OldDot delegate credentials when the passed credentials are undefined', async () => {
+            await Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, true);
+            await waitForBatchedUpdates();
+
+            const onyxMultiSetSpy = jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
+
+            await SessionUtil.setupNewDotAfterTransitionFromOldDot(buildHybridAppSettings(true), undefined, undefined);
+            await waitForBatchedUpdates();
+
+            expect(onyxMultiSetSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'odAutoLogin', autoGeneratedPassword: 'odAutoPassword'},
+                }),
+            );
+
+            onyxMultiSetSpy.mockRestore();
+        });
+
+        test('does not stash the passed credentials when the transition is not a delegate access', async () => {
+            await Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, true);
+            await waitForBatchedUpdates();
+
+            const onyxMultiSetSpy = jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
+
+            const credentialsParam = {login: 'nd@user.com', autoGeneratedLogin: 'ndAutoLogin', autoGeneratedPassword: 'ndAutoPassword'};
+            await SessionUtil.setupNewDotAfterTransitionFromOldDot(buildHybridAppSettings(false), undefined, credentialsParam);
+            await waitForBatchedUpdates();
+
+            expect(onyxMultiSetSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    [ONYXKEYS.STASHED_CREDENTIALS]: {},
+                }),
+            );
+
+            onyxMultiSetSpy.mockRestore();
+        });
+    });
+    describe('isSupportAuthToken', () => {
+        beforeEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        test('returns true when session has support authTokenType', () => {
+            const session: Session = {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT, authToken: 'token', accountID: 1, creationDate: Date.now()};
+            expect(SessionUtil.isSupportAuthToken(session)).toBe(true);
+        });
+
+        test('returns false when session has anonymous authTokenType', () => {
+            const session: Session = {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS, authToken: 'token', accountID: 1, creationDate: Date.now()};
+            expect(SessionUtil.isSupportAuthToken(session)).toBe(false);
+        });
+
+        test('returns false when session has no authTokenType', () => {
+            const session: Session = {authToken: 'token', accountID: 1, creationDate: Date.now()};
+            expect(SessionUtil.isSupportAuthToken(session)).toBe(false);
+        });
+
+        test('returns false when session is undefined', () => {
+            expect(SessionUtil.isSupportAuthToken(undefined)).toBe(false);
         });
     });
 });

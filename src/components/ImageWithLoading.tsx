@@ -1,12 +1,16 @@
-import delay from 'lodash/delay';
-import React, {useEffect, useRef, useState} from 'react';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+
+import delay from 'lodash/delay';
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {ImageObjectPosition, ImageOnLoadEvent, ImageProps} from './Image/types';
+
 import AttachmentOfflineIndicator from './AttachmentOfflineIndicator';
 import Image from './Image';
-import type {ImageObjectPosition, ImageOnLoadEvent, ImageProps} from './Image/types';
 import LoadingIndicator from './LoadingIndicator';
 
 type ImageWithSizeLoadingProps = {
@@ -24,6 +28,9 @@ type ImageWithSizeLoadingProps = {
 
     /** Invoked on mount and layout changes */
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** Low-resolution URI shown as a placeholder while the full image loads */
+    previewUri?: string;
 } & ImageProps;
 
 function ImageWithLoading({
@@ -37,6 +44,7 @@ function ImageWithLoading({
     onLoad,
     onLayout,
     style,
+    previewUri,
     ...rest
 }: ImageWithSizeLoadingProps) {
     const styles = useThemeStyles();
@@ -83,6 +91,19 @@ function ImageWithLoading({
             style={[styles.w100, styles.h100, containerStyles]}
             onLayout={onLayout}
         >
+            {isLoading &&
+                !!previewUri && (
+                    // eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop.
+                    <Image
+                        {...rest}
+                        source={{uri: previewUri}}
+                        style={[styles.w100, styles.h100, styles.opacitySemiTransparent, style]}
+                        resizeMode={resizeMode}
+                        onLoad={onLoad}
+                        loadingIconSize={loadingIconSize}
+                        loadingIndicatorStyles={loadingIndicatorStyles}
+                    />
+                )}
             {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
             <Image
                 {...rest}
@@ -109,7 +130,7 @@ function ImageWithLoading({
                 loadingIconSize={loadingIconSize}
                 loadingIndicatorStyles={loadingIndicatorStyles}
             />
-            {isLoading && !isImageCached && !isOffline && (
+            {(previewUri ? isLoading : isLoading && !isImageCached) && !isOffline && (
                 <LoadingIndicator
                     iconSize={loadingIconSize}
                     style={[styles.opacity1, styles.bgTransparent, loadingIndicatorStyles]}
@@ -123,3 +144,4 @@ function ImageWithLoading({
 ImageWithLoading.displayName = 'ImageWithLoading';
 
 export default React.memo(ImageWithLoading);
+export type {ImageWithSizeLoadingProps};

@@ -1,20 +1,26 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import {clearReimbursementAccountSendReminderForCorpaySignerInformation, sendReminderForCorpaySignerInformation} from '@userActions/BankAccounts';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 type HangTightProps = {
     /** ID of policy */
@@ -82,14 +88,15 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
                     />
                 )}
                 <Button
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     style={[styles.w100]}
                     onPress={handleSendReminder}
-                    large
-                    icon={reimbursementAccount?.isSendingReminderForCorpaySignerInformation ? undefined : icons.Bell}
-                    text={translate('signerInfoStep.sendReminder')}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={reimbursementAccount?.isSendingReminderForCorpaySignerInformation}
-                />
+                >
+                    {!reimbursementAccount?.isSendingReminderForCorpaySignerInformation && <Button.Icon src={icons.Bell} />}
+                    <Button.Text>{translate('signerInfoStep.sendReminder')}</Button.Text>
+                </Button>
             </View>
         </ScrollView>
     );

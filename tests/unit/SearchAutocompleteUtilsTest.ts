@@ -1,7 +1,10 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+
 import {getSearchValueForConnection, getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
-import {getTrimmedUserSearchQueryPreservingComma, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {getParsableSearchValue, getTrimmedUserSearchQueryPreservingComma, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+
 import CONST from '@src/CONST';
+
 import createSharedValueMock from '../utils/createSharedValueMock';
 
 describe('SearchAutocompleteUtils', () => {
@@ -300,6 +303,27 @@ describe('SearchAutocompleteUtils', () => {
             expect(result).toEqual([]);
         });
 
+        it('should highlight bankAccount filter when value is in substitution map', () => {
+            const input = 'bankAccount:Chase';
+            const substitutionMapWithBankAccount: SubstitutionMap = {
+                ...mockSubstitutionMap,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'bankAccount:Chase': '42',
+            };
+
+            const result = parseForLiveMarkdown(input, currentUserName, substitutionMapWithBankAccount, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            expect(result).toEqual([{start: 12, type: 'mention-user', length: 5}]);
+        });
+
+        it('should not highlight bankAccount filter when value is missing from substitution map', () => {
+            const input = 'bankAccount:99';
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            expect(result).toEqual([]);
+        });
+
         describe('limit filter highlighting', () => {
             it('highlights valid positive integer', () => {
                 const input = 'limit:10';
@@ -533,6 +557,36 @@ describe('SearchAutocompleteUtils', () => {
             it('returns template name as-is when no standard mapping', () => {
                 const customName = 'Custom Export Layout';
                 expect(getStandardExportTemplateDisplayName(customName)).toBe(customName);
+            });
+        });
+    });
+
+    describe('getParsableSearchValue', () => {
+        describe('name filters, which the parser reads back with quotes intact', () => {
+            it.each(['from', 'to', 'payer', 'assignee'])('keeps a quoted display name for %s', (filterKey) => {
+                expect(getParsableSearchValue(filterKey, 'Bob "The Builder" Smith')).toBe('Bob "The Builder" Smith');
+            });
+
+            it('keeps a plain display name', () => {
+                expect(getParsableSearchValue('from', 'Alice Smith')).toBe('Alice Smith');
+            });
+
+            it('strips quotes only when the name cannot be read back as one value', () => {
+                expect(getParsableSearchValue('from', 'Acme "US",Inc')).toBe('Acme US,Inc');
+            });
+        });
+
+        describe('workspace and room filters, which cannot carry quotes', () => {
+            it('strips quotes from a workspace name', () => {
+                expect(getParsableSearchValue('workspace', 'Bob "The Builder" Smith')).toBe('Bob The Builder Smith');
+            });
+
+            it('keeps a workspace name containing only a comma', () => {
+                expect(getParsableSearchValue('workspace', 'Acme,Inc')).toBe('Acme,Inc');
+            });
+
+            it('keeps a room name whose quote survives the round trip', () => {
+                expect(getParsableSearchValue('in', 'Acme,"Inc')).toBe('Acme,"Inc');
             });
         });
     });

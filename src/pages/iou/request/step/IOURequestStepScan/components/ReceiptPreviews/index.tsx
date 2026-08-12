@@ -1,22 +1,29 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import type {FlatList as FlatListType} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
 import FlatList from '@components/FlatList/FlatList';
 import Image from '@components/Image';
 import {PressableWithFeedback} from '@components/Pressable';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionDraftReceipts from '@hooks/useTransactionDraftReceipts';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import useReceiptPreviewsSizes from '@pages/iou/request/step/IOURequestStepScan/hooks/useReceiptPreviewsSizes';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
+
+import type {FlatList as FlatListType} from 'react-native';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+
 import SubmitButtonShadow from './SubmitButtonShadow';
 
 type ReceiptWithTransactionID = Receipt & {transactionID: string};
@@ -133,14 +140,14 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, 
                     showsHorizontalScrollIndicator={false}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={
-                        isInLandscapeMode ? [{paddingBottom: styles.singleAvatarMedium.height}, styles.ph4] : [{paddingRight: styles.singleAvatarMedium.width}, styles.pl4]
+                        isInLandscapeMode ? [{paddingBottom: styles.singleAvatarXLarge.height}, styles.ph4] : [{paddingRight: styles.singleAvatarXLarge.width}, styles.pl4]
                     }
                 />
                 <SubmitButtonShadow isInLandscapeMode={isInLandscapeMode}>
                     <Button
                         large
                         isDisabled={!optimisticTransactionsReceipts.length || isCapturingPhoto}
-                        innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
+                        innerStyles={[styles.singleAvatarXLarge, styles.bgGreenSuccess]}
                         icon={icons.ArrowRight}
                         iconFill={theme.white}
                         onPress={submit}

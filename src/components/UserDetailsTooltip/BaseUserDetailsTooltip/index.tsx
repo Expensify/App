@@ -1,17 +1,21 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type UserDetailsTooltipProps from '@components/UserDetailsTooltip/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isAnonymousUser} from '@libs/actions/Session';
 import {getUserDetailTooltipText} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateAccountID, shiftHorizontal, children}: UserDetailsTooltipProps) {
     const styles = useThemeStyles();
@@ -21,7 +25,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     const isCurrentUserAnonymous = session?.accountID === accountID && isAnonymousUser(session);
 
     const userDetails = personalDetails?.[accountID] ?? fallbackUserDetails ?? {};
-    let userDisplayName = getUserDetailTooltipText(accountID, formatPhoneNumber, userDetails.displayName ? userDetails.displayName.trim() : '');
+    let userDisplayName = getUserDetailTooltipText(accountID, formatPhoneNumber, translate, userDetails.displayName ? userDetails.displayName.trim() : '');
     let userLogin = !isCurrentUserAnonymous && userDetails.login?.trim() && userDetails.login !== userDetails.displayName ? formatPhoneNumber(userDetails.login) : '';
 
     let userAvatar = userDetails.avatar;
@@ -31,7 +35,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     // the Copilot feature is implemented.
     if (delegateAccountID && delegateAccountID > 0) {
         const delegateUserDetails = personalDetails?.[delegateAccountID];
-        const delegateUserDisplayName = getUserDetailTooltipText(delegateAccountID, formatPhoneNumber);
+        const delegateUserDisplayName = getUserDetailTooltipText(delegateAccountID, formatPhoneNumber, translate);
         userDisplayName = `${delegateUserDisplayName} (${translate('reportAction.asCopilot')} ${userDisplayName})`;
         userLogin = delegateUserDetails?.login ?? '';
         userAvatar = delegateUserDetails?.avatar;

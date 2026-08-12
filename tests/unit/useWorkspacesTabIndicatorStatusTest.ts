@@ -1,20 +1,30 @@
 import {act, renderHook} from '@testing-library/react-native';
-import type {OnyxMultiSetInput} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {IndicatorTestCase} from 'tests/utils/IndicatorTestUtils';
+
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
+
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxValues} from '@src/ONYXKEYS';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Connections} from '@src/types/onyx/Policy';
+
+import type {OnyxMultiSetInput} from 'react-native-onyx';
+import type {IndicatorTestCase} from 'tests/utils/IndicatorTestUtils';
+
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const userID = 'admin@expensify.com';
 const otherUserID = 'employee@example.com';
 
 const WORKSPACE = {
-    policyID: '1',
-    workspaceAccountID: 12345,
+    policyID: '1' as const,
+    policyAccountID: 12345,
     policyName: 'Test Workspace',
 };
 
@@ -49,24 +59,32 @@ const TEST_CASES = {
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_UBER_CREDENTIALS_ERROR,
     },
+    hasMergeHRSetupNeeded: {
+        name: 'has Merge HR setup needed',
+        indicatorColor: defaultTheme.success,
+        status: CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED,
+    },
 } as const satisfies Record<string, IndicatorTestCase>;
 
 const getMockForTestCase = ({name}: IndicatorTestCase) =>
-    ({
-        [ONYXKEYS.SESSION]: {
-            email: userID,
-        },
+    createMock<OnyxMultiSetInput>({
+        [ONYXKEYS.SESSION]: createMock<OnyxValues[typeof ONYXKEYS.SESSION]>({email: userID}),
         [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
             id: WORKSPACE.policyID,
             name: WORKSPACE.policyName,
             owner: userID,
             role: 'admin',
-            workspaceAccountID: WORKSPACE.workspaceAccountID,
+            policyAccountID: WORKSPACE.policyAccountID,
             // Policy errors
             errors: name === TEST_CASES.hasPolicyErrors.name ? {policyError: 'Something went wrong'} : undefined,
             errorFields: undefined,
             // Custom units errors
-            customUnits: name === TEST_CASES.hasCustomUnitsError.name ? {errors: {customUnitError: 'Invalid custom unit'}} : undefined,
+            customUnits:
+                name === TEST_CASES.hasCustomUnitsError.name
+                    ? {
+                          errors: createMock<Errors>({customUnitError: 'Invalid custom unit'}),
+                      }
+                    : undefined,
             // Employee list errors
             employeeList:
                 name === TEST_CASES.hasEmployeeListError.name
@@ -82,23 +100,32 @@ const getMockForTestCase = ({name}: IndicatorTestCase) =>
             connections: {
                 ...(name === TEST_CASES.hasSyncErrors.name
                     ? {
-                          quickbooksOnline: {
+                          quickbooksOnline: createMock<NonNullable<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.QBO]>>({
                               lastSync: {
                                   errorMessage: 'Sync failed',
                                   isSuccessful: false,
                                   errorDate: new Date().toISOString(),
                               },
-                          },
+                          }),
                       }
                     : {}),
                 ...(name === TEST_CASES.hasQBOExportError.name
                     ? {
-                          quickbooksOnline: {
+                          quickbooksOnline: createMock<NonNullable<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.QBO]>>({
                               config: {
-                                  reimbursableExpensesExportDestination: 'VENDOR_BILL',
+                                  reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
                                   reimbursableExpensesAccount: undefined,
                               },
-                          },
+                          }),
+                      }
+                    : {}),
+                ...(name === TEST_CASES.hasMergeHRSetupNeeded.name
+                    ? {
+                          [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: createMock<NonNullable<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]>>({
+                              config: {integration: 'workday'},
+                              data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
+                              lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+                          }),
                       }
                     : {}),
             },
@@ -120,7 +147,7 @@ const getMockForTestCase = ({name}: IndicatorTestCase) =>
                       connectionName: 'quickbooksOnline',
                   }
                 : undefined,
-    }) as unknown as OnyxMultiSetInput;
+    });
 
 describe('useWorkspacesTabIndicatorStatus', () => {
     beforeAll(() => {
@@ -151,30 +178,32 @@ describe('useWorkspacesTabIndicatorStatus', () => {
             expect(status).toBe(testCase.status);
         });
 
-        it('returns policyIDWithErrors', async () => {
+        it('returns indicatorPolicyID', async () => {
             const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
             await waitForBatchedUpdatesWithAct();
-            const {policyIDWithErrors} = result.current;
-            expect(policyIDWithErrors).toBe(WORKSPACE.policyID);
+            const {indicatorPolicyID} = result.current;
+            expect(indicatorPolicyID).toBe(WORKSPACE.policyID);
         });
     });
 
     describe('no errors', () => {
         beforeAll(async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {
-                        email: userID,
-                    },
-                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
-                        id: WORKSPACE.policyID,
-                        name: WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'admin',
-                        workspaceAccountID: WORKSPACE.workspaceAccountID,
-                    },
-                    [`${ONYXKEYS.CARD_LIST}`]: {},
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {
+                            email: userID,
+                        },
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: WORKSPACE.policyAccountID,
+                        },
+                        [ONYXKEYS.CARD_LIST]: {},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
         });
@@ -193,32 +222,34 @@ describe('useWorkspacesTabIndicatorStatus', () => {
             expect(indicatorColor).toBe(defaultTheme.success);
         });
 
-        it('returns undefined policyIDWithErrors when no errors exist', async () => {
+        it('returns undefined indicatorPolicyID when no errors exist', async () => {
             const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
             await waitForBatchedUpdatesWithAct();
-            const {policyIDWithErrors} = result.current;
-            expect(policyIDWithErrors).toBeUndefined();
+            const {indicatorPolicyID} = result.current;
+            expect(indicatorPolicyID).toBeUndefined();
         });
     });
 
     describe('non-admin user', () => {
         beforeAll(async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {
-                        email: otherUserID,
-                    },
-                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
-                        id: WORKSPACE.policyID,
-                        name: WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'user', // Non-admin role
-                        workspaceAccountID: WORKSPACE.workspaceAccountID,
-                        // Policy errors should NOT show for non-admin
-                        errors: {policyError: 'Something went wrong'},
-                    },
-                    [`${ONYXKEYS.CARD_LIST}`]: {},
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {
+                            email: otherUserID,
+                        },
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'user', // Non-admin role
+                            policyAccountID: WORKSPACE.policyAccountID,
+                            // Policy errors should NOT show for non-admin
+                            errors: {policyError: 'Something went wrong'},
+                        },
+                        [ONYXKEYS.CARD_LIST]: {},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
         });
@@ -234,36 +265,38 @@ describe('useWorkspacesTabIndicatorStatus', () => {
 
     describe('multiple policies with errors', () => {
         const SECOND_WORKSPACE = {
-            policyID: '2',
-            workspaceAccountID: 67890,
+            policyID: '2' as const,
+            policyAccountID: 67890,
             policyName: 'Second Workspace',
         };
 
         beforeAll(async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {
-                        email: userID,
-                    },
-                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
-                        id: WORKSPACE.policyID,
-                        name: WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'admin',
-                        workspaceAccountID: WORKSPACE.workspaceAccountID,
-                        // No errors on first policy
-                    },
-                    [`${ONYXKEYS.COLLECTION.POLICY}${SECOND_WORKSPACE.policyID}` as const]: {
-                        id: SECOND_WORKSPACE.policyID,
-                        name: SECOND_WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'admin',
-                        workspaceAccountID: SECOND_WORKSPACE.workspaceAccountID,
-                        // Errors on second policy
-                        errors: {policyError: 'Something went wrong'},
-                    },
-                    [`${ONYXKEYS.CARD_LIST}`]: {},
-                } as unknown as OnyxMultiSetInput);
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {
+                            email: userID,
+                        },
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: WORKSPACE.policyAccountID,
+                            // No errors on first policy
+                        },
+                        [`${ONYXKEYS.COLLECTION.POLICY}${SECOND_WORKSPACE.policyID}` as const]: {
+                            id: SECOND_WORKSPACE.policyID,
+                            name: SECOND_WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: SECOND_WORKSPACE.policyAccountID,
+                            // Errors on second policy
+                            errors: {policyError: 'Something went wrong'},
+                        },
+                        [ONYXKEYS.CARD_LIST]: {},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
         });
@@ -280,9 +313,9 @@ describe('useWorkspacesTabIndicatorStatus', () => {
         it('returns the policyID of the policy with errors', async () => {
             const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
             await waitForBatchedUpdatesWithAct();
-            const {policyIDWithErrors} = result.current;
+            const {indicatorPolicyID} = result.current;
 
-            expect(policyIDWithErrors).toBe(SECOND_WORKSPACE.policyID);
+            expect(indicatorPolicyID).toBe(SECOND_WORKSPACE.policyID);
         });
     });
 
@@ -296,39 +329,43 @@ describe('useWorkspacesTabIndicatorStatus', () => {
         it('handles missing data gracefully', async () => {
             const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
             await waitForBatchedUpdatesWithAct();
-            const {status, indicatorColor, policyIDWithErrors} = result.current;
+            const {status, indicatorColor, indicatorPolicyID} = result.current;
 
             expect(status).toBeUndefined();
             expect(indicatorColor).toBe(defaultTheme.success);
-            expect(policyIDWithErrors).toBeUndefined();
+            expect(indicatorPolicyID).toBeUndefined();
         });
     });
 
     describe('error priority', () => {
         beforeAll(async () => {
             await act(async () => {
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {
-                        email: userID,
-                    },
-                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
-                        id: WORKSPACE.policyID,
-                        name: WORKSPACE.policyName,
-                        owner: userID,
-                        role: 'admin',
-                        workspaceAccountID: WORKSPACE.workspaceAccountID,
-                        // Multiple errors at once
-                        errors: {policyError: 'Policy error'},
-                        customUnits: {errors: {customUnitError: 'Custom unit error'}},
-                        employeeList: {
-                            [otherUserID]: {
-                                email: otherUserID,
-                                errors: {employeeError: 'Employee error'},
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {
+                            email: userID,
+                        },
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: WORKSPACE.policyAccountID,
+                            // Multiple errors at once
+                            errors: {policyError: 'Policy error'},
+                            customUnits: {
+                                errors: createMock<Errors>({customUnitError: 'Custom unit error'}),
+                            },
+                            employeeList: {
+                                [otherUserID]: {
+                                    email: otherUserID,
+                                    errors: {employeeError: 'Employee error'},
+                                },
                             },
                         },
-                    },
-                    [`${ONYXKEYS.CARD_LIST}`]: {},
-                } as unknown as OnyxMultiSetInput);
+                        [ONYXKEYS.CARD_LIST]: {},
+                    }),
+                );
                 await waitForBatchedUpdatesWithAct();
             });
         });
@@ -344,6 +381,56 @@ describe('useWorkspacesTabIndicatorStatus', () => {
             // 3. HAS_EMPLOYEE_LIST_ERROR
             // etc.
             expect(status).toBe(CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS);
+        });
+    });
+
+    describe('error priority over info', () => {
+        beforeAll(async () => {
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {
+                            email: userID,
+                        },
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: WORKSPACE.policyAccountID,
+                            connections: {
+                                quickbooksOnline: createMock<NonNullable<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.QBO]>>({
+                                    lastSync: {
+                                        errorMessage: 'Sync failed',
+                                        isSuccessful: false,
+                                        errorDate: new Date().toISOString(),
+                                    },
+                                }),
+                                [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: createMock<NonNullable<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]>>({
+                                    config: {integration: 'workday'},
+                                    data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
+                                    lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+                                }),
+                            },
+                        },
+                        [`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${WORKSPACE.policyID}` as const]: {
+                            stageInProgress: null,
+                            connectionName: 'quickbooksOnline',
+                        },
+                        [ONYXKEYS.CARD_LIST]: {},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+        });
+
+        it('shows red sync error when both sync error and merge HR setup are needed', async () => {
+            const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
+            const {status, indicatorColor} = result.current;
+
+            expect(status).toBe(CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS);
+            expect(indicatorColor).toBe(defaultTheme.danger);
         });
     });
 });

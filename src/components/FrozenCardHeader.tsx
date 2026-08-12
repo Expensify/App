@@ -1,19 +1,26 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Button from './Button';
 import Text from './Text';
 import TextLink from './TextLink';
@@ -32,16 +39,15 @@ type FrozenCardHeaderProps = {
 
 function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskToUnfreezePress, canUnfreezeCard, isWorkspaceAdmin, frozenByAccountID, frozenDate}: FrozenCardHeaderProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['FreezeCard']);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const isCurrentUser = frozenByAccountID === session?.accountID;
 
-    const frozenByName = frozenByAccountID ? getDisplayNameOrDefault(personalDetails?.[frozenByAccountID]) : '';
-    const formattedDate = frozenDate ? DateUtils.formatWithUTCTimeZone(frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
+    const frozenByName = frozenByAccountID ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[frozenByAccountID], translate, formatPhoneNumber}) : '';
+    const formattedDate = frozenDate ? DateUtils.formatWithUTCTimeZone(frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, dateFnsLocale) : '';
     const adminFrozenTextPrefix = translate('cardPage.frozenByAdminPrefix', {date: formattedDate});
     const frozenNeedsUnfreezePrefix = translate('cardPage.frozenByAdminNeedsUnfreezePrefix');
     const frozenNeedsUnfreezeSuffix = translate('cardPage.frozenByAdminNeedsUnfreezeSuffix');
@@ -64,7 +70,7 @@ function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskT
                 <>
                     {adminFrozenTextPrefix}
                     <TextLink
-                        onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(Number(frozenByAccountID), Navigation.getActiveRoute()))}
+                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(Number(frozenByAccountID))))}
                         style={[styles.textLabel, styles.link]}
                     >
                         {frozenByName}
@@ -79,7 +85,7 @@ function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskT
             <>
                 {frozenNeedsUnfreezePrefix}
                 <TextLink
-                    onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(Number(frozenByAccountID), Navigation.getActiveRoute()))}
+                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(Number(frozenByAccountID))))}
                     style={[styles.textLabel, styles.link]}
                 >
                     {frozenByName}
@@ -101,7 +107,6 @@ function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskT
                         medium
                         text={translate(canUnfreezeCard ? 'cardPage.unfreezeCard' : 'cardPage.askToUnfreeze')}
                         icon={icons.FreezeCard}
-                        iconFill={theme.icon}
                         onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
                         isDisabled={canUnfreezeCard && isOffline}
                         innerStyles={equalButtonInnerStyles}

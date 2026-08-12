@@ -1,13 +1,17 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {createOptionList} from '@libs/PersonalDetailOptionsListUtils';
+
+import {createOptionList, filterPersonalDetailsByLogins} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData, PrivateIsArchivedMap} from '@libs/PersonalDetailOptionsListUtils/types';
 import {isOneOnOneChat, isSelfDM} from '@libs/ReportUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAttributesDerivedValue, ReportNameValuePairs} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -15,6 +19,8 @@ import useOnyx from './useOnyx';
 type UseFilteredOptionsConfig = {
     /** Whether the hook should be enabled (default: true) */
     enabled?: boolean;
+    /** When set, only the personal details whose login is in this set are turned into options */
+    includeLoginsOnly?: Set<string>;
     /* Whether to include report errors in the option data (default: false) */
     shouldStoreReportErrors?: boolean;
     /* Whether to include brick road indicator status in the option data (default: false) */
@@ -120,10 +126,10 @@ const filterReportAttributes = (reportAttributes: OnyxEntry<ReportAttributesDeri
  * />
  */
 function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
-    const {enabled = true, shouldStoreReportErrors = false, shouldShowBrickRoadIndicator = false} = config;
+    const {enabled = true, includeLoginsOnly, shouldStoreReportErrors = false, shouldShowBrickRoadIndicator = false} = config;
 
     const {accountID} = useCurrentUserPersonalDetails();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
     const [reports, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
     const reportIDsSet = (() => {
         if (!reports) {
@@ -140,7 +146,8 @@ function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFil
 
     const [reportAttributes, reportAttributesMetadata] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [reportNameValuePairs, reportNameValuePairsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const personalDetails = usePersonalDetails();
+    const allPersonalDetails = usePersonalDetails();
+    const personalDetails = includeLoginsOnly ? filterPersonalDetailsByLogins(allPersonalDetails, includeLoginsOnly) : allPersonalDetails;
 
     const isLoading = !enabled || isLoadingOnyxValue(reportsMetadata, reportAttributesMetadata, reportNameValuePairsMetadata);
 
@@ -149,7 +156,7 @@ function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFil
     const filteredReportAttributes = filterReportAttributes(reportAttributes, reportIDsSet);
 
     const optionsData = !isLoading
-        ? createOptionList(accountID, personalDetails, accountIDToReportIDMap, reports, filteredReportAttributes, privateIsArchivedMap, formatPhoneNumber, {
+        ? createOptionList(accountID, personalDetails, accountIDToReportIDMap, reports, filteredReportAttributes, privateIsArchivedMap, formatPhoneNumber, translate, {
               shouldStoreReportErrors,
               shouldShowBrickRoadIndicator,
           })

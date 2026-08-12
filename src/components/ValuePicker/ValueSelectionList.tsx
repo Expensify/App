@@ -1,8 +1,12 @@
-import React, {useMemo} from 'react';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
 import useInitialSelection from '@hooks/useInitialSelection';
+
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+
+import React, {useMemo} from 'react';
+
 import type {ValueSelectionListProps} from './types';
 
 function ValueSelectionList({

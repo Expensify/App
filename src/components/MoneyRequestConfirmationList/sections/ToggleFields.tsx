@@ -1,9 +1,12 @@
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {toggleStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -14,14 +17,13 @@ type ToggleFieldsProps = {
     onToggleReimbursable?: (isOn: boolean) => void;
     onToggleBillable?: (isOn: boolean) => void;
     transactionID: string | undefined;
-    isEditingSplitBill: boolean;
 };
 
-function ToggleFields({isReadOnly, shouldShowReimbursable, shouldShowBillable, onToggleReimbursable, onToggleBillable, transactionID, isEditingSplitBill}: ToggleFieldsProps) {
+function ToggleFields({isReadOnly, shouldShowReimbursable, shouldShowBillable, onToggleReimbursable, onToggleBillable, transactionID}: ToggleFieldsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const toggleState = useTransactionSelector(transactionID, toggleStateSelector, isEditingSplitBill);
+    const toggleState = useTransactionSelector(transactionID, toggleStateSelector);
 
     const iouIsBillable = toggleState?.billable ?? false;
     const iouIsReimbursable = toggleState?.reimbursable ?? true;

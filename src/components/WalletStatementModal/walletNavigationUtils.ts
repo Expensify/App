@@ -1,12 +1,15 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
+
 import type {IntroSelected} from '@userActions/Report';
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Beta} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 /**
  * Handles navigation for wallet statement actions

@@ -1,8 +1,12 @@
-import Onyx from 'react-native-onyx';
 import * as Export from '@userActions/Export';
+
 import ONYXKEYS from '@src/ONYXKEYS';
-import getOnyxValue from '../utils/getOnyxValue';
+
+import Onyx from 'react-native-onyx';
+
 import type {MockFetch} from '../utils/TestHelper';
+
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -16,7 +20,7 @@ describe('Export actions', () => {
     });
 
     beforeEach(() => {
-        mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
+        mockFetch = TestHelper.getGlobalFetchMock();
         global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
@@ -34,7 +38,10 @@ describe('Export actions', () => {
     test('sendExportFileFromConcierge failureData reverts shouldSendFromConcierge to its previous value', async () => {
         const exportID = 'test-export-456';
         const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
-        const existingData = {state: 'ready' as const, shouldSendFromConcierge: false};
+        const existingData = {
+            state: 'ready' as const,
+            shouldSendFromConcierge: false,
+        };
 
         await Onyx.set(onyxKey, existingData);
         await waitForBatchedUpdates();
@@ -44,7 +51,12 @@ describe('Export actions', () => {
         await waitForBatchedUpdates();
 
         const value = await getOnyxValue(onyxKey);
-        expect(value).toEqual(expect.objectContaining({shouldSendFromConcierge: false, state: 'ready'}));
+        expect(value).toEqual(
+            expect.objectContaining({
+                shouldSendFromConcierge: false,
+                state: 'ready',
+            }),
+        );
     });
 
     test('clearExportDownload sets the Onyx key to null', async () => {
@@ -76,6 +88,26 @@ describe('Export actions', () => {
 
         const value = await getOnyxValue(onyxKey);
         expect(value).toEqual(expect.objectContaining({state: 'ready', reportCount: 5}));
+    });
+
+    test('exportReportsToPDF sets optimistic Onyx data with state preparing and returns exportID', async () => {
+        const exportID = Export.exportReportsToPDF(['1', '2']);
+        await waitForBatchedUpdates();
+
+        expect(typeof exportID).toBe('string');
+        expect(exportID.length).toBeGreaterThan(0);
+
+        const value = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
+        expect(value).toEqual(expect.objectContaining({state: 'preparing'}));
+    });
+
+    test('exportReportsToPDF failureData sets failed state on failure', async () => {
+        mockFetch.fail?.();
+        const exportID = Export.exportReportsToPDF(['1']);
+        await waitForBatchedUpdates();
+
+        const value = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
+        expect(value).toEqual(expect.objectContaining({state: 'failed'}));
     });
 
     test('clearStaleExportDownloads clears ready/failed entries but preserves preparing ones', async () => {

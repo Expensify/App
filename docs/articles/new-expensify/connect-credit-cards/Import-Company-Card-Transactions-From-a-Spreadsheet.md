@@ -1,13 +1,13 @@
 ---
 title: Import Company Card Transactions From a Spreadsheet 
 description: Learn how Workspace Admins can upload company card transactions manually from a spreadsheet file.
-keywords: [New Expensify, import company card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, card feed, company card feed, bring your own card, BYOC]
+keywords: [New Expensify, import company card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, card feed, company card feed, bring your own card, BYOC, csv import, import csv, upload csv, spreadsheet import, import transactions, csv file, excel import, xls import]
 internalScope: Audience is Workspace Admins. Covers how to import, update, and delete company card CSV feeds. Does not cover personal card imports or Plaid connections.
 ---
 
 # Import Company Card Transactions From a Spreadsheet 
 
-If your bank isn't supported by a direct connection, you can still import company card transactions into Expensify using a CSV, TXT, XLX or XLSX file. This lets you bring your own card (BYOC) and manually upload company card transactions when a direct bank connection is unavailable.
+If your bank isn't supported by a direct connection, you can still import company card transactions into Expensify using a CSV, TXT, XLS, or XLSX file. This lets you bring your own card (BYOC) and manually upload company card transactions when a direct bank connection is unavailable.
 
 If your bank does support a direct connection, you can connect your account to automatically import transactions. [Learn how to set up a direct company card feed connection](/articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-Connection). 
 
@@ -15,7 +15,9 @@ If your bank does support a direct connection, you can connect your account to a
 
 ## Who can import company card transactions from a spreadsheet 
 
-Only **Workspace Admins** can import transactions for company cards. 
+Only **Workspace Admins** can import transactions for company cards.
+
+**Company Cards** must be enabled in the workspace before you can import transactions. If you don't see **Company Cards**, enable it under **More features > Company Cards**.
 
 ---
 
@@ -26,13 +28,15 @@ Only **Workspace Admins** can import transactions for company cards.
 3. Click on **Add card**.
  - If you already have a company card feed set up, click the feed name to see **Add Card**.
 5. Choose **Import transactions from file**.
-6. Choose the CSV, TXT, XLX or XLSX file you want to upload. 
+6. Choose the CSV, TXT, XLS, or XLSX file you want to upload. 
 7. Enter a name for the card feed.
-8. Set your field mappings (e.g., Card Number, Date, Amount, Merchant).
+8. Set your field mappings, mapping either a **Card number** or a **Card name**, along with **Date**, **Merchant**, **Amount**, and **Currency**.
 9. Assign cards to users based on the transactions in the file.
 10. Click **Import**.
 
-**Note:** To import a file, **Company Cards** must be enabled on the workspace.  If you don't see **Company Cards**, enable the feature under **More features > Company Cards**.
+You must map at least one card-identity column — a **Card number** or a **Card name** — so each transaction can be grouped under a card.
+
+**Note:** Download the [CSV template](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1594908368712-Best+Example+CSV+for+Domains.csv) for an example of the recommended column structure and formatting for company card transaction imports.
 
 ---
 
@@ -50,7 +54,7 @@ Only **Workspace Admins** can import transactions for company cards.
 2. Select the name of the card feed you want to update.
 3. Click **Settings**.
 4. Choose **Import spreadsheet**.
-5. Choose the CSV, TXT, XLX or XLSX file you want to upload. 
+5. Choose the CSV, TXT, XLS, or XLSX file you want to upload. 
 6. Review and confirm the field mappings.
 7. Click **Import**.
 
@@ -72,22 +76,33 @@ Only **Workspace Admins** can import transactions for company cards.
 
 # FAQ
 
+## What should I do if my file upload fails or results in an error?
+
+Ensure the file includes the required fields and matches the formatting guidelines. Use Expensify’s [CSV template](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1594908368712-Best+Example+CSV+for+Domains.csv) for reference.
+
 ## What file formats are supported for company card imports?
 
 You can upload CSV, TXT, XLS, and XLSX files when importing company card transactions.
 
 ## What columns are required to import company card transactions?
 
-Your file should include the following required columns:
-- Card Number (or last 4 digits of the card number)
+Your file must include a way to identify each card so transactions can be matched to it — map either a **Card number** column or a **Card name** column. At least one is required, and you can map both. It should also include the following columns:
 - Date
-- Amount
 - Merchant
+- Amount
 - Currency (optional but recommended)
+
+## How does matching transactions by card name work?
+
+Instead of a **Card number**, you can map a **Card name** column, and Expensify groups each transaction under the card identified by that name. After you upload the file, those cards appear as entries you can assign to users — the name doesn't need to match a card you've already assigned. You only need one card-identity column, so map a **Card number** column instead if you'd rather identify cards by number.
 
 ## What happens if I map the same spreadsheet column twice?
 
 You’ll see an error message and won’t be able to proceed until the issue is resolved.
+
+## Why am I seeing an "Oops!" error about empty values? 
+
+If you map a required field such as **Date**, **Merchant**, or **Amount** — or the **Card number** or **Card name** column you're using to identify each card — to a column that contains one or more empty cells, you'll see an "Oops!" error and won't be able to continue. Review the column you mapped, fill in any missing values, and then try importing again.
 
 ## Can I change field mappings after importing transactions?
 

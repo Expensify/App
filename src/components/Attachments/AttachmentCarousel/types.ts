@@ -1,8 +1,10 @@
-import type {ViewToken} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
+
 import type CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
+
+import type {ViewToken} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 type UpdatePageProps = {
     viewableItems: ViewToken[];

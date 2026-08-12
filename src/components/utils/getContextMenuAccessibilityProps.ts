@@ -1,4 +1,5 @@
 import getPlatform from '@libs/getPlatform';
+
 import CONST from '@src/CONST';
 
 type GetContextMenuAccessibilityPropsParams = {

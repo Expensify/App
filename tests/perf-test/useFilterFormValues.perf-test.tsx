@@ -1,17 +1,22 @@
+import {typeOptionsPoliciesSelector} from '@components/Search/FilterComponents/TypeSelector';
+
+import {advancedSearchPoliciesSelector} from '@hooks/useAdvancedSearchFilters';
+import {exportedToPoliciesSelector} from '@hooks/useExportedToFilterOptions';
+import {policiesSelector, policyCategoriesSelector, policyTagsSelector} from '@hooks/useFilterFormValues';
+
+import {getAllTaxRates} from '@libs/PolicyUtils';
+import {buildFilterFormValuesFromQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+
+import type {SearchQueryJSON} from '@src/components/Search/types';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, PolicyCategories, PolicyTagLists, Report} from '@src/types/onyx';
+
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import Onyx, {useOnyx} from 'react-native-onyx';
 import {measureFunction, measureRenders} from 'reassure';
-import {typeOptionsPoliciesSelector} from '@components/Search/FilterComponents/TypeSelector';
-import {advancedSearchPoliciesSelector} from '@hooks/useAdvancedSearchFilters';
-import {exportedToPoliciesSelector} from '@hooks/useExportedToFilterOptions';
-import {policiesSelector, policyCategoriesSelector, policyTagsSelector, reportsSelector} from '@hooks/useFilterFormValues';
-import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildFilterFormValuesFromQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import type {SearchQueryJSON} from '@src/components/Search/types';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists, Report} from '@src/types/onyx';
+
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -58,25 +63,6 @@ describe('useFilterFormValues', () => {
             );
 
             await measureFunction(() => policiesSelector(policies));
-        });
-
-        test('reportsSelector with 500 reports', async () => {
-            const reports = createCollection<Report>(
-                (_, index) => `${ONYXKEYS.COLLECTION.REPORT}${index}`,
-                (index) =>
-                    ({
-                        reportID: `${index}`,
-                        reportName: `Report ${index}`,
-                        chatType: 'policyExpenseChat',
-                        stateNum: 1,
-                        statusNum: 1,
-                        ownerAccountID: index,
-                        participantAccountIDs: [index, index + 1],
-                    }) as unknown as Report,
-                REPORT_COUNT,
-            );
-
-            await measureFunction(() => reportsSelector(reports));
         });
 
         test('policyCategoriesSelector with 500 policy category collections', async () => {
@@ -233,7 +219,7 @@ describe('useFilterFormValues', () => {
 
             function TestComponent() {
                 const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector});
-                const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
+                const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
                 const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: policyTagsSelector});
                 const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyCategoriesSelector});
                 const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
