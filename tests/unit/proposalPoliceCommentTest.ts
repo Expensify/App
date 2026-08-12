@@ -2,10 +2,10 @@
 /**
  * @jest-environment node
  */
-import run, {PROPOSAL_POLICE_MODEL} from '@github/actions/javascript/proposalPoliceComment/proposalPoliceComment';
+import run, {DUPLICATE_SIMILARITY_THRESHOLD, PROPOSAL_POLICE_MODEL} from '@github/actions/javascript/proposalPoliceComment/proposalPoliceComment';
 import GithubUtils from '@github/libs/GithubUtils';
 
-import {buildTemplateReminderMessage, SUBSTANTIVE_EDIT_MESSAGE_PREFIX} from '@prompts/proposalPolice/messages';
+import {buildTemplateReminderMessage, DUPLICATE_CHECK_WITHDRAW_MESSAGE, SUBSTANTIVE_EDIT_MESSAGE_PREFIX} from '@prompts/proposalPolice/messages';
 
 import OpenAIUtils from '@scripts/utils/OpenAIUtils';
 import type {ProposalComment} from '@scripts/utils/ProposalPolice/ProposalPoliceConversation';
@@ -88,8 +88,8 @@ function setPayload(overrides: {action: 'created' | 'edited'; comment?: Proposal
     };
 }
 
-function duplicateCheckResult(overrides: Partial<{action: string; similarity: number; duplicateCommentId: number | null}> = {}) {
-    return JSON.stringify({action: 'NO_ACTION', similarity: 0, duplicateCommentId: null, ...overrides});
+function duplicateCheckResult(overrides: Partial<{similarity: number; duplicateCommentId: number | null}> = {}) {
+    return JSON.stringify({similarity: 0, duplicateCommentId: null, ...overrides});
 }
 
 const MockedOpenAIUtils = jest.mocked(OpenAIUtils);
@@ -186,7 +186,7 @@ describe('proposalPoliceComment', () => {
         mockComments([makeComment({id: 42, created_at: '2025-12-31T00:00:00Z', html_url: 'https://github.com/Expensify/App/issues/1#issuecomment-42'})]);
         setPayload({action: 'created', comment: makeComment({id: 99})});
         MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({
-            text: duplicateCheckResult({action: 'ACTION_HIDE_DUPLICATE', similarity: 95, duplicateCommentId: 42}),
+            text: duplicateCheckResult({similarity: 95, duplicateCommentId: 42}),
             responseID: 'resp_dup',
         });
 
@@ -199,20 +199,31 @@ describe('proposalPoliceComment', () => {
         expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(1);
     });
 
-    it('does not withdraw a proposal when similarity is high but the action disagrees', async () => {
-        // Guards against the model's `action` and `similarity` fields disagreeing (e.g. schema drift) -
-        // both must indicate a duplicate, not just a high similarity score in isolation. Uses an
-        // already-tracked Conversation so the only comment activity under test is (or isn't) the withdrawal.
+    it('does not withdraw a proposal scoring just below the similarity threshold', async () => {
+        // Uses an already-tracked Conversation so the only comment activity under test is (or isn't) the withdrawal.
         mockComments([makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'})]);
         setPayload({action: 'created', comment: makeComment({id: 99})});
         MockedOpenAIUtils.prototype.promptResponses
-            .mockResolvedValueOnce({text: duplicateCheckResult({action: 'NO_ACTION', similarity: 95, duplicateCommentId: 42}), responseID: 'resp_dup'})
+            .mockResolvedValueOnce({text: duplicateCheckResult({similarity: DUPLICATE_SIMILARITY_THRESHOLD - 1, duplicateCommentId: 42}), responseID: 'resp_dup'})
             .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl'});
 
         await run();
 
         expect(mockUpdateComment).not.toHaveBeenCalled();
         expect(mockCreateComment).not.toHaveBeenCalled();
+    });
+
+    it('withdraws a proposal scoring exactly at the similarity threshold', async () => {
+        mockComments([makeComment({id: 42, created_at: '2025-12-31T00:00:00Z'})]);
+        setPayload({action: 'created', comment: makeComment({id: 99})});
+        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({
+            text: duplicateCheckResult({similarity: DUPLICATE_SIMILARITY_THRESHOLD, duplicateCommentId: 42}),
+            responseID: 'resp_dup',
+        });
+
+        await run();
+
+        expect(mockUpdateComment).toHaveBeenCalledWith(expect.objectContaining({comment_id: 99, body: DUPLICATE_CHECK_WITHDRAW_MESSAGE}));
     });
 
     it('creates and seeds a new Conversation when the issue has no tracked one yet', async () => {
@@ -293,7 +304,7 @@ describe('proposalPoliceComment', () => {
         mockComments([makeComment({id: 1, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_new -->'})]);
         setPayload({action: 'created', comment: makeComment({id: 2, created_at: '2026-01-02T00:00:00Z'})});
         MockedOpenAIUtils.prototype.promptResponses
-            .mockResolvedValueOnce({text: duplicateCheckResult({action: 'ACTION_HIDE_DUPLICATE', similarity: 96, duplicateCommentId: 1}), responseID: 'resp_dup_2'})
+            .mockResolvedValueOnce({text: duplicateCheckResult({similarity: 96, duplicateCommentId: 1}), responseID: 'resp_dup_2'})
             .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl_2'});
         await run();
 

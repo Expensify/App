@@ -19,5 +19,5 @@ export default Str.dedent(`
 
     Use your best judgment as a Senior React Engineer and code reviewer to determine whether the technical solution is the same.
 
-    HOW TO RESPOND: If the highest similarity found is 90 or above, respond with that similarity and the comment_id of the prior proposal it matches. Otherwise, similarity is the highest score found (which will be below 90) and the comment_id field is not applicable.
+    HOW TO RESPOND: report the highest similarity you found, and the comment_id of the prior proposal that scored it. If no prior proposal is similar, report that highest score with a null comment_id.
 `);

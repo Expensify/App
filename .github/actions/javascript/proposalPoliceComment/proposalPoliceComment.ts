@@ -38,6 +38,13 @@ import {toZonedTime} from 'date-fns-tz';
  */
 const PROPOSAL_POLICE_MODEL = 'gpt-5.6-luna';
 
+/**
+ * How similar (0-100) a new proposal must be to an existing one before it's withdrawn as a duplicate.
+ * The model only reports a similarity score; this threshold is applied here so tuning it doesn't
+ * depend on the model reproducing a cutoff stated in the prompt.
+ */
+const DUPLICATE_SIMILARITY_THRESHOLD = 85;
+
 function isCommentCreatedEvent(payload: IssueCommentEvent): payload is IssueCommentCreatedEvent {
     return payload.action === CONST.ACTIONS.CREATED;
 }
@@ -155,7 +162,7 @@ async function run() {
             core.endGroup();
 
             const similarityPercentage = parsedDuplicateCheckResponse?.similarity ?? 0;
-            if (parsedDuplicateCheckResponse?.action === CONST.ACTION_HIDE_DUPLICATE && similarityPercentage >= 85) {
+            if (similarityPercentage >= DUPLICATE_SIMILARITY_THRESHOLD) {
                 console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
 
                 // Sanity-check the model's reported duplicateCommentId against the real comment list before trusting it for the notice link
@@ -243,4 +250,4 @@ if (require.main === module) {
 }
 
 export default run;
-export {PROPOSAL_POLICE_MODEL};
+export {PROPOSAL_POLICE_MODEL, DUPLICATE_SIMILARITY_THRESHOLD};
