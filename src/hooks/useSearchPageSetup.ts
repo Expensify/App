@@ -9,7 +9,7 @@ import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 
 import {useFocusEffect} from '@react-navigation/native';
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 
 import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
@@ -43,6 +43,17 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const isSnapshotSearchLoading = !!currentSearchResults?.search?.isLoading;
     const isInitialSearchPending = isSearchPending(currentSearchResults) && (currentSearchResults?.search?.offset ?? 0) === 0;
 
+    // `errors` counts as a resolution in isSearchDataLoaded, so a snapshot left errored by a failed
+    // request looks loaded and the early return below skips the request that would clear those errors.
+    // The Search page then renders its error view on every mount with nothing in flight, and only the
+    // Try again button can break out of it. Allow one recovery attempt per hash per mount instead: a
+    // transient failure heals on the next visit, and a persistent one still settles on the error view
+    // rather than looping request -> failure -> request.
+    const hashesWithAttemptedRecovery = useRef<Set<number>>(new Set());
+    // The server already judged the query itself malformed, so re-sending it cannot succeed.
+    const isInvalidQuery = currentSearchResults?.search?.responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
+    const hasRecoverableErrors = currentSearchResults?.errors != null && !isInvalidQuery;
+
     // Clear selected transactions when navigating to a different search query
     function clearOnHashChange() {
         if (hash === undefined) {
@@ -71,14 +82,21 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             lastSavedSearchHash = hash;
         }
 
+        const shouldRecoverFromErrors = hasRecoverableErrors && !hashesWithAttemptedRecovery.current.has(hash);
+
         // A pending initial request may be stale after reload and can be restarted through request deduplication.
         // Pagination must not restart page one.
-        if (isSnapshotDataLoaded && !isInitialSearchPending) {
+        if (isSnapshotDataLoaded && !isInitialSearchPending && !shouldRecoverFromErrors) {
             return;
         }
+
+        if (shouldRecoverFromErrors) {
+            hashesWithAttemptedRecovery.current.add(hash);
+        }
+
         const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites});
-    }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isInitialSearchPending, currentSearchKey, shouldCalculateTotals]);
+    }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isInitialSearchPending, hasRecoverableErrors, currentSearchKey, shouldCalculateTotals]);
 
     useFocusEffect(() => {
         openSearch();
