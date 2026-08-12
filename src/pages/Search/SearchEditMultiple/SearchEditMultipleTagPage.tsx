@@ -40,9 +40,7 @@ function SearchEditMultipleTagPage() {
     const commonDependentTag = getCommonDependentTag(selectedTransactions);
     const draftTag = draftTransaction?.tag;
     const transactionTag = draftTag === undefined ? (commonDependentTag ?? '') : draftTag;
-    // Seed the current value from the shared/common tag (not the empty draft) so deselect detection
-    // fires on the very first interaction, and the picker highlights the level's existing value.
-    const currentTag = getTagArrayFromName(transactionTag).at(tagListIndex) ?? '';
+    const currentTag = getTagArrayFromName(draftTag ?? '').at(tagListIndex) ?? '';
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
 
     const tagListName = getTagList(policyTags, tagListIndex).name;
@@ -50,11 +48,6 @@ function SearchEditMultipleTagPage() {
 
     const saveTag = (item: Partial<OptionData>) => {
         const selectedTagName = item.searchText ?? '';
-        // Resolve select vs. deselect once here against the shared/common tag. Storing the resolved
-        // value (empty = clear) lets apply time force-set each transaction's level without re-deriving
-        // the toggle from that transaction's own value, which would misfire when an expense already
-        // has the selected value at this level.
-        const resolvedTagName = selectedTagName === currentTag ? '' : selectedTagName;
 
         const updatedTag = getUpdatedTransactionTag({
             transactionTag,
@@ -71,7 +64,7 @@ function SearchEditMultipleTagPage() {
         // draft is merged, so without this a stale child edit would be replayed after this parent change
         // at apply time and re-add a child that no longer belongs under the newly selected parent, even
         // though the displayed updatedTag above already cleared it. Independent tags keep every level.
-        const bulkEditTagChanges: Record<string, string | null> = {[tagListIndex]: resolvedTagName};
+        const bulkEditTagChanges: Record<string, string | null> = {[tagListIndex]: selectedTagName};
         if (hasDependentTags) {
             for (const recordedIndex of Object.keys(draftTransaction?.bulkEditTagChanges ?? {})) {
                 if (Number(recordedIndex) <= tagListIndex) {

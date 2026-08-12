@@ -89,7 +89,7 @@ function removeUnchangedBulkEditFields(
 type UpdateMultipleMoneyRequestsParams = {
     transactionIDs: string[];
     changes: TransactionChanges;
-    /** Per-level tag edits from the bulk-edit draft, keyed by tag list index (empty value = clear). */
+    /** Per-level tag edits from the bulk-edit draft, keyed by tag list index. */
     bulkEditTagChanges?: Record<string, string>;
     policy: OnyxEntry<OnyxTypes.Policy>;
     reports: OnyxCollection<OnyxTypes.Report>;
@@ -240,15 +240,13 @@ function updateMultipleMoneyRequests({
             transactionChanges.category = changes.category;
         }
         const editedTagIndexes = bulkEditTagChanges ? Object.keys(bulkEditTagChanges) : [];
-        // Enter the tag branch when a per-level edit intent was recorded OR the tag itself is defined, so a
-        // clear-to-empty edit (changes.tag === '') is applied instead of being skipped by a truthy check.
-        if ((changes.tag !== undefined || editedTagIndexes.length > 0) && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.TAG)) {
+        if ((changes.tag || editedTagIndexes.length > 0) && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.TAG)) {
             if (editedTagIndexes.length > 0) {
                 // Rebuild the tag from THIS transaction's own tag so levels the user didn't touch are
                 // preserved, instead of overwriting every level with one shared common-prefix string.
                 // Apply each edited level in ascending order because editing a parent may clear its
-                // dependent children, and pass an empty currentTag so a non-empty value is always a
-                // fresh selection (never a per-transaction deselect) and an empty value clears the level.
+                // dependent children, and pass an empty currentTag so the selected value is always a
+                // fresh selection at that level rather than a per-transaction deselect.
                 const transactionPolicyTagList = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`];
                 const transactionHasDependentTags = hasDependentTags(transactionPolicy, transactionPolicyTagList);
                 const transactionHasMultipleTagLists = transactionPolicy?.hasMultipleTagLists ?? false;
@@ -304,7 +302,7 @@ function updateMultipleMoneyRequests({
         if (transactionChanges.category !== undefined) {
             updates.category = transactionChanges.category;
         }
-        if (transactionChanges.tag !== undefined) {
+        if (transactionChanges.tag) {
             updates.tag = transactionChanges.tag;
         }
         if (transactionChanges.comment) {

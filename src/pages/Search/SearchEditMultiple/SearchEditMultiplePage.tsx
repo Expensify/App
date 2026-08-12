@@ -167,12 +167,8 @@ function SearchEditMultiplePage() {
         if (draftTransaction.category) {
             changes.category = draftTransaction.category;
         }
-        // A cleared tag (deselecting the only tag, or clearing level 0 of a dependent tag) resolves to an
-        // empty string. Forward it as a change whenever the draft recorded a per-level tag edit intent, so
-        // the clear still reaches the transactions instead of being dropped by a truthy check.
-        const hasBulkEditTagChanges = !!draftTransaction.bulkEditTagChanges && Object.keys(draftTransaction.bulkEditTagChanges).length > 0;
-        if (draftTransaction.tag || hasBulkEditTagChanges) {
-            changes.tag = draftTransaction.tag ?? '';
+        if (draftTransaction.tag) {
+            changes.tag = draftTransaction.tag;
         }
         if (draftTransaction.taxCode) {
             changes.taxCode = draftTransaction.taxCode;

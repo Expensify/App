@@ -610,7 +610,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         selectedTransactionIDs?: string[];
 
         /**
-         * Per-level tag edits captured during a bulk edit, keyed by tag list index (empty value = clear).
+         * Per-level tag edits captured during a bulk edit, keyed by tag list index.
          * Only used in the bulk-edit draft transaction so apply time can merge each edited level into
          * every selected transaction's own tag instead of overwriting all levels with one shared string.
          */
