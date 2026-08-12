@@ -2,6 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Avatar from '@components/Avatar';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import HeaderCloseButtonTooltip from '@components/HeaderWithBackButtonComposed/primitives/HeaderCloseButtonTooltip';
+import HeaderHelpButton from '@components/HeaderWithBackButtonComposed/primitives/HeaderHelpButton';
 import HeaderMenuItemButtonTooltip from '@components/HeaderWithBackButtonComposed/primitives/HeaderMenuItemButtonTooltip';
 import HeaderPinButton from '@components/HeaderWithBackButtonComposed/primitives/HeaderPinButton';
 import HeaderProgressBar from '@components/HeaderWithBackButtonComposed/primitives/HeaderProgressBar';
@@ -13,7 +14,6 @@ import HeaderTitle from '@components/HeaderWithBackButtonComposed/primitives/Hea
 import Icon from '@components/Icon';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Tooltip from '@components/Tooltip';
 
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
@@ -259,7 +259,7 @@ function HeaderWithBackButton({
                     {threeDotMenuTooltipsSection}
                 </View>
                 {shouldDisplaySearchRouter && <HeaderSearchRouter />}
-                {shouldDisplayHelpButton && <SidePanelButton />}
+                {shouldDisplayHelpButton && <HeaderHelpButton />}
             </View>
         </View>
     );
