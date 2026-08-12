@@ -2,9 +2,11 @@ import {
     benchmarkAlternatingStartups,
     benchmarkStartups,
     benchmarkStats,
+    assertAndroidAppInstalled,
     findBenchmarkDuration,
     iosBenchmarkMarkerPath,
     latestBenchmarkEvents,
+    parseAndroidProcessIdentifier,
     parseIosInstalledAppURL,
     parseBenchmarkLogEvents,
     parseIosLaunchProcessIdentifier,
@@ -72,6 +74,13 @@ describe('benchmarkAppStartup', () => {
 
         expect(appURL).toBe('file:///containers/Example.app/');
         expect(processIdentifier).toBe(456);
+    });
+
+    it('validates Android installation and process output', () => {
+        expect(() => assertAndroidAppInstalled('', 'com.example.app')).toThrow('is not installed');
+        expect(() => assertAndroidAppInstalled('package:/data/app/example/base.apk', 'com.example.app')).not.toThrow();
+        expect(parseAndroidProcessIdentifier('1234 5678\n', 'com.example.app')).toBe('1234');
+        expect(() => parseAndroidProcessIdentifier('', 'com.example.app')).toThrow('Unable to find the running Android process');
     });
 
     it('calculates interpolated percentiles and summary statistics', () => {

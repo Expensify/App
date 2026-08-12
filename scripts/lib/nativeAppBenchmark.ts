@@ -184,6 +184,24 @@ function parseIosRunningAppProcessIdentifier(response: unknown, appURL: string):
     return typeof processIdentifier === 'number' && Number.isInteger(processIdentifier) && processIdentifier > 0 ? processIdentifier : undefined;
 }
 
+function parseAndroidProcessIdentifier(output: string, appID: string): string {
+    const processIdentifier = output
+        .trim()
+        .split(/\s+/)
+        .find((candidate) => /^\d+$/.test(candidate));
+    if (!processIdentifier) {
+        fail(`Unable to find the running Android process for ${appID}.`);
+    }
+    return processIdentifier;
+}
+
+function assertAndroidAppInstalled(packagePath: string, appID: string): void {
+    if (packagePath.trim().startsWith('package:')) {
+        return;
+    }
+    fail(`Android app ${appID} is not installed. Pass its APK path or install it before benchmarking.`);
+}
+
 function createAndroidAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeAppBenchmarkAdapterOptions, 'platform'>): NativeAppBenchmarkAdapter {
     const {capture, run} = createCommandHelpers(rootDirectory);
     const selectedDeviceIdentifier = deviceIdentifier ?? capture('adb', ['get-serialno']).trim();
@@ -210,6 +228,7 @@ function createAndroidAdapter({rootDirectory, deviceIdentifier, appID}: Omit<Nat
                 }
                 adb(['install', '-r', '-d', appPath]);
             }
+            assertAndroidAppInstalled(adbCapture(['shell', 'pm', 'path', appID]), appID);
             if (mode === 'cold') {
                 adb(['shell', 'pm', 'clear', appID]);
                 adb(['shell', 'cmd', 'package', 'compile', '--reset', appID]);
@@ -219,10 +238,11 @@ function createAndroidAdapter({rootDirectory, deviceIdentifier, appID}: Omit<Nat
         },
         launchAndCollect: async (options) => {
             adb(['shell', 'am', 'start', '-W', '-n', activity]);
+            const processIdentifier = parseAndroidProcessIdentifier(adbCapture(['shell', 'pidof', appID]), appID);
             const deadline = Date.now() + options.waitTimeSeconds * 1000;
             let logs = '';
             while (Date.now() < deadline) {
-                logs = adbCapture(['logcat', '-d', '-v', 'raw']);
+                logs = adbCapture(['logcat', `--pid=${processIdentifier}`, '-d', '-v', 'raw']);
                 const events = parseBenchmarkLogEvents(logs);
                 if (options.waitUntilSpan && events.some((event) => event.span === options.waitUntilSpan)) {
                     return latestBenchmarkEvents(events, options.spanNames);
@@ -428,6 +448,7 @@ function createNativeAppBenchmarkAdapter(options: NativeAppBenchmarkAdapterOptio
 export {
     BENCHMARK_LOG_TAG,
     PLATFORM_NAMES,
+    assertAndroidAppInstalled,
     createNativeAppBenchmarkAdapter,
     findBenchmarkDuration,
     iosBenchmarkMarkerPath,
@@ -436,5 +457,6 @@ export {
     parseIosLaunchProcessIdentifier,
     parseIosRunningAppProcessIdentifier,
     latestBenchmarkEvents,
+    parseAndroidProcessIdentifier,
 };
 export type {BenchmarkLogEvent, CollectBenchmarkEventsOptions, NativeAppBenchmarkAdapter, NativeAppBenchmarkAdapterOptions, PlatformName, StartupMode};

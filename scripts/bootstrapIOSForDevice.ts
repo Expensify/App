@@ -12,7 +12,16 @@ import {createInterface} from 'node:readline/promises';
 
 const CONFIGURATIONS = ['Debug', 'Release', 'AdHoc'] as const;
 const TARGETS = ['Expensify', 'SmartScanExtension', 'NotificationServiceExtension', 'LiveActivityExtension', 'ExpensifyTests'] as const;
+const PLATFORMS = ['ios', 'android'] as const;
+const ANDROID_BUILD_TYPES = ['release', 'debug', 'adhoc', 'appTestFork'] as const;
+const REGISTERED_ANDROID_APPLICATION_IDS = {
+    release: 'org.me.mobiexpensifyg',
+    debug: 'org.me.mobiexpensifyg.dev',
+    adhoc: 'org.me.mobiexpensifyg.adhoc',
+    appTestFork: 'org.me.mobiexpensifyg.appTestFork',
+} as const;
 const BUNDLE_IDENTIFIER_PATTERN = /^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/;
+const ANDROID_APPLICATION_ID_PATTERN = /^[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+$/;
 const TEAM_ID_PATTERN = /^[A-Z0-9]{10}$/;
 const APP_GROUP_ENTITLEMENT_FILES = [
     'Expensify/Expensify.entitlements',
@@ -26,6 +35,9 @@ const APP_GROUP_ENTITLEMENT_FILES = [
 
 type Configuration = TupleToUnion<typeof CONFIGURATIONS>;
 type Target = TupleToUnion<typeof TARGETS>;
+type Platform = TupleToUnion<typeof PLATFORMS>;
+type AndroidBuildType = TupleToUnion<typeof ANDROID_BUILD_TYPES>;
+type AndroidApplicationIDs = Record<AndroidBuildType, string>;
 type DevelopmentTeam = {
     id: string;
     name: string;
@@ -36,6 +48,7 @@ type BootstrapOptions = {
     bundleIdentifier: string;
     suffix?: string;
 };
+type AndroidBootstrapOptions = Omit<BootstrapOptions, 'developmentTeam'>;
 
 function fail(message: string): never {
     throw new Error(message);
@@ -56,6 +69,22 @@ function validateSuffix(value: string | undefined): string | undefined {
         fail(`Bundle identifier suffix must contain only letters, numbers, or hyphens. Received: ${value}`);
     }
     return value;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isUnknownArray(value: unknown): value is unknown[] {
+    return Array.isArray(value);
+}
+
+function parsePlatform(value: string): Platform {
+    const platform = PLATFORMS.find((candidate) => candidate === value);
+    if (!platform) {
+        fail(`Platform must be one of: ${PLATFORMS.join(', ')}. Received: ${value}`);
+    }
+    return platform;
 }
 
 function decodeXml(value: string): string {
@@ -142,12 +171,102 @@ function githubUsername(): string {
     }
 }
 
-function defaultBundleIdentifier(username: string): string {
+function defaultBundleIdentifier(username: string, platform: Platform = 'ios'): string {
     const normalizedUsername = username.trim().toLowerCase();
     if (!/^[a-z0-9-]+$/.test(normalizedUsername)) {
         fail(`GitHub username cannot be used in a bundle identifier: ${username}`);
     }
-    return `com.${normalizedUsername}.expensify.expensifylite`;
+    return platform === 'ios' ? `com.${normalizedUsername}.expensify.expensifylite` : `com.${normalizeAndroidIdentifierSegment(normalizedUsername)}.expensify`;
+}
+
+function normalizeAndroidIdentifierSegment(value: string): string {
+    const normalized = value.replaceAll('-', '_');
+    return /^\d/.test(normalized) ? `developer_${normalized}` : normalized;
+}
+
+function validateAndroidApplicationID(value: string): string {
+    if (!ANDROID_APPLICATION_ID_PATTERN.test(value)) {
+        fail(`Android application ID must use dot-separated Java identifier segments. Received: ${value}`);
+    }
+    return value;
+}
+
+function androidApplicationIDs(baseIdentifier: string, suffix?: string): AndroidApplicationIDs {
+    const release = [baseIdentifier, suffix].filter(Boolean).join('.');
+    return {
+        release,
+        debug: `${release}.dev`,
+        adhoc: `${release}.adhoc`,
+        appTestFork: `${release}.appTestFork`,
+    };
+}
+
+function googleServicesClientPackage(client: unknown): string | undefined {
+    if (!isRecord(client) || !isRecord(client.client_info) || !isRecord(client.client_info.android_client_info)) {
+        return undefined;
+    }
+    const packageName = client.client_info.android_client_info.package_name;
+    return typeof packageName === 'string' ? packageName : undefined;
+}
+
+function cloneGoogleServicesClient(client: Record<string, unknown>, applicationID: string): Record<string, unknown> {
+    const cloned: unknown = structuredClone(client);
+    if (!isRecord(cloned) || !isRecord(cloned.client_info) || !isRecord(cloned.client_info.android_client_info)) {
+        fail('google-services.json contains an invalid Android client.');
+    }
+    cloned.client_info.android_client_info.package_name = applicationID;
+    // Android OAuth clients are restricted to the registered package and signing certificate. Retaining them would imply that Google Sign-In works for the synthetic application ID.
+    cloned.oauth_client = [];
+    return cloned;
+}
+
+function patchGoogleServicesConfig(config: unknown, applicationIDs: AndroidApplicationIDs): Record<string, unknown> {
+    if (!isRecord(config) || !isUnknownArray(config.client)) {
+        fail('Mobile-Expensify/Android/google-services.json has an unexpected structure.');
+    }
+    const clients = [...config.client];
+    for (const buildType of ANDROID_BUILD_TYPES) {
+        const applicationID = applicationIDs[buildType];
+        if (clients.some((client) => googleServicesClientPackage(client) === applicationID)) {
+            continue;
+        }
+        const registeredApplicationID = REGISTERED_ANDROID_APPLICATION_IDS[buildType];
+        const sourceClient = clients.find((client) => googleServicesClientPackage(client) === registeredApplicationID);
+        if (!isRecord(sourceClient)) {
+            fail(`google-services.json does not contain the registered ${buildType} client ${registeredApplicationID}.`);
+        }
+        clients.push(cloneGoogleServicesClient(sourceClient, applicationID));
+    }
+    return {...config, client: clients};
+}
+
+function patchAndroidBuildGradle(buildGradle: string, baseIdentifier: string): string {
+    const applicationIDPattern = /(defaultConfig\s*\{[\s\S]*?applicationId\s+)["'][^"']+["']/;
+    if (!applicationIDPattern.test(buildGradle)) {
+        fail('Could not find defaultConfig.applicationId in Mobile-Expensify/Android/build.gradle.');
+    }
+    let patched = buildGradle.replace(applicationIDPattern, `$1"${baseIdentifier}"`);
+    patched = patched.replaceAll('signingConfig signingConfigs.release', 'signingConfig signingConfigs.debug');
+    patched = patched.replace(/^(\s*)(?!\/\/)(minifyEnabled\s+true)$/m, '$1// $2');
+    patched = patched.replace(/^(\s*)(?!\/\/)(proguardFiles\s+.+)$/m, '$1// $2');
+    return patched;
+}
+
+function patchAndroidShortcutPackage(shortcuts: string, applicationID: string): string {
+    return shortcuts.replaceAll(/android:targetPackage="[^"]+"/g, `android:targetPackage="${applicationID}"`);
+}
+
+function patchAndroidManifest(manifest: string): string {
+    const applicationIDPlaceholder = ['$', '{applicationId}'].join('');
+    return manifest.replace(/android:targetPackage="org\.me\.mobiexpensifyg"/, `android:targetPackage="${applicationIDPlaceholder}"`);
+}
+
+function patchAndroidAppName(strings: string, name: string): string {
+    const appNamePattern = /<string name="app_name">[^<]+<\/string>/;
+    if (!appNamePattern.test(strings)) {
+        fail('Could not find app_name in an Android strings.xml file.');
+    }
+    return strings.replace(appNamePattern, `<string name="app_name">${name}</string>`);
 }
 
 function targetBundleIdentifier(baseIdentifier: string, target: Target, configuration: Configuration, suffix?: string): string {
@@ -275,16 +394,71 @@ function bootstrapIOSForDevice(options: BootstrapOptions): void {
     });
 }
 
+function bootstrapAndroidForDevice(options: AndroidBootstrapOptions): void {
+    const androidDirectory = resolve(options.rootDirectory, 'Mobile-Expensify/Android');
+    const suffix = validateSuffix(options.suffix);
+    const androidSuffix = suffix ? normalizeAndroidIdentifierSegment(suffix) : undefined;
+    const baseIdentifier = validateAndroidApplicationID(options.bundleIdentifier);
+    const applicationIDs = androidApplicationIDs(baseIdentifier, androidSuffix);
+
+    const buildGradlePath = resolve(androidDirectory, 'build.gradle');
+    const buildGradle = readFileSync(buildGradlePath, 'utf8');
+    writeFileSync(buildGradlePath, patchAndroidBuildGradle(buildGradle, applicationIDs.release));
+
+    const googleServicesPath = resolve(androidDirectory, 'google-services.json');
+    const googleServices: unknown = JSON.parse(readFileSync(googleServicesPath, 'utf8'));
+    writeFileSync(googleServicesPath, `${JSON.stringify(patchGoogleServicesConfig(googleServices, applicationIDs), null, 2)}\n`);
+
+    const manifestPath = resolve(androidDirectory, 'AndroidManifest.xml');
+    writeFileSync(manifestPath, patchAndroidManifest(readFileSync(manifestPath, 'utf8')));
+
+    const shortcutsByBuildType = {
+        release: 'res/xml-v25/shortcuts.xml',
+        debug: 'build-types/debug/res/xml-v25/shortcuts.xml',
+        adhoc: 'build-types/adhoc/res/xml-v25/shortcuts.xml',
+    } as const;
+    for (const buildType of ['release', 'debug', 'adhoc'] as const) {
+        const relativePath = shortcutsByBuildType[buildType];
+        const shortcutsPath = resolve(androidDirectory, relativePath);
+        writeFileSync(shortcutsPath, patchAndroidShortcutPackage(readFileSync(shortcutsPath, 'utf8'), applicationIDs[buildType]));
+    }
+
+    const suffixLabel = suffix ? ` (${suffix})` : '';
+    const appNamesByBuildType = {
+        release: {path: 'res/values/strings.xml', name: `Expensify${suffixLabel}`},
+        debug: {path: 'build-types/debug/res/values/strings.xml', name: `Expensify Debug${suffixLabel}`},
+        adhoc: {path: 'build-types/adhoc/res/values/strings.xml', name: `Expensify AdHoc${suffixLabel}`},
+    } as const;
+    for (const {path, name} of Object.values(appNamesByBuildType)) {
+        const stringsPath = resolve(androidDirectory, path);
+        writeFileSync(stringsPath, patchAndroidAppName(readFileSync(stringsPath, 'utf8'), name));
+    }
+
+    console.log('Configured Mobile-Expensify for local Android release builds.');
+    console.table(applicationIDs);
+    console.warn(
+        'Firebase resources are reused from the registered Expensify clients. Google Sign-In and other package/signature-restricted Google APIs will not work for synthetic application IDs.',
+    );
+}
+
 async function main(): Promise<void> {
     /* eslint-disable @typescript-eslint/naming-convention */
     const cli = new CLI({
+        positionalArgs: [
+            {
+                name: 'platform',
+                description: `Native platform to bootstrap (${PLATFORMS.join(', ')})`,
+                default: 'ios' as Platform,
+                parse: parsePlatform,
+            },
+        ],
         namedArgs: {
             'development-team': {
                 description: 'Apple Developer team ID used for automatic signing',
                 required: false,
             },
             'bundle-identifier': {
-                description: 'Base bundle identifier for the Expensify app',
+                description: 'Base bundle identifier or Android application ID for the Expensify app',
                 required: false,
             },
             suffix: {
@@ -299,10 +473,15 @@ async function main(): Promise<void> {
     });
     /* eslint-enable @typescript-eslint/naming-convention */
 
+    const platform = parsePlatform(String(cli.positionalArgs.platform));
     const username = cli.namedArgs['github-username'] ?? (cli.namedArgs['bundle-identifier'] ? undefined : githubUsername());
-    const bundleIdentifier = cli.namedArgs['bundle-identifier'] ?? defaultBundleIdentifier(username ?? '');
+    const bundleIdentifier = cli.namedArgs['bundle-identifier'] ?? defaultBundleIdentifier(username ?? '', platform);
     const scriptPath = process.argv.at(1);
     const rootDirectory = scriptPath ? resolve(dirname(resolve(scriptPath)), '..') : process.cwd();
+    if (platform === 'android') {
+        bootstrapAndroidForDevice({rootDirectory, bundleIdentifier, suffix: cli.namedArgs.suffix});
+        return;
+    }
     const developmentTeam = await resolveDevelopmentTeam(cli.namedArgs['development-team']);
     bootstrapIOSForDevice({
         rootDirectory,
@@ -321,14 +500,22 @@ if (scriptPath?.endsWith('bootstrapIOSForDevice.ts')) {
 }
 
 export {
+    androidApplicationIDs,
+    bootstrapAndroidForDevice,
     bootstrapIOSForDevice,
     defaultBundleIdentifier,
     entitlementContents,
     installedDevelopmentTeams,
     parseDevelopmentTeamFromProvisioningProfile,
+    patchAndroidAppName,
+    patchAndroidBuildGradle,
+    patchAndroidManifest,
+    patchAndroidShortcutPackage,
+    patchGoogleServicesConfig,
     patchProject,
     resolveDevelopmentTeam,
     targetBundleIdentifier,
     validateSuffix,
+    validateAndroidApplicationID,
 };
-export type {BootstrapOptions, Configuration, DevelopmentTeam, Target};
+export type {AndroidApplicationIDs, AndroidBootstrapOptions, BootstrapOptions, Configuration, DevelopmentTeam, Platform, Target};

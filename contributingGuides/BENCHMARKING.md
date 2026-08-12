@@ -20,6 +20,28 @@ Rebuild the release app after changing the list. Enabled spans produce one flat,
 
 The app uses `console.warn` for this opt-in output because production bundles remove `console.log`, `console.info`, and `console.debug`. The Sentry console integration only forwards errors, so benchmark lines do not create Sentry log events or additional network traffic. A dedicated native logging bridge would avoid warning semantics, but would add native code solely for local tooling on both platforms.
 
+## Bootstrap side-by-side native apps
+
+Use the device bootstrap script before producing a local release build. With no identifier option, it derives a unique identifier from the authenticated GitHub username. A suffix is useful when the same developer needs separate apps for multiple branches or worktrees:
+
+```shell
+nr bootstrap-device -- android --suffix baseline
+nr bootstrap-device -- ios --suffix baseline
+```
+
+Pass `--bundle-identifier` to replace the generated base identifier, or `--github-username` to override only the username used by the default. Android converts hyphens in GitHub usernames and suffixes to underscores because Android application ID segments are Java identifiers. The suffix is also included in the launcher display name, for example `Expensify (baseline)` and `Expensify Debug (baseline)`.
+
+On Android, bootstrapping changes every build type's application ID, switches release-derived builds to the checked-in debug keystore, and disables R8/ProGuard so a local release APK can be signed and assembled. It also creates package-matched entries in the local `google-services.json` by reusing the registered Expensify Firebase resources. This avoids a Firebase dashboard change and keeps Firebase startup behavior present in benchmark builds.
+
+The synthetic package is not a newly registered Firebase Android app. Package/signing-restricted services, notably Google Sign-In, do not work with it, and Firebase data may be attributed to the registered Expensify app whose resources were reused. Do not distribute or upload this build. Disabling Google Services is not recommended for performance comparisons: it removes production startup work and can change application behavior, making the result less representative.
+
+Build and install a bootstrapped Android release APK with the Mobile-Expensify Gradle wrapper, then use the application ID printed by the bootstrap command:
+
+```shell
+./Mobile-Expensify/Android/gradlew -p Mobile-Expensify/Android assembleRelease
+adb -s emulator-5554 install -r Mobile-Expensify/Android/build/outputs/apk/release/Android-release.apk
+```
+
 ## Run the benchmark
 
 The benchmark runs one unmeasured warm-up followed by 20 measured cold-process launches by default. It collects every span configured in `EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS`, prints a separate statistics row for each span, and stores the raw samples under the git-ignored `.benchmarks` directory.
@@ -62,8 +84,8 @@ Pass `--app-id-a` and `--app-id-b` to enable alternating comparison mode. The tw
 
 ```shell
 nr benchmark-app-startup -- android 20 \
-    --app-id-a com.example.app.a \
-    --app-id-b com.example.app.b \
+    --app-id-a com.example.expensify.baseline \
+    --app-id-b com.example.expensify.candidate \
     --device emulator-5554 \
     --span ManualAppStartup \
     --wait-time 30
@@ -84,6 +106,8 @@ nr benchmark-app-startup -- ios 20 --cold \
 ```
 
 The script runs with Bun and also exports `benchmarkAppStartups`, `benchmarkAppStartupsAlternating`, and `benchmarkStartups`. Other local tooling, such as the PGO workflow, can install an artifact and invoke the same benchmark implementation. The lower-level Android and iOS process tooling lives in `scripts/lib/nativeAppBenchmark.ts` so callers do not need to duplicate `adb` or `xcrun devicectl` behavior.
+
+Android benchmark logs are scoped to the PID launched for each application ID. This prevents log events from the other installed comparison binary from being counted in the current sample.
 
 For example, a PGO script can install each artifact and call `benchmarkAppStartups` with its platform, device, bundle identifier, output path, and span name. This keeps artifact building and installation in the PGO workflow while sharing all startup measurement and platform-device behavior.
 
