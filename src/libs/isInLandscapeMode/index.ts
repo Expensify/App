@@ -19,7 +19,8 @@ function getIsLandscapeOrientation(): boolean {
 }
 
 /**
- * The window dimensions are only accepted to keep the signature identical to the native implementation
+ * windowWidth and windowHeight should be passed to keep the check reactive (see useResponsiveLayout()).
+ * Version without params is needed for getIsNarrowLayout()
  */
 function isInLandscapeMode(): boolean;
 function isInLandscapeMode(windowWidth: number, windowHeight: number): boolean;

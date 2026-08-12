@@ -33,7 +33,7 @@ import type ResponsiveLayoutResult from './types';
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const {windowWidth, windowHeight} = useWindowDimensions();
 
-    const isInLandscapeMode = isInLandscapeModeUtil();
+    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
 
     // When the soft keyboard opens on mWeb, the window height changes. Use static screen height instead to get real screenHeight.
     const screenHeight = Dimensions.get('screen').height;
