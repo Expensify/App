@@ -1574,6 +1574,15 @@ describe('ReportActionItem', () => {
 
     describe('System notification actions', () => {
         it('MOVED action renders moved message', async () => {
+            // Seed the destination policy locally so the message is computed live (the member scenario).
+            // Without a local policy, getMovedActionMessage falls back to the stored action HTML.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {
+                    id: 'policy1',
+                    name: 'Test Workspace',
+                });
+            });
+
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MOVED, {
                 toPolicyID: 'policy1',
                 newParentReportID: 'report2',
@@ -2328,7 +2337,7 @@ describe('ReportActionItem', () => {
                 testTitle: 'UPDATE_AUTO_HARVESTING',
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
                 originalMessage: {value: true},
-                assertion: /enabled scheduled submit/i,
+                assertion: /enabled submissions/i,
             },
             {testTitle: 'SET_AUTO_JOIN', actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN, originalMessage: {enabled: true}, assertion: /enabled pre-approval/i},
             {testTitle: 'UPDATE_TIME_ENABLED', actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED, originalMessage: {enabled: true}, assertion: /time tracking/i},

@@ -23,6 +23,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -119,6 +120,7 @@ const mockedIsLoggingInAsNewUser = jest.mocked(isLoggingInAsNewUser);
 const mockedDidUserLogInDuringSession = jest.mocked(didUserLogInDuringSession);
 const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
 const mockedIsReady = jest.mocked(isReady);
+const mockedSubscribeToUserEvents = jest.mocked(subscribeToUserEvents);
 function renderAuthScreensInitHandler() {
     return render(
         <LocaleContextProvider>
@@ -175,7 +177,7 @@ describe('AuthScreensInitHandler', () => {
     });
 
     it('getter passed to subscribeToUserEvents returns report attributes when available', async () => {
-        const mockReports = {testReport: {reportName: 'Test Report'}} as unknown as ReportAttributesDerivedValue['reports'];
+        const mockReports = createMock<ReportAttributesDerivedValue['reports']>({testReport: {reportName: 'Test Report'}});
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
         await Onyx.merge(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: mockReports});
@@ -184,9 +186,14 @@ describe('AuthScreensInitHandler', () => {
         renderAuthScreensInitHandler();
         await waitForBatchedUpdatesWithAct();
 
-        const mockCalls = (subscribeToUserEvents as jest.Mock).mock.calls;
-        const firstCallArgs = mockCalls.at(0) as unknown[];
-        const getter = firstCallArgs.at(3) as () => unknown;
+        const firstCallArgs = mockedSubscribeToUserEvents.mock.calls.at(0);
+        if (!firstCallArgs) {
+            throw new Error('Expected subscribeToUserEvents to be called');
+        }
+        const getter = firstCallArgs[3];
+        if (!getter) {
+            throw new Error('Expected report attributes getter to be provided');
+        }
         expect(getter()).toEqual(mockReports);
     });
 
@@ -198,9 +205,14 @@ describe('AuthScreensInitHandler', () => {
         renderAuthScreensInitHandler();
         await waitForBatchedUpdatesWithAct();
 
-        const mockCalls = (subscribeToUserEvents as jest.Mock).mock.calls;
-        const firstCallArgs = mockCalls.at(0) as unknown[];
-        const getter = firstCallArgs.at(3) as () => unknown;
+        const firstCallArgs = mockedSubscribeToUserEvents.mock.calls.at(0);
+        if (!firstCallArgs) {
+            throw new Error('Expected subscribeToUserEvents to be called');
+        }
+        const getter = firstCallArgs[3];
+        if (!getter) {
+            throw new Error('Expected report attributes getter to be provided');
+        }
         expect(getter()).toBeUndefined();
     });
 
