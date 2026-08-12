@@ -18,8 +18,8 @@ import type {TransactionDetails} from './ReportUtils';
 
 import {getDecodedLeafCategoryName} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
+import DistanceRequestUtils from './DistanceRequestUtils';
 import Parser from './Parser';
-import {isCommuterExclusionEnabled} from './PolicyDistanceRatesUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {constructReceiptSourceFromFilename} from './ReceiptUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
@@ -50,6 +50,8 @@ import {
 // Define the specific merge fields we want to handle
 const MERGE_FIELDS = ['amount', 'merchant', 'created', 'category', 'tag', 'description', 'taxValue', 'reimbursable', 'billable', 'attendees', 'reportID'] as const;
 const COMMUTER_EXCLUSION_CUSTOM_UNIT_KEYS = ['commuterExclusion', 'reimbursableDistance', 'commuterExclusionType', 'commuterExclusionMethod'] as const;
+/** The custom unit's commuter exclusion fields, where null clears the stored value through Onyx.merge */
+type CommuterExclusionCustomUnitUpdate = {[Key in TupleToUnion<typeof COMMUTER_EXCLUSION_CUSTOM_UNIT_KEYS>]?: TransactionCustomUnit[Key] | null};
 // Some fields are dependant on others. We need to automatically derive the correct field values depending on user selection.
 const DERIVED_MERGE_FIELDS = [...MERGE_FIELDS, 'taxCode', 'taxAmount'] as const;
 type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
@@ -658,17 +660,54 @@ function getCommuterExclusionCustomUnitUpdate(
     selectedCustomUnit: TransactionCustomUnit | undefined,
     previousCustomUnit: TransactionCustomUnit | undefined,
     destinationPolicy: OnyxEntry<Policy>,
-): Record<string, number | null> {
-    const commuterExclusion = selectedCustomUnit?.commuterExclusion ?? previousCustomUnit?.commuterExclusion;
+): CommuterExclusionCustomUnitUpdate {
     const quantity = selectedCustomUnit?.quantity ?? previousCustomUnit?.quantity;
+    const distanceUnit = selectedCustomUnit?.distanceUnit ?? previousCustomUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    // The destination workspace's setting decides the exclusion, so it applies to an expense that arrives from a
+    // workspace excluding nothing, and stops applying to one that leaves a workspace that excludes a distance
+    const commuterExclusion = typeof quantity === 'number' ? DistanceRequestUtils.getPolicyCommuterExclusionForDistance(destinationPolicy, quantity, distanceUnit) : 0;
 
-    if (isCommuterExclusionEnabled(destinationPolicy) && !!commuterExclusion && typeof quantity === 'number') {
-        return {commuterExclusion, reimbursableDistance: Math.max(0, quantity - commuterExclusion)};
+    if (commuterExclusion > 0 && typeof quantity === 'number') {
+        return {
+            commuterExclusion,
+            reimbursableDistance: Math.max(0, quantity - commuterExclusion),
+            commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+        };
     }
 
     // Null the exclusion keys that hold a value so Onyx removes them, leaving the ones that were never set out of the update
-    const keysToClear = COMMUTER_EXCLUSION_CUSTOM_UNIT_KEYS.filter((key) => selectedCustomUnit?.[key] !== undefined || previousCustomUnit?.[key] !== undefined);
-    return Object.fromEntries(keysToClear.map((key) => [key, null]));
+    const clearedUpdate: CommuterExclusionCustomUnitUpdate = {};
+    for (const key of COMMUTER_EXCLUSION_CUSTOM_UNIT_KEYS) {
+        if (selectedCustomUnit?.[key] === undefined && previousCustomUnit?.[key] === undefined) {
+            continue;
+        }
+        clearedUpdate[key] = null;
+    }
+
+    return clearedUpdate;
+}
+
+/**
+ * Scales an amount that pays for `billedDistance` so that it pays for `newBilledDistance` instead, keeping a merged
+ * distance expense's amount on the distance its workspace reimburses once a commuter exclusion is applied or dropped.
+ */
+function getAmountForBilledDistance(amount: number, billedDistance: number | undefined, newBilledDistance: number | undefined): number {
+    if (!amount || !billedDistance || newBilledDistance === undefined || billedDistance === newBilledDistance) {
+        return amount;
+    }
+
+    return Math.round((amount / billedDistance) * newBilledDistance);
+}
+
+/**
+ * The distance an amount pays for: the reimbursable distance when a commuter exclusion applies, otherwise the whole distance.
+ */
+function getBilledDistance(quantity: number | null | undefined, reimbursableDistance: number | null | undefined): number | undefined {
+    if (typeof reimbursableDistance === 'number') {
+        return reimbursableDistance;
+    }
+
+    return typeof quantity === 'number' ? quantity : undefined;
 }
 
 /**
@@ -701,21 +740,38 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
         const reportName = transaction?.reportName?.length ? transaction?.reportName : getReportName(getReportOrDraftReport(getReportIDForExpense(transaction), searchReports));
         updatedValues.reportName = reportName.length ? reportName : null;
 
-        // Moving the expense to another workspace changes whether that workspace excludes commuter distance from it
+        // Moving the expense to another workspace changes whether that workspace excludes commuter distance from it,
+        // and the amount has to follow the distance that is left to reimburse
         if (isDistanceRequest(transaction)) {
-            updatedValues.customUnit = getCommuterExclusionCustomUnitUpdate(undefined, mergeTransaction?.customUnit, destinationPolicy);
+            const previousCustomUnit = mergeTransaction?.customUnit;
+            const commuterExclusionUpdate = getCommuterExclusionCustomUnitUpdate(undefined, previousCustomUnit, destinationPolicy);
+            updatedValues.customUnit = commuterExclusionUpdate;
+            if (typeof mergeTransaction?.amount === 'number') {
+                updatedValues.amount = getAmountForBilledDistance(
+                    mergeTransaction.amount,
+                    getBilledDistance(previousCustomUnit?.quantity, previousCustomUnit?.reimbursableDistance),
+                    getBilledDistance(previousCustomUnit?.quantity, commuterExclusionUpdate.reimbursableDistance),
+                );
+            }
         }
     }
 
     if (field === 'merchant' && isDistanceRequest(transaction)) {
         const transactionDetails = getTransactionDetails(transaction);
-        updatedValues.amount = getMergeFieldValue(transactionDetails, transaction, 'amount') as number;
         updatedValues.currency = getCurrency(transaction);
         const selectedCustomUnit = transaction?.comment?.customUnit;
+        const commuterExclusionUpdate = getCommuterExclusionCustomUnitUpdate(selectedCustomUnit, mergeTransaction?.customUnit, destinationPolicy);
         updatedValues.customUnit = {
             ...selectedCustomUnit,
-            ...getCommuterExclusionCustomUnitUpdate(selectedCustomUnit, mergeTransaction?.customUnit, destinationPolicy),
+            ...commuterExclusionUpdate,
         };
+        // The selected expense's amount pays for the distance its own workspace reimbursed, so it is re-scaled to the
+        // distance the destination workspace reimburses
+        updatedValues.amount = getAmountForBilledDistance(
+            getMergeFieldValue(transactionDetails, transaction, 'amount') as number,
+            getBilledDistance(selectedCustomUnit?.quantity, selectedCustomUnit?.reimbursableDistance),
+            getBilledDistance(selectedCustomUnit?.quantity, commuterExclusionUpdate.reimbursableDistance),
+        );
         updatedValues.iouRequestType = transaction?.iouRequestType;
         // For manual distance requests, set waypoints/routes and receipt to null to clear any existing values
         updatedValues.receipt = transaction?.receipt ?? null;

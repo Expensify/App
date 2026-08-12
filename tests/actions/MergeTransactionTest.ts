@@ -1558,10 +1558,12 @@ describe('setMergeTransactionKey', () => {
         const plainWorkspace = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
         const fourMileExpense = {
             ...createRandomDistanceRequestTransaction(0),
+            amount: -449,
             comment: {customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, quantity: 4.49, commuterExclusion: 1, reimbursableDistance: 3.49}},
         };
         const tenMileExpense = {
             ...createRandomDistanceRequestTransaction(1),
+            amount: -1020,
             reportID: plainWorkspaceReportID,
             comment: {customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, quantity: 10.2}},
         };
@@ -1598,6 +1600,23 @@ describe('setMergeTransactionKey', () => {
             expect(mergeTransaction?.customUnit?.reimbursableDistance).toBe(9.2);
         });
 
+        it('should apply the exclusion to an expense arriving from a workspace that excludes nothing', async () => {
+            // Given a merge where the merchant of the 10.2 mile expense, which carries no exclusion of its own, is selected
+            await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {targetTransactionID: transactionID});
+            await select(tenMileExpense, 'merchant', tenMileExpense.merchant, plainWorkspace);
+
+            // When the report on the workspace that excludes 1 commuter mile is selected for the merged expense
+            await select(fourMileExpense, 'reportID', 'reportOnExcludingWorkspace', excludingWorkspace);
+
+            // Then that workspace's exclusion is deducted from the selected distance, and the amount pays for what is
+            // left of it rather than for the whole trip
+            const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`);
+            expect(mergeTransaction?.customUnit?.quantity).toBe(10.2);
+            expect(mergeTransaction?.customUnit?.commuterExclusion).toBe(1);
+            expect(mergeTransaction?.customUnit?.reimbursableDistance).toBe(9.2);
+            expect(mergeTransaction?.amount).toBe(920);
+        });
+
         it('should drop the exclusion when the report of a workspace that has none is selected', async () => {
             // Given the same merge, with the exclusion applied to the selected 10.2 mile distance
             await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {targetTransactionID: transactionID});
@@ -1607,11 +1626,13 @@ describe('setMergeTransactionKey', () => {
             // When the report on the workspace that excludes nothing is selected for the merged expense
             await select(tenMileExpense, 'reportID', plainWorkspaceReportID, plainWorkspace);
 
-            // Then nothing is deducted from it anymore, because the exclusion belongs to the workspace the expense left
+            // Then nothing is deducted from it anymore, because the exclusion belongs to the workspace the expense left,
+            // and the amount pays for the whole trip again
             const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`);
             expect(mergeTransaction?.customUnit?.quantity).toBe(10.2);
             expect(mergeTransaction?.customUnit?.commuterExclusion).toBeUndefined();
             expect(mergeTransaction?.customUnit?.reimbursableDistance).toBeUndefined();
+            expect(mergeTransaction?.amount).toBe(1020);
         });
     });
 });
