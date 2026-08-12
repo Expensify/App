@@ -73,7 +73,7 @@ After your workspace is approved and a spending limit has been assigned to your 
 3. Select the member who will be assigned the card.
 4. Choose **Virtual** or **Physical**.
 5. Choose a spending limit type:
-   - **Smart limit** – Spend up to a threshold before approval is required.
+   - **Smart Limit** – Spend up to a certain amount before requiring approval. This option requires an approval workflow, so it appears disabled if your workspace’s approvals are set to **Optional**. Enable approvals to select it.
    - **Monthly limit** – Limit renews each month.
    - **Fixed limit** – Spend until the limit is reached.
    - **Single-use (virtual only)** – Expires after one transaction.

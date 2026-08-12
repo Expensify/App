@@ -60,7 +60,7 @@ You can issue virtual or physical cards to employees:
 3. Select the employee
 4. Choose **Virtual** or **Physical**
 5. Choose a limit type:
-   - **Smart limit**: Spend up to a threshold before needing approval
+   - **Smart Limit**: Spend up to a certain amount before requiring approval. This option requires an approval workflow, so it appears disabled if your workspace’s approvals are set to **Optional**. Enable approvals to select it.
    - **Monthly limit**: Limit renews monthly
    - **Fixed limit**: Spend until the limit is reached
    - **Single-use (virtual only)**: Expires after one transaction
