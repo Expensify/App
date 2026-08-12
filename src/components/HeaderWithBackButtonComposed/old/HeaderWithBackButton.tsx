@@ -3,16 +3,16 @@ import Avatar from '@components/Avatar';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import HeaderCloseButtonTooltip from '@components/HeaderWithBackButtonComposed/primitives/HeaderCloseButtonTooltip';
 import HeaderMenuItemButtonTooltip from '@components/HeaderWithBackButtonComposed/primitives/HeaderMenuItemButtonTooltip';
+import HeaderPinButton from '@components/HeaderWithBackButtonComposed/primitives/HeaderPinButton';
 import HeaderProgressBar from '@components/HeaderWithBackButtonComposed/primitives/HeaderProgressBar';
 import HeaderReportAvatar from '@components/HeaderWithBackButtonComposed/primitives/HeaderReportAvatar';
 import HeaderRotateButton from '@components/HeaderWithBackButtonComposed/primitives/HeaderRotateButton';
+import HeaderSearchButton from '@components/HeaderWithBackButtonComposed/primitives/HeaderSearchButton';
 import HeaderThreeDotsMenu from '@components/HeaderWithBackButtonComposed/primitives/HeaderThreeDotsMenu';
 import HeaderTitle from '@components/HeaderWithBackButtonComposed/primitives/HeaderTitle';
 import Icon from '@components/Icon';
-import PinButton from '@components/PinButton';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Tooltip from '@components/Tooltip';
 
@@ -34,8 +34,6 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import {Keyboard, StyleSheet, View} from 'react-native';
-
-import HeaderPinButton from '../primitives/HeaderPinButton';
 
 function HeaderWithBackButton({
     icon,
@@ -260,7 +258,7 @@ function HeaderWithBackButton({
                     </View>
                     {threeDotMenuTooltipsSection}
                 </View>
-                {shouldDisplaySearchRouter && <SearchButton />}
+                {shouldDisplaySearchRouter && <HeaderSearchButton />}
                 {shouldDisplayHelpButton && <SidePanelButton />}
             </View>
         </View>
