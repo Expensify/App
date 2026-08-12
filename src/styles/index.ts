@@ -7214,6 +7214,7 @@ const plainStyles = (theme: ThemeColors) =>
         conciergePromptBoxInput: {
             color: theme.text,
             height: variables.componentSizeNormal,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
         } satisfies TextStyle,
 
         conciergePromptBoxSendButton: {
