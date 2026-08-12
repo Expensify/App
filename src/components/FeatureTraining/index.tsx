@@ -2,6 +2,7 @@ import FeatureTrainingBase from './FeatureTraining';
 import FeatureTrainingCarousel from './FeatureTrainingCarousel';
 import BackButton from './primitives/BackButton';
 import Body from './primitives/Body';
+import BodyText from './primitives/BodyText';
 import ButtonRow from './primitives/ButtonRow';
 import ConfirmButton from './primitives/ConfirmButton';
 import Description from './primitives/Description';
@@ -17,6 +18,7 @@ const FeatureTraining = Object.assign(FeatureTrainingBase, {
     Page,
     Illustration,
     Body,
+    BodyText,
     Title,
     Subtitle,
     Description,
