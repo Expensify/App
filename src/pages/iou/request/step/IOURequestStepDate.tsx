@@ -3,6 +3,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
@@ -32,11 +33,13 @@ import {updateMoneyRequestDate} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/MoneyRequestDateForm';
 import type {Report, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback} from 'react';
 
@@ -61,6 +64,7 @@ function IOURequestStepDate({
     transaction,
     report,
 }: IOURequestStepDateProps) {
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(report?.policyID);
@@ -76,10 +80,12 @@ function IOURequestStepDate({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -99,19 +105,23 @@ function IOURequestStepDate({
         Navigation.goBack(backTo);
     };
 
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+    };
+
     const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
         const newCreated = value.moneyRequestCreated;
 
         // Only update created if it has changed
         if (newCreated === currentCreated) {
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplit) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {created: newCreated});
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
@@ -122,6 +132,7 @@ function IOURequestStepDate({
                 transactionID,
                 transactionThreadReport: report,
                 parentReport,
+                iouReportOwnerLogin,
                 transactions: duplicateTransactions,
                 transactionViolations: duplicateTransactionViolations,
                 value: newCreated,
@@ -129,14 +140,17 @@ function IOURequestStepDate({
                 policyForTrackExpense,
                 policyTags,
                 policyCategories,
+                reportPolicyTags,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 isASAPSubmitBetaEnabled,
-                parentReportNextStep,
                 isOffline,
                 delegateAccountID,
                 distanceOriginalPolicy,
+                isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
         } else {
             setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft, hasReceipt(transaction));
@@ -153,10 +167,11 @@ function IOURequestStepDate({
                 lastSelectedDistanceRates,
                 isDraft: isTransactionDraft,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                getCurrencyDecimals,
             });
         }
 
-        navigateBack();
+        saveAndNavigateBack();
     };
 
     const validate = useCallback(

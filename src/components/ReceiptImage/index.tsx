@@ -1,17 +1,15 @@
+import DeferredImageWithLoading from '@components/DeferredImageWithLoading';
 import EReceiptStaticThumbnail from '@components/EReceiptStaticThumbnail';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import type {IconSize} from '@components/EReceiptThumbnail';
 import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoadingIndicator';
-import ImageWithLoading from '@components/ImageWithLoading';
-import PDFThumbnail from '@components/PDFThumbnail';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
+import LocalPDFReceiptPreview from '@components/ReportActionItem/LocalPDFReceiptPreview';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import ThumbnailImage from '@components/ThumbnailImage';
 
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
@@ -112,9 +110,6 @@ type ReceiptImageProps = (
 
     isEmptyReceipt?: boolean;
 
-    /** Reason attributes for skeleton span telemetry */
-    reasonAttributes?: SkeletonSpanReasonAttributes;
-
     /** Callback to be called on pressing the image */
     onPress?: () => void;
 
@@ -160,7 +155,6 @@ function ReceiptImage({
     fallbackIconColor,
     fallbackIconBackground,
     isEmptyReceipt = false,
-    reasonAttributes,
     onPress,
     transactionItem,
     isPerDiemRequest,
@@ -191,10 +185,11 @@ function ReceiptImage({
 
     if (isPDFThumbnail) {
         return (
-            <PDFThumbnail
-                previewSourceURL={source ?? ''}
-                style={[styles.w100, styles.h100]}
+            <LocalPDFReceiptPreview
+                sourceURL={source ?? ''}
+                shouldUseFullHeight={shouldUseFullHeight}
                 onLoadSuccess={onLoad}
+                onLoadFailure={onLoadFailure}
             />
         );
     }
@@ -249,13 +244,12 @@ function ReceiptImage({
                 onLoad={onLoad}
                 onLoadFailure={onLoadFailure}
                 resizeMode={resizeMode}
-                reasonAttributes={reasonAttributes}
             />
         );
     }
 
     return (
-        <ImageWithLoading
+        <DeferredImageWithLoading
             onLayout={(e) => {
                 if (e.nativeEvent.layout.width !== receiptImageWidth && e.timeStamp - lastUpdateWidthTimestampRef.current > MIN_UPDATE_WIDTH_DIFF) {
                     setReceiptImageWidth(e.nativeEvent.layout.width);
@@ -274,7 +268,6 @@ function ReceiptImage({
             imageWidthToCalculateHeight={receiptImageWidth}
             onError={onLoadFailure}
             resizeMode={resizeMode}
-            reasonAttributes={reasonAttributes}
             previewUri={previewUri}
         />
     );

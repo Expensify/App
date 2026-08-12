@@ -77,7 +77,7 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
                             }}
                             message={onfidoError}
                             isLoading={isLoading}
-                            buttonText={onfidoError ? translate('onfidoStep.tryAgain') : translate('common.continue')}
+                            buttonText={translate(onfidoError ? 'common.tryAgain' : 'common.continue')}
                             containerStyles={[styles.mh0, styles.mv0, styles.mb0]}
                         />
                     </FixedFooter>
@@ -85,14 +85,7 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
             ) : null}
             {hasAcceptedPrivacyPolicy && isLoading ? (
                 <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={{
-                            context: 'OnfidoPrivacy',
-                            hasAcceptedPrivacyPolicy,
-                            isLoading,
-                        }}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             ) : null}
         </View>

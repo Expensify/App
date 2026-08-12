@@ -74,7 +74,15 @@ describe('AttachmentStorage', () => {
         };
 
         // Then upload the attachment
-        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: fileData, currentUserAccountID: 1, delegateAccountID: undefined});
+        addAttachmentWithComment({
+            report: {reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            attachments: fileData,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
 
         await waitForBatchedUpdates();
 
@@ -113,6 +121,7 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -167,6 +176,7 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -230,7 +240,15 @@ describe('AttachmentStorage', () => {
         await waitForBatchedUpdates();
 
         // Then upload the attachment
-        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: fileData, currentUserAccountID: 1, delegateAccountID: undefined});
+        addAttachmentWithComment({
+            report: {reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            attachments: fileData,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
 
         await waitForBatchedUpdates();
 
@@ -251,7 +269,7 @@ describe('AttachmentStorage', () => {
         }
 
         // Delete attachment
-        deleteReportComment({reportID}, attachmentAction, undefined, [], false, false, 'test@user.com');
+        deleteReportComment({reportID}, attachmentAction, undefined, undefined, [], false, false, 'test@user.com');
         await waitForBatchedUpdates();
 
         // Then the attachment should be removed
@@ -292,6 +310,7 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -313,7 +332,7 @@ describe('AttachmentStorage', () => {
         }
 
         // Delete attachment
-        deleteReportComment({reportID}, attachmentAction, undefined, [], false, false, 'test@user.com');
+        deleteReportComment({reportID}, attachmentAction, undefined, undefined, [], false, false, 'test@user.com');
         await waitForBatchedUpdates();
 
         const removedAttachment = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
@@ -361,8 +380,17 @@ describe('AttachmentStorage', () => {
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: 1,
             delegateAccountID: undefined,
+            conciergeReportID: undefined,
         });
-        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: attachmentFiles, currentUserAccountID: 1, delegateAccountID: undefined});
+        addAttachmentWithComment({
+            report: {reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            attachments: attachmentFiles,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
 
         await waitForBatchedUpdates();
 

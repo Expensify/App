@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
@@ -20,7 +20,6 @@ import getPlatform from '@libs/getPlatform';
 import localFileDownload from '@libs/localFileDownload';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {toggleTwoFactorAuth} from '@userActions/Session';
 import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuthActions';
@@ -64,7 +63,6 @@ function DynamicTwoFactorAuthPage() {
 
     const isUserValidated = account?.validated ?? false;
     const is2FAEnabled = !!account?.requiresTwoFactorAuth;
-    const accountLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'DynamicTwoFactorAuthPage', isLoading: !!account?.isLoading};
 
     const recoveryCodes = account?.recoveryCodes;
 
@@ -119,7 +117,7 @@ function DynamicTwoFactorAuthPage() {
                         <View style={[styles.twoFactorAuthCodesBox, styles.twoFactorAuthCodesBoxPadding({isExtraSmallScreenWidth, isSmallScreenWidth})]}>
                             {account?.isLoading ? (
                                 <View style={styles.twoFactorLoadingContainer}>
-                                    <ActivityIndicator reasonAttributes={accountLoadingReasonAttributes} />
+                                    <ActivityIndicator />
                                 </View>
                             ) : (
                                 <>
@@ -182,10 +180,9 @@ function DynamicTwoFactorAuthPage() {
                     )}
                     {!!recoveryCodes && (
                         <Button
-                            success
-                            large
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            size={CONST.BUTTON_SIZE.LARGE}
                             isDisabled={!isUserValidated}
-                            text={translate('twoFactorAuth.downloadCodes')}
                             onPress={() => {
                                 localFileDownload(TWO_FACTOR_AUTH_RECOVERY_CODES_FILENAME, recoveryCodes, translate, undefined, undefined, false);
                                 setError('');
@@ -193,7 +190,9 @@ function DynamicTwoFactorAuthPage() {
                                 announceStatus(translate('fileDownload.success.title'));
                                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path, backPath), {forceReplace: true});
                             }}
-                        />
+                        >
+                            <Button.Text>{translate('twoFactorAuth.downloadCodes')}</Button.Text>
+                        </Button>
                     )}
                 </FixedFooter>
             </ScrollView>

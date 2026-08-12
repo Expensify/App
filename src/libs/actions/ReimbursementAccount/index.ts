@@ -1,8 +1,12 @@
+import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
+import type ReimbursementAccount from '@src/types/onyx/ReimbursementAccount';
 import type {ACHData, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
@@ -41,6 +45,49 @@ function clearReimbursementAccountDraft() {
 
 function clearReimbursementAccount() {
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
+}
+
+/**
+ * Restore a previously captured reimbursement account snapshot and drop the backup. Used to recover the in-progress
+ * account after the user backs out of a "change bank account" flow.
+ */
+function restoreReimbursementAccountBackup(backup: ReimbursementAccount) {
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, backup);
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_BACKUP, null);
+}
+
+/**
+ * Drops the reimbursement account backup.
+ */
+function clearReimbursementAccountBackup() {
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_BACKUP, null);
+}
+
+/**
+ * Prepares the app to set up a new bank account by marking the account change, clearing existing data,
+ * and initializing draft with country and currency.
+ * We need to temporarily clear this data to set up new account without disconnecting existing one
+ */
+function prepareNewBankAccountSetup(currency: string, reimbursementAccountToBackup?: OnyxEntry<ReimbursementAccount>) {
+    // Snapshot the account before clearing it, so it can be restored if the user abandons the change flow. Any real
+    // account has achData.bankAccountID; the default/empty account has none, so skip it.
+    if (reimbursementAccountToBackup?.achData?.bankAccountID) {
+        Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_BACKUP, reimbursementAccountToBackup);
+    }
+    Onyx.set(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT, true);
+    clearReimbursementAccount();
+    clearReimbursementAccountDraft();
+    updateReimbursementAccountDraft({
+        country: mapCurrencyToCountry(currency),
+        currency,
+    });
+}
+
+/**
+ * Cancels the change to new bank account
+ */
+function cancelChangingToNewBankAccount() {
+    Onyx.set(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT, false);
 }
 
 /**
@@ -85,7 +132,11 @@ export {
     cancelResetBankAccount,
     clearReimbursementAccount,
     clearReimbursementAccountDraft,
+    restoreReimbursementAccountBackup,
+    clearReimbursementAccountBackup,
     setReimbursementAccountOptionPressed,
     updateReimbursementAccount,
     resetReimbursementAccount,
+    cancelChangingToNewBankAccount,
+    prepareNewBankAccountSetup,
 };

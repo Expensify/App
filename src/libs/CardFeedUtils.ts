@@ -9,10 +9,12 @@ import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, Domain, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
-import type {CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithNumber, CombinedCardFeed} from '@src/types/onyx/CardFeeds';
+import type {CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithDomainID, CardFeedWithNumber, CombinedCardFeed} from '@src/types/onyx/CardFeeds';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {isAdminSelector} from '@selectors/Domain';
 
@@ -470,6 +472,89 @@ function getCombinedCardFeedsFromAllFeeds(
     }, {});
 }
 
+function findMatchingCards(cardFeeds: CombinedCardFeeds, cardLists: OnyxCollection<WorkspaceCardsList>, cardFeed?: CardFeedWithNumber, cardID?: number) {
+    const feedsWithDomainIDs = Object.keys(cardFeeds) as CardFeedWithDomainID[];
+    return Object.values(cardLists ?? {})
+        .flatMap((cardList) => Object.values(cardList ?? {}))
+        .filter((card) => {
+            const feedKey = card.bank as CardFeedWithNumber;
+            const feedDomainID = card.fundID ?? CONST.DEFAULT_MISSING_ID;
+            const feedWithDomainID = getCardFeedWithDomainID(feedKey, feedDomainID);
+            if (!feedsWithDomainIDs.includes(feedWithDomainID)) {
+                return false;
+            }
+            if (cardFeed && cardFeed !== feedKey) {
+                return false;
+            }
+            if (cardID && cardID !== card.cardID) {
+                return false;
+            }
+            return true;
+        });
+}
+
+function getCardsUsingCustomExportCount(
+    cardFeeds: CombinedCardFeeds,
+    cardLists: OnyxCollection<WorkspaceCardsList>,
+    exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
+): {
+    perFeedCount: Partial<Record<CardFeedWithNumber, number>>;
+    totalCount: number;
+} {
+    const perFeedCount: Partial<Record<CardFeedWithNumber, number>> = {};
+    let totalCount = 0;
+    for (const card of findMatchingCards(cardFeeds, cardLists)) {
+        const feedKey = card.bank as CardFeedWithNumber;
+        if (typeof card.nameValuePairs !== 'object') {
+            continue;
+        }
+        if (!(exportType in card.nameValuePairs)) {
+            continue;
+        }
+        perFeedCount[feedKey] = (perFeedCount[feedKey] ?? 0) + 1;
+        totalCount += 1;
+    }
+    return {perFeedCount, totalCount};
+}
+
+function getCardsCustomExportPendingAction(
+    cardFeeds: CombinedCardFeeds,
+    cardLists: OnyxCollection<WorkspaceCardsList>,
+    exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
+    cardFeed?: CardFeedWithNumber,
+    cardID?: number,
+): PendingAction | undefined {
+    for (const card of findMatchingCards(cardFeeds, cardLists, cardFeed, cardID)) {
+        if (typeof card.nameValuePairs !== 'object') {
+            continue;
+        }
+        if (!(exportType in (card.nameValuePairs.pendingFields ?? {}))) {
+            continue;
+        }
+        return card.nameValuePairs.pendingFields?.[exportType];
+    }
+    return undefined;
+}
+
+function areCardsCustomExportInErrorFields(
+    cardFeeds: CombinedCardFeeds,
+    cardLists: OnyxCollection<WorkspaceCardsList>,
+    exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
+    cardFeed?: CardFeedWithNumber,
+    cardID?: number,
+): boolean {
+    for (const card of findMatchingCards(cardFeeds, cardLists, cardFeed, cardID)) {
+        if (typeof card.nameValuePairs !== 'object') {
+            continue;
+        }
+        if (!(exportType in (card.nameValuePairs.errorFields ?? {}))) {
+            continue;
+        }
+        return true;
+    }
+    return false;
+}
+
 export type {CardFilterItem, CardFeedForDisplay};
 export {
     buildCardsData,
@@ -481,4 +566,8 @@ export {
     getVisibleCompanyCardFeedsForSelector,
     getCombinedCardFeedsFromAllFeeds,
     getWorkspaceCardFeedsStatus,
+    getCardsUsingCustomExportCount,
+    getCardsCustomExportPendingAction,
+    areCardsCustomExportInErrorFields,
+    findMatchingCards,
 };

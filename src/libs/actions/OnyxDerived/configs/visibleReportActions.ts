@@ -19,7 +19,7 @@ function shouldSkipCachingAction(action: ReportAction): boolean {
  * actions. Rebuilding the whole map rather than updating individual entries keeps deletions correct:
  * a removed action is absent from `reportActions`, so it drops out of the result.
  */
-function computeReportVisibility(reportActions: ReportActions): Record<string, boolean> {
+function computeReportVisibility(reportActions: ReportActions, currentUserAccountID: number | undefined): Record<string, boolean> {
     const reportVisibility: Record<string, boolean> = {};
 
     for (const [actionID, action] of Object.entries(reportActions)) {
@@ -34,7 +34,7 @@ function computeReportVisibility(reportActions: ReportActions): Record<string, b
         if (shouldSkipCachingAction(action)) {
             continue;
         }
-        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined);
+        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined, currentUserAccountID);
     }
 
     return reportVisibility;
@@ -47,11 +47,12 @@ export default createOnyxDerivedValueConfig({
     // report collection to the visibility check, avoiding stale data from global connections.
     // SESSION dependency is needed for whisper targeting when user changes.
     dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.SESSION],
-    compute: ([allReportActions], {sourceValues, currentValue, triggeredKeys}): VisibleReportActionsDerivedValue => {
+    compute: ([allReportActions, session], {sourceValues, currentValue, triggeredKeys}): VisibleReportActionsDerivedValue => {
         if (!allReportActions) {
             return {};
         }
 
+        const currentUserAccountID = session?.accountID;
         const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS];
 
         // Recompute only the reports whose actions changed when we have a usable delta. Otherwise
@@ -73,7 +74,7 @@ export default createOnyxDerivedValueConfig({
                 continue;
             }
 
-            result[reportID] = computeReportVisibility(reportActions);
+            result[reportID] = computeReportVisibility(reportActions, currentUserAccountID);
         }
 
         return result;

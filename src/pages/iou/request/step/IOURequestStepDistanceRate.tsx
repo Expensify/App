@@ -11,6 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,10 +36,12 @@ import {getCurrency, getDistanceInMeters, getDistanceRateTaxUpdates, getRateID, 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {policyTypeSelector} from '@selectors/Policy';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useState} from 'react';
@@ -69,17 +72,20 @@ function IOURequestStepDistanceRate({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalPolicy = usePersonalPolicy();
     const [currentTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {policy: policyForTransaction} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType, policyDraft});
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
 
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit, localeCompare} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare, dateFnsLocale} = useLocalize();
     const {isOffline} = useNetwork();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
@@ -101,9 +107,10 @@ function IOURequestStepDistanceRate({
             : undefined;
     const availablePaidPolicies = isEditingSplit ? getGroupPaidPolicies(allPolicies ?? {}) : [];
     const fallbackAvailablePolicy = isEditingSplit && !isP2PRate && !policyForTransaction && !policyByCustomUnitID && !policyByCustomUnitRateID ? availablePaidPolicies.at(0) : undefined;
-    const policy = policyForTransaction ?? policyByCustomUnitID ?? policyByCustomUnitRateID ?? fallbackAvailablePolicy;
+    const fallbackMovingExpensesPolicy = isEditingSplit ? policyForMovingExpenses : undefined;
+    const policy = policyForTransaction ?? policyByCustomUnitID ?? policyByCustomUnitRateID ?? fallbackMovingExpensesPolicy ?? fallbackAvailablePolicy;
     const isDistanceRequest = isDistanceRequestTransactionUtils(currentTransaction);
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const isPolicyExpenseChat = isGroupPolicyByType(reportPolicyType);
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense || isExpenseUnreported(currentTransaction), policy, isDistanceRequest);
@@ -131,6 +138,10 @@ function IOURequestStepDistanceRate({
         Navigation.goBack(backTo);
     };
 
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+    };
+
     const options = sortedRates.map((rate) => {
         const hasUnitMismatchForMovingTrackExpense = isMovingTransactionFromTrackExpense && transactionUnit !== rate.unit;
         const unit =
@@ -142,7 +153,7 @@ function IOURequestStepDistanceRate({
             ? effectiveRateID === rate.customUnitRateID && !hasUnitMismatchForMovingTrackExpense
             : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
         const rateForDisplay = DistanceRequestUtils.getFormattedRateValue(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit, getCurrencySymbol);
-        const dateLabel = DistanceRequestUtils.getRateDateLabel(rate, translate);
+        const dateLabel = DistanceRequestUtils.getRateDateLabel(rate, translate, dateFnsLocale);
         const alternateText = [rate.name ? rateForDisplay : '', dateLabel].filter(Boolean).join(' • ');
         return {
             text: rate.name ?? rateForDisplay,
@@ -185,7 +196,7 @@ function IOURequestStepDistanceRate({
         let taxRateExternalID;
         let taxValue;
         if (shouldShowTax) {
-            const distanceRateTaxUpdates = getDistanceRateTaxUpdates(policy, currentTransaction, customUnitRateID, currentUnit);
+            const distanceRateTaxUpdates = getDistanceRateTaxUpdates(policy, currentTransaction, customUnitRateID, getCurrencyDecimals, currentUnit);
             taxAmount = distanceRateTaxUpdates.taxAmount;
             taxRateExternalID = distanceRateTaxUpdates.taxCode;
             taxValue = distanceRateTaxUpdates.taxValue;
@@ -199,8 +210,17 @@ function IOURequestStepDistanceRate({
         if (currentRateID !== customUnitRateID || (isMovingTransactionFromTrackExpense && transactionUnit !== selectedRateUnit)) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit && transaction) {
-                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {customUnitRateID}, policy, personalPolicy?.outputCurrency);
-                navigateBack();
+                setDraftSplitTransaction(
+                    transaction.transactionID,
+                    splitDraftTransaction,
+                    {customUnitRateID},
+                    policy,
+                    personalPolicy?.outputCurrency,
+                    allPolicies,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
+                );
+                saveAndNavigateBack();
                 return;
             }
 
@@ -211,7 +231,7 @@ function IOURequestStepDistanceRate({
                     transaction,
                     transactionThreadReport: report,
                     parentReport,
-                    parentReportNextStep,
+                    iouReportOwnerLogin,
                     rateID: customUnitRateID,
                     policy,
                     policyTagList: policyTags,
@@ -225,7 +245,11 @@ function IOURequestStepDistanceRate({
                     delegateAccountID,
                     isOffline,
                     currentTransactionViolations,
+                    reportPolicyTags,
+                    isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
             } else {
                 setMoneyRequestDistanceRate(transaction, customUnitRateID, policy, shouldUseTransactionDraft(action));
@@ -234,7 +258,7 @@ function IOURequestStepDistanceRate({
 
         setPendingRateID(undefined);
         setFormError('');
-        navigateBack();
+        saveAndNavigateBack();
     }
 
     return (

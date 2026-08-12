@@ -85,18 +85,16 @@ function useSearchHighlightAndScroll({
         const previousTransactionIDsLocal = Object.keys(previousTransactions ?? {});
         const transactionsIDs = Object.keys(transactions ?? {});
 
-        const reportActionsIDs = Object.values(reportActions ?? {})
-            .map((actions) => Object.keys(actions ?? {}))
-            .flat();
-        const previousReportActionsIDs = Object.values(previousReportActions ?? {})
-            .map((actions) => Object.keys(actions ?? {}))
-            .flat();
-
         // Only proceed if we have previous data to compare against
         // This prevents triggering on initial data load
-        if ((previousTransactionIDsLocal.length === 0 && previousReportActionsIDs.length === 0) || searchTriggeredRef.current) {
+        const hasPreviousReportActions = Object.values(previousReportActions ?? {}).some((actions) => Object.keys(actions ?? {}).length > 0);
+        if ((previousTransactionIDsLocal.length === 0 && !hasPreviousReportActions) || searchTriggeredRef.current) {
             return;
         }
+
+        // Only chat searches are driven by report actions, so the rest skip walking that collection entirely.
+        const reportActionsIDs = isChat ? Object.values(reportActions ?? {}).flatMap((actions) => Object.keys(actions ?? {})) : [];
+        const previousReportActionsIDs = isChat ? Object.values(previousReportActions ?? {}).flatMap((actions) => Object.keys(actions ?? {})) : [];
 
         const previousTransactionsIDsSet = new Set(previousTransactionIDsLocal);
         const previousReportActionsIDsSet = new Set(previousReportActionsIDs);
@@ -104,7 +102,7 @@ function useSearchHighlightAndScroll({
         const hasReportActionsIDsChange = reportActionsIDs.some((id) => !previousReportActionsIDsSet.has(id));
 
         // Check if there is a change in the transactions or report actions list
-        if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange || hasPendingSearchRef.current) {
+        if ((isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange) || hasPendingSearchRef.current) {
             // Skip if offline, or if the user has navigated to a different fullscreen page entirely.
             // An RHP layered on top of Search makes `isFocused` false but keeps Search as the topmost
             // fullscreen route, so we still want to refetch — otherwise the snapshot can't reflect
@@ -116,19 +114,32 @@ function useSearchHighlightAndScroll({
             }
             hasPendingSearchRef.current = false;
 
-            const newIDs = isChat ? reportActionsIDs : transactionsIDs;
+            // Transaction Onyx keys are `transactions_<id>` but search results yield bare IDs, so read the ID off the value.
+            const addedTransactionIDs: string[] = [];
+            const currentTransactionIDs: string[] = [];
+            for (const [key, transaction] of Object.entries(transactions ?? {})) {
+                const transactionID = transaction?.transactionID;
+                if (!transactionID) {
+                    continue;
+                }
+                currentTransactionIDs.push(transactionID);
+                if (!previousTransactionsIDsSet.has(key)) {
+                    addedTransactionIDs.push(transactionID);
+                }
+            }
+
             let currentSearchResultIDs: string[] = [];
             if (searchResultsData) {
                 currentSearchResultIDs = isChat ? extractReportActionIDsFromSearchResults(searchResultsData) : extractTransactionIDsFromSearchResults(searchResultsData);
             }
             const existingSearchResultIDsSet = new Set(currentSearchResultIDs);
-            const hasAGenuinelyNewID = newIDs.some((id) => !existingSearchResultIDsSet.has(id));
+            const hasAGenuinelyNewID = (isChat ? reportActionsIDs : addedTransactionIDs).some((id) => !existingSearchResultIDsSet.has(id));
 
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search
             if (!hasAGenuinelyNewID && currentSearchResultIDs.length > 0) {
-                const newIDsSet = new Set(newIDs);
-                const hasDeletedID = currentSearchResultIDs.some((id) => !newIDsSet.has(id));
+                const currentIDsSet = new Set(isChat ? reportActionsIDs : currentTransactionIDs);
+                const hasDeletedID = currentSearchResultIDs.some((id) => !currentIDsSet.has(id));
                 if (!hasDeletedID) {
                     return;
                 }
@@ -307,14 +318,18 @@ function useSearchHighlightAndScroll({
         });
 
         // Early return if the new item is not found in the data array
-        if (indexOfNewItem <= 0) {
+        if (indexOfNewItem < 0) {
+            return;
+        }
+
+        // Reset the trigger even when the item is already first so a later render cannot scroll or highlight it again.
+        triggeredByHookRef.current = false;
+        if (indexOfNewItem === 0) {
             return;
         }
 
         // Perform the scrolling action
         ref.scrollToIndex(indexOfNewItem);
-        // Reset the trigger flag to prevent unintended future scrolls and highlights
-        triggeredByHookRef.current = false;
     };
 
     const hasQueuedHighlights = newSearchResultKeys !== null && newSearchResultKeys.size > 0;

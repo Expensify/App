@@ -2,11 +2,16 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
+import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
+import Text from '@components/Text';
 
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
+import {setHasRadio} from '@libs/NetworkState';
 import type * as OptionsListUtilsModule from '@libs/OptionsListUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -18,8 +23,10 @@ import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
+import type ReactNative from 'react-native';
 
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createCollection from '../utils/collections/createCollection';
@@ -28,6 +35,25 @@ import {createRandomReport} from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+
+const mockFlashListContentContainerStyles: Array<React.ComponentProps<typeof ReactNative.FlatList>['contentContainerStyle']> = [];
+
+jest.mock('@shopify/flash-list', () => {
+    const RN = jest.requireActual<typeof ReactNative>('react-native');
+    return {
+        FlashList: ({data, contentContainerStyle, ...props}: React.ComponentProps<typeof RN.FlatList>) => {
+            mockFlashListContentContainerStyles.push(contentContainerStyle);
+            return (
+                <RN.FlatList
+                    data={data}
+                    contentContainerStyle={contentContainerStyle}
+                    {...props}
+                    initialNumToRender={data?.length}
+                />
+            );
+        },
+    };
+});
 
 jest.mock('lodash/debounce', () =>
     jest.fn((fn: Record<string, jest.Mock>) => {
@@ -65,9 +91,13 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
 
+const mockRootNavigationState = jest.fn((): {contextualReportID: string | undefined; isSearchRouterScreen: boolean} => ({
+    contextualReportID: undefined,
+    isSearchRouterScreen: false,
+}));
 jest.mock('@src/hooks/useRootNavigationState', () => ({
     __esModule: true,
-    default: () => ({contextualReportID: undefined, isSearchRouterScreen: false}),
+    default: () => mockRootNavigationState(),
 }));
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
@@ -85,6 +115,12 @@ jest.mock('@hooks/useFilteredOptions', () => ({
     __esModule: true,
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     default: (...args: unknown[]) => mockUseFilteredOptions(...args),
+}));
+
+const mockUseNavigationSuggestions = jest.fn<SearchQueryItem[], [query: string, shouldWatchForApprovals?: boolean]>(() => []);
+jest.mock('@components/Search/SearchRouter/useNavigationSuggestions', () => ({
+    __esModule: true,
+    default: (query: string, shouldWatchForApprovals?: boolean) => mockUseNavigationSuggestions(query, shouldWatchForApprovals),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -132,9 +168,19 @@ const mockedReports = getMockedReports(10);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(10);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
+const CURRENT_USER_ACCOUNT_ID = 1;
+const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+    dateFnsLocale: undefined,
+    conciergeReportID: undefined,
+    isSearching: true,
+});
+const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_ENABLED = {addSafeAreaPadding: true};
+const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_DISABLED = {addSafeAreaPadding: false};
 
-const mockOnClose = jest.fn();
+const mockOnClose = jest.fn((afterClose?: () => void) => {
+    afterClose?.();
+});
 
 // Fake report options that getSearchOptions returns as recentReports.
 // These simulate local results available before any server search completes.
@@ -144,11 +190,18 @@ const fakeRecentReports = [
     {reportID: '103', keyForList: '103', text: 'Charlie Report', alternateText: 'charlie alt', lastMessageText: 'hey'},
 ];
 
-function SearchRouterWrapper() {
+function SearchRouterWrapper({isSearchRouterDisplayed, addOfflineIndicatorSafeAreaPadding}: {isSearchRouterDisplayed?: boolean; addOfflineIndicatorSafeAreaPadding?: boolean}) {
     return (
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <SearchRouter onRouterClose={mockOnClose} />
-        </ComposeProviders>
+        <ScreenWrapperOfflineIndicatorContext.Provider
+            value={addOfflineIndicatorSafeAreaPadding ? OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_ENABLED : OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_DISABLED}
+        >
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <SearchRouter
+                    onRouterClose={mockOnClose}
+                    isSearchRouterDisplayed={isSearchRouterDisplayed}
+                />
+            </ComposeProviders>
+        </ScreenWrapperOfflineIndicatorContext.Provider>
     );
 }
 
@@ -186,10 +239,83 @@ describe('SearchAutocompleteList', () => {
     });
 
     afterEach(async () => {
+        setHasRadio(true);
         await act(async () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+        mockUseNavigationSuggestions.mockReturnValue([]);
+        mockRootNavigationState.mockReturnValue({contextualReportID: undefined, isSearchRouterScreen: false});
+    });
+
+    it.each([
+        ['displayed', true, true],
+        ['hidden', undefined, false],
+    ] as const)('should pass the correct approval-watch state when the router is %s', (_state, isSearchRouterDisplayed, shouldWatchForApprovals) => {
+        render(<SearchRouterWrapper isSearchRouterDisplayed={isSearchRouterDisplayed} />);
+
+        expect(mockUseNavigationSuggestions).toHaveBeenCalledWith(expect.any(String), shouldWatchForApprovals);
+    });
+
+    it('should display and select navigation suggestion rows', async () => {
+        const navigationAction = jest.fn();
+        mockUseNavigationSuggestions.mockReturnValue([
+            {
+                text: 'Go to Reports',
+                keyForList: 'spend_reports',
+                searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE,
+                action: navigationAction,
+                rightElement: <Text>Spend</Text>,
+            },
+        ]);
+
+        await waitForBatchedUpdates();
+        await Onyx.multiSet({
+            ...mockedReports,
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+            [ONYXKEYS.BETAS]: mockedBetas,
+        });
+
+        render(<SearchRouterWrapper />);
+        await flushAllUpdates();
+
+        fireEvent.press(await screen.findByText('Go to Reports'));
+
+        await waitFor(() => {
+            expect(mockOnClose).toHaveBeenCalledWith(navigationAction);
+            expect(navigationAction).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    it('should add offline indicator clearance to the list content', async () => {
+        mockUseNavigationSuggestions.mockReturnValue([
+            {
+                text: 'Go to Inbox',
+                keyForList: 'inbox',
+                searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE,
+                action: jest.fn(),
+            },
+        ]);
+        mockFlashListContentContainerStyles.length = 0;
+        render(<SearchRouterWrapper addOfflineIndicatorSafeAreaPadding />);
+        await flushAllUpdates();
+
+        const getContentPaddingBottom = () => {
+            // FlashList records a style per render; use the latest numeric bottom padding.
+            return mockFlashListContentContainerStyles
+                .map((contentContainerStyle) => StyleSheet.flatten(contentContainerStyle)?.paddingBottom)
+                .findLast((paddingBottom) => typeof paddingBottom === 'number');
+        };
+        const onlinePaddingBottom = getContentPaddingBottom();
+
+        if (typeof onlinePaddingBottom !== 'number') {
+            throw new Error('Expected the Search Router list to have numeric bottom padding');
+        }
+
+        act(() => setHasRadio(false));
+        await flushAllUpdates();
+
+        expect(getContentPaddingBottom()).toBe(onlinePaddingBottom + CONST.OFFLINE_INDICATOR_HEIGHT);
     });
 
     it('should display Recent searches section when query is empty and recent searches exist', async () => {
@@ -223,14 +349,45 @@ describe('SearchAutocompleteList', () => {
         expect(screen.getByText('type:chat')).toBeTruthy();
     });
 
+    it('builds the contextual search option with the threaded conciergeReportID', async () => {
+        // A report that exists in Onyx but is NOT part of the recent-report options, so the contextual
+        // search suggestion has to build its option through createOptionFromReport
+        const contextualReportID = 'contextual-99';
+        const currentUserAccountID = 1;
+        const contextualReport = {
+            ...createRandomReport(99, undefined),
+            reportID: contextualReportID,
+            participants: {[currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+        };
+        mockRootNavigationState.mockReturnValue({contextualReportID, isSearchRouterScreen: true});
+        const createOptionFromReportSpy = jest.spyOn(OptionsListUtils, 'createOptionFromReport');
+
+        await waitForBatchedUpdates();
+        await Onyx.multiSet({
+            ...mockedReports,
+            [ONYXKEYS.BETAS]: mockedBetas,
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${contextualReportID}`, contextualReport);
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'test@test.com'});
+        await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'concierge-router-1');
+
+        render(<SearchRouterWrapper />);
+        await flushAllUpdates();
+
+        // Then the contextual report (not part of recent reports) is built through createOptionFromReport
+        expect(createOptionFromReportSpy).toHaveBeenCalled();
+        expect(createOptionFromReportSpy.mock.calls.at(0)?.at(0)?.conciergeReportID).toBe('concierge-router-1');
+    });
+
     describe('two-section chat switcher', () => {
         // These tests use a controlled getSearchOptions mock to verify the section splitting logic
         // introduced for stable two-section chat switcher results (local + server).
         let getSearchOptionsSpy: jest.SpyInstance;
 
         beforeEach(() => {
-            const OptionsListUtils = jest.requireActual<typeof OptionsListUtilsModule>('@libs/OptionsListUtils');
-            getSearchOptionsSpy = jest.spyOn(OptionsListUtils, 'getSearchOptions').mockReturnValue({
+            const actualOptionsListUtils = jest.requireActual<typeof OptionsListUtilsModule>('@libs/OptionsListUtils');
+            getSearchOptionsSpy = jest.spyOn(actualOptionsListUtils, 'getSearchOptions').mockReturnValue({
                 options: {
                     recentReports: fakeRecentReports,
                     personalDetails: [],

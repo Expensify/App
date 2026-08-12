@@ -1,7 +1,7 @@
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
-import MagicCodeInput from '@components/MagicCodeInput';
 import Text from '@components/Text';
+import ValidateCodeInput from '@components/ValidateCodeInput';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -91,12 +91,15 @@ function PIN({onNext}: CustomSubPageProps) {
             style={[styles.flexGrow1, styles.ph5]}
             scrollContextEnabled={false}
             enabledWhenOffline
+            // The submit handler validates the PIN itself and only flips local step state within the same
+            // screen, so an immediate press spinner would never get reset by external loading or a focus change
+            shouldShowLoadingImmediatelyOnPress={false}
         >
             <View style={[styles.flex1]}>
                 <Text style={[styles.textHeadlineH1, styles.mb2]}>{title}</Text>
 
                 <View style={[styles.mv4, styles.ph11]}>
-                    <MagicCodeInput
+                    <ValidateCodeInput
                         key={`pin-${isConfirmStep}`}
                         autoComplete={CONST.AUTO_COMPLETE_VARIANTS.OFF}
                         name="pin"

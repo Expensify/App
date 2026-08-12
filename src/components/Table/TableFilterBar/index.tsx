@@ -8,6 +8,7 @@ import type {PropsWithChildren} from 'react';
 import React from 'react';
 import {View} from 'react-native';
 
+import TableDisplaySettingsTrigger, {shouldShowTableDisplaySettingsTrigger} from './TableDisplaySettingsTrigger';
 import TableFilterPopoverComponent from './TableFilterPopoverComponent';
 import TableFilterTrigger from './TableFilterTrigger';
 import TableSearchBar from './TableSearchBar';
@@ -19,10 +20,11 @@ type TableFilterBarProps = PropsWithChildren<{
 
 export default function TableFilterBar({label, children}: TableFilterBarProps) {
     const styles = useThemeStyles();
-    const {filterConfig, tableMethods, activeFilters, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
+    const {filterConfig, tableMethods, activeFilters, columns, narrowLayoutSortColumn, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
 
     const hasFiltersAvailable = Object.keys(filterConfig ?? {}).length > 0;
-    const actionColumnVisible = hasFiltersAvailable || !!children;
+    const showsDisplaySettingsTrigger = shouldShowTableDisplaySettingsTrigger({columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn});
+    const actionColumnVisible = hasFiltersAvailable || showsDisplaySettingsTrigger || !!children;
 
     const appliedFilters = Object.entries(activeFilters ?? {})
         .filter(([, value]) => !!value?.length)
@@ -63,7 +65,7 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
 
     return (
         <View style={[styles.w100, styles.gap3, styles.pb3, styles.ph5]}>
-            <View style={[styles.flexRow, styles.gap3, styles.justifyContentBetween, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, styles.gap3, styles.justifyContentBetween, shouldUseNarrowTableLayout && styles.alignItemsCenter]}>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.gap2, styles.alignItemsCenter]}>
                     <TableSearchBar label={label} />
                     {!shouldUseNarrowTableLayout && ActiveFilterChipsComponent}
@@ -72,6 +74,7 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
                 {actionColumnVisible && (
                     <View style={[styles.flexRow, styles.gap1]}>
                         <TableFilterTrigger />
+                        <TableDisplaySettingsTrigger />
                         {children}
                     </View>
                 )}

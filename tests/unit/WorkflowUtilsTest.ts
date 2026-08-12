@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -18,12 +17,11 @@ import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {BankAccountList} from '@src/types/onyx/BankAccount';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
-import type {Connections} from '@src/types/onyx/Policy';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 
 import createRandomPolicy from '../utils/collections/policies';
-import {buildPersonalDetails, localeCompare, translateLocal} from '../utils/TestHelper';
+import {buildPersonalDetails, convertToDisplayString, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const personalDetails: PersonalDetailsList = {};
@@ -805,9 +803,10 @@ describe('WorkflowUtils', () => {
                             approvalMode: CONST.MERGE_HR.APPROVAL_MODE.MANAGER,
                             finalApprover: 'finalapprover@example.com',
                             integration: 'workday',
+                            groups: [],
                         },
                     },
-                } as Connections,
+                },
             };
             const personalDetailsForTest: PersonalDetailsList = {
                 'unassigned@example.com': {accountID: 1, login: 'unassigned@example.com', displayName: 'Unassigned'},

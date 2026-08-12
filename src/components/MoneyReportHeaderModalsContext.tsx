@@ -14,7 +14,7 @@ type HoldMenuParams = {
 
 type MoneyReportHeaderModalsContextValue = {
     openHoldMenu: (params: HoldMenuParams) => Promise<void>;
-    openPDFDownload: () => void;
+    openPDFDownload: (options?: {onCancel?: () => void}) => void;
     openHoldEducational: () => void;
     openRejectModal: (action: RejectModalAction) => void;
     showOfflineModal: () => void;

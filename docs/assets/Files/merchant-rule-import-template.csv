@@ -1,0 +1,5 @@
+Merchant,Updated Merchant,Updated Category,Updated Tag,Updated Description,Reimbursable,Billable
+Starbucks,Starbucks,Meals and Entertainment,Downtown,For coffee,FALSE,FALSE
+Uber,,Travel,,,TRUE,FALSE
+Staples,,Office Supplies,Uptown,Supplies for uptown office,FALSE,
+Slack,Slack Subscription Services,Subscriptions,,,TRUE,

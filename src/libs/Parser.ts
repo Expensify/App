@@ -6,8 +6,6 @@ import Onyx from 'react-native-onyx';
 
 import Log from './Log';
 
-const accountIDToNameMap: Record<string, string> = {};
-
 let reportIDToNameMap: Record<string, string> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -28,9 +26,12 @@ Onyx.connect({
     },
 });
 
+let accountIDToNameMap: Record<string, string> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (personalDetailsList) => {
+        // Clear the map so removed personal detail don’t linger
+        accountIDToNameMap = {};
         for (const personalDetails of Object.values(personalDetailsList ?? {})) {
             if (!personalDetails) {
                 continue;

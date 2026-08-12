@@ -2,6 +2,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isMoneyRequest, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -46,6 +47,16 @@ Onyx.connectWithoutView({
 
 let allReports: OnyxCollection<Report>;
 
+// Onyx.connectWithoutView is used here only because this value is consumed inside another Onyx.connectWithoutView callback.
+// Do not use sessionAccountID for other purposes.
+let sessionAccountID: number | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        sessionAccountID = value?.accountID;
+    },
+});
+
 let allReportActions: OnyxCollection<ReportActions> = {};
 // Report actions are cached only to resolve parent actions for IOU cleanup; no UI subscribes, so connectWithoutView() is used.
 Onyx.connectWithoutView({
@@ -55,7 +66,7 @@ Onyx.connectWithoutView({
     },
 });
 
-function replaceOptimisticReportWithActualReport(report: Report, draftReportComment: string | undefined) {
+function replaceOptimisticReportWithActualReport(report: Report, draftReportComment: string | undefined, currentUserAccountID: number) {
     const {reportID, preexistingReportID, parentReportID, parentReportActionID} = report;
 
     if (!reportID || !preexistingReportID) {
@@ -200,6 +211,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                 isParentOneTransactionReport &&
                 (activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(parentReportID)) || activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID})))
             ) {
+                const hasReportActions = !!allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
                 if (draftReportComment) {
                     // Draft must be saved first because the callback will clear the optimistic report and its associated draft
                     saveReportDraftComment(parentReportID, draftReportComment, () => {
@@ -209,7 +221,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                         // betas is safe to pass as undefined because introSelected is undefined, so the code path
                         // that uses betas is never reached. Passing it explicitly so the compiler flags this when
                         // betas becomes required. Refactor issue: https://github.com/Expensify/App/issues/66424
-                        openReport({reportID: parentReportID, introSelected: undefined, betas: undefined});
+                        openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, hasReportActions, currentUserAccountID});
                     });
                 } else {
                     callback();
@@ -218,7 +230,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                     // betas is safe to pass as undefined because introSelected is undefined, so the code path
                     // that uses betas is never reached. Passing it explicitly so the compiler flags this when
                     // betas becomes required. Refactor issue: https://github.com/Expensify/App/issues/66424
-                    openReport({reportID: parentReportID, introSelected: undefined, betas: undefined});
+                    openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, hasReportActions, currentUserAccountID});
                 }
                 return;
             }
@@ -250,7 +262,11 @@ Onyx.connectWithoutView({
                 continue;
             }
 
-            replaceOptimisticReportWithActualReport(report, allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`]);
+            replaceOptimisticReportWithActualReport(
+                report,
+                allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`],
+                sessionAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            );
         }
     },
 });

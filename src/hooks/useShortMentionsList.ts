@@ -1,10 +1,52 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
-
 import {getEmailDomain, isDomainPublic} from '@libs/LoginUtils';
+import memoize from '@libs/memoize';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import {emailSelector} from '@src/selectors/Session';
+import type {PersonalDetailsList} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useMemo} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useOnyx from './useOnyx';
+
+const emptyLoginsList: string[] = [];
+
+// One shared scan for all hook instances, cached by collection reference and login so it runs once
+// per Onyx write. 'shallow' compares the cache key by reference; the default 'deep' would walk the
+// whole collection on every lookup.
+const buildAvailableLoginsList = memoize(
+    (personalDetails: OnyxEntry<PersonalDetailsList>, currentUserLogin: string): string[] => {
+        if (!personalDetails) {
+            return emptyLoginsList;
+        }
+
+        const currentUserDomain = getEmailDomain(currentUserLogin);
+        if (isDomainPublic(currentUserDomain)) {
+            return emptyLoginsList;
+        }
+
+        const availableLogins: string[] = [];
+        for (const personalDetail of Object.values(personalDetails)) {
+            // Matching the current user's domain means the login is on the same private domain,
+            // because the public-domain case returned early above.
+            if (!personalDetail?.login || getEmailDomain(personalDetail.login) !== currentUserDomain) {
+                continue;
+            }
+
+            const [username] = personalDetail.login.split('@');
+            if (username) {
+                availableLogins.push(username);
+            }
+        }
+        return availableLogins;
+    },
+    {maxSize: 1, equality: 'shallow', monitoringName: 'buildAvailableLoginsList'},
+);
 
 /**
  * This hook returns data to be used with short mentions in LiveMarkdown/Composer.
@@ -13,36 +55,14 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
  * In addition, currently logged-in user is returned separately since it requires special styling.
  */
 export default function useShortMentionsList() {
-    const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [currentUserLogin = ''] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
-    const availableLoginsList = useMemo(() => {
-        if (!personalDetails) {
-            return [];
-        }
-
-        const currentUserDomain = getEmailDomain(currentUserPersonalDetails.login ?? '');
-        const isCurrentUserPublicDomain = isDomainPublic(currentUserDomain);
-
-        return Object.values(personalDetails)
-            .map((personalDetail) => {
-                if (!personalDetail?.login || isCurrentUserPublicDomain) {
-                    return;
-                }
-
-                const personalDetailDomain = getEmailDomain(personalDetail.login);
-                const isPersonalDetailPublicDomain = isDomainPublic(personalDetailDomain);
-
-                // If the emails are not in the same private domain, we don't want to highlight them
-                if (isPersonalDetailPublicDomain || personalDetailDomain !== currentUserDomain) {
-                    return;
-                }
-
-                const [username] = personalDetail.login.split('@');
-                return username;
-            })
-            .filter((login): login is string => !!login);
-    }, [currentUserPersonalDetails.login, personalDetails]);
+    // The selector output is compared by value, so consumers re-render only when the list changes.
+    // The raw hook skips the search-snapshot redirect: this list must always read live data.
+    const [availableLoginsList = emptyLoginsList] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetails) => buildAvailableLoginsList(personalDetails, currentUserLogin),
+    });
 
     // We want to highlight both short and long version of current user login
     const currentUserMentions = useMemo(() => {

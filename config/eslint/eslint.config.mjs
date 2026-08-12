@@ -334,6 +334,9 @@ const config = defineConfig([
             'rulesdir/no-beta-handler': 'error',
             'rulesdir/require-live-region-for-status-updates': 'error',
             'rulesdir/require-a11y-disable-justification': 'error',
+            'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
+            'rulesdir/no-useOnyx-dependencies-arg': 'error',
+            'rulesdir/require-locale-for-localized-date-format': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
                 {
@@ -513,13 +516,31 @@ const config = defineConfig([
     },
 
     // Node.js ESM requires relative imports to include a file extension (unlike
-    // bundled `.js`/`.ts`, which are resolved by webpack/metro). Relax the
+    // bundled `.js`/`.ts`, which are resolved by Rspack/metro). Relax the
     // airbnb-inherited `import/extensions` rule for `.mjs`/`.cjs` so it stops
     // flagging legitimate ESM imports like `import x from './foo.mjs'`.
     {
         files: ['**/*.mjs', '**/*.cjs'],
         rules: {
             'import/extensions': 'off',
+        },
+    },
+
+    // Storybook (loaded as native ESM by Storybook 10) and our Rspack/Rsbuild config
+    // entry points load .ts files directly and require explicit .ts extensions on
+    // relative imports — the opposite of bundled src/ code.
+    {
+        files: ['.storybook/**/*.ts', '.storybook/**/*.tsx', 'config/rsbuild/**/*.ts'],
+        rules: {
+            'import/extensions': 'off',
+        },
+    },
+
+    // Rspack loaders receive their `this` from the bundler, and it's standard practice to use it
+    {
+        files: ['config/rsbuild/loaders/*-loader.mjs'],
+        rules: {
+            'no-invalid-this': 'off',
         },
     },
 
@@ -726,6 +747,7 @@ const config = defineConfig([
         'web/snippets/gib.js',
         // Generated language files - excluded from ESLint but still type-checked
         'src/languages/de.ts',
+        'src/languages/el.ts',
         'src/languages/es.ts',
         'src/languages/fr.ts',
         'src/languages/it.ts',

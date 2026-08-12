@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -48,7 +48,7 @@ type WorkspacePlanTypeItem = {
 function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     const [currentPlan, setCurrentPlan] = useState(policy?.type);
     const policyID = policy?.id;
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const privateSubscription = usePrivateSubscription();
@@ -90,7 +90,9 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
 
     const isControl = policy?.type === CONST.POLICY.TYPE.CORPORATE;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-    const autoRenewalDate = privateSubscription?.endDate ? format(privateSubscription.endDate, CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT) : CardSectionUtils.getNextBillingDate();
+    const autoRenewalDate = privateSubscription?.endDate
+        ? format(privateSubscription.endDate, CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT, {locale: dateFnsLocale})
+        : CardSectionUtils.getNextBillingDate(dateFnsLocale);
 
     /** If user has the annual Control plan and their first billing cycle is completed, they cannot downgrade the Workspace plan to Collect. */
     const isPlanTypeLocked = isControl && isAnnual && !policy.canDowngrade;
@@ -122,7 +124,7 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SUBSCRIPTION_DOWNGRADE_BLOCKED.path));
                 return;
             }
-            Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute(policyID));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_DOWNGRADE.path));
             return;
         }
 
@@ -144,10 +146,7 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                 <HeaderWithBackButton title={translate('workspace.common.planType')} />
                 {policy?.isLoading ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={{context: 'WorkspaceOverviewPlanTypePage'}}
-                        />
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                     </View>
                 ) : (
                     <>
@@ -184,12 +183,13 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                             addBottomSafeAreaPadding
                             footerContent={
                                 <Button
-                                    success
-                                    large
-                                    text={isPlanTypeLocked ? translate('common.buttonConfirm') : translate('common.save')}
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                    size={CONST.BUTTON_SIZE.LARGE}
                                     style={styles.mt6}
                                     onPress={handleUpdatePlan}
-                                />
+                                >
+                                    <Button.Text>{isPlanTypeLocked ? translate('common.buttonConfirm') : translate('common.save')}</Button.Text>
+                                </Button>
                             }
                         />
                     </>

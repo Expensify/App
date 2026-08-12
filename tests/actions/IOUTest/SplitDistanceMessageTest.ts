@@ -1,4 +1,5 @@
 import {getUpdateMoneyRequestParams} from '@libs/actions/IOU/UpdateMoneyRequest';
+import type {UpdateMoneyRequestDataKeys} from '@libs/actions/IOU/UpdateMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 
 import CONST from '@src/CONST';
@@ -7,8 +8,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 
+import type {OnyxUpdate} from 'react-native-onyx';
+
 import Onyx from 'react-native-onyx';
 
+import {hasDefinedProperty, isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -67,14 +71,14 @@ const baseTransaction: Transaction = {
     modifiedMerchant: '',
     modifiedCurrency: '',
     created: '2024-01-01',
-} as Transaction;
+};
 
 const transactionThreadReport: Report = {
     reportID: REPORT_ID,
     type: CONST.REPORT.TYPE.EXPENSE,
     parentReportID: IOU_REPORT_ID,
     parentReportActionID: 'testParentReportActionID',
-} as Report;
+};
 
 const iouReport: Report = {
     reportID: IOU_REPORT_ID,
@@ -82,7 +86,7 @@ const iouReport: Report = {
     total: 1000,
     currency: CONST.CURRENCY.USD,
     ownerAccountID: RORY_ACCOUNT_ID,
-} as Report;
+};
 
 beforeAll(() => {
     Onyx.init({
@@ -116,7 +120,7 @@ const selfDMTransaction: Transaction = {
     modifiedMerchant: '',
     created: '2024-01-01',
     comment: {comment: ''},
-} as Transaction;
+};
 
 describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
     async function setupSelfDMTransaction() {
@@ -124,16 +128,19 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await waitForBatchedUpdates();
     }
 
-    type AnyOnyxEntry = {key: string; value?: unknown; onyxMethod: string};
+    type UpdateMoneyRequestOnyxEntry = OnyxUpdate<UpdateMoneyRequestDataKeys>;
+    type TransactionUpdateEntry = UpdateMoneyRequestOnyxEntry & {value: Partial<Transaction>};
+
+    function hasDefinedAmount(value: unknown): value is Partial<Transaction> & Pick<Transaction, 'amount'> {
+        return isObject(value) && typeof value.amount === 'number';
+    }
 
     // Helper to identify the selfDM-specific transaction merge:
     // it has `amount` but no `pendingFields` (unlike the normal optimistic update that spreads the full updatedTransaction with pendingFields).
-    function findSelfDMTransactionOptimisticEntry(optimisticData: AnyOnyxEntry[] | undefined, transactionID: string) {
+    function findSelfDMTransactionOptimisticEntry(optimisticData: UpdateMoneyRequestOnyxEntry[] | undefined, transactionID: string) {
         return optimisticData?.find(
-            (entry) =>
-                entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` &&
-                (entry.value as Partial<Transaction>)?.amount !== undefined &&
-                !(entry.value as Partial<Transaction>)?.pendingFields,
+            (entry): entry is TransactionUpdateEntry =>
+                entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` && hasDefinedAmount(entry.value) && !hasDefinedProperty(entry.value, 'pendingFields'),
         );
     }
 
@@ -141,6 +148,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
             transactionThreadReport,
             iouReport,
@@ -151,25 +159,26 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             reportPolicyTags: undefined,
             isSplitTransaction: true,
             isSelfDMSplit: true,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
-        const transactionOptimisticEntry = findSelfDMTransactionOptimisticEntry(onyxData.optimisticData as AnyOnyxEntry[], selfDMTransaction.transactionID);
+        const transactionOptimisticEntry = findSelfDMTransactionOptimisticEntry(onyxData.optimisticData, selfDMTransaction.transactionID);
 
         expect(transactionOptimisticEntry).toBeDefined();
         expect(transactionOptimisticEntry?.onyxMethod).toBe(Onyx.METHOD.MERGE);
-        expect((transactionOptimisticEntry?.value as Partial<Transaction>)?.amount).toBeDefined();
-        expect((transactionOptimisticEntry?.value as Partial<Transaction>)?.currency).toBeDefined();
+        expect(transactionOptimisticEntry?.value.amount).toBeDefined();
+        expect(transactionOptimisticEntry?.value.currency).toBeDefined();
     });
 
     it('adds failureData transaction merge restoring original values when isSelfDMSplit=true and isSplitTransaction=true', async () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
             transactionThreadReport,
             iouReport,
@@ -180,26 +189,24 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             reportPolicyTags: undefined,
             isSplitTransaction: true,
             isSelfDMSplit: true,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         // The selfDM failureData entry is distinguished from the general failure entry by
         // lacking errorFields (which the general entry sets to restore validation state).
-        const transactionFailureEntry = (onyxData.failureData as AnyOnyxEntry[])?.find(
-            (entry) =>
-                entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${selfDMTransaction.transactionID}` &&
-                (entry.value as Partial<Transaction>)?.amount !== undefined &&
-                !(entry.value as Partial<Transaction> & {errorFields?: unknown})?.errorFields,
+        const transactionFailureEntry = onyxData.failureData?.find(
+            (entry): entry is TransactionUpdateEntry =>
+                entry.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${selfDMTransaction.transactionID}` && hasDefinedAmount(entry.value) && !hasDefinedProperty(entry.value, 'errorFields'),
         );
 
         expect(transactionFailureEntry).toBeDefined();
         expect(transactionFailureEntry?.onyxMethod).toBe(Onyx.METHOD.MERGE);
 
-        const value = transactionFailureEntry?.value as Partial<Transaction>;
+        const value = transactionFailureEntry?.value;
         expect(value?.amount).toBe(selfDMTransaction.amount);
         expect(value?.currency).toBe(selfDMTransaction.currency);
     });
@@ -208,6 +215,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
             transactionThreadReport,
             iouReport,
@@ -218,15 +226,15 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             reportPolicyTags: undefined,
             isSplitTransaction: true,
             isSelfDMSplit: false,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         // The selfDM-specific entry lacks pendingFields. The normal flow entry includes pendingFields.
-        const selfDMEntry = findSelfDMTransactionOptimisticEntry(onyxData.optimisticData as AnyOnyxEntry[], selfDMTransaction.transactionID);
+        const selfDMEntry = findSelfDMTransactionOptimisticEntry(onyxData.optimisticData, selfDMTransaction.transactionID);
         expect(selfDMEntry).toBeUndefined();
     });
 
@@ -234,6 +242,7 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
             transactionThreadReport,
             iouReport,
@@ -244,20 +253,21 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             reportPolicyTags: undefined,
             isSplitTransaction: false,
             isSelfDMSplit: true,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
-        const selfDMEntry = findSelfDMTransactionOptimisticEntry(onyxData.optimisticData as AnyOnyxEntry[], selfDMTransaction.transactionID);
+        const selfDMEntry = findSelfDMTransactionOptimisticEntry(onyxData.optimisticData, selfDMTransaction.transactionID);
         expect(selfDMEntry).toBeUndefined();
     });
 
     it('does NOT add selfDM-specific transaction optimistic merge when transaction does not exist in Onyx', async () => {
         // Don't seed Onyx - transaction is absent
         const {onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: 'nonexistentTransactionID',
             transactionThreadReport,
             iouReport,
@@ -268,14 +278,14 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             reportPolicyTags: undefined,
             isSplitTransaction: true,
             isSelfDMSplit: true,
             delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
-        const selfDMEntry = findSelfDMTransactionOptimisticEntry(onyxData.optimisticData as AnyOnyxEntry[], 'nonexistentTransactionID');
+        const selfDMEntry = findSelfDMTransactionOptimisticEntry(onyxData.optimisticData, 'nonexistentTransactionID');
         expect(selfDMEntry).toBeUndefined();
     });
 });
@@ -293,6 +303,7 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             delegateAccountID: undefined,
             transactionThreadReport,
@@ -312,8 +323,8 @@ describe('split distance system message', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isSplitTransaction: false,
+            isTrackIntentUser: false,
         });
 
         // For regular distance expenses with pending waypoints, the server creates the
@@ -325,6 +336,7 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params, onyxData} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             delegateAccountID: undefined,
             transactionThreadReport,
@@ -344,8 +356,8 @@ describe('split distance system message', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isSplitTransaction: true,
+            isTrackIntentUser: false,
         });
 
         // For split transactions, merchant and amount are already computed, so we CAN build
@@ -363,6 +375,7 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             delegateAccountID: undefined,
             transactionThreadReport,
@@ -381,8 +394,8 @@ describe('split distance system message', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isSplitTransaction: true,
+            isTrackIntentUser: false,
         });
 
         // Even though it's a split transaction, without merchant the hasSplitDistanceMessageFields
@@ -394,6 +407,7 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params} = getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
             delegateAccountID: undefined,
             transactionThreadReport,
@@ -412,8 +426,8 @@ describe('split distance system message', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
-            iouReportNextStep: undefined,
             isSplitTransaction: true,
+            isTrackIntentUser: false,
         });
 
         // Without amount, hasSplitDistanceMessageFields is false, so no optimistic report action.

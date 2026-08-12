@@ -1,6 +1,7 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -87,6 +88,7 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
 function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequestViewReportFieldsProps) {
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const sortedPolicyReportFields = useMemo<EnrichedPolicyReportField[]>((): EnrichedPolicyReportField[] => {
         const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {});
@@ -97,7 +99,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
             .filter((reportField) => !shouldHideSingleReportField(reportField))
             .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
             .map((field): EnrichedPolicyReportField => {
-                const fieldValue = resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName);
+                const fieldValue = resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
                 const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID);
                 const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
                 const fieldKey = getReportFieldKey(field.fieldID);
@@ -114,9 +116,9 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
                     violationTranslation,
                 };
             });
-    }, [policy, report, currentUserAccountID]);
+    }, [policy, report, currentUserAccountID, getCurrencyDecimals]);
 
-    const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report);
+    const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report, policy?.type);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
     const shouldDisplayReportFields = (isGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled;

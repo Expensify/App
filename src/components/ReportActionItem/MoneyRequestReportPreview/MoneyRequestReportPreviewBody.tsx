@@ -22,7 +22,7 @@ import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
-import {useReportPreviewActions, useReportPreviewAnimationState, useReportPreviewData, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
+import {useReportPreviewData, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
 import ReportPreviewActionButton from './ReportPreviewActionButton';
 import ReportPreviewHeader from './ReportPreviewHeader';
 import ReportPreviewHoldMenu from './ReportPreviewHoldMenu';
@@ -75,11 +75,8 @@ function MoneyRequestReportPreviewBody({
     const {anchor: contextMenuAnchorRef, shouldDisplayContextMenu = true, originalReportID} = useShowContextMenuState();
     const {checkIfContextMenuActive} = useShowContextMenuActions();
 
-    const {iouReportID, chatReportID, action, iouReport, chatReport} = useReportPreviewData();
+    const {action, iouReport, chatReportID} = useReportPreviewData();
     const {isTransitionPending, isScanning, reportPreviewStyles} = useReportPreviewUIState();
-    const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning} = useReportPreviewAnimationState();
-    const {openReportFromPreview, onHoldMenuOpen, onPaymentOptionsShow, onPaymentOptionsHide, stopAnimation, startAnimation, startApprovedAnimation, startSubmittingAnimation} =
-        useReportPreviewActions();
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const totalAmountStyle = shouldUseNarrowLayout ? [styles.flexColumnReverse, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsCenter];
@@ -138,24 +135,7 @@ function MoneyRequestReportPreviewBody({
                                     <TransactionReportCarousel />
                                     <View style={[styles.expenseAndReportPreviewTextContainer]}>
                                         <View style={[totalAmountStyle, styles.justifyContentBetween, styles.gap4, StyleUtils.getMinimumHeight(variables.h28)]}>
-                                            <ReportPreviewActionButton
-                                                iouReportID={iouReportID}
-                                                chatReportID={chatReportID}
-                                                chatReport={chatReport}
-                                                iouReport={iouReport}
-                                                isPaidAnimationRunning={isPaidAnimationRunning}
-                                                isApprovedAnimationRunning={isApprovedAnimationRunning}
-                                                isSubmittingAnimationRunning={isSubmittingAnimationRunning}
-                                                stopAnimation={stopAnimation}
-                                                startAnimation={startAnimation}
-                                                startApprovedAnimation={startApprovedAnimation}
-                                                startSubmittingAnimation={startSubmittingAnimation}
-                                                onPaymentOptionsShow={onPaymentOptionsShow}
-                                                onPaymentOptionsHide={onPaymentOptionsHide}
-                                                openReportFromPreview={openReportFromPreview}
-                                                onHoldMenuOpen={onHoldMenuOpen}
-                                                transactionPreviewCarouselWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
-                                            />
+                                            <ReportPreviewActionButton />
                                             <ReportPreviewTotal />
                                         </View>
                                     </View>

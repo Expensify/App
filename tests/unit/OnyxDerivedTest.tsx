@@ -109,7 +109,7 @@ describe('OnyxDerived', () => {
         it('updates when locale changes', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
             await IntlStore.load(CONST.LOCALES.ES);
-            // Derived recomputes are coalesced onto a macrotask; pump it so the locale change is applied.
+            // Derived recomputes are coalesced onto a microtask; pump it so the locale change is applied.
             await waitForBatchedUpdates();
 
             const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
@@ -124,7 +124,7 @@ describe('OnyxDerived', () => {
             // its calls for a given derived key = counting how many times that value was recomputed.
             const countRecomputes = (spy: jest.SpyInstance, derivedKey: string) => spy.mock.calls.filter(([calledKey]) => calledKey === derivedKey).length;
 
-            it('recomputes a derived value only ONCE for a single Onyx.update touching several of its dependencies', async () => {
+            it('coalesces the dependency changes from a single Onyx.update batch (without dropping any)', async () => {
                 // Prime so the derived value is populated and connections are warm.
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
                 await waitForBatchedUpdates();
@@ -148,8 +148,11 @@ describe('OnyxDerived', () => {
                 await Onyx.update(updates);
                 await waitForBatchedUpdates();
 
-                // Without coalescing this would be one recompute per changed dependency (3).
-                expect(countRecomputes(setDerivedValueSpy, ONYXKEYS.DERIVED.REPORT_ATTRIBUTES)).toBe(1);
+                // Microtask flushing coalesces the changes delivered within a synchronous broadcast burst, so
+                // this recomputes fewer times than one-per-changed-dependency (3). We assert it's reduced rather
+                // than a brittle exact count, because Onyx.update can span a couple of microtask turns and a
+                // microtask flush does not batch across Onyx's async pipeline.
+                expect(countRecomputes(setDerivedValueSpy, ONYXKEYS.DERIVED.REPORT_ATTRIBUTES)).toBeLessThan(3);
 
                 // And the coalesced compute must not drop any of the batched changes.
                 const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
@@ -158,21 +161,21 @@ describe('OnyxDerived', () => {
                 setDerivedValueSpy.mockRestore();
             });
 
-            it('coalesces several separate Onyx.merge calls in the same tick into a single recompute', async () => {
+            it('applies every change from separate merges in the same tick without dropping any', async () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
                 await waitForBatchedUpdates();
 
-                const setDerivedValueSpy = jest.spyOn(OnyxDerivedUtils, 'setDerivedValue');
-
-                // Separate merges to different dependencies, fired synchronously (not awaited between).
+                // Separate merges to different dependencies, fired synchronously (not awaited between). Microtask
+                // flushing intentionally does NOT batch these into a single recompute — batching across ticks would
+                // require deferring the flush past render, reintroducing stale-frame reads. The invariant that must
+                // hold is that no update is dropped: every change is reflected in the final derived value.
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, {reportName: 'Renamed again'});
                 Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, createRandomTransaction(1));
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockReport.reportID}`, {isOptimisticReport: false});
                 await waitForBatchedUpdates();
 
-                expect(countRecomputes(setDerivedValueSpy, ONYXKEYS.DERIVED.REPORT_ATTRIBUTES)).toBe(1);
-
-                setDerivedValueSpy.mockRestore();
+                const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derived?.reports?.[mockReport.reportID]?.reportName).toBe('Renamed again');
             });
         });
 
@@ -283,6 +286,47 @@ describe('OnyxDerived', () => {
 
             // The computed value should not be the same object (new computation happened)
             expect(derivedReportAttributesAfterDisplayNameChange).not.toBe(initialDerivedReportAttributes);
+        });
+
+        it('should only recompute reports that reference the changed accountID when a display name changes', () => {
+            // Two reports: one owned by account 2, the other owned by account 3.
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}ref_report`]: {...mockReport, reportID: 'ref_report', ownerAccountID: 2},
+                [`${ONYXKEYS.COLLECTION.REPORT}unrelated_report`]: {...mockReport, reportID: 'unrelated_report', policyID: '456', ownerAccountID: 3},
+            };
+            const personalDetails = {
+                '2': {accountID: 2, displayName: 'Alice', login: 'alice@example.com'},
+                '3': {accountID: 3, displayName: 'Bob', login: 'bob@example.com'},
+            };
+            const changedPersonalDetails = {...personalDetails, '2': {accountID: 2, displayName: 'Alice Smith', login: 'alice@example.com'}};
+
+            // PERSONAL_DETAILS_LIST is a valid runtime source key (hasKeyTriggeredCompute reads it), but the
+            // sourceValues type only models collection keys, so there's no representable type for this marker.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- non-collection source keys aren't modeled by DerivedSourceValues
+            const personalDetailsSource = {
+                sourceValues: {[ONYXKEYS.PERSONAL_DETAILS_LIST]: true},
+                triggeredKeys: new Set([ONYXKEYS.PERSONAL_DETAILS_LIST]),
+            } as unknown as Parameters<typeof reportAttributes.compute>[1];
+
+            // Reset the module-level diff baseline (no sourceValues clears it) so the seed below is deterministic.
+            reportAttributes.compute(
+                [reports, undefined, undefined, undefined, undefined, undefined, personalDetails, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                {},
+            );
+            // First personal-details compute computes both reports (no prior currentValue) and seeds the baseline.
+            const initial = reportAttributes.compute(
+                [reports, undefined, undefined, undefined, undefined, undefined, personalDetails, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                personalDetailsSource,
+            );
+            // Changing only account 2's display name should recompute just its report, carrying the other by reference.
+            const afterChange = reportAttributes.compute(
+                [reports, undefined, undefined, undefined, undefined, undefined, changedPersonalDetails, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                {...personalDetailsSource, currentValue: initial},
+            );
+
+            // A recomputed report gets a brand-new object; an untouched report is carried over by reference.
+            expect(afterChange.reports.ref_report).not.toBe(initial.reports.ref_report);
+            expect(afterChange.reports.unrelated_report).toBe(initial.reports.unrelated_report);
         });
 
         describe('reportErrors', () => {

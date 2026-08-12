@@ -21,7 +21,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ComponentType} from 'react';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import type {WithReportOrNotFoundProps} from './withReportOrNotFound';
@@ -35,81 +35,95 @@ type WithReportAndPrivateNotesOrNotFoundOnyxProps = {
 
 type WithReportAndPrivateNotesOrNotFoundProps = WithReportOrNotFoundProps & WithReportAndPrivateNotesOrNotFoundOnyxProps;
 
+type WithReportAndPrivateNotesOrNotFoundImplProps<TProps extends WithReportAndPrivateNotesOrNotFoundProps> = {
+    WrappedComponent: ComponentType<TProps>;
+    pageTitle: TranslationPaths;
+} & Omit<TProps, keyof WithReportAndPrivateNotesOrNotFoundOnyxProps>;
+
+function WithReportAndPrivateNotesOrNotFoundImpl<TProps extends WithReportAndPrivateNotesOrNotFoundProps>({
+    WrappedComponent,
+    pageTitle,
+    ...props
+}: WithReportAndPrivateNotesOrNotFoundImplProps<TProps>) {
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const {route, report, reportLoadingState} = props;
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
+    const accountID = ('accountID' in route.params && route.params.accountID) || '';
+    const isPrivateNotesFetchTriggered = reportLoadingState?.isLoadingPrivateNotes !== undefined;
+    const prevIsOffline = usePrevious(isOffline);
+    const isReconnecting = prevIsOffline && !isOffline;
+    const isOtherUserNote = !!accountID && Number(session?.accountID) !== Number(accountID);
+    const isPrivateNotesFetchFinished = isPrivateNotesFetchTriggered && !reportLoadingState?.isLoadingPrivateNotes;
+    const isPrivateNotesUndefined = accountID ? report?.privateNotes?.[Number(accountID)]?.note === undefined : isEmptyObject(report?.privateNotes);
+
+    useEffect(() => {
+        // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if network is offline.
+        if ((isPrivateNotesFetchTriggered && !isReconnecting) || isOffline) {
+            return;
+        }
+
+        getReportPrivateNote(report?.reportID);
+    }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isReconnecting]);
+
+    const shouldShowFullScreenLoadingIndicator = !isPrivateNotesFetchFinished;
+
+    // Show not found view if the report is archived, or if the note is not of current user or if report is a self DM.
+    // Don't show not found view if the notes are still loading, or if the notes are non-empty.
+    // As notes being empty and not loading is a valid case, show not found view only in offline mode.
+    let shouldShowNotFoundPage = isOffline;
+    if (isArchivedReport(reportNameValuePairs) || isOtherUserNote || isSelfDM(report)) {
+        shouldShowNotFoundPage = true;
+    } else if (shouldShowFullScreenLoadingIndicator || !isPrivateNotesUndefined || isReconnecting) {
+        shouldShowNotFoundPage = false;
+    }
+
+    if (shouldShowFullScreenLoadingIndicator) {
+        if (isOffline) {
+            return (
+                <ScreenWrapper
+                    shouldEnableMaxHeight
+                    includeSafeAreaPaddingBottom
+                    testID="PrivateNotesOfflinePage"
+                >
+                    <HeaderWithBackButton
+                        title={translate('privateNotes.title')}
+                        onBackButtonPress={() => Navigation.goBack()}
+                        shouldShowBackButton
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                    />
+                    <FullPageOfflineBlockingView>
+                        <View />
+                    </FullPageOfflineBlockingView>
+                </ScreenWrapper>
+            );
+        }
+        return <LoadingPage title={translate(pageTitle)} />;
+    }
+
+    if (shouldShowNotFoundPage) {
+        return <NotFoundPage />;
+    }
+
+    return (
+        <WrappedComponent
+            {...(props as unknown as TProps)}
+            accountID={session?.accountID}
+        />
+    );
+}
+
 export default function (pageTitle: TranslationPaths) {
     return <TProps extends WithReportAndPrivateNotesOrNotFoundProps>(
         WrappedComponent: ComponentType<TProps>,
     ): React.ComponentType<Omit<TProps, keyof WithReportAndPrivateNotesOrNotFoundOnyxProps>> => {
         function WithReportAndPrivateNotesOrNotFound(props: Omit<TProps, keyof WithReportAndPrivateNotesOrNotFoundOnyxProps>) {
-            const {translate} = useLocalize();
-            const {isOffline} = useNetwork();
-            const [session] = useOnyx(ONYXKEYS.SESSION);
-            const {route, report, reportLoadingState} = props;
-            const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
-            const accountID = ('accountID' in route.params && route.params.accountID) || '';
-            const isPrivateNotesFetchTriggered = reportLoadingState?.isLoadingPrivateNotes !== undefined;
-            const prevIsOffline = usePrevious(isOffline);
-            const isReconnecting = prevIsOffline && !isOffline;
-            const isOtherUserNote = !!accountID && Number(session?.accountID) !== Number(accountID);
-            const isPrivateNotesFetchFinished = isPrivateNotesFetchTriggered && !reportLoadingState?.isLoadingPrivateNotes;
-            const isPrivateNotesUndefined = accountID ? report?.privateNotes?.[Number(accountID)]?.note === undefined : isEmptyObject(report?.privateNotes);
-
-            useEffect(() => {
-                // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if network is offline.
-                if ((isPrivateNotesFetchTriggered && !isReconnecting) || isOffline) {
-                    return;
-                }
-
-                getReportPrivateNote(report?.reportID);
-            }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isReconnecting]);
-
-            const shouldShowFullScreenLoadingIndicator = !isPrivateNotesFetchFinished;
-
-            const shouldShowNotFoundPage = useMemo(() => {
-                // Show not found view if the report is archived, or if the note is not of current user or if report is a self DM.
-                if (isArchivedReport(reportNameValuePairs) || isOtherUserNote || isSelfDM(report)) {
-                    return true;
-                }
-
-                // Don't show not found view if the notes are still loading, or if the notes are non-empty.
-                if (shouldShowFullScreenLoadingIndicator || !isPrivateNotesUndefined || isReconnecting) {
-                    return false;
-                }
-
-                // As notes being empty and not loading is a valid case, show not found view only in offline mode.
-                return isOffline;
-            }, [report, isOtherUserNote, shouldShowFullScreenLoadingIndicator, isPrivateNotesUndefined, isReconnecting, isOffline, reportNameValuePairs]);
-
-            if (shouldShowFullScreenLoadingIndicator) {
-                if (isOffline) {
-                    return (
-                        <ScreenWrapper
-                            shouldEnableMaxHeight
-                            includeSafeAreaPaddingBottom
-                            testID="PrivateNotesOfflinePage"
-                        >
-                            <HeaderWithBackButton
-                                title={translate('privateNotes.title')}
-                                onBackButtonPress={() => Navigation.goBack()}
-                                shouldShowBackButton
-                                onCloseButtonPress={() => Navigation.dismissModal()}
-                            />
-                            <FullPageOfflineBlockingView>
-                                <View />
-                            </FullPageOfflineBlockingView>
-                        </ScreenWrapper>
-                    );
-                }
-                return <LoadingPage title={translate(pageTitle)} />;
-            }
-
-            if (shouldShowNotFoundPage) {
-                return <NotFoundPage />;
-            }
-
             return (
-                <WrappedComponent
-                    {...(props as TProps)}
-                    accountID={session?.accountID}
+                <WithReportAndPrivateNotesOrNotFoundImpl
+                    WrappedComponent={WrappedComponent}
+                    pageTitle={pageTitle}
+                    {...props}
                 />
             );
         }

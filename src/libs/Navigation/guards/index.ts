@@ -6,12 +6,14 @@ import type {Session} from '@src/types/onyx';
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isSupportalSessionSelector} from '@selectors/Session';
 import Onyx from 'react-native-onyx';
 
 import type {GuardContext, GuardResult, NavigationGuard} from './types';
 
 import MigratedUserWelcomeModalGuard, {onSessionOrLoadingAppChanged} from './MigratedUserWelcomeModalGuard';
 import OnboardingGuard from './OnboardingGuard';
+import SubmitPlanWelcomeModalGuard from './SubmitPlanWelcomeModalGuard';
 
 /**
  * Module-level Onyx subscriptions for common guard context values
@@ -65,6 +67,7 @@ function createGuardContext(overrides?: Partial<GuardContext>): GuardContext {
         isAuthenticated,
         isLoading,
         currentUrl,
+        isSupportalSession: isSupportalSessionSelector(session),
         ...overrides,
     };
 }
@@ -108,5 +111,6 @@ function clearGuards(): void {
 
 registerGuard(OnboardingGuard);
 registerGuard(MigratedUserWelcomeModalGuard);
+registerGuard(SubmitPlanWelcomeModalGuard);
 
 export {registerGuard, createGuardContext, evaluateGuards, getRegisteredGuards, clearGuards};

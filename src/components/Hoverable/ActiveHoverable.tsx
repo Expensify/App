@@ -14,7 +14,7 @@ type MouseEvents = 'onMouseEnter' | 'onMouseLeave' | 'onMouseMove';
 
 type OnMouseEvents = Record<MouseEvents, (e: React.MouseEvent) => void>;
 
-function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, isFocused = true, shouldFreezeCapture, children, ref}: ActiveHoverableProps) {
+function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, isFocused = true, shouldFreezeCapture, shouldUseNativeHoverEvents = false, children, ref}: ActiveHoverableProps) {
     const [isHovered, setIsHovered] = useState(false);
     const elementRef = useRef<HTMLElement | null>(null);
     const isScrollingRef = useRef(false);
@@ -102,6 +102,21 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, isFocused =
         [shouldFreezeCapture, updateIsHovered],
     );
 
+    useEffect(() => {
+        const element = elementRef.current;
+        if (!shouldUseNativeHoverEvents || !element) {
+            return;
+        }
+        const handleNativeEnter = handleMouseEvents('enter');
+        const handleNativeLeave = handleMouseEvents('leave');
+        element.addEventListener('mouseenter', handleNativeEnter);
+        element.addEventListener('mouseleave', handleNativeLeave);
+        return () => {
+            element.removeEventListener('mouseenter', handleNativeEnter);
+            element.removeEventListener('mouseleave', handleNativeLeave);
+        };
+    }, [shouldUseNativeHoverEvents, handleMouseEvents]);
+
     const child = useMemo(() => getReturnValue(children, isHovered), [children, isHovered]);
 
     const {onMouseEnter, onMouseLeave} = child.props as OnMouseEvents;
@@ -109,11 +124,15 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, isFocused =
     return cloneElement(child, {
         ref: mergeRefs(elementRef, ref, child.props.ref),
         onMouseEnter: (e: React.MouseEvent) => {
-            handleMouseEvents('enter')();
+            if (!shouldUseNativeHoverEvents) {
+                handleMouseEvents('enter')();
+            }
             onMouseEnter?.(e);
         },
         onMouseLeave: (e: React.MouseEvent) => {
-            handleMouseEvents('leave')();
+            if (!shouldUseNativeHoverEvents) {
+                handleMouseEvents('leave')();
+            }
             onMouseLeave?.(e);
         },
     } as React.HTMLAttributes<HTMLElement>);

@@ -29,6 +29,7 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
 
     const summaryItems = [
         {
+            id: 'legal-name',
             description: translate('personalInfoStep.legalName'),
             title: `${values[PERSONAL_INFO_STEP_KEYS.FIRST_NAME]} ${values[PERSONAL_INFO_STEP_KEYS.LAST_NAME]}`,
             shouldShowRightIcon: true,
@@ -37,6 +38,7 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
             },
         },
         {
+            id: 'date-of-birth',
             description: translate('common.dob'),
             title: values[PERSONAL_INFO_STEP_KEYS.DOB],
             shouldShowRightIcon: true,
@@ -45,6 +47,7 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
             },
         },
         {
+            id: 'ssn',
             description: translate('personalInfoStep.last4SSN'),
             title: values[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4],
             shouldShowRightIcon: true,
@@ -53,6 +56,7 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
             },
         },
         {
+            id: 'address',
             description: translate('personalInfoStep.address'),
             title: `${values[PERSONAL_INFO_STEP_KEYS.STREET]}, ${values[PERSONAL_INFO_STEP_KEYS.CITY]}, ${values[PERSONAL_INFO_STEP_KEYS.STATE]} ${values[PERSONAL_INFO_STEP_KEYS.ZIP_CODE]}`,
             shouldShowRightIcon: true,

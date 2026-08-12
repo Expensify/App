@@ -1,4 +1,5 @@
 import getOnboardingRouteFromScreen from '@libs/Navigation/helpers/getOnboardingRouteFromScreen';
+import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -9,7 +10,16 @@ describe('getOnboardingRouteFromScreen', () => {
     });
 
     it('returns undefined for screens without a linking config path', () => {
-        expect(getOnboardingRouteFromScreen('not-a-screen' as typeof SCREENS.ONBOARDING.EMPLOYEES)).toBeUndefined();
+        const screen = SCREENS.ONBOARDING.EMPLOYEES;
+        const config = normalizedConfigs[screen];
+
+        Reflect.deleteProperty(normalizedConfigs, screen);
+
+        try {
+            expect(getOnboardingRouteFromScreen(screen)).toBeUndefined();
+        } finally {
+            normalizedConfigs[screen] = config;
+        }
     });
 
     it('matches ROUTES.getRoute when backTo is provided', () => {

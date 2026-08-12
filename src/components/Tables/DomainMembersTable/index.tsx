@@ -1,7 +1,8 @@
-import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 
+import useDomainHighlightOnReturn from '@hooks/useDomainHighlightOnReturn';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -13,7 +14,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import DomainMembersTableRow from './DomainMembersTableRow';
 
@@ -33,6 +34,7 @@ type DomainMemberRowData = TableData & {
 };
 
 type DomainMembersTableProps = {
+    domainAccountID: number;
     members: DomainMemberRowData[];
     selectionEnabled: boolean;
     selectedKeys: string[];
@@ -40,7 +42,6 @@ type DomainMembersTableProps = {
     shouldShowGroupColumn: boolean;
     filterConfig?: FilterConfig<DomainMembersTableFilterKey>;
     isItemInFilter?: IsItemInFilterCallback<DomainMemberRowData>;
-    EmptyStateComponent: React.ReactElement;
 };
 
 /**
@@ -51,18 +52,19 @@ function DomainMembersGroupFilterSync({shouldShowGroupFilter, groupOptionValuesK
     const groupFilterValue = activeFilters.group;
 
     useEffect(() => {
-        const activeGroupFilter = groupFilterValue?.at(0);
+        const activeGroupFilters = Array.isArray(groupFilterValue) ? groupFilterValue.filter((value): value is string => typeof value === 'string') : [];
         const groupOptionValues = groupOptionValuesKey ? groupOptionValuesKey.split(',') : [];
 
         if (!shouldShowGroupFilter) {
-            if (activeGroupFilter) {
+            if (activeGroupFilters.length > 0) {
                 tableMethods.updateFilter({key: 'group', value: []});
             }
             return;
         }
 
-        if (activeGroupFilter && !groupOptionValues.includes(activeGroupFilter)) {
-            tableMethods.updateFilter({key: 'group', value: []});
+        const validFilters = activeGroupFilters.filter((filter) => groupOptionValues.includes(filter));
+        if (validFilters.length !== activeGroupFilters.length) {
+            tableMethods.updateFilter({key: 'group', value: validFilters});
         }
     }, [shouldShowGroupFilter, groupOptionValuesKey, groupFilterValue, tableMethods]);
 
@@ -70,6 +72,7 @@ function DomainMembersGroupFilterSync({shouldShowGroupFilter, groupOptionValuesK
 }
 
 export default function DomainMembersTable({
+    domainAccountID,
     members,
     selectionEnabled,
     selectedKeys,
@@ -77,10 +80,11 @@ export default function DomainMembersTable({
     shouldShowGroupColumn,
     filterConfig,
     isItemInFilter,
-    EmptyStateComponent,
 }: DomainMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const tableRef = useRef<TableHandle<DomainMemberRowData, DomainMembersTableColumnKey, DomainMembersTableFilterKey>>(null);
+    useDomainHighlightOnReturn(domainAccountID, 'members', tableRef);
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
     const shouldShowGroupFilter = !!filterConfig;
@@ -136,6 +140,7 @@ export default function DomainMembersTable({
 
     return (
         <Table
+            ref={tableRef}
             data={members}
             columns={domainMembersTableColumns}
             renderItem={renderTableItem}
@@ -150,18 +155,17 @@ export default function DomainMembersTable({
             filters={filterConfig}
             isItemInFilter={isItemInFilter}
         >
-            {isEmpty && EmptyStateComponent}
             {!isEmpty && (
-                <>
-                    <DomainMembersGroupFilterSync
-                        shouldShowGroupFilter={shouldShowGroupFilter}
-                        groupOptionValuesKey={groupOptionValuesKey}
-                    />
-                    <Table.FilterBar label={translate('domain.members.findMember')} />
-                    <Table.Header />
-                    <Table.Body />
-                </>
+                <DomainMembersGroupFilterSync
+                    shouldShowGroupFilter={shouldShowGroupFilter}
+                    groupOptionValuesKey={groupOptionValuesKey}
+                />
             )}
+
+            <Table.FilterBar label={translate('domain.members.findMember')} />
+            <Table.NoResultsState />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }

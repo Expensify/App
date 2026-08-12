@@ -20,7 +20,7 @@ import type {MockFetch} from '../../utils/TestHelper';
 import createPersonalDetails from '../../utils/collections/personalDetails';
 import {createSelfDM} from '../../utils/collections/reports';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
 
@@ -126,6 +126,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         const trackIouAction = {
             ...buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
                 amount: 2000,
                 currency: CONST.CURRENCY.USD,
@@ -173,6 +174,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         });
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -209,13 +211,15 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -258,6 +262,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         });
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -294,13 +299,15 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -327,7 +334,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         const originalTransactionSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransaction.transactionID}`;
         await Onyx.merge(snapshotKey, {
             data: {[originalTransactionSnapshotKey]: originalTransaction},
-            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, isLoading: false},
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
         } as unknown as SearchResults);
         await waitForBatchedUpdates();
 
@@ -362,6 +369,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         });
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -399,13 +407,15 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -454,6 +464,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         // Step 1: Create the splits
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -490,13 +501,15 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -513,6 +526,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         // Step 3: Edit the splits (change amounts)
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -549,13 +563,15 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -601,6 +617,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         });
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -637,13 +654,15 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
             expenseReport: undefined,
             isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();

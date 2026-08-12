@@ -24,8 +24,8 @@ import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
+import InsightsSection from './InsightsSection';
 import RecentlyAddedSection from './RecentlyAddedSection';
-import SpendOverTimeSection from './SpendOverTimeSection';
 import TimeSensitiveSection from './TimeSensitiveSection';
 import UpcomingTravelSection from './UpcomingTravelSection';
 import YourSpendSection from './YourSpendSection';
@@ -75,7 +75,7 @@ function HomePage() {
                                     <UpcomingTravelSection />
                                     <RecentlyAddedSection />
                                     <YourSpendSection />
-                                    <SpendOverTimeSection />
+                                    <InsightsSection />
                                     <DiscoverSection />
                                     <AnnouncementSection />
                                 </>
@@ -86,16 +86,16 @@ function HomePage() {
                                         style={styles.homePageLeftColumn}
                                     >
                                         <TimeSensitiveSection />
+                                        <GettingStartedSection />
                                         <ForYouSection />
                                         <RecentlyAddedSection />
-                                        <SpendOverTimeSection />
+                                        <InsightsSection />
                                     </View>
                                     <View
                                         testID="homePageRightColumn"
                                         style={styles.homePageRightColumn}
                                     >
                                         <FreeTrialSection />
-                                        <GettingStartedSection />
                                         <UpcomingTravelSection />
                                         <YourSpendSection />
                                         <DiscoverSection />

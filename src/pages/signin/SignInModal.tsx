@@ -9,6 +9,7 @@ import useTheme from '@hooks/useTheme';
 
 import {openApp} from '@libs/actions/App';
 import {isMobileSafari} from '@libs/Browser';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 
@@ -63,7 +64,11 @@ function SignInModal() {
             return;
         }
 
+        const shouldPreserveRevealedReport = isReportTopmostSplitNavigator();
         Navigation.dismissModal();
+        if (shouldPreserveRevealedReport) {
+            return;
+        }
         Navigation.navigate(ROUTES.HOME);
     }, [isLoadingApp]);
 
@@ -83,7 +88,13 @@ function SignInModal() {
                     signinPageRef.current?.navigateBack();
                 }}
             />
-            <SignInPageBase ref={signinPageRef} />
+            {/* Do not reset the browser tab title here: this modal can open over an anonymous-accessible report,
+                and resetting would wrongly clear that report's tab title. The title reset only applies to the
+                public root sign-in screen. */}
+            <SignInPageBase
+                ref={signinPageRef}
+                shouldResetTabTitle={false}
+            />
         </ScreenWrapper>
     );
 }
