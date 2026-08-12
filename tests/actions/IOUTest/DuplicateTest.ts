@@ -1898,6 +1898,29 @@ describe('actions/Duplicate', () => {
 
         it('should duplicate a GPS distance expense as manual distance when a target workspace is provided', async () => {
             const transactionID = 'gps-workspace-1';
+            const customUnitID = 'kilometer-unit';
+            const customUnitRateID = 'kilometer-rate';
+            const kilometerPolicy: Policy = {
+                ...mockPolicy,
+                customUnits: {
+                    [customUnitID]: {
+                        customUnitID,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        enabled: true,
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
+                        rates: {
+                            [customUnitRateID]: {
+                                customUnitRateID,
+                                currency: CONST.CURRENCY.USD,
+                                rate: 100,
+                                enabled: true,
+                                name: 'Kilometer rate',
+                                subRates: [],
+                            },
+                        },
+                    },
+                },
+            };
             const mockGPSDistanceTransaction = {
                 ...mockTransaction,
                 transactionID,
@@ -1906,9 +1929,11 @@ describe('actions/Duplicate', () => {
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
-                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        customUnitID,
+                        customUnitRateID,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
                         name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                        quantity: 12.34,
+                        quantity: 19.87,
                     },
                     waypoints: {
                         waypoint0: {address: 'Start', lat: 37.7749, lng: -122.4194},
@@ -1929,8 +1954,8 @@ describe('actions/Duplicate', () => {
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
-                customUnitPolicyID: '',
-                targetPolicy: mockPolicy,
+                customUnitPolicyID: kilometerPolicy.id,
+                targetPolicy: kilometerPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 existingTransactionDraft: undefined,
@@ -1954,7 +1979,7 @@ describe('actions/Duplicate', () => {
             expect(distanceCall).toBeDefined();
             expect(distanceCall?.[1]).toEqual(
                 expect.objectContaining({
-                    distance: 12.34,
+                    distance: 19.87,
                     distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
                     waypoints: 'null',
                 }),
@@ -1971,7 +1996,7 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.transactionID).not.toBe(transactionID);
             expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
             expect(duplicatedTransaction?.comment?.waypoints).toBeUndefined();
-            expect(duplicatedTransaction?.comment?.customUnit?.quantity).toBe(12.34);
+            expect(duplicatedTransaction?.comment?.customUnit?.quantity).toBe(19.87);
         });
 
         it('should duplicate a GPS distance expense as manual distance when no targetPolicy is provided', async () => {
