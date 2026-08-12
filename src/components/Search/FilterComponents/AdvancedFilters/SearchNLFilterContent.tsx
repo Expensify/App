@@ -25,8 +25,13 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type SearchNLFilterContentProps = {
+    /** Called with the destination route once the query is successfully parsed */
     onSuccess: (route: Route) => void;
+
+    /** Optional style override for the input container */
     containerStyle?: StyleProp<ViewStyle>;
+
+    /** Optional style override for the submit button container */
     buttonContainerStyle?: StyleProp<ViewStyle>;
 };
 
