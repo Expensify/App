@@ -12,6 +12,7 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -26,6 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -67,6 +69,8 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const [cardSelected, setCardSelected] = useState(assignCard?.cardToAssign?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
     const {isLoading, startWithLoading} = usePressLoading();
+    // Freeze the card that was selected when this step opened so it stays pinned to the top for the whole open/focus cycle, even as the live selection changes.
+    const initialCardSelected = useInitialSelection(cardSelected, {resetOnFocus: true});
 
     const cardListOptions = filteredCardList.map((card: UnassignedCard) => ({
         keyForList: card.cardID,
@@ -88,6 +92,9 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
             />
         ),
     }));
+
+    // Pin the frozen initial card to the top of the full list before search filtering, so it stays pinned while searching (search filters the already-pinned list rather than reordering it).
+    const orderedCardListOptions = moveInitialSelectionToTop(cardListOptions, initialCardSelected ? [initialCardSelected] : []);
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -132,8 +139,8 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     };
 
     const searchedListOptions = useMemo(() => {
-        return tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
-    }, [searchText, cardListOptions]);
+        return tokenizedSearch(orderedCardListOptions, searchText, (option) => [option.text]);
+    }, [searchText, orderedCardListOptions]);
 
     const safeAreaPaddingBottomStyle = useBottomSafeSafeAreaPaddingStyle();
 
@@ -195,7 +202,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                         data={searchedListOptions}
                         ListItem={SingleSelectListItem}
                         onSelectRow={({value}) => handleSelectCard(value)}
-                        initiallyFocusedItemKey={cardSelected}
+                        initiallyFocusedItemKey={initialCardSelected}
                         textInputOptions={textInputOptions}
                         customListHeaderContent={customListHeader}
                         shouldScrollToFocusedIndex={false}
