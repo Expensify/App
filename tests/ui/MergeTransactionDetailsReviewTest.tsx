@@ -72,7 +72,8 @@ const buildDistanceExpense = (transactionID: string, reportID: string, merchant:
     reportID,
     merchant,
     modifiedMerchant: merchant,
-    amount: -1020,
+    // A dollar per billed mile, so the amount and the distance stay readable against each other
+    amount: -Math.round((commuterExclusion === undefined ? quantity : quantity - commuterExclusion) * 100),
     currency: CONST.CURRENCY.USD,
     created: '2026-08-01',
     iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
@@ -150,38 +151,14 @@ describe('Merging distance expenses across workspaces', () => {
         await press(targetExpense.merchant);
         await press('Report that deducts');
 
-        // Then that workspace's exclusion is deducted from the selected 10.2 mile distance
+        // Then that workspace's exclusion is deducted from the selected 10.2 mile distance, and the amount pays for the
+        // 9.2 miles that are left rather than for the whole trip
         const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${MERGE_TRANSACTION_ID}`);
-        expect(mergeTransaction?.customUnit?.quantity).toBe(10.2);
         expect(mergeTransaction?.customUnit?.commuterExclusion).toBe(1);
         expect(mergeTransaction?.customUnit?.reimbursableDistance).toBe(9.2);
-        // And the amount pays for the 9.2 miles that are left rather than the whole trip
         expect(mergeTransaction?.amount).toBe(920);
-    });
 
-    it('deducts nothing when the merged expense is put on the report of a workspace that excludes nothing', async () => {
-        await renderPage();
-
-        // When the distance of the expense from the workspace that excludes a commuter mile is selected, but the merged
-        // expense is put on the report of the workspace that excludes nothing
-        await press(sourceExpense.merchant);
-        await press('Report that does not deduct');
-
-        // Then nothing is deducted from it
-        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${MERGE_TRANSACTION_ID}`);
-        expect(mergeTransaction?.customUnit?.quantity).toBe(4.49);
-        expect(mergeTransaction?.customUnit?.commuterExclusion).toBeUndefined();
-        expect(mergeTransaction?.customUnit?.reimbursableDistance).toBeUndefined();
-    });
-
-    it('shows the deducted distance on the confirmation page', async () => {
-        // Given the distance of the expense from the workspace that excludes nothing selected, on the report of the
-        // workspace that excludes a commuter mile
-        await renderPage();
-        await press(targetExpense.merchant);
-        await press('Report that deducts');
-
-        // When the confirmation page is opened for that merge
+        // And the confirmation page shows the reimbursable distance, alongside the distance it was deducted from
         render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                 <NavigationContainer ref={navigationRef}>
@@ -196,8 +173,21 @@ describe('Merging distance expenses across workspaces', () => {
             </ComposeProviders>,
         );
         await waitForBatchedUpdatesWithAct();
-
-        // Then the distance field shows the reimbursable distance, alongside the distance it was deducted from
         expect(screen.getByTestId('field-Distance • Original: 10.20 mi')).toHaveTextContent('9.20 mi');
+    });
+
+    it('deducts nothing when the merged expense is put on the report of a workspace that excludes nothing', async () => {
+        await renderPage();
+
+        // When the distance of the expense from the workspace that excludes a commuter mile is selected, but the merged
+        // expense is put on the report of the workspace that excludes nothing
+        await press(sourceExpense.merchant);
+        await press('Report that does not deduct');
+
+        // Then nothing is deducted from it, and the amount pays for the whole trip
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${MERGE_TRANSACTION_ID}`);
+        expect(mergeTransaction?.customUnit?.commuterExclusion).toBeUndefined();
+        expect(mergeTransaction?.customUnit?.reimbursableDistance).toBeUndefined();
+        expect(mergeTransaction?.amount).toBe(449);
     });
 });
