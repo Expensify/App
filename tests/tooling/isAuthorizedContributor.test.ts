@@ -1,7 +1,5 @@
-/**
- * @jest-environment node
- */
 import {RequestError} from '@octokit/request-error';
+import {afterEach, beforeEach, describe, expect, jest, test} from 'bun:test';
 
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 

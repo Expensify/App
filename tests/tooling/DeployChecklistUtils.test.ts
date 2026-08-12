@@ -3,11 +3,11 @@ import {generateDeployChecklistBodyAndAssignees, getDeployChecklist, NoOpenDeplo
 import type {InternalOctokit, ListForRepoMethod, OctokitIssueItem} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
-/**
- * @jest-environment node
- */
+import type {Mock} from 'bun:test';
+
 /* eslint-disable @typescript-eslint/naming-convention */
 import {RequestError} from '@octokit/request-error';
+import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
 
 import createMock from '../utils/createMock';
 
@@ -19,9 +19,22 @@ type GetPullRequestResponse = Awaited<ReturnType<OctokitGetPullRequest>>;
 
 const createListForRepoResponse = (data: OctokitIssueItem[]): ListForRepoResponse => createMock<ListForRepoResponse>({data});
 
-const mockListIssues = jest.fn<ReturnType<ListForRepoMethod>, Parameters<ListForRepoMethod>>();
-let listForRepoSpy: jest.SpiedFunction<ListForRepoMethod>;
+const mockListIssues = jest.fn<ListForRepoMethod>();
+let listForRepoSpy: Mock<ListForRepoMethod>;
 let internalOctokit: InternalOctokit;
+
+/**
+ * Bun's fake timers only expose a synchronous `jest.advanceTimersByTime`. The code under test schedules each
+ * backoff timer inside a `catch` block, i.e. several microtasks after the call under test starts, so yield until
+ * that timer exists before firing it, then yield again to let the continuation run.
+ */
+async function advanceTimersByTimeAsync(ms: number) {
+    for (let i = 0; jest.getTimerCount() === 0 && i < 100; i++) {
+        await Promise.resolve();
+    }
+    jest.advanceTimersByTime(ms);
+    await Promise.resolve();
+}
 
 beforeAll(() => {
     GithubUtils.initOctokitWithToken('fake_token');
@@ -255,7 +268,7 @@ describe('DeployChecklistUtils', () => {
             jest.useFakeTimers();
             try {
                 const pending = getDeployChecklist();
-                await jest.advanceTimersByTimeAsync(2000);
+                await advanceTimersByTimeAsync(2000);
                 const data = await pending;
 
                 expect(data.number).toBe(88);
@@ -275,8 +288,8 @@ describe('DeployChecklistUtils', () => {
             try {
                 const pending = getDeployChecklist();
                 const assertion = expect(pending).rejects.toThrow(RequestError);
-                await jest.advanceTimersByTimeAsync(2000);
-                await jest.advanceTimersByTimeAsync(5000);
+                await advanceTimersByTimeAsync(2000);
+                await advanceTimersByTimeAsync(5000);
                 await assertion;
 
                 expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(3);
@@ -316,7 +329,7 @@ describe('DeployChecklistUtils', () => {
             jest.useFakeTimers();
             try {
                 const pending = getDeployChecklist();
-                await jest.advanceTimersByTimeAsync(2000);
+                await advanceTimersByTimeAsync(2000);
                 const data = await pending;
 
                 expect(data.number).toBe(77);
@@ -360,8 +373,8 @@ describe('DeployChecklistUtils', () => {
             createMock<PullRequest>({number: 6, title: '[Internal QA] Another Test Internal QA PR', labels: [{name: 'InternalQA'}]}),
             createMock<PullRequest>({number: 7, title: '[Internal QA] Another Test Internal QA PR', labels: [{name: 'InternalQA'}]}),
         ];
-        let paginateSpy: jest.SpiedFunction<OctokitPaginate>;
-        let getPullRequestSpy: jest.SpiedFunction<OctokitGetPullRequest>;
+        let paginateSpy: Mock<OctokitPaginate>;
+        let getPullRequestSpy: Mock<OctokitGetPullRequest>;
 
         beforeAll(() => {
             paginateSpy = jest.spyOn(internalOctokit, 'paginate');

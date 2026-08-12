@@ -4,13 +4,11 @@ import type {InternalOctokit} from '@github/libs/GithubUtils';
 
 import Git from '@scripts/utils/Git';
 
-import type {Writable} from 'type-fest';
+import type {Mock} from 'bun:test';
 
-/**
- * @jest-environment node
- */
 import * as core from '@actions/core';
 import {context} from '@actions/github';
+import {beforeAll, beforeEach, describe, expect, it, jest} from 'bun:test';
 
 import createMock from '../utils/createMock';
 
@@ -19,20 +17,21 @@ type ListFilesResponse = Awaited<ReturnType<ListFilesMethod>>;
 type PaginateMethod = InternalOctokit['paginate'];
 
 let internalOctokit: InternalOctokit;
-let paginateSpy: jest.SpiedFunction<PaginateMethod>;
+let paginateSpy: Mock<PaginateMethod>;
 
-// Mock all dependencies
-jest.mock('@actions/core');
-jest.mock('@actions/github');
-jest.mock('@scripts/utils/Git');
+const mockGetInput = jest.fn<typeof core.getInput>();
 
-const mockSetOutput = jest.mocked(core.setOutput);
-const mockGetInput = jest.fn();
+// Bun has no equivalent of `jest.mock(path)`'s automock, so stub the @actions/core functions this action calls
+// explicitly. `@actions/github`'s `context` needs no stub: it is a plain mutable object whose constructor is a
+// no-op without GITHUB_EVENT_PATH set, so each test can assign to it directly (see beforeEach below).
+jest.spyOn(core, 'getInput').mockImplementation(mockGetInput);
+const mockSetOutput = jest.spyOn(core, 'setOutput').mockImplementation(() => {});
+jest.spyOn(core, 'warning').mockImplementation(() => {});
+jest.spyOn(core, 'startGroup').mockImplementation(() => {});
+jest.spyOn(core, 'endGroup').mockImplementation(() => {});
+jest.spyOn(core, 'setFailed').mockImplementation(() => {});
 
-// Mock @actions/core getInput
-(core as Writable<typeof core>).getInput = mockGetInput;
-
-// Mock Git methods
+// Mock Git methods. `Git`'s default export is a plain mutable object, so its methods can be overridden in place.
 const mockGitEnsureRef = jest.fn();
 const mockGitDiff = jest.fn();
 const mockGitParseDiff = jest.fn();
@@ -42,7 +41,7 @@ Git.diff = mockGitDiff;
 Git.parseDiff = mockGitParseDiff;
 
 // Mock GitHubUtils methods
-const mockGetPullRequestDiff = jest.fn<ReturnType<typeof GitHubUtils.getPullRequestDiff>, Parameters<typeof GitHubUtils.getPullRequestDiff>>();
+const mockGetPullRequestDiff = jest.fn<typeof GitHubUtils.getPullRequestDiff>();
 
 beforeAll(() => {
     GitHubUtils.initOctokitWithToken('fake_token');

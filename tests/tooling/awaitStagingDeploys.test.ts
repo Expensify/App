@@ -1,15 +1,13 @@
 import run from '@github/actions/javascript/awaitStagingDeploys/awaitStagingDeploys';
-import type CONST from '@github/libs/CONST';
+import CONST from '@github/libs/CONST';
 import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
-import asMutable from '@src/types/utils/asMutable';
+import type {Mock} from 'bun:test';
 
 /* eslint-disable @typescript-eslint/naming-convention */
-/**
- * @jest-environment node
- */
 import * as core from '@actions/core';
+import {beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
 
 type Workflow = {
     workflow_id: string;
@@ -30,7 +28,7 @@ type MockListResponse = {
     };
 };
 
-type MockedFunctionListResponse = jest.MockedFunction<() => Promise<MockListResponse>>;
+type MockedFunctionListResponse = Mock<() => Promise<MockListResponse>>;
 
 const consoleSpy = jest.spyOn(console, 'log');
 const mockGetInput = jest.fn();
@@ -59,14 +57,15 @@ const mockListWorkflowRuns = jest.fn().mockImplementation((args: Workflow) => {
     return defaultReturn;
 });
 
-jest.mock('@github/libs/CONST', () => ({
-    ...jest.requireActual<typeof CONST>('@github/libs/CONST'),
-    POLL_RATE: TEST_POLL_RATE,
-}));
+// CONST's default export is a plain mutable object shared by reference with every other importer (unlike named
+// exports on a module namespace, which are read-only live bindings), so it can be overridden in place rather than
+// needing mock.module. Lower the poll rate to speed up the test.
+(CONST as {POLL_RATE: number}).POLL_RATE = TEST_POLL_RATE;
 
 beforeAll(() => {
-    // Mock core module
-    asMutable(core).getInput = mockGetInput;
+    // Mock core module. Real ESM module namespace exports are read-only live bindings, so `core.getInput` can't be
+    // reassigned directly (unlike Jest's Babel-transpiled CJS interop); spy on it instead.
+    jest.spyOn(core, 'getInput').mockImplementation(mockGetInput);
 
     // Mock octokit module
     const mockOctokit = {

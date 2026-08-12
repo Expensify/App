@@ -5,11 +5,8 @@ import GitUtils from '@github/libs/GitUtils';
 import * as VersionUpdater from '@github/libs/versionUpdater';
 import type {SemverLevel} from '@github/libs/versionUpdater';
 
-/**
- * @jest-environment node
- * @jest-config bail=true
- */
 import * as core from '@actions/core';
+import {afterAll, beforeAll, describe, expect, jest, setDefaultTimeout, test} from 'bun:test';
 import {execSync} from 'child_process';
 import fs from 'fs';
 import os from 'os';
@@ -22,10 +19,10 @@ const DUMMY_DIR = path.resolve(os.homedir(), 'DumDumRepo');
 const GIT_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/DumDumRepo');
 
 // Used to mock the Octokit GithubAPI
-const mockGetInput = jest.fn<string | undefined, [string]>();
+const mockGetInput = jest.fn<(name: string) => string | undefined>();
 type CompareCommitsCommit = NonNullable<Awaited<ReturnType<typeof GithubUtils.octokit.repos.compareCommits>>['data']['commits']>[number];
 
-const isVerbose = process.env.JEST_VERBOSE === 'true';
+const isVerbose = process.env.VERBOSE === 'true';
 
 function exec(command: string) {
     try {
@@ -72,8 +69,11 @@ function initGithubAPIMocking() {
         return mockGetInput(name) ?? '';
     });
 
-    // Mock various compareCommits responses with single mocked function
-    jest.spyOn(GithubUtils.octokit.repos, 'compareCommits').mockImplementation((params) => {
+    // Mock various compareCommits responses with a single mocked function. Assigned directly rather than via
+    // jest.spyOn/spyOn: Octokit's REST endpoint methods are lazily memoized (each is replaced with a plain value
+    // the first time it's accessed), and under bun:test, spyOn silently fails to override that already-memoized
+    // property on this particular object shape, so the mock is never installed. A direct assignment works fine.
+    const mockCompareCommits = jest.fn().mockImplementation((params: Parameters<typeof GithubUtils.octokit.repos.compareCommits>[0]) => {
         const base = params?.base;
         const head = params?.head;
         const tagPairKey = `${base}...${head}`;
@@ -183,6 +183,7 @@ function initGithubAPIMocking() {
             }),
         );
     });
+    GithubUtils.octokit.repos.compareCommits = mockCompareCommits as unknown as typeof GithubUtils.octokit.repos.compareCommits;
 }
 
 function initGitServer() {
@@ -467,6 +468,10 @@ async function assertPRsMergedBetween(from: string, to: string, expected: number
  *   - They should not be run in parallel with other tests on the same machine. They will not play nicely with other tests.
  *   - The whole suite should be run. Running individual tests from the suite may not work as expected.
  */
+
+// These tests shell out to real `git`/`npm` subprocesses many times per test and can exceed the default 5000ms
+// per-test timeout (shared with Jest's default), especially on a cold cache.
+setDefaultTimeout(30000);
 
 let startingDir: string;
 describe('CIGitLogic', () => {
