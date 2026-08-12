@@ -85,6 +85,8 @@ describe('NumberWithSymbolForm', () => {
             // No BigNumberPad on this path, even though `shouldShowBigNumberPad` defaults to true on touch devices
             expect(screen.queryByTestId('button_1')).toBeNull();
             expect(screen.queryByTestId('button_<')).toBeNull();
+            expect(queryAllById('numberView')).toHaveLength(0);
+            expect(queryAllById('numPadContainerView')).toHaveLength(0);
         });
 
         it('clears the internal number and selection when the value prop resets to empty', async () => {
@@ -157,14 +159,6 @@ describe('NumberWithSymbolForm', () => {
             expect(onInputChange).toHaveBeenCalledWith('1');
         });
 
-        it('does not render the portrait/landscape layout wrappers', async () => {
-            renderForm({displayAsTextInput: true, value: '10'});
-            await waitForBatchedUpdatesWithAct();
-
-            expect(queryAllById('numberView')).toHaveLength(0);
-            expect(queryAllById('numPadContainerView')).toHaveLength(0);
-        });
-
         it('does not render the flip or currency buttons by default', async () => {
             renderForm({displayAsTextInput: true, value: '10', currency: 'USD'});
             await waitForBatchedUpdatesWithAct();
@@ -214,14 +208,6 @@ describe('NumberWithSymbolForm', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('Invalid amount')).toBeTruthy();
-        });
-
-        it('supports a callback ref on the display-input path', async () => {
-            const ref = jest.fn();
-            renderForm({displayAsTextInput: true, value: '10', ref});
-            await waitForBatchedUpdatesWithAct();
-
-            expect(ref).toHaveBeenCalledWith(expect.anything());
         });
 
         it('assigns the text input instance to the separate `ref` prop', async () => {
@@ -415,13 +401,6 @@ describe('NumberWithSymbolForm', () => {
             expect(screen.queryByText('USD')).toBeNull();
         });
 
-        it('renders the currency button with an empty label when currency is not provided', async () => {
-            renderForm({value: '10'});
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByLabelText('Select a currency, ')).toBeTruthy();
-        });
-
         it('hides the number pad when `shouldShowBigNumberPad` is false', async () => {
             renderForm({value: '10', shouldShowBigNumberPad: false});
             await waitForBatchedUpdatesWithAct();
@@ -452,22 +431,6 @@ describe('NumberWithSymbolForm', () => {
 
             expect(onSymbolButtonPress).toHaveBeenCalledTimes(1);
             expect(onCurrencyButtonPress).not.toHaveBeenCalled();
-        });
-
-        it('assigns the text input instance to the separate `ref` prop', async () => {
-            const ref = React.createRef<BaseTextInputRef>();
-            renderForm({value: '10', ref});
-            await waitForBatchedUpdatesWithAct();
-
-            expect(ref.current).toBeTruthy();
-        });
-
-        it('supports a callback ref on the symbol-input path', async () => {
-            const ref = jest.fn();
-            renderForm({value: '10', ref});
-            await waitForBatchedUpdatesWithAct();
-
-            expect(ref).toHaveBeenCalledWith(expect.anything());
         });
 
         describe('negation via the caller-supplied toggleNegative', () => {
@@ -506,56 +469,6 @@ describe('NumberWithSymbolForm', () => {
                 expect(onInputChange).toHaveBeenCalledWith('10');
             });
         });
-
-        describe('BigNumberPad drives setNewNumber', () => {
-            it('appends the pressed digit and reports the new value', async () => {
-                const onInputChange = jest.fn();
-                renderForm({value: '1', decimals: 2, onInputChange});
-                await waitForBatchedUpdatesWithAct();
-
-                fireEvent.press(screen.getByTestId('button_2'));
-                await waitForBatchedUpdatesWithAct();
-
-                expect(onInputChange).toHaveBeenLastCalledWith('12');
-                expect(screen.getByDisplayValue('12')).toBeTruthy();
-            });
-
-            it('deletes the last character on backspace', async () => {
-                const onInputChange = jest.fn();
-                renderForm({value: '12', decimals: 2, onInputChange});
-                await waitForBatchedUpdatesWithAct();
-
-                fireEvent.press(screen.getByTestId('button_<'));
-                await waitForBatchedUpdatesWithAct();
-
-                expect(onInputChange).toHaveBeenLastCalledWith('1');
-                expect(screen.getByDisplayValue('1')).toBeTruthy();
-            });
-
-            it('adds the leading zero in updateValueNumberPad, before setNewNumber runs', async () => {
-                const onInputChange = jest.fn();
-                renderForm({value: '', decimals: 2, onInputChange});
-                await waitForBatchedUpdatesWithAct();
-
-                fireEvent.press(screen.getByTestId('button_.'));
-                await waitForBatchedUpdatesWithAct();
-
-                // `setNewNumber` itself never calls addLeadingZero - the pad handler does it for this path
-                expect(onInputChange).toHaveBeenLastCalledWith('0.');
-            });
-
-            it('rejects a pad press that would make the number invalid', async () => {
-                const onInputChange = jest.fn();
-                renderForm({value: '1', decimals: 0, onInputChange});
-                await waitForBatchedUpdatesWithAct();
-
-                fireEvent.press(screen.getByTestId('button_.'));
-                await waitForBatchedUpdatesWithAct();
-
-                expect(onInputChange).not.toHaveBeenCalled();
-                expect(screen.getByDisplayValue('1')).toBeTruthy();
-            });
-        });
     });
 
     describe('portrait path', () => {
@@ -577,6 +490,7 @@ describe('NumberWithSymbolForm', () => {
             expect(screen.getByDisplayValue('10')).toBeTruthy();
         });
 
+        // Known UX defect: the currency button renders with an empty label when currency is omitted.
         it('renders the currency button with an empty label when currency is not provided', async () => {
             renderForm({value: '10'});
             await waitForBatchedUpdatesWithAct();
@@ -660,26 +574,6 @@ describe('NumberWithSymbolForm', () => {
             expect(screen.queryByTestId('button_1')).toBeNull();
         });
 
-        it('flips through the caller-supplied toggleNegative', async () => {
-            const toggleNegative = jest.fn();
-            const onInputChange = jest.fn();
-            renderForm({value: '10', toggleNegative, onInputChange});
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.queryByText('Flip')).toBeNull();
-
-            screen.unmount();
-
-            renderForm({value: '10', allowFlippingAmount: true, toggleNegative, onInputChange});
-            await waitForBatchedUpdatesWithAct();
-
-            fireEvent.press(screen.getByText('Flip'));
-            await waitForBatchedUpdatesWithAct();
-
-            expect(toggleNegative).toHaveBeenCalledTimes(1);
-            expect(onInputChange).not.toHaveBeenCalled();
-        });
-
         it('assigns the text input instance to the separate `ref` prop', async () => {
             const ref = React.createRef<BaseTextInputRef>();
             renderForm({value: '10', ref});
@@ -730,6 +624,18 @@ describe('NumberWithSymbolForm', () => {
 
                 // `setNewNumber` itself never calls addLeadingZero - the pad handler does it for this path
                 expect(onInputChange).toHaveBeenLastCalledWith('0.');
+            });
+
+            it('rejects a pad press that would make the number invalid', async () => {
+                const onInputChange = jest.fn();
+                renderForm({value: '1', decimals: 0, onInputChange});
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent.press(screen.getByTestId('button_.'));
+                await waitForBatchedUpdatesWithAct();
+
+                expect(onInputChange).not.toHaveBeenCalled();
+                expect(screen.getByDisplayValue('1')).toBeTruthy();
             });
 
             it('inserts a digit at the current caret position', async () => {
