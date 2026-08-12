@@ -9161,7 +9161,16 @@ ${reportName}`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `原始：${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `已移除 ${distance} ${unit} 通勤距离`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `已移除 ${distance} 英里通勤里程`,
+                    other: `已移除 ${distance} 英里通勤里程`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `已移除 ${distance} 公里通勤距离`,
+                    other: `已移除 ${distance} 公里通勤里程`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `已根据 ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">工作区距离设置</a>` : '工作区距离设置'} 移除 ${distance} ${unit} 的通勤距离。`,
         },

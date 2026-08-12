@@ -9474,7 +9474,16 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Oryginał: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Usunięto ${distance} dojazdów (${unit})`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `Usunięto ${distance} milę dojazdową`,
+                    other: `Usunięto ${distance} mil dojazdowych`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `Usunięto ${distance} kilometr dojazdu`,
+                    other: `Usunięto ${distance} kilometrów dojazdów`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `Usunięto ${distance} dojazdowych ${unit} na podstawie ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ustawienia odległości w przestrzeni roboczej</a>` : 'ustawienia odległości w przestrzeni roboczej'}.`,
         },

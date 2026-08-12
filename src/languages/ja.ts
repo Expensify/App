@@ -9402,7 +9402,16 @@ ${reportName}`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `元の距離: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} の通勤${unit}を削除しました`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `${distance}マイルの通勤距離を削除しました`,
+                    other: `${distance}マイルの通勤距離を削除しました`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `${distance}キロメートルの通勤距離を削除しました`,
+                    other: `${distance}キロメートルの通勤距離を削除しました`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ワークスペースの距離設定</a>` : 'ワークスペース距離設定'} に基づき、通勤距離 ${distance} ${unit} を削除しました。`,
         },

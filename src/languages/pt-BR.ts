@@ -9493,7 +9493,16 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Removeu ${distance} deslocamento ${unit}`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `Removeu ${distance} milha de deslocamento`,
+                    other: `Removidas ${distance} milhas de deslocamento`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `Foi removido ${distance} quilômetro de deslocamento`,
+                    other: `Removidos ${distance} quilômetros de deslocamento`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `Removidos ${distance} ${unit} de deslocamento diário com base em ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">configurações de distância do workspace</a>` : 'configurações de distância do workspace'}.`,
         },

@@ -9591,7 +9591,16 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original : ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} unité(s) de trajet domicile-travail ${unit} supprimée(s)`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `Suppression de ${distance} mile de trajet domicile-travail`,
+                    other: `${distance} miles de trajet domicile-travail supprimés`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `${distance} kilomètre de trajet domicile-travail supprimé`,
+                    other: `${distance} kilomètres de trajet domicile-travail supprimés`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `${distance} ${unit} de trajet domicile-travail supprimé(s) en fonction de ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">paramètres de distance de l’espace de travail</a>` : 'paramètres de distance de l’espace de travail'}.`,
         },

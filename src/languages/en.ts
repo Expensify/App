@@ -9668,7 +9668,16 @@ const translations = {
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Removed ${distance} commuter ${unit}`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `Removed ${distance} commuter mile`,
+                    other: `Removed ${distance} commuter miles`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `Removed ${distance} commuter kilometer`,
+                    other: `Removed ${distance} commuter kilometers`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `Removed ${distance} commuter ${unit} based on ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">workspace distance settings</a>` : 'workspace distance settings'}.`,
         },

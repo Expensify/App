@@ -9555,7 +9555,16 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} Pendel-${unit} entfernt`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `${distance} Pendelmeile entfernt`,
+                    other: `${distance} Pendelmeilen entfernt`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `${distance} Pendelkilometer entfernt`,
+                    other: `${distance} Pendelkilometer entfernt`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `${distance} Pendl${unit} basierend auf ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">Entfernungseinstellungen des Arbeitsbereichs</a>` : 'Arbeitsbereich-Entfernungseinstellungen'} entfernt.`,
         },

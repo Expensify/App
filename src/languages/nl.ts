@@ -299,7 +299,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replace: 'Vervangen',
         distance: 'Afstand',
         mile: 'mijl',
-        miles: 'mijl',
+        miles: 'mijlen',
         kilometer: 'kilometer',
         kilometers: 'kilometers',
         recent: 'Recent',
@@ -9498,7 +9498,16 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Origineel: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} woon-werk${unit} verwijderd`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `${distance} woon-werkmijl verwijderd`,
+                    other: `${distance} woon-werkmijlen verwijderd`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `${distance} woon-werk kilometer verwijderd`,
+                    other: `${distance} woon-werkkilometers verwijderd`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `${distance} woon-werk-${unit} verwijderd op basis van ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">werkruimte-afstandsinstellingen</a>` : 'instelling voor werkruimte-afstand'}.`,
         },

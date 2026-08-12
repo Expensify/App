@@ -9778,7 +9778,16 @@ ${reportName}`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Αρχικό: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Αφαιρέθηκαν ${distance} διαδρομές εκτός έδρας (${unit})`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `Αφαιρέθηκε ${distance} μίλι μετακίνησης`,
+                    other: `Αφαιρέθηκαν ${distance} μίλια μετακίνησης`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `Αφαιρέθηκε ${distance} χιλιόμετρο μετακίνησης`,
+                    other: `Καταργήθηκαν ${distance} χιλιόμετρα μετακίνησης`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `Αφαιρέθηκαν ${distance} διαδρομές μετακίνησης ${unit} βάσει του ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ρυθμίσεις απόστασης χώρου εργασίας</a>` : 'ρυθμίσεις απόστασης χώρου εργασίας'}.`,
         },

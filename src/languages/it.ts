@@ -9527,7 +9527,16 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Originale: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Rimossi ${distance} spostamenti pendolari in ${unit}`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `Rimosso ${distance} miglio di tragitto pendolare`,
+                    other: `Rimosse ${distance} miglia di pendolarismo`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `Rimosso ${distance} chilometro di tragitto pendolare`,
+                    other: `Rimossi ${distance} chilometri di pendolarismo`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `Rimossi ${distance} ${unit} per il pendolarismo in base a ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">impostazioni distanza spazio di lavoro</a>` : 'impostazioni distanza spazio di lavoro'}.`,
         },
