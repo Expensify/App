@@ -1280,6 +1280,33 @@ describe('pickReportForPolicy', () => {
     });
 });
 
+describe('getSelectedWorkspacePolicyID', () => {
+    const workspaceParticipant = {accountID: 0, isPolicyExpenseChat: true, selected: true, policyID: 'ABC123'};
+    const senderParticipant = {isSender: true, selected: false, policyID: 'DEF456'};
+    const p2pParticipant = {accountID: 1, selected: true};
+
+    it('should return the policy of the selected workspace chat', () => {
+        expect(IOUUtils.getSelectedWorkspacePolicyID({...createRandomTransaction(1), participants: [workspaceParticipant]}, CONST.IOU.ACTION.CREATE)).toBe('ABC123');
+    });
+
+    it('should prefer the invoice sender workspace over the workspace chat', () => {
+        expect(IOUUtils.getSelectedWorkspacePolicyID({...createRandomTransaction(2), participants: [workspaceParticipant, senderParticipant]}, CONST.IOU.ACTION.CREATE)).toBe('DEF456');
+    });
+
+    it('should return undefined for a P2P participant, so the report keeps driving the policy', () => {
+        expect(IOUUtils.getSelectedWorkspacePolicyID({...createRandomTransaction(3), participants: [p2pParticipant]}, CONST.IOU.ACTION.CREATE)).toBeUndefined();
+    });
+
+    it('should return undefined when the transaction has no participants', () => {
+        expect(IOUUtils.getSelectedWorkspacePolicyID({...createRandomTransaction(4), participants: undefined}, CONST.IOU.ACTION.CREATE)).toBeUndefined();
+        expect(IOUUtils.getSelectedWorkspacePolicyID(undefined, CONST.IOU.ACTION.CREATE)).toBeUndefined();
+    });
+
+    it('should return undefined when editing, because an existing expense is authoritative about its report', () => {
+        expect(IOUUtils.getSelectedWorkspacePolicyID({...createRandomTransaction(5), participants: [workspaceParticipant]}, CONST.IOU.ACTION.EDIT)).toBeUndefined();
+    });
+});
+
 describe('shouldShowPerDiemTabOption', () => {
     it('never shows for a split, even when a per diem policy exists', () => {
         expect(IOUUtils.shouldShowPerDiemTabOption(CONST.IOU.TYPE.SPLIT, true, true, true)).toBe(false);
