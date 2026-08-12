@@ -15,6 +15,8 @@ import {
 import type {BankAccountList, CardList} from '@src/types/onyx';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
 
+import createMock from '../utils/createMock';
+
 describe('TravelInvoicingUtils', () => {
     describe('PROGRAM_TRAVEL_US constant', () => {
         it('Should be defined as TRAVEL_US', () => {
@@ -217,8 +219,9 @@ describe('TravelInvoicingUtils', () => {
     });
 
     describe('getTravelSettlementAccount', () => {
+        const mockBankAccountID = '12345';
         const mockBankAccountList: BankAccountList = {
-            bankAccountID: {
+            [mockBankAccountID]: {
                 bankCurrency: 'USD',
                 bankCountry: 'US',
                 accountData: {
@@ -254,9 +257,9 @@ describe('TravelInvoicingUtils', () => {
         });
 
         it('Should fallback to bank account data when paymentBankAccountAddressName is not set', () => {
-            const travelSettings = {
-                paymentBankAccountID: 'bankAccountID' as unknown as number,
-            } as ExpensifyCardSettingsBase;
+            const travelSettings = createMock<ExpensifyCardSettingsBase>({
+                paymentBankAccountID: 12345,
+            });
             const result = getTravelSettlementAccount(travelSettings, mockBankAccountList);
             expect(result).toBeDefined();
             expect(result?.displayName).toBe('Test Company');
@@ -295,7 +298,7 @@ describe('TravelInvoicingUtils', () => {
         });
 
         it('Should return undefined when no travel card exists', () => {
-            const cardList = {
+            const cardList = createMock<CardList>({
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1234': {
                     cardID: 1234,
@@ -305,13 +308,13 @@ describe('TravelInvoicingUtils', () => {
                         feedCountry: 'OTHER_COUNTRY',
                     },
                 },
-            } as unknown as CardList;
+            });
             const result = getTravelInvoicingCard(cardList);
             expect(result).toBeUndefined();
         });
 
         it('Should return the travel card when feedCountry is PROGRAM_TRAVEL_US', () => {
-            const cardList = {
+            const cardList = createMock<CardList>({
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1234': {
                     cardID: 1234,
@@ -321,14 +324,14 @@ describe('TravelInvoicingUtils', () => {
                         feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
                     },
                 },
-            } as unknown as CardList;
+            });
             const result = getTravelInvoicingCard(cardList);
             expect(result).toBeDefined();
             expect(result?.cardID).toBe(1234);
         });
 
         it('Should return first travel card when multiple cards exist', () => {
-            const cardList = {
+            const cardList = createMock<CardList>({
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1111': {
                     cardID: 1111,
@@ -347,7 +350,7 @@ describe('TravelInvoicingUtils', () => {
                         feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
                     },
                 },
-            } as unknown as CardList;
+            });
             const result = getTravelInvoicingCard(cardList);
             expect(result).toBeDefined();
             expect(result?.nameValuePairs?.feedCountry).toBe(CONST.TRAVEL.PROGRAM_TRAVEL_US);
@@ -355,7 +358,7 @@ describe('TravelInvoicingUtils', () => {
     });
 
     describe('isTravelCVVEligible', () => {
-        const mockTravelCardList = {
+        const mockTravelCardList = createMock<CardList>({
             // eslint-disable-next-line @typescript-eslint/naming-convention
             '1234': {
                 cardID: 1234,
@@ -365,9 +368,9 @@ describe('TravelInvoicingUtils', () => {
                     feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
                 },
             },
-        } as unknown as CardList;
+        });
 
-        const mockNonTravelCardList = {
+        const mockNonTravelCardList = createMock<CardList>({
             // eslint-disable-next-line @typescript-eslint/naming-convention
             '5678': {
                 cardID: 5678,
@@ -378,7 +381,7 @@ describe('TravelInvoicingUtils', () => {
                     feedCountry: 'OTHER_COUNTRY',
                 },
             },
-        } as unknown as CardList;
+        });
 
         it('Should return false when cardList is undefined', () => {
             const result = isTravelCVVEligible(undefined);

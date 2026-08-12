@@ -3,6 +3,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultParticipants from '@hooks/useDefaultParticipants';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
@@ -13,7 +15,9 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
-import {getPayeeName} from '@libs/ReportUtils';
+import {isCommuterExclusionEnabled} from '@libs/PolicyDistanceRatesUtils';
+import {getActivePolicies, isGroupPolicy} from '@libs/PolicyUtils';
+import {getPayeeName, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -54,8 +58,20 @@ function DistanceRequestStartPage({
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {participants} = useDefaultParticipants({sourceReport: report, transaction, iouType});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const activeGroupPolicies = getActivePolicies(policies ?? null, currentUserPersonalDetails.login).filter(isGroupPolicy);
+    const onlyActivePolicy = activeGroupPolicies.length === 1 ? activeGroupPolicies.at(0) : undefined;
+    const targetParticipant = participants.find((participant) => participant.isPolicyExpenseChat);
+    const isOnlyWorkspaceTheTarget = onlyActivePolicy?.id === targetParticipant?.policyID;
+    let targetPolicy = isOnlyWorkspaceTheTarget ? onlyActivePolicy : undefined;
+    if (isPolicyExpenseChat(report)) {
+        targetPolicy = policy;
+    }
+    const shouldHideManualAndOdometerTabs = isCommuterExclusionEnabled(targetPolicy);
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
@@ -153,16 +169,18 @@ function DistanceRequestStartPage({
                                 </TabScreenWithFocusTrapWrapper>
                             )}
                         </TopTab.Screen>
-                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MANUAL}>
-                            {() => (
-                                <TabScreenWithFocusTrapWrapper>
-                                    <IOURequestStepDistanceManual
-                                        route={route}
-                                        navigation={navigation}
-                                    />
-                                </TabScreenWithFocusTrapWrapper>
-                            )}
-                        </TopTab.Screen>
+                        {!shouldHideManualAndOdometerTabs && (
+                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MANUAL}>
+                                {() => (
+                                    <TabScreenWithFocusTrapWrapper>
+                                        <IOURequestStepDistanceManual
+                                            route={route}
+                                            navigation={navigation}
+                                        />
+                                    </TabScreenWithFocusTrapWrapper>
+                                )}
+                            </TopTab.Screen>
+                        )}
                         <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_GPS}>
                             {() => (
                                 <TabScreenWithFocusTrapWrapper>
@@ -173,16 +191,18 @@ function DistanceRequestStartPage({
                                 </TabScreenWithFocusTrapWrapper>
                             )}
                         </TopTab.Screen>
-                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
-                            {() => (
-                                <TabScreenWithFocusTrapWrapper>
-                                    <IOURequestStepDistanceOdometer
-                                        route={route}
-                                        navigation={navigation}
-                                    />
-                                </TabScreenWithFocusTrapWrapper>
-                            )}
-                        </TopTab.Screen>
+                        {!shouldHideManualAndOdometerTabs && (
+                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
+                                {() => (
+                                    <TabScreenWithFocusTrapWrapper>
+                                        <IOURequestStepDistanceOdometer
+                                            route={route}
+                                            navigation={navigation}
+                                        />
+                                    </TabScreenWithFocusTrapWrapper>
+                                )}
+                            </TopTab.Screen>
+                        )}
                     </OnyxTabNavigator>
                 </View>
             </ScreenWrapper>
