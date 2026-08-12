@@ -879,4 +879,4 @@ export default {
     getRateDateLabel,
 };
 
-export type {MileageRate};
+export type {MileageRate, CommuterExclusionData};

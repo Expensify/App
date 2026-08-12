@@ -6285,7 +6285,7 @@ function getModifiedExpenseOriginalMessage(
 
     if (
         ('customUnitRateID' in transactionChanges && updatedTransaction?.comment?.customUnit?.customUnitRateID) ||
-        ('distance' in transactionChanges && updatedTransaction?.comment?.customUnit?.quantity)
+        (('distance' in transactionChanges || 'selectedRouteKey' in transactionChanges) && updatedTransaction?.comment?.customUnit?.quantity)
     ) {
         originalMessage.oldAmount = getTransactionAmount(oldTransaction, isFromExpenseReport, false, true);
         originalMessage.oldCurrency = getCurrency(oldTransaction);
@@ -6293,7 +6293,9 @@ function getModifiedExpenseOriginalMessage(
 
         // For the originalMessage, we should use the non-negative amount, similar to what getAmount does for oldAmount
         originalMessage.amount = Math.abs(Number(updatedTransaction?.modifiedAmount ?? 0));
-        originalMessage.currency = updatedTransaction?.modifiedCurrency ?? CONST.CURRENCY.USD;
+        // `modifiedCurrency` is only written when the currency actually changes (e.g. a route switch on a non-USD
+        // expense leaves it unset), so read through to the transaction currency instead of defaulting to USD.
+        originalMessage.currency = getCurrency(updatedTransaction);
         originalMessage.merchant = updatedTransaction?.modifiedMerchant;
     }
 
