@@ -1546,9 +1546,9 @@ describe('setMergeTransactionKey', () => {
         });
     });
 
-    it('should not keep the commuter exclusion of a previously selected merchant when another one is selected', async () => {
-        // Given a merge of two distance expenses, where the merchant of the one on a workspace that excludes
-        // 1 commuter mile was selected first
+    it('should apply the commuter exclusion to the newly selected distance rather than the previously selected one', async () => {
+        // Given a merge of two distance expenses onto a workspace that excludes 1 commuter mile, where the merchant of
+        // the 4.49 mile expense was selected first
         const transactionID = 'merge-distance-transaction';
         const selectMerchantOf = async (transaction: Transaction) => {
             setMergeTransactionKey(
@@ -1570,18 +1570,18 @@ describe('setMergeTransactionKey', () => {
             comment: {customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, quantity: 4.49, commuterExclusion: 1, reimbursableDistance: 3.49}},
         });
 
-        // When the merchant of the expense on the workspace with no commuter exclusion is selected instead
+        // When the merchant of the 10.2 mile expense is selected instead
         await selectMerchantOf({
             ...createRandomDistanceRequestTransaction(1),
             comment: {customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, quantity: 10.2}},
         });
 
-        // Then only that expense's distance is left, rather than the first one's reimbursable distance, which the
-        // distance field displays in place of the full distance whenever an exclusion is present
+        // Then the workspace's exclusion still applies, but to the newly selected distance: the distance field renders
+        // the reimbursable distance in place of the full one, so keeping the previous 3.49 would show the wrong expense
         const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`);
         expect(mergeTransaction?.customUnit?.quantity).toBe(10.2);
-        expect(mergeTransaction?.customUnit?.commuterExclusion).toBeUndefined();
-        expect(mergeTransaction?.customUnit?.reimbursableDistance).toBeUndefined();
+        expect(mergeTransaction?.customUnit?.commuterExclusion).toBe(1);
+        expect(mergeTransaction?.customUnit?.reimbursableDistance).toBe(9.2);
     });
 });
 

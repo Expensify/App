@@ -7,7 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 
 import {SafeString} from 'expensify-common';
@@ -64,7 +64,7 @@ type MergeFieldData = {
 };
 
 /** Type for merge transaction values that can be null to clear existing values in Onyx */
-type MergeTransactionUpdateValues = Partial<Record<keyof MergeTransaction, MergeTransaction[keyof MergeTransaction] | null>>;
+type MergeTransactionUpdateValues = Partial<Record<keyof MergeTransaction, NullishDeep<MergeTransaction[keyof MergeTransaction]> | null>>;
 
 const MERGE_FIELD_TRANSLATION_KEYS = {
     amount: 'iou.amount',
@@ -674,7 +674,19 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
         const transactionDetails = getTransactionDetails(transaction);
         updatedValues.amount = getMergeFieldValue(transactionDetails, transaction, 'amount') as number;
         updatedValues.currency = getCurrency(transaction);
-        updatedValues.customUnit = transaction?.comment?.customUnit;
+        // Selections are stored with Onyx.merge, which deep merges the custom unit, so the commuter exclusion of the
+        // surviving expense's workspace stays applied. Its reimbursable distance describes the previously selected
+        // distance though, and the distance field displays that in place of the full distance, so recompute it here.
+        const selectedCustomUnit = transaction?.comment?.customUnit;
+        const commuterExclusion = selectedCustomUnit?.commuterExclusion ?? mergeTransaction?.customUnit?.commuterExclusion;
+        const selectedQuantity = selectedCustomUnit?.quantity;
+        const hasDistanceToExclude = !!commuterExclusion && typeof selectedQuantity === 'number';
+        updatedValues.customUnit = {
+            ...selectedCustomUnit,
+            ...((hasDistanceToExclude || mergeTransaction?.customUnit?.reimbursableDistance !== undefined) && {
+                reimbursableDistance: hasDistanceToExclude ? Math.max(0, selectedQuantity - commuterExclusion) : null,
+            }),
+        };
         updatedValues.iouRequestType = transaction?.iouRequestType;
         // For manual distance requests, set waypoints/routes and receipt to null to clear any existing values
         updatedValues.receipt = transaction?.receipt ?? null;
