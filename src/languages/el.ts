@@ -199,7 +199,6 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: 'σε',
         genericErrorMessage: 'Ουπς... κάτι πήγε στραβά και το αίτημά σας δεν μπόρεσε να ολοκληρωθεί. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
         percentage: 'Ποσοστό',
-        progressBarLabel: 'Πρόοδος αρχικής ρύθμισης',
         converted: 'Μετατράπηκε',
         off: 'Ανενεργό',
         error: {

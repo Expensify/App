@@ -185,7 +185,6 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: 'a',
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor, inténtalo más tarde.',
         percentage: 'Porcentaje',
-        progressBarLabel: 'Progreso de incorporación',
         converted: 'Convertido',
         error: {
             invalidAmount: 'Importe no válido',
