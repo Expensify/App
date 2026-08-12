@@ -1,11 +1,15 @@
 import {act, render} from '@testing-library/react-native';
 
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
 
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 import {Keyboard} from 'react-native';
@@ -28,7 +32,10 @@ type MockScreenListeners = (args: {navigation: MockNavigation}) => {
     tabPress: (event: MockTabPressEvent) => void;
 };
 
-const mockShowConfirmModal = jest.fn(() => new Promise<never>(() => {}));
+type ConfirmModalResult = {action: ValueOf<typeof ModalActions>};
+
+// Defaults to a promise that never settles, so the modal stays "open" unless a test resolves it.
+const mockShowConfirmModal = jest.fn((): Promise<ConfirmModalResult> => new Promise(() => {}));
 const mockOnDiscard = jest.fn();
 const mockDispatch = jest.fn();
 let mockScreenListeners: MockScreenListeners | undefined;
@@ -253,6 +260,63 @@ describe('OnyxTabNavigator keyboard dismissal before tab switch', () => {
 
         // Nothing to wait for, so the press is not taken over and stays synchronous.
         expect(event.preventDefault).not.toHaveBeenCalled();
+        expect(mockedKeyboardUtils.dismiss).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalled();
+    });
+});
+
+describe('OnyxTabNavigator keyboard dismissal after discarding changes', () => {
+    const mockedKeyboardUtils = jest.mocked(KeyboardUtils);
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockScreenListeners = undefined;
+        mockedKeyboardUtils.dismiss.mockImplementation(() => Promise.resolve());
+        jest.spyOn(Keyboard, 'isVisible').mockReturnValue(true);
+        jest.spyOn(ComposerFocusManager, 'blurActiveInput').mockImplementation();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it('waits for the keyboard to hide before jumping once the discard is confirmed', async () => {
+        mockShowConfirmModal.mockImplementation(() => Promise.resolve({action: ModalActions.CONFIRM}));
+
+        let resolveDismiss: () => void = () => {};
+        mockedKeyboardUtils.dismiss.mockImplementation(
+            () =>
+                new Promise<void>((resolve) => {
+                    resolveDismiss = resolve;
+                }),
+        );
+        renderTabNavigator(true, true);
+
+        await act(async () => {
+            pressTargetTab();
+        });
+
+        // The draft has been discarded, but the tab must not change until the keyboard is gone.
+        expect(mockOnDiscard).toHaveBeenCalledTimes(1);
+        expect(mockedKeyboardUtils.dismiss).toHaveBeenCalledTimes(1);
+        expect(mockDispatch).not.toHaveBeenCalled();
+
+        await act(async () => {
+            resolveDismiss();
+        });
+
+        expect(mockDispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not discard or jump when the user cancels', async () => {
+        mockShowConfirmModal.mockImplementation(() => Promise.resolve({action: ModalActions.CLOSE}));
+        renderTabNavigator(true, true);
+
+        await act(async () => {
+            pressTargetTab();
+        });
+
+        expect(mockOnDiscard).not.toHaveBeenCalled();
         expect(mockedKeyboardUtils.dismiss).not.toHaveBeenCalled();
         expect(mockDispatch).not.toHaveBeenCalled();
     });
