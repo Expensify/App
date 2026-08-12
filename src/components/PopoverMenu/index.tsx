@@ -404,7 +404,7 @@ function BasePopoverMenu({
             return;
         }
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (isSearchEnabled && (e.target as HTMLElement | null)?.tagName === CONST.ELEMENT_NAME.INPUT) {
+            if (isSearchEnabled && e.target instanceof HTMLInputElement) {
                 return;
             }
             const isNavigationKey = [
