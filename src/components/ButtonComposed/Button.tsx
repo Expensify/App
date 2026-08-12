@@ -70,16 +70,8 @@ function Button({
     // Passed to onPress so a handler can enter the loading state itself, after its own validation/branching.
     const loadingController: PressLoadingController = {run: startWithLoading};
 
-    const handlePress = (event?: GestureResponderEvent | KeyboardEvent) => {
-        if (event?.type === 'click') {
-            const currentTarget = event?.currentTarget as HTMLElement;
-            currentTarget?.blur();
-        }
-
-        if (enableHapticFeedback) {
-            HapticFeedback.press();
-        }
-
+    // Shared by a pointer press and the Enter shortcut, so both take the same route into onPress.
+    const runPress = (event?: GestureResponderEvent | KeyboardEvent) => {
         if (isDisabled || isLoading) {
             return;
         }
@@ -90,18 +82,23 @@ function Button({
         return onPress(event, loadingController);
     };
 
-    // Route the Enter shortcut (fired by ButtonKeyboardShortcut via the actions context) through the same paths as a pointer
-    // press, minus the mouse-only blur/haptic handling — so the immediate spinner works on Enter too. Living in the actions
-    // context (functions only) keeps it clear of rulesdir/context-provider-split-values.
-    const handleEnterPress = () => {
-        if (isDisabled || isLoading) {
-            return;
+    const handlePress = (event?: GestureResponderEvent | KeyboardEvent) => {
+        if (event?.type === 'click') {
+            const currentTarget = event?.currentTarget as HTMLElement;
+            currentTarget?.blur();
         }
-        if (shouldShowLoadingImmediatelyOnPress) {
-            return startWithLoading(() => onPress(undefined, loadingController));
+
+        if (enableHapticFeedback) {
+            HapticFeedback.press();
         }
-        return onPress(undefined, loadingController);
+
+        return runPress(event);
     };
+
+    // The Enter shortcut is fired by ButtonKeyboardShortcut through the actions context. It shares runPress with a pointer press so the
+    // immediate spinner works on Enter too, and skips the mouse-only blur/haptic handling. Living in the actions context (functions only)
+    // keeps it clear of rulesdir/context-provider-split-values.
+    const handleEnterPress = () => runPress();
 
     const buttonVariantStyles = useMemo(() => {
         const shouldUseDisabledStyles = isDisabled && !stayNormalOnDisable;
