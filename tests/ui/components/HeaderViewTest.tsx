@@ -211,6 +211,27 @@ describe('HeaderView', () => {
         expect(screen.getByTestId('DisplayNames')).toHaveTextContent(/created this report for any held expenses from/);
     });
 
+    const accountManagerAccountID = 777;
+    const otherAccountID = 888;
+    const accountManagerCalendarLink = 'https://calendly.com/account-manager/expensify';
+
+    const personalDetailsList = {
+        [currentUserAccountID]: {accountID: currentUserAccountID, login: 'me@example.com', displayName: 'My Account'},
+        [accountManagerAccountID]: {accountID: accountManagerAccountID, login: 'am@example.com', displayName: 'Account Manager'},
+        [otherAccountID]: {accountID: otherAccountID, login: 'other@example.com', displayName: 'Someone Else'},
+    };
+
+    function renderHeader(reportID: string) {
+        return render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <HeaderView
+                    onNavigationMenuButtonClicked={() => {}}
+                    reportID={reportID}
+                />
+            </ComposeProviders>,
+        );
+    }
+
     it('should display the localized category update message for a thread on a category update action', async () => {
         // Given an #admins room with a report action that made attendees required on a category
         const policyID = '400';
@@ -226,7 +247,7 @@ describe('HeaderView', () => {
             originalMessage: {
                 categoryName: 'Advertising',
                 updatedField: 'areAttendeesRequired',
-                oldValue: false,
+                oldValue: '',
                 newValue: true,
             },
         };
@@ -251,20 +272,10 @@ describe('HeaderView', () => {
         });
         await waitForBatchedUpdates();
 
-        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
         const adminsReportKey = `${ONYXKEYS.COLLECTION.REPORT}${adminsReportID}` as const;
         const threadReportKey = `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}` as const;
         await Onyx.multiSet(
             createMock<KeyValueMapping>({
-                [policyKey]: {
-                    id: policyID,
-                    name: 'Test Workspace',
-                    type: CONST.POLICY.TYPE.CORPORATE,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    owner: 'admin@example.com',
-                    outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
-                },
                 [adminsReportKey]: adminsReport,
                 [threadReportKey]: threadReport,
             }),
@@ -276,27 +287,6 @@ describe('HeaderView', () => {
         // Then the thread header should show the same copy as the system message in the chat
         await waitFor(() => expect(screen.getByTestId('DisplayNames')).toHaveTextContent(translateLocal('workspaceActions.updateAreAttendeesRequired', 'Advertising', true)));
     });
-
-    const accountManagerAccountID = 777;
-    const otherAccountID = 888;
-    const accountManagerCalendarLink = 'https://calendly.com/account-manager/expensify';
-
-    const personalDetailsList = {
-        [currentUserAccountID]: {accountID: currentUserAccountID, login: 'me@example.com', displayName: 'My Account'},
-        [accountManagerAccountID]: {accountID: accountManagerAccountID, login: 'am@example.com', displayName: 'Account Manager'},
-        [otherAccountID]: {accountID: otherAccountID, login: 'other@example.com', displayName: 'Someone Else'},
-    };
-
-    function renderHeader(reportID: string) {
-        return render(
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                <HeaderView
-                    onNavigationMenuButtonClicked={() => {}}
-                    reportID={reportID}
-                />
-            </ComposeProviders>,
-        );
-    }
 
     it('should display the Book a call button in the 1:1 DM with the account manager', async () => {
         // Given a 1:1 DM with the assigned account manager who has a calendar link

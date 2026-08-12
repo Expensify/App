@@ -895,6 +895,82 @@ describe('ReportNameUtils', () => {
             expect(name).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Tax Exempt (0%)")');
         });
 
+        test.each([
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY, {categoryName: 'Advertising'}, 'added the category "Advertising"'],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY, {categoryName: 'Advertising'}, 'removed the category "Advertising"'],
+            [
+                CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
+                {categoryName: 'Advertising', updatedField: 'areAttendeesRequired', oldValue: '', newValue: true},
+                'changed the "Advertising" category attendees to required (previously not required)',
+            ],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME, {oldName: 'Advertising', newName: 'Marketing'}, 'renamed the category "Advertising" to "Marketing"'],
+        ])('%s parent action renders the same message as the system message in the chat', (actionName, originalMessage, expected) => {
+            const thread: Report = createWorkspaceThread(161);
+            const parentAction = createMock<ReportAction>({
+                actionName,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage,
+            });
+
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${String(thread.parentReportID)}`]: {
+                    [String(thread.parentReportActionID)]: parentAction,
+                },
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe(expected);
+        });
+
+        test('UPDATE_CATEGORY parent action formats receipt amounts with the policy currency', () => {
+            const thread: Report = createWorkspaceThread(162);
+            const parentAction = createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    categoryName: 'Advertising',
+                    updatedField: 'maxAmountNoReceipt',
+                    oldValue: 0,
+                    newValue: 2500,
+                },
+            });
+
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${String(thread.parentReportID)}`]: {
+                    [String(thread.parentReportActionID)]: parentAction,
+                },
+            };
+            const policies: OnyxCollection<Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${String(thread.policyID)}`]: createMock<Policy>({
+                    id: String(thread.policyID),
+                    maxExpenseAmountNoReceipt: 5000,
+                    outputCurrency: 'EUR',
+                }),
+            };
+
+            const name = computeReportName(thread, emptyCollections.reports, policies, undefined, undefined, participantsPersonalDetails, reportActionsCollection, currentUserAccountID);
+            expect(name).toContain('€50');
+        });
+
         test('DELETE_CARD_FEED parent action', () => {
             const thread: Report = createWorkspaceThread(101);
             const parentAction = createMock<ReportAction>({
