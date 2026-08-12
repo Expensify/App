@@ -211,7 +211,7 @@ describe('HeaderView', () => {
         expect(screen.getByTestId('DisplayNames')).toHaveTextContent(/created this report for any held expenses from/);
     });
 
-    it('should display the localized category update message for a thread on a POLICYCHANGELOG_UPDATE_CATEGORY action', async () => {
+    it('should display the localized category update message for a thread on a category update action', async () => {
         // Given an #admins room with a report action that made attendees required on a category
         const policyID = '400';
         const adminsReportID = '401';
