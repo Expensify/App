@@ -14,6 +14,7 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -281,14 +282,14 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID} =
+    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID, conciergeChat} =
         useReportPaymentContext({
-            reportID: reportItem.reportID,
             chatReportPolicyID: chatReport?.policyID,
         });
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
     const {isSelected} = useRowSelection(reportItem.keyForList);
     const avatarBorderColor =
@@ -299,6 +300,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
 
     const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
         handleActionButtonPress({
+            getCurrencyDecimals,
             hash: currentSearchHash,
             item: reportItem,
             goToItem: () => onSelectRow(reportItem as unknown as TItem, event),
@@ -326,12 +328,12 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             activePolicy,
             chatReport,
             chatReportPolicy,
-            iouReportCurrentNextStepDeprecated: nextStep,
             searchData: snapshot?.data,
             chatReportActions,
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            conciergeChat,
         });
     };
     return !isLargeScreenWidth ? (

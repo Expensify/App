@@ -49,7 +49,7 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocationPuck', 'MapCurrentLocation']);
-    const isAccessTokenSet = useAccessToken({accessToken});
+    const isAccessTokenReady = useAccessToken({accessToken});
 
     const cameraRef = useRef<Mapbox.Camera>(null);
 
@@ -212,7 +212,7 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
         mapHeading.set(e.properties.heading ?? 0);
     };
 
-    return !isOffline && isAccessTokenSet && foregroundLocationPermissionsGranted !== null ? (
+    return !isOffline && isAccessTokenReady && foregroundLocationPermissionsGranted !== null ? (
         <View style={style}>
             <Mapbox.MapView
                 style={{flex: 1}}

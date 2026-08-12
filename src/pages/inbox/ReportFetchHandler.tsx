@@ -1,3 +1,5 @@
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
@@ -96,6 +98,7 @@ function ReportFetchHandler() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isInSidePanel = useIsInSidePanel();
     const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
     const prevIsAnonymousUser = useRef(false);
     const hasCreatedLegacyThreadRef = useRef(false);
@@ -155,6 +158,14 @@ function ReportFetchHandler() {
     const shouldDeferGuidedSetupOpenReport = !!isLoadingApp && (isRegularOnboardingPending || isPendingInviteOnboarding);
 
     const fetchReport = useEffectEvent(() => {
+        // For a Submit-via-PDF secure access link, JoinReportViaSecureLink grants access and returns the report.
+        // Calling the vanilla openReport before the join completes would 403 and latch the not-found page, so defer
+        // to the join while the secureKey is still on the route. Once the join grants access the secureKey is cleared,
+        // and normal fetching resumes.
+        if (secureKeyFromRoute) {
+            return;
+        }
+
         if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
             // openReport is intentionally never called for an optimistic chat report, so nothing else can settle its
             // initial-load state. The stamp written at creation lives in a RAM-only key and is lost on an app restart,
@@ -187,7 +198,7 @@ function ReportFetchHandler() {
             return;
         }
 
-        openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, betas, hasReportActions});
+        openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, betas, hasReportActions, currentUserAccountID});
     });
 
     const createOneTransactionThread = useEffectEvent(() => {
@@ -204,6 +215,7 @@ function ReportFetchHandler() {
             iouReport: report,
             iouReportAction: iouAction,
             transaction: currentReportTransactions.at(0),
+            personalDetails,
         });
     });
 
@@ -219,7 +231,7 @@ function ReportFetchHandler() {
         if (!shouldUseNarrowLayout || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
-        openReport({reportID, introSelected, betas, hasReportActions});
+        openReport({reportID, introSelected, betas, hasReportActions, currentUserAccountID});
     });
 
     const joinPublicRoomIfNeeded = useEffectEvent(() => {
@@ -227,7 +239,7 @@ function ReportFetchHandler() {
         if (!viewingPublicRoomReportID || viewingPublicRoomReportID === reportIDFromRoute) {
             return;
         }
-        openReport({reportID: viewingPublicRoomReportID, introSelected, betas, hasReportActions: hasViewingPublicRoomReportActions});
+        openReport({reportID: viewingPublicRoomReportID, introSelected, betas, hasReportActions: hasViewingPublicRoomReportActions, currentUserAccountID});
     });
 
     // Effect order below matches the original declaration order in ReportScreen.tsx.
@@ -270,7 +282,10 @@ function ReportFetchHandler() {
     // the "secure-link visit" signal that suppresses onboarding, so a slow join could bounce a new user into onboarding
     // before they gain access. Once the report is accessible we clear it so it isn't reused or left in history.
     useEffect(() => {
-        if (!secureKeyFromRoute || joinedSecureLinkReportIDRef.current !== reportIDFromRoute || !report?.reportID || !!report?.errorFields?.notFound) {
+        // Clear the secureKey once the join has resolved either way: on success the report is accessible (reportID set),
+        // on failure it is marked not-found. Both release the fetchReport gate so the report loads or shows the 404.
+        const joinResolved = !!report?.reportID || !!report?.errorFields?.notFound;
+        if (!secureKeyFromRoute || joinedSecureLinkReportIDRef.current !== reportIDFromRoute || !joinResolved) {
             return;
         }
         navigation.setParams({secureKey: undefined});
@@ -480,12 +495,14 @@ function ReportFetchHandler() {
             betas,
             iouReport: report,
             transaction,
+            personalDetails,
         });
     }, [
         introSelected,
         currentUserEmail,
         currentUserAccountID,
         betas,
+        personalDetails,
         report,
         visibleTransactions,
         transactionThreadReport,

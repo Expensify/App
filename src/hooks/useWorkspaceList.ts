@@ -25,6 +25,7 @@ type UseWorkspaceListParams = {
     localeCompare: LocaleContextProps['localeCompare'];
     additionalFilter?: (policy: OnyxEntry<Policy>) => boolean;
     shouldSortSelectedToTop?: boolean;
+    includeArchivedPolicy?: boolean;
 };
 
 function useWorkspaceList({
@@ -36,6 +37,7 @@ function useWorkspaceList({
     localeCompare,
     additionalFilter,
     shouldSortSelectedToTop = true,
+    includeArchivedPolicy = false,
 }: UseWorkspaceListParams) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
     const usersWorkspaces = useMemo(() => {
@@ -45,7 +47,12 @@ function useWorkspaceList({
 
         const result = [];
         for (const policy of Object.values(policies)) {
-            if (!policy || policy.isJoinRequestPending || !shouldShowPolicy(policy, shouldShowPendingDeletePolicy, currentUserLogin) || (additionalFilter && !additionalFilter(policy))) {
+            if (
+                !policy ||
+                policy.isJoinRequestPending ||
+                !shouldShowPolicy(policy, shouldShowPendingDeletePolicy, currentUserLogin, includeArchivedPolicy) ||
+                (additionalFilter && !additionalFilter(policy))
+            ) {
                 continue;
             }
 
@@ -67,7 +74,7 @@ function useWorkspaceList({
             });
         }
         return result;
-    }, [policies, shouldShowPendingDeletePolicy, currentUserLogin, additionalFilter, icons.FallbackWorkspaceAvatar, selectedPolicyIDs]);
+    }, [policies, shouldShowPendingDeletePolicy, currentUserLogin, additionalFilter, icons.FallbackWorkspaceAvatar, selectedPolicyIDs, includeArchivedPolicy]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () =>

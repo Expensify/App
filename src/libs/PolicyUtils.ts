@@ -88,6 +88,14 @@ function isPolicyFieldListEmpty(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
+ * Whether the policy has been archived. archivedDate is the single source of truth
+ * for the archived state; restoring the policy removes it.
+ */
+function isArchivedPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
+    return !!policy?.archivedDate;
+}
+
+/**
  * Filter out the active policies, which will exclude policies with pending deletion
  * and policies the current user doesn't belong to.
  * These are policies that we can use to create reports with in NewDot.
@@ -95,7 +103,12 @@ function isPolicyFieldListEmpty(policy: OnyxEntry<Policy>): boolean {
 function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>(
         (policy): policy is Policy =>
-            !!policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id && !!getPolicyRole(policy, currentUserLogin),
+            !!policy &&
+            policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            !!policy.name &&
+            !!policy.id &&
+            !!getPolicyRole(policy, currentUserLogin) &&
+            !isArchivedPolicy(policy),
     );
 }
 
@@ -113,19 +126,13 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
             !!policy.name &&
             !!policy.id &&
             !!getPolicyRole(policy, currentUserLogin) &&
-            (isPaidGroupPolicy(policy) || canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)),
+            (isPaidGroupPolicy(policy) || canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) &&
+            !isArchivedPolicy(policy),
     );
 }
 
 function getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => isPerDiemEnabled(policy) && isControlPolicy(policy));
-}
-
-function getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
-    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => {
-        const perDiemCustomUnit = getPerDiemCustomUnit(policy);
-        return isPerDiemEnabled(policy) && isControlPolicy(policy) && !isEmptyObject(perDiemCustomUnit?.rates);
-    });
 }
 
 function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
@@ -208,6 +215,9 @@ function canMemberRead(policy: OnyxInputOrEntry<Policy>, login: string, feature:
 }
 
 function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature): boolean {
+    if (isArchivedPolicy(policy)) {
+        return false;
+    }
     return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE);
 }
 
@@ -630,7 +640,10 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
  * Note: Using a local ONYXKEYS.NETWORK subscription will cause a delay in
  * updating the screen. Passing the offline status from the component.
  */
-function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePolicy: boolean, currentUserLogin: string | undefined): boolean {
+function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePolicy: boolean, currentUserLogin: string | undefined, includeArchivedPolicy = false): boolean {
+    if (!includeArchivedPolicy && isArchivedPolicy(policy)) {
+        return false;
+    }
     return (
         !!policy?.isJoinRequestPending ||
         (!!policy &&
@@ -917,13 +930,13 @@ function getExcludedUsers(employeeList?: PolicyEmployeeList): Record<string, boo
  * Used for filtering Guide/AM from contact lists while allowing manual entry.
  *
  * @param policy - The policy to get the assigned guide from
- * @param accountManagerAccountID - The account manager's account ID from the account object (string from ONYXKEYS.ACCOUNT)
+ * @param accountManagerAccountID - The account manager's account ID from the account object
  * @param personalDetails - Personal details collection to look up account manager login
  * @returns Object containing extracted emails/logins and exclusions record
  */
 function getGuideAndAccountManagerInfo(
     policy: OnyxEntry<Policy>,
-    accountManagerAccountID: string | undefined,
+    accountManagerAccountID: number | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList>,
 ): {
     assignedGuideEmail: string | undefined;
@@ -931,7 +944,7 @@ function getGuideAndAccountManagerInfo(
     exclusions: Record<string, boolean>;
 } {
     const assignedGuideEmail = policy?.assignedGuide?.email?.toLowerCase();
-    const accountManagerLogin = accountManagerAccountID ? personalDetails?.[Number(accountManagerAccountID)]?.login?.toLowerCase() : undefined;
+    const accountManagerLogin = accountManagerAccountID ? personalDetails?.[accountManagerAccountID]?.login?.toLowerCase() : undefined;
 
     const exclusions: Record<string, boolean> = {};
     if (assignedGuideEmail) {
@@ -997,13 +1010,13 @@ function getExpensifyTeamExclusions(personalDetails: OnyxEntry<PersonalDetailsLi
  * but can still be manually entered by the user.
  *
  * @param policy - The policy to get the assigned guide from
- * @param accountManagerAccountID - The account manager's account ID from the account object (string from ONYXKEYS.ACCOUNT)
+ * @param accountManagerAccountID - The account manager's account ID from the account object
  * @param personalDetails - Personal details collection to look up account manager login
  * @returns Record mapping lowercase emails to true for Guide and Account Manager
  */
 function getSoftExclusionsForGuideAndAccountManager(
     policy: OnyxEntry<Policy>,
-    accountManagerAccountID: string | undefined,
+    accountManagerAccountID: number | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList>,
 ): Record<string, boolean> {
     return getGuideAndAccountManagerInfo(policy, accountManagerAccountID, personalDetails).exclusions;
@@ -1263,11 +1276,18 @@ function getTagGLCode(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTag:
 
             const directMatch = levelTags[tagName];
             const matchingTag = matchesTagAtLevel(directMatch) ? directMatch : Object.values(levelTags).find(matchesTagAtLevel);
-            const glCode = matchingTag?.['GL Code'];
-            return glCode != null ? String(glCode).replaceAll('"', '') : '';
+            return getGLCodeFromPolicyTag(matchingTag);
         })
         .filter(Boolean)
         .join(', ');
+}
+
+/**
+ * Resolves the GL code for a single policy tag object, stripping wrapping quotes from the backend.
+ */
+function getGLCodeFromPolicyTag(tag: {['GL Code']?: string | number} | undefined): string {
+    const glCode = tag?.['GL Code'];
+    return glCode != null ? String(glCode).replaceAll('"', '') : '';
 }
 
 /**
@@ -1372,8 +1392,13 @@ const isPolicyEditor = (policy: OnyxInputOrEntry<Policy>, login?: string): boole
  *
  * `login` enables the per-employee role fallback in `getPolicyRole`, so partially-loaded/summary
  * policies (where `policy.role` isn't populated yet) don't incorrectly route admins/editors away.
+ *
+ * Archived policies are never editable, regardless of role.
  */
 function canEditWorkspaceSettings(policy: OnyxInputOrEntry<Policy>, login?: string): boolean {
+    if (isArchivedPolicy(policy)) {
+        return false;
+    }
     return isPolicyAdmin(policy, login) || (isSubmitPolicy(policy) && isPolicyEditor(policy, login));
 }
 
@@ -1430,16 +1455,16 @@ function isAttendeeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
 /**
  * Whether the policy can access a feature based on plan level.
  * Corporate-only features are restricted to control (Corporate) policies.
+ * Rules are available on Control always, and on Collect only when the rulesRevamp beta is enabled.
  */
-function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
+function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, isRulesRevampEnabled = false): boolean {
     if (!isPaidGroupPolicy(policy)) {
         return false;
     }
-    const corporateOnlyFeatures = new Set<PolicyFeatureName>([
-        CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
-        CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
-        CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
-    ]);
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
+        return isControlPolicy(policy) || (isCollectPolicy(policy) && isRulesRevampEnabled);
+    }
+    const corporateOnlyFeatures = new Set<PolicyFeatureName>([CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]);
     if (corporateOnlyFeatures.has(featureName)) {
         return isControlPolicy(policy);
     }
@@ -1448,6 +1473,23 @@ function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFe
 
 function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM;
+}
+
+/**
+ * Collect workspaces can access a limited subset of Rules features. When a Collect admin tries to
+ * access a Control-only Rules feature, navigate to the upgrade flow and return true.
+ *
+ * @param shouldReplace - Replace the current screen instead of pushing the upgrade page on top of it. Use this when
+ * the redirect happens from the Control-only page itself, so pressing Back doesn't land back on a page Collect
+ * can't use. Press handlers on a page Collect *can* use should keep the default push.
+ */
+function tryNavigateToControlPolicyUpgrade(policy: OnyxEntry<Policy>, upgradeFeatureAlias: string, backTo?: string, shouldReplace = false): boolean {
+    if (!policy?.id || isControlPolicy(policy) || !isCollectPolicy(policy)) {
+        return false;
+    }
+
+    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy.id, upgradeFeatureAlias, backTo ?? ROUTES.WORKSPACE_RULES.getRoute(policy.id)), {forceReplace: shouldReplace});
+    return true;
 }
 
 function isTaxTrackingEnabled(
@@ -1627,12 +1669,19 @@ function getAllTaxRatesNamesAndValues(policies: OnyxCollection<Policy>): Record<
 /**
  * Whether the tax rate can be deleted and disabled
  */
-function canEditTaxRate(policy: Policy, taxID: string): boolean {
+function canDisableOrDeleteTaxRate(policy: Policy, taxID: string): boolean {
     return policy.taxRates?.defaultExternalID !== taxID && policy.taxRates?.foreignTaxDefault !== taxID;
 }
 
-function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
-    if (!isControlPolicy(policy)) {
+/**
+ * @param isRulesRevampEnabled - Prefer `isBetaEnabled(CONST.BETAS.RULES_REVAMP)` from `usePermissions()`, not raw betas from Onyx.
+ * Collect workspaces can only access Rules when this beta is enabled.
+ */
+function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null, isRulesRevampEnabled = false): boolean {
+    if (!isPaidGroupPolicy(policy)) {
+        return false;
+    }
+    if (isCollectPolicy(policy) && !isRulesRevampEnabled) {
         return false;
     }
     if (policy?.areRulesEnabled === true) {
@@ -1641,13 +1690,16 @@ function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: Pol
     if (policy?.areRulesEnabled === false) {
         return false;
     }
-    // areRulesEnabled is undefined - this can happen in case of migrated old policies, in such case users might have set up category rules in Classic and we should show Rules as enabled
+    // areRulesEnabled is undefined - this can happen in case of migrated old Control policies, in such case users might have set up category rules in Classic and we should show Rules as enabled
+    if (!isControlPolicy(policy)) {
+        return false;
+    }
     return hasAnyCategoryRules(policyCategories ?? undefined);
 }
 
-function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, policyCategories?: PolicyCategories | null): boolean {
+function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, policyCategories?: PolicyCategories | null, isRulesRevampEnabled = false): boolean {
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
-        return arePolicyRulesEnabled(policy, policyCategories);
+        return arePolicyRulesEnabled(policy, policyCategories, isRulesRevampEnabled);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
         return !!policy?.tax?.trackingEnabled;
@@ -2957,8 +3009,21 @@ function getRulesDocumentSourceURL(rulesDocumentURL: string | undefined, policyI
     );
 }
 
+/**
+ * Determines whether the tax code was explicitly defined by the user.
+ * Returns `true` only when the `previousTaxCode` field contains a value
+ */
+function isTaxCodeCustomized(taxCode: string | undefined, policy: OnyxEntry<Policy>) {
+    if (!taxCode || !policy) {
+        return false;
+    }
+
+    const currentTaxRate = policy?.taxRates?.taxes?.[taxCode];
+    return !!currentTaxRate && !!currentTaxRate.previousTaxCode;
+}
+
 export {
-    canEditTaxRate,
+    canDisableOrDeleteTaxRate,
     canPolicyAccessFeature,
     escapeTagName,
     getActivePolicies,
@@ -3039,6 +3104,7 @@ export {
     arePolicyRulesEnabled,
     isPolicyFeatureEnabled,
     isPolicyFieldListEmpty,
+    isArchivedPolicy,
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyOwner,
     isPolicyMember,
@@ -3144,6 +3210,7 @@ export {
     hasIndependentTags,
     getLengthOfTag,
     getTagGLCode,
+    getGLCodeFromPolicyTag,
     isPolicyMemberWithoutPendingDelete,
     hasDynamicExternalWorkflow,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
@@ -3151,7 +3218,6 @@ export {
     getTravelStep,
     isWorkspaceProvisionedForTravel,
     isNonUSDPolicy,
-    getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     isDefaultTagName,
     isTimeTrackingEnabled,
     getDefaultTimeTrackingRate,
@@ -3161,11 +3227,13 @@ export {
     isPolicyApprover,
     getPolicyApproverLogins,
     tryNavigateToSubmitWorkspaceUpgrade,
+    tryNavigateToControlPolicyUpgrade,
     canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
     hasAnyPaidPolicy,
+    isTaxCodeCustomized,
     isMergeHRCompleteSetupNeededSelector,
 };
 

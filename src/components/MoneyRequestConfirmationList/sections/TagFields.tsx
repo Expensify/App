@@ -3,12 +3,13 @@ import HighlightableMenuItemWithTopDescription from '@components/HighlightableMe
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
@@ -72,7 +73,7 @@ function TagFields({
                     return;
                 }
 
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, tagIndex, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, tagIndex, transactionID, reportID, reportActionID)));
             }}
             style={[styles.moneyRequestMenuItem]}
             brickRoadIndicator={shouldDisplayTagError && !!displayedTag ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}

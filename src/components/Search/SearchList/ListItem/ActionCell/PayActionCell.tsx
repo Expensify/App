@@ -40,7 +40,7 @@ type PayActionCellProps = {
 
 function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisablePointerEvents, chatReport}: PayActionCellProps) {
     const styles = useThemeStyles();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -69,11 +69,9 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         activePolicy,
         conciergeChat,
         defaultWorkspaceName,
-        nextStep,
         chatReportPolicy,
         delegateAccountID,
     } = useReportPaymentContext({
-        reportID,
         chatReportPolicyID: chatReport?.policyID,
     });
 
@@ -112,10 +110,10 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldUseB2BInvoiceReport ? existingB2BInvoiceReport?.reportID : chatReport?.reportID)}`];
 
             payInvoice({
+                getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: iouReport,
-                invoiceReportCurrentNextStepDeprecated: nextStep,
                 introSelected,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: email ?? '',
@@ -138,11 +136,11 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         }
 
         payMoneyRequest({
+            getCurrencyDecimals,
             paymentType: type,
             chatReport,
             iouReport,
             introSelected,
-            iouReportCurrentNextStepDeprecated: nextStep,
             currentUserAccountID,
             currentUserLogin: currentUserLogin ?? '',
             activePolicy,
@@ -158,6 +156,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID)}`],
             delegateAccountID,
             isTrackIntentUser,
+            conciergeChat,
         });
     };
 
