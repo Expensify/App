@@ -15,10 +15,10 @@ import {
     isValidExpirationDate,
     isValidInputLength,
     isValidLegalName,
-    isValidNANPPhone,
     isValidPastDate,
     isValidPaymentZipCode,
     isValidPersonName,
+    isValidPhoneNumber,
     isValidPIN,
     isValidRegistrationNumber,
     isValidRoomName,
@@ -681,37 +681,33 @@ describe('ValidationUtils', () => {
         });
     });
 
-    describe('isValidNANPPhone', () => {
-        test('Should return true for a standard US phone number', () => {
-            expect(isValidNANPPhone('+12018675309')).toBe(true);
-        });
-
-        test('Should return true for a Puerto Rico phone number', () => {
-            expect(isValidNANPPhone('+17873464732')).toBe(true);
-        });
-
-        test('Should return true for a US Virgin Islands phone number', () => {
-            expect(isValidNANPPhone('+13405551234')).toBe(true);
-        });
-
-        test('Should return true for a Guam phone number', () => {
-            expect(isValidNANPPhone('+16715551234')).toBe(true);
-        });
-
-        test('Should return true for a Northern Mariana Islands phone number', () => {
-            expect(isValidNANPPhone('+16705551234')).toBe(true);
+    describe('isValidPhoneNumber', () => {
+        test('Should return true for a US phone number', () => {
+            expect(isValidPhoneNumber('+12018675309')).toBe(true);
         });
 
         test('Should return true for a Canadian phone number', () => {
-            expect(isValidNANPPhone('+14165551234')).toBe(true);
+            expect(isValidPhoneNumber('+14165551234')).toBe(true);
         });
 
-        test('Should return false for a UK phone number', () => {
-            expect(isValidNANPPhone('+442071234567')).toBe(false);
+        test('Should return true for a UK phone number', () => {
+            expect(isValidPhoneNumber('+442071234567')).toBe(true);
+        });
+
+        test('Should return true for an Australian phone number', () => {
+            expect(isValidPhoneNumber('+61255501234')).toBe(true);
+        });
+
+        test('Should return false for a number that is too short to be possible', () => {
+            expect(isValidPhoneNumber('123')).toBe(false);
+        });
+
+        test('Should return false for letters', () => {
+            expect(isValidPhoneNumber('abcdefg')).toBe(false);
         });
 
         test('Should return false for an empty string', () => {
-            expect(isValidNANPPhone('')).toBe(false);
+            expect(isValidPhoneNumber('')).toBe(false);
         });
     });
 

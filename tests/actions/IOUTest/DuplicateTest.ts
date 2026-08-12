@@ -284,6 +284,82 @@ describe('actions/Duplicate', () => {
             );
         });
 
+        it('threads allReportActionsList into the transaction-thread cleanup instead of relying on the deprecated report-actions cache', async () => {
+            // Given: A duplicate whose transaction thread already has report actions cached in Onyx
+            const reportID = 'report456';
+            const mainTransactionID = 'main456';
+            const duplicate1ID = 'dup999';
+            const childReportID = 'child456';
+
+            const mainTransaction = createMockTransaction(mainTransactionID, reportID);
+            const duplicateTransaction1 = createMockTransaction(duplicate1ID, reportID, 100);
+            const expenseReport = createMockReport(reportID, 200);
+            const mainViolations = createMockViolations();
+            const duplicate1Violations = createMockViolations();
+
+            const iouAction1 = createMockIouAction(duplicate1ID, 'action789', childReportID);
+
+            // The value already cached via the deprecated Onyx.connect-backed report actions accessor —
+            // deliberately different from what's passed via allReportActionsList below.
+            const cachedChildReportActions = {staleComment: createMock<ReportAction>({reportActionID: 'staleComment', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicate1Violations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {action789: iouAction1});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`, cachedChildReportActions);
+            await waitForBatchedUpdates();
+
+            // The value explicitly passed in for the child report's actions, distinct from the cached one above.
+            const passedInChildReportActions = {freshComment: createMock<ReportAction>({reportActionID: 'freshComment', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})};
+
+            // When: Call mergeDuplicates, passing allReportActionsList with a DIFFERENT value for the child report
+            mergeDuplicates({
+                transactionID: mainTransactionID,
+                transactionIDList: [duplicate1ID],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 200,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                taxCode: '',
+                receiptID: 123,
+                reportID,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
+                },
+                allReportActionsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {action789: iouAction1},
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`]: passedInChildReportActions,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Then: The rollback data for the transaction thread restores the PASSED-IN actions, not the stale
+            // cached ones — proving getCleanUpTransactionThreadReportOnyxData used the explicit allReportActionsList slice.
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MERGE_DUPLICATES,
+                expect.anything(),
+                expect.objectContaining({
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
+                            value: passedInChildReportActions,
+                        }),
+                    ]),
+                }),
+            );
+        });
+
         it('should handle empty duplicate transaction list', async () => {
             // Given: Set up test data with only main transaction
             const reportID = 'report123';
@@ -947,6 +1023,7 @@ describe('actions/Duplicate', () => {
                     [duplicate1ID]: childReportID1,
                     [duplicate2ID]: childReportID2,
                 },
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates
@@ -1049,6 +1126,7 @@ describe('actions/Duplicate', () => {
                 receiptID: 123,
                 reportID: 'report123',
                 transactionThreadReportIDMap: {},
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates with undefined transactionID
@@ -1092,6 +1170,7 @@ describe('actions/Duplicate', () => {
                 receiptID: 123,
                 reportID,
                 transactionThreadReportIDMap: {},
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates with empty duplicate list
@@ -1160,6 +1239,7 @@ describe('actions/Duplicate', () => {
                 receiptID: 123,
                 reportID,
                 transactionThreadReportIDMap: {},
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates without matching IOU actions
@@ -1236,6 +1316,7 @@ describe('actions/Duplicate', () => {
                 receiptID: 123,
                 reportID,
                 transactionThreadReportIDMap: {},
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates while the duplicate has no thread
@@ -1315,6 +1396,7 @@ describe('actions/Duplicate', () => {
                 transactionThreadReportIDMap: {
                     [duplicate1ID]: childReportID1,
                 },
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates
@@ -1385,6 +1467,7 @@ describe('actions/Duplicate', () => {
                 transactionThreadReportIDMap: {
                     [duplicate1ID]: childReportID1,
                 },
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates while the kept transaction has no thread
@@ -1467,6 +1550,7 @@ describe('actions/Duplicate', () => {
                 transactionThreadReportIDMap: {
                     [crossReportDuplicateID]: childReportIDCross,
                 },
+                delegateAccountID: undefined,
             };
 
             // When: Call resolveDuplicates with cross-report duplicates
@@ -1581,6 +1665,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1604,6 +1689,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
             });
 
@@ -1649,6 +1735,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockTimeExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1672,6 +1759,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
             });
 
@@ -1709,6 +1797,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockScanExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1732,6 +1821,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
             });
 
@@ -1762,6 +1852,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockScanExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1785,6 +1876,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
             });
 
@@ -1815,6 +1907,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1838,6 +1931,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
             });
 
@@ -1872,6 +1966,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1894,6 +1989,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
             });
 
@@ -1938,6 +2034,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockTimeExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1960,6 +2057,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
             });
 
@@ -1988,6 +2086,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: undefined,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2011,6 +2110,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
             });
 
@@ -2033,6 +2133,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2056,6 +2157,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
             });
 
@@ -2081,6 +2183,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2104,6 +2207,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
             });
 
@@ -2135,6 +2239,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2158,6 +2263,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
             });
 
@@ -2204,6 +2310,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockPerDiemTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2227,6 +2334,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
             });
 
@@ -2274,6 +2382,7 @@ describe('actions/Duplicate', () => {
 
             // When duplicating the transaction
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockTransactionWithLinkedAction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2297,6 +2406,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
             });
 
@@ -2327,6 +2437,7 @@ describe('actions/Duplicate', () => {
 
             // When duplicating the transaction without targetPolicy
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2350,6 +2461,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
             });
 
@@ -2391,6 +2503,7 @@ describe('actions/Duplicate', () => {
 
             // When duplicating the transaction
             duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
                 transaction: mockCashExpense,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2414,6 +2527,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
             });
 
@@ -2443,7 +2557,7 @@ describe('actions/Duplicate', () => {
     describe('resolveDuplicate', () => {
         test('Resolving duplicates of two transaction by keeping one of them should properly set the other one on hold even if the transaction thread reports do not exist in onyx', () => {
             // Given two duplicate transactions
-            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal);
             const transaction1 = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -2472,6 +2586,7 @@ describe('actions/Duplicate', () => {
                         comment: '',
                         participants: [],
                         transactionID: transaction.transactionID,
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
                     }),
                 );
             }
@@ -2502,6 +2617,7 @@ describe('actions/Duplicate', () => {
                         },
                         allTransactionViolations: {},
                         allReportActionsList,
+                        delegateAccountID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2564,6 +2680,7 @@ describe('actions/Duplicate', () => {
         const POLICY_EXPENSE_CHAT_REPORT_ID = 'policyExpenseChatReport';
 
         const getDefaultParams = (sourceTransactions: Transaction[], overrides: Partial<DuplicateReportParams> = {}): DuplicateReportParams => ({
+            dateFnsLocale: undefined,
             sourceReport: undefined,
             sourceReportTransactions: sourceTransactions,
             sourceReportName: 'Original Report',
@@ -3143,6 +3260,7 @@ describe('actions/Duplicate', () => {
             };
 
             bulkDuplicateExpenses({
+                dateFnsLocale: undefined,
                 transactionIDs: ['bulk_1', 'bulk_2', 'bulk_3'],
                 allTransactions,
                 sourcePolicyIDMap: {},
@@ -3165,6 +3283,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
             });
 
@@ -3242,6 +3361,7 @@ describe('actions/Duplicate', () => {
         });
 
         const getDefaultBulkParams = (reportIDs: string[], overrides: Partial<BulkDuplicateReportsParams> = {}): BulkDuplicateReportsParams => ({
+            dateFnsLocale: undefined,
             selectedReports: reportIDs.map((id) => ({
                 reportID: id,
                 policyID: undefined,

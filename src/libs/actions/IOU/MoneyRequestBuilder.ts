@@ -1,9 +1,12 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import type {MinimalTransaction} from '@libs/Formula';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
@@ -194,6 +197,8 @@ type RequestMoneyInformation = {
     shouldDeferAutoSubmit?: boolean;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type MoneyRequestInformationParams = {
@@ -229,6 +234,8 @@ type MoneyRequestInformationParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type MoneyRequestOptimisticParams = {
@@ -284,6 +291,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     /** Whether to skip the `pendingNewTransactionIDs` highlight rail because this flow never opens the expense report */
     shouldSkipReportHighlightRail?: boolean;
     isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type BuildOnyxDataForTestDriveIOUParams = {
@@ -292,6 +300,7 @@ type BuildOnyxDataForTestDriveIOUParams = {
     chatOptimisticParams: MoneyRequestOptimisticParams['chat'];
     testDriveCommentReportActionID?: string;
     currentUserAccountIDParam: number;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 function buildMinimalTransactionForFormula(
@@ -374,6 +383,7 @@ function buildOnyxDataForTestDriveIOU(
         reportActionID: testDriveIOUParams.iouOptimisticParams.action.reportActionID,
         // delegateAccountIDParam: will be threaded in PR 14; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
         delegateAccountIDParam: undefined,
+        getCurrencyDecimals: testDriveIOUParams.getCurrencyDecimals,
     });
     const text = translateLocal('testDrive.employeeInviteMessage', getAllPersonalDetails()?.[testDriveIOUParams.currentUserAccountIDParam]?.firstName ?? '');
     // delegateAccountIDParam: will be threaded in PR 15; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
@@ -447,6 +457,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         selfDMReportID,
         shouldSkipReportHighlightRail,
         isTrackIntentUser,
+        getCurrencyDecimals,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -753,6 +764,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             chatOptimisticParams: chat,
             testDriveCommentReportActionID,
             currentUserAccountIDParam,
+            getCurrencyDecimals,
         });
         onyxData.optimisticData?.push(...testDriveOptimisticData);
         onyxData.successData?.push(...testDriveSuccessData);
@@ -1276,6 +1288,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         betas,
         delegateAccountID,
         isTrackIntentUser,
+        formatPhoneNumber,
+        getCurrencyDecimals,
     } = moneyRequestInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -1406,8 +1420,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                   optimisticIOUReportID: optimisticReportID,
                   reportTransactions,
                   betas,
+                  getCurrencyDecimals,
               })
-            : buildOptimisticIOUReport(payeeAccountID, payerAccountID, reportAmount, chatReport.reportID, currency, undefined, undefined, optimisticReportID);
+            : buildOptimisticIOUReport(payeeAccountID, payerAccountID, reportAmount, chatReport.reportID, currency, getCurrencyDecimals, undefined, undefined, optimisticReportID);
     } else if (isPolicyExpenseChat) {
         // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
         // not the iouReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
@@ -1594,6 +1609,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     }
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
         buildOptimisticMoneyRequestEntities({
+            getCurrencyDecimals,
             iouReport,
             type: iouActionType,
             amount: iouActionAmount,
@@ -1616,9 +1632,18 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
 
     if (reportPreviewAction) {
-        reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
+        reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, false, comment, optimisticTransaction);
     } else {
-        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID, delegateAccountID);
+        reportPreviewAction = buildOptimisticReportPreview(
+            chatReport,
+            iouReport,
+            getCurrencyDecimals,
+            comment,
+            optimisticTransaction,
+            undefined,
+            optimisticReportPreviewActionID,
+            delegateAccountID,
+        );
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
         // Generated ReportPreview action is a parent report action of the iou report.
@@ -1713,6 +1738,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         selfDMReportID,
         shouldSkipReportHighlightRail,
         isTrackIntentUser,
+        getCurrencyDecimals,
     });
 
     return {

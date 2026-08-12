@@ -415,6 +415,7 @@ describe('BaseReportActionContextMenu hold/unhold action', () => {
             currentUserAccountID,
             undefined,
             false,
+            undefined,
         );
     });
 });

@@ -2801,6 +2801,17 @@ const staticStyles = (theme: ThemeColors) =>
             borderBottomWidth: 0,
         },
 
+        // A step past the hover background the surrounding comment uses, so a hovered row stays distinguishable
+        // while the whole comment is also highlighted.
+        htmlTableRowHovered: {
+            backgroundColor: theme.activeComponentBG,
+        },
+
+        htmlTableChevronCell: {
+            width: variables.htmlTableChevronColumnWidth,
+            alignItems: 'flex-end',
+        },
+
         htmlTableCell: {
             // A definite flexBasis with flexShrink: 0 gives every column a fixed width so a wide table keeps its size
             // and can be scrolled horizontally, and columns stay aligned across rows; flexGrow: 1 still lets columns

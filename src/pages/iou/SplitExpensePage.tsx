@@ -88,7 +88,7 @@ const TAB_NAVIGATOR_HEIGHT_LANDSCAPE = variables.tabSelectorButtonHeight + varia
 
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const delegateAccountID = useDelegateAccountID();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
@@ -103,7 +103,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const {currentSearchHash, currentSearchQueryJSON} = useSearchQueryContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
 
-    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
 
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.SPLIT_EXPENSE_TAB_TYPE}`);
     const [draftTransaction, draftTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -368,6 +368,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -399,6 +400,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             isOffline,
             delegateAccountID,
             isTrackIntentUser,
+            formatPhoneNumber,
         });
     };
 
@@ -433,6 +435,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const date = DateUtils.formatWithUTCTimeZone(
             item.created,
             DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+            dateFnsLocale,
         );
         previewHeaderText.unshift({text: date}, dotSeparator);
 

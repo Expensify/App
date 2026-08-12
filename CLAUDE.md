@@ -186,6 +186,7 @@ Key GitHub Actions workflows:
 - **Critical**: All mobile builds originate from this directory
 - Contains platform-specific code for iOS and Android
 - Manages the HybridApp integration layer
+- **Submodule pointer**: bumped automatically by OSBotify on every merge to Mobile-Expensify `main`
 
 ### expensify-common
 
