@@ -93,12 +93,15 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             return;
         }
 
-        if (shouldRecoverFromErrors) {
+        const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        const searchRequest = search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites});
+
+        // search() returns undefined when it declines to send (API prevention, or an identical request
+        // already in flight) and writes nothing, so `errors` survives. Spending the attempt on those would
+        // leave the query stuck for the rest of the mount, which is the state this recovery exists to avoid.
+        if (shouldRecoverFromErrors && searchRequest) {
             hashesWithAttemptedRecoveryRef.current.add(hash);
         }
-
-        const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-        search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites});
     }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isInitialSearchPending, hasRecoverableErrors, currentSearchKey, shouldCalculateTotals]);
 
     useFocusEffect(() => {

@@ -10,7 +10,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type * as ReactNavigation from '@react-navigation/native';
 
-const mockSearch = jest.fn();
+const mockSearch = jest.fn<Promise<undefined> | undefined, unknown[]>();
 let mockSearchResults: SearchResults | undefined;
 // Mutable so a test can move a real effect dependency and force the effect to run again.
 let mockSearchKey: SearchKey | undefined;
@@ -23,10 +23,10 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+// The return value matters: the hook only spends a recovery attempt when search() actually sends,
+// so the mock has to pass it through rather than swallow it.
 jest.mock('@libs/actions/Search', () => ({
-    search: (...args: unknown[]) => {
-        mockSearch(...args);
-    },
+    search: (...args: unknown[]) => mockSearch(...args),
     openSearch: jest.fn(),
 }));
 
@@ -69,6 +69,8 @@ function buildErroredSnapshot(hash: number): SearchResults {
 describe('useSearchPageSetup', () => {
     beforeEach(() => {
         mockSearch.mockClear();
+        // A sent request; search() returns undefined only when it declines to send.
+        mockSearch.mockReturnValue(Promise.resolve(undefined));
         mockSearchResults = undefined;
         mockSearchKey = undefined;
     });
@@ -94,6 +96,21 @@ describe('useSearchPageSetup', () => {
         rerender({});
 
         expect(mockSearch).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the recovery attempt available when search() declines to send', () => {
+        mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
+        // API prevention is on, so search() writes nothing and `errors` survives. Spending the attempt
+        // here would leave the query stuck for the rest of the mount.
+        mockSearch.mockReturnValue(undefined);
+
+        const {rerender} = renderHook(() => useSearchPageSetup(queryJSON));
+
+        mockSearch.mockReturnValue(Promise.resolve(undefined));
+        mockSearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES;
+        rerender({});
+
+        expect(mockSearch).toHaveBeenCalledTimes(2);
     });
 
     it('does not re-request a query the server rejected as malformed', () => {
