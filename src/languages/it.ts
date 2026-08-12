@@ -2047,8 +2047,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar profilo',
         customInstructions: 'Istruzioni personalizzate',
         copilotIntoAccount: "Copilot nell'account",
-        searchThisUser: 'Cerca questo utente',
-        searchThisAgent: 'Cerca questo agente',
+        searchThisUser: 'Visualizza cronologia utente',
+        searchThisAgent: 'Visualizza cronologia agente',
         publicSection: {
             title: 'Pubblico',
             subtitle: 'Questi dettagli vengono visualizzati nel tuo profilo pubblico. Chiunque può vederli.',

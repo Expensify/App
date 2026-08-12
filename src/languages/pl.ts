@@ -2040,8 +2040,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Awatar profilu',
         customInstructions: 'Niestandardowe instrukcje',
         copilotIntoAccount: 'Copilot do konta',
-        searchThisUser: 'Przeszukaj tego użytkownika',
-        searchThisAgent: 'Przeszukaj tego agenta',
+        searchThisUser: 'Zobacz historię użytkownika',
+        searchThisAgent: 'Zobacz historię agenta',
         publicSection: {
             title: 'Public',
             subtitle: 'Te dane są wyświetlane w Twoim publicznym profilu. Każdy może je zobaczyć.',

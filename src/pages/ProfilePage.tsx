@@ -283,6 +283,16 @@ function ProfilePage({route}: ProfilePageProps) {
                                     />
                                 </View>
                             ) : null}
+                            {shouldShowNotificationPreference && (
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={notificationPreference}
+                                    description={translate('notificationPreferencesPage.label')}
+                                    onPress={() => {
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(report.reportID)));
+                                    }}
+                                />
+                            )}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
                         {isCurrentUser && (
@@ -325,16 +335,6 @@ function ProfilePage({route}: ProfilePageProps) {
                                         from: [String(accountID)],
                                     });
                                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
-                                }}
-                            />
-                        )}
-                        {shouldShowNotificationPreference && (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={notificationPreference}
-                                description={translate('notificationPreferencesPage.label')}
-                                onPress={() => {
-                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(report.reportID)));
                                 }}
                             />
                         )}
