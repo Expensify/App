@@ -25,11 +25,11 @@ All sessions are recorded, and all registrants will be emailed a link to the rec
  - **Workspace Administration Training** 1 hour 25 minutes - Tuesday 4pm UTC **[Register here](https://events.zoom.us/ev/Al8VkcxspHX6DHq7HjnTz_xPXIf4A5vFkO5G0ompKWWFBoRXsOfn~Ar-Fy0WyqkXoez6gGuwNS4WPK7yEx6xzllZWDg2IAa8mCjOqsY334z-zVA)**
  - **Company Card Administration Training** 1 hour - Wednesday 3pm UTC **[Register here](https://events.zoom.us/ev/Ag4j3goCMv0siKhbgGi4McVwAqk1chVThYs2fuCT9dEJdPpqXpd-~ArS8snwcrQb7qzXP98cqKy03fxHx8LpazRF34OogXsHy3YpL7LeC84R4sg)**
 
-To watch recordings on demand, see our **[webinar recording library]([url](https://events.zoom.us/evj/AqgMubl35rddCUtmVb6JXinrKvIS3xkoyfTYWoDa6QMrb1_l5ih7%7EA1dLQvAML0MYNyUw-UnzDCKI_Sw))**.
+To watch recordings on demand, see our **[webinar recording library](https://events.zoom.us/evj/AqgMubl35rddCUtmVb6JXinrKvIS3xkoyfTYWoDa6QMrb1_l5ih7%7EA1dLQvAML0MYNyUw-UnzDCKI_Sw)**.
 
 ---
 
-## What You’ll Learn in User Training
+## What you’ll learn in User Training
 
 **Duration:** 55 minutes (45-minute walkthrough + 10-minute Q&A)
 
@@ -45,7 +45,7 @@ You’ll learn how to:
 
 ---
 
-## What You’ll Learn in Workspace Admin Training
+## What you’ll learn in Workspace Administration Training
 
 **Duration:** 1 hour 25 minutes (75-minute walkthrough + 10-minute Q&A)
 
@@ -56,12 +56,12 @@ You’ll learn how to:
  - Understand how to enable and configure workspace features.
  - Navigate the Expensify layout from an admin perspective and understand how to view and interact with expenses
  - Use the contextual **More** button to manage approvals, workflows, and expense-level actions
- - Leverage the **Inbox**, chat, and Concierge AI to monitor activity, communicate with users, and make administrative changes
+ - Leverage the **Inbox**, chat, and Concierge AI to monitor activity, communicate with members, and make administrative changes
  - Understand account settings and support escalation
 
 ---
 
-## What You’ll Learn in Company Card Admin Training
+## What you’ll learn in Company Card Administration Training
 
 **Duration:** 1 hour 15 minutes (65-minute walkthrough + 10-minute Q&A)
 
@@ -74,7 +74,7 @@ You’ll learn how to:
  - Use the card table to quickly view imported card transactions
  - Understand the data import timeline
  - Understand how to use the built-in reports to reconcile company cards
- - Know how to identify company cards vs cash, and troubleshoot basic user issues
+ - Know how to identify company cards vs cash, and troubleshoot basic issues
 
 ---
 
