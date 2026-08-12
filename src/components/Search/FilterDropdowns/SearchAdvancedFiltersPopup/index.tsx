@@ -38,10 +38,14 @@ import ReportFieldFilterContentPopupWrapper from './ReportFieldFilterContentPopu
 import TextInputFilterContentPopupWrapper from './TextInputFilterContentPopupWrapper';
 
 type SearchAdvancedFiltersPopupProps = {
+    /** Query JSON to build the current filter state */
     queryJSON: SearchQueryJSON;
+
+    /** Closes the filters popover overlay */
+    closeOverlay: () => void;
 };
 
-function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps) {
+function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFiltersPopupProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -72,6 +76,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
     };
 
     const handleNLSuccess = (route: Route) => {
+        closeOverlay();
         Navigation.navigate(route);
     };
 
