@@ -5,18 +5,28 @@ import Section from '@components/Section';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getBillableExpensesPendingAction, getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
-import {isAttendeeTrackingEnabled, isCollectPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
+import {
+    getCleanedTagName,
+    getTagLists,
+    hasDependentTags as hasDependentTagsUtil,
+    isAttendeeTrackingEnabled,
+    isCollectPolicy,
+    isMultiLevelTags as isMultiLevelTagsUtil,
+    tryNavigateToControlPolicyUpgrade,
+} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -59,6 +69,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users', 'Eye']);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -116,7 +127,24 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
 
-    const requiredFieldsList = [policy?.requiresCategory && translate('common.category'), policy?.requiresTag && translate('common.tag')].filter(Boolean).join(', ');
+    const tagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
+    const hasPerLevelTagRequired = isMultiLevelTagsUtil(policyTags) && !hasDependentTagsUtil(policy, policyTags);
+
+    // Name the tag lists the way the Require fields page rows do, instead of a generic "Tag".
+    const requiredTagLabels = useMemo(() => {
+        if (hasPerLevelTagRequired) {
+            return tagLists.filter((tagList) => tagList.required).map((tagList) => getCleanedTagName(tagList.name));
+        }
+
+        if (!policy?.requiresTag) {
+            return [];
+        }
+
+        const singleTagListName = tagLists.length === 1 ? getCleanedTagName(tagLists.at(0)?.name ?? '') : '';
+        return [singleTagListName || translate('common.tag')];
+    }, [hasPerLevelTagRequired, policy?.requiresTag, tagLists, translate]);
+
+    const requiredFieldsList = [policy?.requiresCategory && translate('common.category'), ...requiredTagLabels].filter(Boolean).join(', ');
 
     const prohibitedExpensesText = useMemo(() => {
         const prohibitedExpensesList = Object.values(CONST.POLICY.PROHIBITED_EXPENSES)
