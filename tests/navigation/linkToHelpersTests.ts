@@ -121,6 +121,21 @@ describe('getActiveScreenInRoute', () => {
 });
 
 describe('getMatchingFullScreenRouteParams', () => {
+    it('returns the route params when there is no nested route', () => {
+        const route: NavigationPartialRoute = {name: NAVIGATORS.WORKSPACE_NAVIGATOR, params: {policyID: '1'}};
+
+        expect(getMatchingFullScreenRouteParams(route)).toEqual({policyID: '1'});
+    });
+
+    it('omits state when the last route has none', () => {
+        const route: NavigationPartialRoute = {
+            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+            state: {index: 0, routes: [{name: SCREENS.WORKSPACE.INITIAL, params: {policyID: '1'}}]},
+        };
+
+        expect(getMatchingFullScreenRouteParams(route)).toEqual({screen: SCREENS.WORKSPACE.INITIAL, params: {policyID: '1'}});
+    });
+
     it('preserves the nested split state when building an initialized workspace background', () => {
         const splitState = {
             routes: [

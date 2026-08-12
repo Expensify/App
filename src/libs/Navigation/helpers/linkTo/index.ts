@@ -134,7 +134,9 @@ function shouldChangeToMatchingFullScreen(
     return newFocusedRoute?.name === SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD && lastActiveScreen !== SCREENS.SETTINGS.SUBSCRIPTION.ROOT;
 }
 
-function getMatchingFullScreenRouteParams(matchingFullScreenRoute: NavigationPartialRoute) {
+function getMatchingFullScreenRouteParams(
+    matchingFullScreenRoute: NavigationPartialRoute,
+): NavigationPartialRoute['params'] | {screen: string; params: NavigationPartialRoute['params'] | undefined} {
     const lastRoute = matchingFullScreenRoute.state?.routes?.at(-1);
     if (!lastRoute) {
         return matchingFullScreenRoute.params;
