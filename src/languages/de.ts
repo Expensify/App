@@ -6243,7 +6243,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 cardFeedAllowDeletingTransaction: 'Löschen von Transaktionen erlauben',
                 removeCardFeed: 'Kartenfeed entfernen',
                 removeCardFeedTitle: (feedName: string) => `${feedName}-Feed entfernen`,
-                removeCardFeedDescription: 'Möchtest du diesen Kartenfeed wirklich entfernen? Dadurch werden alle Karten zugewiesen.',
+                removeCardFeedDescription:
+                    'Sind Sie sicher, dass Sie diesen Kartenfeed entfernen möchten? Dadurch wird die Zuweisung aller Karten aufgehoben und alle nicht eingereichten Transaktionen werden gelöscht.',
                 error: {
                     feedNameRequired: 'Name des Kartenfeeds ist erforderlich',
                     statementCloseDateRequired: 'Bitte wählen Sie ein Abrechnungsenddatum aus.',

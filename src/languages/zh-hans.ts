@@ -5994,7 +5994,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 cardFeedAllowDeletingTransaction: '允许删除交易',
                 removeCardFeed: '移除卡片流水',
                 removeCardFeedTitle: (feedName: string) => `移除 ${feedName} 数据源`,
-                removeCardFeedDescription: '确定要移除此卡片数据源吗？这将取消分配所有卡片。',
+                removeCardFeedDescription: '确定要移除此卡片流水吗？这将取消分配所有卡片并删除所有未提交的交易。',
                 error: {
                     feedNameRequired: '必须填写卡片流水名称',
                     statementCloseDateRequired: '请选择账单结算日期。',

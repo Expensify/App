@@ -6332,7 +6332,7 @@ const translations = {
                 cardFeedAllowDeletingTransaction: 'Allow deleting transactions',
                 removeCardFeed: 'Remove card feed',
                 removeCardFeedTitle: (feedName: string) => `Remove ${feedName} feed`,
-                removeCardFeedDescription: 'Are you sure you want to remove this card feed? This will unassign all cards.',
+                removeCardFeedDescription: 'Are you sure you want to remove this card feed? This will unassign all cards and delete unsubmitted transactions.',
                 error: {
                     feedNameRequired: 'Card feed name is required',
                     statementCloseDateRequired: 'Please select a statement close date.',

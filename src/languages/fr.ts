@@ -6266,7 +6266,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 cardFeedAllowDeletingTransaction: 'Autoriser la suppression des transactions',
                 removeCardFeed: 'Supprimer le flux de cartes',
                 removeCardFeedTitle: (feedName: string) => `Supprimer le flux ${feedName}`,
-                removeCardFeedDescription: "Voulez-vous vraiment supprimer ce flux de cartes ? Cela retirera l'assignation de toutes les cartes.",
+                removeCardFeedDescription: 'Voulez-vous vraiment supprimer ce flux de cartes ? Cela retirera l’assignation de toutes les cartes et supprimera les transactions non soumises.',
                 error: {
                     feedNameRequired: 'Le nom du flux de carte est obligatoire',
                     statementCloseDateRequired: 'Veuillez sélectionner une date de clôture de relevé.',
