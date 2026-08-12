@@ -12,6 +12,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import type {Card, Policy, Report, ReviewDuplicates, Transaction} from '../../src/types/onyx';
+import type {Routes} from '../../src/types/onyx/Transaction';
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
@@ -517,17 +518,23 @@ describe('TransactionUtils', () => {
             // A manual distance edit used to null out `routes.route0.distance`. That also wipes the alternate routes
             // the Map tab and the footer read from, so the routes are left untouched now and the manually typed value
             // lives only in `customUnit.quantity`.
-            const routes = {
+            const routes: Routes = {
                 route0: {
                     distance: 16093.44,
                     geometry: {
-                        coordinates: [[0, 0] as [number, number], [1, 1] as [number, number]],
+                        coordinates: [
+                            [0, 0],
+                            [1, 1],
+                        ],
                     },
                 },
                 route1: {
                     distance: 19312.13,
                     geometry: {
-                        coordinates: [[0, 0] as [number, number], [2, 2] as [number, number]],
+                        coordinates: [
+                            [0, 0],
+                            [2, 2],
+                        ],
                     },
                 },
             };
@@ -813,11 +820,21 @@ describe('TransactionUtils', () => {
                 routes: {
                     route0: {
                         distance: 16093.44,
-                        geometry: {coordinates: [[0, 0] as [number, number], [1, 1] as [number, number]]},
+                        geometry: {
+                            coordinates: [
+                                [0, 0],
+                                [1, 1],
+                            ],
+                        },
                     },
                     route1: {
                         distance: 32186.88,
-                        geometry: {coordinates: [[0, 0] as [number, number], [2, 2] as [number, number]]},
+                        geometry: {
+                            coordinates: [
+                                [0, 0],
+                                [2, 2],
+                            ],
+                        },
                     },
                 },
                 currency: CONST.CURRENCY.USD,
@@ -4578,9 +4595,9 @@ describe('doesMoneyRequestDraftHaveUserInput', () => {
 });
 
 describe('getSelectedRouteDistance', () => {
-    const routes = {
-        route0: {distance: 1000, geometry: {type: 'LineString' as const, coordinates: [[0, 0] as [number, number]]}},
-        route1: {distance: 1500, geometry: {type: 'LineString' as const, coordinates: [[1, 1] as [number, number]]}},
+    const routes: Routes = {
+        route0: {distance: 1000, geometry: {type: 'LineString', coordinates: [[0, 0]]}},
+        route1: {distance: 1500, geometry: {type: 'LineString', coordinates: [[1, 1]]}},
     };
 
     it('returns the selected route distance in meters when an alternate route is selected', () => {
@@ -4626,9 +4643,9 @@ describe('getSelectedRouteDistance', () => {
 });
 
 describe('getSelectedRouteKey', () => {
-    const routes = {
-        route0: {distance: 1000, geometry: {type: 'LineString' as const, coordinates: [[0, 0] as [number, number]]}},
-        route1: {distance: 1500, geometry: {type: 'LineString' as const, coordinates: [[1, 1] as [number, number]]}},
+    const routes: Routes = {
+        route0: {distance: 1000, geometry: {type: 'LineString', coordinates: [[0, 0]]}},
+        route1: {distance: 1500, geometry: {type: 'LineString', coordinates: [[1, 1]]}},
     };
 
     it('returns the explicitly selected route', () => {
@@ -4668,9 +4685,9 @@ describe('getSelectedRouteKey', () => {
 
 describe('hasManualDistanceOverride', () => {
     // 1 mi = 1609.344 m, so these are exactly 1 mi and 2 mi.
-    const routes = {
-        route0: {distance: 1609.344, geometry: {type: 'LineString' as const, coordinates: [[0, 0] as [number, number]]}},
-        route1: {distance: 3218.688, geometry: {type: 'LineString' as const, coordinates: [[1, 1] as [number, number]]}},
+    const routes: Routes = {
+        route0: {distance: 1609.344, geometry: {type: 'LineString', coordinates: [[0, 0]]}},
+        route1: {distance: 3218.688, geometry: {type: 'LineString', coordinates: [[1, 1]]}},
     };
     const withQuantity = (quantity: number | null, comment: Transaction['comment'] = {}) =>
         generateTransaction({
@@ -4691,7 +4708,7 @@ describe('hasManualDistanceOverride', () => {
         // the same route. The quantity still matches the creation-time distance, so it is not a manual override.
         const transaction = generateTransaction({
             comment: {customUnit: {distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, quantity: 1, routeDistanceMeters: 1609.344}},
-            routes: {route0: {distance: 1625.4, geometry: {type: 'LineString' as const, coordinates: [[0, 0] as [number, number]]}}},
+            routes: {route0: {distance: 1625.4, geometry: {type: 'LineString', coordinates: [[0, 0]]}}},
         });
         expect(TransactionUtils.hasManualDistanceOverride(transaction)).toBe(false);
     });
@@ -4716,9 +4733,9 @@ describe('hasManualDistanceOverride', () => {
 });
 
 describe('getDistanceInMeters', () => {
-    const routes = {
-        route0: {distance: 1000, geometry: {type: 'LineString' as const, coordinates: [[0, 0] as [number, number]]}},
-        route1: {distance: 1500, geometry: {type: 'LineString' as const, coordinates: [[1, 1] as [number, number]]}},
+    const routes: Routes = {
+        route0: {distance: 1000, geometry: {type: 'LineString', coordinates: [[0, 0]]}},
+        route1: {distance: 1500, geometry: {type: 'LineString', coordinates: [[1, 1]]}},
     };
 
     it('returns the selected route distance', () => {

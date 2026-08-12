@@ -539,7 +539,17 @@ describe('IOURequestStepDistance - manual tab follows the recalculated route dis
     const initialRouteMeters = DistanceRequestUtils.convertToDistanceInMeters(100, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
     const distanceTransactionWithRoute = (): Transaction => ({
         ...createDistanceTransaction(),
-        routes: {route0: {distance: initialRouteMeters, geometry: {coordinates: [[0, 0] as const, [1, 1] as const]}}},
+        routes: {
+            route0: {
+                distance: initialRouteMeters,
+                geometry: {
+                    coordinates: [
+                        [0, 0],
+                        [1, 1],
+                    ],
+                },
+            },
+        },
     });
     // `getAllByLabelText` matches both the field label <Text> and the underlying <TextInput>; pick the input.
     const distanceInput = () => screen.getAllByLabelText(/common\.distance/).find((element) => 'value' in element.props)!;
@@ -722,8 +732,8 @@ describe('IOURequestStepDistance - editing the waypoints of an expense with an a
     const geometry = (coordinates: Array<[number, number]>) => ({coordinates});
     const inMiles = (meters: number) => roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(meters, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES));
     const savedRoutes = {
-        route0: {distance: miles(100), geometry: geometry([[0, 0] as [number, number]])},
-        route1: {distance: miles(120), geometry: geometry([[0, 1] as [number, number]])},
+        route0: {distance: miles(100), geometry: geometry([[0, 0]])},
+        route1: {distance: miles(120), geometry: geometry([[0, 1]])},
     };
     // The saved state: original waypoints, the routes they produced, and the given route selected. The BE only echoes
     // the selection as `routeDistanceMeters`, so that is what the saved selection has to be recovered from.

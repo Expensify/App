@@ -126,11 +126,11 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                         zoom: CONST.MAPBOX.DEFAULT_ZOOM,
                         location: waypointMarkers?.at(0)?.coordinate ?? CONST.MAPBOX.DEFAULT_COORDINATE,
                     }}
-                    directionCoordinates={(primaryRoute?.geometry?.coordinates as Array<[number, number]>) ?? []}
+                    directionCoordinates={primaryRoute?.geometry?.coordinates ?? []}
                     alternateDirection={
                         alternateRoute?.geometry?.coordinates && alternateRoute?.distance
                             ? {
-                                  coordinates: (alternateRoute.geometry.coordinates as Array<[number, number]>) ?? [],
+                                  coordinates: alternateRoute.geometry.coordinates,
                                   distanceInMeters: alternateRoute.distance,
                                   isSelected: isAlternateDirectionSelected,
                               }

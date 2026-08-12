@@ -94,7 +94,7 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
                 zoom: CONST.MAPBOX.DEFAULT_ZOOM,
                 location: waypointMarkers?.at(0)?.coordinate ?? CONST.MAPBOX.DEFAULT_COORDINATE,
             }}
-            directionCoordinates={coordinates as Array<[number, number]>}
+            directionCoordinates={coordinates}
             style={[styles.mapView, shouldHaveBorderRadius && styles.br4]}
             waypoints={waypointMarkers}
             styleURL={CONST.MAPBOX.STYLE_URL}

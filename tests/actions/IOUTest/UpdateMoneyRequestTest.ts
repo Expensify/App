@@ -26,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTagLists, RecentlyUsedTags, RecentWaypoint, Report, SearchResults} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+import type {Routes} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -1508,9 +1509,9 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             const parentReportID = 'parentReport_alternate_route';
             const transactionThreadReportID = 'transactionReport_alternate_route';
             const policyID = 'policy_alternate_route';
-            const routes = {
-                route0: {distance: 1000, geometry: {type: 'LineString' as const, coordinates: [[0, 0] as [number, number]]}},
-                route1: {distance: 1500, geometry: {type: 'LineString' as const, coordinates: [[1, 1] as [number, number]]}},
+            const routes: Routes = {
+                route0: {distance: 1000, geometry: {type: 'LineString', coordinates: [[0, 0]]}},
+                route1: {distance: 1500, geometry: {type: 'LineString', coordinates: [[1, 1]]}},
             };
             const waypoints = {
                 waypoint0: {keyForList: 'start', lat: 0, lng: 0, address: 'Start', name: 'Start'},

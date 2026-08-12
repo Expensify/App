@@ -232,10 +232,13 @@ type TransactionCustomUnit = {
 /** Types of geometry */
 type GeometryType = 'LineString';
 
+/** A single `[longitude, latitude]` point */
+type Coordinate = [number, number];
+
 /** Geometry data */
 type Geometry = {
     /** Matrix of points, indexed by their coordinates, GPS trip is represented as a 3 dimensional array to support multiple routes in a single trip */
-    coordinates: number[][] | number[][][] | null;
+    coordinates: Coordinate[] | Coordinate[][] | null;
 
     /** Type of connections between coordinates */
     type?: GeometryType;
