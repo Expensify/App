@@ -56,8 +56,6 @@ type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
     searchResults?: SearchResults;
     isMobileSelectionModeEnabled: boolean;
-    searchRequestResponseStatusCode: number | null;
-    setSearchRequestResponseStatusCode: (statusCode: number | null) => void;
     onSortPressedCallback: () => void;
     /** Overlay rendered above Search content during expense-creation flows (SearchStaticList or null). */
     searchOverlayContent: React.ReactNode;
@@ -75,8 +73,6 @@ function SearchPageNarrow({
     queryJSON,
     searchResults,
     isMobileSelectionModeEnabled,
-    searchRequestResponseStatusCode,
-    setSearchRequestResponseStatusCode,
     onSortPressedCallback,
     searchOverlayContent,
     onSearchContentReady,
@@ -153,17 +149,13 @@ function SearchPageNarrow({
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
-    const handleSearchAction = useCallback(
-        (value: SearchParams | string) => {
-            if (typeof value === 'string') {
-                searchInServer(value);
-            } else {
-                setSearchRequestResponseStatusCode(null);
-                search(value)?.then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
-            }
-        },
-        [setSearchRequestResponseStatusCode],
-    );
+    const handleSearchAction = useCallback((value: SearchParams | string) => {
+        if (typeof value === 'string') {
+            searchInServer(value);
+        } else {
+            search(value);
+        }
+    }, []);
 
     const navigation = useNavigation();
     // When pre-inserted behind the RHP (not focused), always start in static rendering
@@ -237,6 +229,8 @@ function SearchPageNarrow({
     // Use the request state because `isLoading` also covers temporary UI loading that should not keep this bar visible.
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || isSearchPending(searchResults));
     const contentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(hasFilterBars) : undefined;
+
+    const shouldRenderLayoutProbe = (isOverlayActive || !isHeaderInteractive) && !searchOverlayContent;
 
     return (
         <View
@@ -322,13 +316,12 @@ function SearchPageNarrow({
                                         handleSearch={handleSearchAction}
                                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                         onSearchListScroll={scrollHandler}
-                                        searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                                         onDestinationVisible={endSubmitNavigationSpans}
                                         onContentReady={onSearchContentReady}
                                         hasFilterBars={hasFilterBars}
                                     />
                                 )}
-                                {isOverlayActive && !searchOverlayContent && <View onLayout={onSearchLayout} />}
+                                {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
                                 {!!searchOverlayContent && (
                                     <View
                                         style={[StyleSheet.absoluteFill, styles.appBG]}
@@ -342,19 +335,7 @@ function SearchPageNarrow({
                         {!useStaticRendering && (
                             <>
                                 {shouldShowLoadingSkeleton ? (
-                                    <SearchLoadingSkeleton
-                                        containerStyle={styles.searchListContentContainerStyles(hasFilterBars)}
-                                        reasonAttributes={{
-                                            context: 'SearchPage',
-                                            isOffline,
-                                            isDataLoaded,
-                                            isSearchLoading: !!searchResults?.search?.isLoading,
-                                            hasEmptyData: Array.isArray(searchResults?.data) && searchResults?.data.length === 0,
-                                            hasErrors: Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline,
-                                            hasPendingResponse: searchRequestResponseStatusCode === null,
-                                            shouldUseLiveData,
-                                        }}
-                                    />
+                                    <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
                                 ) : (
                                     <SearchWithNavigationDeferredMount
                                         searchResults={searchResults}
@@ -364,13 +345,12 @@ function SearchPageNarrow({
                                         contentContainerStyle={contentContainerStyle}
                                         handleSearch={handleSearchAction}
                                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                        searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                                         onDestinationVisible={endSubmitNavigationSpans}
                                         onContentReady={onSearchContentReady}
                                         hasFilterBars={hasFilterBars}
                                     />
                                 )}
-                                {isOverlayActive && !searchOverlayContent && <View onLayout={onSearchLayout} />}
+                                {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
                                 {!!searchOverlayContent && (
                                     <View
                                         style={[StyleSheet.absoluteFill, styles.appBG]}

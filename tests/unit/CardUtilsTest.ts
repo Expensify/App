@@ -54,7 +54,6 @@ import {
     getSelectedFeed,
     getTranslationKeyForCardStatus,
     getYearFromExpirationDateString,
-    hasActiveExpensifyCardAssigned,
     hasAssignedCardMatching,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
@@ -108,7 +107,7 @@ import * as path from 'path';
 
 import createRandomCard from '../utils/collections/card';
 import createMock from '../utils/createMock';
-import {localeCompare, translateLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const shortDate = '0924';
@@ -2235,56 +2234,6 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('hasActiveExpensifyCardAssigned', () => {
-        const cardholderAccountID = 11;
-
-        it('returns true when the member holds an Expensify Card on the workspace', () => {
-            const cards = createMock<CardList>({
-                '1': {cardID: 1, accountID: cardholderAccountID, bank: CONST.EXPENSIFY_CARD.BANK},
-            });
-            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(true);
-        });
-
-        it('returns false for an undefined card list', () => {
-            expect(hasActiveExpensifyCardAssigned(undefined, cardholderAccountID)).toBe(false);
-        });
-
-        it('returns false when the Expensify Card belongs to another member', () => {
-            const cards = createMock<CardList>({
-                '1': {cardID: 1, accountID: 22, bank: CONST.EXPENSIFY_CARD.BANK},
-            });
-            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
-        });
-
-        it('returns false when the member only holds a company card', () => {
-            const cards = createMock<CardList>({
-                '1': {cardID: 1, accountID: cardholderAccountID, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA},
-            });
-            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
-        });
-
-        it('returns false when the member only holds a travel card', () => {
-            const cards = createMock<CardList>({
-                '1': {cardID: 1, accountID: cardholderAccountID, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US}},
-            });
-            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
-        });
-
-        it('returns false when the Expensify Card is already pending removal', () => {
-            const cards = createMock<CardList>({
-                '1': {cardID: 1, accountID: cardholderAccountID, bank: CONST.EXPENSIFY_CARD.BANK, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-            });
-            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
-        });
-
-        it('skips the cardList bucket of cards still available to assign', () => {
-            const cards = createMock<CardList>({
-                cardList: {'CREDIT CARD...1234': 'encrypted-value'} as Record<string, string>,
-            });
-            expect(hasActiveExpensifyCardAssigned(cards, cardholderAccountID)).toBe(false);
-        });
-    });
-
     describe('forEachAssignedCard', () => {
         const cardsList = createMock<WorkspaceCardsList>({
             '1': {cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN},
@@ -2376,7 +2325,7 @@ describe('CardUtils', () => {
         it('should sort cards by cardholder name in ascending order', () => {
             const policyMembersAccountIDs = [1, 2, 3];
             const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal, formatPhoneNumber);
 
             expect(sortedCards).toHaveLength(3);
             expect(sortedCards.at(0)?.cardID).toBe(2);
@@ -2387,7 +2336,7 @@ describe('CardUtils', () => {
         it('should filter out cards that are not associated with policy members', () => {
             const policyMembersAccountIDs = [1, 2]; // Exclude accountID 3
             const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal, formatPhoneNumber);
 
             expect(sortedCards).toHaveLength(2);
             expect(sortedCards.at(0)?.cardID).toBe(2);
@@ -2397,7 +2346,7 @@ describe('CardUtils', () => {
         it('should handle undefined cardsList', () => {
             const policyMembersAccountIDs = [1, 2, 3];
             const cards = getCardsByCardholderName(undefined, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal, formatPhoneNumber);
 
             expect(sortedCards).toHaveLength(0);
         });
@@ -2405,7 +2354,7 @@ describe('CardUtils', () => {
         it('should handle undefined personalDetails', () => {
             const policyMembersAccountIDs = [1, 2, 3];
             const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, undefined, localeCompare, translateLocal);
+            const sortedCards = sortCardsByCardholderName(cards, undefined, localeCompare, translateLocal, formatPhoneNumber);
 
             expect(sortedCards).toHaveLength(3);
             // All cards should be sorted with default names
@@ -2443,7 +2392,7 @@ describe('CardUtils', () => {
 
             const policyMembersAccountIDs = [1, 2];
             const cards = getCardsByCardholderName(cardsWithMissingAccountID, policyMembersAccountIDs);
-            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails, localeCompare, translateLocal, formatPhoneNumber);
 
             expect(sortedCards).toHaveLength(1);
             expect(sortedCards.at(0)?.cardID).toBe(1);
@@ -2459,7 +2408,7 @@ describe('CardUtils', () => {
             };
 
             // With no personal details available, each cardholder name falls back to translate('common.hidden').
-            sortCardsByCardholderName(cards, undefined, localeCompare, translate);
+            sortCardsByCardholderName(cards, undefined, localeCompare, translate, formatPhoneNumber);
 
             expect(requestedPaths).toContain('common.hidden');
         });
@@ -2474,12 +2423,12 @@ describe('CardUtils', () => {
             // A translate whose hidden value sorts before "Mike" puts the nameless cardholder first.
             const translateHiddenFirst: LocalizedTranslate = (translatePath, ...parameters) =>
                 translatePath === 'common.hidden' ? 'AAA hidden' : translateLocal(translatePath, ...parameters);
-            expect(sortCardsByCardholderName(cards, personalDetailsWithOneKnownUser, localeCompare, translateHiddenFirst).map((card) => card.cardID)).toEqual([2, 1]);
+            expect(sortCardsByCardholderName(cards, personalDetailsWithOneKnownUser, localeCompare, translateHiddenFirst, formatPhoneNumber).map((card) => card.cardID)).toEqual([2, 1]);
 
             // A translate whose hidden value sorts after "Mike" puts the nameless cardholder last.
             const translateHiddenLast: LocalizedTranslate = (translatePath, ...parameters) =>
                 translatePath === 'common.hidden' ? 'zzz hidden' : translateLocal(translatePath, ...parameters);
-            expect(sortCardsByCardholderName(cards, personalDetailsWithOneKnownUser, localeCompare, translateHiddenLast).map((card) => card.cardID)).toEqual([1, 2]);
+            expect(sortCardsByCardholderName(cards, personalDetailsWithOneKnownUser, localeCompare, translateHiddenLast, formatPhoneNumber).map((card) => card.cardID)).toEqual([1, 2]);
         });
     });
 
@@ -4348,8 +4297,8 @@ describe('CardUtils', () => {
         it('returns undefined when validFrom or validThru is missing', () => {
             const translate: LocalizedTranslate = jest.fn();
 
-            expect(getCardHintText(undefined, '2026-02-25 00:00:00', undefined, translate)).toBeUndefined();
-            expect(getCardHintText('2026-02-25 00:00:00', undefined, undefined, translate)).toBeUndefined();
+            expect(getCardHintText(undefined, '2026-02-25 00:00:00', undefined, undefined, translate)).toBeUndefined();
+            expect(getCardHintText('2026-02-25 00:00:00', undefined, undefined, undefined, translate)).toBeUndefined();
             expect(translate).not.toHaveBeenCalled();
         });
 
@@ -4357,7 +4306,7 @@ describe('CardUtils', () => {
             const translate: LocalizedTranslate = jest.fn();
             jest.spyOn(DateUtils, 'formatUTCDateTimeToDateInTimezone').mockReturnValue('');
 
-            expect(getCardHintText('2026-02-01 00:00:00', '2026-02-25 00:00:00', undefined, translate)).toBeUndefined();
+            expect(getCardHintText('2026-02-01 00:00:00', '2026-02-25 00:00:00', undefined, undefined, translate)).toBeUndefined();
             expect(translate).not.toHaveBeenCalled();
         });
 
@@ -4366,7 +4315,7 @@ describe('CardUtils', () => {
             jest.spyOn(DateUtils, 'formatUTCDateTimeToDateInTimezone').mockReturnValue('2026-02-01');
             jest.spyOn(DateUtils, 'formatToReadableString').mockReturnValueOnce('Feb 1, 2026').mockReturnValueOnce('Feb 25, 2026');
 
-            const result = getCardHintText('2026-02-01 00:00:00', '2026-02-25 00:00:00', undefined, translate);
+            const result = getCardHintText('2026-02-01 00:00:00', '2026-02-25 00:00:00', undefined, undefined, translate);
 
             expect(result).toBe('translated');
             expect(translate).toHaveBeenCalledWith('workspace.card.issueNewCard.validFromTo', {startDate: 'Feb 1, 2026', endDate: 'Feb 25, 2026'});

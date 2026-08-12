@@ -259,7 +259,6 @@ describe('CustomFormula', () => {
             expect(result).toBe('{report:unknown}');
         });
 
-        // FormulaContext.policy is OnyxEntry<Policy> (Policy | undefined), so missing-policy fixtures use undefined; null is outside the typed boundary.
         test('should handle missing report data gracefully', () => {
             const contextWithMissingData: FormulaContext = {
                 report: createMock<Report>({}),

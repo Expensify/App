@@ -1,5 +1,4 @@
 import type ReportNameUtils = require('@libs/ReportNameUtils');
-
 import type reportAttributesModuleDefault from '@userActions/OnyxDerived/configs/reportAttributes';
 import {hasPolicyRelevantFieldChanged} from '@userActions/OnyxDerived/configs/reportAttributes';
 
@@ -26,6 +25,7 @@ jest.mock('@libs/ReportUtils', () => ({
         actionTargetReportActionID: undefined,
     })),
     generateIsEmptyReport: jest.fn(() => false),
+    getPendingDeleteMemberAccountIDs: jest.fn(() => []),
     hasVisibleReportFieldViolations: jest.fn(() => false),
     isArchivedReport: jest.fn(() => false),
     isValidReport: jest.fn(() => true),
@@ -169,7 +169,6 @@ describe('reportAttributes compute — policy change code flow', () => {
         config = jest.requireActual<{default: ReportAttributesConfig}>('@userActions/OnyxDerived/configs/reportAttributes').default;
     });
 
-    // Onyx-derived dependency values use undefined for absent entries; null is outside the typed transactions boundary.
     const buildArgs = (overridePolicies?: OnyxCollection<Policy>, overrideReports?: OnyxCollection<Report>, transactionsUpdate?: OnyxCollection<Transaction>) => {
         const args: Parameters<ReportAttributesConfig['compute']>[0] = [
             overrideReports ?? reports, // reports
@@ -590,6 +589,38 @@ describe('reportAttributes compute — policy change code flow', () => {
         expect(result).toEqual(existingValue);
     });
 
+    it('onReset drops the policy baseline so the next compute recomputes referencing reports (cache-clear lifecycle)', () => {
+        // Seed previousPolicies so an unchanged policy would normally narrow to nothing.
+        config.compute(buildArgs(), {
+            currentValue: undefined,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+        });
+
+        // Simulate the engine's clear reset.
+        config.onReset?.();
+
+        const existingValue: ReportAttributesDerivedValue = {
+            reports: {
+                r1: {reportName: 'Stale r1', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+                r2: {reportName: 'Stale r2', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
+            },
+            locale: null,
+        };
+
+        // Same (unchanged) policies as the seed. Without onReset, previousPolicies would match → no recompute →
+        // stale names kept. After onReset the baseline is gone, so hasPolicyRelevantFieldChanged(undefined, policy)
+        // is true and the referencing reports recompute.
+        const result = config.compute(buildArgs(), {
+            currentValue: existingValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+        });
+
+        expect(result?.reports.r1?.reportName).not.toBe('Stale r1');
+        expect(result?.reports.r2?.reportName).not.toBe('Stale r2');
+    });
+
     it('seeds the policy baseline on a non-policy compute so a reference-only policy re-merge is not recomputed', () => {
         // Reproduces OpenSearchPage: policies were restored from disk (never triggering a POLICY compute), then a
         // mergeCollection re-sends them with fresh object references. getCollectionDelta is reference-based, so the
@@ -634,7 +665,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             [`${ONYXKEYS.COLLECTION.REPORT}chat1`]: chatReport,
         };
 
-        // Seed both entries with sentinel names; the mocked computeReportName returns 'Test Report' on any recompute.
+        // Seed both entries with placeholder names; the mocked computeReportName returns 'Test Report' on any recompute.
         const existingValue: ReportAttributesDerivedValue = {
             reports: {
                 expense1: {reportName: 'Old expense name', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},

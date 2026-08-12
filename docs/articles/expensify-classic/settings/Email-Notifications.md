@@ -1,21 +1,21 @@
 ---
 title: Expensify Email Notifications
-description: Troubleshooting steps for receiving emails and notifications from Expensify, including Magic Code login emails and unblock procedures.
-keywords: [Expensify Classic, Email notifications, spam settings, magic code not received, login email missing, cannot sign in, expensify email blocked, expensify login help, email deliverability, spam filter, unblock email]
+description: Troubleshooting steps for receiving emails and notifications from Expensify, including Security Code login emails and unblock procedures.
+keywords: [Expensify Classic, Email notifications, spam settings, security code not received, login email missing, cannot sign in, expensify email blocked, expensify login help, email deliverability, spam filter, unblock email]
 ---
-Occasionally, members may have trouble receiving Email notifications from Expensify, including Magic Code Emails, account validation Emails, contact method validations, integration Emails, or report action notifications.
+Occasionally, members may have trouble receiving Email notifications from Expensify, including Security Code Emails, account validation Emails, contact method validations, integration Emails, or report action notifications.
 
 ---
 
-# Magic Code Login Emails
+# Security Code Login Emails
 
-Magic Code emails are sent when you log in to Expensify and are critical for account access. These emails may be delayed or blocked due to spam filtering, corporate email policies, or server-level blocks. If you choose to or are automatically directed to sign in via SAML/SSO, you will **not** receive a magic code.
+Security Code emails are sent when you log in to Expensify and are critical for account access. These emails may be delayed or blocked due to spam filtering, corporate email policies, or server-level blocks. If you choose to or are automatically directed to sign in via SAML/SSO, you will **not** receive a security code.
 
 ## Quick Fixes for Users
 
-If you're not receiving your Magic Code email:
+If you're not receiving your Security Code email:
 
-1. **Wait up to 10 minutes** - Magic Codes may be delayed due to email processing
+1. **Wait up to 10 minutes** - Security Codes may be delayed due to email processing
 2. **Check spam/junk folders** - Search for emails from "expensify.com" or "concierge@expensify.com"
 3. **Search your entire inbox** for "Expensify" to find filtered messages
 4. **Add concierge@expensify.com to your contacts** to prevent future filtering
@@ -29,7 +29,7 @@ If you're not receiving your Magic Code email:
 
 ## When to Escalate
 
-Contact Expensify Concierge if you've tried the above steps and still can't receive Magic Codes. Include:
+Contact Expensify Concierge if you've tried the above steps and still can't receive Security Codes. Include:
 - Your email domain (e.g., @company.com)
 - Timestamp of your login attempt
 - Any bounce or SMTP error messages you received
@@ -125,15 +125,15 @@ Even if you have received Expensify Emails in the past, confirm that **expensify
 
 # FAQ
 
-## What if I still don't get my Magic Code after following all the steps?
+## What if I still don't get my Security Code after following all the steps?
 
-If you've waited 10+ minutes, checked spam folders, and tried resending but still don't receive your Magic Code:
+If you've waited 10+ minutes, checked spam folders, and tried resending but still don't receive your Security Code:
 
 1. **Try an alternate contact method** if you have one configured in your account settings
 2. **Contact Expensify Concierge** with your email domain and timestamp of the login attempt
 3. **Ask your IT team** to check server logs for blocked messages from expensify.com
 
-## How long should I wait before trying to resend my Magic Code?
+## How long should I wait before trying to resend my Security Code?
 
 - **First retry:** Wait at least 2-3 minutes before requesting a new code
 - **Subsequent retries:** Wait 5-10 minutes between attempts to avoid overwhelming email filters

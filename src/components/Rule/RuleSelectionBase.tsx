@@ -32,6 +32,17 @@ type RuleSelectionBaseProps = {
     /** Test ID for the screen wrapper */
     testID: string;
 
+    /** Callback to go back */
+    onBack: () => void;
+
+    /** Optional hash for rule not found validation */
+    hash?: string;
+
+    /** Page content */
+    children: React.ReactNode;
+};
+
+type RuleSelectionPickerProps = {
     /** The currently selected item */
     selectedItem?: SelectionItem;
 
@@ -41,17 +52,11 @@ type RuleSelectionBaseProps = {
     /** Callback when a value is selected */
     onSave: (value?: string) => void;
 
-    /** Callback to go back */
-    onBack: () => void;
-
     /** The route to navigate back to */
     backToRoute: RuleSelectionBackToRoute;
 
     /** When true, shows a "None" option in the picker */
     allowNoneOption?: boolean;
-
-    /** Optional hash for rule not found validation */
-    hash?: string;
 
     /** Set at parents whose Save is `pressOnEnter` so an auto-save selection can't leave the row re-focused and hijack the next Enter. */
     shouldSkipFocusRestoreOnSave?: boolean;
@@ -61,14 +66,9 @@ function resolveBackToRoute(backToRoute: RuleSelectionBackToRoute, selectedValue
     return typeof backToRoute === 'function' ? backToRoute(selectedValue) : backToRoute;
 }
 
-function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave, onBack, backToRoute, allowNoneOption = true, hash, shouldSkipFocusRestoreOnSave}: RuleSelectionBaseProps) {
+function RuleSelectionBaseComponent({titleKey, title, testID, onBack, hash, children}: RuleSelectionBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
-    const handleSaveSelection = (value?: string) => {
-        onSave(value);
-        Navigation.goBack(resolveBackToRoute(backToRoute, value), {shouldSkipFocusRestore: shouldSkipFocusRestoreOnSave});
-    };
 
     return (
         <RuleNotFoundPageWrapper hash={hash}>
@@ -81,20 +81,33 @@ function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave
                     title={title ?? translate(titleKey)}
                     onBackButtonPress={onBack}
                 />
-                <View style={[styles.flex1]}>
-                    <SearchSingleSelectionPicker
-                        initiallySelectedItem={selectedItem}
-                        items={items}
-                        onSaveSelection={handleSaveSelection}
-                        shouldAutoSave
-                        shouldNavigateOnSave={false}
-                        allowNoneOption={allowNoneOption}
-                        shouldSkipFocusRestoreOnSave={shouldSkipFocusRestoreOnSave}
-                    />
-                </View>
+                <View style={[styles.flex1]}>{children}</View>
             </ScreenWrapper>
         </RuleNotFoundPageWrapper>
     );
 }
+
+function RuleSelectionPicker({selectedItem, items, onSave, backToRoute, allowNoneOption = true, shouldSkipFocusRestoreOnSave}: RuleSelectionPickerProps) {
+    const handleSaveSelection = (value?: string) => {
+        onSave(value);
+        Navigation.goBack(resolveBackToRoute(backToRoute, value), {shouldSkipFocusRestore: shouldSkipFocusRestoreOnSave});
+    };
+
+    return (
+        <SearchSingleSelectionPicker
+            initiallySelectedItem={selectedItem}
+            items={items}
+            onSaveSelection={handleSaveSelection}
+            shouldAutoSave
+            shouldNavigateOnSave={false}
+            allowNoneOption={allowNoneOption}
+            shouldSkipFocusRestoreOnSave={shouldSkipFocusRestoreOnSave}
+        />
+    );
+}
+
+const RuleSelectionBase = Object.assign(RuleSelectionBaseComponent, {
+    Picker: RuleSelectionPicker,
+});
 
 export default RuleSelectionBase;

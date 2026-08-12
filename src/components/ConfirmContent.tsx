@@ -219,12 +219,7 @@ function ConfirmContent({
                             title={title}
                             textStyles={titleStyles}
                         />
-                        {isTitleLoading && (
-                            <ActivityIndicator
-                                size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
-                                reasonAttributes={{context: 'ConfirmContent-titleLoading'}}
-                            />
-                        )}
+                        {isTitleLoading && <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL} />}
                     </View>
                     {shouldEnablePromptScroll ? <ScrollView style={styles.confirmModalPromptScrollable}>{promptContent}</ScrollView> : promptContent}
                 </View>
