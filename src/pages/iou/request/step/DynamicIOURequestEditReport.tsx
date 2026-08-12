@@ -6,6 +6,7 @@ import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsRepo
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -60,6 +61,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const personalPolicy = usePersonalPolicy();
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -121,6 +123,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
+                delegateAccountID,
                 getCurrencyDecimals,
             });
             turnOffMobileSelectionMode();
@@ -148,6 +151,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
+            delegateAccountID,
             getCurrencyDecimals,
         });
         if (shouldTurnOffSelectionMode) {
