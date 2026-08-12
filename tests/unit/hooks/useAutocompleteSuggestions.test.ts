@@ -152,6 +152,20 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current).toEqual([]);
     });
 
+    it('keeps the same empty array reference across renders and hook instances', () => {
+        parseForAutocomplete.mockReturnValue({autocomplete: null, ranges: []});
+
+        // Each render builds a fresh params object, mirroring a parent re-render.
+        const {result: first, rerender} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: ''}));
+        const firstResult = first.current;
+        rerender({});
+
+        const {result: second} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: ''}));
+
+        expect(first.current).toBe(firstResult);
+        expect(second.current).toBe(firstResult);
+    });
+
     it('returns tag suggestions when autocomplete key is tag', () => {
         parseForAutocomplete.mockReturnValue({
             autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, value: 'eng'},

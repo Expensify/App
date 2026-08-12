@@ -26,6 +26,8 @@ type CategoryContextualRule = {
     /** Dynamic route suffix under category settings (keeps Categories underlay on refresh). */
     dynamicRoutePath: DynamicRouteSuffix;
     pendingAction?: PendingAction;
+    /** Optimistically deleted rules stay listed (struck through) but must not be openable. */
+    isDisabled?: boolean;
 };
 
 function getFlagForReviewContextualSummary(
@@ -58,12 +60,15 @@ function getCategoryContextualRules({
     categoryName,
     translate,
     convertToDisplayString,
+    isOffline,
 }: {
     policy: Policy | undefined;
     category: PolicyCategory | undefined;
     categoryName: string;
     translate: LocaleContextProps['translate'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    /** Offline keeps optimistically deleted rules listed so the pending delete is visible. */
+    isOffline: boolean;
 }): CategoryContextualRule[] {
     if (!policy?.id || !category) {
         return [];
@@ -72,25 +77,35 @@ function getCategoryContextualRules({
     const policyCurrency = policy.outputCurrency ?? CONST.CURRENCY.USD;
     const rules: CategoryContextualRule[] = [];
 
+    const flagPendingAction = category.pendingFields?.maxExpenseAmount;
+    const isFlagPendingDelete = flagPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const flagSummary = getFlagForReviewContextualSummary(category, translate, convertToDisplayString, policyCurrency);
-    if (flagSummary) {
+    if (flagSummary && (isOffline || !isFlagPendingDelete)) {
         rules.push({
             key: `flag-for-review-${categoryName}`,
             summary: flagSummary,
             dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_EDIT.path,
-            pendingAction: category.pendingFields?.maxExpenseAmount,
+            pendingAction: flagPendingAction,
+            isDisabled: isFlagPendingDelete,
         });
     }
 
-    if (categoryHasAnyRequireFieldsRule(category)) {
-        const descriptions = getRequireFieldsRuleDescriptionsForCategory(category, translate, convertToDisplayString, policyCurrency);
+    // Mirrors getRequireFieldsTableData: a pending delete keeps the rule listed, and its description has to
+    // include the fields being removed, otherwise the summary comes back empty and the row disappears.
+    const requireFieldsPendingAction = getRequireFieldsPendingActionForCategory(category);
+    const isRequireFieldsPendingDelete = requireFieldsPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const hasRequireFieldsRule = categoryHasAnyRequireFieldsRule(category) || isRequireFieldsPendingDelete;
+
+    if (hasRequireFieldsRule && (isOffline || !isRequireFieldsPendingDelete)) {
+        const descriptions = getRequireFieldsRuleDescriptionsForCategory(category, translate, convertToDisplayString, policyCurrency, isRequireFieldsPendingDelete);
         const summary = formatRequireFieldsRuleDescriptions(descriptions);
         if (summary) {
             rules.push({
                 key: `require-fields-${categoryName}`,
                 summary,
                 dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_REQUIRE_FIELDS_EDIT.path,
-                pendingAction: getRequireFieldsPendingActionForCategory(category),
+                pendingAction: requireFieldsPendingAction,
+                isDisabled: isRequireFieldsPendingDelete,
             });
         }
     }

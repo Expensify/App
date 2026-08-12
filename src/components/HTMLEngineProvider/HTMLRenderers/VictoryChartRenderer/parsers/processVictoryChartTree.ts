@@ -26,6 +26,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
     let categories: ProcessNodeResult['categories'];
     const labelItems: ProcessNodeResult['labelItems'] = [];
     const legendItems: ProcessNodeResult['legendItems'] = [];
+    const pointMetadata: ProcessNodeResult['pointMetadata'] = {};
 
     const parser = PARSER_REGISTRY[tnode.tagName ?? ''];
     if (parser) {
@@ -66,6 +67,9 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         if (result.legendItems) {
             legendItems.push(...result.legendItems);
         }
+        if (result.pointMetadata) {
+            lodashMerge(pointMetadata, result.pointMetadata);
+        }
     }
 
     // If we have `rootProcessedResult` then forward it as is, otherwise we must be the root so pass the data that we just built
@@ -83,6 +87,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         categories,
         labelItems,
         legendItems,
+        pointMetadata,
     };
 
     for (const child of tnode.children) {
@@ -115,6 +120,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         }
         labelItems.push(...childResult.labelItems);
         legendItems.push(...childResult.legendItems);
+        lodashMerge(pointMetadata, childResult.pointMetadata);
     }
 
     return {
@@ -131,6 +137,7 @@ function processVictoryChartTree(tnode: TNode, typeface: SkTypeface | null, root
         categories,
         labelItems,
         legendItems,
+        pointMetadata,
     };
 }
 

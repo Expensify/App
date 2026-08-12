@@ -13,7 +13,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -115,10 +114,7 @@ function BaseLegalNamePage<TFormID extends OnyxFormKey>({
                 />
                 {isLoadingApp ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={{context: 'BaseLegalNamePage', isLoadingApp} satisfies SkeletonSpanReasonAttributes}
-                        />
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                     </View>
                 ) : (
                     <FormProvider

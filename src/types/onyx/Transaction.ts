@@ -212,6 +212,18 @@ type TransactionCustomUnit = {
         /** Custom unit rate */
         rate: number;
     }>;
+
+    /** Distance deducted from quantity by the workspace commuter exclusion, in the same unit as quantity */
+    commuterExclusion?: number;
+
+    /** Reimbursable distance after commuter exclusion: max(0, quantity - commuterExclusion) */
+    reimbursableDistance?: number;
+
+    /** The kind of commute the exclusion represents (R3 — currently unused) */
+    commuterExclusionType?: ValueOf<typeof CONST.POLICY.COMMUTER_EXCLUSION_TYPE>;
+
+    /** How the exclusion was configured on the policy (R1: fixedDistance; R2: homeAndOffice) */
+    commuterExclusionMethod?: ValueOf<typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD>;
 };
 
 /** Types of geometry */
@@ -476,6 +488,9 @@ type SplitShares = Record<number, SplitShare | null>;
 type TransactionCommentVendor = {
     /** External ID of the vendor in the connected accounting system */
     externalID: string;
+
+    /** Display name of the vendor persisted at match/assign time, so the title still renders a human-readable label after the vendor leaves the synced list */
+    name?: string;
 
     /** Whether the vendor was set manually by a user (vs. auto-matched by the fuzzy matcher) */
     isManuallySet: boolean;
