@@ -15,6 +15,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -416,11 +418,11 @@ describe('Spend Search Router navigation source', () => {
         expect(result.current.some((item) => item.keyForList === `spend_${CONST.SEARCH.SAVED_SEARCH_PREFIX}1`)).toBe(false);
 
         const rightElement = result.current.at(0)?.rightElement;
-        expect(isValidElement<{label: string; icon: IconAsset}>(rightElement)).toBe(true);
-        if (!isValidElement<{label: string; icon: IconAsset}>(rightElement)) {
+        expect(isValidElement<{text: string; icon: IconAsset; iconSize: number; showTooltip: boolean}>(rightElement)).toBe(true);
+        if (!isValidElement<{text: string; icon: IconAsset; iconSize: number; showTooltip: boolean}>(rightElement)) {
             throw new Error('Expected Spend navigation context to be a React element');
         }
-        expect(rightElement.props).toMatchObject({text: 'Spend', icon: spendContextIcon, showTooltip: false});
+        expect(rightElement.props).toMatchObject({text: 'Spend', icon: spendContextIcon, iconSize: variables.fontSizeLabel, showTooltip: false});
 
         rerender({shouldWatchForApprovals: true});
         expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(undefined, true);

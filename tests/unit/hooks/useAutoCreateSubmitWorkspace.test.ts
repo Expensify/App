@@ -32,7 +32,8 @@ jest.mock('@hooks/usePreferredPolicy');
 jest.mock('@hooks/useOnboardingMessages');
 
 const mockTranslate: LocalizedTranslate = (path, ...parameters) => {
-    return parameters.length > 0 ? path : path;
+    parameters.some(() => false);
+    return path;
 };
 const mockFormatPhoneNumber = jest.fn((phone: string) => phone);
 

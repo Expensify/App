@@ -21,7 +21,6 @@ import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection'
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
 
@@ -212,17 +211,10 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                 />
             );
         }
-        const activityReasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'BankConnection',
-            isPlaid,
-            isAllFeedsResultLoading,
-            isBlockedToAddNewFeedsWithoutFeed: isBlockedToAddNewFeeds && !feed,
-        };
         return (
             <ActivityIndicator
                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                 style={styles.flex1}
-                reasonAttributes={activityReasonAttributes}
             />
         );
     };

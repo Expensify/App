@@ -15,7 +15,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import CONST from '@src/CONST';
@@ -92,19 +91,17 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
         disableAutoFocus: !autoFocus,
     };
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MultiSelectDataLoading'};
-
     return (
         <ListFilterView
             itemCount={listData.length}
             isSearchable={shouldShowWorkspaceSearchInput}
+            isNegatable
         >
             {isAppLoadPending && !isOffline ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
                         color={theme.spinner}
-                        reasonAttributes={reasonAttributes}
                     />
                 </View>
             ) : (

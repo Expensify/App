@@ -120,51 +120,56 @@ describe('FileUtils', () => {
     });
 
     describe('canvasFallback', () => {
-        type Canvas2DCanvas = Pick<HTMLCanvasElement, 'width' | 'height' | 'toBlob'> & {
-            getContext: (contextId: '2d', options?: CanvasRenderingContext2DSettings) => CanvasRenderingContext2D | null;
-        };
-
-        const mockCreateImageBitmap = jest.fn<ReturnType<typeof createImageBitmap>, Parameters<typeof createImageBitmap>>();
-        const mockGetContext = jest.fn<ReturnType<Canvas2DCanvas['getContext']>, Parameters<Canvas2DCanvas['getContext']>>(() => null);
         const mockCloseImageBitmap = jest.fn<ReturnType<ImageBitmap['close']>, Parameters<ImageBitmap['close']>>();
-        const mockCanvas = createMock<Canvas2DCanvas>({
-            width: 0,
-            height: 0,
-            getContext: mockGetContext,
-            toBlob: () => undefined,
-        });
-        const mockToBlob = jest.spyOn(mockCanvas, 'toBlob');
         const mockCtx = createMock<CanvasRenderingContext2D>({
             drawImage: jest.fn(),
         });
-        const mockCreateElement = jest.fn<Canvas2DCanvas, [tagName: string]>();
-        const mockDocument = {createElement: mockCreateElement} satisfies {createElement: (tagName: string) => Canvas2DCanvas};
-        const mockURL = {
-            createObjectURL: jest.fn<ReturnType<typeof URL.createObjectURL>, Parameters<typeof URL.createObjectURL>>(() => 'blob:mock-url'),
-        } satisfies Pick<typeof URL, 'createObjectURL'>;
+        let mockCanvas2DContext: CanvasRenderingContext2D | null;
+        function mockCanvasGetContext(contextId: '2d', options?: CanvasRenderingContext2DSettings): CanvasRenderingContext2D | null;
+        function mockCanvasGetContext(contextId: 'bitmaprenderer', options?: ImageBitmapRenderingContextSettings): ImageBitmapRenderingContext | null;
+        function mockCanvasGetContext(contextId: 'webgl', options?: WebGLContextAttributes): WebGLRenderingContext | null;
+        function mockCanvasGetContext(contextId: 'webgl2', options?: WebGLContextAttributes): WebGL2RenderingContext | null;
+        function mockCanvasGetContext(contextId: Parameters<HTMLCanvasElement['getContext']>[0]): GPUCanvasContext | null;
+        function mockCanvasGetContext(contextId: string, options?: unknown): RenderingContext | null;
+        function mockCanvasGetContext(contextId: string): RenderingContext | GPUCanvasContext | null {
+            return contextId === '2d' ? mockCanvas2DContext : null;
+        }
+        const productionGetContext: HTMLCanvasElement['getContext'] = mockCanvasGetContext;
+        const mockCanvas = createMock<HTMLCanvasElement>({
+            width: 0,
+            height: 0,
+            getContext: productionGetContext,
+            toBlob: () => undefined,
+        });
+        let mockImageBitmap: ImageBitmap;
+        let mockToBlob: jest.SpiedFunction<HTMLCanvasElement['toBlob']>;
+        let mockCreateElement: jest.SpiedFunction<Document['createElement']>;
+        let mockCreateObjectURL: jest.SpiedFunction<typeof URL.createObjectURL>;
+        const mockCreateImageBitmap: typeof globalThis.createImageBitmap = () => Promise.resolve(mockImageBitmap);
 
         beforeEach(() => {
             jest.clearAllMocks();
 
-            Object.defineProperty(globalThis, 'createImageBitmap', {configurable: true, enumerable: true, value: mockCreateImageBitmap, writable: true});
-            Object.defineProperty(globalThis, 'document', {configurable: true, enumerable: true, value: mockDocument, writable: true});
-            Object.defineProperty(globalThis, 'URL', {configurable: true, enumerable: true, value: mockURL, writable: true});
+            mockCanvas.width = 0;
+            mockCanvas.height = 0;
+            mockCanvas2DContext = mockCtx;
+            mockImageBitmap = createMock<ImageBitmap>({
+                width: 1000,
+                height: 800,
+                close: mockCloseImageBitmap,
+            });
 
-            mockCreateElement.mockReturnValue(mockCanvas);
-            mockGetContext.mockImplementation(() => mockCtx);
-            mockCreateImageBitmap.mockResolvedValue(
-                createMock<Awaited<ReturnType<typeof createImageBitmap>>>({
-                    width: 1000,
-                    height: 800,
-                    close: mockCloseImageBitmap,
-                }),
-            );
+            mockToBlob = jest.spyOn(mockCanvas, 'toBlob');
+            mockCreateElement = jest.spyOn(document, 'createElement').mockReturnValue(mockCanvas);
+            mockCreateObjectURL = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
+            globalThis.createImageBitmap = mockCreateImageBitmap;
         });
 
         afterEach(() => {
+            mockToBlob.mockRestore();
+            mockCreateElement.mockRestore();
+            mockCreateObjectURL.mockRestore();
             Reflect.deleteProperty(globalThis, 'createImageBitmap');
-            Reflect.deleteProperty(globalThis, 'document');
-            Reflect.deleteProperty(globalThis, 'URL');
         });
 
         it('should reject when createImageBitmap is undefined', async () => {
@@ -190,8 +195,7 @@ describe('FileUtils', () => {
 
         it('should scale down large images', async () => {
             const blob = new Blob(['test'], {type: 'image/heic'});
-            const mockImageBitmap = createMock<Awaited<ReturnType<typeof createImageBitmap>>>({width: 8192, height: 4000, close: mockCloseImageBitmap});
-            mockCreateImageBitmap.mockResolvedValue(mockImageBitmap);
+            mockImageBitmap = createMock<ImageBitmap>({width: 8192, height: 4000, close: mockCloseImageBitmap});
 
             const mockBlob = new Blob(['converted'], {type: 'image/jpeg'});
             mockToBlob.mockImplementation((callback: (blob: Blob | null) => void) => callback(mockBlob));
@@ -204,7 +208,7 @@ describe('FileUtils', () => {
 
         it('should reject when canvas context is null', async () => {
             const blob = new Blob(['test'], {type: 'image/heic'});
-            mockGetContext.mockReturnValue(null);
+            mockCanvas2DContext = null;
 
             await expect(canvasFallback(blob, 'test.heic')).rejects.toThrow('Could not get canvas context');
         });
@@ -502,7 +506,8 @@ describe('FileUtils', () => {
 
     describe('getFileValidationErrorText', () => {
         const mockTranslate: LocaleContextProps['translate'] = (path, ...parameters) => {
-            return parameters.length > 0 ? path : path;
+            parameters.some(() => false);
+            return path;
         };
 
         it('should return correct error text for IMAGE_DIMENSIONS_TOO_LARGE', () => {

@@ -15,7 +15,6 @@ import {openSubscriptionPage} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -51,8 +50,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     }, [isAppLoading, shouldShowPage]);
 
     if (!shouldShowPage && isAppLoading) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SubscriptionSettingsPage', isAppLoading: !!isAppLoading, shouldShowPage};
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     if (!shouldShowPage) {

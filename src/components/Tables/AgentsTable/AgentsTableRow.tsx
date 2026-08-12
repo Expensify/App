@@ -1,13 +1,13 @@
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {TableRow} from '@components/Table';
 import Table from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -34,9 +34,10 @@ type AgentsTableRowProps = {
 export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: AgentsTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const styleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'ChatBubble']);
+
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const isPendingDeletion = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -44,11 +45,6 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
     const areActionsDisabled = isPendingAddOrDelete || item.accountID <= 0 || !item.login;
     const accessibilityLabel = [item.displayName, item.login].filter(Boolean).join(', ');
     const selectedButtonInnerStyle = item.selected ? styles.buttonDefaultHovered : undefined;
-
-    const getSecondaryAvatarContainerStyle = (hovered: boolean) => [
-        styleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-        hovered ? styleUtils.getBackgroundAndBorderStyle(styles.sidebarLinkHover?.backgroundColor ?? theme.sidebar) : undefined,
-    ];
 
     return (
         <Table.Row
@@ -67,13 +63,14 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
         >
             {({hovered}) => (
                 <>
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                        <ReportActionAvatars
+                    <View
+                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
+                        <AccountAvatar
                             size={avatarSize}
-                            accountIDs={[item.accountID]}
+                            accountID={item.accountID}
                             fallbackDisplayName={item.displayName}
-                            shouldShowTooltip
-                            secondaryAvatarContainerStyle={getSecondaryAvatarContainerStyle(!!hovered)}
                         />
                         <View style={[shouldUseNarrowTableLayout && styles.gap1, styles.flex1]}>
                             <TextWithTooltip
@@ -89,7 +86,10 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                         </View>
                     </View>
 
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}>
+                    <View
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
                         {!shouldUseNarrowTableLayout && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                 <Button

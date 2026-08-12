@@ -31,6 +31,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -38,10 +39,10 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const WORKSPACE_ACCOUNT_ID = 5678;
 
 // Commercial feed (VCF) - has encrypted card numbers
-const COMMERCIAL_FEED = `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#${WORKSPACE_ACCOUNT_ID}` as CompanyCardFeedWithDomainID;
+const COMMERCIAL_FEED: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#${WORKSPACE_ACCOUNT_ID}`;
 
 // Direct feed (Plaid) - card name equals card ID
-const DIRECT_FEED = `plaid.ins_123#${WORKSPACE_ACCOUNT_ID}` as CompanyCardFeedWithDomainID;
+const DIRECT_FEED = `plaid.ins_123#${WORKSPACE_ACCOUNT_ID}`;
 
 const CARD_ID = '1234';
 
@@ -143,6 +144,14 @@ const renderConfirmationStep = (initialParams: SettingsNavigatorParamList[typeof
     );
 };
 
+const renderDirectConfirmationStep = (policyID: string) =>
+    renderConfirmationStep({
+        policyID,
+        // @ts-expect-error -- Plaid feed identifiers are accepted at runtime but are not represented by the company-feed union.
+        feed: DIRECT_FEED,
+        cardID: CARD_ID,
+    });
+
 /**
  * Creates mock assign card data for testing.
  *
@@ -164,18 +173,22 @@ const createMockAssignCardData = (options: {feedType: 'commercial' | 'direct'; e
     // For direct feeds, encryptedCardNumber equals the card name
     // cspell:disable-next-line
     const encryptedCardNumber = feedType === 'commercial' ? 'v12:74E3CA3C4C0FA02FDCF754FDSFDSF' : 'Plaid Checking 0000';
-    const bankName: CompanyCardFeed = feedType === 'commercial' ? CONST.COMPANY_CARD.FEED_BANK_NAME.VISA : ('plaid.ins_123' as CompanyCardFeed);
+    // The assignment flow accepts dynamic Plaid feed names at runtime, but the company-feed model only enumerates known feeds.
+    // @ts-expect-error -- This is the deliberate runtime Plaid-vs-model boundary covered by the direct-feed scenarios below.
+    const directFeedName: CompanyCardFeed = 'plaid.ins_123';
+    const bankName: CompanyCardFeed = feedType === 'commercial' ? CONST.COMPANY_CARD.FEED_BANK_NAME.VISA : directFeedName;
+    const commonCardToAssign = {
+        bankName,
+        email,
+        cardName,
+        customCardName,
+        encryptedCardNumber,
+        dateOption: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
+        startDate: '2024-12-27',
+    };
 
     return {
-        cardToAssign: {
-            bankName,
-            email,
-            cardName,
-            customCardName,
-            encryptedCardNumber,
-            dateOption: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
-            startDate: '2024-12-27',
-        },
+        cardToAssign: commonCardToAssign,
         currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
         isEditing: false,
     };
@@ -191,10 +204,11 @@ describe('AssignCardFeed', () => {
 
     beforeEach(() => {
         // Mock the useResponsiveLayout hook to control layout behavior in tests.
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
+        const wideLayout = createMock<ResponsiveLayoutResult>({
             isSmallScreenWidth: false,
             shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+        });
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(wideLayout);
     });
 
     afterEach(async () => {
@@ -415,11 +429,7 @@ describe('AssignCardFeed', () => {
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, createMockAssignCardData({feedType: 'direct'}));
             });
 
-            const {unmount} = renderConfirmationStep({
-                policyID: policy.id,
-                feed: DIRECT_FEED,
-                cardID: CARD_ID,
-            });
+            const {unmount} = renderDirectConfirmationStep(policy.id);
 
             await waitForBatchedUpdatesWithAct();
 
@@ -447,11 +457,7 @@ describe('AssignCardFeed', () => {
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, createMockAssignCardData({feedType: 'direct', cardName}));
             });
 
-            const {unmount} = renderConfirmationStep({
-                policyID: policy.id,
-                feed: DIRECT_FEED,
-                cardID: CARD_ID,
-            });
+            const {unmount} = renderDirectConfirmationStep(policy.id);
 
             await waitForBatchedUpdatesWithAct();
 
@@ -524,11 +530,7 @@ describe('AssignCardFeed', () => {
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, mockData);
             });
 
-            const {unmount} = renderConfirmationStep({
-                policyID: policy.id,
-                feed: DIRECT_FEED,
-                cardID: CARD_ID,
-            });
+            const {unmount} = renderDirectConfirmationStep(policy.id);
 
             await waitForBatchedUpdatesWithAct();
 

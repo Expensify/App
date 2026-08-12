@@ -276,7 +276,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                     title={getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber, translate})}
                                     iconAccountID={report.managerID}
                                     iconType={CONST.ICON_TYPE_AVATAR}
-                                    avatarSize={CONST.AVATAR_SIZE.SMALLER}
+                                    avatarSize={CONST.AVATAR_SIZE.X_SMALL}
                                     titleStyle={styles.assigneeTextStyle}
                                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_ASSIGNEE.path))}
                                     shouldShowRightIcon={!isDisableInteractive}

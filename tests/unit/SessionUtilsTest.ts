@@ -1,4 +1,4 @@
-import {checkIfShouldUseNewPartnerName, isAgentEmail, isLoggingInAsDelegate} from '@src/libs/SessionUtils';
+import {checkIfShouldUseNewPartnerName, getPartnerCredentials, isAgentEmail, isLoggingInAsDelegate} from '@src/libs/SessionUtils';
 
 function mockHybridAppConfig(isHybridApp: boolean): () => void {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -30,6 +30,7 @@ describe('SessionUtils', () => {
     describe('isAgentEmail', () => {
         test.each([
             ['matches valid agent email', 'agent_123@expensify.ai', true],
+            ['matches name-based agent email', 'testbot_12345678@expensify.ai', true],
             ['matches agent email with multiple digits', 'agent_9999999@expensify.ai', true],
             ['returns false for non-agent email', 'user@expensify.com', false],
             ['returns false for non-agent expensify.ai email', 'user@expensify.ai', false],
@@ -37,7 +38,7 @@ describe('SessionUtils', () => {
             ['returns false for agent prefix without digits', 'agent_@expensify.ai', false],
             ['returns false for empty string', '', false],
             ['returns false for undefined', undefined, false],
-            ['returns false when agent pattern has extra prefix', 'prefix_agent_123@expensify.ai', false],
+            ['returns false when agent name contains an underscore', 'prefix_agent_123@expensify.ai', false],
             ['returns false when agent pattern has extra suffix', 'agent_123@expensify.ai.evil.com', false],
         ])('%s', (_description, email, expectedResult) => {
             expect(isAgentEmail(email)).toBe(expectedResult);
@@ -66,6 +67,30 @@ describe('SessionUtils', () => {
             ['should be case sensitive for expensify.cash- prefix when in HybridApp', true, 'EXPENSIFY.CASH-12345', false],
         ])('%s', (description, isHybridApp, partnerUserID, expectedResult) => {
             testPartnerNameBehavior(isHybridApp, partnerUserID, expectedResult);
+        });
+    });
+
+    describe('getPartnerCredentials', () => {
+        test.each([
+            ['should return new partner credentials when not in HybridApp', false, 'any-user-id'],
+            ['should return new partner credentials for expensify.cash- prefix when in HybridApp', true, 'expensify.cash-12345'],
+            ['should return legacy partner credentials for legacy partnerUserID when in HybridApp', true, 'legacy-user-12345'],
+        ])('%s', (_description, isHybridApp, partnerUserID) => {
+            const cleanup = mockHybridAppConfig(isHybridApp);
+
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                const CONFIG = require('@src/CONFIG');
+                const useNewPartnerName = checkIfShouldUseNewPartnerName(partnerUserID);
+                const {partnerName, partnerPassword} = getPartnerCredentials(partnerUserID);
+
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                expect(partnerName).toBe(useNewPartnerName ? CONFIG.default.EXPENSIFY.PARTNER_NAME : CONFIG.default.EXPENSIFY.LEGACY_PARTNER_NAME);
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                expect(partnerPassword).toBe(useNewPartnerName ? CONFIG.default.EXPENSIFY.PARTNER_PASSWORD : CONFIG.default.EXPENSIFY.LEGACY_PARTNER_PASSWORD);
+            } finally {
+                cleanup();
+            }
         });
     });
 

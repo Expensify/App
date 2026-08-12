@@ -164,6 +164,12 @@ describe('ReportActions (orchestrator)', () => {
         expect(mockMoneyRequestList).not.toHaveBeenCalled();
     });
 
+    it('passes report pending state to transaction readiness', () => {
+        render(<ReportActions />);
+
+        expect(mockShouldWaitForTransactions).toHaveBeenLastCalledWith(mockReport, [], expect.objectContaining({hasOnceLoadedReportActions: true}), false, false);
+    });
+
     it('renders the money-request table view for a money-request report', () => {
         mockIsMoneyRequestReport.mockReturnValue(true);
         mockShouldDisplayReportTableView.mockReturnValue(true);
