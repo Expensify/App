@@ -149,7 +149,7 @@ async function run() {
             core.endGroup();
 
             const similarityPercentage = parsedDuplicateCheckResponse?.similarity ?? 0;
-            if (parsedDuplicateCheckResponse?.action === CONST.ACTION_HIDE_DUPLICATE && similarityPercentage >= 90) {
+            if (parsedDuplicateCheckResponse?.action === CONST.ACTION_HIDE_DUPLICATE && similarityPercentage >= 85) {
                 console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
                 // Sanity-check the model's reported duplicateCommentId against the real comment list before trusting it for the notice link
                 const originalProposal = commentsResponse.find(
