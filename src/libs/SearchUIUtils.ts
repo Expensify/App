@@ -1894,8 +1894,9 @@ function createPreprocessingContext(): PreprocessingContext {
  * Indexes report actions by building the latest-export map, money-request lookup,
  * hold-action lookup, and year-created flag from action dates.
  */
-function processReportActionEntry(ctx: PreprocessingContext, key: string, actions: Record<string, OnyxTypes.ReportAction>): void {
+function processReportActionEntry(ctx: PreprocessingContext, key: string, actions: Record<string, OnyxTypes.ReportAction>, data: OnyxTypes.SearchResults['data']): void {
     const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+    const reportOwnerAccountID = data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.ownerAccountID;
 
     let latestExportTime = -Infinity;
     let latestExportAction: OnyxTypes.ReportAction | undefined;
@@ -1938,10 +1939,13 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
             action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED ||
             action.actionName === CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION
         ) {
-            const currentTime = new Date(action.created).getTime();
-            if (currentTime > lastReimbursedTime) {
-                lastReimbursedTime = currentTime;
-                lastReimbursedAction = action;
+            // A payment action from the report owner is a receipt confirmation, not a payment, matching the backend
+            if (action.actorAccountID !== reportOwnerAccountID) {
+                const currentTime = new Date(action.created).getTime();
+                if (currentTime > lastReimbursedTime) {
+                    lastReimbursedTime = currentTime;
+                    lastReimbursedAction = action;
+                }
             }
         }
 
@@ -2118,7 +2122,7 @@ function classifyAndPreprocess(data: OnyxTypes.SearchResults['data']): Omit<Prep
 
     for (const key of Object.keys(data)) {
         if (isReportActionEntry(key)) {
-            processReportActionEntry(ctx, key, data[key]);
+            processReportActionEntry(ctx, key, data[key], data);
         } else if (isReportEntry(key)) {
             ctx.reportKeys.push(key);
             processReportEntry(ctx, data[key]);
