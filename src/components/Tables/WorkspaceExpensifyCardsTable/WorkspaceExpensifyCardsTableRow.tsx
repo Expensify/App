@@ -1,4 +1,4 @@
-import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Icon from '@components/Icon';
 import {useSession} from '@components/OnyxListItemProvider';
 import Table from '@components/Table';
@@ -108,10 +108,10 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                         style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        <AccountAvatar
+                        <UserAvatar
+                            source={item.cardholder?.avatar}
                             accountID={item.cardholder?.accountID ?? CONST.DEFAULT_NUMBER_ID}
                             size={avatarSize}
-                            fallbackDisplayName={cardholderName}
                         />
                         <View style={[styles.flex1, shouldUseNarrowTableLayout && styles.gap1]}>
                             <TextWithTooltip

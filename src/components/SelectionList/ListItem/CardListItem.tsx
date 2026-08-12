@@ -90,6 +90,7 @@ function CardListItem<TItem extends ListItem>({
                                     <AccountAvatar
                                         accountID={item.cardOwnerPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
                                         fallbackDisplayName={item.cardOwnerPersonalDetails?.displayName}
+                                        containerStyle={[]}
                                     />
                                 </AvatarTooltipsProvider>
                                 <View style={[styles.cardItemSecondaryIconStyle, StyleUtils.getBorderColorStyle(theme.componentBG)]}>

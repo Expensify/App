@@ -12,9 +12,9 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
-import AccountAvatar from './Avatar/connected/AccountAvatar';
-import {AvatarTooltipsProvider} from './Avatar/tooltips/AvatarTooltipContext';
+import UserAvatar from './Avatar/UserAvatar';
 import Button from './Button';
+import {usePersonalDetails} from './OnyxListItemProvider';
 import Text from './Text';
 
 type BookCallButtonProps = {
@@ -35,6 +35,8 @@ function BookCallButton({calendarLink, avatarAccountID, isNested = false, style}
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Phone']);
+    const personalDetails = usePersonalDetails();
+    const avatarDetails = avatarAccountID ? personalDetails?.[avatarAccountID] : undefined;
 
     if (!calendarLink) {
         return null;
@@ -64,12 +66,12 @@ function BookCallButton({calendarLink, avatarAccountID, isNested = false, style}
     return (
         <Button {...commonProps}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2]}>
-                <AvatarTooltipsProvider isEnabled={false}>
-                    <AccountAvatar
-                        accountID={avatarAccountID}
-                        size={CONST.AVATAR_SIZE.XXX_SMALL}
-                    />
-                </AvatarTooltipsProvider>
+                <UserAvatar
+                    accountID={avatarAccountID}
+                    source={avatarDetails?.avatar}
+                    fallbackIcon={avatarDetails?.fallbackIcon}
+                    size={CONST.AVATAR_SIZE.XXX_SMALL}
+                />
                 <Text style={[styles.buttonText, styles.buttonMediumText]}>{label}</Text>
             </View>
         </Button>

@@ -1,5 +1,4 @@
-import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
-import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
 import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -131,6 +130,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const member = policy?.employeeList?.[memberLogin];
     const prevMember = usePrevious(member);
     const details = memberPersonalDetails ?? ({} as PersonalDetails);
+    const fallbackIcon = details.fallbackIcon ?? '';
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
     const isSelectedMemberOwner = policy?.owner === details.login;
     const isSelectedMemberCurrentUser = accountID === currentUserAccountID;
@@ -332,13 +332,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
-                                <AvatarTooltipsProvider isEnabled={false}>
-                                    <AccountAvatar
-                                        containerStyle={[styles.mb4, styles.noOutline]}
-                                        accountID={accountID}
-                                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                                    />
-                                </AvatarTooltipsProvider>
+                                <UserAvatar
+                                    containerStyles={[styles.mb4, styles.noOutline]}
+                                    source={details.avatar}
+                                    accountID={accountID}
+                                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                                    fallbackIcon={fallbackIcon}
+                                />
                             </OfflineWithFeedback>
                             {!!(details.displayName ?? '') && (
                                 <Text

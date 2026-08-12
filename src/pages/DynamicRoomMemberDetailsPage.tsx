@@ -1,5 +1,4 @@
-import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
-import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -57,6 +56,7 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
     const accountID = Number(route.params.accountID);
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
+    const fallbackIcon = details.fallbackIcon ?? '';
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const isSelectedMemberOwner = accountID === report.ownerAccountID;
@@ -83,13 +83,13 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
             />
             <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                 <View style={[styles.avatarSectionWrapper, styles.pb0]}>
-                    <AvatarTooltipsProvider isEnabled={false}>
-                        <AccountAvatar
-                            containerStyle={[styles.mv5, styles.noOutline]}
-                            accountID={accountID}
-                            size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                        />
-                    </AvatarTooltipsProvider>
+                    <UserAvatar
+                        containerStyles={[styles.mv5, styles.noOutline]}
+                        source={details.avatar}
+                        accountID={accountID}
+                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                        fallbackIcon={fallbackIcon}
+                    />
                     {!!(details.displayName ?? '') && (
                         <Text
                             style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}

@@ -51,14 +51,12 @@ function AgentTemplateCard({template, avatarID, onAdd}: AgentTemplateCardProps) 
     return (
         <View style={[styles.highlightBG, styles.borderRadiusComponentLarge, styles.p5, styles.mb3]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                {!!avatar && (
-                    <Icon
-                        src={avatar}
-                        width={avatarSize}
-                        height={avatarSize}
-                        additionalStyles={StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)}
-                    />
-                )}
+                <Icon
+                    src={avatar}
+                    width={avatarSize}
+                    height={avatarSize}
+                    additionalStyles={StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)}
+                />
                 <View style={[styles.flex1, styles.gapHalf]}>
                     <Text style={[styles.textStrong]}>{template.name}</Text>
                     <Text style={[styles.textLabelSupporting, styles.lh16]}>{translate('newAgentPage.role')}</Text>

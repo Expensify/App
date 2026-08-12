@@ -1,5 +1,4 @@
-import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
-import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -73,13 +72,13 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <OfflineWithFeedback pendingAction={personalDetails?.pendingFields?.avatar}>
-                                <AvatarTooltipsProvider isEnabled={false}>
-                                    <AccountAvatar
-                                        containerStyle={[styles.mb4, styles.noOutline]}
-                                        accountID={accountID}
-                                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                                    />
-                                </AvatarTooltipsProvider>
+                                <UserAvatar
+                                    containerStyles={[styles.mb4, styles.noOutline]}
+                                    source={personalDetails?.avatar}
+                                    accountID={accountID}
+                                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                                    fallbackIcon={personalDetails?.fallbackIcon}
+                                />
                             </OfflineWithFeedback>
 
                             {!!displayName && (
