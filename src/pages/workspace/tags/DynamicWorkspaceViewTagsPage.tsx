@@ -425,6 +425,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                         onPress={navigateToEditTag}
                         shouldShowRightIcon={canWriteTags}
                         interactive={canWriteTags}
+                        wrapperStyle={styles.mb5}
                     />
                 </OfflineWithFeedback>
                 {isLoading && (
