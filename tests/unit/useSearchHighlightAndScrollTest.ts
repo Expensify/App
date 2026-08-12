@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+// These tests build the hook props partially, so every rerender/initialProps call needs a @ts-expect-error.
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import {renderHook} from '@testing-library/react-native';
 
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
@@ -86,7 +88,6 @@ describe('useSearchHighlightAndScroll', () => {
         };
 
         const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             initialProps,
         });
@@ -100,7 +101,6 @@ describe('useSearchHighlightAndScroll', () => {
             previousTransactions: {transactions_1: {transactionID: '1'}},
         };
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
         expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
@@ -118,7 +118,6 @@ describe('useSearchHighlightAndScroll', () => {
             transactions: {transactions_1: {transactionID: '1'}},
         };
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
         expect(search).not.toHaveBeenCalled();
@@ -143,7 +142,6 @@ describe('useSearchHighlightAndScroll', () => {
         };
 
         const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             initialProps: chatProps,
         });
@@ -158,7 +156,6 @@ describe('useSearchHighlightAndScroll', () => {
             },
         };
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
         expect(search).toHaveBeenCalledWith({queryJSON: chatProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
@@ -178,7 +175,6 @@ describe('useSearchHighlightAndScroll', () => {
         };
 
         const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             initialProps,
         });
@@ -190,7 +186,6 @@ describe('useSearchHighlightAndScroll', () => {
             },
         };
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
         expect(search).not.toHaveBeenCalled();
@@ -214,7 +209,6 @@ describe('useSearchHighlightAndScroll', () => {
         };
 
         const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             initialProps,
         });
@@ -227,7 +221,6 @@ describe('useSearchHighlightAndScroll', () => {
             },
         };
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
         expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
@@ -252,7 +245,6 @@ describe('useSearchHighlightAndScroll', () => {
         };
 
         const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             initialProps,
         });
@@ -265,7 +257,6 @@ describe('useSearchHighlightAndScroll', () => {
             },
         };
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
         expect(search).not.toHaveBeenCalled();
@@ -302,7 +293,6 @@ describe('useSearchHighlightAndScroll', () => {
         };
 
         const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             initialProps,
         });
@@ -317,7 +307,6 @@ describe('useSearchHighlightAndScroll', () => {
             },
         };
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
         expect(search).not.toHaveBeenCalled();
@@ -344,7 +333,6 @@ describe('useSearchHighlightAndScroll', () => {
         };
 
         const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             initialProps,
         });
@@ -358,7 +346,6 @@ describe('useSearchHighlightAndScroll', () => {
             },
         };
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
         expect(search).not.toHaveBeenCalled();
@@ -385,7 +372,6 @@ describe('useSearchHighlightAndScroll', () => {
         };
 
         const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             initialProps: chatProps,
         });
@@ -399,7 +385,6 @@ describe('useSearchHighlightAndScroll', () => {
             },
         };
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
         expect(search).not.toHaveBeenCalled();
@@ -431,7 +416,6 @@ describe('useSearchHighlightAndScroll', () => {
                 transactions_1: {transactionID: '1'},
             },
         };
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
         expect(result.current.newSearchResultKeys?.size).toBe(2);
@@ -445,10 +429,8 @@ describe('useSearchHighlightAndScroll', () => {
             focusTextInput: jest.fn(),
         };
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         result.current.handleSelectionListScroll([{transactionID: '1'}, {transactionID: '2'}], ref);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         result.current.handleSelectionListScroll([{transactionID: '2'}, {transactionID: '1'}], ref);
 
@@ -536,7 +518,6 @@ describe('useSearchHighlightAndScroll', () => {
             },
         };
         const {rerender, result} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             initialProps: chatProps,
         });
@@ -570,7 +551,6 @@ describe('useSearchHighlightAndScroll', () => {
                 },
             },
         };
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
         expect(result.current.newSearchResultKeys?.size).toBe(2);

@@ -114,11 +114,7 @@ function useSearchHighlightAndScroll({
             }
             hasPendingSearchRef.current = false;
 
-            // Read the IDs off the transactions themselves: their Onyx keys are `transactions_<id>` while the
-            // search results yield bare IDs, so the two never compare equal.
-            // `addedIDs` drives the new-item check and `currentIDs` the deletion check. They cannot be the same
-            // list: the collection holds every transaction cached on the account, so on a filtered or paginated
-            // query it always contains an ID the results omit, which would make every pass look like a new item.
+            // Transaction Onyx keys are `transactions_<id>` but search results yield bare IDs, so read the ID off the value.
             const addedIDs: string[] = [];
             const currentIDs: string[] = [];
             for (const [key, transaction] of Object.entries(transactions ?? {})) {
