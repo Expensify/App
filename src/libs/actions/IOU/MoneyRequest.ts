@@ -104,7 +104,7 @@ type CreateTransactionParams = {
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    conciergeChat: OnyxEntry<Report>;
 };
 
 type SetMoneyRequestCommuterExclusionFieldsParams = {
@@ -153,7 +153,7 @@ function createTransaction({
     delegateAccountID,
     formatPhoneNumber,
     getCurrencyDecimals,
-    formatPhoneNumber,
+    conciergeChat,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -205,8 +205,7 @@ function createTransaction({
                     email: currentUserEmail ?? '',
                 },
                 introSelected,
-                // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-                conciergeChat: undefined,
+                conciergeChat,
                 quickAction,
                 recentWaypoints,
                 betas,
@@ -257,8 +256,7 @@ function createTransaction({
                 existingTransactionDraft,
                 existingTransaction: transaction,
                 isSelfTourViewed,
-                // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-                conciergeChat: undefined,
+                conciergeChat,
                 personalDetails,
                 optimisticChatReportID,
                 optimisticTransactionID,
