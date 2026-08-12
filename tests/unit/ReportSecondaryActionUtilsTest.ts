@@ -157,6 +157,73 @@ describe('getSecondaryAction', () => {
         ).toEqual(result);
     });
 
+    it('includes DOWNLOAD_RECEIPTS when at least one transaction has a receipt', () => {
+        const report = createMock<Report>({});
+        const policy = createMock<Policy>({});
+        const transactionWithReceipt = createMock<Transaction>({
+            receipt: {state: CONST.IOU.RECEIPT_STATE.OPEN},
+        });
+        const transactionWithoutReceipt = createMock<Transaction>({});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [transactionWithoutReceipt, transactionWithReceipt],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isProduction: false,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS)).toBe(true);
+    });
+
+    it('does not include DOWNLOAD_RECEIPTS when no transactions have receipts', () => {
+        const report = createMock<Report>({});
+        const policy = createMock<Policy>({});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [createMock<Transaction>({})],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isProduction: false,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS)).toBe(false);
+    });
+
+    it('does not include DOWNLOAD_RECEIPTS when there are no transactions', () => {
+        const report = createMock<Report>({});
+        const policy = createMock<Policy>({});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isProduction: false,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS)).toBe(false);
+    });
+
     it('includes PAY in secondary actions for non-payer admin when export failed', () => {
         const designatedPayerEmail = 'owner@manual-test.com';
         const report = createMock<Report>({
@@ -3606,6 +3673,9 @@ describe('getSecondaryAction', () => {
         });
         const reportActions = [actionR14932];
         const policy = createMock<Policy>({});
+        const moveExpenseReportNameValuePairs = {
+            [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}`]: createMock<ReportNameValuePairs>({}),
+        };
 
         jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
         jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
@@ -3622,10 +3692,17 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+            moveExpenseReportNameValuePairs,
 
             isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
+        expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
+            expect.objectContaining({
+                isChatReportArchived: false,
+                reportNameValuePairs: moveExpenseReportNameValuePairs,
+            }),
+        );
     });
 
     it('does not include MOVE_EXPENSE option when canEditFieldOfMoneyRequest returns false', async () => {

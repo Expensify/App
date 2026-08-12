@@ -2,6 +2,7 @@ import {tagSliceSelector} from '@components/MoneyRequestConfirmationList/section
 import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
 
 import usePrevious from '@hooks/usePrevious';
+import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 
 import {getTagVisibility} from '@libs/TagsOptionsListUtils';
 
@@ -26,7 +27,12 @@ type UseFooterTagVisibilityParams = {
 function useFooterTagVisibility({shouldShowTags, policy, policyTags, transactionID}: UseFooterTagVisibilityParams) {
     const transaction = useTransactionSelector(transactionID, tagSliceSelector);
     const tagVisibility = getTagVisibility({shouldShowTags, policy, policyTags, transaction});
-    const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
+    const currentTagsVisibility = tagVisibility.map((v) => v.shouldShow);
+    const previousRenderTagsVisibility = usePrevious(currentTagsVisibility) ?? [];
+
+    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
+    const previousTagsVisibility = didScreenTransitionEnd ? previousRenderTagsVisibility : currentTagsVisibility;
+
     return {tagVisibility, previousTagsVisibility};
 }
 

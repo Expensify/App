@@ -644,7 +644,7 @@ describe('Unread Indicators', () => {
 
                     const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                     if (lastReportAction) {
-                        deleteReportComment(report, lastReportAction, undefined, [], undefined, undefined, '');
+                        deleteReportComment(report, lastReportAction, undefined, undefined, [], undefined, undefined, '');
                     }
                     return waitForBatchedUpdates();
                 })
@@ -700,7 +700,7 @@ describe('Unread Indicators', () => {
 
             await waitForBatchedUpdates();
 
-            deleteReportComment(report, firstNewReportAction, undefined, [], undefined, undefined, '');
+            deleteReportComment(report, firstNewReportAction, undefined, undefined, [], undefined, undefined, '');
 
             await waitForBatchedUpdates();
         }
@@ -788,6 +788,7 @@ describe('Unread Indicators', () => {
         const participant = {login: USER_A_EMAIL, accountID: USER_A_ACCOUNT_ID};
         trackExpense({
             conciergeChat: undefined,
+            getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             report: selfDMReport,
             isDraftPolicy: true,
             action: CONST.IOU.ACTION.CREATE,

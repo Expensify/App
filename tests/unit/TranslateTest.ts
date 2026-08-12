@@ -38,6 +38,14 @@ describe('TranslateTest', () => {
             expect(translate(CONST.LOCALES.EN, 'testKeyGroup.testFunction', {testVariable})).toBe(expectedValue);
         });
 
+        it('uses the accounting integration display name in connection messages', () => {
+            const connectionName = 'Intuit Enterprise Suite';
+
+            expect(en.workspace.accounting.syncError(connectionName)).toBe("Can't connect to Intuit Enterprise Suite");
+            expect(en.workspace.accounting.disconnectTitle(connectionName)).toBe('Disconnect Intuit Enterprise Suite');
+            expect(en.workspace.accounting.disconnectPrompt(connectionName)).toBe('Are you sure you want to disconnect Intuit Enterprise Suite?');
+        });
+
         it('Test when count value passed to function but output is string', () => {
             const expectedValue = 'Count value is 10';
             const count = 10;
