@@ -23,7 +23,7 @@ jest.mock('@libs/actions/Report', () => {
 
 const mockCreateTransactionThreadReport = jest.mocked(createTransactionThreadReport);
 
-const CONTEXT = {introSelected: undefined, betas: undefined, currentUserEmail: 'me@test.com', currentUserAccountID: 1};
+const CONTEXT = {introSelected: undefined, betas: undefined, currentUserEmail: 'me@test.com', currentUserAccountID: 1, personalDetails: undefined};
 
 function buildTransaction(transactionID: string, reportID: string): Transaction {
     return {transactionID, reportID, amount: 0, created: '', currency: 'USD', merchant: '', comment: {}};
