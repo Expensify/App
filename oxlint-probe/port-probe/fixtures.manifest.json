@@ -14,9 +14,9 @@
     },
     "react/jsx-no-constructed-context-values": {
         "fixture": "fixtures/jsxNoConstructedContextValues.tsx",
-        "oxlintRule": "pp/jsx-no-constructed-context-values",
+        "oxlintRule": "hosted/jsx-no-constructed-context-values",
         "expected": 1,
-        "why": "still a candidate: needs the per-file react-compiler gate"
+        "why": "WIRED 2026-08-12 as hosted/... behind the React Compiler gate. Hosted rather than native for two reasons: only a JS plugin can hold the gate, and oxlint's native port diverges (wrong anchor line, no component-scope check). The fixture opts out of memoization so it tests the rule, not the gate"
     },
     "import/prefer-default-export": {
         "fixture": "fixtures/preferDefaultExport.ts",
@@ -41,7 +41,7 @@
         "fixture": "fixtures/inlineUseOnyxSelector.ts",
         "oxlintRule": "rulesdir/no-inline-useOnyx-selector",
         "expected": 1,
-        "why": "still a candidate: needs the per-file react-compiler gate"
+        "why": "WIRED 2026-08-12 behind the same React Compiler gate; ungated it reports 238 findings across 186 files that ESLint's processor drops. Fixture opts out of memoization so it tests the rule, not the gate"
     },
     "you-dont-need-lodash-underscore/uniq": {
         "fixture": "fixtures/youDontNeedLodash.ts",

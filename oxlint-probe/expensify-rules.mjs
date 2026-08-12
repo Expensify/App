@@ -7,6 +7,8 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
+import {withFullGating} from './reactCompilerGate.mjs';
+
 const require = createRequire(import.meta.url);
 const probeDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -30,7 +32,13 @@ const plugin = {
         name: 'rulesdir',
         version: '0.0.1',
     },
-    rules,
+    rules: {
+        ...rules,
+        // The ESLint processor lists this rule in RULES_SUPPRESSED_BY_REACT_COMPILER, so every
+        // message from it is dropped in a dual-memoized file. Without the gate: 238 findings
+        // across 186 files that ESLint never shows.
+        'no-inline-useOnyx-selector': withFullGating(rules['no-inline-useOnyx-selector']),
+    },
 };
 
 export default plugin;

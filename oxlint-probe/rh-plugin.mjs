@@ -9,14 +9,13 @@
 // 'exhaustive-deps' is wrapped to replicate the ESLint react-compiler-compat processor's
 // per-message gating (config/eslint/processors/eslint-processor-react-compiler-compat.mjs):
 // in files that BOTH React compilers memoize, "wrap in useCallback()/useMemo()" suggestions
-// are dropped; missing-dependency warnings always survive. The compiler check is only run
-// lazily — the first time a gated-pattern message fires in a file — and cached, so the cost
-// is a few seconds repo-wide instead of minutes.
+// are dropped; missing-dependency warnings always survive. See oxlint-probe/reactCompilerGate.mjs
+// for the mechanism and its cost.
 import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-import {didBothCompilersMemoizeFile} from '../config/reactCompiler/checkBoth.mjs';
+import {withMessageGating} from './reactCompilerGate.mjs';
 
 const require = createRequire(import.meta.url);
 const pluginDir = path.dirname(fileURLToPath(import.meta.url));
@@ -27,50 +26,6 @@ const reactHooks = require(path.resolve(pluginDir, '../node_modules/eslint-confi
 // Keep in sync with EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN in the ESLint processor.
 const GATED_MESSAGE_PATTERN = /\buseCallback\(\) Hook\b|\buseMemo\(\) Hook\b/;
 
-const memoizationCache = new Map();
-
-function isFileMemoizedByBothCompilers(filename, sourceText) {
-    if (!memoizationCache.has(filename)) {
-        memoizationCache.set(filename, didBothCompilersMemoizeFile(sourceText, filename));
-    }
-    return memoizationCache.get(filename);
-}
-
-/** Resolves a report descriptor to its final message text (handles messageId + {{data}} templates). */
-function resolveMessage(rule, descriptor) {
-    if (typeof descriptor?.message === 'string') {
-        return descriptor.message.replaceAll(/\{\{\s*(\w+)\s*\}\}/g, (match, key) => descriptor.data?.[key] ?? match);
-    }
-    const template = rule.meta?.messages?.[descriptor?.messageId];
-    if (typeof template !== 'string') {
-        return '';
-    }
-    return template.replaceAll(/\{\{\s*(\w+)\s*\}\}/g, (match, key) => descriptor.data?.[key] ?? match);
-}
-
-function withCompilerGating(rule) {
-    return {
-        ...rule,
-        create(context) {
-            const gatedContext = Object.create(context, {
-                report: {
-                    value(descriptor) {
-                        if (GATED_MESSAGE_PATTERN.test(resolveMessage(rule, descriptor))) {
-                            const filename = context.filename ?? context.getFilename();
-                            const sourceText = (context.sourceCode ?? context.getSourceCode()).text;
-                            if (isFileMemoizedByBothCompilers(filename, sourceText)) {
-                                return;
-                            }
-                        }
-                        return context.report(descriptor);
-                    },
-                },
-            });
-            return rule.create(gatedContext);
-        },
-    };
-}
-
 const plugin = {
     meta: {
         name: 'rh',
@@ -78,7 +33,7 @@ const plugin = {
     },
     rules: {
         ...reactHooks.rules,
-        'exhaustive-deps': withCompilerGating(reactHooks.rules['exhaustive-deps']),
+        'exhaustive-deps': withMessageGating(reactHooks.rules['exhaustive-deps'], GATED_MESSAGE_PATTERN),
     },
 };
 

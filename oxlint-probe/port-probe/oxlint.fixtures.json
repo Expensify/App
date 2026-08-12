@@ -1,9 +1,9 @@
 {
     "$schema": "../../node_modules/oxlint/configuration_schema.json",
     // The production plugins are loaded directly, so a fixture failure means the shipped
-    // config regressed — not that a probe copy drifted. ./port-plugin.mjs holds only the
-    // rules that are still candidates.
-    "jsPlugins": ["../core-rules.mjs", "../hosted-rules.mjs", "../expensify-rules.mjs", "./port-plugin.mjs"],
+    // config regressed — not that a probe copy drifted. There is no staging plugin any more:
+    // the last candidate (jsx-no-constructed-context-values) graduated on 2026-08-12.
+    "jsPlugins": ["../core-rules.mjs", "../hosted-rules.mjs", "../expensify-rules.mjs"],
     "categories": {},
     // Same settings block as .oxlintrc.json. propWrapperFunctions is load-bearing, not decoration:
     // react/prefer-exact-props reports nothing unless it knows which wrappers count as exact.
@@ -27,7 +27,7 @@
             {"selector": ["parameter", "method"], "format": ["camelCase", "PascalCase"], "leadingUnderscore": "allow"}
         ],
         "rulesdir/no-inline-useOnyx-selector": "error",
-        "pp/jsx-no-constructed-context-values": "error",
+        "hosted/jsx-no-constructed-context-values": "error",
         "core/strict": ["error", "never"],
         "core/no-octal": "error",
         "core/no-octal-escape": "error",
