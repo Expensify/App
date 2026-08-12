@@ -15,6 +15,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -76,6 +77,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const {environmentURL} = useEnvironment();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {isOffline} = useNetwork();
 
     const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories).find((category) => category.previousCategoryName === categoryName);
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -94,8 +96,9 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             categoryName: policyCategory.name,
             translate,
             convertToDisplayString,
+            isOffline,
         });
-    }, [convertToDisplayString, isRulesRevampEnabled, policy, policyCategory, translate]);
+    }, [convertToDisplayString, isOffline, isRulesRevampEnabled, policy, policyCategory, translate]);
 
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS;
@@ -559,7 +562,9 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                         numberOfLinesTitle={3}
                                         shouldShowBasicTitle
                                         onPress={() => Navigation.navigate(createDynamicRoute(rule.dynamicRoutePath))}
-                                        shouldShowRightIcon
+                                        shouldShowRightIcon={!rule.isDisabled}
+                                        interactive={!rule.isDisabled}
+                                        disabled={rule.isDisabled}
                                     />
                                 </OfflineWithFeedback>
                             ))}
