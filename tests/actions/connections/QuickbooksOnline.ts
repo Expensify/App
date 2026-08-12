@@ -48,13 +48,15 @@ function getRequiredQuickBooksConfig<TKey extends OnyxKey>(update?: OnyxUpdate<T
     return config;
 }
 
-function getFirstWriteCall(): {command: WriteCommand; onyxData?: AnyOnyxData} {
+type QuickbooksSettingParams = {policyID: string; settingValue: string; idempotencyKey: string};
+
+function getFirstWriteCall(): {command: WriteCommand; params: QuickbooksSettingParams; onyxData?: AnyOnyxData} {
     const call = writeSpy.mock.calls.at(0);
     if (!call) {
         throw new Error('API.write was not called');
     }
-    const [command, , onyxData] = call;
-    return {command, onyxData};
+    const [command, params, onyxData] = call;
+    return {command, params: params as QuickbooksSettingParams, onyxData};
 }
 
 describe('actions/connections/QuickbooksOnline', () => {
@@ -175,11 +177,9 @@ describe('actions/connections/QuickbooksOnline', () => {
         it('writes the UpdateQuickbooksOnlineTravelInvoicingPayableAccount command with the account ID', () => {
             updateQuickbooksOnlineTravelInvoicingPayableAccount(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
 
-            const {command} = getFirstWriteCall();
+            const {command, params} = getFirstWriteCall();
             expect(command).toBe(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT);
 
-            const call = writeSpy.mock.calls.at(0);
-            const params = call?.[1] as {policyID: string; settingValue: string; idempotencyKey: string};
             expect(params.policyID).toBe(MOCK_POLICY_ID);
             expect(params.settingValue).toBe(MOCK_ACCOUNT_ID);
             expect(params.idempotencyKey).toBe(String(CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT));
@@ -208,11 +208,9 @@ describe('actions/connections/QuickbooksOnline', () => {
         it('writes the UpdateQuickbooksOnlineFxExpenseAccount command with the account ID', () => {
             updateQuickbooksOnlineFxExpenseAccount(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
 
-            const {command} = getFirstWriteCall();
+            const {command, params} = getFirstWriteCall();
             expect(command).toBe(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT);
 
-            const call = writeSpy.mock.calls.at(0);
-            const params = call?.[1] as {policyID: string; settingValue: string; idempotencyKey: string};
             expect(params.policyID).toBe(MOCK_POLICY_ID);
 
             // Auth parses settingValue as JSON and 400s on anything else, so the ID goes over the wire quoted
