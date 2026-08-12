@@ -668,10 +668,15 @@
         // OFF, shadowed not dropped: oxlint's native port also fires inside Jest mock factories,
         // where ESLint's does not. ESLint's own rule runs as `hosted/function-component-definition`.
         "react/function-component-definition": "off",
-        // OFF, needs the React Compiler gate: ESLint's processor drops every message from this rule
-        // in files both compilers memoize, so enabling it now reports findings ESLint never shows.
-        // The rule itself is fixture-proven; the per-file gating shim exists in rh-plugin.mjs.
-        "react/jsx-no-constructed-context-values": "off",
+        // ON, native rather than hosted behind the React Compiler gate (decided 2026-08-12).
+        // The native rule costs nothing measurable, but it cannot be gated the way ESLint's
+        // processor gates its own copy, so the 115 findings ESLint never shows are suppressed
+        // inline instead. Every comment states which of three reasons it exists for; regenerate
+        // them with `python3 oxlint-probe/ctxValuesSuppressionCodemod.py`. Two known divergences
+        // from ESLint's rule, both upstream bugs, both measured by
+        // `python3 oxlint-probe/compareNativeCtxValues.py`: it anchors on the JSX provider rather
+        // than the declaration, and it does not require the value to be declared in a component.
+        "react/jsx-no-constructed-context-values": "error",
         "react/no-unstable-nested-components": "error",
         "react/no-namespace": "error",
         "react/style-prop-object": "error",
