@@ -64,6 +64,7 @@ function AIFeaturesPromoModal() {
                 onClose={closeModal}
                 width={variables.aiFeaturesPromoModalWidth}
                 confirmSentryLabel={CONST.SENTRY_LABEL.AI_FEATURES_PROMO_MODAL.CONFIRM_BUTTON}
+                shouldUseScrollView
             >
                 <FeatureTraining.Page>
                     <FeatureTraining.Illustration

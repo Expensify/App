@@ -92,7 +92,7 @@ function FeatureTrainingCarousel({
     const [contentMinHeight, setContentMinHeight] = useState<number | undefined>(undefined);
     const measuredHeightsRef = useRef<Record<number, number>>({});
 
-    const {Wrapper, wrapperProps, setContainerHeight, shouldUseScrollView: usingScrollView} = useScrollableWrapper({shouldUseScrollView, width});
+    const {Wrapper, wrapperProps, setContainerHeight, shouldUseScrollView: usingScrollView, isInLandscapeMode} = useScrollableWrapper({shouldUseScrollView, width});
 
     const pages = useMemo(() => {
         const pageList: SplitPage[] = [];
@@ -135,6 +135,16 @@ function FeatureTrainingCarousel({
     useEffect(() => {
         pageCountRef.current = pages.length;
     }, [pages.length]);
+
+    // Re-align the horizontal offset to the current page whenever the viewport width changes (e.g. device
+    // rotation or window resize). Without this the old pixel offset no longer lands on a page boundary and
+    // the carousel gets stuck between pages.
+    useEffect(() => {
+        if (carouselViewportWidth <= 0) {
+            return;
+        }
+        horizontalListRef.current?.scrollToOffset({offset: lastReportedPage.current * carouselViewportWidth, animated: false});
+    }, [carouselViewportWidth]);
 
     const recordPageHeight = useCallback((index: number, measured: number) => {
         if (measuredHeightsRef.current[index] === measured) {
@@ -208,6 +218,7 @@ function FeatureTrainingCarousel({
                 <Wrapper
                     {...wrapperProps}
                     onLayout={onWrapperLayout}
+                    contentContainerStyle={isInLandscapeMode ? wrapperProps.contentContainerStyle : undefined}
                 >
                     {carouselViewportWidth > 0 && contentMinHeight === undefined && (
                         <View
@@ -239,6 +250,7 @@ function FeatureTrainingCarousel({
                                     keyExtractor={(_page, index) => `FeatureTrainingCarousel-page-${index}`}
                                     horizontal
                                     pagingEnabled
+                                    initialScrollIndex={currentPage}
                                     disableIntervalMomentum
                                     snapToInterval={carouselViewportWidth}
                                     decelerationRate="fast"
