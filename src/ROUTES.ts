@@ -3739,6 +3739,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tax',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tax` as const,
     },
+    RULES_MERCHANT_VENDOR: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/vendor',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/vendor` as const,
+    },
     RULES_MERCHANT_DESCRIPTION: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/description',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/description` as const,
@@ -4484,9 +4488,13 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/dualentry/existing-connections',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/existing-connections` as const,
     },
-    POLICY_ACCOUNTING_DUALENTRY_COMPANY_SELECTOR: {
-        route: 'workspaces/:policyID/accounting/dualentry/company-selector',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/company-selector` as const,
+    POLICY_ACCOUNTING_DUALENTRY_SUBSIDIARY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/dualentry/subsidiary-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/subsidiary-selector` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_IMPORT: {
+        route: 'workspaces/:policyID/accounting/dualentry/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/import` as const,
     },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',

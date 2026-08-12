@@ -1,5 +1,5 @@
+import AvatarTooltip from '@components/Avatar/tooltips/AvatarTooltip';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -13,7 +13,6 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import Avatar from '..';
 import getSubscriptAvatarSizing from './getSubscriptAvatarSizing';
@@ -55,63 +54,51 @@ function PressableSubscriptAvatar({size, primaryAvatar, secondaryAvatar, onAvata
             size={size}
             containerStyle={containerStyle}
             primary={
-                <UserDetailsTooltip
-                    shouldRender
-                    accountID={Number(primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
-                    icon={primaryAvatar}
-                    fallbackUserDetails={{
-                        displayName: primaryAvatar.name,
-                    }}
-                >
-                    <View>
-                        <PressableWithoutFocus
-                            onPress={() => onAvatarPress(primaryAvatar)}
-                            accessibilityLabel={getAccessibilityLabel(primaryAvatar)}
-                            accessibilityRole={CONST.ROLE.BUTTON}
-                            sentryLabel={sentryLabel}
-                        >
-                            <Avatar
-                                containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
-                                type={primaryAvatar.type}
-                                source={primaryAvatar.source}
-                                name={primaryAvatar.name ?? ''}
-                                avatarID={primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
-                                fallbackIcon={primaryAvatar.fallbackIcon}
-                                fill={primaryAvatar.fill}
-                                size={size}
-                                testID="ReportActionAvatars-Subscript-MainAvatar"
-                            />
-                        </PressableWithoutFocus>
-                    </View>
-                </UserDetailsTooltip>
+                <AvatarTooltip avatar={primaryAvatar}>
+                    <PressableWithoutFocus
+                        onPress={() => onAvatarPress(primaryAvatar)}
+                        accessibilityLabel={getAccessibilityLabel(primaryAvatar)}
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        sentryLabel={sentryLabel}
+                    >
+                        <Avatar
+                            containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
+                            type={primaryAvatar.type}
+                            source={primaryAvatar.source}
+                            name={primaryAvatar.name ?? ''}
+                            avatarID={primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
+                            fallbackIcon={primaryAvatar.fallbackIcon}
+                            fill={primaryAvatar.fill}
+                            size={size}
+                            testID="ReportActionAvatars-Subscript-MainAvatar"
+                        />
+                    </PressableWithoutFocus>
+                </AvatarTooltip>
             }
             secondary={
-                <UserDetailsTooltip
-                    shouldRender
-                    accountID={Number(secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
-                    icon={secondaryAvatar}
+                <AvatarTooltip
+                    avatar={secondaryAvatar}
+                    style={styles[containerStyleKey]}
                 >
-                    <View style={styles[containerStyleKey]}>
-                        <PressableWithoutFocus
-                            onPress={() => onAvatarPress(secondaryAvatar)}
-                            accessibilityLabel={getAccessibilityLabel(secondaryAvatar)}
-                            accessibilityRole={CONST.ROLE.BUTTON}
-                            sentryLabel={sentryLabel}
-                        >
-                            <Avatar
-                                iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(borderWidthSize), StyleUtils.getBorderColorStyle(theme.componentBG)]}
-                                type={secondaryAvatar.type}
-                                source={secondaryAvatar.source}
-                                name={secondaryAvatar.name ?? ''}
-                                avatarID={secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
-                                fallbackIcon={secondaryAvatar.fallbackIcon}
-                                fill={secondaryAvatar.fill}
-                                size={subscriptSize}
-                                testID="ReportActionAvatars-Subscript-SecondaryAvatar"
-                            />
-                        </PressableWithoutFocus>
-                    </View>
-                </UserDetailsTooltip>
+                    <PressableWithoutFocus
+                        onPress={() => onAvatarPress(secondaryAvatar)}
+                        accessibilityLabel={getAccessibilityLabel(secondaryAvatar)}
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        sentryLabel={sentryLabel}
+                    >
+                        <Avatar
+                            iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(borderWidthSize), StyleUtils.getBorderColorStyle(theme.componentBG)]}
+                            type={secondaryAvatar.type}
+                            source={secondaryAvatar.source}
+                            name={secondaryAvatar.name ?? ''}
+                            avatarID={secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
+                            fallbackIcon={secondaryAvatar.fallbackIcon}
+                            fill={secondaryAvatar.fill}
+                            size={subscriptSize}
+                            testID="ReportActionAvatars-Subscript-SecondaryAvatar"
+                        />
+                    </PressableWithoutFocus>
+                </AvatarTooltip>
             }
         />
     );

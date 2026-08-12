@@ -1,5 +1,7 @@
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import * as API from '@libs/API';
@@ -1672,6 +1674,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         shouldDeferAutoSubmit,
         delegateAccountID,
         isTrackIntentUser,
+        formatPhoneNumber,
         getCurrencyDecimals,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
@@ -1783,6 +1786,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         personalDetails,
         delegateAccountID,
         isTrackIntentUser,
+        formatPhoneNumber,
         getCurrencyDecimals,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
@@ -1979,6 +1983,7 @@ function convertBulkTrackedExpensesToIOU({
     selfDMReportActions,
     delegateAccountID,
     isTrackIntentUser,
+    formatPhoneNumber,
     getCurrencyDecimals,
 }: {
     transactions: OnyxTypes.Transaction[];
@@ -1996,6 +2001,7 @@ function convertBulkTrackedExpensesToIOU({
     selfDMReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 }) {
     const iouReportID = iouReport?.reportID;
@@ -2117,6 +2123,7 @@ function convertBulkTrackedExpensesToIOU({
             },
             delegateAccountID,
             isTrackIntentUser,
+            formatPhoneNumber,
             getCurrencyDecimals,
         });
 

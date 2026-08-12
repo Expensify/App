@@ -911,7 +911,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/DualEntrySetupPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXISTING_CONNECTIONS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/DualEntryExistingConnectionsPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_COMPANY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/DualEntryCompanySelector').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_SUBSIDIARY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/DualEntrySubsidiarySelector').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/import/DualEntryImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationSageIntacctAutoSyncPage').default,
@@ -1095,6 +1096,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.RULES_MERCHANT_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddCategoryPage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_TAG]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddTagPage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_TAX]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddTaxPage').default,
+    [SCREENS.WORKSPACE.RULES_MERCHANT_VENDOR]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddVendorPage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddDescriptionPage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_REIMBURSABLE]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddReimbursablePage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_BILLABLE]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddBillablePage').default,
