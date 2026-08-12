@@ -57,12 +57,13 @@ PORT_PLAN = {
         'effort': 'none', 'proven': False,
         'notes': 'ESLint progress-bar plugin, no behaviour to preserve',
     },
-    # -- proven portable, but each needs the react-compiler per-file gate --
-    'react/jsx-no-constructed-context-values': {
-        'mechanism': 'jsPlugin re-export + per-file react-compiler gate',
-        'effort': 'M', 'proven': True,
-        'notes': 'ESLint drops every message from this rule in files both compilers memoize; reuse the rh-plugin gating shim',
-    },
+    # WIRED 2026-08-12: react/jsx-no-constructed-context-values now runs as oxlint's NATIVE rule.
+    # It cannot be gated on the React Compiler the way ESLint's processor gates its own copy, so
+    # the 115 findings ESLint never shows carry inline suppressions instead, written by
+    # oxlint-probe/ctxValuesSuppressionCodemod.py. Two upstream divergences remain, measured by
+    # oxlint-probe/compareNativeCtxValues.py: it anchors on the JSX provider rather than the
+    # declaration, and it does not require the value to be declared inside a component.
+    # -- proven portable, but needs the react-compiler per-file gate --
     'rulesdir/no-inline-useOnyx-selector': {
         'mechanism': 'enable the existing rulesdir jsPlugin + per-file react-compiler gate',
         'effort': 'M', 'proven': True,

@@ -29,6 +29,14 @@ rather than a directive:
   JSX children    ->  {/* oxlint-disable-next-line ... */}
   anything else   ->  // oxlint-disable-next-line ...
 
+One case cannot take a new line at all: when the target line ALREADY has a disable-next-line
+comment above it (2 sites, both `rulesdir/context-provider-split-values`). Inserting there
+orphans the existing directive, which then points at our comment instead of at the code
+(measured: exactly the 2 findings that took the repo from 4629 to 4631). Those get the repo's
+same-line combo on the existing line instead, so both directives keep pointing at the code:
+
+  /* oxlint-disable-next-line A -- reason */ // eslint-disable-next-line B
+
 Three independent checks catch a wrong choice, which is why the heuristic is acceptable:
 `react/jsx-no-comment-textnodes` (enabled in both tools) fires on a `//` that became JSX text;
 a `{/* */}` in expression position is a syntax error; and re-running oxlint must report 0 for
@@ -38,6 +46,7 @@ this rule, which only holds if every comment parsed as a directive.
 # cSpell:ignore textnodes
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -81,16 +90,26 @@ def classify(native, eslint, memoized):
 
 
 def directive_for(path, line, kind):
-    """The comment text plus indentation, in the form this position can parse."""
+    """How to suppress `line`, as ('insert' | 'combo', text). 'combo' replaces the line above."""
     text = probe.lines_of(path)
     current = text[line - 1]
     indent = current[: len(current) - len(current.lstrip())]
-    previous = next((text[i].strip() for i in range(line - 2, -1, -1) if text[i].strip()), '')
     body = f'oxlint-disable-next-line {RULE} -- {REASONS[kind]}'
+    above = text[line - 2] if line >= 2 else ''
+
+    # A directive already occupies the line above, so a new line would orphan it.
+    if re.search(r'(?:eslint|oxlint)-disable-next-line', above):
+        if not above.strip().startswith('//'):
+            sys.exit(f'STOP {path}:{line}: the line above holds a directive this script cannot'
+                     f' combine with, so it would be orphaned. Handle it by hand:\n   {above}')
+        existing_indent = above[: len(above) - len(above.lstrip())]
+        return 'combo', f'{existing_indent}/* {body} */ {above.strip()}'
+
     # Inside JSX children the only comment syntax is an expression container. A line that opens a
     # JSX element ends with `>`; a JS expression context ends with `(`, `=`, `{`, `,` or similar.
+    previous = next((text[i].strip() for i in range(line - 2, -1, -1) if text[i].strip()), '')
     in_jsx_children = not current.lstrip().startswith('return') and previous.endswith('>')
-    return f'{indent}{{/* {body} */}}' if in_jsx_children else f'{indent}// {body}'
+    return 'insert', (f'{indent}{{/* {body} */}}' if in_jsx_children else f'{indent}// {body}')
 
 
 def main():
@@ -114,7 +133,7 @@ def main():
     for (path, line), kind in kinds.items():
         by_file.setdefault(path, []).append((line, kind))
 
-    tally, skipped, written = {}, 0, 0
+    tally, skipped, written, combos = {}, 0, 0, 0
     for path, findings in sorted(by_file.items()):
         text = probe.lines_of(path)
         edits = []
@@ -123,22 +142,28 @@ def main():
             if line >= 2 and f'oxlint-disable-next-line {RULE}' in text[line - 2]:
                 skipped += 1
                 continue
-            edits.append((line, directive_for(path, line, kind)))
+            how, comment = directive_for(path, line, kind)
+            edits.append((line, how, comment))
             tally[kind] = tally.get(kind, 0) + 1
 
         if not edits:
             continue
-        for line, comment in edits:
-            text.insert(line - 1, comment)
+        for line, how, comment in edits:
+            if how == 'combo':
+                text[line - 2] = comment
+                combos += 1
+            else:
+                text.insert(line - 1, comment)
             written += 1
         print(f'\n{path}  (+{len(edits)})')
-        for line, comment in reversed(edits):
-            print(f'   {line:5} | {comment.strip()[:118]}')
+        for line, how, comment in reversed(edits):
+            print(f'   {line:5} {how:6} | {comment.strip()[:112]}')
         if APPLY:
             with open(os.path.join(ROOT, path), 'w') as handle:
                 handle.write('\n'.join(text) + '\n')
 
     print(f'\n{"WROTE" if APPLY else "DRY RUN"}: {written} comments across {len(by_file)} files'
+          f'{f", {combos} as a same-line combo" if combos else ""}'
           f'{f", {skipped} already present" if skipped else ""}')
     for kind in ('COMPILER', 'ANCHORED', 'NATIVE'):
         print(f'   {kind:9} {tally.get(kind, 0):4}')
