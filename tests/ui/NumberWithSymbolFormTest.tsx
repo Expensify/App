@@ -84,6 +84,52 @@ describe('NumberWithSymbolForm', () => {
             expect(screen.queryByTestId('button_<')).toBeNull();
         });
 
+        it('clears the internal number and selection when the value prop resets to empty', async () => {
+            const {rerender} = renderForm({displayAsTextInput: true, value: '5'});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.changeText(getTextInput(), '25');
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByDisplayValue('25')).toBeTruthy();
+
+            rerender(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                    <NumberWithSymbolForm
+                        symbol="$"
+                        label={INPUT_LABEL}
+                        displayAsTextInput
+                        value=""
+                    />
+                </ComposeProviders>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByDisplayValue('')).toBeTruthy();
+            expect(getTextInput().props.selection).toEqual({start: 0, end: 0});
+        });
+
+        it('does not update the internal number when the value prop changes to another non-empty value', async () => {
+            const {rerender} = renderForm({displayAsTextInput: true, value: '5'});
+            await waitForBatchedUpdatesWithAct();
+
+            rerender(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                    <NumberWithSymbolForm
+                        symbol="$"
+                        label={INPUT_LABEL}
+                        displayAsTextInput
+                        value="10"
+                    />
+                </ComposeProviders>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByDisplayValue('5')).toBeTruthy();
+        });
+
         it('does not render a ScrollView or the portrait/landscape layout wrappers', async () => {
             renderForm({displayAsTextInput: true, value: '10'});
             await waitForBatchedUpdatesWithAct();
