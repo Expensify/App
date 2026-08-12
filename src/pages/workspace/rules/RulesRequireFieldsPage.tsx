@@ -57,7 +57,9 @@ function RulesRequireFieldsPage({
 
     const hasEnabledTags = hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
     const isTagFeatureDisabled = !policy?.areTagsEnabled;
-    const isTagToggleDisabled = isTagFeatureDisabled || !hasEnabledTags || isConnectedToAccounting;
+    // A connection owns the tag lists, not whether an expense must carry one, so it doesn't lock this the way it locks
+    // Categories. The Tags table, tag list page and Tags settings all left Required editable while connected.
+    const isTagToggleDisabled = isTagFeatureDisabled || !hasEnabledTags;
 
     // Independent multi-level tags carry Required on each list, so they get a row per level. Single-level and
     // dependent tags have only the policy-wide flag, matching where the Tags table offers a per-level switch.
@@ -159,7 +161,7 @@ function RulesRequireFieldsPage({
     // Lock UX only when the feature itself is off (or categories are accounting-controlled).
     // Feature on but no enabled items: toggle stays disabled without lock/modal.
     const shouldShowCategoryLock = isCategoryFeatureDisabled || isConnectedToAccounting;
-    const shouldShowTagLock = isTagFeatureDisabled || isConnectedToAccounting;
+    const shouldShowTagLock = isTagFeatureDisabled;
 
     /** Tag lists are named by the admin, so show that name and keep the generic label only for unnamed lists. */
     const getTagLevelLabel = (tagListName: string | undefined) => {
@@ -213,33 +215,9 @@ function RulesRequireFieldsPage({
         setCategoryRequired(true);
     }, [isCategoryFeatureDisabled, isConnectedToAccounting, policyData, policyID, showConfirmModal, translate]);
 
-    const tagDisabledText = (() => {
-        if (!shouldShowTagLock) {
-            return undefined;
-        }
-        if (isConnectedToAccounting) {
-            return translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText');
-        }
-        return translate('workspace.rules.individualExpenseRules.enableTagsToUnlockPrompt');
-    })();
+    const tagDisabledText = shouldShowTagLock ? translate('workspace.rules.individualExpenseRules.enableTagsToUnlockPrompt') : undefined;
 
     const promptEnableTagsForRequireTag = useCallback(async () => {
-        // Accounting owns Tags while a connection is active, same as the Tags toggle on More features, so this must
-        // not force the feature on from here.
-        if (isConnectedToAccounting) {
-            const {action} = await showConfirmModal({
-                title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
-                prompt: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText'),
-                confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
-                cancelText: translate('common.cancel'),
-            });
-            if (action !== ModalActions.CONFIRM) {
-                return;
-            }
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
-            return;
-        }
-
         if (!isTagFeatureDisabled) {
             return;
         }
@@ -256,7 +234,7 @@ function RulesRequireFieldsPage({
         enablePolicyTags(policyData, true);
         setPolicyRequiresTag(policyData, true);
         setTagRequired(true);
-    }, [isConnectedToAccounting, isTagFeatureDisabled, policyData, policyID, showConfirmModal, translate]);
+    }, [isTagFeatureDisabled, policyData, showConfirmModal, translate]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -300,7 +278,9 @@ function RulesRequireFieldsPage({
                     {hasPerLevelTagRequired ? (
                         tagLists.map((tagList, tagListIndex) => {
                             const label = getTagLevelLabel(tagList.name);
-                            const isLevelToggleDisabled = isTagToggleDisabled || (!tagList.required && !hasEnabledOptions(Object.values(tagList.tags ?? {})));
+                            // Per the Tags table, only this level's own tags matter, so a required level stays togglable
+                            // even when no level has an enabled tag.
+                            const isLevelToggleDisabled = isTagFeatureDisabled || (!tagList.required && !hasEnabledOptions(Object.values(tagList.tags ?? {})));
                             return (
                                 <ToggleSettingOptionRow
                                     key={tagList.name}
