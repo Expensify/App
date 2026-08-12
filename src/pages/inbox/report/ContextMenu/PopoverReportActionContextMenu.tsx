@@ -1,7 +1,6 @@
 import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
-import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
-import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
+import {showHoldEducationalModal, showRejectEducationalModal} from '@components/HoldEducationalModalManager';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
@@ -102,9 +101,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const hideDelayProgress = useSharedValue(0);
     const [isDeleteCommentConfirmModalVisible, setIsDeleteCommentConfirmModalVisible] = useState(false);
     const [shouldSetModalVisibilityForDeleteConfirmation, setShouldSetModalVisibilityForDeleteConfirmation] = useState(true);
-    const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
-    const [isRejectEducationalModalVisible, setIsRejectEducationalModalVisible] = useState(false);
-    const holdEducationalOnConfirmRef = useRef<() => void>(() => {});
 
     const [isThreadReportParentAction, setIsThreadReportParentAction] = useState(false);
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
@@ -500,35 +496,11 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         setIsDeleteCommentConfirmModalVisible(true);
     };
 
-    const showHoldEducationalModal: ReportActionContextMenu['showHoldEducationalModal'] = (onConfirm) => {
-        holdEducationalOnConfirmRef.current = onConfirm;
-        setIsHoldEducationalModalVisible(true);
-    };
-
-    const showRejectEducationalModal: ReportActionContextMenu['showRejectEducationalModal'] = (onConfirm) => {
-        holdEducationalOnConfirmRef.current = onConfirm;
-        setIsRejectEducationalModalVisible(true);
-    };
-
-    const dismissHoldEducationalModal = useCallback(() => {
-        const onConfirm = holdEducationalOnConfirmRef.current;
-        holdEducationalOnConfirmRef.current = () => {};
-        setIsHoldEducationalModalVisible(false);
-        onConfirm();
-    }, []);
-
-    const dismissRejectEducationalModal = useCallback(() => {
-        const onConfirm = holdEducationalOnConfirmRef.current;
-        holdEducationalOnConfirmRef.current = () => {};
-        setIsRejectEducationalModalVisible(false);
-        onConfirm();
-    }, []);
-
     const handleHoldEducationalModal = useCallback(
         (performHold: () => void) => {
             const isSubmitter = isCurrentUserSubmitter(chatReport);
             const isChatDM = isDM(chatReport);
-            const isDismissed = isSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+            const isDismissed = false;
             if (isDismissed || isChatDM) {
                 performHold();
             } else if (isSubmitter) {
@@ -551,8 +523,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         hideContextMenu,
         showDeleteModal,
         hideDeleteModal,
-        showHoldEducationalModal,
-        showRejectEducationalModal,
         handleHoldEducationalModal,
         isActiveReportAction,
         instanceIDRef,
@@ -613,18 +583,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 cancelText={translate('common.cancel')}
                 danger
             />
-            {!!isHoldEducationalModalVisible && (
-                <HoldSubmitterEducationalModal
-                    onClose={dismissHoldEducationalModal}
-                    onConfirm={dismissHoldEducationalModal}
-                />
-            )}
-            {!!isRejectEducationalModalVisible && (
-                <HoldOrRejectEducationalModal
-                    onClose={dismissRejectEducationalModal}
-                    onConfirm={dismissRejectEducationalModal}
-                />
-            )}
         </>
     );
 }
