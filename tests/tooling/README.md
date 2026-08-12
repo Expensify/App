@@ -6,25 +6,36 @@ Tests for the code that builds, deploys and lints this repo — `.github/actions
 
 ## Running them
 
-```sh
-# The whole directory (this is what CI runs)
-npm run test:tooling
+These run as part of `test:bun`, alongside the `server/` suite — one Bun invocation covering both roots.
 
-# One file — pass the flags yourself, the npm script can't forward a path
-TZ=utc bun test --isolate --preload ./tests/tooling/setup.ts ./tests/tooling/GithubUtils.test.ts
+```sh
+# Everything Bun runs (this is what CI runs)
+npm run test:bun
+
+# Just this directory
+TZ=utc bun test --isolate --preload ./scripts/stubReactNative.js --preload ./tests/tooling/setup.ts ./tests/tooling
+
+# One file
+TZ=utc bun test --isolate --preload ./scripts/stubReactNative.js --preload ./tests/tooling/setup.ts ./tests/tooling/GithubUtils.test.ts
 
 # One test, by name
-npm run test:tooling -- -t 'getPullRequestNumberFromURL'
+npm run test:bun -- -t 'getPullRequestNumberFromURL'
 
 # Show the output the code under test writes (silenced by default, see setup.ts)
-TEST_VERBOSE=true npm run test:tooling
+TEST_VERBOSE=true npm run test:bun
 ```
 
 The leading `./` on a file path is required: without it Bun treats the argument as a name filter and finds
 nothing, because `bunfig.toml` points bare `bun test` at `server/`.
 
-`--isolate` is not optional. Several files replace `fs`, `child_process` or a shared lib with `mock.module()`,
-and Bun shares one module registry across files unless each gets its own.
+Neither flag is optional:
+
+- `--isolate` — several files replace `fs`, `child_process` or a shared lib with `mock.module()`, and Bun shares
+  one module registry across files unless each gets its own. It also keeps `CIGitLogic`, whose tests build on each
+  other's git state, from running concurrently with anything else.
+- `--preload ./scripts/stubReactNative.js` — `generateTranslations.test.ts` reaches `src/languages/en`, which pulls
+  in `react-native`, whose Flow syntax Bun can't parse. `bunfig.toml`'s top-level `preload` does not apply to
+  `bun test`, so it has to be passed here. It's the same stub `bun scripts/generateTranslations.ts` runs with.
 
 ## Why bun:test and not Jest
 

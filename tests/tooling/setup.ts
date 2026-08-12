@@ -1,4 +1,4 @@
-// Preloaded via `bun test --preload` (see the `test:tooling` npm script), once per test file because --isolate
+// Preloaded via `bun test --preload` (see the `test:bun` npm script), once per test file because --isolate
 // gives each file its own globals. Always run this directory through that script: several files replace `fs` or
 // `child_process` with mock.module(), which without --isolate would reach every file that runs after them.
 import {jest} from 'bun:test';
