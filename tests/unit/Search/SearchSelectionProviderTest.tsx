@@ -121,6 +121,26 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
         expect(Object.keys(result.current.state.excludedTransactions)).toEqual(['tx_3']);
     });
 
+    it('turns all-matching off when the last checked row is deselected and nothing more can load', () => {
+        const {result} = renderSelection();
+        seedAllMatchingSelection(result);
+        act(() => {
+            result.current.actions.setSelectedTransactions({});
+        });
+
+        // The updater has nothing to remove, so clearing the flag is the only thing this commit does
+        act(() => {
+            result.current.actions.applySelection((selectedTransactions) => selectedTransactions, {
+                shouldPreserveAllMatchingSelection: true,
+                shouldClearAllMatchingSelectionWhenEmpty: true,
+                deselectedWithoutEntry: buildSelected('tx_3'),
+            });
+        });
+
+        expect(result.current.state.areAllMatchingItemsSelected).toBe(false);
+        expect(result.current.state.excludedTransactions).toEqual({});
+    });
+
     it('leaves the state untouched when a named deselection has nowhere to be recorded', () => {
         const {result} = renderSelection();
         act(() => {

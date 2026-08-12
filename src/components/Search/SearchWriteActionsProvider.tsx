@@ -669,13 +669,25 @@ function SearchWriteActionsProvider({
         return !!(item.keyForList && selected[item.keyForList]?.isSelected);
     };
 
-    // A child of a group selected before its children loaded has no entry of its own.
-    const isRowSelectedViaGroup = (item: SearchData[number]) => {
+    // The same predicate the checkbox renders from, so a range reaches exactly the rows the user sees checked.
+    const isRowVisiblyChecked = (item: SearchData[number]) => {
+        const selectedTransactions = getSelectedTransactions();
+        const excludedTransactions = getExcludedTransactions();
+        if (isTransactionGroupListItemType(item) && item.transactions.length > 0) {
+            return item.transactions.some((transaction) =>
+                isRowChecked({rowKey: transaction.keyForList, parentGroupKey: item.keyForList, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}),
+            );
+        }
         if (!item.keyForList) {
             return false;
         }
-        const parentGroupKey = groupKeyByChildKey.get(item.keyForList);
-        return !!(parentGroupKey && getSelectedTransactions()[parentGroupKey]?.isSelected);
+        return isRowChecked({
+            rowKey: item.keyForList,
+            parentGroupKey: groupKeyByChildKey.get(item.keyForList),
+            selectedTransactions,
+            excludedTransactions,
+            areAllMatchingItemsSelected,
+        });
     };
 
     // A row checked through a group header belongs to that block, so a range may take it back. Report rows are the row the user clicked, not a block.
@@ -690,7 +702,7 @@ function SearchWriteActionsProvider({
     const rangeApi = useShiftRangeSelection<SearchData[number]>({
         items: flattenedShiftRangeItems,
         getItemKey: (item) => item.keyForList,
-        isItemSelected: (item) => isRowSelectedOnItsOwn(item) || isRowSelectedViaGroup(item),
+        isItemSelected: isRowVisiblyChecked,
         isItemProtected: isRowHandPicked,
         isDisabledItem: (item) => (isTransactionListItemType(item) ? isTransactionPendingDelete(item) : item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
         onApplyRange: applyShiftRangeBatch,
@@ -749,8 +761,9 @@ function SearchWriteActionsProvider({
             const clickExclusion = buildExclusionForCheckedRowWithoutEntry(item);
             if (!isEmptyObject(clickExclusion)) {
                 applySelection((selectedTransactions) => selectedTransactions, {
+                    data: filteredData,
                     totalSelectableItemsCount,
-                    shouldPreserveAllMatchingSelection: true,
+                    shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
                     shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
                     deselectedWithoutEntry: clickExclusion,
                 });

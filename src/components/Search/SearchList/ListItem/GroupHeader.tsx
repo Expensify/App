@@ -4,7 +4,8 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
-import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
+import {isRowChecked} from '@components/Search/selectionBuilders';
+import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy, SelectedTransactions} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -28,6 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -106,7 +108,7 @@ function GroupHeader({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -185,7 +187,7 @@ function GroupHeader({
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
     // Built the same way the expanded rows are, so a group's action flags don't depend on which gesture selected it.
-    const snapshotTransactions = useGroupChildRows({
+    const effectiveTransactions = useGroupChildRows({
         isExpenseReportType,
         groupTransactions: groupItem.transactions,
         snapshotData,
@@ -193,17 +195,20 @@ function GroupHeader({
         cardFeeds,
         conciergeReportID,
     });
-    const effectiveTransactions = isExpenseReportType || groupItem.transactions.length > 0 ? groupItem.transactions : snapshotTransactions;
 
+    // Counted with the predicate the child rows render from, so the header cannot show unchecked above a block of checked rows.
     const {isSelectAllChecked, isIndeterminate} = useMemo(() => {
-        const selectedTransactionIDsSet = new Set(Object.keys(selectedTransactions));
         const filteredTransactions = effectiveTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const selectedCount = filteredTransactions.reduce((acc, transaction) => (selectedTransactionIDsSet.has(transaction.transactionID) ? acc + 1 : acc), 0);
+        const selectedCount = filteredTransactions.reduce(
+            (acc, transaction) =>
+                isRowChecked({rowKey: transaction.keyForList, parentGroupKey: originalKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}) ? acc + 1 : acc,
+            0,
+        );
         const isEmptyReportSelected = effectiveTransactions.length === 0 && originalKey && selectedTransactions[originalKey]?.isSelected;
         const allChecked = !!isEmptyReportSelected || (selectedCount === filteredTransactions.length && filteredTransactions.length > 0);
         const indeterminate = selectedCount > 0 && selectedCount !== filteredTransactions.length;
         return {isSelectAllChecked: allChecked, isIndeterminate: indeterminate};
-    }, [selectedTransactions, effectiveTransactions, originalKey]);
+    }, [selectedTransactions, excludedTransactions, areAllMatchingItemsSelected, effectiveTransactions, originalKey]);
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
 

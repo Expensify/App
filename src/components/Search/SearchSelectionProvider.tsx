@@ -105,9 +105,12 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
             // A deselection can only be recorded as an exclusion while an all-matching selection is being preserved.
             const shouldRecordExclusions = prevState.areAllMatchingItemsSelected && !!options?.shouldPreserveAllMatchingSelection && !shouldClearAllMatchingSelection;
             const hasDeselectedWithoutEntry = shouldRecordExclusions && !isEmptyObject(options?.deselectedWithoutEntry ?? {});
+            // Turning the flag off is a change even when the selection map is untouched, since it is what the rows read to render checked.
+            const needsAllMatchingClear = !!shouldClearAllMatchingSelection && prevState.areAllMatchingItemsSelected;
             if (
                 selectedTransactions === prevState.selectedTransactions &&
                 !hasDeselectedWithoutEntry &&
+                !needsAllMatchingClear &&
                 (!reconciledExcludedTransactions || reconciledExcludedTransactions === prevState.excludedTransactions)
             ) {
                 return prevState;

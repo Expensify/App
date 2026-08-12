@@ -137,6 +137,14 @@ describe('useGroupChildrenForShiftRange', () => {
         expect(registerGroupChildren).toHaveBeenCalledTimes(1);
     });
 
+    it('uses the rows the provider already derived rather than deriving them again', () => {
+        const groupTransactions: TransactionListItemType[] = [buildTransactionRow(4, '4')];
+        const {registerGroupChildren, result} = renderGroupChildren({groupTransactions});
+        expect(mockGetSections).not.toHaveBeenCalled();
+        expect(registerGroupChildren).toHaveBeenCalledWith(GROUP_KEY, groupTransactions);
+        expect(result.current.transactions.map((row) => row.keyForList)).toEqual(['4']);
+    });
+
     it('passes expense-report rows straight through, since they arrive ready to render', () => {
         const groupTransactions: TransactionListItemType[] = [buildTransactionRow(3, '3')];
         const {result} = renderGroupChildren({isExpenseReportType: true, groupTransactions});

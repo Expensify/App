@@ -4,6 +4,8 @@ import {useSearchRowSelectionActions, useSearchSelectionActions, useSearchSelect
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import SearchWriteActionsProvider from '@components/Search/SearchWriteActionsProvider';
+import {mapEmptyReportToSelectedEntry} from '@components/Search/selectionBuilders';
+import type {SelectedTransactions} from '@components/Search/types';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
@@ -249,6 +251,12 @@ const renderFlatSelection = () =>
         }),
         {wrapper: FlatWrapper},
     );
+
+/** A row taken back out of a wider selection. Only the key is read here, so any real entry shape will do. */
+const buildExclusionEntry = (key: string): SelectedTransactions => {
+    const [, entry] = mapEmptyReportToSelectedEntry(buildReportGroup(1, key));
+    return {[key]: entry};
+};
 
 /** What expanding a group does: publishes its loaded children and opens it to ranges. */
 function expandGroup(result: ReturnType<typeof renderSelection>['result'], groupKey: string, children: TransactionListItemType[]) {
@@ -803,6 +811,36 @@ describe('Lazily loaded group selection', () => {
         // Then the row that fell out of the range is recorded as excluded, the same as unchecking it by hand
         expect(result.current.excludedTransactions['2']).toBeDefined();
         expect(result.current.selectedTransactions['2']).toBeUndefined();
+    });
+
+    it('never anchors a cold shift+click on a row the user unchecked', async () => {
+        const {result} = renderSelection();
+        const [firstChild, , thirdChild] = threeLoadedChildren;
+
+        // Given a group covered by select-all-matching with its first child taken back out, and no range session started yet
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            expandGroup(result, GROUP_KEY, threeLoadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.applySelection((selectedTransactions) => selectedTransactions, {
+                shouldPreserveAllMatchingSelection: true,
+                deselectedWithoutEntry: buildExclusionEntry(firstChild.keyForList),
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.excludedTransactions[firstChild.keyForList]).toBeDefined();
+
+        // When the very first gesture is a shift+click on the last child, so the anchor has to be resolved from the rows themselves
+        await act(async () => {
+            result.current.toggle(thirdChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the range starts at the first row that reads as checked, rather than sweeping the unchecked row back in
+        expect(result.current.excludedTransactions[firstChild.keyForList]).toBeDefined();
+        expect(result.current.selectedTransactions[firstChild.keyForList]).toBeUndefined();
     });
 
     it('records what a narrowing dropped, so keeping select-all-matching on cannot silently re-include it', async () => {

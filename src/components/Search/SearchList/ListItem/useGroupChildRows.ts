@@ -48,7 +48,8 @@ function useGroupChildRows({isExpenseReportType, groupTransactions, snapshotData
     const isActionLoadingSet = useActionLoadingReportIDs();
     const {convertToDisplayString} = useCurrencyListActions();
 
-    if (isExpenseReportType) {
+    // `useSearchSnapshot` runs this same derivation for every group whose sub-snapshot is already cached, so rebuilding it here would be the third copy.
+    if (isExpenseReportType || groupTransactions.length > 0) {
         return groupTransactions;
     }
     return getSnapshotTransactionRows(snapshotData, {
