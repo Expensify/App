@@ -702,7 +702,30 @@ function getUpdatedTransaction({
             // Use route distance directly since waypoints changed and the route was recalculated.
             // getDistanceInMeters prefers quantity which may hold a stale manually-edited value.
             const distanceInMeters = transactionChanges.routes?.route0?.distance ?? getDistanceInMeters(transaction, unit);
-            const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
+            // Sync customUnit.quantity + routeDistanceMeters to the recalculated route BEFORE computing the
+            // commuter exclusion below. Without the quantity sync the prior manually-edited value would linger
+            // and drive getDistanceInMeters (which prefers quantity over routes). getTransactionCommuterExclusionData
+            // also reads routeDistanceMeters off the transaction and re-emits it, so it must be set first — the
+            // whole customUnit is then replaced by that function's return value.
+            if (unit) {
+                lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)));
+                lodashSet(updatedTransaction, 'comment.customUnit.routeDistanceMeters', distanceInMeters);
+            }
+
+            const commuterExclusionTransactionData = hasAppliedCommuterExclusion(updatedTransaction)
+                ? DistanceRequestUtils.getTransactionCommuterExclusionData({
+                      transaction: updatedTransaction,
+                      policy,
+                      storedCustomUnit: transaction?.comment?.customUnit,
+                      personalPolicyOutputCurrency,
+                  })
+                : undefined;
+
+            if (commuterExclusionTransactionData) {
+                lodashSet(updatedTransaction, 'comment.customUnit', commuterExclusionTransactionData.customUnit);
+            }
+
+            const amount = commuterExclusionTransactionData?.modifiedAmount ?? DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
             // Use the rate's resolved currency (which may come from personalPolicyOutputCurrency for a P2P expense),
             // not transaction.currency, so the merchant symbol/rate and the recalculated amount stay in the same currency.
@@ -717,6 +740,7 @@ function getUpdatedTransaction({
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
                 isManualDistanceRequest(transaction),
+                DistanceRequestUtils.getCommuterExclusionDisplayData(commuterExclusionTransactionData?.customUnit, unit),
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -724,13 +748,6 @@ function getUpdatedTransaction({
             updatedTransaction.modifiedMerchant = updatedMerchant;
             if (getCurrency(updatedTransaction) !== updatedCurrency) {
                 updatedTransaction.modifiedCurrency = updatedCurrency;
-            }
-
-            // Sync `customUnit.quantity` to the new route distance. Without this the prior manual
-            // quantity (set when the user edited distance manually before changing waypoints) would
-            // linger and drive `getDistanceInMeters`, since that helper prefers quantity over routes.
-            if (unit) {
-                lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)));
             }
         }
     }
@@ -796,6 +813,7 @@ function getUpdatedTransaction({
                 ? DistanceRequestUtils.getTransactionCommuterExclusionData({
                       transaction: updatedTransaction,
                       policy,
+                      storedCustomUnit: transaction?.comment?.customUnit,
                       personalPolicyOutputCurrency,
                   })
                 : undefined;
@@ -905,6 +923,7 @@ function getUpdatedTransaction({
             ? DistanceRequestUtils.getTransactionCommuterExclusionData({
                   transaction: updatedTransaction,
                   policy,
+                  storedCustomUnit: transaction?.comment?.customUnit,
                   personalPolicyOutputCurrency,
               })
             : undefined;
