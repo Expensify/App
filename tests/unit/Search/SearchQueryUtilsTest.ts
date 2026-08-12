@@ -37,10 +37,12 @@ import {
     isSearchBeforeViolationsSnapshotStarted,
     isSearchRootParams,
     serializeQueryJSONForBackend,
+    sanitizeSearchValue,
     shouldHighlight,
     shouldResetSort,
     shouldResetSortForViewChange,
     sortOptionsWithEmptyValue,
+    stripSearchValueQuotes,
     withExactMatchFilterKeys,
 } from '@src/libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -2805,6 +2807,41 @@ describe('SearchQueryUtils', () => {
             expect(result).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT);
         });
 
+        it('should display the label the backend records for the Canadian multiple tax export template', () => {
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+                filterValue: CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT,
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+                formatPhoneNumber,
+            });
+
+            expect(result).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT);
+        });
+
+        it('should return a custom export template name as-is', () => {
+            const customTemplateName = 'Custom Export Layout';
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+                filterValue: customTemplateName,
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+                formatPhoneNumber,
+            });
+
+            expect(result).toBe(customTemplateName);
+        });
+
         it('should handle policyID filter by looking up policy name', () => {
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}abc123`]: {
@@ -4061,6 +4098,33 @@ describe('SearchQueryUtils', () => {
             }
 
             expect(isSearchBeforeViolationsSnapshotStarted(queryJSON, violationSnapshotStartedAt)).toBe(false);
+        });
+    });
+
+    describe('sanitizeSearchValue', () => {
+        it('leaves a value without a delimiter untouched', () => {
+            expect(sanitizeSearchValue('Acme')).toBe('Acme');
+        });
+
+        it('quotes on a space or a non-breaking space', () => {
+            expect(sanitizeSearchValue('Acme Inc')).toBe('"Acme Inc"');
+            expect(sanitizeSearchValue('Acme\xA0Inc')).toBe('"Acme\xA0Inc"');
+        });
+
+        it('only quotes on a comma when asked to', () => {
+            expect(sanitizeSearchValue('Acme,Inc')).toBe('Acme,Inc');
+            expect(sanitizeSearchValue('Acme,Inc', true)).toBe('"Acme,Inc"');
+        });
+    });
+
+    describe('stripSearchValueQuotes', () => {
+        it('removes straight and curly quotes', () => {
+            expect(stripSearchValueQuotes('Acme,"Inc')).toBe('Acme,Inc');
+            expect(stripSearchValueQuotes('Acme “US” Inc')).toBe('Acme US Inc');
+        });
+
+        it('leaves a value without quotes untouched', () => {
+            expect(stripSearchValueQuotes('Acme, Inc.')).toBe('Acme, Inc.');
         });
     });
 });

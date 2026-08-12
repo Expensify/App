@@ -320,7 +320,6 @@ const translations = {
         billable: 'Billable',
         nonBillable: 'Non-billable',
         tag: 'Tag',
-        violations: 'Violations',
         receipt: 'Receipt',
         verified: 'Verified',
         replace: 'Replace',
@@ -347,8 +346,6 @@ const translations = {
         automatic: 'Automatic',
         showing: 'Showing',
         of: 'of',
-        // @context Carousel pagination counter showing the current item's position out of the total (e.g. "3 of 50").
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} of ${total}`,
         default: 'Default',
         update: 'Update',
         member: 'Member',
@@ -1251,6 +1248,7 @@ const translations = {
         importSpreadsheetLibraryError: 'Failed to load spreadsheet module. Please check your internet connection and try again.',
         importSpreadsheet: 'Import spreadsheet',
         importWorkflows: 'Import workflows',
+        downloadWorkflows: 'Download workflows',
         downloadCSV: 'Download CSV',
         importMemberConfirmation: () => ({
             one: `Please confirm the details below for a new workspace member that will be added as part of this upload. Existing members won’t receive any role updates or invite messages.`,
@@ -2662,6 +2660,7 @@ const translations = {
             fixConnection: 'Please fix this connection',
             fixConnectionIn: (companyCardsRoute: string) => `Please fix this connection in <a href="${companyCardsRoute}">company cards</a>`,
             askAdminToFixConnection: 'Please ask an admin to fix this connection',
+            reconnectBank: 'Your bank connection needs to be re-authenticated',
         },
         bankAccountStatus: {
             active: 'Active',
@@ -2848,10 +2847,6 @@ const translations = {
             lastDayOfMonth: 'Last day of the month',
             lastBusinessDayOfMonth: 'Last business day of the month',
             ordinals: {
-                one: 'st',
-                two: 'nd',
-                few: 'rd',
-                other: 'th',
                 /* eslint-disable @typescript-eslint/naming-convention */
                 '1': 'First',
                 '2': 'Second',
@@ -6350,7 +6345,7 @@ const translations = {
                 cardFeedAllowDeletingTransaction: 'Allow deleting transactions',
                 removeCardFeed: 'Remove card feed',
                 removeCardFeedTitle: (feedName: string) => `Remove ${feedName} feed`,
-                removeCardFeedDescription: 'Are you sure you want to remove this card feed? This will unassign all cards.',
+                removeCardFeedDescription: 'Are you sure you want to remove this card feed? This will unassign all cards and delete unsubmitted transactions.',
                 error: {
                     feedNameRequired: 'Card feed name is required',
                     statementCloseDateRequired: 'Please select a statement close date.',
@@ -6524,6 +6519,7 @@ const translations = {
         tags: {
             tagName: 'Tag name',
             requiresTag: 'Members must tag all expenses',
+            showTagGLCodes: 'Show GL codes when selecting a tag',
             trackBillable: 'Track billable expenses',
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',
@@ -6834,6 +6830,8 @@ const translations = {
                 chooseLimitType: 'Choose a limit type',
                 smartLimit: 'Smart Limit',
                 smartLimitDescription: 'Spend up to a certain amount before requiring approval',
+                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
+                    `<muted-text-label>Spend up to a certain amount before requiring approval. <a href="${workspaceWorkflowsLink}">Enable approvals</a> to select this option.</muted-text-label>`,
                 monthly: 'Monthly',
                 monthlyDescription: 'Limit renews monthly',
                 fixedAmount: 'Fixed amount',
@@ -7939,6 +7937,8 @@ const translations = {
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Update ${fieldName} to "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Mark as  "${reimbursable ? 'reimbursable' : 'non-reimbursable'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Mark as "${billable ? 'billable' : 'non-billable'}"`,
+                vendorUnavailable: 'Vendor unavailable',
+                supplierUnavailable: 'Supplier unavailable',
                 matchType: 'Match type',
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Exactly matches',
@@ -9045,7 +9045,6 @@ const translations = {
             topSpenders: 'Top spenders',
             topCategories: 'Top categories',
             topMerchants: 'Top merchants',
-            violationsBySubmitter: 'Violations by submitter',
         },
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
@@ -9310,7 +9309,6 @@ const translations = {
         exportedTo: 'Exported to',
         exportAll: {
             selectAllMatchingItems: 'Select all matching items',
-            allMatchingItemsSelected: 'All matching items selected',
             selectAllOnThisPage: 'Select all on this page',
         },
         errors: {
@@ -9684,7 +9682,16 @@ const translations = {
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Removed ${distance} commuter ${unit}`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `Removed ${distance} commuter mile`,
+                    other: `Removed ${distance} commuter miles`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `Removed ${distance} commuter kilometer`,
+                    other: `Removed ${distance} commuter kilometers`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `Removed ${distance} commuter ${unit} based on ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">workspace distance settings</a>` : 'workspace distance settings'}.`,
         },
@@ -10007,57 +10014,6 @@ const translations = {
         resolvedDuplicates: 'resolved the duplicate',
         companyCardRequired: 'Company card purchases required',
         noRoute: 'Please select a valid address',
-        /**
-         * Parameter-free labels for submitted violations shown in Search table columns.
-         * Prefer these over sibling `violations.*` keys when violation data/context is unavailable.
-         */
-        shortName: {
-            allTagLevelsRequired: 'All tags required',
-            autoReportedRejectedExpense: 'Expense rejected',
-            billableExpense: 'Billable no longer valid',
-            cashExpenseWithNoReceipt: 'Receipt required',
-            categoryOutOfPolicy: 'Category no longer valid',
-            companyCardRequired: 'Company card required',
-            conversionSurcharge: 'Conversion surcharge applied',
-            customUnitOutOfPolicy: 'Rate not valid for workspace',
-            customUnitRateOutOfDateRange: 'Rate outside valid dates',
-            duplicatedTransaction: 'Potential duplicate',
-            fieldRequired: 'Report field required',
-            futureDate: 'Future date not allowed',
-            hold: 'Expense on hold',
-            inactiveVendor: 'Vendor no longer valid',
-            increasedDistance: 'Distance exceeds route',
-            invoiceMarkup: 'Invoice marked up',
-            itemizedReceiptRequired: 'Itemized receipt required',
-            maxAge: 'Expense too old',
-            missingAttendees: 'Attendees required',
-            missingCategory: 'Missing category',
-            missingComment: 'Description required',
-            missingTag: 'Missing tag',
-            modifiedAmount: 'Amount modified',
-            modifiedDate: 'Date modified',
-            noRoute: 'No valid route',
-            nonExpensiworksExpense: 'Non-Expensiworks expense',
-            overAutoApprovalLimit: 'Over auto-approval limit',
-            overCategoryLimit: 'Over category limit',
-            overLimit: 'Over limit',
-            overTripLimit: 'Over trip limit',
-            perDayLimit: 'Over daily limit',
-            prohibitedExpense: 'Prohibited expense',
-            receiptGeneratedWithAI: 'Possible AI-generated receipt',
-            receiptNotSmartScanned: 'Receipt added manually',
-            receiptRequired: 'Receipt required',
-            rter: 'Awaiting card match',
-            smartscanFailed: 'Receipt scanning failed',
-            someTagLevelsRequired: 'Tag required',
-            tagOutOfPolicy: 'Tag no longer valid',
-            overLimitAttendee: 'Over person limit',
-            customRules: 'Custom rule violation',
-            taxAmountChanged: 'Tax amount modified',
-            taxOutOfPolicy: 'Tax rate no longer valid',
-            taxRateChanged: 'Tax rate modified',
-            taxRequired: 'Missing tax rate',
-        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is required`,
@@ -10618,6 +10574,7 @@ const translations = {
         currentView: 'Current view',
         reportLevelExport: 'All Data - report level',
         expenseLevelExport: 'All Data - expense level',
+        multipleTaxExport: 'Canadian Multiple Tax Export',
         exportInProgress: 'Export in progress',
         conciergeWillSend: 'Concierge will send you the file shortly.',
     },
