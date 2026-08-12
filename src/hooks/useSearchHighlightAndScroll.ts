@@ -114,25 +114,36 @@ function useSearchHighlightAndScroll({
             }
             hasPendingSearchRef.current = false;
 
-            // Read the IDs off the transactions themselves: `transactionsIDs` are Onyx collection keys
-            // (`transactions_<id>`) while the search results yield bare IDs, so the two never compare equal.
-            const newIDs = isChat
-                ? reportActionsIDs
-                : Object.values(transactions ?? {})
-                      .map((transaction) => transaction?.transactionID)
-                      .filter((id): id is string => !!id);
+            // Read the IDs off the transactions themselves: their Onyx keys are `transactions_<id>` while the
+            // search results yield bare IDs, so the two never compare equal.
+            // `addedIDs` drives the new-item check and `currentIDs` the deletion check. They cannot be the same
+            // list: the collection holds every transaction cached on the account, so on a filtered or paginated
+            // query it always contains an ID the results omit, which would make every pass look like a new item.
+            const addedIDs: string[] = [];
+            const currentIDs: string[] = [];
+            for (const [key, transaction] of Object.entries(transactions ?? {})) {
+                const transactionID = transaction?.transactionID;
+                if (!transactionID) {
+                    continue;
+                }
+                currentIDs.push(transactionID);
+                if (!previousTransactionsIDsSet.has(key)) {
+                    addedIDs.push(transactionID);
+                }
+            }
+
             let currentSearchResultIDs: string[] = [];
             if (searchResultsData) {
                 currentSearchResultIDs = isChat ? extractReportActionIDsFromSearchResults(searchResultsData) : extractTransactionIDsFromSearchResults(searchResultsData);
             }
             const existingSearchResultIDsSet = new Set(currentSearchResultIDs);
-            const hasAGenuinelyNewID = newIDs.some((id) => !existingSearchResultIDsSet.has(id));
+            const hasAGenuinelyNewID = (isChat ? reportActionsIDs : addedIDs).some((id) => !existingSearchResultIDsSet.has(id));
 
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search
             if (!hasAGenuinelyNewID && currentSearchResultIDs.length > 0) {
-                const newIDsSet = new Set(newIDs);
-                const hasDeletedID = currentSearchResultIDs.some((id) => !newIDsSet.has(id));
+                const currentIDsSet = new Set(isChat ? reportActionsIDs : currentIDs);
+                const hasDeletedID = currentSearchResultIDs.some((id) => !currentIDsSet.has(id));
                 if (!hasDeletedID) {
                     return;
                 }

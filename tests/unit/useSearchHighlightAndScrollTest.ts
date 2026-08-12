@@ -323,6 +323,47 @@ describe('useSearchHighlightAndScroll', () => {
         expect(search).not.toHaveBeenCalled();
     });
 
+    it('should not trigger search when the added transaction is already in the results and Onyx holds one the query filters out', () => {
+        const initialProps = {
+            ...baseProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    transactions_1: {transactionID: '1'},
+                    transactions_2: {transactionID: '2'},
+                },
+            },
+            transactions: {
+                transactions_1: {transactionID: '1'},
+                transactions_99: {transactionID: '99'},
+            },
+            previousTransactions: {
+                transactions_1: {transactionID: '1'},
+                transactions_99: {transactionID: '99'},
+            },
+        };
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            initialProps,
+        });
+
+        const updatedProps = {
+            ...initialProps,
+            transactions: {
+                transactions_1: {transactionID: '1'},
+                transactions_99: {transactionID: '99'},
+                transactions_2: {transactionID: '2'},
+            },
+        };
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(search).not.toHaveBeenCalled();
+    });
+
     it('should not trigger search for chat when report actions removed and focused', () => {
         mockUseIsFocused.mockReturnValue(true);
 
