@@ -10,21 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {
-    getAllReportActions,
-    getElsewherePaymentReportActionMessage,
-    getOriginalMessage,
-    getReportActionHtml,
-    getReportActionText,
-    getSortedReportActions,
-    isApprovedAction,
-    isClosedAction,
-    isCreatedAction,
-    isForwardedAction,
-    isPayAction,
-    isSubmittedAction,
-    isSubmittedAndClosedAction,
-} from '@libs/ReportActionsUtils';
+import {getAllReportActions, getElsewherePaymentReportActionMessage, getReportActionHtml, getReportActionText, isCreatedAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticIOUReportAction,
@@ -551,38 +537,8 @@ function cancelPayment(
     );
     const approvalMode = policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
 
-    // Derive the pre-payment state from the report's action history instead of guessing from the policy config.
-    const expenseReportActions = getAllReportActions(expenseReport.reportID);
-    const sortedReportActions = getSortedReportActions(Object.values(expenseReportActions));
-    const latestPayIndex = sortedReportActions.findLastIndex(isPayAction);
-    const actionsBeforePayment = latestPayIndex === -1 ? sortedReportActions : sortedReportActions.slice(0, latestPayIndex);
-    const lastWorkflowAction = actionsBeforePayment.findLast(
-        (action) => isApprovedAction(action) || isForwardedAction(action) || isSubmittedAction(action) || isSubmittedAndClosedAction(action) || isClosedAction(action),
-    );
-
-    let stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = CONST.REPORT.STATE_NUM.APPROVED;
-    // Fallback to the policy-based guess only when there is no workflow action history to read.
-    let statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM> = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.APPROVED;
-
-    if (isSubmittedAndClosedAction(lastWorkflowAction) || isClosedAction(lastWorkflowAction)) {
-        // Done: delayed submit with approvals disabled (SUBMITTED_AND_CLOSED), or a manually closed report.
-        stateNum = CONST.REPORT.STATE_NUM.APPROVED;
-        statusNum = CONST.REPORT.STATUS_NUM.CLOSED;
-    } else if (isSubmittedAction(lastWorkflowAction) || isForwardedAction(lastWorkflowAction)) {
-        // submitReport stamps a submit-and-close report's optimistic SUBMITTED action with workflow=OPTIONAL, so map it to Done.
-        const submittedWorkflow = isSubmittedAction(lastWorkflowAction) ? getOriginalMessage(lastWorkflowAction)?.workflow : undefined;
-        if (submittedWorkflow === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
-            stateNum = CONST.REPORT.STATE_NUM.APPROVED;
-            statusNum = CONST.REPORT.STATUS_NUM.CLOSED;
-        } else {
-            // Outstanding (instant submit) or Processing (still in the approval chain).
-            stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
-            statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED;
-        }
-    } else if (isApprovedAction(lastWorkflowAction)) {
-        stateNum = CONST.REPORT.STATE_NUM.APPROVED;
-        statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
-    }
+    const stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = CONST.REPORT.STATE_NUM.APPROVED;
+    const statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM> = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.APPROVED;
 
     // For OPTIONAL approval mode with a connected bank account, the report status is CLOSED but the next step
     // should show "waiting to pay", so we use SUBMITTED as the predictedNextStatus which routes through the
@@ -601,6 +557,7 @@ function cancelPayment(
         isTrackIntentUser,
     });
     const iouReportActions = getAllReportActions(chatReport.iouReportID);
+    const expenseReportActions = getAllReportActions(expenseReport.reportID);
     const iouCreatedAction = Object.values(iouReportActions).find((action) => isCreatedAction(action));
     const expenseCreatedAction = Object.values(expenseReportActions).find((action) => isCreatedAction(action));
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
@@ -677,8 +634,6 @@ function cancelPayment(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
-                // Restore stateNum too — the optimistic revert can move it off APPROVED, so restoring only statusNum leaves a mixed state on rollback.
-                stateNum: expenseReport.stateNum,
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 isWaitingOnBankAccount: expenseReport.isWaitingOnBankAccount,
                 isCancelledIOU: false,
