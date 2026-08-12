@@ -5,12 +5,16 @@ import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/Fil
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import {useTableContext} from '@components/Table/TableContext';
+import Text from '@components/Text';
+
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
 import React from 'react';
 
 export default function TableFilterPopoverComponent({closeOverlay}: PopoverComponentProps) {
+    const styles = useThemeStyles();
     const {filterConfig, activeFilters, tableMethods} = useTableContext();
     // To start with, we expect tables to only have one set of filters. This will be updated in the future
     const filterKey = Object.keys(filterConfig ?? {}).at(0);
@@ -31,6 +35,7 @@ export default function TableFilterPopoverComponent({closeOverlay}: PopoverCompo
 
         return (
             <ListFilterHeightContextProvider>
+                {!!config.label && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1, styles.mb2, styles.pt4]}>{config.label}</Text>}
                 <MultiSelect
                     items={items}
                     value={value}

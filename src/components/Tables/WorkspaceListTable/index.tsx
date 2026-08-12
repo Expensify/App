@@ -130,11 +130,6 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
         );
     };
 
-    const WORKSPACE_STATUS_FILTER_VALUES = {
-        ACTIVE: 'active',
-        ARCHIVED: 'archived',
-    } as const;
-
     const canAccessArchived = (role: ValueOf<typeof CONST.POLICY.ROLE>) => role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.OWNER || role === CONST.POLICY.ROLE.AUDITOR;
     const canSeeFilter = workspaces.some((w) => canAccessArchived(w.role));
 
@@ -147,11 +142,11 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
             return !item.isArchived;
         }
 
-        if (filterValues.includes(WORKSPACE_STATUS_FILTER_VALUES.ACTIVE) && !item.isArchived) {
+        if (filterValues.includes(CONST.POLICY.WORKSPACE_STATUS.ACTIVE) && !item.isArchived) {
             return true;
         }
 
-        if (filterValues.includes(WORKSPACE_STATUS_FILTER_VALUES.ARCHIVED) && item.isArchived) {
+        if (filterValues.includes(CONST.POLICY.WORKSPACE_STATUS.ARCHIVED) && item.isArchived) {
             return true;
         }
 
@@ -167,11 +162,11 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
                   options: [
                       {
                           label: translate('workspace.common.active'),
-                          value: WORKSPACE_STATUS_FILTER_VALUES.ACTIVE,
+                          value: CONST.POLICY.WORKSPACE_STATUS.ACTIVE,
                       },
                       {
                           label: translate('workspace.common.archived'),
-                          value: WORKSPACE_STATUS_FILTER_VALUES.ARCHIVED,
+                          value: CONST.POLICY.WORKSPACE_STATUS.ARCHIVED,
                       },
                   ],
               },
