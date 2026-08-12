@@ -8,6 +8,7 @@ import {
     createOption,
     createOptionList,
     filterOption,
+    filterPersonalDetailsByLogins,
     getFilteredRecentAttendees,
     getValidOptions,
     matchesSearchTerms,
@@ -953,6 +954,31 @@ describe('PersonalDetailOptionsListUtils', () => {
         it('should not match current user option when searching unrelated term even with extraSearchTerms', () => {
             const result = filterOption(OPTIONS.currentUserOption, 'non-matching-string', ['You', 'me']);
             expect(result).toBeNull();
+        });
+    });
+
+    describe('filterPersonalDetailsByLogins', () => {
+        it('should keep only the personal details whose login is in the given set', () => {
+            const result = filterPersonalDetailsByLogins(PERSONAL_DETAILS, new Set(['tonystark@expensify.com', 'thor@expensify.com']));
+
+            expect(Object.keys(result)).toEqual(['2', '6']);
+            expect(result['2']?.login).toBe('tonystark@expensify.com');
+            expect(result['6']?.login).toBe('thor@expensify.com');
+        });
+
+        it('should return an empty list when no login matches', () => {
+            expect(filterPersonalDetailsByLogins(PERSONAL_DETAILS, new Set(['nobody@expensify.com']))).toEqual({});
+            expect(filterPersonalDetailsByLogins(PERSONAL_DETAILS, new Set())).toEqual({});
+        });
+
+        it('should drop personal details without a login and handle missing personal details', () => {
+            const personalDetails = {
+                '1': {accountID: 1, displayName: 'No Login'},
+                '2': {accountID: 2, displayName: 'Iron Man', login: 'tonystark@expensify.com'},
+            };
+
+            expect(filterPersonalDetailsByLogins(personalDetails, new Set(['tonystark@expensify.com']))).toEqual({'2': personalDetails['2']});
+            expect(filterPersonalDetailsByLogins(undefined, new Set(['tonystark@expensify.com']))).toEqual({});
         });
     });
 

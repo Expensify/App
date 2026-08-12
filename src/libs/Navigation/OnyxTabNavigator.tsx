@@ -30,7 +30,7 @@ import {StyleSheet, View} from 'react-native';
 
 import type {RegisterTabSwitchGuard, TabSwitchGuard} from './TabSwitchGuardContext';
 
-import {backBehavior, defaultScreenOptions} from './OnyxTabNavigatorConfig';
+import {backBehavior, defaultScreenOptions, pagerContainerStyle} from './OnyxTabNavigatorConfig';
 import TabSwitchGuardContext from './TabSwitchGuardContext';
 
 type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = ChildrenProps & {
@@ -128,10 +128,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     const LazyPlaceholder = useCallback(() => {
         return (
             <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100]}>
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={{context: 'OnyxTabNavigator.LazyPlaceholder'}}
-                />
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
             </View>
         );
     }, [styles.fullScreenLoading, styles.w100]);
@@ -242,6 +239,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
             <TabFocusTrapContext.Provider value={setTabFocusTrapContainerElement}>
                 <TopTab.Navigator
                     {...rest}
+                    style={pagerContainerStyle}
                     id={id}
                     initialRouteName={validInitialTab}
                     backBehavior={backBehavior}

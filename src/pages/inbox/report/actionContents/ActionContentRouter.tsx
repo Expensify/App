@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {
     getChangedApproverActionMessage,
+    getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
     getForwardedReportActionMessage,
     getIOUReportIDFromReportActionPreview,
@@ -474,6 +475,13 @@ function ActionContentRouter({
         return (
             <ReportActionItemBasicMessage message="">
                 <RenderHTML html={`<comment><muted-text>${getPlaidBalanceFailureMessage(translate, action)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION)) {
+        return (
+            <ReportActionItemBasicMessage>
+                <RenderHTML html={`<comment><muted-text>${getCommuterExclusionMessage(translate, action, report?.policyID)}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
     }

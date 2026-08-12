@@ -95,7 +95,7 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID}: WorkspaceRo
     );
 
     if (!isPolicyRoomDataLoaded) {
-        return <Table.LoadingState context="WorkspaceRoomsTable" />;
+        return <Table.LoadingState />;
     }
 
     return (
