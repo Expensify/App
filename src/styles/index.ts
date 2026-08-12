@@ -4118,7 +4118,7 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'left',
             overflow: 'hidden',
             marginBottom: 20,
-            marginHorizontal: 20,
+            marginHorizontal: variables.sectionMargin,
         },
 
         widgetContainer: {
@@ -6541,7 +6541,7 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             alignItems: 'center',
             gap: variables.componentBorderRadius,
-            marginBottom: variables.sectionMargin,
+            marginBottom: 16,
         },
         chartTitle: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
