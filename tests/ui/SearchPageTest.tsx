@@ -6,7 +6,6 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
-import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 
 import useNetwork from '@hooks/useNetwork';
@@ -190,7 +189,7 @@ describe('SearchPageNarrow', () => {
         expect(searchInput).toBeTruthy();
     });
 
-    it('does not retry an already failed search snapshot', async () => {
+    it('retries an already failed search snapshot once on a fresh mount', async () => {
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {
                 errors: {error: 'Something went wrong'},
@@ -206,14 +205,16 @@ describe('SearchPageNarrow', () => {
             });
         });
 
-        const renderedPage = renderPage();
+        renderPage();
 
         await act(async () => {
             jest.advanceTimersByTime(0);
         });
 
-        expect(mockSearch).not.toHaveBeenCalled();
-        expect(renderedPage.UNSAFE_queryByType(SearchRowSkeleton)).toBeNull();
+        // Only a request clears the persisted `errors`, so without this one attempt the page renders its
+        // error view on every mount with nothing in flight, recoverable only by tapping Try again. The
+        // attempt means a fresh mount now shows the skeleton briefly instead of the error straight away.
+        expect(mockSearch).toHaveBeenCalledTimes(1);
     });
 
     // Reproduces the reload case: the errored snapshot survives but the in-memory response code does not,
