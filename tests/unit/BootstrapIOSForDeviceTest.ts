@@ -1,6 +1,14 @@
 import {readFileSync} from 'node:fs';
 
-import {defaultBundleIdentifier, entitlementContents, patchProject, targetBundleIdentifier, validateSuffix} from '../../scripts/bootstrapIOSForDevice';
+import {
+    defaultBundleIdentifier,
+    entitlementContents,
+    parseDevelopmentTeamFromProvisioningProfile,
+    patchProject,
+    resolveDevelopmentTeam,
+    targetBundleIdentifier,
+    validateSuffix,
+} from '../../scripts/bootstrapIOSForDevice';
 
 const configuration = (identifier: string, name: string, bundleIdentifier: string) => `
 \t\t${identifier} /* ${name} */ = {
@@ -48,6 +56,39 @@ function projectFixture(): string {
 }
 
 describe('bootstrapIOSForDevice', () => {
+    test('reads a development team from an unexpired provisioning profile', () => {
+        const profile = `
+            <key>ExpirationDate</key><date>2030-01-01T00:00:00Z</date>
+            <key>TeamIdentifier</key><array><string>ABCDEFGHIJ</string></array>
+            <key>TeamName</key><string>Example &amp; Company</string>`;
+
+        expect(parseDevelopmentTeamFromProvisioningProfile(profile, new Date('2029-01-01'))).toEqual({id: 'ABCDEFGHIJ', name: 'Example & Company'});
+    });
+
+    test('ignores an expired provisioning profile', () => {
+        const profile = `
+            <key>ExpirationDate</key><date>2028-01-01T00:00:00Z</date>
+            <key>TeamIdentifier</key><array><string>ABCDEFGHIJ</string></array>
+            <key>TeamName</key><string>Example</string>`;
+
+        expect(parseDevelopmentTeamFromProvisioningProfile(profile, new Date('2029-01-01'))).toBeUndefined();
+    });
+
+    test('uses an explicitly provided development team without prompting', async () => {
+        const prompt = jest.fn();
+
+        await expect(resolveDevelopmentTeam('ABCDEFGHIJ', [], prompt)).resolves.toBe('ABCDEFGHIJ');
+        expect(prompt).not.toHaveBeenCalled();
+    });
+
+    test('prompts for a development team when one is not provided', async () => {
+        const teams = [{id: 'ABCDEFGHIJ', name: 'Example'}];
+        const prompt = jest.fn().mockResolvedValue('ABCDEFGHIJ');
+
+        await expect(resolveDevelopmentTeam(undefined, teams, prompt)).resolves.toBe('ABCDEFGHIJ');
+        expect(prompt).toHaveBeenCalledWith(teams);
+    });
+
     test('creates the default bundle identifier from a GitHub username', () => {
         expect(defaultBundleIdentifier('Example-Developer')).toBe('com.example-developer.expensify.expensifylite');
     });

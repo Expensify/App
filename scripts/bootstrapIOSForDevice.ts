@@ -4,9 +4,11 @@ import type {TupleToUnion} from 'type-fest';
 
 import CLI from 'expensify-common/CLI';
 import {execFileSync} from 'node:child_process';
-import {readFileSync, writeFileSync} from 'node:fs';
-import {dirname, resolve} from 'node:path';
+import {readdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {homedir} from 'node:os';
+import {dirname, join, resolve} from 'node:path';
 import process from 'node:process';
+import {createInterface} from 'node:readline/promises';
 
 const CONFIGURATIONS = ['Debug', 'Release', 'AdHoc'] as const;
 const TARGETS = ['Expensify', 'SmartScanExtension', 'NotificationServiceExtension', 'LiveActivityExtension', 'ExpensifyTests'] as const;
@@ -24,6 +26,10 @@ const APP_GROUP_ENTITLEMENT_FILES = [
 
 type Configuration = TupleToUnion<typeof CONFIGURATIONS>;
 type Target = TupleToUnion<typeof TARGETS>;
+type DevelopmentTeam = {
+    id: string;
+    name: string;
+};
 type BootstrapOptions = {
     rootDirectory: string;
     developmentTeam: string;
@@ -50,6 +56,80 @@ function validateSuffix(value: string | undefined): string | undefined {
         fail(`Bundle identifier suffix must contain only letters, numbers, or hyphens. Received: ${value}`);
     }
     return value;
+}
+
+function decodeXml(value: string): string {
+    return value.replaceAll('&amp;', '&').replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&quot;', '"').replaceAll('&apos;', "'");
+}
+
+function parseDevelopmentTeamFromProvisioningProfile(profile: string, now = new Date()): DevelopmentTeam | undefined {
+    const teamID = profile.match(/<key>TeamIdentifier<\/key>\s*<array>\s*<string>([^<]+)<\/string>/)?.at(1);
+    const teamName = profile.match(/<key>TeamName<\/key>\s*<string>([^<]+)<\/string>/)?.at(1);
+    const expirationDate = profile.match(/<key>ExpirationDate<\/key>\s*<date>([^<]+)<\/date>/)?.at(1);
+    if (!teamID || !teamName || !TEAM_ID_PATTERN.test(teamID) || (expirationDate && new Date(expirationDate) <= now)) {
+        return undefined;
+    }
+    return {id: teamID, name: decodeXml(teamName)};
+}
+
+function decodeProvisioningProfile(path: string): string | undefined {
+    try {
+        return execFileSync('openssl', ['smime', '-verify', '-inform', 'der', '-noverify', '-in', path], {encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore']});
+    } catch {
+        return undefined;
+    }
+}
+
+function installedDevelopmentTeams(): DevelopmentTeam[] {
+    const profileDirectories = [join(homedir(), 'Library/Developer/Xcode/UserData/Provisioning Profiles'), join(homedir(), 'Library/MobileDevice/Provisioning Profiles')];
+    const teams = new Map<string, DevelopmentTeam>();
+    for (const directory of profileDirectories) {
+        let profileNames: string[];
+        try {
+            profileNames = readdirSync(directory).filter((name) => name.endsWith('.mobileprovision'));
+        } catch {
+            continue;
+        }
+        for (const profileName of profileNames) {
+            const profile = decodeProvisioningProfile(join(directory, profileName));
+            const team = profile ? parseDevelopmentTeamFromProvisioningProfile(profile) : undefined;
+            if (team) {
+                teams.set(team.id, team);
+            }
+        }
+    }
+    return [...teams.values()].toSorted((left, right) => left.name.localeCompare(right.name));
+}
+
+async function promptForDevelopmentTeam(teams: DevelopmentTeam[]): Promise<string> {
+    if (teams.length === 0) {
+        fail('No Apple development teams were found. Add your Apple ID in Xcode > Settings > Accounts and download or create a provisioning profile, or pass --development-team.');
+    }
+
+    console.log('Select an Apple development team:');
+    for (const [index, team] of teams.entries()) {
+        console.log(`  ${index + 1}. ${team.name} (${team.id})`);
+    }
+    const readline = createInterface({input: process.stdin, output: process.stdout});
+    try {
+        while (true) {
+            const answer = await readline.question('Team: ');
+            const selectedTeam = teams.at(Number(answer) - 1);
+            if (selectedTeam && /^\d+$/.test(answer.trim())) {
+                return selectedTeam.id;
+            }
+            console.log(`Enter a number from 1 to ${teams.length}.`);
+        }
+    } finally {
+        readline.close();
+    }
+}
+
+async function resolveDevelopmentTeam(developmentTeam: string | undefined, teams = installedDevelopmentTeams(), prompt = promptForDevelopmentTeam): Promise<string> {
+    if (developmentTeam) {
+        return developmentTeam;
+    }
+    return prompt(teams);
 }
 
 function githubUsername(): string {
@@ -195,13 +275,13 @@ function bootstrapIOSForDevice(options: BootstrapOptions): void {
     });
 }
 
-function main(): void {
+async function main(): Promise<void> {
     /* eslint-disable @typescript-eslint/naming-convention */
     const cli = new CLI({
         namedArgs: {
             'development-team': {
                 description: 'Apple Developer team ID used for automatic signing',
-                required: true,
+                required: false,
             },
             'bundle-identifier': {
                 description: 'Base bundle identifier for the Expensify app',
@@ -223,9 +303,10 @@ function main(): void {
     const bundleIdentifier = cli.namedArgs['bundle-identifier'] ?? defaultBundleIdentifier(username ?? '');
     const scriptPath = process.argv.at(1);
     const rootDirectory = scriptPath ? resolve(dirname(resolve(scriptPath)), '..') : process.cwd();
+    const developmentTeam = await resolveDevelopmentTeam(cli.namedArgs['development-team']);
     bootstrapIOSForDevice({
         rootDirectory,
-        developmentTeam: cli.namedArgs['development-team'],
+        developmentTeam,
         bundleIdentifier,
         suffix: cli.namedArgs.suffix,
     });
@@ -233,13 +314,21 @@ function main(): void {
 
 const scriptPath = process.argv.at(1);
 if (scriptPath?.endsWith('bootstrapIOSForDevice.ts')) {
-    try {
-        main();
-    } catch (error) {
+    main().catch((error: unknown) => {
         console.error(error instanceof Error ? error.message : error);
         process.exitCode = 1;
-    }
+    });
 }
 
-export {bootstrapIOSForDevice, defaultBundleIdentifier, entitlementContents, patchProject, targetBundleIdentifier, validateSuffix};
-export type {BootstrapOptions, Configuration, Target};
+export {
+    bootstrapIOSForDevice,
+    defaultBundleIdentifier,
+    entitlementContents,
+    installedDevelopmentTeams,
+    parseDevelopmentTeamFromProvisioningProfile,
+    patchProject,
+    resolveDevelopmentTeam,
+    targetBundleIdentifier,
+    validateSuffix,
+};
+export type {BootstrapOptions, Configuration, DevelopmentTeam, Target};
