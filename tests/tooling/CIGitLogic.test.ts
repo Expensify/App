@@ -297,7 +297,8 @@ async function mergePR(num: number) {
 
     Log.info(`Merging PR #${num} to main`);
     await $`git switch main`;
-    await $`git merge ${branchName} --no-ff -m "Merge pull request #${num} from Expensify/${branchName}"`;
+    const mergeMessage = `Merge pull request #${num} from Expensify/${branchName}`;
+    await $`git merge ${branchName} --no-ff -m ${mergeMessage}`;
     await $`git push origin main`;
     await $`git branch -d ${branchName}`;
     Log.success(`Merged PR #${num} to main`);
@@ -336,7 +337,8 @@ async function cherryPickPRToStaging(num: number, resolveVersionBumpConflicts: (
 
     await setupGitAsOSBotify();
     await $`git switch staging`;
-    await $`git merge cherry-pick-staging --no-ff -m "Merge pull request #${num + 1} from Expensify/cherry-pick-staging"`;
+    const mergeMessage = `Merge pull request #${num + 1} from Expensify/cherry-pick-staging`;
+    await $`git merge cherry-pick-staging --no-ff -m ${mergeMessage}`;
     await $`git branch -d cherry-pick-staging`;
     await $`git push origin staging`;
     Log.info(`Merged PR #${num + 1} into staging`);
@@ -375,7 +377,8 @@ async function cherryPickPRToProduction(num: number, resolveVersionBumpConflicts
 
     await setupGitAsOSBotify();
     await $`git switch production`;
-    await $`git merge cherry-pick-production --no-ff -m "Merge pull request #${num + 1} from Expensify/cherry-pick-production"`;
+    const mergeMessage = `Merge pull request #${num + 1} from Expensify/cherry-pick-production`;
+    await $`git merge cherry-pick-production --no-ff -m ${mergeMessage}`;
     await $`git branch -d cherry-pick-production`;
     await $`git push origin production`;
     Log.info(`Merged PR #${num + 1} into production`);
@@ -560,7 +563,8 @@ describe.serial('CIGitLogic', () => {
         const initialFileContent = 'Changes from PR #7';
         fs.appendFileSync('myFile.txt', 'Changes from PR #7');
         await $`git add myFile.txt`;
-        await $`git commit -m "Add myFile.txt in PR #7"`;
+        const commitMessage = 'Add myFile.txt in PR #7';
+        await $`git commit -m ${commitMessage}`;
 
         await mergePR(7);
         await deployStaging();
@@ -673,7 +677,8 @@ Appended content
             await $`npm --no-git-tag-version version ${VersionUpdater.incrementVersion(getVersion(), VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR)}`;
         }
         await $`git add package.json`;
-        await $`git commit -m "Manually bump version to ${getVersion()} in PR #14"`;
+        const bumpMessage14 = `Manually bump version to ${getVersion()} in PR #14`;
+        await $`git commit -m ${bumpMessage14}`;
         Log.success('Created manual version bump in PR #13 in branch pr-14');
 
         await mergePR(14);
@@ -695,7 +700,8 @@ Appended content
             await $`npm --no-git-tag-version version ${VersionUpdater.incrementVersion(getVersion(), VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR)}`;
         }
         await $`git add package.json`;
-        await $`git commit -m "Manually bump version to ${getVersion()} in PR #15"`;
+        const bumpMessage15 = `Manually bump version to ${getVersion()} in PR #15`;
+        await $`git commit -m ${bumpMessage15}`;
         Log.success('Created manual version bump in PR #15 in branch pr-15');
 
         const packageJSONBefore = fs.readFileSync('package.json', {encoding: 'utf-8'});
