@@ -235,6 +235,8 @@ function getMergeableDataAndConflictFields(
 ) {
     const conflictFields: string[] = [];
     const mergeableData: Record<string, unknown> = {};
+    // The same object, typed for the field builders that read the values merged so far
+    const mergedSoFar = mergeableData as MergeTransaction;
 
     // Resolve the report-owner fallback the same way the display path (buildMergeFieldsData) does, so an expense
     // with no stored attendee is compared as [owner] instead of [] and doesn't produce a false attendee conflict
@@ -287,7 +289,16 @@ function getMergeableDataAndConflictFields(
         // We allow user to select unreported report
         if (field === 'reportID') {
             if (targetValue === sourceValue) {
-                const updatedValues = getMergeFieldUpdatedValues({transaction: targetTransaction, field, fieldValue: SafeString(targetValue), getCurrencyDecimals, searchReports});
+                const updatedValues = getMergeFieldUpdatedValues({
+                    transaction: targetTransaction,
+                    field,
+                    fieldValue: SafeString(targetValue),
+                    getCurrencyDecimals,
+                    mergeTransaction: mergedSoFar,
+                    searchReports,
+                    // Both expenses share the report, so the merged expense stays on that report's workspace
+                    destinationPolicy: targetTransactionPolicy,
+                });
                 Object.assign(mergeableData, updatedValues);
             } else {
                 conflictFields.push(field);
@@ -323,9 +334,11 @@ function getMergeableDataAndConflictFields(
                 field,
                 fieldValue: selectedFieldValue as MergeTransaction[typeof field],
                 getCurrencyDecimals,
-                mergeTransaction: mergeableData as MergeTransaction,
+                mergeTransaction: mergedSoFar,
                 searchReports,
                 policy: selectedPolicy,
+                // Nothing conflicts, so the merged expense stays on the report it is already on
+                destinationPolicy: selectedPolicy,
             });
             Object.assign(mergeableData, updatedValues);
         } else {
@@ -644,8 +657,11 @@ type GetMergeFieldUpdatedValuesParams<K extends MergeFieldKey> = {
     searchReports?: Array<OnyxEntry<Report>>;
     policy?: OnyxEntry<Policy>;
 
-    /** Workspace of the report the merged expense will live on, which is the one whose rules apply to it */
-    destinationPolicy?: OnyxEntry<Policy>;
+    /**
+     * Workspace of the report the merged expense will live on, which is the one whose rules apply to it. Required so
+     * that an expense with no workspace, which no rule applies to, has to be passed as undefined rather than omitted.
+     */
+    destinationPolicy: OnyxEntry<Policy>;
 };
 
 /**
@@ -745,7 +761,11 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
         if (isDistanceRequest(transaction)) {
             const previousCustomUnit = mergeTransaction?.customUnit;
             const commuterExclusionUpdate = getCommuterExclusionCustomUnitUpdate(undefined, previousCustomUnit, destinationPolicy);
-            updatedValues.customUnit = commuterExclusionUpdate;
+            // An empty update means the expense has no exclusion to apply or clear, and writing it would wipe the
+            // custom unit the merchant selection stored
+            if (Object.keys(commuterExclusionUpdate).length > 0) {
+                updatedValues.customUnit = commuterExclusionUpdate;
+            }
             if (typeof mergeTransaction?.amount === 'number') {
                 updatedValues.amount = getAmountForBilledDistance(
                     mergeTransaction.amount,
