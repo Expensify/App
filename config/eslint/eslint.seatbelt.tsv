@@ -305,8 +305,6 @@
 "../../src/components/ReceiptHoverZoom/useReceiptHoverZoom.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionAvatars/ReportActionAvatar.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ReportActionAvatars/useReportPreviewSenderID.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/ReportActionItem/ActionableItemButtons.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/ReportActionItem/ActionableItemButtons.tsx"	"no-restricted-imports"	1
 "../../src/components/ReportActionItem/ChronosOOOListActions.tsx"	"no-restricted-imports"	1
 "../../src/components/ReportActionItem/IssueCardMessage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ReportActionItem/IssueCardMessage.tsx"	"no-restricted-imports"	1
