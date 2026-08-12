@@ -59,6 +59,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
     const {translate} = useLocalize();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const actionOwnerReportID = originalReportID ?? reportID;
+    const [actionOwnerReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(actionOwnerReportID)}`);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(originalReportID)}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const actionOwnerReport = originalReport ?? report;
@@ -125,6 +126,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                         personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
                         personalDetail.accountID,
                         delegateAccountID,
+                        conciergeReportID,
                     );
                 },
             }));
@@ -156,6 +158,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                         personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
                         personalDetail.accountID,
                         delegateAccountID,
+                        conciergeReportID,
                     );
                 },
             }));
@@ -188,6 +191,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
         if (isActionableTrackExpense(action)) {
             const baseDraftTransactionParams = {
                 reportID: actionOwnerReportID,
+                reportActions: actionOwnerReportActions,
                 reportActionID: action.reportActionID,
                 introSelected,
                 draftTransactionIDs,

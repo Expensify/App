@@ -10,10 +10,7 @@ import ImageSVGiOS from '../../src/components/ImageSVG/index.ios';
 const mockClearMemoryCache = jest.fn(() => Promise.resolve(true));
 
 const mockImageComponent = Object.assign(
-    jest.fn((props: ExpoImageProps) => {
-        Object.keys(props);
-        return null;
-    }),
+    jest.fn<null, [props: ExpoImageProps]>(() => null),
     {
         clearMemoryCache: mockClearMemoryCache,
     },

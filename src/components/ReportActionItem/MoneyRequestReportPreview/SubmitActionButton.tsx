@@ -3,6 +3,7 @@ import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@compon
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -45,6 +46,7 @@ function SubmitActionButton() {
 
 function SubmitActionButtonContent() {
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
@@ -56,16 +58,7 @@ function SubmitActionButtonContent() {
     const {isSubmittingAnimationRunning} = useReportPreviewAnimationState();
     const {stopAnimation, startSubmittingAnimation} = useReportPreviewActions();
 
-    const {
-        iouReport,
-        policy,
-        ownerLogin: submitterLogin,
-        userBillingGracePeriodEnds,
-        iouReportNextStep,
-        amountOwed,
-        ownerBillingGracePeriodEnd,
-        delegateEmail,
-    } = useReportPreviewActionButtonData(iouReportID);
+    const {iouReport, policy, ownerLogin: submitterLogin, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail} = useReportPreviewActionButtonData(iouReportID);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
@@ -103,13 +96,13 @@ function SubmitActionButtonContent() {
             }
 
             submitReport({
+                getCurrencyDecimals,
                 expenseReport: iouReport,
                 policy,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 onSubmitted: startSubmittingAnimation,
