@@ -16,6 +16,8 @@ type CreateDomainForm = Form<
 > & {
     /** Whether domain creation has succeeded */
     hasCreationSucceeded?: boolean;
+    /** The domain accountID of the existing domain, set when creation fails because the domain already exists */
+    domainAccountID?: number;
 };
 
 export type {CreateDomainForm};

@@ -360,7 +360,7 @@ function createDomain(domainName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
-            value: {hasCreationSucceeded: null, isLoading: true},
+            value: {hasCreationSucceeded: null, isLoading: true, errors: null, domainAccountID: null},
         },
     ];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>> = [

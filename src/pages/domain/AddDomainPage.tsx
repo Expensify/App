@@ -69,6 +69,15 @@ function AddDomainPage() {
     }, [form?.hasCreationSucceeded, allDomains]);
 
     useEffect(() => {
+        const domainAccountID = form?.domainAccountID;
+        if (!domainAccountID) {
+            return;
+        }
+
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(domainAccountID), {forceReplace: true}));
+    }, [form?.domainAccountID]);
+
+    useEffect(() => {
         resetCreateDomainForm();
         return () => clearDraftValues(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
     }, []);
