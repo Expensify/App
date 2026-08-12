@@ -75,7 +75,7 @@ function FullScreenLoadingIndicator({
                         </View>
                         <Button
                             text={translate('common.goBack')}
-                            onPress={onGoBack}
+                            onPress={() => onGoBack()}
                         />
                     </View>
                 )}
