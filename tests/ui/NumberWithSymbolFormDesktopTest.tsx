@@ -11,8 +11,15 @@ import React from 'react';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@libs/DeviceCapabilities', () => ({canUseTouchScreen: () => false}));
-jest.mock('@libs/shouldIgnoreSelectionWhenUpdatedManually', () => false);
+jest.mock('@libs/DeviceCapabilities', () => ({
+    ...jest.requireActual('@libs/DeviceCapabilities'),
+    canUseTouchScreen: () => false,
+}));
+jest.mock('@libs/shouldIgnoreSelectionWhenUpdatedManually', () => ({
+    ...jest.requireActual('@libs/shouldIgnoreSelectionWhenUpdatedManually'),
+    __esModule: true,
+    default: false,
+}));
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),

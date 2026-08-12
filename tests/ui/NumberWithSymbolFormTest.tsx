@@ -20,6 +20,16 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 const mockIsFocused = jest.fn(() => true);
 
+jest.mock('@libs/DeviceCapabilities', () => ({
+    ...jest.requireActual('@libs/DeviceCapabilities'),
+    canUseTouchScreen: () => true,
+}));
+jest.mock('@libs/shouldIgnoreSelectionWhenUpdatedManually', () => ({
+    ...jest.requireActual('@libs/shouldIgnoreSelectionWhenUpdatedManually'),
+    __esModule: true,
+    default: true,
+}));
+
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
     useNavigation: jest.fn(() => ({
