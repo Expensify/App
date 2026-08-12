@@ -1775,6 +1775,8 @@ type ExportTemplateGroups = {
  * @param policy - The user's policy
  * @param includeReportLevelExport - Whether to include the report level export template
  * @param includeBasicExport - Whether to include the basic export (CSV download) template in the default group
+ * @param includeMultipleTaxExport - Whether to include the Canadian Multiple Tax Export template. Defaults to whether the given policy outputs in CAD, so callers that
+ * export across several workspaces (e.g. a bulk selection in Search) can instead pass whether every selected workspace outputs in CAD.
  * @returns The export templates pre-grouped into the custom group and the default group, each sorted alphabetically
  */
 function getExportTemplates(
@@ -1785,6 +1787,7 @@ function getExportTemplates(
     policy?: Policy,
     includeReportLevelExport = true,
     includeBasicExport = false,
+    includeMultipleTaxExport = policy?.outputCurrency === CONST.CURRENCY.CAD,
 ): ExportTemplateGroups {
     // Helper function to normalize template data into consistent ExportTemplate format
     const normalizeTemplate = (
@@ -1809,6 +1812,11 @@ function getExportTemplates(
     // Conditionally include the report level export template
     if (includeReportLevelExport) {
         exportTemplates.push(normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, {name: translate('export.reportLevelExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
+    }
+
+    // The Canadian Multiple Tax Export template is only relevant to workspaces that output in CAD, so it's hidden for every other currency
+    if (includeMultipleTaxExport) {
+        exportTemplates.push(normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT, {name: translate('export.multipleTaxExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
     }
 
     // Conditionally include the basic export (CSV download) template so it's sorted alphabetically alongside the other default templates
@@ -1945,6 +1953,7 @@ function handleBulkPayItemSelected(params: {
     confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: BulkPaySelectionData) => void;
     setPendingPaymentAdditionalData?: (data: BulkPaySelectionData | undefined) => void;
     currentUserAccountID: number;
+    isOffline: boolean;
 }) {
     const {
         item,
@@ -1964,10 +1973,19 @@ function handleBulkPayItemSelected(params: {
         ownerBillingGracePeriodEnd,
         setPendingPaymentAdditionalData,
         currentUserAccountID,
+        isOffline,
     } = params;
     const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, businessBankAccountOptions, policy?.id);
     // Early return if item is not a valid payment method and not a policy-based payment option
     if (!isValidBulkPayOption(item) && !policyFromPaymentMethod) {
+        return;
+    }
+
+    // While offline, route every payment method straight to the offline modal via confirmPayment (onBulkPaySelected),
+    // before any branch below can navigate the user into a KYC / account-verification / add-bank-account / restricted-action flow.
+    if (isOffline) {
+        Log.info('[BulkPay] Blocking bulk pay: offline, deferring to the offline modal');
+        confirmPayment?.(paymentType as PaymentMethodType, item?.additionalData as BulkPaySelectionData | undefined);
         return;
     }
 
