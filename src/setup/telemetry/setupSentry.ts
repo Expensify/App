@@ -18,6 +18,20 @@ import * as Sentry from '@sentry/react-native';
 import pkg from '../../../package.json';
 import makeDebugTransport from './debugTransport';
 
+/**
+ * Schemes browser extensions inject code under. An error whose top stack frame lives at one of these
+ * URLs was thrown inside extension code, not ours, so there is nothing for us to act on.
+ *
+ * These have to be matched here rather than by Sentry's server-side browser-extension inbound filter:
+ * the React Native SDK's `rewriteFrames` integration flattens every frame's filename to `app:///...`
+ * before the event is sent, so the server never sees the original scheme. `denyUrls` is evaluated by
+ * `inboundFilters`, which the SDK registers ahead of `rewriteFrames`, so it still reads the real URL.
+ *
+ * Safari ships two schemes: `safari-extension://` for legacy app extensions and
+ * `safari-web-extension://` for the WebExtension API, and neither string contains the other.
+ */
+const EXTENSION_DENY_URLS = [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, /^safari-extension:\/\//i, /^safari-web-extension:\/\//i];
+
 function setupSentry(): void {
     const integrations = [
         navigationIntegration,
@@ -44,6 +58,7 @@ function setupSentry(): void {
         release: `${pkg.name}@${pkg.version}`,
         // UPDATE_REQUIRED is not a real error and makes our errors in Spotnana spike and get rate limited when we bump the app min version, so ignore it
         ignoreErrors: [CONST.ERROR.UPDATE_REQUIRED],
+        denyUrls: EXTENSION_DENY_URLS,
         beforeSendTransaction: processBeforeSendTransactions,
         enableLogs: true,
         beforeSendLog: processBeforeSendLogs,
