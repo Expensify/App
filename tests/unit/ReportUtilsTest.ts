@@ -805,6 +805,32 @@ describe('ReportUtils', () => {
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
+        it('should send the Submit message and tasks to the Concierge DM for EMPLOYER', () => {
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                onboardingMessage: {message: 'This is a test', tasks: []},
+                companySize: undefined,
+            });
+
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task').length).toBeGreaterThan(0);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'message').length).toBeGreaterThan(0);
+        });
+
+        it('should send nothing to the Concierge DM for EMPLOYER when onboarding is handled elsewhere', () => {
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                onboardingMessage: {message: 'This is a test', tasks: []},
+                companySize: undefined,
+                shouldSkipConciergeOnboarding: true,
+            });
+
+            // No message, tasks, or sign-off for the server to create, and nothing written optimistically.
+            expect(result?.guidedSetupData).toHaveLength(0);
+            expect(result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`)).toHaveLength(0);
+        });
+
         it('should generate bespoke welcome message for SMALL company sizes', async () => {
             const adminsChatReportID = '1';
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
