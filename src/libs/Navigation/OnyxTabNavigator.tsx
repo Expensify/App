@@ -121,6 +121,11 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`);
 
+    const pressedTabRef = useRef<{from: string | undefined; to: string} | undefined>(undefined);
+    const hasReappliedPressRef = useRef(false);
+    const tabNavigationRef = useRef<NavigationProp<ParamListBase> | undefined>(undefined);
+    const [activeTabName, setActiveTabName] = useState<string | undefined>(undefined);
+
     const tabNames = getTabNames(children);
 
     const validInitialTab = selectedTab && tabNames.includes(selectedTab) ? selectedTab : defaultSelectedTab;
@@ -225,6 +230,15 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     const persistSelectedTab = Tab.setSelectedTab as (tabID: string, tabName: string) => void;
     const notifyTabSelected = onTabSelected as (newTabName: string | undefined) => void;
 
+    useEffect(() => {
+        const pressedTab = pressedTabRef.current;
+        if (!pressedTab || hasReappliedPressRef.current || !activeTabName || activeTabName !== pressedTab.from) {
+            return;
+        }
+        hasReappliedPressRef.current = true;
+        tabNavigationRef.current?.dispatch(TabActions.jumpTo(pressedTab.to));
+    }, [activeTabName]);
+
     // If the selected tab changes, we need to update the focus trap container element of the active tab
     useEffect(() => {
         onActiveTabFocusTrapContainerElementChanged?.(selectedTab ? focusTrapContainerElementMapping[selectedTab] : null);
@@ -261,6 +275,8 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
                                     isFirstMountRef.current = false;
                                 }
                                 const newSelectedTab = routeNames.at(index);
+                                tabNavigationRef.current = navigation;
+                                setActiveTabName(newSelectedTab);
                                 if (selectedTab === newSelectedTab) {
                                     return;
                                 }
@@ -276,6 +292,15 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
                                     return;
                                 }
                                 handleTabPress(navigation, e);
+                                if (e.defaultPrevented) {
+                                    return;
+                                }
+                                const navState = navigation.getState();
+                                const pressedTabName = navState.routes.find((tabRoute) => tabRoute.key === e.target)?.name;
+                                const currentTabName = navState.routes.at(navState.index)?.name;
+                                tabNavigationRef.current = navigation;
+                                hasReappliedPressRef.current = false;
+                                pressedTabRef.current = pressedTabName && pressedTabName !== currentTabName ? {from: currentTabName, to: pressedTabName} : undefined;
                             },
                         };
                     }}
