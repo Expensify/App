@@ -1,5 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {
     AddReportApproverParams,
@@ -114,6 +116,7 @@ type ApproveMoneyRequestFunctionParams = {
     ownerLogin: string | undefined;
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type SubmitReportFunctionParams = {
@@ -139,6 +142,7 @@ type SubmitReportFunctionParams = {
      * writes the generated PDF filename back into Onyx and the App auto-downloads it. Used by "Submit via PDF".
      */
     shouldExportToPDF?: boolean;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 function canApproveIOU(
@@ -461,6 +465,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         additionalOnyxData,
         shouldPlaySuccessSound = true,
         isTrackIntentUser,
+        getCurrencyDecimals,
     } = params;
     if (!expenseReport) {
         return;
@@ -487,7 +492,14 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     if (hasHeldExpenses && !full && !!unheldTotal) {
         total = unheldTotal;
     }
-    const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID, currentUserAccountIDParam, delegateEmail);
+    const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(
+        total,
+        expenseReport.currency ?? '',
+        expenseReport.reportID,
+        currentUserAccountIDParam,
+        delegateEmail,
+        getCurrencyDecimals,
+    );
 
     const isDEWPolicy = hasDynamicExternalWorkflow(expenseReportPolicy);
     const shouldAddOptimisticApproveAction = !isDEWPolicy || getIsOffline();
@@ -736,6 +748,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             isApprovalFlow: true,
             betas,
             delegateAccountID,
+            getCurrencyDecimals,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
@@ -1136,12 +1149,19 @@ function unapproveExpenseReport(
     isASAPSubmitBetaEnabled: boolean,
     delegateEmail: string | undefined,
     isTrackIntentUser: boolean | undefined,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
     }
 
-    const optimisticUnapprovedReportAction = buildOptimisticUnapprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, delegateEmail);
+    const optimisticUnapprovedReportAction = buildOptimisticUnapprovedReportAction(
+        expenseReport.total ?? 0,
+        expenseReport.currency ?? '',
+        expenseReport.reportID,
+        delegateEmail,
+        getCurrencyDecimals,
+    );
 
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -1285,6 +1305,7 @@ function submitReport({
     managerAccountID: managerAccountIDFromPopover,
     shouldExportToPDF,
     isTrackIntentUser,
+    getCurrencyDecimals,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -1313,6 +1334,7 @@ function submitReport({
         adminAccountID,
         policy?.approvalMode,
         delegateEmail,
+        getCurrencyDecimals,
     );
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     // For DEW policies, only add optimistic submit action when offline

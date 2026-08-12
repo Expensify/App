@@ -1,5 +1,5 @@
 import Checkbox from '@components/Checkbox';
-import {useSession} from '@components/OnyxListItemProvider';
+import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import StatusBadge from '@components/StatusBadge';
@@ -52,8 +52,6 @@ import SearchTableHeader from './SearchTableHeader';
 const STATIC_LIST_MAX_ITEMS = 10;
 const DEFAULT_COLUMNS: SearchColumnType[] = [];
 
-const PENDING_EXPENSE_REASON_ATTRIBUTES = {context: 'SearchStaticList.PendingExpensePlaceholder'} as const;
-
 type SearchStaticListProps = {
     searchResults: SearchResults | undefined;
     queryJSON: SearchQueryJSON;
@@ -78,9 +76,10 @@ function SearchStaticList({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const session = useSession();
+    const personalDetails = usePersonalDetails();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -101,6 +100,7 @@ function SearchStaticList({
         }
 
         const [filteredData] = getSections({
+            dateFnsLocale,
             type,
             data: searchData,
             currentAccountID: accountID,
@@ -142,12 +142,14 @@ function SearchStaticList({
             // They're only used for guided-setup onboarding data, which is gated behind introSelected/onboarding checks
             // that won't apply here - the user has already completed onboarding if they're submitting expenses.
             createAndOpenSearchTransactionThread({
+                getCurrencyDecimals,
                 item,
                 introSelected: undefined,
                 backTo,
                 currentUserLogin: email ?? '',
                 currentUserAccountID: accountID,
                 betas: undefined,
+                personalDetails,
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
                 IOUTransactionID: item.reportAction?.childReportID,
@@ -314,8 +316,6 @@ function SearchStaticList({
         onLayoutProp?.();
     };
 
-    const pendingExpenseReasonAttributes = PENDING_EXPENSE_REASON_ATTRIBUTES;
-
     if (sortedData.length === 0 && showPendingExpensePlaceholder) {
         return (
             <View
@@ -326,7 +326,6 @@ function SearchStaticList({
                     shouldAnimate
                     fixedNumItems={1}
                     containerStyle={contentContainerStyle}
-                    reasonAttributes={pendingExpenseReasonAttributes}
                 />
             </View>
         );
@@ -387,7 +386,6 @@ function SearchStaticList({
                             shouldAnimate
                             fixedNumItems={1}
                             isLoadMore
-                            reasonAttributes={pendingExpenseReasonAttributes}
                         />
                     ) : undefined
                 }
