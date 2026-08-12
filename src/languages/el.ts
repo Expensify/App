@@ -4564,6 +4564,11 @@ ${amount} για ${merchant} - ${date}`,
             railCard:
                 'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ταξίδια με τρένο απευθείας στο Expensify; Και ότι ανεβάζει αυτόματα τις αποδείξεις για εσάς; Την επόμενη φορά απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Το ταξίδι δεν είναι ενεργοποιημένο',
+            message: ({workspaceName}: {workspaceName: string}) =>
+                `Ο τρέχων προεπιλεγμένος χώρος εργασίας σας είναι ο ${workspaceName}, στον οποίο δεν είναι ενεργοποιημένα τα ταξίδια. Παρακαλούμε αλλάξτε τον προεπιλεγμένο χώρο εργασίας σας για να κάνετε κράτηση!`,
+        },
     },
     proactiveAppReview: {
         title: 'Σας αρέσει το νέο Expensify;',

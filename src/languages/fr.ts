@@ -4502,6 +4502,11 @@ ${amount} pour ${merchant} - ${date}`,
             railCard:
                 'Saviez-vous que vous pouvez réserver et gérer vos trajets en train directement dans Expensify ? Et que les reçus sont automatiquement téléchargés pour vous ? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Voyage n’est pas activé',
+            message: ({workspaceName}: {workspaceName: string}) =>
+                `Votre espace de travail par défaut actuel est ${workspaceName}, qui n’a pas le voyage activé. Veuillez changer d’espace de travail par défaut pour pouvoir réserver !`,
+        },
     },
     workspace: {
         common: {

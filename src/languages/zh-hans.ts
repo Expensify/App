@@ -4329,6 +4329,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             railManual: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
             railCard: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程，而且还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
         },
+        defaultWorkspaceTravelDisabled: {
+            title: '差旅功能未启用',
+            message: ({workspaceName}: {workspaceName: string}) => `您当前的默认工作区是 ${workspaceName}，尚未启用差旅功能。请更改默认工作区以预订差旅！`,
+        },
     },
     workspace: {
         common: {
