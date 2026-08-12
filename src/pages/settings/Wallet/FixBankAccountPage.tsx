@@ -79,13 +79,14 @@ function FixBankAccountPage() {
     const onBack = () => Navigation.goBack(backPath);
 
     const resendButton = (
-        <>
+        <View>
             {!!resendErrorMessage && (
-                <FormHelpMessage
-                    isError
-                    message={resendErrorMessage}
-                    style={styles.mb2}
-                />
+                <View style={[styles.pAbsolute, styles.l0, styles.r0, styles.bFull, styles.mb2]}>
+                    <FormHelpMessage
+                        isError
+                        message={resendErrorMessage}
+                    />
+                </View>
             )}
             <Button
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -96,7 +97,7 @@ function FixBankAccountPage() {
             >
                 <Button.Text>{translate('walletPage.fixBankAccount.resendButton')}</Button.Text>
             </Button>
-        </>
+        </View>
     );
 
     return (
