@@ -212,7 +212,7 @@ function MoneyRequestView({
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
     const {environmentURL, isProduction} = useEnvironment();
-    const {translate, toLocaleDigit, localeCompare} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare, dateFnsLocale} = useLocalize();
     const {convertToDisplayString, getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const {showConfirmModal} = useConfirmModal();
@@ -614,7 +614,7 @@ function MoneyRequestView({
     const commuterExclusionData = transaction?.comment?.originalTransactionID
         ? null
         : DistanceRequestUtils.getCommuterExclusionDisplayData(transaction?.comment?.customUnit, distanceUnitValue);
-    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, translate, true, isManualDistanceRequest, commuterExclusionData);
+    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, translate, false, isManualDistanceRequest, commuterExclusionData);
     const {distanceToDisplayDescription, distanceToDisplayHintText} = DistanceRequestUtils.getDistanceDisplayDetailsWithCommuter(commuterExclusionData, distanceUnitValue, translate);
 
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
@@ -805,6 +805,7 @@ function MoneyRequestView({
                     const cardID = violation.data?.cardID;
                     const card = cardID ? cardList?.[cardID] : undefined;
                     return ViolationsUtils.getViolationTranslation({
+                        dateFnsLocale,
                         violation,
                         translate,
                         convertToDisplayString,

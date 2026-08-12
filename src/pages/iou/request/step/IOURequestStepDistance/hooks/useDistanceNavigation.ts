@@ -152,11 +152,12 @@ function useDistanceNavigation({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const delegateAccountID = useDelegateAccountID();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
 
     const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
+        dateFnsLocale,
         currentUserAccountID,
         report,
         policy,

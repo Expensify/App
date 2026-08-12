@@ -46,6 +46,7 @@ import {
     getDistanceRequestType,
     getIsFromGlobalCreate,
     getRateID,
+    getSelectedRouteDistance,
     getTaxValue,
     getValidWaypoints,
     hasAppliedCommuterExclusion,
@@ -198,7 +199,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     } = params;
 
     // Localization
-    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
+    const {translate, toLocaleDigit, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
 
@@ -542,6 +543,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 personalDetails,
                 isTrackIntentUser,
                 delegateAccountID,
+                formatPhoneNumber,
             });
             existingIOUReport = iouReport;
             if (!iouReport) {
@@ -575,6 +577,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (isTrackExpense) {
             const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
             submitPerDiemExpenseForSelfDM({
+                dateFnsLocale,
                 getCurrencyDecimals,
                 selfDMReport,
                 policy,
@@ -629,6 +632,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const perDiemExpensePolicyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = submitPerDiemExpenseIOUActions({
+                dateFnsLocale,
                 getCurrencyDecimals,
                 report,
                 participantParams: perDiemParticipantParams,
@@ -728,6 +732,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const modifiedItemDistance = isModifiedGPSDistanceRequest ? transactionDistance : undefined;
 
             const email = currentUserPersonalDetails.email ?? '';
+
             trackExpenseIOUActions({
                 getCurrencyDecimals,
                 report: trackReport,
@@ -774,6 +779,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     isFromGlobalCreate: getIsFromGlobalCreate(item),
                     gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
                     distanceRequestType,
+                    selectedRouteDistance: getSelectedRouteDistance(item),
                 },
                 accountantParams: {
                     accountant: item.accountant,
@@ -875,6 +881,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
                 distanceRequestType,
+                selectedRouteDistance: getSelectedRouteDistance(transaction),
             },
             isASAPSubmitBetaEnabled,
             transactionViolations: transactionViolationsRef.current,

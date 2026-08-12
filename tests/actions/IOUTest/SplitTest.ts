@@ -1363,6 +1363,7 @@ describe('split expense', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -1901,6 +1902,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -2022,6 +2024,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -2155,6 +2158,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -2237,6 +2241,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -2323,6 +2328,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -2384,6 +2390,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -2466,6 +2473,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -2581,6 +2589,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -2644,6 +2653,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -2709,6 +2719,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -2783,6 +2794,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -2936,6 +2948,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -3080,6 +3093,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -3192,6 +3206,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -3327,6 +3342,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -3461,6 +3477,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -3583,6 +3600,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
     }
@@ -3726,6 +3744,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -3812,6 +3831,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -3918,6 +3938,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -4093,6 +4114,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -4228,6 +4250,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -4307,6 +4330,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
         await getOnyxData({
@@ -4415,6 +4439,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -4487,6 +4512,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
         await getOnyxData({
@@ -4595,6 +4621,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -4672,6 +4699,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -4789,6 +4817,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -4867,6 +4896,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -4893,7 +4923,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // Put the expense on hold
         if (originalTransactionID && transactionThreadReportID) {
-            putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, []);
+            putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, []);
         }
         await waitForBatchedUpdates();
 
@@ -5005,6 +5035,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -5125,6 +5156,7 @@ describe('updateSplitTransactions', () => {
             existingTransactionDraft: undefined,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -5193,6 +5225,7 @@ describe('updateSplitTransactions', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -5263,6 +5296,7 @@ describe('updateSplitTransactions', () => {
             draftTransactionIDs: [],
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -5331,6 +5365,7 @@ describe('updateSplitTransactions', () => {
             isOffline: true,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -5401,6 +5436,7 @@ describe('updateSplitTransactions', () => {
             existingTransactionDraft: undefined,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -5467,6 +5503,7 @@ describe('updateSplitTransactions', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -5550,6 +5587,7 @@ describe('updateSplitTransactions', () => {
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -5650,6 +5688,7 @@ describe('updateSplitTransactions', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdates();
@@ -5717,6 +5756,7 @@ describe('updateSplitTransactions', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         const updateSplitTransactionCall = writeSpy.mock.calls.find(([command]) => command === WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION);
@@ -5756,7 +5796,7 @@ describe('updateSplitTransactions', () => {
         // Put the original transaction on hold before splitting it.
         const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
         const ancestors = getAncestors(transactionThreadReport, allReports, {}, allReportActions);
-        putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, ancestors);
+        putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, ancestors);
         await waitForBatchedUpdates();
 
         const iouAction = getIOUActionForReportID(expenseReport?.reportID, originalTransactionID);
@@ -5923,7 +5963,7 @@ describe('updateSplitTransactions', () => {
         // Put the split transaction 1 on hold before reverting it
         const {allReports: allReports2, allReportActions: allReportActions2} = await getCollections();
         const ancestors2 = getAncestors(split1ThreadReport, allReports2, {}, allReportActions2);
-        putOnHold(splitTransactionID1, 'Test hold reason', split1ThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, ancestors2);
+        putOnHold(splitTransactionID1, 'Test hold reason', split1ThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, ancestors2);
         await waitForBatchedUpdates();
 
         const iouAction = getIOUActionForReportID(expenseReport?.reportID, splitTransactionID1);
@@ -5978,6 +6018,7 @@ describe('updateSplitTransactions', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -6092,6 +6133,7 @@ describe('updateSplitTransactions', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -6170,6 +6212,7 @@ describe('updateSplitTransactions', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -6241,6 +6284,7 @@ describe('updateSplitTransactions', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -6317,6 +6361,7 @@ describe('updateSplitTransactions', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -6388,6 +6433,7 @@ describe('updateSplitTransactions', () => {
             isOffline: false,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -6502,6 +6548,7 @@ describe('updateSplitTransactions', () => {
             isOffline: true,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 
@@ -8895,6 +8942,240 @@ describe('updateSplitExpenseField', () => {
         expect(updatedSplit?.customUnit?.quantity).toBe(150);
         expect(updatedSplit?.merchant).toBeTruthy();
         expect(updatedSplit?.merchant).toContain('150');
+    });
+
+    it('should keep a manual distance override instead of the selected route distance', async () => {
+        const customUnitRateID = 'rate-manual-override';
+        const customUnitID = 'distance-unit';
+        const originalTransactionID = 'orig-dist-manual-override';
+        const splitExpenseTransactionID = 'split-dist-manual-override';
+        // 200 miles of route, while the user typed 150 miles on the Manual tab
+        const routeDistanceInMeters = 321868.8;
+
+        const policy: Policy = {
+            ...createRandomPolicy(1),
+            customUnits: {
+                [customUnitID]: {
+                    customUnitID,
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {
+                        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                    rates: {
+                        [customUnitRateID]: {
+                            customUnitRateID,
+                            currency: CONST.CURRENCY.USD,
+                            rate: 100,
+                            enabled: true,
+                            name: 'Default Rate',
+                            subRates: [],
+                        },
+                    },
+                },
+            },
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await waitForBatchedUpdates();
+
+        const customUnit = {
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            customUnitID,
+            customUnitRateID,
+            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+        };
+
+        const originalTransaction: Transaction = {
+            transactionID: originalTransactionID,
+            amount: -20000,
+            currency: 'USD',
+            merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {...customUnit, quantity: 200},
+            },
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, originalTransaction);
+        await waitForBatchedUpdates();
+
+        const originalTransactionDraft: Transaction = {
+            transactionID: 'draft-orig-dist-manual-override',
+            amount: 20000,
+            currency: 'USD',
+            merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                originalTransactionID,
+                splitExpenses: [
+                    {
+                        transactionID: splitExpenseTransactionID,
+                        amount: 20000,
+                        description: 'Original',
+                        created: DateUtils.getDBTime(),
+                        customUnit: {...customUnit, quantity: 200},
+                        routes: {route0: {distance: routeDistanceInMeters, geometry: {coordinates: []}}},
+                    },
+                ],
+                attendees: [],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            },
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, originalTransactionDraft);
+        await waitForBatchedUpdates();
+
+        // A manual distance edit writes the typed quantity but leaves the routes populated
+        const splitExpenseDraftTransaction: Transaction = {
+            transactionID: 'draft-split-dist-manual-override',
+            amount: 15000,
+            currency: 'USD',
+            merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                comment: 'Updated description',
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                originalTransactionID,
+                customUnit: {...customUnit, quantity: 150},
+            },
+            routes: {route0: {distance: routeDistanceInMeters, geometry: {coordinates: []}}},
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, policy, false, undefined, getCurrencySymbol);
+        await waitForBatchedUpdates();
+
+        const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        const updatedSplit = updatedDraft?.comment?.splitExpenses?.find((s) => s.transactionID === splitExpenseTransactionID);
+        expect(updatedSplit?.customUnit?.quantity).toBe(150);
+        expect(updatedSplit?.amount).toBe(15000);
+        expect(updatedSplit?.merchant).toContain('150');
+    });
+
+    it('should use the selected route distance when there is no manual override', async () => {
+        const customUnitRateID = 'rate-selected-route';
+        const customUnitID = 'distance-unit';
+        const originalTransactionID = 'orig-dist-selected-route';
+        const splitExpenseTransactionID = 'split-dist-selected-route';
+        const primaryRouteDistanceInMeters = 160934.4; // 100 miles
+        const alternateRouteDistanceInMeters = 321868.8; // 200 miles
+
+        const policy: Policy = {
+            ...createRandomPolicy(1),
+            customUnits: {
+                [customUnitID]: {
+                    customUnitID,
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {
+                        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                    rates: {
+                        [customUnitRateID]: {
+                            customUnitRateID,
+                            currency: CONST.CURRENCY.USD,
+                            rate: 100,
+                            enabled: true,
+                            name: 'Default Rate',
+                            subRates: [],
+                        },
+                    },
+                },
+            },
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await waitForBatchedUpdates();
+
+        const customUnit = {
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            customUnitID,
+            customUnitRateID,
+            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+        };
+
+        const originalTransaction: Transaction = {
+            transactionID: originalTransactionID,
+            amount: -10000,
+            currency: 'USD',
+            merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {...customUnit, quantity: 100},
+            },
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, originalTransaction);
+        await waitForBatchedUpdates();
+
+        const originalTransactionDraft: Transaction = {
+            transactionID: 'draft-orig-dist-selected-route',
+            amount: 10000,
+            currency: 'USD',
+            merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                originalTransactionID,
+                splitExpenses: [
+                    {
+                        transactionID: splitExpenseTransactionID,
+                        amount: 10000,
+                        description: 'Original',
+                        created: DateUtils.getDBTime(),
+                        customUnit: {...customUnit, quantity: 100},
+                        routes: {
+                            route0: {distance: primaryRouteDistanceInMeters, geometry: {coordinates: []}},
+                            route1: {distance: alternateRouteDistanceInMeters, geometry: {coordinates: []}},
+                        },
+                    },
+                ],
+                attendees: [],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            },
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, originalTransactionDraft);
+        await waitForBatchedUpdates();
+
+        // A waypoint edit clears the quantity, then the routes come back and the user picks the alternate one,
+        // so that route's distance is what the split has to store
+        const splitExpenseDraftTransaction: Transaction = {
+            transactionID: 'draft-split-dist-selected-route',
+            amount: 10000,
+            currency: 'USD',
+            merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                originalTransactionID,
+                customUnit,
+                selectedRouteKey: 'route1',
+            },
+            routes: {route0: {distance: primaryRouteDistanceInMeters, geometry: {coordinates: []}}, route1: {distance: alternateRouteDistanceInMeters, geometry: {coordinates: []}}},
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, policy, false, undefined, getCurrencySymbol);
+        await waitForBatchedUpdates();
+
+        const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        const updatedSplit = updatedDraft?.comment?.splitExpenses?.find((s) => s.transactionID === splitExpenseTransactionID);
+        expect(updatedSplit?.customUnit?.quantity).toBeCloseTo(200, 2);
+        expect(updatedSplit?.amount).toBe(20000);
+        expect(updatedSplit?.merchant).toContain('200');
     });
 
     it('should reset date range if created date is modified', async () => {

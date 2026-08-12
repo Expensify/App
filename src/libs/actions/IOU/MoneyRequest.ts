@@ -61,6 +61,7 @@ import type {Unit} from '@src/types/onyx/Policy';
 import type {Comment, Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -101,6 +102,7 @@ type CreateTransactionParams = {
     currentUserLocalCurrency: string | undefined;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
@@ -145,6 +147,7 @@ function createTransaction({
     currentUserLocalCurrency,
     isTrackIntentUser,
     delegateAccountID,
+    formatPhoneNumber,
     getCurrencyDecimals,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
@@ -255,6 +258,7 @@ function createTransaction({
                 optimisticTransactionID,
                 isTrackIntentUser,
                 delegateAccountID,
+                formatPhoneNumber,
                 getCurrencyDecimals,
             });
         }
@@ -271,13 +275,17 @@ function getMoneyRequestParticipantOptions(
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     reportDraft: OnyxEntry<Report> | undefined,
     translate: LocalizedTranslate,
+    dateFnsLocale: DateFnsLocale | undefined,
 ): Array<Participant | OptionData> {
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserAccountID, translate);
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserAccountID, {
+                  translate,
+                  dateFnsLocale,
+              });
     });
 }
 

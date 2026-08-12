@@ -648,7 +648,7 @@ describe('actions/Report', () => {
 
                 // When the user visits the report
                 currentTime = DateUtils.getDBTime();
-                Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
+                Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined, currentUserAccountID: USER_1_ACCOUNT_ID});
                 Report.readNewestAction(REPORT_ID, true);
                 waitForBatchedUpdates();
                 return waitForBatchedUpdates();
@@ -1215,6 +1215,7 @@ describe('actions/Report', () => {
                 newReportObject: {
                     reportID: REPORT_ID,
                 },
+                currentUserAccountID: 1,
             });
         }
 
@@ -1234,7 +1235,7 @@ describe('actions/Report', () => {
         setHasRadio(false);
         await waitForBatchedUpdates();
 
-        Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: undefined, betas: undefined});
+        Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: undefined, betas: undefined, currentUserAccountID: 1});
         await waitForBatchedUpdates();
 
         const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
@@ -1258,6 +1259,7 @@ describe('actions/Report', () => {
             newReportObject: {
                 reportID: REPORT_ID,
             },
+            currentUserAccountID: 1,
         });
         await waitForBatchedUpdates();
 
@@ -1348,6 +1350,7 @@ describe('actions/Report', () => {
             betas: undefined,
             transaction: transaction ?? undefined,
             parentReportID: SELF_DM_ID,
+            currentUserAccountID: TEST_USER_ACCOUNT_ID,
         });
         await waitForBatchedUpdates();
 
@@ -1402,6 +1405,7 @@ describe('actions/Report', () => {
                 newReportObject: {
                     reportID: REPORT_ID,
                 },
+                currentUserAccountID: 1,
             });
         }
 
@@ -2383,6 +2387,7 @@ describe('actions/Report', () => {
                 reportID: '2',
             },
             parentReportActionID: reportActionID,
+            currentUserAccountID: TEST_USER_ACCOUNT_ID,
         });
 
         await waitForBatchedUpdates();
@@ -3349,6 +3354,7 @@ describe('actions/Report', () => {
                 reportTransactions: {},
                 allTransactionViolations: {},
                 bankAccountList: {},
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3461,6 +3467,7 @@ describe('actions/Report', () => {
                 },
                 allTransactionViolations: {},
                 bankAccountList: {},
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3533,6 +3540,7 @@ describe('actions/Report', () => {
                 reportTransactions: {},
                 allTransactionViolations: {},
                 bankAccountList: {},
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -5111,7 +5119,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, TEST_INTRO_SELECTED);
             await waitForBatchedUpdates();
 
-            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
+            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined, currentUserAccountID: 1});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -5122,7 +5130,7 @@ describe('actions/Report', () => {
 
             const REPORT_ID = '2';
 
-            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
+            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined, currentUserAccountID: 1});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -5133,7 +5141,7 @@ describe('actions/Report', () => {
 
             const REPORT_ID = '3';
 
-            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: undefined, betas: undefined});
+            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: undefined, betas: undefined, currentUserAccountID: 1});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -8534,6 +8542,7 @@ describe('actions/Report', () => {
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
+                personalDetails: undefined,
             });
             expect(result).toBeUndefined();
         });
@@ -8545,6 +8554,7 @@ describe('actions/Report', () => {
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
+                personalDetails: undefined,
                 iouReport: reportWithoutID,
             });
             expect(result).toBeUndefined();
@@ -8571,6 +8581,7 @@ describe('actions/Report', () => {
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
+                personalDetails: undefined,
                 iouReport: parentReport,
                 iouReportAction: reportAction,
             });
@@ -8607,6 +8618,7 @@ describe('actions/Report', () => {
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
+                personalDetails: undefined,
                 iouReport: parentReport,
                 iouReportAction: reportAction,
             });
@@ -8637,6 +8649,7 @@ describe('actions/Report', () => {
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
+                personalDetails: undefined,
                 iouReport: parentReport,
                 iouReportAction: reportAction,
             });
@@ -8673,6 +8686,7 @@ describe('actions/Report', () => {
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: undefined,
+                personalDetails: undefined,
                 iouReport: parentReport,
                 iouReportAction: reportAction,
                 transaction,
@@ -8705,12 +8719,61 @@ describe('actions/Report', () => {
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 betas: testBetas,
+                personalDetails: undefined,
                 iouReport: parentReport,
                 iouReportAction: reportAction,
             });
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+        });
+
+        it('should resolve participant logins from the passed personalDetails rather than the Onyx personal details list', async () => {
+            const ACTOR_ACCOUNT_ID = 600;
+            const parentReport: OnyxTypes.Report = {
+                ...createRandomReport(501, undefined),
+                reportID: '501',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            // Given a stale login for the actor in the Onyx personal details list
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, login: 'stale@test.com'},
+            });
+            await waitForBatchedUpdates();
+
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(6),
+                reportActionID: 'action-6',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: ACTOR_ACCOUNT_ID,
+            };
+
+            // When creating the thread with personal details that carry a different login for that actor
+            const result = Report.createTransactionThreadReport({
+                introSelected: TEST_INTRO_SELECTED,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                betas: undefined,
+                personalDetails: {
+                    [TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN},
+                    [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, login: 'passed@test.com'},
+                },
+                iouReport: parentReport,
+                iouReportAction: reportAction,
+            });
+            await waitForBatchedUpdates();
+
+            if (!result) {
+                throw new Error('Expected a transaction thread report to be created');
+            }
+
+            // Then OpenReport is sent the login from the passed personal details, not the one in Onyx
+            TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 0, {
+                reportID: result.reportID,
+                emailList: `${TEST_USER_LOGIN},passed@test.com`,
+            });
         });
     });
 
@@ -9411,6 +9474,42 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('buildOptimisticModifiedExpenseReportAction distance currency', () => {
+        it('keeps the expense currency when a route switch leaves modifiedCurrency unset', () => {
+            const oldTransaction = createMock<OnyxTypes.Transaction>({
+                transactionID: '1',
+                reportID: '2',
+                amount: -1000,
+                currency: 'EUR',
+                merchant: '10.00 km @ €1.00 / km',
+                created: '2026-07-01',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                        quantity: 10,
+                        routeDistanceMeters: 10000,
+                    },
+                },
+            });
+
+            // A pure route switch recalculates the amount but not the currency, so `modifiedCurrency` stays unset.
+            const updatedTransaction = createMock<OnyxTypes.Transaction>({
+                ...oldTransaction,
+                modifiedAmount: -2000,
+                modifiedMerchant: '20.00 km @ €1.00 / km',
+                comment: {customUnit: {...oldTransaction.comment?.customUnit, quantity: 20}},
+            });
+
+            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, oldTransaction, {selectedRouteKey: 'route1'}, true, undefined, undefined, updatedTransaction);
+            const originalMessage = getOriginalMessage(result as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
+
+            expect(originalMessage?.currency).toBe('EUR');
+            expect(originalMessage?.oldCurrency).toBe('EUR');
+            expect(originalMessage?.amount).toBe(2000);
+        });
+    });
+
     describe('buildOptimisticIOUReportAction delegateAccountID forwarding', () => {
         const DELEGATE_ACCOUNT_ID = 998;
 
@@ -9631,6 +9730,7 @@ describe('actions/Report', () => {
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
                 selfDMReportActions: undefined,
+                delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
@@ -9699,6 +9799,7 @@ describe('actions/Report', () => {
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
                 selfDMReportActions: undefined,
+                delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
@@ -9757,6 +9858,7 @@ describe('actions/Report', () => {
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
                 selfDMReportActions: undefined,
+                delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
