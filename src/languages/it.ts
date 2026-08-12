@@ -10484,6 +10484,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             newDomain: 'Nuovo dominio',
         },
         domainAlreadyExists: {
+            headerTitle: 'Il dominio esiste già',
             title: "Dominio già configurato. Vuoi richiedere l'accesso?",
             description: "Qualcuno ha già configurato questo dominio in Expensify. Vuoi richiedere l'accesso come amministratore?",
             nevermind: 'No, grazie',

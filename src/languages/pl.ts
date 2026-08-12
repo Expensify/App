@@ -10423,6 +10423,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             newDomain: 'Nowa domena',
         },
         domainAlreadyExists: {
+            headerTitle: 'Domena już istnieje',
             title: 'Domena jest już skonfigurowana. Poprosić o dostęp?',
             description: 'Ktoś już skonfigurował tę domenę w Expensify. Chcesz poprosić o dostęp administratora?',
             nevermind: 'Nie, dzięki',

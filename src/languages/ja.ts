@@ -10346,6 +10346,7 @@ ${reportName}`,
             newDomain: '新しいドメイン',
         },
         domainAlreadyExists: {
+            headerTitle: 'ドメインはすでに存在します',
             title: 'このドメインはすでに設定されています。アクセスをリクエストしますか？',
             description: '誰かがこのドメインをExpensifyにすでに設定しています。管理者アクセスをリクエストしますか？',
             nevermind: 'いいえ、結構です',

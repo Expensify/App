@@ -10454,6 +10454,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             newDomain: 'Nieuw domein',
         },
         domainAlreadyExists: {
+            headerTitle: 'Domein bestaat al',
             title: 'Domein al ingesteld. Toegang aanvragen?',
             description: 'Iemand heeft dit domein al ingesteld in Expensify. Wil je beheerderstoegang aanvragen?',
             nevermind: 'Nee, bedankt',
