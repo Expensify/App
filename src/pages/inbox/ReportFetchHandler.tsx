@@ -368,8 +368,12 @@ function ReportFetchHandler() {
     // isLoadingInitialReportActions only clears via OpenReport's success/failure Onyx update (no client timeout), so
     // a reconciliation stall that pauses the queue before that response arrives leaves the skeleton stuck with
     // nothing else to log it. See Expensify#667674.
+    // Excluded while offline: OpenReport is legitimately queued and waiting for connectivity, not stuck.
+    // Keyed by reportIDFromRoute (not just a boolean) because this screen can be re-parameterized to a different
+    // report without unmounting (e.g. picking another report in the LHN while this one is still loading), and a
+    // plain boolean can't tell "still waiting on report A" apart from "now waiting on report B".
     useStallLogger(
-        isFocused && !!reportIDFromRoute && !!reportLoadingState.isLoadingInitialReportActions && !reportLoadingState.hasOnceLoadedReportActions,
+        isFocused && !isOffline && !!reportLoadingState.isLoadingInitialReportActions && !reportLoadingState.hasOnceLoadedReportActions ? reportIDFromRoute : false,
         '[OpenReportStall] isLoadingInitialReportActions never cleared while the report screen was focused',
         {reportID: reportIDFromRoute},
     );
