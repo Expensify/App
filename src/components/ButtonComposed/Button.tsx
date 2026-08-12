@@ -3,6 +3,7 @@ import {getButtonRole} from '@components/Button/utils';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 
+import usePressLoading from '@hooks/usePressLoading';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,8 +16,7 @@ import CONST from '@src/CONST';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import {NavigationContext} from '@react-navigation/core';
-import React, {useContext, useEffect, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {ButtonProps, PressLoadingController} from './types';
@@ -64,41 +64,8 @@ function Button({
         context: 'Button',
     };
 
-    // Local flag set the instant the button is pressed, used only when the immediate-loading mechanism is engaged.
-    const [isPressed, setIsPressed] = useState(false);
-    const navigationContext = useContext(NavigationContext);
-
-    // Hand the loading state over from the local press flag to the external isOnyxLoading once it turns true, so the spinner doesn't flip off and back on.
-    if (isPressed && isOnyxLoading) {
-        setIsPressed(false);
-    }
-
-    // Combined loading used for rendering, the press guard and the disabled state.
-    const isLoading = isPressed || isOnyxLoading;
-
-    // Reset the pressed state when the screen regains focus, covering flows that navigate away and return without an external
-    // isOnyxLoading to hand off to. Subscribed lazily: only while a press is pending, so buttons that never use the mechanism add no listener.
-    // Note: this Button is not wrapped in withNavigationFallback, so outside a navigator navigationContext is undefined and reset is simply skipped.
-    useEffect(() => {
-        if (!isPressed || !navigationContext) {
-            return;
-        }
-        return navigationContext.addListener('focus', () => setIsPressed(false));
-    }, [isPressed, navigationContext]);
-
-    // Show the spinner immediately, let React paint it, then run the real work one macrotask later so a JS-blocking onPress doesn't delay the feedback.
-    const startWithLoading = async (runAfterPaint: () => void | Promise<void>) => {
-        setIsPressed(true);
-        await new Promise((resolve) => {
-            setTimeout(resolve, 0);
-        });
-        try {
-            await runAfterPaint();
-        } catch (error) {
-            setIsPressed(false);
-            throw error;
-        }
-    };
+    // isLoading is the pressed flag combined with isOnyxLoading, and drives rendering, the press guard and the disabled state.
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading});
 
     // Passed to onPress so a handler can enter the loading state itself, after its own validation/branching.
     const loadingController: PressLoadingController = {run: startWithLoading};
