@@ -9,10 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
-import type {StyleProp, ViewStyle} from 'react-native';
-
 import React from 'react';
-import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -134,11 +131,17 @@ describe('ReportActionItemSingle', () => {
         }
 
         type Ancestor = {props: {style?: unknown}; parent: Ancestor | null};
+        function hasBorderLeftWidth(style: unknown): boolean {
+            if (Array.isArray(style)) {
+                return style.some(hasBorderLeftWidth);
+            }
+            return typeof style === 'object' && style !== null && 'borderLeftWidth' in style && style.borderLeftWidth !== undefined;
+        }
+
         function findFlaggedAncestor(start: Ancestor | null): Ancestor | null {
             let cursor = start;
             while (cursor) {
-                const flat = StyleSheet.flatten(cursor.props.style as StyleProp<ViewStyle>);
-                if (flat?.borderLeftWidth !== undefined) {
+                if (hasBorderLeftWidth(cursor.props.style)) {
                     return cursor;
                 }
                 cursor = cursor.parent;

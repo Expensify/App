@@ -26,7 +26,17 @@ type JSXAttribute = {
           };
 };
 
-const rule = require('../../eslint-plugin-local-rules/require-live-region-for-status-updates') as RuleModule;
+function isLiveRegionForStatusUpdatesRuleModule(module: unknown): module is RuleModule {
+    return typeof module === 'object' && module !== null && 'create' in module && typeof module.create === 'function';
+}
+
+const loadedRule: unknown = jest.requireActual('../../eslint-plugin-local-rules/require-live-region-for-status-updates');
+
+if (!isLiveRegionForStatusUpdatesRuleModule(loadedRule)) {
+    throw new Error('require-live-region-for-status-updates must export a create function');
+}
+
+const rule = loadedRule;
 
 function createLiteralAttribute(name: string, value: string): JSXAttribute {
     return {
