@@ -1,4 +1,5 @@
 import {
+    benchmarkAlternatingStartups,
     benchmarkStartups,
     benchmarkStats,
     findBenchmarkDuration,
@@ -148,6 +149,84 @@ describe('benchmarkAppStartup', () => {
                     outputPath,
                 },
             ]);
+        } finally {
+            consoleTable.mockRestore();
+            rmSync(temporaryDirectory, {recursive: true, force: true});
+        }
+    });
+
+    it('alternates installed artifacts and writes independent results', async () => {
+        const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-comparison-test-'));
+        const outputPathA = join(temporaryDirectory, 'binary-a.csv');
+        const outputPathB = join(temporaryDirectory, 'binary-b.csv');
+        const prepareCalls: Array<['process' | 'cold', string?, boolean?]> = [];
+        const prepareStartup = jest.fn(async (...args: ['process' | 'cold', string?, boolean?]) => {
+            prepareCalls.push(args);
+        });
+        const launchAndCollect = jest
+            .fn()
+            .mockResolvedValueOnce([])
+            .mockResolvedValueOnce([])
+            .mockResolvedValueOnce([
+                {event: 'span_end', span: 'ManualAppStartup', durationMs: 101, timestamp: 1},
+                {event: 'span_end', span: 'ManualAppStartupNetworkRequest', durationMs: 11, timestamp: 2},
+            ])
+            .mockResolvedValueOnce([
+                {event: 'span_end', span: 'ManualAppStartup', durationMs: 201, timestamp: 3},
+                {event: 'span_end', span: 'ManualAppStartupNetworkRequest', durationMs: 21, timestamp: 4},
+            ])
+            .mockResolvedValueOnce([
+                {event: 'span_end', span: 'ManualAppStartup', durationMs: 102, timestamp: 5},
+                {event: 'span_end', span: 'ManualAppStartupNetworkRequest', durationMs: 12, timestamp: 6},
+            ])
+            .mockResolvedValueOnce([
+                {event: 'span_end', span: 'ManualAppStartup', durationMs: 202, timestamp: 7},
+                {event: 'span_end', span: 'ManualAppStartupNetworkRequest', durationMs: 22, timestamp: 8},
+            ]);
+        const consoleTable = jest.spyOn(console, 'table').mockImplementation(() => undefined);
+
+        try {
+            const result = await benchmarkAlternatingStartups(
+                {name: 'android', appID: 'org.me.mobiexpensifyg', deviceIdentifier: 'emulator-5554', prepareStartup, launchAndCollect},
+                {
+                    mode: 'process',
+                    spanNames: ['ManualAppStartup', 'ManualAppStartupNetworkRequest'],
+                    runs: 2,
+                    waitTimeSeconds: 30,
+                    waitUntilSpan: 'ManualAppStartup',
+                    appPathA: '/tmp/binary-a.apk',
+                    appPathB: '/tmp/binary-b.apk',
+                    outputPathA,
+                    outputPathB,
+                },
+            );
+
+            expect(prepareCalls.map(([, appPath, installArtifact]) => [appPath, installArtifact])).toEqual([
+                ['/tmp/binary-a.apk', true],
+                ['/tmp/binary-b.apk', true],
+                ['/tmp/binary-a.apk', true],
+                ['/tmp/binary-b.apk', true],
+                ['/tmp/binary-a.apk', true],
+                ['/tmp/binary-b.apk', true],
+            ]);
+            const collectionOptions = {
+                spanNames: ['ManualAppStartup', 'ManualAppStartupNetworkRequest'],
+                waitTimeSeconds: 30,
+                waitUntilSpan: 'ManualAppStartup',
+            };
+            expect(launchAndCollect).toHaveBeenNthCalledWith(1, collectionOptions);
+            expect(launchAndCollect).toHaveBeenNthCalledWith(6, collectionOptions);
+            expect(result.binaryA.metrics.ManualAppStartup?.samples).toEqual([101, 102]);
+            expect(result.binaryB.metrics.ManualAppStartup?.samples).toEqual([201, 202]);
+            expect(result.binaryA.metrics.ManualAppStartupNetworkRequest?.samples).toEqual([11, 12]);
+            expect(result.binaryB.metrics.ManualAppStartupNetworkRequest?.samples).toEqual([21, 22]);
+            expect(readFileSync(outputPathA, 'utf8')).toBe(
+                'run,span,duration_ms\n1,ManualAppStartup,101\n1,ManualAppStartupNetworkRequest,11\n2,ManualAppStartup,102\n2,ManualAppStartupNetworkRequest,12\n',
+            );
+            expect(readFileSync(outputPathB, 'utf8')).toBe(
+                'run,span,duration_ms\n1,ManualAppStartup,201\n1,ManualAppStartupNetworkRequest,21\n2,ManualAppStartup,202\n2,ManualAppStartupNetworkRequest,22\n',
+            );
+            expect(consoleTable).toHaveBeenCalledTimes(3);
         } finally {
             consoleTable.mockRestore();
             rmSync(temporaryDirectory, {recursive: true, force: true});

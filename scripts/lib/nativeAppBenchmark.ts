@@ -31,7 +31,7 @@ type NativeAppBenchmarkAdapter = {
     name: PlatformName;
     appID: string;
     deviceIdentifier: string;
-    prepareStartup: (mode: StartupMode, appPath?: string) => Promise<void>;
+    prepareStartup: (mode: StartupMode, appPath?: string, installArtifact?: boolean) => Promise<void>;
     launchAndCollect: (options: CollectBenchmarkEventsOptions) => Promise<BenchmarkLogEvent[]>;
 };
 type NativeAppBenchmarkAdapterOptions = {
@@ -199,8 +199,17 @@ function createAndroidAdapter({rootDirectory, deviceIdentifier, appID}: Omit<Nat
         name: 'android',
         appID,
         deviceIdentifier: selectedDeviceIdentifier,
-        prepareStartup: async (mode) => {
+        prepareStartup: async (mode, appPath, installArtifact = false) => {
             adb(['shell', 'am', 'force-stop', appID]);
+            if (installArtifact) {
+                if (!appPath) {
+                    fail('Android artifact installation requires an app path.');
+                }
+                if (!existsSync(appPath)) {
+                    fail(`Android app not found at ${appPath}.`);
+                }
+                adb(['install', '-r', '-d', appPath]);
+            }
             if (mode === 'cold') {
                 adb(['shell', 'pm', 'clear', appID]);
                 adb(['shell', 'cmd', 'package', 'compile', '--reset', appID]);
@@ -357,17 +366,23 @@ function createIosAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeA
         name: 'ios',
         appID,
         deviceIdentifier: device,
-        prepareStartup: async (mode, appPath) => {
+        prepareStartup: async (mode, appPath, installArtifact = false) => {
             runningProcessIdentifier ??= resolveRunningProcessIdentifier();
             terminate();
-            if (mode === 'cold') {
+            if (mode === 'cold' || installArtifact) {
                 if (!appPath) {
-                    fail('iOS true-cold startup requires --app-path so the app can be reinstalled after clearing its data.');
+                    fail(
+                        mode === 'cold'
+                            ? 'iOS true-cold startup requires --app-path so the app can be reinstalled after clearing its data.'
+                            : 'iOS artifact installation requires an app path.',
+                    );
                 }
                 if (!existsSync(appPath)) {
                     fail(`iOS app not found at ${appPath}.`);
                 }
-                runAllowFailure('xcrun', ['devicectl', 'device', 'uninstall', 'app', '--device', device, appID]);
+                if (mode === 'cold') {
+                    runAllowFailure('xcrun', ['devicectl', 'device', 'uninstall', 'app', '--device', device, appID]);
+                }
                 run('xcrun', ['devicectl', 'device', 'install', 'app', '--device', device, appPath]);
             }
             await sleep(RELAUNCH_DELAY_MS);
