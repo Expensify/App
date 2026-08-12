@@ -2,6 +2,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import TextInput from '@components/TextInput';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -53,6 +54,7 @@ function MerchantField({
     const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
@@ -92,10 +94,10 @@ function MerchantField({
         // SplitBillDetailsPage and completeSplitBill read the latest value.
         if (isEditingSplitBill) {
             if (newMerchant.trim() === '') {
-                setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: '', isMerchantSet: false});
+                setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: '', isMerchantSet: false}, getCurrencyDecimals, getCurrencySymbol);
                 return;
             }
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 

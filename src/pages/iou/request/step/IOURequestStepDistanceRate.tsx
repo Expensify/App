@@ -214,11 +214,11 @@ function IOURequestStepDistanceRate({
                     transaction.transactionID,
                     splitDraftTransaction,
                     {customUnitRateID},
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                     policy,
                     personalPolicy?.outputCurrency,
                     allPolicies,
-                    getCurrencyDecimals,
-                    getCurrencySymbol,
                 );
                 saveAndNavigateBack();
                 return;

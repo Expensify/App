@@ -4,6 +4,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
@@ -76,6 +77,7 @@ function IOURequestStepDescription({
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {inputCallbackRef, inputRef} = useAutoFocusInput(true);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
@@ -136,7 +138,7 @@ function IOURequestStepDescription({
         }
 
         if (isEditingSplit) {
-            setDraftSplitTransaction(transaction?.transactionID, splitDraftTransaction, {comment: newComment});
+            setDraftSplitTransaction(transaction?.transactionID, splitDraftTransaction, {comment: newComment}, getCurrencyDecimals, getCurrencySymbol);
             setIsSaved(true);
             armNavigateBack();
             return;

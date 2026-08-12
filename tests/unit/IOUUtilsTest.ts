@@ -53,67 +53,67 @@ describe('IOUUtils', () => {
 
         test('103 JPY split among 3 participants including the default user should be [35, 34, 34]', () => {
             const participantsAccountIDs = [100, 101];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'JPY', true)).toBe(3500);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'JPY')).toBe(3400);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'JPY', true, false, getCurrencyDecimalsLocal)).toBe(3500);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'JPY', false, false, getCurrencyDecimalsLocal)).toBe(3400);
         });
 
         test('103 USD split among 3 participants including the default user should be [34.34, 34.33, 34.33]', () => {
             const participantsAccountIDs = [100, 101];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'USD', true)).toBe(3434);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'USD')).toBe(3433);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'USD', true, false, getCurrencyDecimalsLocal)).toBe(3434);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10300, 'USD', false, false, getCurrencyDecimalsLocal)).toBe(3433);
         });
 
         test('10 AFN split among 4 participants including the default user should be [1, 3, 3, 3]', () => {
             const participantsAccountIDs = [100, 101, 102];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1000, 'AFN', true)).toBe(100);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1000, 'AFN')).toBe(300);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1000, 'AFN', true, false, getCurrencyDecimalsLocal)).toBe(100);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1000, 'AFN', false, false, getCurrencyDecimalsLocal)).toBe(300);
         });
 
         test('10.12 USD split among 4 participants including the default user should be [2.53, 2.53, 2.53, 2.53]', () => {
             const participantsAccountIDs = [100, 101, 102];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD', true)).toBe(253);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD')).toBe(253);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD', true, false, getCurrencyDecimalsLocal)).toBe(253);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD', false, false, getCurrencyDecimalsLocal)).toBe(253);
         });
 
         test('10.12 USD split among 3 participants including the default user should be [3.38, 3.37, 3.37]', () => {
             const participantsAccountIDs = [100, 102];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD', true)).toBe(338);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD')).toBe(337);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD', true, false, getCurrencyDecimalsLocal)).toBe(338);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 1012, 'USD', false, false, getCurrencyDecimalsLocal)).toBe(337);
         });
 
         test('0.02 USD split among 4 participants including the default user should be [-0.01, 0.01, 0.01, 0.01]', () => {
             const participantsAccountIDs = [100, 101, 102];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2, 'USD', true)).toBe(-1);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2, 'USD')).toBe(1);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2, 'USD', true, false, getCurrencyDecimalsLocal)).toBe(-1);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2, 'USD', false, false, getCurrencyDecimalsLocal)).toBe(1);
         });
 
         test('1 RSD split among 3 participants including the default user should be [0.34, 0.33, 0.33]', () => {
             // RSD is a special case that we forced to have 2 decimals
             const participantsAccountIDs = [100, 101];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'RSD', true)).toBe(34);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'RSD')).toBe(33);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'RSD', true, false, getCurrencyDecimalsLocal)).toBe(34);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'RSD', false, false, getCurrencyDecimalsLocal)).toBe(33);
         });
 
         test('1 BHD split among 3 participants including the default user should be [0.34, 0.33, 0.33]', () => {
             // BHD has 3 decimal places, but it still produces parts with only 2 decimal places because of a backend limitation
             const participantsAccountIDs = [100, 101];
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'BHD', true)).toBe(34);
-            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'BHD')).toBe(33);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'BHD', true, false, getCurrencyDecimalsLocal)).toBe(34);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 100, 'BHD', false, false, getCurrencyDecimalsLocal)).toBe(33);
         });
 
         describe('calculateAmount - floorToLast rounding', () => {
             test('Positive total: remainder added entirely to default user', () => {
                 // $10.00 among 3 -> base 3.33, remainder 0.01 -> default gets 3.34
                 const numberOfSplits = 2; // total participants = 3
-                expect(IOUUtils.calculateAmount(numberOfSplits, 1000, 'USD', true, true)).toBe(334);
-                expect(IOUUtils.calculateAmount(numberOfSplits, 1000, 'USD', false, true)).toBe(333);
+                expect(IOUUtils.calculateAmount(numberOfSplits, 1000, 'USD', true, true, getCurrencyDecimalsLocal)).toBe(334);
+                expect(IOUUtils.calculateAmount(numberOfSplits, 1000, 'USD', false, true, getCurrencyDecimalsLocal)).toBe(333);
             });
 
             test('Negative total: use ceil to move toward zero and remainder applied to default user', () => {
                 // -$10.00 among 3 -> base -3.33 (ceil to -3333 subunits), remainder -0.01 -> default -3.34
                 const numberOfSplits = 2;
-                expect(IOUUtils.calculateAmount(numberOfSplits, -1000, 'USD', true, true)).toBe(-334);
-                expect(IOUUtils.calculateAmount(numberOfSplits, -1000, 'USD', false, true)).toBe(-333);
+                expect(IOUUtils.calculateAmount(numberOfSplits, -1000, 'USD', true, true, getCurrencyDecimalsLocal)).toBe(-334);
+                expect(IOUUtils.calculateAmount(numberOfSplits, -1000, 'USD', false, true, getCurrencyDecimalsLocal)).toBe(-333);
             });
         });
     });

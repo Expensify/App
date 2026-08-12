@@ -238,11 +238,10 @@ function IOURequestStepDistanceManual({
                     transaction.transactionID,
                     splitDraftTransaction,
                     {distance: distanceAsFloat},
-                    policy,
-                    personalPolicy?.outputCurrency,
-                    undefined,
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    policy,
+                    personalPolicy?.outputCurrency,
                 );
                 Navigation.goBack(backTo);
                 return;

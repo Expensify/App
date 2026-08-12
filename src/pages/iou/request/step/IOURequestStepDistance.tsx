@@ -523,11 +523,10 @@ function IOURequestStepDistance({
                         routes: currentTransaction?.routes,
                         selectedRouteKey: getSelectedRouteKey(currentTransaction),
                     },
-                    policy,
-                    personalPolicy?.outputCurrency,
-                    undefined,
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    policy,
+                    personalPolicy?.outputCurrency,
                 );
                 navigateBackAfterSave();
                 return;
@@ -660,11 +659,10 @@ function IOURequestStepDistance({
                 CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
                 splitDraftTransaction,
                 {distance: distanceAsFloat},
-                policy,
-                personalPolicy?.outputCurrency,
-                undefined,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                policy,
+                personalPolicy?.outputCurrency,
             );
             navigateBackAfterSave();
             return;
