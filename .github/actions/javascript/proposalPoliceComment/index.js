@@ -39671,8 +39671,8 @@ async function run() {
             const similarityPercentage = parsedDuplicateCheckResponse?.similarity ?? 0;
             if (similarityPercentage >= DUPLICATE_SIMILARITY_THRESHOLD) {
                 console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
-                // Sanity-check the model's reported duplicateCommentId against the real comment list before trusting it for the notice link
-                const originalProposal = commentsResponse.find((comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentId && comment.id !== commentID && (0, ProposalUtils_1.default)(comment.body));
+                // Sanity-check the model's reported duplicateCommentID against the real comment list before trusting it for the notice link
+                const originalProposal = commentsResponse.find((comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentID && comment.id !== commentID && (0, ProposalUtils_1.default)(comment.body));
                 const duplicateCheckNoticeMessage = (0, messages_1.buildDuplicateCheckNoticeMessage)(newProposalAuthor, originalProposal?.html_url);
                 // If a duplicate proposal is detected, update the comment to withdraw it
                 console.log('ProposalPolice™ withdrawing duplicated proposal...');
@@ -40720,12 +40720,12 @@ const DUPLICATE_CHECK_RESPONSE_FORMAT = {
                 maximum: 100,
                 description: 'How similar the new proposal is to the most similar prior proposal, from 0 (unrelated) to 100 (identical).',
             },
-            duplicateCommentId: {
+            duplicateCommentID: {
                 type: ['number', 'null'],
                 description: 'The comment_id of the prior proposal that scored the reported similarity, or null if no prior proposal is similar.',
             },
         },
-        required: ['similarity', 'duplicateCommentId'],
+        required: ['similarity', 'duplicateCommentID'],
         additionalProperties: false,
     },
 };
@@ -40748,10 +40748,10 @@ function isDuplicateCheckResponse(value) {
     if (typeof value !== 'object' || value === null) {
         return false;
     }
-    const { similarity, duplicateCommentId } = value;
+    const { similarity, duplicateCommentID } = value;
     // Require the declared 0-100 integer scale, so a rescaled score (e.g. 0.95 on a 0-1 scale) is rejected
     // outright rather than silently comparing below the duplicate threshold and reading as "not a duplicate".
-    return Number.isInteger(similarity) && (similarity ?? -1) >= 0 && (similarity ?? -1) <= 100 && (duplicateCommentId === null || typeof duplicateCommentId === 'number');
+    return Number.isInteger(similarity) && (similarity ?? -1) >= 0 && (similarity ?? -1) <= 100 && (duplicateCommentID === null || typeof duplicateCommentID === 'number');
 }
 
 

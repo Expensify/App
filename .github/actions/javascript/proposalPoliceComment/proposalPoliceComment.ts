@@ -172,9 +172,9 @@ async function run() {
             if (similarityPercentage >= DUPLICATE_SIMILARITY_THRESHOLD) {
                 console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
 
-                // Sanity-check the model's reported duplicateCommentId against the real comment list before trusting it for the notice link
+                // Sanity-check the model's reported duplicateCommentID against the real comment list before trusting it for the notice link
                 const originalProposal = commentsResponse.find(
-                    (comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentId && comment.id !== commentID && isProposal(comment.body),
+                    (comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentID && comment.id !== commentID && isProposal(comment.body),
                 );
                 const duplicateCheckNoticeMessage = buildDuplicateCheckNoticeMessage(newProposalAuthor, originalProposal?.html_url);
 

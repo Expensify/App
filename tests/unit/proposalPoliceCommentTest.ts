@@ -88,8 +88,8 @@ function setPayload(overrides: {action: 'created' | 'edited'; comment?: Proposal
     };
 }
 
-function duplicateCheckResult(overrides: Partial<{similarity: number; duplicateCommentId: number | null}> = {}) {
-    return JSON.stringify({similarity: 0, duplicateCommentId: null, ...overrides});
+function duplicateCheckResult(overrides: Partial<{similarity: number; duplicateCommentID: number | null}> = {}) {
+    return JSON.stringify({similarity: 0, duplicateCommentID: null, ...overrides});
 }
 
 const MockedOpenAIUtils = jest.mocked(OpenAIUtils);
@@ -198,7 +198,7 @@ describe('proposalPoliceComment', () => {
         mockComments([makeComment({id: 42, created_at: '2025-12-31T00:00:00Z', html_url: 'https://github.com/Expensify/App/issues/1#issuecomment-42'})]);
         setPayload({action: 'created', comment: makeComment({id: 99})});
         MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({
-            text: duplicateCheckResult({similarity: 95, duplicateCommentId: 42}),
+            text: duplicateCheckResult({similarity: 95, duplicateCommentID: 42}),
             responseID: 'resp_dup',
         });
 
@@ -216,7 +216,7 @@ describe('proposalPoliceComment', () => {
         mockComments([makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'})]);
         setPayload({action: 'created', comment: makeComment({id: 99})});
         MockedOpenAIUtils.prototype.promptResponses
-            .mockResolvedValueOnce({text: duplicateCheckResult({similarity: DUPLICATE_SIMILARITY_THRESHOLD - 1, duplicateCommentId: 42}), responseID: 'resp_dup'})
+            .mockResolvedValueOnce({text: duplicateCheckResult({similarity: DUPLICATE_SIMILARITY_THRESHOLD - 1, duplicateCommentID: 42}), responseID: 'resp_dup'})
             .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl'});
 
         await run();
@@ -229,7 +229,7 @@ describe('proposalPoliceComment', () => {
         mockComments([makeComment({id: 42, created_at: '2025-12-31T00:00:00Z'})]);
         setPayload({action: 'created', comment: makeComment({id: 99})});
         MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({
-            text: duplicateCheckResult({similarity: DUPLICATE_SIMILARITY_THRESHOLD, duplicateCommentId: 42}),
+            text: duplicateCheckResult({similarity: DUPLICATE_SIMILARITY_THRESHOLD, duplicateCommentID: 42}),
             responseID: 'resp_dup',
         });
 
@@ -316,7 +316,7 @@ describe('proposalPoliceComment', () => {
         mockComments([makeComment({id: 1, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_new -->'})]);
         setPayload({action: 'created', comment: makeComment({id: 2, created_at: '2026-01-02T00:00:00Z'})});
         MockedOpenAIUtils.prototype.promptResponses
-            .mockResolvedValueOnce({text: duplicateCheckResult({similarity: 96, duplicateCommentId: 1}), responseID: 'resp_dup_2'})
+            .mockResolvedValueOnce({text: duplicateCheckResult({similarity: 96, duplicateCommentID: 1}), responseID: 'resp_dup_2'})
             .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl_2'});
         await run();
 

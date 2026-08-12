@@ -12,7 +12,7 @@ type EditCheckResponse = {
 
 type DuplicateCheckResponse = {
     similarity: number;
-    duplicateCommentId: number | null;
+    duplicateCommentID: number | null;
 };
 
 const TEMPLATE_CHECK_RESPONSE_FORMAT: ResponseFormatTextJSONSchemaConfig = {
@@ -64,12 +64,12 @@ const DUPLICATE_CHECK_RESPONSE_FORMAT: ResponseFormatTextJSONSchemaConfig = {
                 maximum: 100,
                 description: 'How similar the new proposal is to the most similar prior proposal, from 0 (unrelated) to 100 (identical).',
             },
-            duplicateCommentId: {
+            duplicateCommentID: {
                 type: ['number', 'null'],
                 description: 'The comment_id of the prior proposal that scored the reported similarity, or null if no prior proposal is similar.',
             },
         },
-        required: ['similarity', 'duplicateCommentId'],
+        required: ['similarity', 'duplicateCommentID'],
         additionalProperties: false,
     },
 };
@@ -94,10 +94,10 @@ function isDuplicateCheckResponse(value: unknown): value is DuplicateCheckRespon
     if (typeof value !== 'object' || value === null) {
         return false;
     }
-    const {similarity, duplicateCommentId} = value as Partial<DuplicateCheckResponse>;
+    const {similarity, duplicateCommentID} = value as Partial<DuplicateCheckResponse>;
     // Require the declared 0-100 integer scale, so a rescaled score (e.g. 0.95 on a 0-1 scale) is rejected
     // outright rather than silently comparing below the duplicate threshold and reading as "not a duplicate".
-    return Number.isInteger(similarity) && (similarity ?? -1) >= 0 && (similarity ?? -1) <= 100 && (duplicateCommentId === null || typeof duplicateCommentId === 'number');
+    return Number.isInteger(similarity) && (similarity ?? -1) >= 0 && (similarity ?? -1) <= 100 && (duplicateCommentID === null || typeof duplicateCommentID === 'number');
 }
 
 export {TEMPLATE_CHECK_RESPONSE_FORMAT, EDIT_CHECK_RESPONSE_FORMAT, DUPLICATE_CHECK_RESPONSE_FORMAT, isTemplateCheckResponse, isEditCheckResponse, isDuplicateCheckResponse};
