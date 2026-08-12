@@ -45,7 +45,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     handleActionButtonPress,
     shouldDisableActionPointerEvents,
     transactionPreviewData,
-    reportActions,
+    exportedReportActions,
     nonPersonalAndWorkspaceCards,
     isAttendeesEnabledForMovingPolicy,
 }: TransactionListItemNarrowProps<TItem>) {
@@ -57,7 +57,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const transactionItem = item as unknown as TransactionListItemType;
-    const {isSelected} = useRowSelection(item.keyForList);
+    const {isSelected} = useRowSelection(item.keyForList, transactionItem.selectionGroupKey);
 
     const handleOnPress: React.ComponentProps<typeof PressableWithFeedback>['onPress'] = (event) => {
         if (shouldSuppressCopyableTextRowPress()) {
@@ -182,7 +182,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                             onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, transactionPreviewData, event)}
                             isHover={false}
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                            reportActions={reportActions}
+                            reportActions={exportedReportActions}
                             isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                         />
                     </>

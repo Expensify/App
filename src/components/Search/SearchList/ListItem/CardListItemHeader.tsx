@@ -78,7 +78,7 @@ function CardListItemHeaderImpl({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
-    const formattedDisplayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardItem, translate}));
+    const formattedDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardItem, translate, formatPhoneNumber});
     const backgroundColor =
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 

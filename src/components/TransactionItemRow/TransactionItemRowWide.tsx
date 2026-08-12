@@ -24,10 +24,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCategoryGLCode} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {getTagGLCode} from '@libs/PolicyUtils';
+import {isTaxCodeCustomized, getTagGLCode} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
-import {getSubmittedViolationsForTransaction} from '@libs/SearchUIUtils';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import {
     getAmount,
@@ -40,6 +39,7 @@ import {
     getTaxName,
     isDeletedTransaction as isDeletedTransactionUtil,
     isExpenseUnreported,
+    isPerDiemRequest,
     isScanning,
     isTimeRequest,
 } from '@libs/TransactionUtils';
@@ -158,7 +158,6 @@ function TransactionItemRowWide({
     const submitterUserID = reportForCustomColumns?.submitterUserID;
     const submitterPayrollID = reportForCustomColumns?.submitterPayrollID;
     const orderDealNumbers = reportForCustomColumns?.orderDealNumbers;
-    const submittedViolations = getSubmittedViolationsForTransaction(reportActions, transactionItem.transactionID, translate);
     const hasValidationMessage = shouldShowErrors && (!!missingFieldError || !!violations?.length);
     let fullHeightMainRowStyle;
     if (shouldUseFullHeightEditableCellHoverTarget) {
@@ -166,6 +165,7 @@ function TransactionItemRowWide({
     }
 
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
+        const shouldHideTaxValueByRequestType = isTimeRequest(transactionItem) || isPerDiemRequest(transactionItem);
         switch (column) {
             case CONST.SEARCH.TABLE_COLUMNS.TYPE:
                 return (
@@ -206,16 +206,8 @@ function TransactionItemRowWide({
                             canEdit={canEditTag}
                             onSave={onEditTag}
                             policyID={effectivePolicyID}
+                            policy={policy}
                         />
-                    </View>
-                );
-            case CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS:
-                return (
-                    <View
-                        key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)]}
-                    >
-                        <TextCell text={submittedViolations} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
@@ -550,7 +542,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
                     >
-                        <TextCell text={isTimeRequest(transactionItem) ? '' : (getTaxName(policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
+                        <TextCell text={shouldHideTaxValueByRequestType ? '' : (getTaxName(policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
@@ -559,7 +551,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_CODE)]}
                     >
-                        <TextCell text={isTimeRequest(transactionItem) ? '' : (transactionItem.taxCode ?? '')} />
+                        <TextCell text={shouldHideTaxValueByRequestType || !isTaxCodeCustomized(transactionItem.taxCode, policy) ? '' : (transactionItem.taxCode ?? '')} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.MCC:
@@ -577,7 +569,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, {isTaxAmountColumnWide})]}
                     >
-                        {isTimeRequest(transactionItem) ? null : (
+                        {shouldHideTaxValueByRequestType ? null : (
                             <TaxCell
                                 transactionItem={transactionItem}
                                 shouldShowTooltip={shouldShowTooltip}

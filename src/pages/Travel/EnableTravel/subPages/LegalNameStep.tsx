@@ -10,7 +10,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateLegalName} from '@libs/actions/PersonalDetails';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 
 import {validateLegalName} from '@pages/settings/Profile/PersonalDetails/BaseLegalNamePage';
 import type {EnableTravelSubPageProps} from '@pages/Travel/EnableTravel/types';
@@ -24,7 +23,7 @@ import {View} from 'react-native';
 
 function LegalNameStep({onNext}: EnableTravelSubPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);

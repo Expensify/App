@@ -1,6 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
@@ -10,6 +11,7 @@ import {useCopyableTextRowPress} from '@components/TextWithTooltip/selection';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -80,7 +82,9 @@ function TransactionGroupListExpandedImpl({
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -200,12 +204,14 @@ function TransactionGroupListExpandedImpl({
             if (!transactionItem?.reportAction?.childReportID) {
                 if (isModifiedMousePress(event)) {
                     const targetReportID = createAndOpenSearchTransactionThread({
+                        getCurrencyDecimals,
                         item: transactionItem,
                         introSelected,
                         backTo,
                         currentUserLogin: currentUserDetails.email ?? '',
                         currentUserAccountID: currentUserDetails.accountID,
                         betas,
+                        personalDetails,
                         isSelfTourViewed,
                         hasCompletedGuidedSetupFlow,
                         IOUTransactionID: transactionItem?.reportAction?.childReportID,
@@ -217,12 +223,14 @@ function TransactionGroupListExpandedImpl({
                     return;
                 }
                 createAndOpenSearchTransactionThread({
+                    getCurrencyDecimals,
                     item: transactionItem,
                     introSelected,
                     backTo,
                     currentUserLogin: currentUserDetails.email ?? '',
                     currentUserAccountID: currentUserDetails.accountID,
                     betas,
+                    personalDetails,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
                     IOUTransactionID: transactionItem?.reportAction?.childReportID,
@@ -250,12 +258,12 @@ function TransactionGroupListExpandedImpl({
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
         if (isModifiedMousePress(event)) {
-            setActiveTransactionIDs(siblingTransactionIDs, transactionsQueryJSON?.hash);
+            setActiveTransactionIDs(siblingTransactionIDs);
             navigateToTransactionThread();
             return;
         }
 
-        setActiveTransactionIDs(siblingTransactionIDs, transactionsQueryJSON?.hash).then(navigateToTransactionThread);
+        setActiveTransactionIDs(siblingTransactionIDs).then(navigateToTransactionThread);
     };
 
     const onShowMoreButtonPress = () => {
@@ -330,7 +338,7 @@ function TransactionGroupListExpandedImpl({
             )}
             {visibleTransactions.map((transaction, index) => {
                 const shouldShowBottomBorder = !isLastTransaction(index);
-                const reportActions = Object.values(transactionsSnapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {});
+                const exportedReportActions = Object.values(transactionsSnapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {});
                 const isDeletedOrPendingDelete = isDeletedTransaction(transaction) || isTransactionPendingDelete(transaction);
 
                 return (
@@ -385,7 +393,7 @@ function TransactionGroupListExpandedImpl({
                                     shouldShowBottomBorder={shouldShowBottomBorder}
                                     onArrowRightPress={isDeletedOrPendingDelete ? undefined : (event) => openReportInRHP(transaction, event)}
                                     shouldShowArrowRightOnNarrowLayout
-                                    reportActions={reportActions}
+                                    reportActions={exportedReportActions}
                                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                                     isActionColumnWide={isActionColumnWide}
                                     isHover={hovered}
