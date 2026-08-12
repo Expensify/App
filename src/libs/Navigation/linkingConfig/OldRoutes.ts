@@ -153,6 +153,15 @@ const oldRoutes: Record<string, string> = {
     '/*/*/taxRate/*/*': '/r/$4/taxRate?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/taxAmount/*/*': '/r/$4/taxAmount?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/attendees/*/*': '/r/$4/attendees?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    // Merchant/description/date steps migrated to dynamic routes (#83852). Suffixes are namespaced `expense-*` because
+    // dynamic route paths must be globally unique and bare `description` is already taken by the report description
+    // suffix. As with the report/tag entries above, the optional `reportActionID` segment needs its own longer pattern.
+    '/*/*/merchant/*/*/*': '/r/$4/expense-merchant?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
+    '/*/*/merchant/*/*': '/r/$4/expense-merchant?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/description/*/*/*': '/r/$4/expense-description?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
+    '/*/*/description/*/*': '/r/$4/expense-description?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/date/*/*/*': '/r/$4/expense-date?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
+    '/*/*/date/*/*': '/r/$4/expense-date?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 
