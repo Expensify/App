@@ -378,7 +378,6 @@
 "../../src/components/Search/SearchPageHeader/SearchSaveButton.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/SearchPageHeader/useSearchPageInput.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchPageHeader/useSearchPageInput.tsx"	"react-hooks/set-state-in-effect"	2
-"../../src/components/Search/SearchQueryProvider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Search/SearchRouter/SearchRouter.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchRouter/SearchRouterUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchRouter/buildSubstitutionsMap.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
