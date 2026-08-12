@@ -1,3 +1,4 @@
+import CONST from '@src/CONST';
 import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 
@@ -5,10 +6,12 @@ import type {OnyxKey} from 'react-native-onyx';
 
 import type Middleware from './Middleware/types';
 
+import APP_STARTUP_NETWORK_REQUEST from './AppStartupNetworkRequest';
 import HttpUtils from './HttpUtils';
 import Log from './Log';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
+import {endSpan, startSpan} from './telemetry/activeSpans';
 
 let middlewares: Middleware[] = [];
 
@@ -22,8 +25,27 @@ function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response
 function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isFromSequentialQueue = false): Promise<Response<TKey> | void> {
     let result = makeXHR(request);
 
+    // Time from the parsed startup response landing to the Onyx writes for it finishing. Splash-based startup spans miss this
+    // entirely for flows that never show a splash (magic code, copilot, supportal).
+    const shouldMeasureResponseApply = APP_STARTUP_NETWORK_REQUEST.has(request.command);
+    if (shouldMeasureResponseApply) {
+        result = result.then((response) => {
+            startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_RESPONSE_APPLY, {
+                name: CONST.TELEMETRY.SPAN_APP_STARTUP_RESPONSE_APPLY,
+                op: CONST.TELEMETRY.SPAN_APP_STARTUP_RESPONSE_APPLY,
+                forceTransaction: true,
+                attributes: {[CONST.TELEMETRY.ATTRIBUTE_COMMAND]: request.command},
+            });
+            return response;
+        });
+    }
+
     for (const middleware of middlewares) {
         result = middleware(result, request, isFromSequentialQueue);
+    }
+
+    if (shouldMeasureResponseApply) {
+        result = result.finally(() => endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_RESPONSE_APPLY));
     }
 
     return result.catch((reason: unknown) => {

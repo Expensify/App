@@ -15,11 +15,13 @@ import {setTimeSkew} from './actions/Network';
 import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
+import APP_STARTUP_NETWORK_REQUEST from './AppStartupNetworkRequest';
 import HttpsError from './Errors/HttpsError';
 import {setLoadTestParameters} from './Network/LoadTestState';
 import preparePrefetchRequest from './Prefetch/preparePrefetchRequest';
 import registerPrefetchOnAppStart from './Prefetch/registerPrefetchOnAppStart';
 import prepareRequestPayload from './prepareRequestPayload';
+import {endSpan, startSpan} from './telemetry/activeSpans';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
 
 let shouldFailAllRequests = false;
@@ -67,6 +69,18 @@ const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREA
  */
 const APICommandRegex = /\/api\/([^&?]+)\??.*/;
 
+function startStartupNetworkPhaseSpan(spanId: string, command: string, contentLength?: string) {
+    startSpan(spanId, {
+        name: spanId,
+        op: spanId,
+        forceTransaction: true,
+        attributes: {
+            [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: command,
+            [CONST.TELEMETRY.ATTRIBUTE_CONTENT_LENGTH]: contentLength,
+        },
+    });
+}
+
 /**
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
@@ -98,8 +112,18 @@ function processHTTPRequest<TKey extends OnyxKey>(
 
     registerPrefetchOnAppStart({prefetchKey, fetchParams, command, url});
 
+    // Split the startup request into the wait for the first byte and the body download+parse, which Chrome shows as "Waiting" and "Content Download".
+    const isStartupRequest = !!command && APP_STARTUP_NETWORK_REQUEST.has(command);
+    if (isStartupRequest) {
+        startStartupNetworkPhaseSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_REQUEST_WAIT, command);
+    }
+
     return fetch(url, fetchParams)
         .then((response) => {
+            if (isStartupRequest) {
+                endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_REQUEST_WAIT);
+                startStartupNetworkPhaseSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_RESPONSE_DOWNLOAD, command, response.headers?.get('content-length') ?? undefined);
+            }
             if (response.headers) {
                 setLoadTestParameters(response.headers.get('X-Load-Test'));
             }
@@ -153,7 +177,11 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 });
             }
 
-            return response.json() as Promise<Response<TKey>>;
+            const parsedResponse = response.json() as Promise<Response<TKey>>;
+            if (!isStartupRequest) {
+                return parsedResponse;
+            }
+            return parsedResponse.finally(() => endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_RESPONSE_DOWNLOAD));
         })
         .then((response) => {
             // Some retried requests will result in a "Unique Constraints Violation" error from the server, which just means the record already exists
