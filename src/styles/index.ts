@@ -4118,7 +4118,7 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'left',
             overflow: 'hidden',
             marginBottom: 20,
-            marginHorizontal: variables.sectionMargin,
+            marginHorizontal: 20,
         },
 
         widgetContainer: {
