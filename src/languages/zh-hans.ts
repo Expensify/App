@@ -1117,6 +1117,7 @@ const translations: TranslationDeepObject<typeof en> = {
         importSpreadsheetLibraryError: '加载电子表格模块失败。请检查您的互联网连接，然后重试。',
         importSpreadsheet: '导入电子表格',
         importWorkflows: '导入工作流程',
+        downloadWorkflows: '下载工作流程',
         downloadCSV: '下载 CSV',
         importMemberConfirmation: () => ({
             one: `请确认以下新工作区成员的详细信息，该成员将作为此次上传的一部分被添加。现有成员不会收到任何角色更新或邀请消息。`,
@@ -2489,6 +2490,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnection: '请修复此连接',
             fixConnectionIn: (companyCardsRoute: string) => `请在<a href="${companyCardsRoute}">公司卡</a>中修复此连接`,
             askAdminToFixConnection: '请联系管理员修复此连接',
+            reconnectBank: '您的银行连接需要重新验证',
         },
         bankAccountStatus: {
             active: '活跃',
@@ -5993,7 +5995,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 cardFeedAllowDeletingTransaction: '允许删除交易',
                 removeCardFeed: '移除卡片流水',
                 removeCardFeedTitle: (feedName: string) => `移除 ${feedName} 数据源`,
-                removeCardFeedDescription: '确定要移除此卡片数据源吗？这将取消分配所有卡片。',
+                removeCardFeedDescription: '确定要移除此卡片流水吗？这将取消分配所有卡片并删除所有未提交的交易。',
                 error: {
                     feedNameRequired: '必须填写卡片流水名称',
                     statementCloseDateRequired: '请选择账单结算日期。',
@@ -6443,6 +6445,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 chooseLimitType: '选择限额类型',
                 smartLimit: '智能限额',
                 smartLimitDescription: '在需要审批前可支出至指定金额上限',
+                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
+                    `<muted-text-label>在需要审批前可支出至指定金额上限。<a href="${workspaceWorkflowsLink}">启用审批</a>后即可选择此选项。</muted-text-label>`,
                 monthly: '每月',
                 monthlyDescription: '每月消费上限为特定金额',
                 fixedAmount: '固定金额',
@@ -8763,7 +8767,7 @@ ${reportName}`,
             description: '哇，项目真不少！我们会把它们打包好，Concierge 很快就会给你发送一个文件。',
         },
         exportedTo: '已导出到',
-        exportAll: {selectAllMatchingItems: '选择所有匹配的项目', allMatchingItemsSelected: '已选择所有匹配的项目', selectAllOnThisPage: '选择本页全部内容'},
+        exportAll: {selectAllMatchingItems: '选择所有匹配的项目', selectAllOnThisPage: '选择本页全部内容'},
         errors: {
             pleaseSelectDatesForBothFromAndTo: '请选择起始和结束日期',
         },
@@ -9160,7 +9164,16 @@ ${reportName}`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `原始：${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `已移除 ${distance} ${unit} 通勤距离`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `已移除 ${distance} 英里通勤里程`,
+                    other: `已移除 ${distance} 英里通勤里程`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `已移除 ${distance} 公里通勤距离`,
+                    other: `已移除 ${distance} 公里通勤里程`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `已根据 ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">工作区距离设置</a>` : '工作区距离设置'} 移除 ${distance} ${unit} 的通勤距离。`,
         },
@@ -9981,6 +9994,7 @@ ${reportName}`,
         basicExport: '基本导出',
         reportLevelExport: '所有数据 - 报告级别',
         expenseLevelExport: '所有数据 - 报销级别',
+        multipleTaxExport: '加拿大多种税导出',
         exportInProgress: '导出进行中',
         conciergeWillSend: 'Concierge 将很快把文件发送给你。',
         currentView: '当前视图',

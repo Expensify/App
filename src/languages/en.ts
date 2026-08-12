@@ -1248,6 +1248,7 @@ const translations = {
         importSpreadsheetLibraryError: 'Failed to load spreadsheet module. Please check your internet connection and try again.',
         importSpreadsheet: 'Import spreadsheet',
         importWorkflows: 'Import workflows',
+        downloadWorkflows: 'Download workflows',
         downloadCSV: 'Download CSV',
         importMemberConfirmation: () => ({
             one: `Please confirm the details below for a new workspace member that will be added as part of this upload. Existing members won’t receive any role updates or invite messages.`,
@@ -2647,6 +2648,7 @@ const translations = {
             fixConnection: 'Please fix this connection',
             fixConnectionIn: (companyCardsRoute: string) => `Please fix this connection in <a href="${companyCardsRoute}">company cards</a>`,
             askAdminToFixConnection: 'Please ask an admin to fix this connection',
+            reconnectBank: 'Your bank connection needs to be re-authenticated',
         },
         bankAccountStatus: {
             active: 'Active',
@@ -6331,7 +6333,7 @@ const translations = {
                 cardFeedAllowDeletingTransaction: 'Allow deleting transactions',
                 removeCardFeed: 'Remove card feed',
                 removeCardFeedTitle: (feedName: string) => `Remove ${feedName} feed`,
-                removeCardFeedDescription: 'Are you sure you want to remove this card feed? This will unassign all cards.',
+                removeCardFeedDescription: 'Are you sure you want to remove this card feed? This will unassign all cards and delete unsubmitted transactions.',
                 error: {
                     feedNameRequired: 'Card feed name is required',
                     statementCloseDateRequired: 'Please select a statement close date.',
@@ -6816,6 +6818,8 @@ const translations = {
                 chooseLimitType: 'Choose a limit type',
                 smartLimit: 'Smart Limit',
                 smartLimitDescription: 'Spend up to a certain amount before requiring approval',
+                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
+                    `<muted-text-label>Spend up to a certain amount before requiring approval. <a href="${workspaceWorkflowsLink}">Enable approvals</a> to select this option.</muted-text-label>`,
                 monthly: 'Monthly',
                 monthlyDescription: 'Limit renews monthly',
                 fixedAmount: 'Fixed amount',
@@ -9293,7 +9297,6 @@ const translations = {
         exportedTo: 'Exported to',
         exportAll: {
             selectAllMatchingItems: 'Select all matching items',
-            allMatchingItemsSelected: 'All matching items selected',
             selectAllOnThisPage: 'Select all on this page',
         },
         errors: {
@@ -9667,7 +9670,16 @@ const translations = {
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Removed ${distance} commuter ${unit}`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `Removed ${distance} commuter mile`,
+                    other: `Removed ${distance} commuter miles`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `Removed ${distance} commuter kilometer`,
+                    other: `Removed ${distance} commuter kilometers`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `Removed ${distance} commuter ${unit} based on ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">workspace distance settings</a>` : 'workspace distance settings'}.`,
         },
@@ -10550,6 +10562,7 @@ const translations = {
         currentView: 'Current view',
         reportLevelExport: 'All Data - report level',
         expenseLevelExport: 'All Data - expense level',
+        multipleTaxExport: 'Canadian Multiple Tax Export',
         exportInProgress: 'Export in progress',
         conciergeWillSend: 'Concierge will send you the file shortly.',
     },

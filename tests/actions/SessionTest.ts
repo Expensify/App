@@ -1049,4 +1049,75 @@ describe('Session', () => {
             expect(SessionUtil.isSupportAuthToken(undefined)).toBe(false);
         });
     });
+
+    describe('signIn', () => {
+        test('sends the login and validate code arguments to the API, independent of the CREDENTIALS Onyx cache', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // CREDENTIALS is empty (cleared in beforeEach), so correct values here prove they come from the params, not the module cache.
+            SessionUtil.signIn('112233', undefined, undefined, 'user@expensify.com', undefined);
+            await waitForBatchedUpdates();
+
+            const call = writeSpy.mock.calls.at(0);
+            expect(call?.at(0)).toBe(WRITE_COMMANDS.SIGN_IN_USER);
+            expect(call?.at(1)).toEqual(expect.objectContaining({email: 'user@expensify.com', validateCode: '112233'}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('falls back to the stored validate code when no code is entered during the 2FA step', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // Empty entered validateCode + a 2FA code present → should use the stored validate code passed in.
+            SessionUtil.signIn('', undefined, '654321', 'user@expensify.com', 'stored-code');
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({validateCode: 'stored-code', twoFactorAuthCode: '654321'}));
+
+            writeSpy.mockRestore();
+        });
+    });
+
+    describe('requestUnlinkValidationLink', () => {
+        test('sends the login argument as the email param, independent of the CREDENTIALS Onyx cache', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // CREDENTIALS is empty (cleared in beforeEach), so a correct email here proves the value comes from the param, not the module cache.
+            SessionUtil.requestUnlinkValidationLink('secondary@expensify.com');
+            await waitForBatchedUpdates();
+
+            const call = writeSpy.mock.calls.at(0);
+            expect(call?.at(0)).toBe(WRITE_COMMANDS.REQUEST_UNLINK_VALIDATION_LINK);
+            expect(call?.at(1)).toEqual(expect.objectContaining({email: 'secondary@expensify.com'}));
+
+            writeSpy.mockRestore();
+        });
+    });
+
+    describe('signInWithValidateCode', () => {
+        test('sends the entered code as the validate code when it is not a 2FA step', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.signInWithValidateCode(123, '112233', undefined);
+            await waitForBatchedUpdates();
+
+            const call = writeSpy.mock.calls.at(0);
+            expect(call?.at(0)).toBe(WRITE_COMMANDS.SIGN_IN_USER_WITH_LINK);
+            expect(call?.at(1)).toEqual(expect.objectContaining({accountID: 123, validateCode: '112233'}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('uses the stored validate code instead of the entered code during a 2FA step', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // twoFactorAuthCode present → should use storedValidateCode, ignoring the entered `code`.
+            SessionUtil.signInWithValidateCode(123, 'ignored-code', undefined, '654321', 'stored-code');
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({validateCode: 'stored-code', twoFactorAuthCode: '654321'}));
+
+            writeSpy.mockRestore();
+        });
+    });
 });

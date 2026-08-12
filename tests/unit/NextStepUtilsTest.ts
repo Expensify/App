@@ -104,6 +104,7 @@ describe('libs/NextStepUtils', () => {
                     policy,
                     '2025-03-31 13:23:11',
                     [CONST.BETAS.ALL],
+                    getCurrencyDecimalsLocal,
                 );
 
                 const expectedResult: ReportNextStep = {

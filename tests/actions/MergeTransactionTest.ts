@@ -1,4 +1,4 @@
-import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {areTransactionsEligibleForMerge, getTransactionsForMerging, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {addComment, openReport} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -1198,6 +1198,7 @@ describe('mergeTransactionRequest', () => {
                 betas: undefined,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,
+                currentUserAccountID: TEST_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -1279,7 +1280,7 @@ describe('mergeTransactionRequest', () => {
             await waitForBatchedUpdates();
 
             // Then we expect the reportPreview to update with new childVisibleActionCount
-            previewAction = getReportPreviewAction(chatReport.reportID, sourceReport.reportID) as OnyxEntry<ReportAction>;
+            previewAction = getReportPreviewReportAction(chatReport.reportID, sourceReport.reportID) as OnyxEntry<ReportAction>;
             expect(previewAction).toBeTruthy();
             expect(previewAction?.childVisibleActionCount).toEqual(0);
             expect(previewAction?.childCommenterCount).toEqual(0);
@@ -1301,7 +1302,7 @@ describe('mergeTransactionRequest', () => {
             await waitForBatchedUpdates();
 
             // Then we expect the reportPreview to update with new childVisibleActionCount
-            previewAction = getReportPreviewAction(chatReport.reportID, sourceReport.reportID) as OnyxEntry<ReportAction>;
+            previewAction = getReportPreviewReportAction(chatReport.reportID, sourceReport.reportID) as OnyxEntry<ReportAction>;
             expect(previewAction).toBeTruthy();
             expect(previewAction?.childVisibleActionCount).toEqual(0);
             expect(previewAction?.childCommenterCount).toEqual(0);
@@ -1388,6 +1389,7 @@ describe('mergeTransactionRequest', () => {
                 betas: undefined,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,
+                currentUserAccountID: TEST_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 

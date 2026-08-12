@@ -1166,6 +1166,7 @@ const translations: TranslationDeepObject<typeof en> = {
         importSpreadsheetLibraryError: 'Error al cargar el módulo de hojas de cálculo. Por favor, verifica tu conexión a internet e inténtalo de nuevo.',
         importSpreadsheet: 'Importar hoja de cálculo',
         importWorkflows: 'Importar flujos de trabajo',
+        downloadWorkflows: 'Descargar flujos de trabajo',
         downloadCSV: 'Descargar CSV',
         importMemberConfirmation: () => ({
             one: `Por favor confirma los detalles a continuación para un nuevo miembro del espacio de trabajo que se agregará como parte de esta carga. Los miembros existentes no recibirán actualizaciones de rol ni mensajes de invitación.`,
@@ -2509,6 +2510,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnection: 'Por favor, corrige esta conexión',
             fixConnectionIn: (companyCardsRoute) => `Por favor, corrige esta conexión en <a href="${companyCardsRoute}">tarjetas de la empresa</a>`,
             askAdminToFixConnection: 'Pídele a un administrador que solucione esta conexión',
+            reconnectBank: 'Tu conexión bancaria necesita volver a autenticarse',
         },
         bankAccountStatus: {
             active: 'Activo',
@@ -6121,7 +6123,7 @@ ${amount} para ${merchant} - ${date}`,
                 cardFeedAllowDeletingTransaction: 'Permitir eliminación de transacciones',
                 removeCardFeed: 'Quitar la alimentación de tarjetas',
                 removeCardFeedTitle: (feedName) => `Eliminar el feed de ${feedName}`,
-                removeCardFeedDescription: '¿Estás seguro de que deseas eliminar esta fuente de tarjetas? Esto anulará la asignación de todas las tarjetas.',
+                removeCardFeedDescription: '¿Seguro que quieres eliminar este suministro de tarjetas? Esto desasignará todas las tarjetas y eliminará las transacciones no enviadas.',
                 error: {
                     feedNameRequired: 'Se requiere el nombre de la fuente de la tarjeta',
                     statementCloseDateRequired: 'Por favor, selecciona una fecha de cierre del estado de cuenta.',
@@ -6884,6 +6886,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 chooseLimitType: 'Elegir un tipo de límite',
                 smartLimit: 'Límite inteligente',
                 smartLimitDescription: 'Gasta hasta un determinado importe antes de requerir aprobación',
+                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
+                    `<muted-text-label>Gasta hasta un determinado importe antes de requerir aprobación. <a href="${workspaceWorkflowsLink}">Habilita las aprobaciones</a> para seleccionar esta opción.</muted-text-label>`,
                 monthly: 'Mensual',
                 monthlyDescription: 'Gasta hasta un determinado importe al mes',
                 fixedAmount: 'Importe fijo',
@@ -8994,7 +8998,6 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         exportedTo: 'Exported to',
         exportAll: {
             selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',
-            allMatchingItemsSelected: 'Todos los elementos coincidentes seleccionados',
             selectAllOnThisPage: 'Seleccionar todo en esta página',
         },
         errors: {
@@ -9841,7 +9844,16 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Se eliminaron ${distance} ${unit} de viaje diario`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `Se eliminó ${distance} milla de trayecto al trabajo`,
+                    other: `Eliminó ${distance} millas de trayecto al trabajo`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `Se eliminó ${distance} kilómetro de desplazamiento laboral`,
+                    other: `Eliminó ${distance} kilómetros de desplazamiento`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `Se eliminaron ${distance} ${unit} de desplazamiento en base a ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">configuración de distancias del espacio de trabajo</a>` : 'ajustes de distancia del espacio de trabajo'}.`,
         },
@@ -10592,6 +10604,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         basicExport: 'Exportar básico',
         reportLevelExport: 'Todos los datos - a nivel de informe',
         expenseLevelExport: 'Todos los datos - a nivel de gasto',
+        multipleTaxExport: 'Exportación canadiense de impuestos múltiples',
         exportInProgress: 'Exportación en curso',
         conciergeWillSend: 'Concierge te enviará el archivo en breve.',
         currentView: 'Vista actual',

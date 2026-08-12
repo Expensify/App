@@ -1212,7 +1212,7 @@ function getOptionData({
         } else if (isLeavePolicyAction(lastAction)) {
             result.alternateText = getPolicyChangeLogEmployeeLeftMessage(translate, lastAction, getPersonalDetailsByID(lastAction.actorAccountID, personalDetails), true);
         } else if (isCardIssuedAction(lastAction)) {
-            result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate});
+            result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate, currentUserAccountID});
         } else if (lastAction && isOldDotReportAction(lastAction)) {
             result.alternateText = getMessageOfOldDotReportAction(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {

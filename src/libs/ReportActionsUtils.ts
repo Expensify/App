@@ -2661,7 +2661,6 @@ function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportActio
 /**
  * Check if the current user is the requestor of the action
  */
-// TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
 function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID?: number): boolean {
     return (currentUserAccountID ?? deprecatedCurrentUserAccountID) === reportAction?.actorAccountID;
 }
@@ -4608,6 +4607,7 @@ function getCardIssuedMessage({
     expensifyCard,
     companyCard,
     translate,
+    currentUserAccountID,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     shouldRenderHTML?: boolean;
@@ -4616,6 +4616,7 @@ function getCardIssuedMessage({
     expensifyCard?: Card;
     companyCard?: Card;
     translate: LocaleContextProps['translate'];
+    currentUserAccountID: number;
 }) {
     const cardIssuedActionOriginalMessage = isCardIssuedAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
 
@@ -4629,7 +4630,7 @@ function getCardIssuedMessage({
     const isExpensifyCardActive = isCardActive(expensifyCard);
     const expensifyCardLink = (expensifyCardLinkText: string) =>
         shouldRenderHTML && isExpensifyCardActive ? `<a href='${environmentURL}/${navigateRoute}'>${expensifyCardLinkText}</a>` : expensifyCardLinkText;
-    const isAssigneeCurrentUser = deprecatedCurrentUserAccountID === assigneeAccountID;
+    const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
     const companyCardLink =
         shouldRenderHTML && isAssigneeCurrentUser && companyCard
             ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translate('workspace.companyCards.companyCard')}</a>`
