@@ -36,6 +36,10 @@ const mockGetMergedPRsDeployedBetween = jest.fn() as Mock<typeof GitUtils.getMer
 const mockGetWorkflowRunURLForCommit = jest.fn().mockResolvedValue(undefined);
 
 beforeAll(() => {
+    // The action stamps the checklist title with today's date and the assertions below re-derive it, so pin the
+    // clock: otherwise the two reads can straddle local midnight. Jest froze Date globally via fakeTimers.
+    jest.setSystemTime(new Date('2026-02-03T12:00:00Z'));
+
     // Mock octokit module
     const mockOctokit = {
         rest: {
@@ -100,6 +104,7 @@ afterEach(() => {
 
 afterAll(() => {
     jest.clearAllMocks();
+    jest.useRealTimers();
 });
 
 const LABELS = {

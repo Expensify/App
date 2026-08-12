@@ -82,7 +82,7 @@
     "server:vcr:dev": "npm run dev -w @expensify/victory-chart-renderer --",
     "server:vcr:test": "npm run test -w @expensify/victory-chart-renderer --",
     "test:bun": "bun test --concurrent --max-concurrency 7",
-    "test:tooling": "bun test --isolate --preload ./tests/tooling/setup.ts ./tests/tooling",
+    "test:tooling": "TZ=utc bun test --isolate --preload ./tests/tooling/setup.ts ./tests/tooling",
     "server:vcr:build:linux": "npm run build:linux -w @expensify/victory-chart-renderer --",
     "server:vcr:build:linux-arm": "npm run build:linux-arm -w @expensify/victory-chart-renderer --",
     "server:vcr:build:macos": "npm run build:macos -w @expensify/victory-chart-renderer --"

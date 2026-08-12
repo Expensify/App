@@ -24,9 +24,9 @@ let internalOctokit: InternalOctokit;
 let listCommentsSpy: Mock<ListCommentsEndpoint>;
 let graphqlSpy: Mock<GraphqlMethod>;
 
-// `context` is a plain object instance whose constructor is a no-op without GITHUB_EVENT_PATH set, so it can be
-// mutated directly rather than mocking the module. `context.repo` reads GITHUB_REPOSITORY, which tests/tooling/setup.ts
-// defaults to Expensify/App.
+// `context` is a plain object instance, so the fields this action reads can be assigned directly rather than
+// mocking the module. `context.repo` derives from GITHUB_REPOSITORY, which tests/tooling/setup.ts defaults to
+// Expensify/App, and `runId` is fixed here so the expected messages below don't depend on the environment.
 context.runId = 1234;
 
 /**

@@ -22,8 +22,9 @@ let paginateSpy: Mock<PaginateMethod>;
 const mockGetInput = jest.fn<typeof core.getInput>();
 
 // Bun has no equivalent of `jest.mock(path)`'s automock, so stub the @actions/core functions this action calls
-// explicitly. `@actions/github`'s `context` needs no stub: it is a plain mutable object whose constructor is a
-// no-op without GITHUB_EVENT_PATH set, so each test can assign to it directly (see beforeEach below).
+// explicitly. `@actions/github`'s `context` needs no stub: it is a plain mutable object, and beforeEach below
+// overwrites every field this action reads, so whatever the real constructor loaded from the environment is
+// irrelevant.
 jest.spyOn(core, 'getInput').mockImplementation(mockGetInput);
 const mockSetOutput = jest.spyOn(core, 'setOutput').mockImplementation(() => {});
 jest.spyOn(core, 'warning').mockImplementation(() => {});

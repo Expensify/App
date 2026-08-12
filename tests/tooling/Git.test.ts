@@ -1258,7 +1258,7 @@ describe('Git', () => {
 
             // Verify git ls-files was not called
             const calls = mockExecSync.mock.calls.map((call) => call[0]);
-            expect(calls).not.toContain(expect.stringContaining('git ls-files'));
+            expect(calls.some((command) => command.includes('git ls-files'))).toBe(false);
         });
 
         it('does not include untracked files when toRef is provided even if shouldIncludeUntrackedFiles is true', () => {
@@ -1268,7 +1268,7 @@ describe('Git', () => {
 
             expect(mockExecSync).toHaveBeenCalledTimes(1);
             const calls = mockExecSync.mock.calls.map((call) => call[0]);
-            expect(calls).not.toContain(expect.stringContaining('git ls-files'));
+            expect(calls.some((command) => command.includes('git ls-files'))).toBe(false);
         });
 
         it('includes untracked files when shouldIncludeUntrackedFiles is true and toRef is undefined', () => {

@@ -23,36 +23,43 @@ let listForRepoSpy: Mock<ListForRepoMethod>;
 let internalOctokit: InternalOctokit;
 
 /**
- * Runs `operation` with fake timers so its retry backoff resolves instantly. Bun only exposes a synchronous
- * `jest.advanceTimersByTime`, and the code under test schedules each backoff timer from a `catch` block - i.e. only
- * once the preceding rejection has been awaited - so alternate between yielding to the microtask queue and pushing
- * the clock forward until the operation settles.
+ * Runs `operation` with fake timers so its retry backoff resolves instantly, advancing the clock by exactly
+ * `expectedBackoffsMs` in order. Advancing by the exact delays rather than some arbitrarily large amount keeps
+ * these tests pinned to LIST_RETRY_DELAYS_MS: lengthen a delay there and the operation never settles.
+ *
+ * Bun only exposes a synchronous `jest.advanceTimersByTime`, and the code under test schedules each backoff timer
+ * from a `catch` block - i.e. several microtasks after the call starts - so yield until that timer exists before
+ * firing it.
  */
-function runWithFakeTimers<T>(operation: () => Promise<T>): Promise<T> {
+async function runWithFakeTimers<T>(operation: () => Promise<T>, expectedBackoffsMs: number[]): Promise<T> {
     jest.useFakeTimers();
-    let isSettled = false;
-    const pending = operation().finally(() => {
-        isSettled = true;
-    });
+    try {
+        let isSettled = false;
+        const pending = operation().finally(() => {
+            isSettled = true;
+        });
 
-    // The caller decides whether a rejection is expected; swallow it here only so driving the clock below doesn't
-    // trip Bun's unhandled-rejection reporting in the meantime.
-    pending.catch(() => {});
+        // The caller decides whether a rejection is expected; swallow it here only so driving the clock below
+        // doesn't trip Bun's unhandled-rejection reporting in the meantime.
+        pending.catch(() => {});
 
-    return (async () => {
-        try {
-            for (let i = 0; !isSettled && i < 1000; i++) {
+        for (const backoffMs of expectedBackoffsMs) {
+            for (let i = 0; jest.getTimerCount() === 0 && !isSettled && i < 100; i++) {
                 await Promise.resolve();
-                jest.advanceTimersByTime(1000);
             }
-            if (!isSettled) {
-                throw new Error('Operation did not settle after advancing fake timers; is it waiting on something other than a timer?');
-            }
-            return await pending;
-        } finally {
-            jest.useRealTimers();
+            jest.advanceTimersByTime(backoffMs);
         }
-    })();
+
+        for (let i = 0; !isSettled && i < 100; i++) {
+            await Promise.resolve();
+        }
+        if (!isSettled) {
+            throw new Error(`Operation did not settle after advancing the clock by ${expectedBackoffsMs.join(' + ')}ms; did its retry schedule change?`);
+        }
+        return await pending;
+    } finally {
+        jest.useRealTimers();
+    }
 }
 
 beforeAll(() => {
@@ -283,7 +290,7 @@ describe('DeployChecklistUtils', () => {
                     createListForRepoResponse([createMock<OctokitIssueItem>({number: 88, url: 'https://api.github.com/repos/o/i/issues/88', title: 't', labels: [], body: ''})]),
                 );
 
-            const data = await runWithFakeTimers(() => getDeployChecklist());
+            const data = await runWithFakeTimers(() => getDeployChecklist(), [2000]);
 
             expect(data.number).toBe(88);
             expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
@@ -295,7 +302,7 @@ describe('DeployChecklistUtils', () => {
             });
             listForRepoSpy.mockRejectedValue(err503);
 
-            await expect(runWithFakeTimers(() => getDeployChecklist())).rejects.toThrow(RequestError);
+            await expect(runWithFakeTimers(() => getDeployChecklist(), [2000, 5000])).rejects.toThrow(RequestError);
 
             expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(3);
         });
@@ -328,7 +335,7 @@ describe('DeployChecklistUtils', () => {
                     createListForRepoResponse([createMock<OctokitIssueItem>({number: 77, url: 'https://api.github.com/repos/o/i/issues/77', title: 't', labels: [], body: ''})]),
                 );
 
-            const data = await runWithFakeTimers(() => getDeployChecklist());
+            const data = await runWithFakeTimers(() => getDeployChecklist(), [2000]);
 
             expect(data.number).toBe(77);
             expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);

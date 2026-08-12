@@ -8,6 +8,7 @@ on:
       - 'server/**'
       - 'src/**'
       - 'tests/tooling/**'
+      - 'tests/utils/**'
       - '.github/actions/javascript/**'
       - '.github/libs/**'
       - '.github/scripts/**'

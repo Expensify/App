@@ -17,11 +17,14 @@ type ObjectMethodData<T> = {
 
 type OctokitCreateIssue = InternalOctokit['rest']['issues']['create'];
 
-beforeAll(() => {
+beforeEach(() => {
     // Mock core module. Real ESM module namespace exports are read-only live bindings, so `core.getInput` can't be
-    // reassigned directly (unlike Jest's Babel-transpiled CJS interop); spy on it instead.
+    // reassigned directly (unlike Jest's Babel-transpiled CJS interop); spy on it instead. Re-installed per test
+    // rather than once, because getCommitHistoryBetweenTags' afterEach calls jest.restoreAllMocks().
     jest.spyOn(core, 'getInput').mockImplementation(mockGetInput);
+});
 
+beforeAll(() => {
     // Mock octokit module
     const mockOctokit = {
         rest: {

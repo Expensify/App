@@ -462,17 +462,19 @@ async function assertPRsMergedBetween(from: string, to: string, expected: number
 }
 
 /*
- * These tests are different from most jest tests. They create a dummy git repo and simulate the GitHub Actions CI environment
+ * These tests are different from most of the suite. They create a dummy git repo and simulate the GitHub Actions CI environment
  * and ensure that deploy checklists, comments, and releases are created correctly and completely,
  * including a number of real-world edge cases we have encountered and fixed.
  *
  * However, because they are different, there are a few additional "rules" with these tests:
  *   - They should not be run in parallel with other tests on the same machine. They will not play nicely with other tests.
  *   - The whole suite should be run. Running individual tests from the suite may not work as expected.
+ *   - Each test builds on the repo state the previous one left behind, so the first failure cascades into the rest.
+ *     Re-run with `--bail` to see only the first one; Bun has no per-file equivalent.
  */
 
 // These tests shell out to real `git`/`npm` subprocesses many times per test and can exceed the default 5000ms
-// per-test timeout (shared with Jest's default), especially on a cold cache.
+// per-test timeout, especially on a cold cache.
 setDefaultTimeout(30000);
 
 let startingDir: string;

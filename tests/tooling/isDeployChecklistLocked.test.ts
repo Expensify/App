@@ -7,12 +7,6 @@ import * as DeployChecklistUtils from '../../.github/libs/DeployChecklistUtils';
 
 const mockGetDeployChecklist = jest.fn<typeof DeployChecklistUtils.getDeployChecklist>();
 
-// Capture the real exports by value before mocking: `DeployChecklistUtils` is a live namespace binding tied to
-// the shared module registry entry, so once mock.module() below replaces that entry, `DeployChecklistUtils` would
-// itself resolve to the mocked exports too - which would make the afterAll restoration below a no-op that
-// "restores" the mock forever instead of the real module.
-const originalDeployChecklistUtils = {...DeployChecklistUtils};
-
 // Must run before `isDeployChecklistLocked` (which imports DeployChecklistUtils internally) is imported below:
 // mock.module patches the shared module registry entry, and existing named-import bindings to it are live, but
 // only if the patch happens before those bindings are first read.
@@ -36,11 +30,8 @@ afterEach(() => {
     jest.restoreAllMocks();
 });
 
-afterAll(async () => {
+afterAll(() => {
     delete process.env.INPUT_GITHUB_TOKEN;
-    // `bun test` runs all files in one process sharing the module registry, unlike Jest's per-file registry, so
-    // mock.module's patch would otherwise leak into every other test file that imports this module afterwards.
-    await mock.module('../../.github/libs/DeployChecklistUtils', () => originalDeployChecklistUtils);
 });
 
 describe('isDeployChecklistLockedTest', () => {

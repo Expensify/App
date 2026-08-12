@@ -1,5 +1,6 @@
 // Preloaded via `bun test --preload` (see the `test:tooling` npm script), once per test file because --isolate
-// gives each file its own globals.
+// gives each file its own globals. Always run this directory through that script: several files replace `fs` or
+// `child_process` with mock.module(), which without --isolate would reach every file that runs after them.
 import {jest} from 'bun:test';
 
 // GitHub Actions always sets GITHUB_REPOSITORY in CI, but local runs need a default, mirroring jest/setup.ts's

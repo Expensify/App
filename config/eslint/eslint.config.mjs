@@ -711,8 +711,9 @@ const config = defineConfig([
         },
         rules: {
             // bun-types declares `expect(...).resolves`/`.rejects` matchers as returning `void` even though Bun's
-            // own docs recommend (and its runtime requires) awaiting them, so this rule false-positives on that
-            // pattern here. See https://github.com/oven-sh/bun/pull/23425.
+            // own docs recommend (and its runtime requires) awaiting them, so this rule reports every correct use
+            // of that pattern here. See https://github.com/oven-sh/bun/pull/23425. The cost of turning it off is
+            // that a *missing* await on `.rejects` also lints clean, so check those by hand in review.
             '@typescript-eslint/await-thenable': 'off',
         },
     },
