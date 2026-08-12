@@ -2142,6 +2142,9 @@ type DualEntryExport = {
     /** Account used when exporting company card expenses. */
     creditCardAccountID: string;
 
+    /** Account used when exporting Expensify Card expenses. */
+    expensifyCardAccountID: string;
+
     /**
      * Whether card transactions should be exported to multiple
      * accounts based on card program mappings.
@@ -3277,5 +3280,9 @@ export type {
     RilletSubsidiary,
     DualEntryConnectionsConfig,
     DualEntryCompany,
+    DualEntryAccount,
     DualEntryCoding,
+    DualEntryExport,
+    DualEntryExportDate,
+    DualEntryVendor,
 };

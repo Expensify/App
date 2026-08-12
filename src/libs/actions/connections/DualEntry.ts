@@ -2,6 +2,11 @@ import {write} from '@libs/API';
 import type {
     ConnectPolicyToDualEntryParams,
     UpdateDualEntryEnableNewCategoriesParams,
+    UpdateDualEntryCreditCardAccountParams,
+    UpdateDualEntryDefaultVendorParams,
+    UpdateDualEntryExpensifyCardAccountParams,
+    UpdateDualEntryExportDateParams,
+    UpdateDualEntryExporterParams,
     UpdateDualEntryFieldMappingParams,
     UpdateDualEntrySubsidiaryParams,
     UpdateDualEntrySyncTaxRatesParams,
@@ -11,7 +16,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {DualEntryCoding, DualEntryConnectionsConfig} from '@src/types/onyx/Policy';
+import type {DualEntryCoding, DualEntryConnectionsConfig, DualEntryExport} from '@src/types/onyx/Policy';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -276,6 +281,56 @@ function prepareDualEntryFieldMappingOnyxData(
     return {optimisticData, successData, failureData};
 }
 
+function prepareDualEntryExportOnyxData<TSettingName extends keyof DualEntryExport>(
+    policyID: string,
+    settingName: TSettingName,
+    settingValue: DualEntryExport[TSettingName],
+    oldSettingValue: DualEntryExport[TSettingName] | null,
+) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    dualEntry: {
+                        config: {
+                            export: {[settingName]: settingValue ?? null},
+                            pendingFields: {[settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            errorFields: {[settingName]: null},
+                        },
+                    },
+                },
+            },
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {connections: {dualEntry: {config: {pendingFields: {[settingName]: null}}}}},
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    dualEntry: {
+                        config: {
+                            export: {[settingName]: oldSettingValue ?? null},
+                            pendingFields: {[settingName]: null},
+                            errorFields: {[settingName]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                        },
+                    },
+                },
+            },
+        },
+    ];
+    return {optimisticData, successData, failureData};
+}
+
 function updateDualEntrySubsidiary(policyID: string, subsidiaryID: DualEntryConnectionsConfig['subsidiaryID'], oldSubsidiaryID?: DualEntryConnectionsConfig['subsidiaryID']) {
     const onyxData = prepareDualEntryOnyxData(policyID, CONST.DUALENTRY_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID ?? null);
     const params: UpdateDualEntrySubsidiaryParams = {
@@ -318,4 +373,46 @@ function updateDualEntryFieldMapping(
     write(WRITE_COMMANDS.UPDATE_DUALENTRY_FIELD_MAPPING, parameters, onyxData);
 }
 
-export {connectToDualEntry, clearDualEntryErrorField, updateDualEntrySubsidiary, updateDualEntryEnableNewCategories, updateDualEntrySyncTaxRates, updateDualEntryFieldMapping};
+function updateDualEntryExporter(policyID: string, email: DualEntryExport['exporter'], oldEmail?: DualEntryExport['exporter']) {
+    const onyxData = prepareDualEntryExportOnyxData(policyID, CONST.DUALENTRY_CONFIG.EXPORTER, email, oldEmail ?? null);
+    const parameters: UpdateDualEntryExporterParams = {policyID, email};
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_EXPORTER, parameters, onyxData);
+}
+
+function updateDualEntryExportDate(policyID: string, value: DualEntryExport['exportDate'], oldValue?: DualEntryExport['exportDate']) {
+    const onyxData = prepareDualEntryExportOnyxData(policyID, CONST.DUALENTRY_CONFIG.EXPORT_DATE, value, oldValue ?? null);
+    const parameters: UpdateDualEntryExportDateParams = {policyID, value};
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_EXPORT_DATE, parameters, onyxData);
+}
+
+function updateDualEntryDefaultVendor(policyID: string, vendorID: DualEntryExport['defaultVendorID'], oldVendorID?: DualEntryExport['defaultVendorID']) {
+    const onyxData = prepareDualEntryExportOnyxData(policyID, CONST.DUALENTRY_CONFIG.DEFAULT_VENDORID, vendorID, oldVendorID ?? null);
+    const parameters: UpdateDualEntryDefaultVendorParams = {policyID, vendorID};
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_DEFAULT_VENDOR, parameters, onyxData);
+}
+
+function updateDualEntryCreditCardAccount(policyID: string, accountID: DualEntryExport['creditCardAccountID'], oldAccountID?: DualEntryExport['creditCardAccountID']) {
+    const onyxData = prepareDualEntryExportOnyxData(policyID, CONST.DUALENTRY_CONFIG.CREDIT_CARD_ACCOUNT_ID, accountID, oldAccountID ?? null);
+    const parameters: UpdateDualEntryCreditCardAccountParams = {policyID, accountID};
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_CREDIT_CARD_ACCOUNT, parameters, onyxData);
+}
+
+function updateDualEntryExpensifyCardAccount(policyID: string, accountID: DualEntryExport['expensifyCardAccountID'], oldAccountID?: DualEntryExport['expensifyCardAccountID']) {
+    const onyxData = prepareDualEntryExportOnyxData(policyID, CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID, accountID, oldAccountID ?? null);
+    const parameters: UpdateDualEntryExpensifyCardAccountParams = {policyID, accountID};
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_EXPENSIFY_CARD_ACCOUNT, parameters, onyxData);
+}
+
+export {
+    connectToDualEntry,
+    clearDualEntryErrorField,
+    updateDualEntrySubsidiary,
+    updateDualEntryEnableNewCategories,
+    updateDualEntrySyncTaxRates,
+    updateDualEntryFieldMapping,
+    updateDualEntryExporter,
+    updateDualEntryExportDate,
+    updateDualEntryDefaultVendor,
+    updateDualEntryCreditCardAccount,
+    updateDualEntryExpensifyCardAccount,
+};
