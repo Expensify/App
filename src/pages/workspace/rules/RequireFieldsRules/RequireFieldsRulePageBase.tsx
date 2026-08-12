@@ -161,6 +161,9 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         }
     }
 
+    // Otherwise cleared only on save, so backing out left the draft for the next rule to inherit.
+    useEffect(() => () => clearDraftRequireFieldsRule(), []);
+
     useEffect(() => {
         if (!isEditing) {
             if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
