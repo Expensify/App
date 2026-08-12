@@ -284,14 +284,17 @@ function ProfilePage({route}: ProfilePageProps) {
                                 </View>
                             ) : null}
                             {shouldShowNotificationPreference && (
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    title={notificationPreference}
-                                    description={translate('notificationPreferencesPage.label')}
-                                    onPress={() => {
-                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(report.reportID)));
-                                    }}
-                                />
+                                <View style={[styles.w100, styles.detailsPageSectionContainer]}>
+                                    <MenuItemWithTopDescription
+                                        style={[styles.ph0]}
+                                        shouldShowRightIcon
+                                        title={notificationPreference}
+                                        description={translate('notificationPreferencesPage.label')}
+                                        onPress={() => {
+                                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(report.reportID)));
+                                        }}
+                                    />
+                                </View>
                             )}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
