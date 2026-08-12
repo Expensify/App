@@ -1907,7 +1907,7 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
     // The payer is the actor on the latest payment action.
     let lastReimbursedTime = -Infinity;
     let lastReimbursedAction: OnyxTypes.ReportAction | undefined;
-    let lastReimbursementDequeuedTime = -Infinity;
+    let lastPaymentCanceledTime = -Infinity;
 
     for (const action of Object.values(actions)) {
         if (action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
@@ -1945,8 +1945,12 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
             }
         }
 
-        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED) {
-            lastReimbursementDequeuedTime = Math.max(lastReimbursementDequeuedTime, new Date(action.created).getTime());
+        if (
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED ||
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED ||
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE
+        ) {
+            lastPaymentCanceledTime = Math.max(lastPaymentCanceledTime, new Date(action.created).getTime());
         }
 
         if (isMoneyRequestAction(action)) {
@@ -1973,7 +1977,7 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
     }
 
     // A payment sharing the same timestamp as a cancellation counts as canceled, matching the backend
-    if (lastReimbursedAction && lastReimbursedTime > lastReimbursementDequeuedTime) {
+    if (lastReimbursedAction && lastReimbursedTime > lastPaymentCanceledTime) {
         ctx.lastReimbursedActionByReportID.set(reportID, lastReimbursedAction);
     }
 }
