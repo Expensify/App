@@ -5,6 +5,7 @@ import HeaderCloseButtonTooltip from '@components/HeaderWithBackButtonComposed/p
 import HeaderMenuItemButtonTooltip from '@components/HeaderWithBackButtonComposed/primitives/HeaderMenuItemButtonTooltip';
 import HeaderProgressBar from '@components/HeaderWithBackButtonComposed/primitives/HeaderProgressBar';
 import HeaderReportAvatar from '@components/HeaderWithBackButtonComposed/primitives/HeaderReportAvatar';
+import HeaderRotateButton from '@components/HeaderWithBackButtonComposed/primitives/HeaderRotateButton';
 import HeaderThreeDotsMenu from '@components/HeaderWithBackButtonComposed/primitives/HeaderThreeDotsMenu';
 import HeaderTitle from '@components/HeaderWithBackButtonComposed/primitives/HeaderTitle';
 import Icon from '@components/Icon';
@@ -26,7 +27,6 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import variables from '@styles/variables';
 
@@ -97,16 +97,6 @@ function HeaderWithBackButton({
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
-
-    const downloadReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'HeaderWithBackButton.Download',
-        isDownloading,
-    };
-
-    const rotateReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'HeaderWithBackButton.Rotate',
-        isRotating,
-    };
 
     const threeDotMenuTooltipsSection = (
         <>
@@ -256,33 +246,14 @@ function HeaderWithBackButton({
                                     </PressableWithoutFeedback>
                                 </Tooltip>
                             ) : (
-                                <ActivityIndicator
-                                    style={[styles.touchableButtonImage]}
-                                    reasonAttributes={downloadReasonAttributes}
-                                />
+                                <ActivityIndicator style={[styles.touchableButtonImage]} />
                             ))}
-                        {shouldShowRotateButton &&
-                            (!isRotating ? (
-                                <Tooltip text={translate('common.rotate')}>
-                                    <PressableWithoutFeedback
-                                        onPress={onRotateButtonPress}
-                                        style={[styles.touchableButtonImage]}
-                                        role="button"
-                                        accessibilityLabel={translate('common.rotate')}
-                                        sentryLabel={CONST.SENTRY_LABEL.HEADER.ROTATE_BUTTON}
-                                    >
-                                        <Icon
-                                            src={icons.Rotate}
-                                            fill={iconFill ?? theme.icon}
-                                        />
-                                    </PressableWithoutFeedback>
-                                </Tooltip>
-                            ) : (
-                                <ActivityIndicator
-                                    style={[styles.touchableButtonImage]}
-                                    reasonAttributes={rotateReasonAttributes}
-                                />
-                            ))}
+                        {shouldShowRotateButton && (
+                            <HeaderRotateButton
+                                onPress={onRotateButtonPress}
+                                isLoading={isRotating}
+                            />
+                        )}
                         {shouldShowPinButton && !!report && <PinButton report={report} />}
                     </View>
                     {threeDotMenuTooltipsSection}
