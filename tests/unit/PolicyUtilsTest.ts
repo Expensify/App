@@ -40,6 +40,7 @@ import {
     getSubmitToEmail,
     getTagApproverRule,
     getTagGLCode,
+    getGLCodeFromPolicyTag,
     getTagList,
     getTagListByOrderWeight,
     getUberConnectionErrorDirectlyFromPolicy,
@@ -1445,6 +1446,21 @@ describe('PolicyUtils', () => {
             expect(getTagGLCode(tagListsWithNumberGLCode, 'Engineering')).toBe('1234');
         });
     });
+
+    describe('getGLCodeFromPolicyTag', () => {
+        it('returns empty string when tag is undefined', () => {
+            expect(getGLCodeFromPolicyTag(undefined)).toBe('');
+        });
+
+        it('returns empty string when tag has no GL code', () => {
+            expect(getGLCodeFromPolicyTag({})).toBe('');
+        });
+
+        it('returns stripped GL code from tag', () => {
+            expect(getGLCodeFromPolicyTag({'GL Code': '"1234"'})).toBe('1234');
+        });
+    });
+
     describe('sortWorkspacesBySelected', () => {
         it('should order workspaces with selected workspace first', () => {
             const workspace1 = {policyID: '1', name: 'Workspace 1'};
