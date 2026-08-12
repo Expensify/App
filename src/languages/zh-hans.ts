@@ -2490,6 +2490,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnection: '请修复此连接',
             fixConnectionIn: (companyCardsRoute: string) => `请在<a href="${companyCardsRoute}">公司卡</a>中修复此连接`,
             askAdminToFixConnection: '请联系管理员修复此连接',
+            reconnectBank: '您的银行连接需要重新验证',
         },
         bankAccountStatus: {
             active: '活跃',
