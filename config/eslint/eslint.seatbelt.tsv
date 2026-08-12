@@ -550,7 +550,6 @@
 "../../src/hooks/useSidebarOrderedReports.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useSidebarOrderedReports.tsx"	"react-hooks/refs"	5
 "../../src/hooks/useSidebarOrderedReports.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/hooks/useSingleExecution/index.native.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/hooks/useSingleExecution/index.native.ts"	"react-hooks/refs"	1
 "../../src/hooks/useStableIndexedHandler.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useStepFormSubmit.ts"	"no-restricted-syntax"	1
