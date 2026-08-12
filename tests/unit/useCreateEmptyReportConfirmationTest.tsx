@@ -195,7 +195,12 @@ describe('useCreateEmptyReportConfirmation', () => {
 
         // ConfirmationPrompt is captured but not rendered — render it now
         mockTranslate.mockClear();
-        render(lastShowConfirmModalOptions?.prompt as ReactElement);
+        render(
+            <>
+                {lastShowConfirmModalOptions?.prompt}
+                {null}
+            </>,
+        );
 
         // The modal link text must use the same translation key as the Reports search tab
         expect(mockTranslate).toHaveBeenCalledWith(reportsTranslationPath);
