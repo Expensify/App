@@ -671,7 +671,7 @@ type OriginalMessagePolicyChangeLog = {
     enabled?: boolean;
 
     /** Who pays the currency conversion fees on cross-border reimbursements */
-    preference?: 'company' | 'employee';
+    preference?: ValueOf<typeof CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE>;
 
     /** Default value of a report field */
     defaultValue?: string;

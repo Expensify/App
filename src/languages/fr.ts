@@ -8872,8 +8872,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             return `a modifié les participants de la catégorie « ${categoryName} » en ${newValue ? 'obligatoire' : 'non obligatoire'} (précédemment ${newValue ? 'non obligatoire' : 'obligatoire'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'activé' : 'Désactivé'} envois`,
-        updatedCurrencyConversionFee: ({preference}: {preference: 'company' | 'employee'}) =>
-            `a mis à jour le paramètre de frais de conversion de devise sur « ${preference === 'company' ? 'Entreprise' : 'Employé'} paie »`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `a mis à jour le paramètre de frais de conversion de devise sur « ${preferenceLabel} »`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',

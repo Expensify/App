@@ -8471,7 +8471,7 @@ ${reportName}`,
             return `将“${categoryName}”类别的出席者更改为 ${newValue ? '必填' : '非必填'}（之前为 ${newValue ? '非必填' : '必填'}）`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '已启用' : '已禁用'} 次提交`,
-        updatedCurrencyConversionFee: ({preference}: {preference: 'company' | 'employee'}) => `将货币兑换手续费设置更新为“${preference === 'company' ? '公司' : '员工'} 支付方”`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `将货币兑换手续费设置更新为“${preferenceLabel}”`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',

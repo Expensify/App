@@ -8757,8 +8757,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             return `zmienił uczestników kategorii „${categoryName}” na ${newValue ? 'wymagane' : 'niewymagane'} (wcześniej ${newValue ? 'niewymagane' : 'wymagane'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'włączone' : 'wyłączone'} zgłoszenia`,
-        updatedCurrencyConversionFee: ({preference}: {preference: 'company' | 'employee'}) =>
-            `zaktualizowano ustawienie opłaty za przewalutowanie na „${preference === 'company' ? 'Firma' : 'Pracownik'} płaci”`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `zaktualizował ustawienie opłaty za przewalutowanie na „${preferenceLabel}”`,
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',

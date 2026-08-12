@@ -8780,8 +8780,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             return `heeft de deelnemers van categorie "${categoryName}" gewijzigd naar ${newValue ? 'verplicht' : 'niet verplicht'} (voorheen ${newValue ? 'niet verplicht' : 'verplicht'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} inzendingen`,
-        updatedCurrencyConversionFee: ({preference}: {preference: 'company' | 'employee'}) =>
-            `heeft de instelling voor de valutawisselkosten bijgewerkt naar "${preference === 'company' ? 'Bedrijf' : 'Werknemer'} betaalt"`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `heeft de instelling voor de valutawisselkosten bijgewerkt naar "${preferenceLabel}"`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',

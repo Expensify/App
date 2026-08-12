@@ -8835,8 +8835,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             return `hat die Kategorie „${categoryName}“ für Teilnehmende auf ${newValue ? 'erforderlich' : 'nicht erforderlich'} geändert (zuvor ${newValue ? 'nicht erforderlich' : 'erforderlich'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'aktiviert' : 'deaktiviert'} Einreichungen`,
-        updatedCurrencyConversionFee: ({preference}: {preference: 'company' | 'employee'}) =>
-            `hat die Einstellung der Währungsumrechnungsgebühr auf „${preference === 'company' ? 'Unternehmen' : 'Mitarbeiter'} zahlt“ aktualisiert`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `hat die Einstellung der Währungsumrechnungsgebühr auf „${preferenceLabel}“ aktualisiert`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',

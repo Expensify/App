@@ -8672,8 +8672,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             return `cambió los asistentes de la categoría «${categoryName}» a ${newValue ? 'obligatorio' : 'no es obligatorio'} (previamente ${newValue ? 'no es obligatorio' : 'obligatorio'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'habilitado' : 'desactivado'} envíos`,
-        updatedCurrencyConversionFee: ({preference}: {preference: 'company' | 'employee'}) =>
-            `actualizó la configuración de la comisión por conversión de divisa a "${preference === 'company' ? 'Empresa' : 'Empleado'} paga"`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `actualizó la configuración de la comisión por conversión de divisa a "${preferenceLabel}"`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',

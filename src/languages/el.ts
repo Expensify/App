@@ -8820,6 +8820,7 @@ ${reportName}`,
             `άλλαξε τον προεπιλεγμένο τύπο ονόματος προσαρμοσμένης αναφοράς σε «${newDefaultTitle}» (προηγουμένως «${oldDefaultTitle}»)`,
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `ανέλαβε την κυριότητα του ${policyName} από τον/την ${oldOwnerName} (${oldOwnerEmail})`,
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} υποβολές`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `ενημέρωσε τη ρύθμιση προμήθειας μετατροπής νομίσματος σε «${preferenceLabel}»`,
         updatedIndividualBudgetNotification: (
             budgetAmount: string,
             budgetFrequency: string,
@@ -9035,8 +9036,6 @@ ${reportName}`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `αντιγράφηκαν οι ρυθμίσεις ταξιδιού από το <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             currency: (sourcePolicyName: string, sourcePolicyURL: string) => `αντιγράφηκε το νόμισμα από την πολιτική <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
-        updatedCurrencyConversionFee: ({preference}: {preference: 'company' | 'employee'}) =>
-            `ενημέρωσε τη ρύθμιση προμήθειας μετατροπής νομίσματος σε «πληρώνει ${preference === 'company' ? 'Εταιρεία' : 'Εργαζόμενος'}»`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `άλλαξε τους συμμετέχοντες της κατηγορίας «${categoryName}» σε ${newValue ? 'υποχρεωτικό' : 'μη υποχρεωτικό'} (προηγουμένως ${newValue ? 'μη υποχρεωτικό' : 'υποχρεωτικό'})`;
         },
