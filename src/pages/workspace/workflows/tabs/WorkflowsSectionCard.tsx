@@ -1,5 +1,6 @@
 import Section from '@components/Section';
 
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -20,6 +21,8 @@ function WorkflowsSectionCard(item: ToggleSettingOptionRowProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     return (
         <Section
@@ -33,7 +36,7 @@ function WorkflowsSectionCard(item: ToggleSettingOptionRowProps) {
                 subtitle={item.subtitle}
                 subtitleStyle={[styles.textLabelSupportingEmptyValue, styles.lh20]}
                 switchAccessibilityLabel={item.switchAccessibilityLabel}
-                shouldAnchorSwitchToTop
+                shouldAnchorSwitchToTop={isRulesRevampEnabled}
                 onToggle={item.onToggle}
                 subMenuItems={item.subMenuItems}
                 isActive={item.isActive}
