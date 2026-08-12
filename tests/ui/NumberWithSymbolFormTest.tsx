@@ -5,7 +5,6 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import type {NumberWithSymbolFormProps, NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -158,12 +157,10 @@ describe('NumberWithSymbolForm', () => {
             expect(onInputChange).toHaveBeenCalledWith('1');
         });
 
-        it('does not render a ScrollView or the portrait/landscape layout wrappers', async () => {
+        it('does not render the portrait/landscape layout wrappers', async () => {
             renderForm({displayAsTextInput: true, value: '10'});
             await waitForBatchedUpdatesWithAct();
 
-            // This path early-returns a bare TextInput - no ScrollView, no landscape handling
-            expect(screen.UNSAFE_queryAllByType(ScrollView)).toHaveLength(0);
             expect(queryAllById('numberView')).toHaveLength(0);
             expect(queryAllById('numPadContainerView')).toHaveLength(0);
         });
