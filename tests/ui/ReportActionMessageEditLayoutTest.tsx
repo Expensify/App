@@ -46,8 +46,10 @@ const narrowLayout: ReturnType<typeof useResponsiveLayout> = {
     isMediumScreenWidth: false,
     onboardingIsMediumOrLargerScreenWidth: false,
     isLargeScreenWidth: false,
+    isExtraLargeScreenWidth: false,
     isSmallScreen: true,
-} as ReturnType<typeof useResponsiveLayout>;
+    isInLandscapeMode: false,
+};
 
 const wideLayout: ReturnType<typeof useResponsiveLayout> = {
     shouldUseNarrowLayout: false,
@@ -58,8 +60,10 @@ const wideLayout: ReturnType<typeof useResponsiveLayout> = {
     isMediumScreenWidth: false,
     onboardingIsMediumOrLargerScreenWidth: true,
     isLargeScreenWidth: true,
+    isExtraLargeScreenWidth: false,
     isSmallScreen: false,
-} as ReturnType<typeof useResponsiveLayout>;
+    isInLandscapeMode: false,
+};
 
 jest.mock('@libs/getPlatform', () => ({
     __esModule: true,

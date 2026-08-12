@@ -3,6 +3,8 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import TestToolMenu from '@components/TestToolMenu';
 
+import type {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
+import type * as MultifactorAuthenticationSharedValues from '@libs/MultifactorAuthentication/shared/VALUES';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 import CONST from '@src/CONST';
@@ -21,7 +23,7 @@ let mockBiometricStatus = {
 };
 
 jest.mock('@hooks/useBiometricRegistrationStatus', () => {
-    const actual = require('@libs/MultifactorAuthentication/shared/VALUES') as {default: {REGISTRATION_STATUS: Record<string, string>}};
+    const actual = jest.requireActual<typeof MultifactorAuthenticationSharedValues>('@libs/MultifactorAuthentication/shared/VALUES');
     return {
         __esModule: true,
         default: () => mockBiometricStatus,
@@ -69,9 +71,14 @@ jest.mock('@hooks/useThemeStyles', () => ({
         ),
 }));
 
-const mockRevokeCredentials = jest.fn().mockResolvedValue({httpStatusCode: 200});
+const mockRevokeCredentials = jest.fn<ReturnType<typeof revokeMultifactorAuthenticationCredentials>, Parameters<typeof revokeMultifactorAuthenticationCredentials>>().mockResolvedValue({
+    httpStatusCode: 200,
+    reason: undefined,
+    message: undefined,
+});
 jest.mock('@libs/actions/MultifactorAuthentication', () => ({
-    revokeMultifactorAuthenticationCredentials: (...args: unknown[]): Promise<{httpStatusCode: number}> => mockRevokeCredentials(...args) as Promise<{httpStatusCode: number}>,
+    revokeMultifactorAuthenticationCredentials: (...args: Parameters<typeof revokeMultifactorAuthenticationCredentials>): ReturnType<typeof revokeMultifactorAuthenticationCredentials> =>
+        mockRevokeCredentials(...args),
 }));
 
 jest.mock('@libs/ApiUtils', () => ({
