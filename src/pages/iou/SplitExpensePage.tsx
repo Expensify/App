@@ -369,6 +369,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals,
+            getCurrencySymbol,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,

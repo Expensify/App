@@ -59,7 +59,16 @@ import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
-import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getOnyxData, getRequiredOnyxUpdates, getRequiredWriteCall, translateLocal} from '../../utils/TestHelper';
+import {
+    createGlobalFetchMock,
+    formatPhoneNumber,
+    getCurrencyDecimalsLocal,
+    getCurrencySymbolLocal,
+    getOnyxData,
+    getRequiredOnyxUpdates,
+    getRequiredWriteCall,
+    translateLocal,
+} from '../../utils/TestHelper';
 import {isObject, parseJSONRecord} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
@@ -1321,6 +1330,7 @@ describe('split expense', () => {
         // When splitting the expense
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -1860,6 +1870,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -1982,6 +1993,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -2116,6 +2128,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -2286,6 +2299,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
@@ -2351,6 +2365,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
@@ -2547,6 +2562,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
@@ -2612,6 +2628,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
@@ -2675,6 +2692,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             // Use the search-page-merged view (live data plus any stale snapshot-only ghosts) exactly as
             // `SplitExpensePage` would pass it via `useAllTransactions()` when opened from Spend > Expenses.
             allTransactionsList: mergedTransactionsFromSearchPage,
@@ -2755,6 +2773,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
@@ -2907,6 +2926,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // the workspace split's data back into the original transaction.
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -3052,6 +3072,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // into the original transaction.
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -3162,6 +3183,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // When the expense is split in half
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -3301,6 +3323,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // When one of the two splits is removed, reverting the split back into a single expense
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -3433,6 +3456,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // When the amounts of both splits are edited
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -3559,6 +3583,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -3796,6 +3821,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
@@ -3912,6 +3938,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
@@ -4088,6 +4115,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // When the user reduces splits to 1 (triggering a reverse-split that will delete the expense report)
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -4224,6 +4252,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // When the user reduces splits to 1 (triggering a reverse-split, but the expense report still has another transaction)
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -4413,6 +4442,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -4595,6 +4625,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -4791,6 +4822,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // it should use splitExpensesTotal in its calculation
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -5016,6 +5048,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // When splitting the held expense
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -5205,6 +5238,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -5345,6 +5379,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -5483,6 +5518,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -5666,6 +5702,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -5734,6 +5771,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -6049,6 +6087,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -6171,6 +6210,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports2,
             allReportActionsList: allReportActions2,
@@ -6247,6 +6287,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions2,
@@ -6319,6 +6360,7 @@ describe('updateSplitTransactions', () => {
         // The preview action lives in the chat report's actions, supplied via the new allReportActionsList param.
         updateSplitTransactions({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -6396,6 +6438,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: emptyChatReportActions,
@@ -6467,6 +6510,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -6582,6 +6626,7 @@ describe('updateSplitTransactions', () => {
         // `extraIOUActions` (matching `iouActions.slice(1)`).
         updateSplitTransactions({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,

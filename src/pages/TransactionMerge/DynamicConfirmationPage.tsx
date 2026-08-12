@@ -46,7 +46,7 @@ type DynamicConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNav
 
 function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const {translate} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
@@ -102,6 +102,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
 
         mergeTransactionRequest({
             getCurrencyDecimals,
+            getCurrencySymbol,
             mergeTransactionID: transactionID,
             mergeTransaction,
             targetTransaction,

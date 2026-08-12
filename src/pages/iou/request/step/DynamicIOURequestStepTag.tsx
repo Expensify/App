@@ -4,6 +4,7 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 import TagPicker from '@components/TagPicker';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -94,6 +95,7 @@ function DynamicIOURequestStepTag({
     const {isOffline} = useNetwork();
 
     const styles = useThemeStyles();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
     const {currentSearchHash} = useSearchQueryContext();
     const {translate} = useLocalize();
@@ -184,6 +186,8 @@ function DynamicIOURequestStepTag({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
             saveAndNavigateBack();
             return;

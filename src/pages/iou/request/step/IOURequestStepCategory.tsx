@@ -65,7 +65,7 @@ function IOURequestStepCategory({
     },
     transaction,
 }: IOURequestStepCategoryProps) {
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
@@ -194,6 +194,7 @@ function IOURequestStepCategory({
                     reportPolicyTags,
                     isTrackIntentUser,
                     getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
                 saveAndNavigateBack();
                 return;

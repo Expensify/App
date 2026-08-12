@@ -43,7 +43,7 @@ import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/col
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
+import {getCurrencyDecimalsLocal, getCurrencySymbolLocal, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -182,6 +182,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             await waitForBatchedUpdates();
@@ -267,6 +268,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                     getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
 
                 await waitForBatchedUpdates();
@@ -318,6 +320,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                     getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
 
                 await waitForBatchedUpdates();
@@ -380,6 +383,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             await waitForBatchedUpdates();
@@ -452,6 +456,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -524,6 +530,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 policyRecentlyUsedCurrencies: [],
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -571,7 +579,15 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const {onyxData} = getUpdateTrackExpenseParams(transactionID, transactionThreadReport.reportID, {amount: 20000}, createRandomPolicy(1), undefined, snapshotHash);
+            const {onyxData} = getUpdateTrackExpenseParams(
+                transactionID,
+                transactionThreadReport.reportID,
+                {amount: 20000},
+                createRandomPolicy(1),
+                undefined,
+                {getCurrencyDecimals: getCurrencyDecimalsLocal, getCurrencySymbol: getCurrencySymbolLocal},
+                snapshotHash,
+            );
             const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const;
             const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
 
@@ -671,6 +687,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 policyRecentlyUsedCurrencies: [],
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -711,6 +729,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -748,6 +768,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
             await waitForBatchedUpdates();
 
@@ -812,6 +834,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             waitForBatchedUpdates();
@@ -873,6 +897,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1011,6 +1037,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isOffline: false,
                 isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1047,6 +1075,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isOffline: false,
                 isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1654,6 +1684,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1690,6 +1722,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1753,6 +1787,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1809,6 +1845,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
             });
 
             await waitForBatchedUpdates();
@@ -1916,6 +1954,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     isOffline,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
 
                 await waitForBatchedUpdates();
@@ -1964,7 +2004,10 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the caller passes a higher-precision distance than what `customUnit.quantity` would round to
-            const {params} = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, {distance: 5.555}, fakePolicy, undefined);
+            const {params} = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, {distance: 5.555}, fakePolicy, undefined, {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
 
             // Then the raw caller value flows into the API params instead of the rounded display value (5.56).
             expect(params.distance).toBe(5.555);
@@ -2032,7 +2075,18 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, []);
             await waitForBatchedUpdates();
 
-            const {onyxData} = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, {created: '2026-06-15'}, fakePolicy, undefined, snapshotHash, undefined, undefined, []);
+            const {onyxData} = getUpdateTrackExpenseParams(
+                transactionID,
+                transactionThreadReportID,
+                {created: '2026-06-15'},
+                fakePolicy,
+                undefined,
+                {getCurrencyDecimals: getCurrencyDecimalsLocal, getCurrencySymbol: getCurrencySymbolLocal},
+                snapshotHash,
+                undefined,
+                undefined,
+                [],
+            );
 
             const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const;
             const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
