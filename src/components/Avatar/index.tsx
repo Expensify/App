@@ -1,4 +1,5 @@
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
@@ -28,7 +29,7 @@ type AvatarProps = AvatarCommonProps & {
 };
 
 /** Renders a user or workspace avatar depending on the `type` prop.
- * This wrapper exists for backward compatibility. If possible use WorkspaceAvatar and UserAvatar directly.
+ * Prefer `WorkspaceAvatar` and `UserAvatar` directly when the avatar kind is known at the call site.
  */
 function Avatar({
     type,
@@ -60,8 +61,6 @@ function Avatar({
         );
     }
 
-    const accountID = typeof avatarID === 'string' ? parseInt(avatarID, 10) : avatarID;
-
     return (
         <UserAvatar
             fallbackIcon={fallbackIcon}
@@ -73,7 +72,7 @@ function Avatar({
             size={size}
             fill={fill}
             testID={testID}
-            accountID={accountID}
+            accountID={getAccountIDFromAvatarID(avatarID)}
         />
     );
 }

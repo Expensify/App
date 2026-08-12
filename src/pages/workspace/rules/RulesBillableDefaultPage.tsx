@@ -10,7 +10,6 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
-import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -40,7 +39,6 @@ function RulesBillableDefaultPage({
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {environmentURL} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
@@ -71,7 +69,7 @@ function RulesBillableDefaultPage({
     const initiallyFocusedOptionKey = selectedBillable ? CONST.POLICY_BILLABLE_MODES.BILLABLE : CONST.POLICY_BILLABLE_MODES.NON_BILLABLE;
 
     const saveAndGoBack = () => {
-        setPolicyBillableMode(policyID, selectedBillable, policy?.defaultBillable, policy?.disabledFields?.defaultBillable, getReviewWorkspaceSettingsTaskCompletion());
+        setPolicyBillableMode(policyID, selectedBillable, policy?.defaultBillable, policy?.disabledFields?.defaultBillable);
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
@@ -137,7 +135,7 @@ function RulesBillableDefaultPage({
                         disabledText={isTrackBillableToggleDisabled ? translate('workspace.rules.individualExpenseRules.enableTagsToUnlockPrompt') : undefined}
                         disabledAction={isTrackBillableToggleDisabled ? promptEnableTagsToUnlockTrackBillable : undefined}
                         pendingAction={getBillableExpensesPendingAction(policy)}
-                        onToggle={() => toggleBillableExpenses(policy, getReviewWorkspaceSettingsTaskCompletion())}
+                        onToggle={() => toggleBillableExpenses(policy)}
                     />
                 )}
                 {shouldShowBillableModeList && (

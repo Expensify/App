@@ -1,5 +1,5 @@
 import RenderHTML from '@components/RenderHTML';
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
+import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table from '@components/Table';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -37,6 +37,8 @@ type AgentRowData = TableData & {
 };
 
 type AgentsTableProps = {
+    ref?: React.Ref<TableHandle<AgentRowData, AgentsTableColumnKey, string>> | undefined;
+
     /** The list of agents to render as rows */
     agents: AgentRowData[];
 
@@ -50,7 +52,7 @@ type AgentsTableProps = {
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function AgentsTable({agents, canSelectAgents, selectedKeys, onRowSelectionChange}: AgentsTableProps) {
+export default function AgentsTable({ref, agents, canSelectAgents, selectedKeys, onRowSelectionChange}: AgentsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -93,11 +95,12 @@ export default function AgentsTable({agents, canSelectAgents, selectedKeys, onRo
     );
 
     if (!areAgentsLoaded) {
-        return <Table.LoadingState context="AgentsTable" />;
+        return <Table.LoadingState />;
     }
 
     return (
         <Table
+            ref={ref}
             data={agents}
             columns={agentsTableColumns}
             renderItem={renderTableItem}
