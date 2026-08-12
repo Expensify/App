@@ -204,8 +204,11 @@ const policyTimeTrackingSelector = (policy: OnyxEntry<Policy>) =>
 
 type PolicySelector = Pick<Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
-const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector =>
-    (policy && {
+const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector | undefined => {
+    if (!policy) {
+        return undefined;
+    }
+    return {
         type: policy.type,
         role: policy.role,
         id: policy.id,
@@ -214,7 +217,8 @@ const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector =>
         avatarURL: policy.avatarURL,
         name: policy.name,
         areInvoicesEnabled: policy.areInvoicesEnabled,
-    }) as PolicySelector;
+    };
+};
 
 // deepEqual on ~15 fields is cheaper than re-rendering IOURequestStartPage's full hook/memo tree.
 const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
