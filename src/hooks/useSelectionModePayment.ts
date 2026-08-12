@@ -306,6 +306,7 @@ function useSelectionModePayment({
     const invokePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         selectPaymentType({
             getCurrencyDecimals,
+            formatPhoneNumber,
             event,
             iouPaymentType,
             triggerKYCFlow,

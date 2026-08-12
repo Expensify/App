@@ -15,7 +15,7 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 
 import createMockPaymentMethod from '../utils/collections/paymentMethods';
 import createRandomPolicy from '../utils/collections/policies';
-import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal} from '../utils/TestHelper';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -155,6 +155,7 @@ describe('PaymentUtils', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             ownerLogin: undefined,
+            formatPhoneNumber,
         };
 
         beforeEach(() => {

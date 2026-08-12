@@ -435,6 +435,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         const runPaymentSelection = () =>
             selectPaymentType({
                 getCurrencyDecimals,
+                formatPhoneNumber,
                 event,
                 iouPaymentType,
                 triggerKYCFlow,
