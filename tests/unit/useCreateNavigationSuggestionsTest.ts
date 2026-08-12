@@ -37,6 +37,7 @@ const mockGetDefaultChatEnabledPolicy = jest.fn((policies: unknown[]) => (polici
 const mockGetGroupPoliciesWhereReportCanBeCreated = jest.fn<unknown[], [policies: unknown, isSubmit2026BetaEnabled: boolean, currentUserLogin?: string]>();
 const mockShouldShowPolicy = jest.fn<boolean, unknown[]>(() => true);
 const mockIsOnSearchMoneyRequestReportPage = jest.fn(() => false);
+const mockGetCurrencyDecimals = jest.fn();
 const mockIcon = () => null;
 
 jest.mock('@hooks/useCreateReport', () => ({
@@ -47,6 +48,10 @@ jest.mock('@hooks/useCreateReport', () => ({
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: () => ({accountID: 1, login: 'test@example.com'}),
+}));
+
+jest.mock('@hooks/useCurrencyList', () => ({
+    useCurrencyListActions: () => ({getCurrencyDecimals: mockGetCurrencyDecimals}),
 }));
 
 jest.mock('@hooks/useLazyAsset', () => ({
@@ -274,7 +279,7 @@ describe('useCreateNavigationSuggestions', () => {
         const onCreateReport = mockUseCreateReport.mock.calls.at(0)?.at(0)?.onCreateReport;
         act(() => onCreateReport?.(true));
 
-        expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, [], false, false, true);
+        expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, [], false, mockGetCurrencyDecimals, false, true);
         expect(clearLastSearchParams).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {forceReplace: false});
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'report/created-report', {forceReplace: false});
