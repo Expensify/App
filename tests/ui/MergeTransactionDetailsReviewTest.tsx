@@ -173,7 +173,8 @@ describe('Merging distance expenses across workspaces', () => {
             </ComposeProviders>,
         );
         await waitForBatchedUpdatesWithAct();
-        expect(screen.getByTestId('field-Distance • Original: 10.20 mi')).toHaveTextContent('9.20 mi');
+        // Matched loosely because the unit label reads as either "mi" or "miles", depending on the field's short form flag
+        expect(screen.getByTestId('field-Distance • Original: 10.20 mi')).toHaveTextContent(/^9\.20 (mi|miles)$/);
     });
 
     it('deducts nothing when the merged expense is put on the report of a workspace that excludes nothing', async () => {
