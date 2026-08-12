@@ -1154,9 +1154,6 @@
         "config/eslint/eslint.seatbelt.tsv",
         "tests/unit/BankAccountUtilsTest.ts"
     ],
-    "ignoreRegExpList": [
-        "@assets/.*",
-        "[A-Za-z0-9+/]{43}="
-    ],
+    "ignoreRegExpList": ["@assets/.*", "[A-Za-z0-9+/]{43}="],
     "useGitignore": true
 }
