@@ -74,25 +74,27 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
                 aspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
                 outerContainerStyle={styles.p0}
             />
-            <FeatureTraining.Body innerStyle={styles.mb5}>
-                <FeatureTraining.Title>{translate('iou.reject.educationalTitle')}</FeatureTraining.Title>
-                <FeatureTraining.Description>{translate('iou.reject.educationalText')}</FeatureTraining.Description>
-                {menuSections.map((section) => (
-                    <View
-                        key={section.titleTranslationKey}
-                        style={[styles.flexRow, styles.alignItemsStart, styles.mt5]}
-                    >
-                        <Icon
-                            width={variables.menuIconSize}
-                            height={variables.menuIconSize}
-                            src={section.icon}
-                            additionalStyles={[styles.mr4]}
-                        />
-                        <View style={[styles.mb1, styles.flex1]}>
-                            <Text style={[styles.textStrong]}>{translate(section.titleTranslationKey)}</Text>
+            <FeatureTraining.Body>
+                <FeatureTraining.BodyText style={styles.mb5}>
+                    <FeatureTraining.Title>{translate('iou.reject.educationalTitle')}</FeatureTraining.Title>
+                    <FeatureTraining.Description>{translate('iou.reject.educationalText')}</FeatureTraining.Description>
+                    {menuSections.map((section) => (
+                        <View
+                            key={section.titleTranslationKey}
+                            style={[styles.flexRow, styles.alignItemsStart, styles.mt5]}
+                        >
+                            <Icon
+                                width={variables.menuIconSize}
+                                height={variables.menuIconSize}
+                                src={section.icon}
+                                additionalStyles={[styles.mr4]}
+                            />
+                            <View style={[styles.mb1, styles.flex1]}>
+                                <Text style={[styles.textStrong]}>{translate(section.titleTranslationKey)}</Text>
+                            </View>
                         </View>
-                    </View>
-                ))}
+                    ))}
+                </FeatureTraining.BodyText>
                 <FeatureTraining.ButtonRow>
                     <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
                 </FeatureTraining.ButtonRow>

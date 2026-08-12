@@ -46,10 +46,12 @@ function HoldSubmitterEducationalModal({onClose, onConfirm, isDM}: HoldSubmitter
                 aspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
                 outerContainerStyle={styles.p0}
             />
-            <FeatureTraining.Body innerStyle={styles.mb5}>
-                <FeatureTraining.Title>{translate(isDM ? 'iou.whatIsHoldExplainDM' : 'iou.whatIsHoldExplain')}</FeatureTraining.Title>
-                <FeatureTraining.Description>{translate('iou.whatIsHoldExplain')}</FeatureTraining.Description>
-                <HoldMenuSectionList isDM={isDM} />
+            <FeatureTraining.Body>
+                <FeatureTraining.BodyText style={styles.mb5}>
+                    <FeatureTraining.Title>{translate('iou.holdEducationalTitle')}</FeatureTraining.Title>
+                    <FeatureTraining.Description>{translate(isDM ? 'iou.whatIsHoldExplainDM' : 'iou.whatIsHoldExplain')}</FeatureTraining.Description>
+                    <HoldMenuSectionList isDM={isDM} />
+                </FeatureTraining.BodyText>
                 <FeatureTraining.ButtonRow>
                     <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
                 </FeatureTraining.ButtonRow>

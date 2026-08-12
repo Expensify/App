@@ -34,9 +34,11 @@ function MultiScanEducationalModal() {
                 imageHeight={220}
                 outerContainerStyle={styles.multiScanEducationalPopupImage}
             />
-            <FeatureTraining.Body innerStyle={styles.mb6}>
-                <FeatureTraining.Title style={styles.mb2}>{translate('iou.scanMultipleReceipts')}</FeatureTraining.Title>
-                <FeatureTraining.Description>{translate('iou.scanMultipleReceiptsDescription')}</FeatureTraining.Description>
+            <FeatureTraining.Body>
+                <FeatureTraining.BodyText style={styles.mb6}>
+                    <FeatureTraining.Title style={styles.mb2}>{translate('iou.scanMultipleReceipts')}</FeatureTraining.Title>
+                    <FeatureTraining.Description>{translate('iou.scanMultipleReceiptsDescription')}</FeatureTraining.Description>
+                </FeatureTraining.BodyText>
                 <FeatureTraining.ButtonRow>
                     <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
                 </FeatureTraining.ButtonRow>
