@@ -58,7 +58,19 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
 
         await waitFor(() => expect(result.current.participants).toEqual(mockParticipants));
 
-        expect(getMoneyRequestParticipantOptions).toHaveBeenCalledWith(999, report, policy, personalDetails, 'concierge1', false, reportAttributesDerived, reportDraft, translate, undefined);
+        expect(getMoneyRequestParticipantOptions).toHaveBeenCalledWith(
+            999,
+            report,
+            policy,
+            personalDetails,
+            'concierge1',
+            false,
+            reportAttributesDerived,
+            reportDraft,
+            translate,
+            formatPhoneNumber,
+            undefined,
+        );
     });
 
     it('derives participantsPolicyTags from Onyx policy tags keyed by each participant policyID', async () => {
