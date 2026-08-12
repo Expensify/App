@@ -88,14 +88,16 @@ const DISMISS_KEYBOARD_BEFORE_TAB_SWITCH_TIMEOUT_MS = CONST.MAX_TRANSITION_DURAT
 
 /**
  * Waits for the keyboard to be fully hidden before resolving, but never blocks for longer than
- * `DISMISS_KEYBOARD_BEFORE_TAB_SWITCH_TIMEOUT_MS`. `KeyboardUtils.dismiss` only settles once `keyboardDidHide` fires,
- * so without this fallback a missed event would leave the tab press swallowed by `preventDefault` and the tab would
- * never change. A rejection is caught rather than left to lose the race, for the same reason.
+ * `DISMISS_KEYBOARD_BEFORE_TAB_SWITCH_TIMEOUT_MS`. `KeyboardUtils.dismiss` only settles once `keyboardDidHide` fires, so
+ * without that timeout a missed event would leave the tab press swallowed by `preventDefault` and the tab would never
+ * change.
  */
 function dismissKeyboardBeforeTabSwitch(): Promise<void> {
     let timeoutID: ReturnType<typeof setTimeout> | undefined;
 
     return Promise.race([
+        // `dismiss` resolves on every path today, so this never runs. It is kept because a rejection would otherwise win
+        // the race, skip the jump and strand the tab press, and this file can't see changes to that utility.
         KeyboardUtils.dismiss().catch((error: unknown) => {
             Log.warn('[OnyxTabNavigator] Failed to dismiss the keyboard before switching tabs', {error});
         }),
