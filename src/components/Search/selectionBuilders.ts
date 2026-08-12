@@ -334,8 +334,14 @@ function buildShiftRangeItems(sortedData: SearchListItem[], groupChildrenByKey: 
 }
 
 type GroupChildrenIndex = {
+    /** Each group's rows as the range sees them, which for a lazily loaded group is only what has been registered so far. */
     childrenByGroupKey: Map<string, TransactionListItemType[]>;
+
+    /** The group a child row belongs to, so its selection is stored and removed under the right parent. */
     groupKeyByChildKey: Map<string, string>;
+
+    /** How many rows each group holds in total, which is more than the loaded page while a group is still paging in. */
+    childCountByGroupKey: Map<string, number>;
 };
 
 /**
@@ -345,8 +351,9 @@ type GroupChildrenIndex = {
 function buildGroupChildrenIndex(sortedData: SearchListItem[], groupChildrenByKey: Record<string, TransactionListItemType[]>, groupsAreHeaders: boolean): GroupChildrenIndex {
     const childrenByGroupKey = new Map<string, TransactionListItemType[]>();
     const groupKeyByChildKey = new Map<string, string>();
+    const childCountByGroupKey = new Map<string, number>();
     if (!groupsAreHeaders || !isGroupedItemArray(sortedData)) {
-        return {childrenByGroupKey, groupKeyByChildKey};
+        return {childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey};
     }
     for (const group of sortedData) {
         if (!group.keyForList) {
@@ -354,13 +361,16 @@ function buildGroupChildrenIndex(sortedData: SearchListItem[], groupChildrenByKe
         }
         const children = resolveGroupChildren(group, groupChildrenByKey);
         childrenByGroupKey.set(group.keyForList, children);
+        if ('count' in group && typeof group.count === 'number') {
+            childCountByGroupKey.set(group.keyForList, group.count);
+        }
         for (const child of children) {
             if (child.keyForList) {
                 groupKeyByChildKey.set(child.keyForList, group.keyForList);
             }
         }
     }
-    return {childrenByGroupKey, groupKeyByChildKey};
+    return {childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey};
 }
 
 export {mapTransactionItemToSelectedEntry, mapEmptyReportToSelectedEntry, prepareTransactionsList, deriveSelectedReports, buildShiftRangeItems, buildGroupChildrenIndex, isGroupSelected};

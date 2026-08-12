@@ -342,17 +342,6 @@ function useSyncMobileSelectionModeWithScreenSize({
     }, [isSmallScreenWidth]);
 }
 
-/** Whether two child lists hold the same rows in the same order, which is all the shift-range source cares about. */
-function haveSameKeys(previous: TransactionListItemType[] | undefined, next: TransactionListItemType[]): boolean {
-    if (previous === next) {
-        return true;
-    }
-    if (!previous || previous.length !== next.length) {
-        return false;
-    }
-    return previous.every((child, index) => child.keyForList === next.at(index)?.keyForList);
-}
-
 // Screen-level owner of the selection write path. Actions commit via `applySelection` instead of closing over
 // `selectedTransactions`, so dispatching one re-renders neither this provider's stable children nor the rows.
 function SearchWriteActionsProvider({
@@ -381,8 +370,8 @@ function SearchWriteActionsProvider({
 
     // Built once (by construction, not by React Compiler) so the register effect can't loop.
     const [shiftRangeChildrenActions] = useState<SearchShiftRangeChildrenActions>(() => ({
-        // Compared by content, not identity: a recycled row rebuilds the array, and re-registering an equal one would re-render every row.
-        registerGroupChildren: (groupKey, groupChildren) => setGroupChildrenByKey((prev) => (haveSameKeys(prev[groupKey], groupChildren) ? prev : {...prev, [groupKey]: groupChildren})),
+        // Compared by value: an equal array must not re-register and re-render every row, but changed rows must replace the stale copy.
+        registerGroupChildren: (groupKey, groupChildren) => setGroupChildrenByKey((prev) => (deepEqual(prev[groupKey], groupChildren) ? prev : {...prev, [groupKey]: groupChildren})),
         unregisterGroupChildren: (groupKey) =>
             setGroupChildrenByKey((prev) => {
                 if (!(groupKey in prev)) {
@@ -430,7 +419,7 @@ function SearchWriteActionsProvider({
     const hasValidGroupBy = areItemsGrouped && !isExpenseReportType;
     const flattenedShiftRangeItems = buildShiftRangeItems(renderedData, groupChildrenByKey, hasValidGroupBy);
     // Built from the rows the range spans, so a row can't be ranged under one parent and stored under another.
-    const {childrenByGroupKey, groupKeyByChildKey} = buildGroupChildrenIndex(renderedData, groupChildrenByKey, hasValidGroupBy);
+    const {childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey} = buildGroupChildrenIndex(renderedData, groupChildrenByKey, hasValidGroupBy);
     const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
 
     // A group selected before its children loaded lives under the group key alone, so dropping one child needs the group written out first.
@@ -439,9 +428,15 @@ function SearchWriteActionsProvider({
         if (!groupKey || !selection[groupKey]?.isSelected) {
             return selection;
         }
+        const groupChildren = childrenByGroupKey.get(groupKey) ?? [];
+        const totalCount = childCountByGroupKey.get(groupKey);
+        // Only the loaded page is registered, so writing the group out while rows are still paging in would drop the ones that never arrived.
+        if (totalCount !== undefined && groupChildren.length < totalCount) {
+            return selection;
+        }
         const spelledOut: SelectedTransactions = {...selection};
         delete spelledOut[groupKey];
-        for (const child of childrenByGroupKey.get(groupKey) ?? []) {
+        for (const child of groupChildren) {
             if (isTransactionPendingDelete(child)) {
                 continue;
             }

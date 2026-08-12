@@ -45,6 +45,9 @@ const loadedChildren = [buildChild(1, '1'), buildChild(2, '2')];
 /** The same group with a third child, for ranges that leave a row untouched on either side. */
 const threeLoadedChildren = [...loadedChildren, buildChild(5, '5')];
 
+/** The same group as the server sees it: five rows in total, of which only the first page has loaded. */
+const partiallyLoadedGroup = {...categoryGroup, count: 5};
+
 const EARLIER_GROUP_KEY = 'Office';
 
 /** A group rendered above `categoryGroup`, used to prove a range does not start from the top of the list. */
@@ -52,6 +55,27 @@ const earlierGroup = buildCategoryGroup(EARLIER_GROUP_KEY, [], buildSearchQueryJ
 
 /** The earlier group's children, expanded and loaded. */
 const earlierChildren = [buildChild(3, '3'), buildChild(4, '4')];
+
+function PartiallyLoadedWrapper({children}: {children: React.ReactNode}) {
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={[partiallyLoadedGroup]}
+                renderedData={[partiallyLoadedGroup]}
+                totalSelectableItemsCount={5}
+                searchResults={undefined}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                areItemsGrouped
+                isExpenseReportType={false}
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
 
 function TwoGroupWrapper({children}: {children: React.ReactNode}) {
     return (
@@ -303,6 +327,28 @@ describe('Lazily loaded group selection', () => {
         // Then the selection is the children alone, not the children plus the group they were already selected through
         expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
         expect(Object.keys(result.current.selectedTransactions)).toEqual(['1', '2']);
+    });
+
+    it('keeps a group selected as a whole while its rows are still paging in', async () => {
+        const {result} = renderSelection(PartiallyLoadedWrapper);
+        const [firstChild] = loadedChildren;
+
+        // Given a group of five selected while collapsed, of which only two rows have loaded so far
+        await act(async () => {
+            result.current.toggle(partiallyLoadedGroup, []);
+            result.current.registerGroupChildren(GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
+
+        // When one of the loaded rows is clicked, which would otherwise write the group out as just those two
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the group stays selected as a whole, rather than silently dropping the three rows that never arrived
+        expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
     });
 
     it('selects every child of a group that was not already selected once its children loaded', async () => {
