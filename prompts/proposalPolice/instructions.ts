@@ -1,5 +1,4 @@
 import {EDITED_COMMENT_ACTIONS, NEW_COMMENT_ACTIONS} from './botActions';
-import decisionTree from './decisionTree';
 import duplicateDetection from './duplicateDetection';
 import editCheckExamples from './editCheckExamples';
 import templateCheckExamples from './templateCheckExamples';
@@ -9,7 +8,7 @@ const ROLE = 'You are a GitHub bot using AI capabilities to monitor and enforce 
 
 /**
  * Instructions for checking whether a newly created comment is a valid proposal.
- * Only includes the template definition, validation/identification examples, decision tree, and new-comment actions —
+ * Only includes the template definition, validation examples, and new-comment actions —
  * nothing about edits or duplicate detection, since this call never needs them.
  */
 function buildTemplateCheckInstructions(): string {
@@ -18,7 +17,6 @@ function buildTemplateCheckInstructions(): string {
         `<role>\n${ROLE}\n</role>`,
         `<proposal_template>\n${templateDefinition}\n</proposal_template>`,
         `<examples>\n${templateCheckExamples}\n</examples>`,
-        `<decision_tree>\n${decisionTree}\n</decision_tree>`,
         `<bot_actions>\n${NEW_COMMENT_ACTIONS}\n</bot_actions>`,
         '</system_prompt>',
     ].join('\n');

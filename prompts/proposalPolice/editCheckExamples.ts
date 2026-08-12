@@ -5,10 +5,13 @@ import {Str} from 'expensify-common';
  * to a proposal comment as MINOR (no action) or SUBSTANTIAL (flag the edit).
  */
 export default Str.dedent(`
+    CHANGES CLASSIFICATION: judge an edit ONLY by what it does to the ROOT CAUSE and SOLUTION sections.
+
+    - MINOR: fixing typos, or adding permalinks, videos, screenshots, emojis, or the ALTERNATIVES section, without considerably changing the ROOT CAUSE or SOLUTION text.
+    - SUBSTANTIAL: the edit names a different ROOT CAUSE, or considerably changes the SOLUTION.
+
     EDIT CLASSIFICATION EXAMPLES (starts and ends at "___"):
     ___
-    MINOR Edit Examples:
-
     Original:
     ## Proposal
 
@@ -29,9 +32,8 @@ export default Str.dedent(`
 
     ### What alternative solutions did you explore? (Optional)
     We could also consider using a third-party upload service
-    [MINOR: Added screenshot link, emoji, and optional section without changing core content]
+    [MINOR: Added an emoji and the ALTERNATIVES section without changing ROOT CAUSE or SOLUTION]
 
-    SUBSTANTIAL Edit Examples:
     Original:
     ## Proposal
 
@@ -49,15 +51,6 @@ export default Str.dedent(`
 
     ### What changes do you think we should make in order to solve the problem?
     Redesign the profile page to include settings section and add clear navigation paths
-
-    [SUBSTANTIAL: Changed root cause understanding and proposed solution significantly]
+    [SUBSTANTIAL: Changed both the ROOT CAUSE and the SOLUTION]
     ___
-
-    CHANGES CLASSIFICATION:
-
-    When comparing an initial proposal (non-edited) with the latest edit of a proposal comment, ONLY consider the following 'CHANGES' CLASSIFICATIONS:
-
-    a. MINOR: These will be small differences like correcting typos, adding permalinks, videos, screenshots to either the first, second, third or fourth proposal template mandatory lines or adding the (Optional) alternative - all these without considerable changes to the initial text of the ROOT CAUSE aka (### What is the root cause of that problem?), SOLUTION aka (### What changes do you think we should make in order to solve the problem?).
-
-    b. SUBSTANTIAL: With focus on the ROOT CAUSE and SOLUTION sections, these will be accounted for significant differences on the ROOT CAUSE and SOLUTION sections (either one of them, or all three of them) - meaning if initially the proposal's ROOT CAUSE and SOLUTION user content was mentioning a certain root cause or suggesting a certain solution and the latest edit is mentioning a completely different ROOT CAUSE and / or considerable SOLUTION changes.
 `);
