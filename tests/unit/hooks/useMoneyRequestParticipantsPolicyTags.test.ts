@@ -58,19 +58,19 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
 
         await waitFor(() => expect(result.current.participants).toEqual(mockParticipants));
 
-        expect(getMoneyRequestParticipantOptions).toHaveBeenCalledWith(
-            999,
+        expect(getMoneyRequestParticipantOptions).toHaveBeenCalledWith({
+            currentUserAccountID: 999,
             report,
             policy,
             personalDetails,
-            'concierge1',
-            false,
+            conciergeReportID: 'concierge1',
+            privateIsArchived: false,
             reportAttributesDerived,
             reportDraft,
             translate,
             formatPhoneNumber,
-            undefined,
-        );
+            dateFnsLocale: undefined,
+        });
     });
 
     it('derives participantsPolicyTags from Onyx policy tags keyed by each participant policyID', async () => {
