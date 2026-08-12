@@ -71,10 +71,12 @@ function AIFeaturesPromoModal() {
                         outerContainerStyle={styles.p0}
                         aspectRatio={illustrationAspectRatio}
                     />
-                    <FeatureTraining.Body innerStyle={[styles.mb4]}>
-                        <FeatureTraining.Subtitle>{subtitle}</FeatureTraining.Subtitle>
-                        <FeatureTraining.Title style={styles.mb2}>{translate('aiFeaturesPromoModal.spendAnalysis.title')}</FeatureTraining.Title>
-                        <FeatureTraining.Description shouldRenderHTML>{translate('aiFeaturesPromoModal.spendAnalysis.description')}</FeatureTraining.Description>
+                    <FeatureTraining.Body>
+                        <FeatureTraining.BodyText style={styles.mb4}>
+                            <FeatureTraining.Subtitle>{subtitle}</FeatureTraining.Subtitle>
+                            <FeatureTraining.Title style={styles.mb2}>{translate('aiFeaturesPromoModal.spendAnalysis.title')}</FeatureTraining.Title>
+                            <FeatureTraining.Description shouldRenderHTML>{translate('aiFeaturesPromoModal.spendAnalysis.description')}</FeatureTraining.Description>
+                        </FeatureTraining.BodyText>
                         <FeatureTraining.ButtonRow>
                             <FeatureTraining.BackButton />
                             <FeatureTraining.ConfirmButton>{translate('common.next')}</FeatureTraining.ConfirmButton>
@@ -87,10 +89,12 @@ function AIFeaturesPromoModal() {
                         outerContainerStyle={styles.p0}
                         aspectRatio={illustrationAspectRatio}
                     />
-                    <FeatureTraining.Body innerStyle={[styles.mb4]}>
-                        <FeatureTraining.Subtitle>{subtitle}</FeatureTraining.Subtitle>
-                        <FeatureTraining.Title style={styles.mb2}>{translate('aiFeaturesPromoModal.expenseAssistant.title')}</FeatureTraining.Title>
-                        <FeatureTraining.Description shouldRenderHTML>{translate('aiFeaturesPromoModal.expenseAssistant.description')}</FeatureTraining.Description>
+                    <FeatureTraining.Body>
+                        <FeatureTraining.BodyText style={styles.mb4}>
+                            <FeatureTraining.Subtitle>{subtitle}</FeatureTraining.Subtitle>
+                            <FeatureTraining.Title style={styles.mb2}>{translate('aiFeaturesPromoModal.expenseAssistant.title')}</FeatureTraining.Title>
+                            <FeatureTraining.Description shouldRenderHTML>{translate('aiFeaturesPromoModal.expenseAssistant.description')}</FeatureTraining.Description>
+                        </FeatureTraining.BodyText>
                         <FeatureTraining.ButtonRow>
                             <FeatureTraining.BackButton />
                             <FeatureTraining.ConfirmButton>{canUseCustomAgent ? translate('common.next') : translate('aiFeaturesPromoModal.confirmText')}</FeatureTraining.ConfirmButton>
@@ -104,10 +108,12 @@ function AIFeaturesPromoModal() {
                             outerContainerStyle={styles.p0}
                             aspectRatio={illustrationAspectRatio}
                         />
-                        <FeatureTraining.Body innerStyle={[styles.mb4]}>
-                            <FeatureTraining.Subtitle>{subtitle}</FeatureTraining.Subtitle>
-                            <FeatureTraining.Title>{customAgentPromoTitle}</FeatureTraining.Title>
-                            <FeatureTraining.Description shouldRenderHTML>{translate('aiFeaturesPromoModal.customAgents.description')}</FeatureTraining.Description>
+                        <FeatureTraining.Body>
+                            <FeatureTraining.BodyText style={styles.mb4}>
+                                <FeatureTraining.Subtitle>{subtitle}</FeatureTraining.Subtitle>
+                                <FeatureTraining.Title>{customAgentPromoTitle}</FeatureTraining.Title>
+                                <FeatureTraining.Description shouldRenderHTML>{translate('aiFeaturesPromoModal.customAgents.description')}</FeatureTraining.Description>
+                            </FeatureTraining.BodyText>
                             <FeatureTraining.ButtonRow>
                                 <FeatureTraining.BackButton />
                                 <FeatureTraining.ConfirmButton>{translate('aiFeaturesPromoModal.confirmText')}</FeatureTraining.ConfirmButton>
