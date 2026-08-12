@@ -4942,7 +4942,6 @@ export {
     isTripPreview,
     isHoldAction,
     isWhisperAction,
-    isApprovedAction,
     isSubmittedAction,
     isSubmittedAndClosedAction,
     isDynamicExternalWorkflowSubmitAction,
