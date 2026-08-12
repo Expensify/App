@@ -494,6 +494,35 @@ describe('NumberWithSymbolForm', () => {
             expect(onCurrencyButtonPress).not.toHaveBeenCalled();
         });
 
+        // Known quirk: unlike displayAsTextInput trailing controls, landscape currency/flip buttons never receive `isDisabled`.
+        it('does not disable the currency or flip buttons when `disabled` is set', async () => {
+            const onSymbolButtonPress = jest.fn();
+            const toggleNegative = jest.fn();
+            renderForm({
+                value: '10',
+                currency: 'USD',
+                disabled: true,
+                allowFlippingAmount: true,
+                onSymbolButtonPress,
+                toggleNegative,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const currencyButton = screen.getByLabelText('Select a currency, USD');
+            expect(currencyButton.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
+            // Flip is labeled on both the icon and the button; none should report disabled.
+            for (const node of screen.getAllByLabelText('Flip')) {
+                expect(node.props.accessibilityState?.disabled ?? false).toBe(false);
+            }
+
+            fireEvent.press(currencyButton);
+            fireEvent.press(screen.getByText('Flip'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(onSymbolButtonPress).toHaveBeenCalledTimes(1);
+            expect(toggleNegative).toHaveBeenCalledTimes(1);
+        });
+
         describe('negation via the caller-supplied toggleNegative', () => {
             it('shows the flip button only when `allowFlippingAmount` is set and delegates the press to toggleNegative', async () => {
                 const toggleNegative = jest.fn();
@@ -613,6 +642,35 @@ describe('NumberWithSymbolForm', () => {
             expect(screen.getByText('Flip')).toBeTruthy();
 
             fireEvent.press(screen.getByText('USD'));
+            fireEvent.press(screen.getByText('Flip'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(onSymbolButtonPress).toHaveBeenCalledTimes(1);
+            expect(toggleNegative).toHaveBeenCalledTimes(1);
+        });
+
+        // Known quirk: unlike displayAsTextInput trailing controls, portrait currency/flip buttons never receive `isDisabled`.
+        it('does not disable the currency or flip buttons when `disabled` is set', async () => {
+            const onSymbolButtonPress = jest.fn();
+            const toggleNegative = jest.fn();
+            renderForm({
+                value: '10',
+                currency: 'USD',
+                disabled: true,
+                allowFlippingAmount: true,
+                onSymbolButtonPress,
+                toggleNegative,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const currencyButton = screen.getByLabelText('Select a currency, USD');
+            expect(currencyButton.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
+            // Flip is labeled on both the icon and the button; none should report disabled.
+            for (const node of screen.getAllByLabelText('Flip')) {
+                expect(node.props.accessibilityState?.disabled ?? false).toBe(false);
+            }
+
+            fireEvent.press(currencyButton);
             fireEvent.press(screen.getByText('Flip'));
             await waitForBatchedUpdatesWithAct();
 
