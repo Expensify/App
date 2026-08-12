@@ -118,7 +118,7 @@ async function run() {
         // Reusing a tracked Conversation implies it has at least one prior proposal in it (that's why it was created);
         // a freshly created one only has prior proposals if we seeded it with any.
         let hasPriorProposals = !!conversationID;
-        if (!hasPriorProposals) {
+        if (!conversationID) {
             console.log("No tracked Conversation found for this issue. Creating one and seeding it with the issue's prior proposals...");
             const seedItems = buildSeedItems(commentsResponse, newProposalCreatedAt);
             hasPriorProposals = seedItems.length > 0;
