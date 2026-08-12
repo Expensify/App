@@ -32,7 +32,7 @@ type SingletonAppleSignInButtonProps = AppleSignInDivProps;
 type AppleSignInProps = {
     isDesktopFlow?: boolean;
     onPointerDown?: () => void;
-    // eslint-disable-next-line react/no-unused-prop-types
+    /* oxlint-disable-next-line hosted/no-unused-prop-types */ // eslint-disable-next-line react/no-unused-prop-types
     onPress?: () => void;
 };
 

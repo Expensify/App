@@ -42,7 +42,7 @@ function TelemetrySpanManager({iouType}: TelemetrySpanManagerProps) {
             cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY);
             cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this to run on mount/unmount
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this to run on mount/unmount
     }, []);
 
     return null;

@@ -1,7 +1,7 @@
 import {LOCALES} from '@src/CONST/LOCALES';
 import type Locale from '@src/types/onyx/Locale';
 
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 import type {ValueOf} from 'type-fest';
 
 /**

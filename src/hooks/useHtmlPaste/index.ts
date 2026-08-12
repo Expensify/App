@@ -172,7 +172,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
             }
             handlePastePlainText(event);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
         [handlePastedHTML, handlePastePlainText, preHtmlPasteCallback],
     );
 

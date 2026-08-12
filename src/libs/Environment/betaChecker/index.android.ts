@@ -11,7 +11,7 @@ import type {IsBetaBuild} from './types';
 import pkg from '../../../../package.json';
 
 type GithubReleaseJSON = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
     tag_name: string | semver.SemVer;
 };
 

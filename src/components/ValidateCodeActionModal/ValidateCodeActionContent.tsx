@@ -55,7 +55,7 @@ function ValidateCodeActionContent({
 
         sendValidateCode();
         // We only want to decide whether to send once Onyx has hydrated, so we depend on the hydration metadata rather than the value
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sendValidateCode, validateCodeActionMetadata]);
 
     const hide = useCallback(() => {

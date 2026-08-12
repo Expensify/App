@@ -12,9 +12,9 @@ async function getOlderActiveRuns(workflowID: string, currentRunID: number, queu
     const response = await GithubUtils.octokit.actions.listWorkflowRuns({
         owner: CONST.GITHUB_OWNER,
         repo: CONST.APP_REPO,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         workflow_id: workflowID,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         per_page: queueLimit,
     });
 

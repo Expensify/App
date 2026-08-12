@@ -49,7 +49,7 @@ function FieldAutoSelector({
         }
         setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy, getCurrencyDecimals, isMovingTransactionFromTrackExpense);
         // Keep 'transaction' out to ensure that we auto select the option only once
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldShowCategories, policyCategories, isCategoryRequired, policy?.id, getCurrencyDecimals]);
 
     // Auto select the tag if there is only one enabled tag and it is required
@@ -74,7 +74,7 @@ function FieldAutoSelector({
             setMoneyRequestTag(transactionID, updatedTagsString);
         }
         // Keep 'transaction' out to ensure that we auto select the option only once
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionID, policyTagLists, policyTags]);
 
     return null;

@@ -8,7 +8,7 @@ import resolveCanvasSize from './resolveCanvasSize';
 
 const cli = new CLI({
     namedArgs: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         'chart-xml': {
             description: 'Chart XML string (use $(cat path/to/chart.xml) to pass a file)',
         },

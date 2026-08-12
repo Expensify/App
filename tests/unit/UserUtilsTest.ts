@@ -17,7 +17,7 @@ describe('UserUtils', () => {
             {
                 name: 'shows error indicator when any errorFields are present',
                 loginList: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'user@example.com': {
                         partnerUserID: 'user@example.com',
                         errorFields: {addedLogin: {message: 'err'}},
@@ -29,12 +29,12 @@ describe('UserUtils', () => {
             {
                 name: 'shows info indicator for unvalidated non-default contact method',
                 loginList: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'primary@example.com': {
                         partnerUserID: 'primary@example.com',
                         validatedDate: '2024-01-01',
                     },
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'secondary@example.com': {
                         partnerUserID: 'secondary@example.com',
                         // no validatedDate => unvalidated
@@ -47,12 +47,12 @@ describe('UserUtils', () => {
             {
                 name: 'shows no indicator when validated and no errors',
                 loginList: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'ok@example.com': {
                         partnerUserID: 'ok@example.com',
                         validatedDate: '2024-01-01',
                     },
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'another@example.com': {
                         partnerUserID: 'another@example.com',
                         validatedDate: '2024-03-03',
@@ -103,7 +103,7 @@ describe('UserUtils', () => {
             {
                 name: 'returns ERROR when any login has errorFields',
                 loginList: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'a@example.com': {
                         partnerUserID: 'a@example.com',
                         errorFields: {validateCodeSent: {code: 'oops'}},
@@ -115,12 +115,12 @@ describe('UserUtils', () => {
             {
                 name: 'returns INFO when there is unvalidated non-default login and no errors',
                 loginList: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'primary@example.com': {
                         partnerUserID: 'primary@example.com',
                         validatedDate: '2024-01-01',
                     },
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'pending@example.com': {
                         partnerUserID: 'pending@example.com',
                         // missing validatedDate => unvalidated
@@ -132,12 +132,12 @@ describe('UserUtils', () => {
             {
                 name: 'returns undefined when all validated and no errors',
                 loginList: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'a@example.com': {
                         partnerUserID: 'a@example.com',
                         validatedDate: '2024-01-01',
                     },
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'b@example.com': {
                         partnerUserID: 'b@example.com',
                         validatedDate: '2024-03-03',
@@ -163,7 +163,7 @@ describe('UserUtils', () => {
 
         test('keeps Expensify contact methods and excludes device and synthetic policy-domain logins', () => {
             const logins = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1_user@example.com': {
                     created: '2024-01-01',
                     accountID: 1,
@@ -172,7 +172,7 @@ describe('UserUtils', () => {
                     lastLogin: '2024-01-02',
                     validatedDate: '2024-01-01',
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1_card@expensify-policy7c203ee7387a8f06.exfy': {
                     created: '2024-01-01',
                     accountID: 1,
@@ -181,7 +181,7 @@ describe('UserUtils', () => {
                     lastLogin: '2024-01-02',
                     validatedDate: null,
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '14_device': {
                     created: '2024-01-01',
                     accountID: 1,
@@ -205,7 +205,7 @@ describe('UserUtils', () => {
 
         test('sorts device logins by most recent timestamp first', () => {
             const logins = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '14_oldest': {
                     created: '2024-01-01',
                     accountID: 1,
@@ -214,7 +214,7 @@ describe('UserUtils', () => {
                     lastLogin: '2024-01-02',
                     validatedDate: null,
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '16_newest': {
                     created: '2024-01-01',
                     accountID: 1,
@@ -223,7 +223,7 @@ describe('UserUtils', () => {
                     lastLogin: '2024-03-10',
                     validatedDate: null,
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '83_middle': {
                     created: '2024-01-01',
                     accountID: 1,
@@ -241,7 +241,7 @@ describe('UserUtils', () => {
 
         test('falls back to created when lastLogin is the default 2008 value', () => {
             const logins = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '14_a': {
                     created: '2024-01-01',
                     accountID: 1,
@@ -250,7 +250,7 @@ describe('UserUtils', () => {
                     lastLogin: '2008-01-01',
                     validatedDate: null,
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '16_b': {
                     created: '2024-05-01',
                     accountID: 1,

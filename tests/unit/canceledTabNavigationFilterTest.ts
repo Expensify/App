@@ -18,14 +18,14 @@ type SpanData = Record<string, string | number | boolean>;
 function buildTransaction(op: string, data?: SpanData, spans?: ChildSpan[]): TransactionEvent {
     return {
         type: 'transaction',
-        // eslint-disable-next-line @typescript-eslint/naming-convention -- Sentry protocol field names
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention -- Sentry protocol field names
         contexts: {trace: {span_id: 'a', trace_id: 'b', op, data}},
         spans,
     };
 }
 
 function buildChildSpan(op: string, data?: SpanData): ChildSpan {
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- Sentry protocol field names
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention -- Sentry protocol field names
     return {span_id: 'c', trace_id: 'b', start_timestamp: 0, timestamp: 1, data: data ?? {}, op};
 }
 

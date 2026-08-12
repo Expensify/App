@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 
 import useAssignCard from '@hooks/useAssignCard';

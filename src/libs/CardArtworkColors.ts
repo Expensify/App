@@ -25,7 +25,7 @@ import colors from '@styles/theme/colors';
 
 type CardArtworkColors = {background: string; text: string};
 
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 const CARD_FEED_COLORS: Record<string, CardArtworkColors> = {
     // assets/images/expensify-card.svg                         (.st0 fill)
     'Expensify Card': {background: '#002e22', text: colors.white},
@@ -67,7 +67,7 @@ const CARD_FEED_COLORS: Record<string, CardArtworkColors> = {
     // assets/images/companyCards/large/card-plaid-large.svg    (fill="#fff" on background rect)
     plaid: {background: '#ffffff', text: colors.productLight900},
 };
-/* eslint-enable @typescript-eslint/naming-convention */
+/* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 
 /** Colors for generic-light-large.svg — used when no feed entry matches. */
 const GENERIC_CARD_COLORS: CardArtworkColors = {background: '#a2a9a3', text: colors.productLight900};

@@ -59,9 +59,9 @@ type MetroRuntime = {
 };
 
 // Standalone declarations so these globals are also accessible without `global.` prefix
-// eslint-disable-next-line no-var, no-underscore-dangle, @typescript-eslint/naming-convention
+/* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line no-var, no-underscore-dangle, @typescript-eslint/naming-convention
 declare var __moduleInitTimes: Record<number | string, number> | undefined;
-// eslint-disable-next-line no-var, no-underscore-dangle, @typescript-eslint/naming-convention
+/* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line no-var, no-underscore-dangle, @typescript-eslint/naming-convention
 declare var __moduleNames: Record<number, string> | undefined;
 
 // Define ArrayBuffer.transfer as its a relatively new API and not yet present in all environments

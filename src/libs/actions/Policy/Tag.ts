@@ -267,7 +267,7 @@ function createPolicyTag({
 async function importPolicyTags(policyID: string, tags: PolicyTag[]): Promise<ImportFinalModal> {
     const importFinalModal = getImportTagsFinalModal(tags.length);
 
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
     const optimisticTags = tags.map((tag) => ({name: tag.name, enabled: tag.enabled, 'GL Code': tag['GL Code']}));
 
     const parameters = {
@@ -1221,10 +1221,10 @@ function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags
                                 ...policyTagToUpdate,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 pendingFields: {
-                                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                     'GL Code': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 },
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 'GL Code': glCode,
                             },
                         },
@@ -1243,7 +1243,7 @@ function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags
                                 errors: null,
                                 pendingAction: null,
                                 pendingFields: {
-                                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                     'GL Code': null,
                                 },
                             },

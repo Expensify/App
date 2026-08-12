@@ -94,7 +94,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     }, [isLoadingApp, accountID]);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        /* oxlint-disable-next-line rh/set-state-in-effect */ // eslint-disable-next-line react-hooks/set-state-in-effect
         setDraftPrompt(storedPrompt);
     }, [accountID, storedPrompt]);
 
@@ -102,9 +102,9 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
         if (!agentPrompt?.promptErrors) {
             return;
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        /* oxlint-disable-next-line rh/set-state-in-effect */ // eslint-disable-next-line react-hooks/set-state-in-effect
         setDraftPrompt(storedPrompt);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [agentPrompt?.promptErrors]);
 
     const triggerSavedConfirmation = useCallback(() => {
@@ -121,7 +121,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     useEffect(() => {
         if (wasSavingRef.current && !isSaving) {
             if (isUserInitiatedSave && !hasPromptErrors) {
-                // eslint-disable-next-line react-hooks/set-state-in-effect
+                /* oxlint-disable-next-line rh/set-state-in-effect */ // eslint-disable-next-line react-hooks/set-state-in-effect
                 triggerSavedConfirmation();
             }
             setIsUserInitiatedSave(false);
@@ -136,7 +136,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
         if (!isOffline || !isUserInitiatedSave) {
             return;
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        /* oxlint-disable-next-line rh/set-state-in-effect */ // eslint-disable-next-line react-hooks/set-state-in-effect
         triggerSavedConfirmation();
         setIsUserInitiatedSave(false);
     }, [isOffline, isUserInitiatedSave, triggerSavedConfirmation]);

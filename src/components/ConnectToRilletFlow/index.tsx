@@ -21,7 +21,7 @@ function ConnectToRilletFlow({policyID}: ConnectToRilletFlowProps) {
         }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_SETUP.getRoute(policyID));
         // This needs to run once as we will navigate away
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return null;

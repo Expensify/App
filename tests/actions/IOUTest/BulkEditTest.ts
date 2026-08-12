@@ -575,7 +575,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: {
                     [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`]: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         Food: {name: 'Food', enabled: true, 'GL Code': '', unencodedName: 'Food', externalID: '', areCommentsRequired: false, origin: ''},
                     },
                 },
@@ -759,7 +759,7 @@ describe('actions/IOU/BulkEdit', () => {
             };
 
             const policyCategories = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 Food: {name: 'Food', enabled: true, 'GL Code': '', unencodedName: 'Food', externalID: '', areCommentsRequired: false, origin: ''},
             };
 
@@ -918,11 +918,11 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: {
                     [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${bulkEditPolicyID}`]: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         Marketing: {name: 'Marketing', enabled: true, 'GL Code': '', unencodedName: 'Marketing', externalID: '', areCommentsRequired: false, origin: ''},
                     },
                     [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${transactionPolicyID}`]: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         Engineering: {name: 'Engineering', enabled: true, 'GL Code': '', unencodedName: 'Engineering', externalID: '', areCommentsRequired: false, origin: ''},
                     },
                 },
@@ -993,7 +993,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: {
                     [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         Food: {name: 'Food', enabled: true, 'GL Code': '', unencodedName: 'Food', externalID: '', areCommentsRequired: false, origin: ''},
                     },
                 },
@@ -1847,7 +1847,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`, {expensify_text_title: policy.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]});
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${txn1ID}`, txn1);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${txn2ID}`, txn2);
@@ -1937,7 +1937,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`, {expensify_text_title: policy.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]});
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
             await waitForBatchedUpdates();
@@ -2033,7 +2033,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`, {expensify_text_title: policy.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]});
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${currencyTxnID}`, currencyTxn);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${amountTxnID}`, amountTxn);
@@ -2119,7 +2119,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`, {expensify_text_title: policy.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]});
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${onyxTxnID}`, onyxTxn);
             await waitForBatchedUpdates();
@@ -2280,7 +2280,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`, {expensify_text_title: policy.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]});
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
             await waitForBatchedUpdates();

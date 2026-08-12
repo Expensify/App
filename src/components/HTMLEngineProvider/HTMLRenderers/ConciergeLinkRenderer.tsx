@@ -26,7 +26,7 @@ type ConciergeLinkRendererConfig = {
 
 type ConciergeLinkRenderersProps = RenderersProps & {
     // Custom HTML renderer keys must use hyphenated tag names per react-native-render-html API
-    /* eslint-disable @typescript-eslint/naming-convention */
+    /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
     'concierge-link': ConciergeLinkRendererConfig;
 };
 

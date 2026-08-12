@@ -184,7 +184,7 @@ function useReportPreviewCarousel({
         }, CONST.PENDING_TRANSACTION_SCROLL_DELAY);
 
         // We only want to scroll to a new transaction when the set of new transaction IDs changes.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newTransactionIDs]);
 
     const onViewableItemsChanged = useCallback(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
@@ -256,7 +256,7 @@ function useReportPreviewCarousel({
         }
         // Clears the transient optimistic index once the FlashList scroll (an external system) catches up to the
         // arrow-driven target, so the arrows fall back to reacting to the real scroll position.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        /* oxlint-disable-next-line rh/set-state-in-effect */ // eslint-disable-next-line react-hooks/set-state-in-effect
         setOptimisticIndex(undefined);
     }, [carouselTransactions.length, currentIndex, currentVisibleItems, currentVisibleItems.length, optimisticIndex, visibleItemsOnEndCount]);
 

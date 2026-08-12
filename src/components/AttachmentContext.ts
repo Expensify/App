@@ -19,6 +19,6 @@ const AttachmentContext = createContext<AttachmentContextProps>({
 });
 
 export {
-    // eslint-disable-next-line import/prefer-default-export
+    /* oxlint-disable-next-line hosted/prefer-default-export */ // eslint-disable-next-line import/prefer-default-export
     AttachmentContext,
 };

@@ -6,6 +6,7 @@ import FormProvider from '@components/Form/FormProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 
+// oxlint-disable-next-line import/no-duplicates -- separate type/value namespace imports are intentional; ESLint's rule allows them
 import * as FormActions from '@libs/actions/FormActions';
 import type * as FormActionsModule from '@libs/actions/FormActions';
 

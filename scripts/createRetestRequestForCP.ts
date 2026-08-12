@@ -6,7 +6,7 @@ import GithubUtils from '@github/libs/GithubUtils';
 import CLI from 'expensify-common/CLI';
 
 // GitHub REST API request fields are snake_case (per_page, commit_sha, pull_number), which this rule would otherwise flag.
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 
 // Tags come back paginated; the request size and the "last page" check must stay in sync.
 const TAGS_PER_PAGE = 100;

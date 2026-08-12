@@ -1618,6 +1618,7 @@ function getDynamicExternalWorkflowRoutedAction(
         actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
         actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
         message: [{html: 'DYNAMIC_EXTERNAL_WORKFLOW', type: 'COMMENT', text: ''}],
+        // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         originalMessage: {
             to: originalMessage?.to ?? '',
             message: originalMessage?.message ?? '',

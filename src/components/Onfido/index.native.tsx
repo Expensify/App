@@ -105,7 +105,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                 }
             });
         // Onfido should be initialized only once on mount
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return <FullscreenLoadingIndicator reasonAttributes={{context: 'Onfido'}} />;

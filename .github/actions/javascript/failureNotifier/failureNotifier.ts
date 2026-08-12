@@ -1,6 +1,6 @@
 import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods';
 
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 

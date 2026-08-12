@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-/* eslint-disable @typescript-eslint/naming-convention -- matching GitHub API response field names */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention -- matching GitHub API response field names */
 import {getMergedPR} from '@github/actions/javascript/failureNotifier/failureNotifier';
 import type {PullRequest} from '@github/actions/javascript/failureNotifier/failureNotifier';
 

@@ -124,7 +124,7 @@ const setHtml: SetHtml = (html: string, text: string) => {
 
         navigator.clipboard.write([
             new ClipboardItem({
-                /* eslint-disable @typescript-eslint/naming-convention */
+                /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
                 'text/html': new Blob([htmlNonClosingTags], {type: 'text/html'}),
                 'text/plain': new Blob([text], {type: 'text/plain'}),
             }),

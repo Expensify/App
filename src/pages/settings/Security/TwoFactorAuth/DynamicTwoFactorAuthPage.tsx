@@ -92,7 +92,7 @@ function DynamicTwoFactorAuthPage() {
         }
 
         toggleTwoFactorAuth(true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
     }, [isUserValidated, accountMetadata.status, isFocused, is2FAEnabled]);
 
     return (

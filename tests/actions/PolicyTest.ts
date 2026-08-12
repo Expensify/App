@@ -4185,7 +4185,7 @@ describe('actions/Policy', () => {
                 lastSelectedExpensifyCardFeed: undefined,
                 reportsToArchive: [expenseChatReport],
                 transactionViolations: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     transactionViolations_3: [
                         {name: 'cashExpenseWithNoReceipt', type: CONST.VIOLATION_TYPES.VIOLATION},
                         {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},

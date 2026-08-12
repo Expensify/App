@@ -51,7 +51,7 @@ function useOdometerDraftHydrator({
         hydrateOdometerDraftIntoTransaction(transaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID, odometerDraft, transaction?.comment);
         lastHydratedDraft = odometerDraft;
         // transaction.comment intentionally excluded - it changes after our own merge and would re-fire.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionRequestType, odometerDraft, isLoadingTransaction, isLoadingSelectedTab]);
 
     return (newIOUType: IOURequestType) => {

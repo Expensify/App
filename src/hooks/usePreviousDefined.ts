@@ -15,6 +15,6 @@ export default function usePreviousDefined<T>(value: T): T {
     }, [value]);
 
     // This is intentionally using the output of a ref, so that we can return the previous value
-    // eslint-disable-next-line react-hooks/refs
+    /* oxlint-disable-next-line rh/refs */ // eslint-disable-next-line react-hooks/refs
     return value ?? lastDefinedFallback.current;
 }

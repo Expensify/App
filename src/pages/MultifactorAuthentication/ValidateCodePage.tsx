@@ -130,7 +130,7 @@ function MultifactorAuthenticationValidateCodePage() {
         if (!hasError) {
             return;
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- derived-state reset; formError is not in this effect's deps, so writing it cannot re-trigger the effect
+        /* oxlint-disable-next-line rh/set-state-in-effect */ // eslint-disable-next-line react-hooks/set-state-in-effect -- derived-state reset; formError is not in this effect's deps, so writing it cannot re-trigger the effect
         setFormError({});
     }, [hasError]);
 

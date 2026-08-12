@@ -21,7 +21,7 @@ function BaseImage({onLoad, source, style, ...props}: BaseImageProps) {
             return;
         }
         setAttachmentLoaded(source as AttachmentSource, false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Reset isLoadedRef when source changes to allow onLoad to fire again for new images (e.g., after rotation)

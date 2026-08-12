@@ -60,7 +60,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
     const styles = useThemeStyles();
 
     // Declare nonstandard tags and their content model here
-    /* eslint-disable @typescript-eslint/naming-convention */
+    /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
     const customHTMLElementModels = {
         edited: HTMLElementModel.fromCustomModel({
             tagName: 'edited',
@@ -261,7 +261,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
         }),
         ...VICTORY_HTML_ELEMENT_MODELS,
     };
-    /* eslint-enable @typescript-eslint/naming-convention */
+    /* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 
     const defaultTextProps: TextProps = {selectable: textSelectable, allowFontScaling: false, textBreakStrategy: 'simple', style: styles.overflowVisible};
     const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText, styles.mw100]};

@@ -8,7 +8,7 @@ type FSClass = ValueOf<typeof CONST.FULLSTORY.CLASS>;
 
 type PropertiesWithoutPageName = Record<string, unknown> & {pageName?: never};
 
-/* eslint-disable @typescript-eslint/naming-convention -- FullStory schema uses external snake_case keys. */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention -- FullStory schema uses external snake_case keys. */
 type FullstoryUserVars = {
     user_type_path?: string;
     account_type?: 'personal' | 'business';
@@ -138,7 +138,7 @@ type FullstoryEventPropertiesMap = {
 };
 
 type FullstoryEventName = keyof FullstoryEventPropertiesMap;
-/* eslint-enable @typescript-eslint/naming-convention */
+/* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 
 /**
  * Represents the common FSPage class signature that will be used in both platform implementations.

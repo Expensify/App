@@ -1297,7 +1297,7 @@ describe('ModifiedExpenseMessage', () => {
                         policyID: '1234',
                         policyRulesModifiedFields: {
                             tax: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 field_id_TAX: {
                                     externalID: '',
                                     name: 'New Tax Rate',

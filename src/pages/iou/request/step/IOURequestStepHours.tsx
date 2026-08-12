@@ -84,7 +84,7 @@ function IOURequestStepHours({
     const [formError, setFormError] = useState('');
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        /* oxlint-disable-next-line rh/set-state-in-effect */ // eslint-disable-next-line react-hooks/set-state-in-effect
         setFormError('');
         moneyRequestTimeInputRef.current?.updateNumber(`${transaction?.comment?.units?.count ?? ''}`);
     }, [selectedTab, transaction?.comment?.units?.count]);

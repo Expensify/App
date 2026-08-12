@@ -66,7 +66,7 @@ export default defineConfig(async ({command}) => {
                 ...common.source?.define,
                 // The dev server's resolved port can differ from BASE_PORT if 8082 is already in use.
                 // CONFIG.DEV_PORT (src/CONFIG.ts) reads this at runtime to build correct dev environment URLs.
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 'process.env.PORT': port,
             },
         },
@@ -83,7 +83,7 @@ export default defineConfig(async ({command}) => {
             },
             headers: {
                 // HTTP header names aren't valid camelCase identifiers.
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 'Document-Policy': 'js-profiling',
             },
         },

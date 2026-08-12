@@ -359,6 +359,7 @@ describe('ReportActionsList (body)', () => {
 
             expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === conciergeDraftReportAction.reportActionID)).toBe(true);
             expect(getRenderedReportActionsListItemProps(conciergeDraftReportAction).shouldDisableContextMenuForConciergeDraft).toBe(true);
+            // oxlint-disable-next-line no-unsafe-optional-chaining -- ts-eslint doesn't flag optional chains wrapped in a type assertion; tsgolint does
             expect((getCapturedListProps()?.extraData as unknown[]).at(-1)).toBe(true);
         });
 
@@ -373,6 +374,7 @@ describe('ReportActionsList (body)', () => {
 
             expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === conciergeDraftReportAction.reportActionID)).toBe(true);
             expect(getRenderedReportActionsListItemProps(conciergeDraftReportAction).shouldDisableContextMenuForConciergeDraft).toBe(false);
+            // oxlint-disable-next-line no-unsafe-optional-chaining -- ts-eslint doesn't flag optional chains wrapped in a type assertion; tsgolint does
             expect((getCapturedListProps()?.extraData as unknown[]).at(-1)).toBe(false);
         });
     });

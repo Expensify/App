@@ -165,7 +165,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             // Set flag to navigate when screen regains focus
             setShouldNavigateOnFocus(true);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- Omitting `isFocused` since we don't want this effect to on focus transitions
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- Omitting `isFocused` since we don't want this effect to on focus transitions
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, contactMethodsBackTo]);
 
     // Handle navigation when screen regains focus and flag is set
@@ -175,7 +175,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         }
         setShouldNavigateOnFocus(false);
         Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, contactMethodsBackTo));
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- Only fire on focus transitions
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- Only fire on focus transitions
     }, [isFocused]);
 
     useEffect(() => {
@@ -187,7 +187,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             return;
         }
         resetContactMethodValidateCodeSentState(contactMethod);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- The prevPendingDeletedLogin is a ref, so no need to add it to dependencies.
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- The prevPendingDeletedLogin is a ref, so no need to add it to dependencies.
     }, [contactMethod, loginData?.partnerUserID, loginData?.validatedDate]);
 
     const {showConfirmModal} = useConfirmModal();

@@ -25,7 +25,7 @@ describe('actions/PolicyTax', () => {
                 customUnitID: 'id_CUSTOM_UNIT_1',
                 enabled: true,
                 rates: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     id_CUSTOM_UNIT_1: {
                         name: 'Distance',
                         customUnitRateID: 'id_CUSTOM_UNIT_1',

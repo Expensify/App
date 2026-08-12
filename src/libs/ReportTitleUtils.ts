@@ -57,7 +57,7 @@ function updateTitleFieldToMatchPolicy(reportID: string, policy?: Policy): Array
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
             value: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 expensify_text_title: reportTitleField,
             },
         },

@@ -94,7 +94,7 @@ function Composer({
             return;
         }
         setSelection(selectionProp);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectionProp]);
 
     /**
@@ -275,7 +275,7 @@ function Composer({
             return;
         }
         textInputRef.current.scrollTop = prevScroll + prevHeight - textInputRef.current.clientHeight;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
     const isActive = useIsFocused();

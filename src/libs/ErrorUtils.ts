@@ -190,7 +190,7 @@ function getErrorsWithTranslationData(errors: Errors): Errors {
     }
 
     if (typeof errors === 'string') {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         return {'0': getErrorMessageWithTranslationData(errors)};
     }
 

@@ -69,6 +69,7 @@ function memoize<Fn extends IsomorphicFn, MaxArgs extends number = NonPartial<Is
             statsEntry.trackTime('processingTime', fnTimeStart);
             statsEntry.track('didHit', false);
 
+            // oxlint-disable-next-line typescript/no-unsafe-return -- tsgo (TS7) resolves the generic return type to `any`; TS 6 does not
             return result;
         }
 
@@ -84,6 +85,7 @@ function memoize<Fn extends IsomorphicFn, MaxArgs extends number = NonPartial<Is
             statsEntry.trackTime('processingTime', fnTimeStart);
             statsEntry.track('didHit', false);
 
+            // oxlint-disable-next-line typescript/no-unsafe-return -- tsgo (TS7) resolves the generic return type to `any`; TS 6 does not
             return result;
         });
 
@@ -96,6 +98,7 @@ function memoize<Fn extends IsomorphicFn, MaxArgs extends number = NonPartial<Is
         statsEntry.track('cacheSize', cache.size);
         statsEntry.save();
 
+        // oxlint-disable-next-line typescript/no-unsafe-return -- tsgo (TS7) resolves the generic return type to `any`; TS 6 does not
         return cached.value;
     } as MemoizedFn<Fn, Key>;
 

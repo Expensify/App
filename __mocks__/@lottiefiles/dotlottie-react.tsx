@@ -8,5 +8,5 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function setWasmUrl(..._args: unknown[]) {}
 
-// eslint-disable-next-line import/prefer-default-export
+/* oxlint-disable-next-line hosted/prefer-default-export */ // eslint-disable-next-line import/prefer-default-export
 export {setWasmUrl};

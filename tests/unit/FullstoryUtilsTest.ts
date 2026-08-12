@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention -- Test assertions use FullStory's external snake_case keys. */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention -- Test assertions use FullStory's external snake_case keys. */
 import CONST from '@src/CONST';
 import {buildFullstoryUserVars, buildPageViewedEvent, getOnboardingStep} from '@src/libs/Fullstory/utils';
 import ROUTES from '@src/ROUTES';

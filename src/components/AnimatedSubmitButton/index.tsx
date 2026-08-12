@@ -152,12 +152,12 @@ function AnimatedSubmitButton({
             return;
         }
         // When pending submission fails we quit to avoid showing submitted animation.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        /* oxlint-disable-next-line rh/set-state-in-effect */ // eslint-disable-next-line react-hooks/set-state-in-effect
         setCanShow(false);
         clearPendingExpenseAction(reportID);
     }, [isAnimationRunning, pendingExpenseAction, reportID, isDEWSubmission]);
 
-    // eslint-disable-next-line react-hooks/refs
+    /* oxlint-disable-next-line rh/refs */ // eslint-disable-next-line react-hooks/refs
     const showLoading = isShowingLoading || (isAnimationRunning && (!viewRef.current || (isDEWSubmission && !isDEWSubmissionComplete)));
 
     return (

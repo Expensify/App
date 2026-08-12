@@ -37,7 +37,7 @@ function MoneyRequestInitializer({isLoadingTransaction, transaction, iouType, re
             reportID ?? generateReportID(),
             draftTransactionIDs,
         );
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, [isLoadingTransaction]);
 
     return null;

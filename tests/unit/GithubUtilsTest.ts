@@ -7,7 +7,7 @@ import type {Writable} from 'type-fest';
 /**
  * @jest-environment node
  */
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import {RequestError} from '@octokit/request-error';
 

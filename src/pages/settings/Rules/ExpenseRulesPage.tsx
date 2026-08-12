@@ -56,7 +56,7 @@ function ExpenseRulesPage() {
 
     useEffect(() => {
         // Clear selection when rule is changed as hash is outdated
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        /* oxlint-disable-next-line rh/set-state-in-effect */ // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedRules([]);
     }, [expenseRules]);
 

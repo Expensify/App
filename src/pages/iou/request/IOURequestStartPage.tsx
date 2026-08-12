@@ -185,7 +185,7 @@ function IOURequestStartPage({
         }
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
         // Tab switches change transactionRequestType but shouldn't re-trigger endSpan.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const navigateBack = () => {

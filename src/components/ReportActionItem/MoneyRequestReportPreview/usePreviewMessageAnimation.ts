@@ -181,7 +181,7 @@ function usePreviewMessageAnimation({
             }),
         );
         // We only want to animate the text when the text changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [previewMessage, previewMessageOpacity]);
 
     return {previewMessageStyle};

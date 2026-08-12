@@ -4,7 +4,7 @@ import GithubUtils from '@github/libs/GithubUtils';
 
 import asMutable from '@src/types/utils/asMutable';
 
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 /**
  * @jest-environment node
  */

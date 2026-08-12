@@ -4,5 +4,5 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 const isTrackingSelector = (gpsDraftDetails?: OnyxEntry<GpsDraftDetails>) => !!gpsDraftDetails?.isTracking;
 
-// eslint-disable-next-line import/prefer-default-export
+/* oxlint-disable-next-line hosted/prefer-default-export */ // eslint-disable-next-line import/prefer-default-export
 export {isTrackingSelector};

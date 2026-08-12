@@ -70,7 +70,7 @@ function AccountingSetupWebViewPage({uri, testID, context, shouldAppendShortLive
             return;
         }
         fetchAuthenticatedUri();
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only fetch once on mount when online
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- only fetch once on mount when online
     }, []);
 
     useEffect(

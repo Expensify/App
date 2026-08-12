@@ -49,7 +49,7 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
     });
 
     const policyReportFieldData = sections.at(0)?.data ?? [];
-    const selectedOptionKey = policyReportFieldData.filter((option) => option.searchText === fieldValue)?.at(0)?.keyForList;
+    const selectedOptionKey = policyReportFieldData.find((option) => option.searchText === fieldValue)?.keyForList;
 
     const textInputOptions = {
         value: searchValue,

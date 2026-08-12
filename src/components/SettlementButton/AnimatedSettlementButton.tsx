@@ -161,7 +161,7 @@ function AnimatedSettlementButton({
             return;
         }
 
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        /* oxlint-disable-next-line rh/set-state-in-effect */ // eslint-disable-next-line react-hooks/set-state-in-effect
         setCanShow(false);
     }, [isDEWApprovalFailed]);
 

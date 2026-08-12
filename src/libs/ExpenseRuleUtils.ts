@@ -84,7 +84,7 @@ function extractRuleFromForm(form: ExpenseRuleForm, taxRate?: TaxRate) {
         reimbursable: form.reimbursable,
         report: form.report,
         tag: form.tag,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         tax: form.tax && taxRate ? {field_id_TAX: {externalID: form.tax, value: taxRate.value}} : undefined,
     };
     return rule;

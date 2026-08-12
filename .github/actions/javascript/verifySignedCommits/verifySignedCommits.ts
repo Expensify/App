@@ -11,9 +11,9 @@ GitHubUtils.paginate(
     {
         owner: CONST.GITHUB_OWNER,
         repo: CONST.APP_REPO,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         pull_number: PR_NUMBER ?? 0,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         per_page: 100,
     },
     (response) => response.data,

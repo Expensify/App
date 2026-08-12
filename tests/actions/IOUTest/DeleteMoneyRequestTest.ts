@@ -1884,7 +1884,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txn.transactionID}`, txn);
             }
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, actions);
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`, {expensify_text_title: titleField});
             await waitForBatchedUpdates();
 

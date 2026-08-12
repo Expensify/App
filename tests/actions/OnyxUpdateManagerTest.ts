@@ -184,7 +184,7 @@ describe('actions/OnyxUpdateManager', () => {
             // After the missing updates have been applied, the applicable updates after
             // all locally applied updates should be applied. (4)
             expect(ApplyUpdates.applyUpdates).toHaveBeenCalledTimes(1);
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(1, {4: mockUpdate4});
         });
     });
@@ -237,9 +237,9 @@ describe('actions/OnyxUpdateManager', () => {
                 // The first applicable update will be 3, after missing updates 1-2 have been applied.
                 // The second applicable update will be 5, after missing updates 3-4 have been applied.
                 expect(ApplyUpdates.applyUpdates).toHaveBeenCalledTimes(2);
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(1, {3: mockUpdate3});
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(2, {5: mockUpdate5});
             });
     });

@@ -80,7 +80,7 @@ type Response<TKey extends OnyxKey> = {
 
     /** Base64 key to decrypt messages from Pusher encrypted channels */
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    shared_secret?: string;
+    shared_secret?: string; // oxlint-disable-line hosted/naming-convention
 
     /** Setup Url */
     setupUrl?: string;

@@ -89,21 +89,21 @@ const netSuiteConnection: Pick<Connections, 'netsuite'> = {
                 ],
                 payableList: [
                     {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         'GL Code': '155',
                         id: '1',
                         name: '4321 Accounts Payable UK',
                         type: '_accountsPayable',
                     },
                     {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         'GL Code': '156',
                         id: '2',
                         name: '450 Bank Test UK',
                         type: '_bank',
                     },
                     {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         'GL Code': '157',
                         id: '3',
                         name: '4564545 Test',
@@ -112,7 +112,7 @@ const netSuiteConnection: Pick<Connections, 'netsuite'> = {
                 ],
                 receivableList: [
                     {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         'GL Code': '158',
                         id: '1',
                         name: '1100 Accounts Receivable',

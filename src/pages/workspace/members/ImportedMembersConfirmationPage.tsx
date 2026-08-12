@@ -90,7 +90,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             {} as Record<string, number>,
         );
         // getAccountIDsByLogins function uses the personalDetails data from the connection, so we need to re-run this logic when the personal detail is changed.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newMembers, personalDetails]);
 
     /** Opens privacy url as an external link */

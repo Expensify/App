@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {cleanAndTransformState, transformNumericKeysToArray} from '../../src/libs/ImportOnyxStateUtils';

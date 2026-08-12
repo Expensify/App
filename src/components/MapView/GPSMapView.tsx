@@ -120,7 +120,7 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
         }
         prevWaypointsLength.current = currentLength;
         // only run when waypoints length changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [waypoints?.length]);
 
     useFocusEffect(() => {

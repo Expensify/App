@@ -8,7 +8,7 @@ const payloadWithOnyxData = {
             key: 'reportActions_2170976176751360',
             onyxMethod: 'merge',
             value: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '2463291366241014308': {
                     actionName: 'ADDCOMMENT',
                     reportID: '2170976176751360',

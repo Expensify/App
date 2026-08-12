@@ -91,7 +91,7 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
                     forceCrossDevice: true,
                     hideCountrySelection: true,
                     documentTypes: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         driving_licence: {
                             country: 'USA',
                         },
@@ -131,7 +131,7 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             // https://github.com/Expensify/App/issues/17244
             // https://documentation.onfido.com/sdk/web/#custom-languages
             phrases: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 'generic.back': translate('common.back'),
             },
         },
@@ -160,7 +160,7 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit, ref}: OnfidoProps) {
         window.addEventListener('userAnalyticsEvent', logOnFidoEvent);
         return () => window.removeEventListener('userAnalyticsEvent', logOnFidoEvent);
         // Onfido should be initialized only once on mount
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (

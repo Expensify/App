@@ -24,7 +24,7 @@ function BaseImage({onLoad, onLoadStart, source, style, ...props}: BaseImageProp
         }
 
         setAttachmentLoaded?.(source as AttachmentSource, false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {

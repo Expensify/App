@@ -27,7 +27,7 @@ type DateTimeSelectorProps = {
 
     /** inputID used by the Form component */
     // eslint-disable-next-line react/no-unused-prop-types
-    inputID: string;
+    inputID: string; // oxlint-disable-line hosted/no-unused-prop-types -- a prepended block comment would hide the JSDoc above from jsdoc/require-jsdoc
 
     // The ref is required by InputWrapper, even though it's not used in this component yet.
     ref?: ForwardedRef<View>;

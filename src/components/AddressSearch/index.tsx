@@ -194,19 +194,19 @@ function AddressSearch({
             administrative_area_level_2: stateFallback,
             country: countryPrimary,
         } = getAddressComponents(addressComponents, {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             street_number: 'long_name',
             route: 'long_name',
             subpremise: 'long_name',
             locality: 'long_name',
             sublocality: 'long_name',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             postal_town: 'long_name',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             postal_code: 'long_name',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             administrative_area_level_1: 'short_name',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             administrative_area_level_2: 'long_name',
             country: 'short_name',
         });
@@ -214,7 +214,7 @@ function AddressSearch({
         // The state's iso code (short_name) is needed for the StatePicker component but we also
         // need the state's full name (long_name) when we render the state in a TextInput.
         const {administrative_area_level_1: longStateName} = getAddressComponents(addressComponents, {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             administrative_area_level_1: 'long_name',
         });
 

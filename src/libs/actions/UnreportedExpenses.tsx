@@ -35,5 +35,5 @@ function fetchUnreportedExpenses(offset: number) {
     API.read(READ_COMMANDS.OPEN_UNREPORTED_EXPENSES_PAGE, {offset}, {optimisticData, successData, failureData});
 }
 
-// eslint-disable-next-line import/prefer-default-export
+/* oxlint-disable-next-line hosted/prefer-default-export */ // eslint-disable-next-line import/prefer-default-export
 export {fetchUnreportedExpenses};

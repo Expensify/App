@@ -71,7 +71,7 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
     useEffect(() => {
         clearErrors(route.params.policyID);
         openWorkspaceInvitePage();
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- policyID changes remount the component
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- policyID changes remount the component
     }, []);
 
     useNetwork({onReconnect: openWorkspaceInvitePage});

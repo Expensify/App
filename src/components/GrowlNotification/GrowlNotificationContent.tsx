@@ -119,7 +119,7 @@ function GrowlNotificationContent({bodyText, type, duration, action, nonce, onDi
         // slide-in + auto-dismiss timer must arm exactly once per growl. Re-running on dep identity
         // changes (e.g. theme/layout re-renders recreating `fling`/`triggerDismiss`) would replay
         // the slide-in and reset the timer.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // GestureDetector by default runs callbacks on UI thread using Reanimated. In this

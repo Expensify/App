@@ -1,6 +1,6 @@
 import * as GooglePlacesUtils from '@src/libs/GooglePlacesUtils';
 
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 import {measureFunction} from 'reassure';
 
 const addressComponents: GooglePlacesUtils.AddressComponent[] = [

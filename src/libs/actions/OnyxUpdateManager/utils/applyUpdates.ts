@@ -6,5 +6,5 @@ import * as OnyxUpdates from '@userActions/OnyxUpdates';
 // This function applies a list of updates to Onyx in order and resolves when all updates have been applied
 const applyUpdates = (updates: AnyDeferredUpdatesDictionary) => Promise.all(Object.values(updates).map((update) => OnyxUpdates.apply(update)));
 
-// eslint-disable-next-line import/prefer-default-export
+/* oxlint-disable-next-line hosted/prefer-default-export */ // eslint-disable-next-line import/prefer-default-export
 export {applyUpdates};

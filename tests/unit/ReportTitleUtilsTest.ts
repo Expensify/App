@@ -29,7 +29,7 @@ describe('ReportTitleUtils', () => {
         await Onyx.clear();
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}12345`, {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             expensify_text_title: {
                 defaultValue: 'Report {report:total}',
             },
@@ -65,7 +65,7 @@ describe('ReportTitleUtils', () => {
             const mockPolicy: Policy = {
                 id: 'policy123',
                 fieldList: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     text_title: mockTitleField,
                 },
             } as unknown as Policy;
@@ -80,7 +80,7 @@ describe('ReportTitleUtils', () => {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockReportID}`,
                 value: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     expensify_text_title: mockTitleField,
                 },
             });

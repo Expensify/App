@@ -36,7 +36,7 @@ function useIsBlockedToAddFeed(policyID?: string) {
         }
         const connectedFeeds = Object.keys(companyFeeds).filter((feedKey) => !isCSVFeedOrExpensifyCard(feedKey)).length;
         setPrevCompanyFeedsLength(connectedFeeds);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, [isLoading]);
 
     return {

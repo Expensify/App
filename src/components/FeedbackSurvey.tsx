@@ -76,7 +76,7 @@ function FeedbackSurvey({title, description, onSubmit, footerText, isNoteRequire
         }
 
         setReason(draft.reason);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only sync with draft data when it is loaded
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- only sync with draft data when it is loaded
     }, [isLoadingDraft]);
 
     const handleOptionSelect = (value: string) => {

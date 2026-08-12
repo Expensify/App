@@ -1,12 +1,12 @@
 import type {AirshipContact, AirshipLiveActivityManager, AirshipPush, AirshipPushAndroid, AirshipPushIOS, AirshipRoot, AirshipRootIOS} from '@ua/react-native-airship';
 
-// eslint-disable-next-line no-restricted-syntax
+/* oxlint-disable-next-line core/no-restricted-syntax */ // eslint-disable-next-line no-restricted-syntax
 enum EventType {
     NotificationResponse = 'com.airship.notification_response',
     PushReceived = 'com.airship.push_received',
 }
 
-// eslint-disable-next-line no-restricted-syntax
+/* oxlint-disable-next-line core/no-restricted-syntax */ // eslint-disable-next-line no-restricted-syntax
 enum PermissionStatus {
     Granted = 'granted',
     Denied = 'denied',
@@ -18,7 +18,7 @@ namespace iOS {
     /**
      * Enum of foreground notification options.
      */
-    // eslint-disable-next-line no-restricted-syntax, rulesdir/no-inline-named-export
+    /* oxlint-disable-next-line core/no-restricted-syntax */ // eslint-disable-next-line no-restricted-syntax, rulesdir/no-inline-named-export
     export enum ForegroundPresentationOption {
         /**
          * Play the sound associated with the notification.

@@ -1,4 +1,4 @@
-/* eslint-disable rulesdir/no-inline-named-export, @typescript-eslint/naming-convention -- The scheduler package exposes unstable_* named exports, so this shim must mirror those exact names. Aliasing them satisfies lint but makes the React compiler compliance check fail. */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable rulesdir/no-inline-named-export, @typescript-eslint/naming-convention -- The scheduler package exposes unstable_* named exports, so this shim must mirror those exact names. Aliasing them satisfies lint but makes the React compiler compliance check fail. */
 declare module 'scheduler' {
     type SchedulerCallback = (didTimeout: boolean) => void | null | SchedulerCallback;
 

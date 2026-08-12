@@ -58,7 +58,7 @@ function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
             return;
         }
         openSession();
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only the initial setupLink should be used; re-opening the auth session on prop change is not desired
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- only the initial setupLink should be used; re-opening the auth session on prop change is not desired
     }, []);
 
     useEffect(

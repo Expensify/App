@@ -1849,7 +1849,7 @@ describe('actions/Policy', () => {
             });
 
             expect(result).toEqual({
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '': ['Engineering'],
             });
         });
@@ -2335,7 +2335,7 @@ describe('actions/Policy', () => {
             // Set initial GL Code
             fakePolicyTags[tagListName].tags[tagName] = {
                 ...fakePolicyTags[tagListName].tags[tagName],
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 'GL Code': 'OLD_GL_CODE_456',
             };
 
@@ -2376,7 +2376,7 @@ describe('actions/Policy', () => {
 
             fakePolicyTags[tagListName].tags[tagName] = {
                 ...fakePolicyTags[tagListName].tags[tagName],
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 'GL Code': 'EXISTING_GL_CODE',
             };
 
@@ -2409,7 +2409,7 @@ describe('actions/Policy', () => {
 
             fakePolicyTags[tagListName].tags[tagName] = {
                 ...fakePolicyTags[tagListName].tags[tagName],
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 'GL Code': originalGLCode,
             };
 
@@ -2442,7 +2442,7 @@ describe('actions/Policy', () => {
 
             fakePolicyTags[tagListName].tags[tagName] = {
                 ...fakePolicyTags[tagListName].tags[tagName],
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 'GL Code': 'OLD_GL_CODE',
             };
 

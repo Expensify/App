@@ -233,7 +233,7 @@ describe('actions/PersonalDetails', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                             value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 123: {
                                     displayName: expectedDisplayName,
                                     firstName: legalFirstName,
@@ -370,7 +370,7 @@ describe('actions/PersonalDetails', () => {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         123: {
                             displayName,
                             firstName: legalFirstName,
@@ -419,7 +419,7 @@ describe('actions/PersonalDetails', () => {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         456: {
                             displayName,
                             firstName: legalFirstName,
@@ -460,7 +460,7 @@ describe('actions/PersonalDetails', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                             value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 123: {
                                     firstName: 'New',
                                     lastName: 'Name',
@@ -475,7 +475,7 @@ describe('actions/PersonalDetails', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                             value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 123: {
                                     firstName: 'Old',
                                     lastName: 'Name',
@@ -505,7 +505,7 @@ describe('actions/PersonalDetails', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                             value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 123: {
                                     firstName: 'New',
                                     lastName: 'Name',
@@ -519,7 +519,7 @@ describe('actions/PersonalDetails', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                             value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 123: {
                                     firstName: 'Old',
                                     lastName: 'Name',
@@ -564,7 +564,7 @@ describe('actions/PersonalDetails', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                             value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 123: {
                                     avatar: mockFile.uri,
                                     avatarThumbnail: mockFile.uri,
@@ -586,7 +586,7 @@ describe('actions/PersonalDetails', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                             value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 123: {
                                     pendingFields: {
                                         avatar: null,
@@ -600,7 +600,7 @@ describe('actions/PersonalDetails', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                             value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 123: {
                                     avatar: currentUserPersonalDetail.avatar,
                                     avatarThumbnail: currentUserPersonalDetail.avatarThumbnail ?? currentUserPersonalDetail.avatar,
@@ -640,7 +640,7 @@ describe('actions/PersonalDetails', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                             value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 123: {
                                     avatar: mockFile.uri,
                                     avatarThumbnail: mockFile.uri,
@@ -662,7 +662,7 @@ describe('actions/PersonalDetails', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                             value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 123: {
                                     pendingFields: {
                                         avatar: null,
@@ -676,7 +676,7 @@ describe('actions/PersonalDetails', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                             value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 123: {
                                     avatar: currentUserPersonalDetail.avatar,
                                     avatarThumbnail: currentUserPersonalDetail.avatarThumbnail ?? currentUserPersonalDetail.avatar,
@@ -715,7 +715,7 @@ describe('actions/PersonalDetails', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                             value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 123: {
                                     avatar: mockFile.uri,
                                     avatarThumbnail: mockFile.uri,
@@ -737,7 +737,7 @@ describe('actions/PersonalDetails', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                             value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 123: {
                                     pendingFields: {
                                         avatar: null,
@@ -751,7 +751,7 @@ describe('actions/PersonalDetails', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                             value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 123: {
                                     avatar: currentUserPersonalDetail.avatar,
                                     avatarThumbnail: currentUserPersonalDetail.avatarThumbnail ?? currentUserPersonalDetail.avatar,
@@ -789,7 +789,7 @@ describe('actions/PersonalDetails', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                             value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 123: {
                                     avatar: currentUserPersonalDetail.avatar,
                                     avatarThumbnail: currentUserPersonalDetail.avatar,
@@ -853,7 +853,7 @@ describe('actions/PersonalDetails', () => {
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                         value: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             123: {
                                 avatar: expectedDefaultAvatar,
                                 fallbackIcon: null,
@@ -866,7 +866,7 @@ describe('actions/PersonalDetails', () => {
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                         value: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             123: {
                                 avatar: currentUserPersonalDetail.avatar,
                                 fallbackIcon: currentUserPersonalDetail.fallbackIcon,
@@ -899,7 +899,7 @@ describe('actions/PersonalDetails', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                             value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 123: {
                                     avatar: currentUserPersonalDetail.avatar,
                                     fallbackIcon: undefined,
@@ -951,7 +951,7 @@ describe('actions/PersonalDetails', () => {
                             onyxMethod: Onyx.METHOD.MERGE,
                             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                             value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 456: {
                                     avatar: expectedDefaultAvatar,
                                     fallbackIcon: null,

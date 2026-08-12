@@ -11,7 +11,7 @@ export default function createRandomPolicyCategories(numberOfCategories = 0): Po
         categories[categoryName] = {
             name: categoryName,
             enabled: false,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             'GL Code': '',
             unencodedName: categoryName,
             externalID: '',

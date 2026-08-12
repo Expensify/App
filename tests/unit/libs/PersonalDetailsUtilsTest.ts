@@ -155,7 +155,7 @@ describe('PersonalDetailsUtils', () => {
                         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                         onyxMethod: 'merge',
                         value: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '1': {
                                 accountID: 1,
                                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_15.png',
@@ -163,7 +163,7 @@ describe('PersonalDetailsUtils', () => {
                                 isOptimisticPersonalDetail: true,
                                 login: '3322076524',
                             },
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '2': {
                                 accountID: 2,
                                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/generated/letter/v1/ice700/T.png',
@@ -171,7 +171,7 @@ describe('PersonalDetailsUtils', () => {
                                 isOptimisticPersonalDetail: true,
                                 login: 'test2@test.com',
                             },
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '3': {
                                 accountID: 3,
                                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_6.png',
@@ -187,11 +187,11 @@ describe('PersonalDetailsUtils', () => {
                         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                         onyxMethod: Onyx.METHOD.MERGE,
                         value: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '1': null,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '2': null,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '3': null,
                         },
                     },

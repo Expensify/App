@@ -7,5 +7,5 @@ function setHasSeenForYouTodo() {
     setNameValuePair(ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO, true, false);
 }
 
-// eslint-disable-next-line import/prefer-default-export
+/* oxlint-disable-next-line hosted/prefer-default-export */ // eslint-disable-next-line import/prefer-default-export
 export {setHasSeenForYouTodo};

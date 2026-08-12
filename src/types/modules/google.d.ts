@@ -3,7 +3,7 @@ type Response = {
 };
 
 type Initialize = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
     client_id: string;
     callback: (response: Response) => void;
 };

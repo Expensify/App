@@ -21,7 +21,7 @@ function useBankAccountUnlockEffect(report: OnyxEntry<Report> | undefined) {
         }
         initiateBankAccountUnlock(initiatingBankAccountUnlock.bankAccountIDToUnlock, conciergeReportID ?? undefined, initiatingBankAccountUnlock.optimisticReportActionID);
         // We only want to re-fire when reportID changes, not on every report field update
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initiatingBankAccountUnlock?.bankAccountIDToUnlock, report?.reportID]);
 }
 

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 import * as GooglePlacesUtils from '@src/libs/GooglePlacesUtils';
 import type {AddressComponent, AddressTerm, FieldsToExtract} from '@src/libs/GooglePlacesUtils';
 

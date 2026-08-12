@@ -62,7 +62,7 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
         }
 
         clearSelectedTransactions(true);
-    }, [transactionThreadReportID]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [transactionThreadReportID]); /* oxlint-disable-line rh/exhaustive-deps */ // eslint-disable-line react-hooks/exhaustive-deps
 
     const narrowedPrimaryAction = narrowPrimaryAction(primaryAction);
 

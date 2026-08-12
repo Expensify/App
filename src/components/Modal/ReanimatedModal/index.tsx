@@ -134,7 +134,7 @@ function ReanimatedModal({
             transitionHandleRef.current = TransitionTracker.startTransition();
             onModalWillShow();
 
-            // eslint-disable-next-line react-hooks/set-state-in-effect
+            /* oxlint-disable-next-line rh/set-state-in-effect */ // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsVisibleState(true);
             setIsTransitioning(true);
         } else if (!isVisible && isContainerOpen && !isTransitioning) {
@@ -146,7 +146,7 @@ function ReanimatedModal({
             setIsVisibleState(false);
             setIsTransitioning(true);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible, isContainerOpen, isTransitioning]);
 
     const backdropStyle: ViewStyle = useMemo(() => {

@@ -29,7 +29,7 @@ type CountrySelectorProps = {
 
     /** inputID used by the Form component */
     // eslint-disable-next-line react/no-unused-prop-types
-    inputID: string;
+    inputID: string; // oxlint-disable-line hosted/no-unused-prop-types -- a prepended block comment would hide the JSDoc above from jsdoc/require-jsdoc
 
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
@@ -71,7 +71,7 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
         // This helps prevent issues where the component might not update correctly if the country is controlled by both the parent and the URL.
         Navigation.setParams({country: undefined});
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [countryFromUrl, isFocused, onBlur]);
 
     return (

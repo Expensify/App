@@ -75,7 +75,7 @@ declare module 'react-native' {
     namespace Animated {
         interface AnimatedInterpolation<OutputT extends number | string> extends AnimatedWithChildren {
             interpolate(config: InterpolationConfigType): AnimatedInterpolation<OutputT>;
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             __getValue: () => OutputT;
         }
     }

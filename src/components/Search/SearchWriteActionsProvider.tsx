@@ -270,7 +270,7 @@ function useReconcileSelectionWithData({
         // `selectedTransactions` is intentionally omitted from the deps and read from closure instead (see the
         // hook doc above): including it would re-run this reconcile on every checkbox press. We only want it to
         // run when the underlying data, focus, or select-all state changes.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filteredData, applySelection, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType]);
 }
 
@@ -290,7 +290,7 @@ function useTurnOffSelectionModeWhenEmpty({isFocused, isMobileSelectionModeEnabl
 
         // `isFocused` is intentionally omitted from the deps: it is only read for the early-return guard above,
         // and we don't want the effect to re-run when focus changes.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTransactions, isMobileSelectionModeEnabled, shouldTurnOffSelectionMode]);
 }
 
@@ -325,7 +325,7 @@ function useSyncMobileSelectionModeWithScreenSize({
         }
 
         // We only want this effect to handle the switching of mobile selection mode state when screen size changes.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSmallScreenWidth]);
 }
 

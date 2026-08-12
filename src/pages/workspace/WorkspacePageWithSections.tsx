@@ -167,7 +167,7 @@ function WorkspacePageWithSections({
 
     useEffect(() => {
         fetchData(policyID, shouldSkipVBBACall);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, false, currentUserLogin), [policy, currentUserLogin]);
     let hasAccessToPolicyFeature: boolean | undefined;
@@ -205,7 +205,7 @@ function WorkspacePageWithSections({
 
         const shouldShowPolicyOrFeature = hasAccessToPolicyFeature ?? shouldShowPolicy;
         return (!isEmptyObject(policy) && !canShowPage) || (!shouldShowPolicyOrFeature && !(isPendingDelete && !prevIsPendingDelete));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUserLogin, hasAccessToPolicyFeature, hasWorkspaceBeenDeleted, isWorkspacesTabFocused, policy, shouldShowNonAdmin, shouldShowPolicy]);
 
     const handleOnBackButtonPress = () => {

@@ -54,11 +54,11 @@ type CheckboxWithLabelProps = RequiredLabelProps & {
 
     /** The ID used to uniquely identify the input in a Form */
     /* eslint-disable-next-line react/no-unused-prop-types */
-    inputID?: string;
+    inputID?: string; // oxlint-disable-line hosted/no-unused-prop-types -- a prepended block comment would hide the JSDoc above from jsdoc/require-jsdoc
 
     /** Saves a draft of the input value when used in a form */
     // eslint-disable-next-line react/no-unused-prop-types
-    shouldSaveDraft?: boolean;
+    shouldSaveDraft?: boolean; // oxlint-disable-line hosted/no-unused-prop-types -- a prepended block comment would hide the JSDoc above from jsdoc/require-jsdoc
 
     /** An accessibility label for the checkbox */
     accessibilityLabel?: string;

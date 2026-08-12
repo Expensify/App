@@ -215,7 +215,7 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
                     : undefined,
         },
         [ONYXKEYS.BANK_ACCOUNT_LIST]: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             12345: {
                 methodID: 12345,
                 errors:

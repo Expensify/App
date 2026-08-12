@@ -10,9 +10,9 @@ import Text from '@components/Text';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
 import {setHasRadio} from '@libs/NetworkState';
+// oxlint-disable-next-line import/no-duplicates -- separate type/value namespace imports are intentional; ESLint's rule allows them
 import type * as OptionsListUtilsModule from '@libs/OptionsListUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import {createFilteredOptionList} from '@libs/OptionsListUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -168,7 +168,7 @@ const mockedReports = getMockedReports(10);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(10);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+const mockedOptions = OptionsListUtils.createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
     conciergeReportID: undefined,
     isSearching: true,
 });

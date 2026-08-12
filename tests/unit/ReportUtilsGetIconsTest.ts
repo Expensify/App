@@ -39,7 +39,7 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 
 const FAKE_PERSONAL_DETAILS = LHNTestUtils.fakePersonalDetails;
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 const FAKE_REPORT_ACTIONS: OnyxCollection<Record<string, ReportAction>> = {
     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
         '1': {...actionR14932, actorAccountID: 2},
@@ -60,7 +60,7 @@ const FAKE_REPORT_ACTIONS: OnyxCollection<Record<string, ReportAction>> = {
         '2': {...actionR98765, actorAccountID: 1},
     },
 };
-/* eslint-enable @typescript-eslint/naming-convention */
+/* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 const FAKE_REPORTS = {
     [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
         ...LHNTestUtils.getFakeReport([1, 2], 0, true),
@@ -534,9 +534,9 @@ describe('getIcons', () => {
             managerID: 2, // Different from current user (5)
 
             participants: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '2': {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
         };

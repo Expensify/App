@@ -22,7 +22,7 @@ function createMockContext(overrides: Partial<FABMenuContextType> = {}): FABMenu
 }
 
 function createWrapper(contextValue: FABMenuContextType) {
-    // eslint-disable-next-line react/function-component-definition
+    /* oxlint-disable-next-line hosted/function-component-definition */ // eslint-disable-next-line react/function-component-definition
     const Wrapper = ({children}: PropsWithChildren) => <FABMenuContext.Provider value={contextValue}>{children}</FABMenuContext.Provider>;
     return Wrapper;
 }

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 import {extractRuleFromForm, formatExpenseRuleChanges, getKeyForRule} from '@libs/ExpenseRuleUtils';
 
 import CONST from '@src/CONST';

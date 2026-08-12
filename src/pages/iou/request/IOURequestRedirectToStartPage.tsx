@@ -58,7 +58,7 @@ function IOURequestRedirectToStartPage({route}: IOURequestRedirectToStartPagePro
         }
 
         // This useEffect should only run on mount which is why there are no dependencies being passed in the second parameter
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (shouldShowNotFound) {

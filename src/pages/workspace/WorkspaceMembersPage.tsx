@@ -227,7 +227,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
      * Remove selected users from the workspace
      * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     const removeUsers = () => {
         // Check if any of the members are approvers
         const hasApprovers = selectedEmployees.some((email) => isPolicyApprover(policy, email));
@@ -491,7 +491,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
                 <MessagesRow
                     type="success"
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     messages={{0: translate('workspace.people.addedWithPrimary')}}
                     containerStyles={[styles.pb5, styles.ph5]}
                     onDismiss={() => dismissAddedWithPrimaryLoginMessages(policyID)}

@@ -5,7 +5,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type {ValueOf} from 'type-fest';
 
 // We have to disable eslint for this import because otherwise the import will be 300 lines long
-// eslint-disable-next-line no-restricted-syntax
+/* oxlint-disable-next-line core/no-restricted-syntax */ // eslint-disable-next-line no-restricted-syntax
 import type * as Parameters from './parameters';
 import type SignInUserParams from './parameters/SignInUserParams';
 import type UpdateBeneficialOwnersForBankAccountParams from './parameters/UpdateBeneficialOwnersForBankAccountParams';

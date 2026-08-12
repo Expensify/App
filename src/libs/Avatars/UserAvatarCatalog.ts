@@ -3,7 +3,7 @@ import * as DefaultAvatars from '@components/Icon/DefaultAvatars';
 
 import CONST from '@src/CONST';
 
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 import type {AvatarEntry} from './AvatarCatalog';
 import type {DefaultAvatarIDs, SeasonF1AvatarIDs, UserAvatarID} from './UserAvatarCatalog.types';
 

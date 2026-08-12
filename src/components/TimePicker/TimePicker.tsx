@@ -613,7 +613,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                 handleMillisecondsChange(insertAtPosition(milliseconds, trimmedKey, selectionMillisecond.start, selectionMillisecond.end));
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
         [minutes, hours, seconds, milliseconds, selectionMinute, selectionHour, selectionSecond, selectionMillisecond],
     );
 
@@ -648,7 +648,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                 focusSecondInputOnLastCharacter();
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
         [selectionHour, selectionMinute.start],
     );
     const arrowRightCallback = useCallback(
@@ -669,7 +669,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                 focusMillisecondInputOnFirstCharacter();
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
         [selectionHour.start, selectionMinute.start, selectionSecond.start, selectionMillisecond],
     );
 
@@ -725,7 +725,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
 
     useEffect(() => {
         onInputChange(showFullFormat ? `${hours}:${minutes}:${seconds}.${milliseconds} ${amPmValue}` : `${hours}:${minutes} ${amPmValue}`);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hours, minutes, amPmValue]);
 
     const handleSubmit = () => {

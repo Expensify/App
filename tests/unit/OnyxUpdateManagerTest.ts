@@ -116,7 +116,7 @@ describe('OnyxUpdateManager', () => {
             // There should be only one call to applyUpdates. The call should contain all the deferred update,
             // since the locally applied updates have changed in the meantime.
             expect(ApplyUpdates.applyUpdates).toHaveBeenCalledTimes(1);
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(1, {3: update3, 4: update4, 5: update5});
         });
     });
@@ -159,7 +159,7 @@ describe('OnyxUpdateManager', () => {
             // since the locally applied updates have changed in the meantime.
             expect(ApplyUpdates.applyUpdates).toHaveBeenCalledTimes(1);
 
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(1, {6: update6});
         });
     });
@@ -193,14 +193,14 @@ describe('OnyxUpdateManager', () => {
             expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(1, 1, 2);
 
             // After the initial missing updates have been applied, the applicable updates (3) should be applied.
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(1, {3: update3});
 
             // The second call to getMissingOnyxUpdates should fetch the missing updates from the gap in the deferred updates. 3-4
             expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 3, 4);
 
             // After the gap in the deferred updates has been resolved, the remaining deferred updates (5, 6) should be applied.
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(2, {5: update5, 6: update6});
         });
     });
@@ -231,14 +231,14 @@ describe('OnyxUpdateManager', () => {
             // expect(OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates).toHaveBeenCalledTimes(2);
 
             // After the initial missing updates have been applied, the applicable updates (3-4) should be applied.
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(1, {3: update3, 4: update4});
 
             // The second call to getMissingOnyxUpdates should fetch the missing updates from the gap (4-7) in the deferred updates.
             expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 4, 7);
 
             // After the gap in the deferred updates has been resolved, the remaining deferred updates (8) should be applied.
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(2, {8: update8});
         });
     });
@@ -281,11 +281,11 @@ describe('OnyxUpdateManager', () => {
             expect(ApplyUpdates.applyUpdates).toHaveBeenCalledTimes(2);
 
             // After the initial missing updates have been applied, the applicable updates (3) should be applied.
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(1, {3: update3});
 
             // Since the lastUpdateIDAppliedToClient has changed to 5 in the meantime, we only need to apply the remaining deferred updates (6-7).
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(2, {6: update6, 7: update7});
         });
     });
@@ -327,7 +327,7 @@ describe('OnyxUpdateManager', () => {
             expect(ApplyUpdates.applyUpdates).toHaveBeenCalledTimes(2);
 
             // After the initial missing updates have been applied, the applicable updates (3) should be applied.
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(1, {3: update3});
 
             // The second call to getMissingOnyxUpdates should fetch the missing updates from the gap in the deferred updates,
@@ -335,7 +335,7 @@ describe('OnyxUpdateManager', () => {
             expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 4, 6);
 
             // Since the lastUpdateIDAppliedToClient has changed to 4 in the meantime, and we're fetching updates 5-6 we only need to apply the remaining deferred updates (7).
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(2, {7: update7});
         });
     });
@@ -362,7 +362,7 @@ describe('OnyxUpdateManager', () => {
             // There should be only one call to applyUpdates. The call should contain all the deferred update,
             // since the locally applied updates have changed in the meantime.
             expect(ApplyUpdates.applyUpdates).toHaveBeenCalledTimes(1);
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(1, {3: offsetUpdate3, 4: update4});
 
             // There are no gaps in the deferred updates, therefore only one call to getMissingOnyxUpdates should be triggered
@@ -751,7 +751,7 @@ describe('OnyxUpdateManager', () => {
 
             // There should be only one call to applyUpdates. The call should contain the deferred updates.
             expect(ApplyUpdates.applyUpdates).toHaveBeenCalledTimes(1);
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(1, {4: update4});
 
             // There are no gaps in the deferred updates, therefore only one call to getMissingOnyxUpdates should be triggered

@@ -55,7 +55,7 @@ const useRestartOnReceiptFailure = (transaction: OnyxEntry<Transaction>, reportI
         });
 
         // We want this hook to run once after Onyx finishes loading the draft transactions
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [draftTransactionsMetadata]);
 };
 

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 import CONST from '../../src/CONST';
 import UnreadIndicatorUpdater from '../../src/libs/UnreadIndicatorUpdater';
 import * as TestHelper from '../utils/TestHelper';

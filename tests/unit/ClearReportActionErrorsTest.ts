@@ -333,7 +333,7 @@ describe('ClearReportActionErrors', () => {
                 [CHILD_REPORT_ACTION_ID]: childReportAction1,
 
                 // It's OK to disable the rule here because the key needs to be numeric for reportActionIDs
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '301': childReportAction2,
             });
             await waitForBatchedUpdates();

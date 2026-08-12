@@ -823,7 +823,7 @@ describe('DebugUtils', () => {
                 report: {
                     ...baseReport,
                     participants: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         1234: {
                             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                         },
@@ -903,7 +903,7 @@ describe('DebugUtils', () => {
             };
             const MOCK_REPORT_ACTIONS: ReportActionsCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     '1': {
                         reportActionID: '1',
                         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -964,7 +964,7 @@ describe('DebugUtils', () => {
             };
             const MOCK_REPORT_ACTIONS: ReportActionsCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2` as const]: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     '1': {
                         reportActionID: '1',
                         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -1033,7 +1033,7 @@ describe('DebugUtils', () => {
         });
         it('returns correct reason when report has a join request', async () => {
             const MOCK_REPORT_ACTIONS = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '0': createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>>({
                     reportActionID: '0',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
@@ -1114,13 +1114,13 @@ describe('DebugUtils', () => {
         });
         it('returns the report action which is a join request', async () => {
             const MOCK_REPORT_ACTIONS = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '0': createMock<ReportAction<'CREATED'>>({
                     reportActionID: '0',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     created: '2024-08-08 18:70:44.171',
                 }),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>>({
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
@@ -1162,7 +1162,7 @@ describe('DebugUtils', () => {
                 },
             };
             const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '0': {
                     reportActionID: '0',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -1174,7 +1174,7 @@ describe('DebugUtils', () => {
                         },
                     ],
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -1267,7 +1267,7 @@ describe('DebugUtils', () => {
                 };
                 const MOCK_REPORT_ACTIONS: ReportActionsCollectionDataSet = {
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2` as const]: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         '1': {
                             reportActionID: '1',
                             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -1332,13 +1332,13 @@ describe('DebugUtils', () => {
                         ownerAccountID: RORY_ACCOUNT_ID,
                     };
                     const MOCK_CHAT_REPORT_ACTIONS: ReportActions = {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         '0': createMock<ReportAction<'CREATED'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                             reportActionID: '0',
                             created: '2024-08-08 18:20:44.171',
                         }),
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         '1': createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                             reportActionID: '3',
@@ -1349,7 +1349,7 @@ describe('DebugUtils', () => {
                         }),
                     };
                     const MOCK_IOU_REPORT_ACTIONS = {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         '1': createMock<ReportAction<'IOU'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                             reportActionID: '1',
@@ -1407,13 +1407,13 @@ describe('DebugUtils', () => {
                         ownerAccountID: 1,
                     };
                     const MOCK_REPORT_ACTIONS: ReportActions = {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         '0': createMock<ReportAction<'CREATED'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                             reportActionID: '0',
                             created: '2024-08-08 18:20:44.171',
                         }),
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         '1': createMock<ReportAction<'IOU'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                             reportActionID: '1',
@@ -1422,7 +1422,7 @@ describe('DebugUtils', () => {
                             },
                             actorAccountID: 1,
                         }),
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         '2': createMock<ReportAction<'IOU'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                             reportActionID: '2',
@@ -1431,7 +1431,7 @@ describe('DebugUtils', () => {
                             },
                             actorAccountID: 1,
                         }),
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         '3': createMock<ReportAction<'IOU'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                             reportActionID: '3',
@@ -1480,7 +1480,7 @@ describe('DebugUtils', () => {
             });
             it('returns report action that contains errors', () => {
                 const MOCK_REPORT_ACTIONS: ReportActions = {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     '0': {
                         reportActionID: '0',
                         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -1492,7 +1492,7 @@ describe('DebugUtils', () => {
                             },
                         ],
                     },
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     '1': {
                         reportActionID: '1',
                         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -1507,7 +1507,7 @@ describe('DebugUtils', () => {
                             randomError: 'Random error',
                         },
                     },
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     '2': {
                         reportActionID: '2',
                         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -1678,7 +1678,7 @@ describe('DebugUtils', () => {
                 const liveTransactionID = 'tx-debug-live';
                 const deletedTransactionID = 'tx-debug-deleted';
                 const OFFLINE_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     '1': createMock<ReportAction>({
                         reportActionID: '1',
                         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -1692,7 +1692,7 @@ describe('DebugUtils', () => {
                             currency: CONST.CURRENCY.USD,
                         },
                     }),
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     '2': createMock<ReportAction>({
                         reportActionID: '2',
                         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,

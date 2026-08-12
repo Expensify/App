@@ -106,7 +106,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             return;
         }
 
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- latch submit-plan snapshot once when policy loads; sticky across upgrade
+        /* oxlint-disable-next-line rh/set-state-in-effect */ // eslint-disable-next-line react-hooks/set-state-in-effect -- latch submit-plan snapshot once when policy loads; sticky across upgrade
         setUpgradingFromSubmit((previous) => (previous !== undefined ? previous : canAccessSubmitWorkspaceFeatures));
     }, [policyID, policy?.type, canAccessSubmitWorkspaceFeatures]);
 
@@ -142,7 +142,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     // useCallback is needed here because goBack is passed as a prop to child components;
     // the rule flags it because the deps could be inlined, but removing useCallback would cause unnecessary re-renders.
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization
+    /* oxlint-disable-next-line rh/preserve-manual-memoization */ // eslint-disable-next-line react-hooks/preserve-manual-memoization
     const goBack = useCallback(() => {
         if ((!feature && featureNameAlias !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) || !policyID) {
             Navigation.dismissModal();

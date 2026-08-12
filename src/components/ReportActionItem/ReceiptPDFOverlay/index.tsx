@@ -45,7 +45,7 @@ function ReceiptPDFOverlay({sourceURL, isAuthTokenRequired = true, onLoadFailure
         if (!maxCanvasWidth) {
             retrieveMaxCanvasWidth();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- Run once on mount; canvas limits are one-time browser measurements that don't change
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- Run once on mount; canvas limits are one-time browser measurements that don't change
     }, []);
 
     const fileURL = isAuthTokenRequired ? addEncryptedAuthTokenToURL(sourceURL, session?.encryptedAuthToken ?? '') : sourceURL;

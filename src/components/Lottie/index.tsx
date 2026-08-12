@@ -55,7 +55,7 @@ function Lottie({ref, source, webStyle, shouldLoadAfterInteractions, ...props}: 
         return () => {
             handle.cancel();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const aspectRatioStyle = styles.aspectRatioLottie(source);

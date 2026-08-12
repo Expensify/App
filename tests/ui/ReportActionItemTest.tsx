@@ -1915,7 +1915,7 @@ describe('ReportActionItem', () => {
 
         it('IOU PAY VBBA manual renders business bank account message with last 4 digits', async () => {
             await act(async () => {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, createMock<BankAccountList>({12345: {accountData: {accountNumber: '000098765'}}}));
             });
             await waitForBatchedUpdatesWithAct();
@@ -1951,7 +1951,7 @@ describe('ReportActionItem', () => {
 
         it('IOU PAY VBBA automatic renders auto-paid message', async () => {
             await act(async () => {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, createMock<BankAccountList>({12345: {accountData: {accountNumber: '000098765'}}}));
             });
             await waitForBatchedUpdatesWithAct();
@@ -1987,7 +1987,7 @@ describe('ReportActionItem', () => {
 
         it('IOU PAY with bankAccountID and payAsBusiness renders settleInvoiceBusiness message', async () => {
             await act(async () => {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, createMock<BankAccountList>({55555: {accountData: {accountNumber: '000012345'}}}));
             });
             await waitForBatchedUpdatesWithAct();
@@ -2027,7 +2027,7 @@ describe('ReportActionItem', () => {
 
         it('IOU PAY with bankAccountID and no payAsBusiness renders settleInvoicePersonal message', async () => {
             await act(async () => {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, createMock<BankAccountList>({77777: {accountData: {accountNumber: '000067890'}}}));
             });
             await waitForBatchedUpdatesWithAct();

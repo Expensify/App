@@ -120,7 +120,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
             return {
                 name,
                 enabled: tagsEnabledColumn !== -1 ? ['true', 'yes'].includes(tagsEnabled?.[containsHeader ? index + 1 : index]?.toString().trim().toLowerCase() ?? '') : true,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 'GL Code': tagsGLCodeColumn !== -1 ? (tagsGLCode?.[containsHeader ? index + 1 : index] ?? '') : existingGLCodeOrDefault,
             };
         });

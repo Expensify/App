@@ -48,7 +48,7 @@ function EnablePaymentsPage() {
         openEnablePaymentsPage();
         // userWallet.isLoading is intentionally omitted from the dependencies,
         // as reacting to it would endlessly retry a failed fetch
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOffline, hasFreshData]);
 
     // Only redirect after the fresh data loading cycle (isLoading: true → false) completes,

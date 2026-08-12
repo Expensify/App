@@ -21,7 +21,7 @@ function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale, 
             return;
         }
         labelRef.current.setAttribute('for', inputId);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const animatedStyle = useAnimatedStyle(() => styles.textInputLabelTransformation(labelTranslateY, labelScale));

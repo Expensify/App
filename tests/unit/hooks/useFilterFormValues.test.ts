@@ -175,7 +175,7 @@ describe('useFilterFormValues selectors', () => {
                     name: 'Policy 1',
                     connections,
                     exportLayouts,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     employeeList: {'a@b.com': {email: 'a@b.com', role: 'user'}},
                     taxRates: {name: 'Tax', taxes: {}},
                     customUnits: {unit1: {name: 'Miles'}},
@@ -210,7 +210,7 @@ describe('useFilterFormValues selectors', () => {
 
         it('extracts only fields needed for getTypeOptions', () => {
             const employeeList =
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 {'a@b.com': {email: 'a@b.com', role: 'admin'}};
             const policies: OnyxCollection<Policy> = {
                 [POLICY_KEY]: createMock<Policy>({
@@ -271,7 +271,7 @@ describe('useFilterFormValues selectors', () => {
 
         it('extracts all fields needed for advanced search filter checks', () => {
             const employeeList =
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 {'a@b.com': {email: 'a@b.com', role: 'admin'}};
             const taxRates = {name: 'Tax', defaultValue: '10%', taxes: {tax1: {name: 'VAT', value: '20%'}}};
             const tax = {trackingEnabled: true};

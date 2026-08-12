@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention -- The scheduler package exposes unstable_* named exports, so the mock must mirror those exact names. */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention -- The scheduler package exposes unstable_* named exports, so the mock must mirror those exact names. */
 import {Scheduler} from '@libs/Scheduler';
 
 import CONST from '@src/CONST';

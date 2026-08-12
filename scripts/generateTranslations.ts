@@ -165,7 +165,7 @@ class TranslationGenerator {
     /**
      * CLI instance for user prompts.
      */
-    /* eslint-disable @typescript-eslint/naming-convention */
+    /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
     private readonly cli: CLI<{
         flags: {
             'dry-run': {description: string};
@@ -195,7 +195,7 @@ class TranslationGenerator {
             };
         };
     }>;
-    /* eslint-enable @typescript-eslint/naming-convention */
+    /* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 
     /**
      * If a complex template expression comes from an existing translation file rather than ChatGPT, then the hashes of its spans will be serialized from the translated version of those spans.
@@ -214,7 +214,7 @@ class TranslationGenerator {
         this.languagesDir = process.env.LANGUAGES_DIR ?? path.join(__dirname, '../src/languages');
         const enSourceFile = path.join(this.languagesDir, 'en.ts');
 
-        /* eslint-disable @typescript-eslint/naming-convention */
+        /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
         this.cli = new CLI({
             flags: {
                 'dry-run': {
@@ -288,7 +288,7 @@ class TranslationGenerator {
                 },
             },
         } as const);
-        /* eslint-enable @typescript-eslint/naming-convention */
+        /* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 
         this.targetLanguages = this.cli.namedArgs.locales;
         this.compareRef = this.cli.namedArgs['compare-ref'];

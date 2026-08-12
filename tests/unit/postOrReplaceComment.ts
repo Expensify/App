@@ -50,7 +50,7 @@ const previousCommentsResponse = createMock<ListCommentsResponse>({
     data: [
         {
             body: ':test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, and Web. Happy testing!',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             node_id: 'IC_abcd',
         },
     ],

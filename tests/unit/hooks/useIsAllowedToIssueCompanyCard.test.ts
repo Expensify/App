@@ -23,7 +23,7 @@ const mockPolicy = {...createRandomPolicy(Number(mockPolicyID), CONST.POLICY.TYP
 const linkedFeedDomainID = 22222222;
 
 const mockedFeeds = createMock<CombinedCardFeeds>({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
     'vcf#19475968': {
         liabilityType: 'personal',
         pending: false,
@@ -31,7 +31,7 @@ const mockedFeeds = createMock<CombinedCardFeeds>({
         customFeedName: 'Custom feed name',
         feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
     },
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
     'vcf#11111111': {
         liabilityType: 'personal',
         pending: false,
@@ -39,7 +39,7 @@ const mockedFeeds = createMock<CombinedCardFeeds>({
         customFeedName: 'Custom feed name 1',
         feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
     },
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- Feed keys use the `vcf#<id>` format from the backend
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention -- Feed keys use the `vcf#<id>` format from the backend
     'vcf#22222222': {
         liabilityType: 'personal',
         pending: false,

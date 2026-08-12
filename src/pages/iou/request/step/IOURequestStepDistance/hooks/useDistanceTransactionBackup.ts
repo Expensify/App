@@ -46,7 +46,7 @@ function useDistanceTransactionBackup({transaction, isCreatingNewRequest, isEdit
         return () => {
             // If the user cancels out of the modal without saving changes, then the original transaction
             // needs to be restored from the backup so that all changes are removed.
-            // eslint-disable-next-line react-hooks/exhaustive-deps -- ref reads are stable; we intentionally read the latest `.current` at unmount
+            /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- ref reads are stable; we intentionally read the latest `.current` at unmount
             if (transactionWasSavedRef.current) {
                 removeBackupTransaction(transaction?.transactionID);
                 return;
@@ -59,7 +59,7 @@ function useDistanceTransactionBackup({transaction, isCreatingNewRequest, isEdit
             }
             openReport({reportID: transaction?.reportID, introSelected, betas, hasReportActions: true});
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- mount/unmount-only effect: backup on mount, restore-or-drop on unmount, never re-runs
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- mount/unmount-only effect: backup on mount, restore-or-drop on unmount, never re-runs
     }, []);
 }
 

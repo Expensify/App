@@ -57,7 +57,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
         // Clear stale flow state on entry while preserving onSuccessFallbackRoute if it was set before entering this screen (e.g. from a pay/KYC flow or deep link).
         // openPersonalBankAccountSetupView also resets state, but this handles direct navigation to this screen.
         clearPersonalBankAccount(onSuccessFallbackRoute ? {onSuccessFallbackRoute} : undefined);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingPersonalBankAccount]);
 
     const handleConnectManually = () => {

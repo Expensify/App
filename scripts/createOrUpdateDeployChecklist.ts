@@ -6,7 +6,7 @@ import GithubUtils from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
 import type {MergedPR, SubmoduleUpdate} from '@github/libs/GitUtils';
 
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import {format} from 'date-fns/format';
 import fs from 'fs';

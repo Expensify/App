@@ -4,5 +4,5 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 const tierNameSelector = (wallet: OnyxEntry<UserWallet>) => wallet?.tierName;
 
-// eslint-disable-next-line import/prefer-default-export
+/* oxlint-disable-next-line hosted/prefer-default-export */ // eslint-disable-next-line import/prefer-default-export
 export {tierNameSelector};

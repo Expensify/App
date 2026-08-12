@@ -190,7 +190,7 @@ function AccessOrNotFoundWrapper({
         }
 
         openWorkspace(policyID, []);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPolicyIDInRoute, policyID]);
 
     const isPolicyEmpty = !Object.entries(policy ?? {}).length || !policy?.id;
@@ -238,7 +238,7 @@ function AccessOrNotFoundWrapper({
             Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
         });
         // We don't need to run the effect on policyID change as we only use it to get the route to navigate to.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pendingField, isOffline, isFeatureEnabled, shouldShowNotFoundPage, isFocused]);
 
     useEffect(() => {

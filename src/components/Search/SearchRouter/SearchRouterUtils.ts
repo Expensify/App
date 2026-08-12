@@ -51,6 +51,7 @@ function getContextualReportData(state: NavigationState | undefined): Contextual
 
     if (maybeReportRoute?.name === SCREENS.REPORT || maybeReportRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
         // We're guaranteed that the type of params is of SCREENS.REPORT
+        // oxlint-disable-next-line no-unsafe-optional-chaining -- ts-eslint doesn't flag optional chains wrapped in a type assertion; tsgolint does
         return {contextualReportID: (maybeReportRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT]).reportID, isSearchRouterScreen};
     }
     return {contextualReportID: undefined, isSearchRouterScreen};

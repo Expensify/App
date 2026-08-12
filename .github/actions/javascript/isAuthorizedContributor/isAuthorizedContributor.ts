@@ -79,7 +79,7 @@ async function isAuthorizedViaLinkedIssues(prBody: string, actor: string): Promi
             const {data: issue} = await GithubUtils.octokit.issues.get({
                 owner,
                 repo,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 issue_number: number,
             });
 
@@ -117,7 +117,7 @@ async function isAuthorizedContributor({prNumber, actor, actorAssociation, repoO
     const {data: pr} = await GithubUtils.octokit.pulls.get({
         owner: repoOwner,
         repo: repoName,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         pull_number: prNumber,
     });
 

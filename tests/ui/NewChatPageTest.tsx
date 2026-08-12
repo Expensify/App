@@ -206,7 +206,7 @@ describe('NewChatPage', () => {
             // Given that a personal details list is initialized in Onyx
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     '1': {accountID: 1, login: email},
                 });
             });

@@ -5,35 +5,35 @@ import type {FrequentlyUsedEmoji} from '@src/types/onyx';
 // Mock the Emojis module
 jest.mock('@assets/emojis', () => ({
     emojiCodeTableWithSkinTones: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         '😀': {
             code: '😀',
             hexcode: '1F600',
             name: 'grinning_face',
             keywords: ['face', 'grin', 'grinning'],
         },
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         '😃': {
             code: '😃',
             hexcode: '1F603',
             name: 'grinning_face_with_big_eyes',
             keywords: ['face', 'grin', 'grinning'],
         },
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         '😄': {
             code: '😄',
             hexcode: '1F604',
             name: 'grinning_face_with_smiling_eyes',
             keywords: ['face', 'grin', 'grinning'],
         },
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         '👋': {
             code: '👋',
             hexcode: '1F44B',
             name: 'waving_hand',
             keywords: ['hand', 'wave', 'waving'],
         },
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         '👍': {
             code: '👍',
             hexcode: '1F44D',
@@ -42,21 +42,21 @@ jest.mock('@assets/emojis', () => ({
         },
     },
     emojiNameTable: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         grinning_face: {
             code: '😀',
             hexcode: '1F600',
             name: 'grinning_face',
             keywords: ['face', 'grin', 'grinning'],
         },
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         waving_hand: {
             code: '👋',
             hexcode: '1F44B',
             name: 'waving_hand',
             keywords: ['hand', 'wave', 'waving'],
         },
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         thumbs_up: {
             code: '👍',
             hexcode: '1F44D',

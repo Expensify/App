@@ -48,7 +48,7 @@ import {View} from 'react-native';
 type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
     /** The ID of the associated policy */
     // eslint-disable-next-line react/no-unused-prop-types
-    policyID: string | undefined;
+    policyID: string | undefined; // oxlint-disable-line hosted/no-unused-prop-types -- a prepended block comment would hide the JSDoc above from jsdoc/require-jsdoc
 
     /** Whether the task preview is hovered so we can modify its style */
     isHovered: boolean;

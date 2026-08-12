@@ -61,7 +61,7 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
     const firstDefinedLastReadTime = useInitial(report?.lastReadTime);
 
     const id = useMemo(() => {
-        /* eslint-disable react-hooks/refs -- firstRenderLastReadTime snapshots lastReadTime at first render for a stable unread anchor */
+        /* oxlint-disable rh/refs */ /* eslint-disable react-hooks/refs -- firstRenderLastReadTime snapshots lastReadTime at first render for a stable unread anchor */
         if (treatAsNoPaginationAnchor) {
             return undefined;
         }
@@ -80,7 +80,7 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
         }
 
         return sortedAllReportActions.findLast((reportAction) => reportAction.created > initialLastReadTime)?.reportActionID;
-        /* eslint-enable react-hooks/refs */
+        /* oxlint-enable rh/refs */ /* eslint-enable react-hooks/refs */
     }, [treatAsNoPaginationAnchor, reportActionID, shouldLinkToOldestUnreadReportAction, sortedAllReportActions, shouldSnapshotInitialLastReadTime, firstDefinedLastReadTime]);
 
     const {

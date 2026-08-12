@@ -259,7 +259,7 @@ describe('ExpensifyCardPage', () => {
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.CARD_LIST, {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 1234: {
                     cardID: 1234,
                     state: CONST.EXPENSIFY_CARD.STATE.OPEN,
@@ -275,7 +275,7 @@ describe('ExpensifyCardPage', () => {
                     fraud: null,
                     lastFourPAN: '1234',
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 5678: {
                     cardID: 5678,
                     state: CONST.EXPENSIFY_CARD.STATE.OPEN,

@@ -800,11 +800,11 @@ describe('TransactionPreviewUtils', () => {
 
         test('returns unique error messages from report actions', () => {
             const actions = {
-                /* eslint-disable @typescript-eslint/naming-convention */
+                /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
                 1: {errors: {a: 'Error A', b: 'Error B'}},
                 2: {errors: {c: 'Error C', a: 'Error A2'}},
                 3: {errors: {a: 'Error A', d: 'Error D'}},
-                /* eslint-enable @typescript-eslint/naming-convention */
+                /* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
             } as unknown as ReportActions;
 
             const expectedErrors = ['Error B', 'Error C', 'Error D'];
@@ -813,9 +813,9 @@ describe('TransactionPreviewUtils', () => {
 
         test('returns the latest error message if multiple errors exist under a single action', () => {
             const actions = {
-                /* eslint-disable @typescript-eslint/naming-convention */
+                /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
                 1: {errors: {z: 'Error Z2', a: 'Error A', f: 'Error Z'}},
-                /* eslint-enable @typescript-eslint/naming-convention */
+                /* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
             } as unknown as ReportActions;
 
             expect(getUniqueActionErrorsForTransaction(actions, undefined)).toEqual(['Error Z2']);
@@ -823,10 +823,10 @@ describe('TransactionPreviewUtils', () => {
 
         test('filters out non-string error messages', () => {
             const actions = {
-                /* eslint-disable @typescript-eslint/naming-convention */
+                /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
                 1: {errors: {a: 404, b: 'Error B'}},
                 2: {errors: {c: null, d: 'Error D'}},
-                /* eslint-enable @typescript-eslint/naming-convention */
+                /* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
             } as unknown as ReportActions;
 
             expect(getUniqueActionErrorsForTransaction(actions, undefined)).toEqual(['Error B', 'Error D']);

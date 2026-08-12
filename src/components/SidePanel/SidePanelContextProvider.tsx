@@ -114,7 +114,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     useEffect(() => {
         // We need to set transition state to false when animation starts, then back to true when it completes.
         // This is intentional state management for coordinating with the animation lifecycle.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        /* oxlint-disable-next-line rh/set-state-in-effect */ // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsSidePanelTransitionEnded(false);
         Animated.parallel([
             Animated.timing(sidePanelOffset.current, {

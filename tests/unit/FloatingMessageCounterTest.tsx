@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-/* eslint-disable @typescript-eslint/naming-convention -- Translation keys use dot-notation which violates naming conventions */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention -- Translation keys use dot-notation which violates naming conventions */
 const translationMap: Record<string, string> = {
     newMessages: 'New messages',
     latestMessages: 'Latest messages',
@@ -17,7 +17,7 @@ const translationMap: Record<string, string> = {
     'accessibilityHints.scrollToActionBadgeTarget': 'Scroll to action requiring attention',
     'accessibilityHints.scrollToNewestMessages': 'Scroll to newest messages',
 };
-/* eslint-enable @typescript-eslint/naming-convention */
+/* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({

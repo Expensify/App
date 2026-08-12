@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import type {PersonalDetailsList, Policy, Report, ReportAction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 import type * as Navigation from '@react-navigation/native';
 import type {ReactElement} from 'react';
 

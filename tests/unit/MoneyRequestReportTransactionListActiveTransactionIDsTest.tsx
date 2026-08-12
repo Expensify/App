@@ -51,7 +51,7 @@ function useActiveTransactionIDsEffect(visualOrderTransactionIDs: string[]) {
         return () => {
             clearActiveTransactionIDs();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is a primitive proxy for the array
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is a primitive proxy for the array
     }, [visualOrderTransactionIDsKey]);
 
     return {visualOrderTransactionIDsKey};

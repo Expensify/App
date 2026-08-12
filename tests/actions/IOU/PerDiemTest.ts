@@ -534,13 +534,13 @@ describe('PerDiem', () => {
                 reportID: 'chat_123',
                 chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                 participants: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     '123': {
                         accountID: 123,
                         role: CONST.REPORT.ROLE.MEMBER,
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     '456': {
                         accountID: 456,
                         role: CONST.REPORT.ROLE.MEMBER,

@@ -460,9 +460,9 @@ describe('APITests', () => {
             .then(() => {
                 // When we queue both non-persistable and persistable commands that will trigger reauthentication and go offline at the same time
                 API.makeRequestWithSideEffects('AuthenticatePusher', {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     socket_id: 'socket_id',
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     channel_name: 'channel_name',
                     shouldRetry: false,
                     forceNetworkRequest: false,

@@ -78,7 +78,7 @@ function BasePickerImpl({
             onInputChange(item.value, 0);
         }
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [items]);
 
     const context = useScrollContext();

@@ -70,7 +70,7 @@ function useAwaitSidePanelClose(shouldMount: boolean): boolean {
         }
         closeSidePanel();
         // closeSidePanel ref is unstable; excluding it prevents the effect from firing twice per activation.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldMount]);
 
     if (shouldMount && !isSidePanelClosed && shouldHideSidePanel && isSidePanelTransitionEnded) {

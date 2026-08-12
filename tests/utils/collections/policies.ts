@@ -46,7 +46,7 @@ function createCategoryTaxExpenseRules(category: string, taxCode: string) {
             applyWhen: [{condition: 'matches', field: 'category', value: category}],
             id: '1',
             tax: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 field_id_TAX: {
                     externalID: taxCode,
                 },

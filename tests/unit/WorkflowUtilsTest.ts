@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';

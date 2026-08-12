@@ -11,7 +11,7 @@ import type {TranslationPaths} from '@src/languages/types';
 
 import React from 'react';
 
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 const AUTH_TYPE_TRANSLATION_KEY = {
     Unknown: 'multifactorAuthentication.biometricsTest.authType.unknown',
     None: 'multifactorAuthentication.biometricsTest.authType.none',
@@ -22,7 +22,7 @@ const AUTH_TYPE_TRANSLATION_KEY = {
     'Optic ID': 'multifactorAuthentication.biometricsTest.authType.opticId',
     Passkey: 'multifactorAuthentication.biometricsTest.authType.passkey',
 } as const satisfies Record<AuthTypeName, TranslationPaths>;
-/* eslint-enable @typescript-eslint/naming-convention */
+/* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 
 function AuthenticationMethodDescription() {
     const styles = useThemeStyles();

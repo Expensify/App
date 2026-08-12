@@ -99,7 +99,7 @@ function ValidateLoginPage({
         // The user has initiated the sign in process on the same browser, in another tab.
         signInWithValidateCode(Number(accountID), validateCode, preferredLocale);
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Redirect Home after a separate-session security link sign-in. On a focus effect (not mount-only)

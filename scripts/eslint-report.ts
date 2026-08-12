@@ -629,7 +629,7 @@ const runReport = async (): Promise<void> => {
     const seatbeltDir = path.dirname(seatbeltPath);
 
     /* CLI argv uses kebab-case for flags documented in help */
-    /* eslint-disable @typescript-eslint/naming-convention */
+    /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
     const cli = new CLI({
         namedArgs: {
             output: {
@@ -653,7 +653,7 @@ const runReport = async (): Promise<void> => {
             },
         },
     });
-    /* eslint-enable @typescript-eslint/naming-convention */
+    /* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 
     const output = cli.namedArgs.output;
     const gitLimit = cli.namedArgs['git-limit'];

@@ -252,7 +252,7 @@ function ReportFetchHandler() {
         }
         fetchReport();
         // fetchReport is a stable useEffectEvent callback and does not need to be listed as a dependency.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report?.reportID, prevReportID, reportIDFromRoute]);
 
     useEffect(() => {

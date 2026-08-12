@@ -22,7 +22,7 @@ const policy: OnyxEntry<OnyxTypes.Policy> = {
         jobID: 7206965285807173000,
     },
     customUnits: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         '39C3FF491F559': {
             customUnitID: '39C3FF491F559',
             name: 'Distance',
@@ -30,7 +30,7 @@ const policy: OnyxEntry<OnyxTypes.Policy> = {
                 unit: 'mi',
             },
             rates: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '928A74633831E': {
                     customUnitRateID: '928A74633831E',
                     name: 'Default Rate',
@@ -50,7 +50,7 @@ const policy: OnyxEntry<OnyxTypes.Policy> = {
     areReportFieldsEnabled: false,
     areConnectionsEnabled: false,
     employeeList: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         'a1@53019.com': {
             role: 'admin',
             errors: {},
@@ -81,7 +81,7 @@ const policy: OnyxEntry<OnyxTypes.Policy> = {
         reimbursable: false,
     },
     fieldList: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         text_title: {
             defaultValue: '{report:type} {report:startdate}',
             deletable: true,
@@ -246,12 +246,12 @@ const convertedInvoiceChat: OnyxTypes.Report = {
     oldPolicyName: '',
     ownerAccountID: 0,
     participants: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         '32': {
             notificationPreference: 'always',
             role: 'admin',
         },
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         '33': {
             notificationPreference: 'always',
             permissions: [CONST.REPORT.PERMISSIONS.READ, CONST.REPORT.PERMISSIONS.WRITE, CONST.REPORT.PERMISSIONS.SHARE, CONST.REPORT.PERMISSIONS.OWN],

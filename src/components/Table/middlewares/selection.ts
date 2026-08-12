@@ -138,7 +138,7 @@ export default function useSelection<DataType extends TableData>({
     useEffect(() => clearSelection(), [currentFilters, activeSearchString, clearSelection]);
 
     // When the table unmounts, clear the selection. Should only run on unmount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => () => onRowSelectionChange?.([]), []);
 
     /**

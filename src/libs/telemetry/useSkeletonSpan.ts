@@ -53,7 +53,7 @@ function useSkeletonSpan(component: string, reasonAttributes: SkeletonSpanReason
         );
 
         return () => endSpan(spanId);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally removing reasonAttributes to prevent re-creating the span on every render if the parameters are unstable
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally removing reasonAttributes to prevent re-creating the span on every render if the parameters are unstable
     }, [component, reactId]);
 
     useEffect(() => {

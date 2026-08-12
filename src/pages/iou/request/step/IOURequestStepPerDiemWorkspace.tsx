@@ -102,7 +102,7 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
         }
         const frame = requestAnimationFrame(() => selectWorkspace(pendingPolicy));
         return () => cancelAnimationFrame(frame);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pendingPolicy, pendingPolicyID]);
 
     if (pendingPolicyID) {

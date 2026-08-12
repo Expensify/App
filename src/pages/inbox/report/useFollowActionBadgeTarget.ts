@@ -80,7 +80,7 @@ function useFollowActionBadgeTarget({
         }
         const scrollTimeoutID = setTimeout(() => scrollToActionBadgeTargetRef.current(), scrollDelay);
         return () => clearTimeout(scrollTimeoutID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [actionTargetReportActionID]);
 }
 

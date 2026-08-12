@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 declare module 'react-native-key-command' {
-    // eslint-disable-next-line no-restricted-syntax
+    /* oxlint-disable-next-line core/no-restricted-syntax */ // eslint-disable-next-line no-restricted-syntax
     enum constants {
         keyInputDownArrow = 'keyInputDownArrow',
         keyInputEscape = 'keyInputEscape',

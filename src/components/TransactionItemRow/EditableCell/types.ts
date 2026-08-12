@@ -15,5 +15,5 @@ type EditableProps<T> = {
     onSave?: (value: T) => void;
 };
 
-// eslint-disable-next-line import/prefer-default-export -- Intentional single named type export for consistency with other `types.ts` files.
+/* oxlint-disable-next-line hosted/prefer-default-export */ // eslint-disable-next-line import/prefer-default-export -- Intentional single named type export for consistency with other `types.ts` files.
 export type {EditableProps};

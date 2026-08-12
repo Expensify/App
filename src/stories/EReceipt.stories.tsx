@@ -4,7 +4,7 @@ import EReceipt from '@components/EReceipt';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {OnyxMergeCollectionInput} from 'react-native-onyx';
-/* eslint-disable @typescript-eslint/naming-convention, rulesdir/prefer-actions-set-data */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention, rulesdir/prefer-actions-set-data */
 import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
 import React from 'react';

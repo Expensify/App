@@ -1,7 +1,7 @@
 type AppleIDSignInOnSuccessEvent = {
     detail: {
         authorization: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             id_token: string;
         };
     };

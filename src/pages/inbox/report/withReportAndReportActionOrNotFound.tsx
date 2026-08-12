@@ -76,7 +76,7 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
             return;
         }
         openReport({reportID: props.route.params.reportID, introSelected, betas, hasReportActions, currentUserAccountID});
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldUseNarrowLayout, props.route.params.reportID, currentUserAccountID]);
 
     // Perform all the loading checks

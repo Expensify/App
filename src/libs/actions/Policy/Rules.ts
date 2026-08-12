@@ -44,7 +44,7 @@ function buildTaxObject(taxKey: string | undefined, policy: Policy | undefined):
     }
 
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         field_id_TAX: {
             externalID: taxKey,
             value: tax.value,

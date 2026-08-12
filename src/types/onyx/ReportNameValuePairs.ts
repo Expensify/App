@@ -96,6 +96,7 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Parent report ID */
     parentReportID?: string;
 
+    /* oxlint-disable hosted/naming-convention -- a trailing directive cannot be used here: oxfmt moves it inside the object body */
     /** Title field configuration copied from policy - presence indicates auto-generated names are allowed */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     expensify_text_title?: {
@@ -147,6 +148,7 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** This is indicates which default value we should use. It was preferred using this over having defaultValue (which we have anyway for historical reasons), since the values are not unique we can't determine which key the defaultValue is referring too. It was also preferred over having defaultKey since the keys are user editable and can be changed. The externalIDs work effectively as an ID, which never changes even after changing the key, value or position of the option. */
         defaultExternalID?: string | null;
     };
+    /* oxlint-enable hosted/naming-convention */
 }>;
 
 /** Collection of reportNameValuePairs, indexed by reportNameValuePairs_{reportID} */

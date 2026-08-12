@@ -24,7 +24,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
             return;
         }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_SETUP.getRoute(policyID));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (!is2FAEnabled) {

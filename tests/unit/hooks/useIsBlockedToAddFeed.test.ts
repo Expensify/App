@@ -20,7 +20,7 @@ const delay = (ms: number) =>
 const mockPolicy = {...createRandomPolicy(Number(mockPolicyID), CONST.POLICY.TYPE.TEAM, 'TestPolicy'), policyID: mockPolicyID, policyAccountID: Number(mockPolicyID)};
 
 const mockCardFeeds = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
     'plaid.ins_19': {
         asrEnabled: false,
         country: 'US',
@@ -121,7 +121,7 @@ describe('useIsBlockedToAddFeed', () => {
     it('should return isBlockedToAddNewFeeds as false if collect policy and only CSV feed exists', () => {
         (useCardFeeds as jest.Mock).mockReturnValue([
             {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 'csv#123456': {
                     feed: 'csv#123456',
                     domainID: 123456,
@@ -138,14 +138,14 @@ describe('useIsBlockedToAddFeed', () => {
     it('should return isBlockedToAddNewFeeds as true if collect policy has CSV feed and a real feed', () => {
         (useCardFeeds as jest.Mock).mockReturnValue([
             {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 'csv#123456': {
                     feed: 'csv#123456',
                     domainID: 123456,
                     customFeedName: 'CSV Upload',
                     accountList: [],
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 'plaid.ins_19': {
                     feed: 'plaid.ins_19',
                     domainID: 123456,

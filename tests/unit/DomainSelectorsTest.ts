@@ -280,15 +280,15 @@ describe('domainSelectors', () => {
                 boundaryEntries: {
                     [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
                         shared: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '100': 'value',
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '200': 'value',
                         },
                     },
                     [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: {
                         shared: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '300': 'value',
                         },
                     },
@@ -303,13 +303,13 @@ describe('domainSelectors', () => {
                 boundaryEntries: {
                     [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
                         shared: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '123': 'value',
                         },
                     },
                     [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: {
                         shared: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '123': 'value',
                         },
                     },
@@ -324,13 +324,13 @@ describe('domainSelectors', () => {
                 boundaryEntries: {
                     [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
                         shared: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '456': 'value',
                         },
                     },
                     someOtherKey: {
                         shared: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '789': 'value',
                         },
                     },
@@ -347,7 +347,7 @@ describe('domainSelectors', () => {
                     [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: {shared: null},
                     [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}3`]: {
                         shared: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '111': 'value',
                         },
                     },
@@ -362,13 +362,13 @@ describe('domainSelectors', () => {
                 boundaryEntries: {
                     [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
                         shared: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '100': 'read',
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '200': null,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '300': undefined,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '400': 'read',
                         },
                     },
@@ -383,11 +383,11 @@ describe('domainSelectors', () => {
                 boundaryEntries: {
                     [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
                         shared: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '123': 'value',
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             'not-a-number': 'value',
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '456': 'value',
                         },
                     },
@@ -430,9 +430,9 @@ describe('domainSelectors', () => {
                 enableRestrictedPrimaryLogin: false,
                 enableRestrictedPolicyCreation: false,
                 shared: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     '456': 'read',
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     '789': 'read',
                 },
             });
@@ -448,7 +448,7 @@ describe('domainSelectors', () => {
         });
 
         it('Should return the security group data when account belongs to a group', () => {
-            /* eslint-disable @typescript-eslint/naming-convention */
+            /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
             const group1 = createFixture(domainSecurityGroupFixture, {shared: {'123': 'read', '456': 'read'}, enableRestrictedPrimaryLogin: true, enableRestrictedPolicyCreation: true});
             const group2 = createFixture(domainSecurityGroupFixture, {shared: {'789': 'read'}, enableRestrictedPrimaryLogin: true, enableRestrictedPolicyCreation: true});
 

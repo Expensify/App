@@ -418,7 +418,7 @@ describe('actions/PolicyCategory', () => {
                 [categoryName]: {
                     name: categoryName,
                     enabled: false,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'GL Code': '',
                     unencodedName: categoryName,
                     externalID: '',
@@ -457,7 +457,7 @@ describe('actions/PolicyCategory', () => {
                 [categoryName]: {
                     name: categoryName,
                     enabled: false,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'GL Code': '',
                     unencodedName: categoryName,
                     externalID: '',
@@ -471,7 +471,7 @@ describe('actions/PolicyCategory', () => {
                 expenseRules: [
                     {
                         tax: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             field_id_TAX: {
                                 externalID: 'GST',
                             },
@@ -611,9 +611,9 @@ describe('actions/PolicyCategory', () => {
         it('Import categories with correct success modal data', async () => {
             const fakePolicy = createRandomPolicy(0);
             const categoriesToImport: PolicyCategory[] = [
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 {name: 'Advertising', enabled: true, 'GL Code': '6000'},
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 {name: 'Benefits', enabled: true, 'GL Code': '6001'},
             ];
 
@@ -632,7 +632,7 @@ describe('actions/PolicyCategory', () => {
         it('Import categories with failure modal data', async () => {
             const fakePolicy = createRandomPolicy(0);
             const categoriesToImport: PolicyCategory[] = [
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 {name: 'Travel', enabled: true, 'GL Code': 'GL001'},
             ];
 
@@ -651,11 +651,11 @@ describe('actions/PolicyCategory', () => {
         it('Duplicate category names are counted only once for the unique categories length', async () => {
             const fakePolicy = createRandomPolicy(0);
             const categoriesToImport: PolicyCategory[] = [
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 {name: 'Advertising', enabled: true, 'GL Code': '6000'},
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 {name: 'Advertising', enabled: false, 'GL Code': '9999'},
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 {name: 'Benefits', enabled: true, 'GL Code': '6001'},
             ];
 
@@ -670,9 +670,9 @@ describe('actions/PolicyCategory', () => {
         it('Categories with empty names are skipped when counting unique categories', async () => {
             const fakePolicy = createRandomPolicy(0);
             const categoriesToImport: PolicyCategory[] = [
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 {name: '', enabled: true, 'GL Code': '6000'},
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 {name: 'Meals', enabled: true, 'GL Code': '100'},
             ];
 
@@ -705,7 +705,7 @@ describe('actions/PolicyCategory', () => {
                 [categoryName]: {
                     name: categoryName,
                     enabled: true,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'GL Code': '',
                     unencodedName: categoryName,
                     externalID: '',
@@ -778,7 +778,7 @@ describe('actions/PolicyCategory', () => {
                 [categoryName]: {
                     name: categoryName,
                     enabled: true,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'GL Code': '',
                     unencodedName: categoryName,
                     externalID: '',

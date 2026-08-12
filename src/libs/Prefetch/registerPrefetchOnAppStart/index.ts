@@ -27,7 +27,7 @@ function buildAuthenticateBody(credentials: Credentials): string {
     // The `appversion` parameter is omitted intentionally here.
     // This is because it can cause issues during app updates and
     // it is not needed by the "Authenticate" command for token refresh.
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
     const {referer, platform, api_setCookie, isFromDevEnv} = getBaseRequestParameters();
 
     const body = new URLSearchParams();

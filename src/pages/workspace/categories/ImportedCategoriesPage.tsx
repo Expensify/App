@@ -162,7 +162,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             return {
                 name,
                 enabled: categoriesEnabledColumn !== -1 ? ['true', 'yes'].includes(categoriesEnabled?.[dataIndex]?.toString().trim().toLowerCase() ?? '') : true,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 'GL Code': categoriesGLCodeColumn !== -1 ? (categoriesGLCode?.[dataIndex] ?? '') : existingGLCodeOrDefault,
                 ...(parsedMaxAmountNoReceipt !== undefined && {maxAmountNoReceipt: parsedMaxAmountNoReceipt}),
                 ...(parsedMaxAmountNoItemizedReceipt !== undefined && {maxAmountNoItemizedReceipt: parsedMaxAmountNoItemizedReceipt}),

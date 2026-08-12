@@ -49,7 +49,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
         setSelectedPronouns(currentPronouns);
 
         // Only need to update search value when the first time the data is loaded
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 
     const filteredPronounsList = useMemo((): PronounEntry[] => {

@@ -40,7 +40,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
     const timerStartTime = chronosTimeTracking?.startTime ? chronosTimeTracking.startTime : null;
 
     function formatElapsedTime(startTime: string): string {
-        // eslint-disable-next-line react-hooks/purity
+        /* oxlint-disable-next-line rh/purity */ // eslint-disable-next-line react-hooks/purity
         const elapsedMs = Date.now() - new Date(`${startTime}Z`).getTime();
         const totalMinutes = Math.floor(elapsedMs / 60000);
         const hours = Math.floor(totalMinutes / 60);

@@ -36,7 +36,7 @@ type ImageSVGProps = {
 
     /** Whether the image should be hidden from screen readers */
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    'aria-hidden'?: boolean;
+    'aria-hidden'?: boolean; // oxlint-disable-line hosted/naming-convention
 
     /** TestID for test */
     testID?: string;

@@ -51,7 +51,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     // Custom tag renderers
     edited: EditedRenderer,
     pre: PreRenderer,
-    /* eslint-disable @typescript-eslint/naming-convention */
+    /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
     'bullet-item': BulletItemRenderer,
     'task-title': TaskTitleRenderer,
     rbr: RBRRenderer,
@@ -68,7 +68,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     'transaction-history-link': TransactionHistoryLinkRenderer,
     'account-manager-link': AccountManagerLinkRenderer,
     'sparkles-icon': SparklesIconRenderer,
-    /* eslint-enable @typescript-eslint/naming-convention */
+    /* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 
     victorychart: VictoryChartRenderer,
 };

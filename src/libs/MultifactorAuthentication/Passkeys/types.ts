@@ -12,5 +12,5 @@ type PasskeyRegistrationKeyInfo = {
     };
 };
 
-// eslint-disable-next-line import/prefer-default-export -- type alias cannot be a default export without violating no-restricted-exports
+/* oxlint-disable-next-line hosted/prefer-default-export */ // eslint-disable-next-line import/prefer-default-export -- type alias cannot be a default export without violating no-restricted-exports
 export type {PasskeyRegistrationKeyInfo};

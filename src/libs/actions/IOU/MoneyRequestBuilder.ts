@@ -494,6 +494,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         const patchedSelfDMIouAction = {
             ...iou.action,
             reportID: selfDMReportID,
+            // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
             originalMessage: {
                 ...(getOriginalMessage(iou.action) ?? {}),
                 type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,

@@ -4,5 +4,5 @@ import type {Country} from '@src/CONST';
 
 type BusinessInfoSubPageProps = SubPageProps & {currency: string; country: Country | ''};
 
-// eslint-disable-next-line import/prefer-default-export
+/* oxlint-disable-next-line hosted/prefer-default-export */ // eslint-disable-next-line import/prefer-default-export
 export type {BusinessInfoSubPageProps};

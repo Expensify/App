@@ -2815,7 +2815,7 @@ const translations = {
                 two: 'nd',
                 few: 'rd',
                 other: 'th',
-                /* eslint-disable @typescript-eslint/naming-convention */
+                /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
                 '1': 'First',
                 '2': 'Second',
                 '3': 'Third',
@@ -2826,7 +2826,7 @@ const translations = {
                 '8': 'Eighth',
                 '9': 'Ninth',
                 '10': 'Tenth',
-                /* eslint-enable @typescript-eslint/naming-convention */
+                /* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
             },
         },
         approverInMultipleWorkflows: 'This member already belongs to another approval workflow. Any updates here will reflect there too.',
@@ -8249,7 +8249,7 @@ const translations = {
         restrictedDescription: 'People in your workspace can find this room',
         privateDescription: 'People invited to this room can find it',
         publicDescription: 'Anyone can find this room',
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         public_announceDescription: 'Anyone can find this room',
         createRoom: 'Create room',
         roomAlreadyExistsError: 'A room with this name already exists',
@@ -8269,7 +8269,7 @@ const translations = {
             restricted: 'Workspace', // the translation for "restricted" visibility is actually workspace. This is so we can display restricted visibility rooms as "workspace" without having to change what's stored.
             private: 'Private',
             public: 'Public',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             public_announce: 'Public Announce',
         },
     },

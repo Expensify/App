@@ -12,7 +12,6 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-// eslint-disable-next-line
 const ReactTestRenderer: typeof ReactTestRendererType = require('react-test-renderer');
 
 Onyx.init({keys: ONYXKEYS});

@@ -1,5 +1,5 @@
 const oldRoutes: Record<string, string> = {
-    /* eslint-disable @typescript-eslint/naming-convention */
+    /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
     // Per diem destination step migrated to dynamic routes (#83850). Dynamic suffixes are namespaced `per-diem-*` because
     // dynamic route paths must be globally unique across DYNAMIC_ROUTES (react-navigation flattens them and a bare
     // `destination` collides with Sage Intacct's existing `destination` suffix). Edit variant redirects to the
@@ -153,7 +153,7 @@ const oldRoutes: Record<string, string> = {
     '/*/*/taxRate/*/*': '/r/$4/taxRate?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/taxAmount/*/*': '/r/$4/taxAmount?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/attendees/*/*': '/r/$4/attendees?action=$1&iouType=$2&transactionID=$3&reportID=$4',
-    /* eslint-enable @typescript-eslint/naming-convention */
+    /* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 };
 
 export default oldRoutes;

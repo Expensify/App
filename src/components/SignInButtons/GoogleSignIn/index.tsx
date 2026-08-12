@@ -15,7 +15,7 @@ import {View} from 'react-native';
 
 type GoogleSignInProps = {
     isDesktopFlow?: boolean;
-    // eslint-disable-next-line react/no-unused-prop-types
+    /* oxlint-disable-next-line hosted/no-unused-prop-types */ // eslint-disable-next-line react/no-unused-prop-types
     onPress?: () => void;
     onPointerDown?: () => void;
 };
@@ -42,7 +42,7 @@ function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps)
         const google = window.google;
         if (google) {
             google.accounts.id.initialize({
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 client_id: CONFIG.GOOGLE_SIGN_IN.WEB_CLIENT_ID,
                 callback: (response) => signIn(response, preferredLocale),
             });

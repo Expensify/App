@@ -55,7 +55,7 @@ describe('useAccountIndicatorChecks', () => {
                     createMock<OnyxMultiSetInput>({
                         [ONYXKEYS.USER_WALLET]: {},
                         [ONYXKEYS.BANK_ACCOUNT_LIST]: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             12345: {
                                 methodID: 12345,
                                 errors: {error: 'Something went wrong'},
@@ -263,7 +263,7 @@ describe('useAccountIndicatorChecks', () => {
                                 partnerUserID: userID,
                                 validatedDate: new Date().toISOString(),
                             },
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '1_otheruser@expensify.com': {
                                 partnerID: 1,
                                 partnerUserID: 'different@expensify.com',
@@ -337,7 +337,7 @@ describe('useAccountIndicatorChecks', () => {
                         [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
                         [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: false,
                         [ONYXKEYS.BANK_ACCOUNT_LIST]: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             12345: {
                                 methodID: 12345,
                                 accountData: {state: CONST.BANK_ACCOUNT.STATE.SETUP},
@@ -427,7 +427,7 @@ describe('useAccountIndicatorChecks', () => {
                                 partnerUserID: userID,
                                 validatedDate: new Date().toISOString(),
                             },
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '1_otheruser@expensify.com': {
                                 partnerID: 1,
                                 partnerUserID: 'different@expensify.com',

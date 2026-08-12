@@ -46,7 +46,7 @@ function buildBusinessBankAccount(methodID: number) {
     };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/naming-convention
+/* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/naming-convention
 const OTHER_ELIGIBLE_BANK_ACCOUNT_LIST = {'111': buildBusinessBankAccount(111)} as unknown as BankAccountList;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const CURRENT_ONLY_BANK_ACCOUNT_LIST = {[`${CURRENT_BANK_ACCOUNT_ID}`]: buildBusinessBankAccount(CURRENT_BANK_ACCOUNT_ID)} as unknown as BankAccountList;

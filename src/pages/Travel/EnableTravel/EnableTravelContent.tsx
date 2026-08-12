@@ -139,7 +139,7 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
         setTravelProvisioningEnabledSteps(enabledStepNames);
         // Persist once for this mount only — later flag changes (e.g. legal name getting saved) shouldn't
         // re-trigger this, since enabledStepNames is already frozen for the rest of this flow session.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const pages = useMemo(() => enabledStepNames.map((pageName) => ({pageName, component: STEP_COMPONENT_BY_PAGE_NAME[pageName] ?? TermsStep})), [enabledStepNames]);

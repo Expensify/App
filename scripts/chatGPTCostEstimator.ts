@@ -39,7 +39,7 @@ class ChatGPTCostEstimator {
 }
 
 if (require.main === module) {
-    /* eslint-disable @typescript-eslint/naming-convention */
+    /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
     const cli = new CLI({
         namedArgs: {
             'input-tokens': {
@@ -64,7 +64,7 @@ if (require.main === module) {
             },
         },
     } as const);
-    /* eslint-enable @typescript-eslint/naming-convention */
+    /* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 
     const inputTokens = cli.namedArgs['input-tokens'];
     const outputTokens = cli.namedArgs['output-tokens'];

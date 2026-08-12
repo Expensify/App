@@ -64,7 +64,7 @@ const generateArgTypes = (mapping: Record<string, unknown>): InputType => ({
     mapping,
 });
 
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 const transactionsMap = {
     'No Merchant': modifiedTransaction({}),
     Food: modifiedTransaction({category: 'Food', tag: 'Yum', merchant: 'Burgers'}),
@@ -89,7 +89,7 @@ const iouReportMap = {
     IOU: iouReportWithModifiedType(CONST.REPORT.TYPE.IOU),
     'Normal report': iouReportR14932,
 };
-/* eslint-enable @typescript-eslint/naming-convention */
+/* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

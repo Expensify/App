@@ -19,9 +19,9 @@ async function getUpdatedDocRoutes(octokit: OctokitClient, owner: string, repo: 
     const files = await octokit.paginate(octokit.rest.pulls.listFiles, {
         owner,
         repo,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         pull_number: prNumber,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         per_page: 100,
     });
 

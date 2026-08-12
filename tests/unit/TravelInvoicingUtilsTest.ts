@@ -296,7 +296,7 @@ describe('TravelInvoicingUtils', () => {
 
         it('Should return undefined when no travel card exists', () => {
             const cardList = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1234': {
                     cardID: 1234,
                     state: 3,
@@ -312,7 +312,7 @@ describe('TravelInvoicingUtils', () => {
 
         it('Should return the travel card when feedCountry is PROGRAM_TRAVEL_US', () => {
             const cardList = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1234': {
                     cardID: 1234,
                     state: 3,
@@ -329,7 +329,7 @@ describe('TravelInvoicingUtils', () => {
 
         it('Should return first travel card when multiple cards exist', () => {
             const cardList = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1111': {
                     cardID: 1111,
                     state: 3,
@@ -338,7 +338,7 @@ describe('TravelInvoicingUtils', () => {
                         feedCountry: 'OTHER_COUNTRY',
                     },
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '2222': {
                     cardID: 2222,
                     state: 3,
@@ -356,7 +356,7 @@ describe('TravelInvoicingUtils', () => {
 
     describe('isTravelCVVEligible', () => {
         const mockTravelCardList = {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             '1234': {
                 cardID: 1234,
                 state: 3,
@@ -368,7 +368,7 @@ describe('TravelInvoicingUtils', () => {
         } as unknown as CardList;
 
         const mockNonTravelCardList = {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             '5678': {
                 cardID: 5678,
                 state: 3,

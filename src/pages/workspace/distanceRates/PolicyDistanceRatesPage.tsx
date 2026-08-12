@@ -171,7 +171,7 @@ function PolicyDistanceRatesPage({
 
     useEffect(() => {
         fetchDistanceRates();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useSearchBackPress({

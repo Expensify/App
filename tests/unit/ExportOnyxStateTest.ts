@@ -273,7 +273,7 @@ describe('maskOnyxState', () => {
 
     it('should mask emails in keys of objects', () => {
         const input = {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             'user@example.com': 'value',
             session: mockSession,
         };

@@ -264,7 +264,7 @@ describe('SuggestionMention', () => {
         const PARTICIPANT_ACCOUNT_ID = 2;
         const POLICY_EMPLOYEE_ACCOUNT_ID = 3;
         const UNRELATED_ACCOUNT_ID = 4;
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         const ubEmployeeList: PolicyEmployeeList = {'ub@example.com': {}};
         const policyWithEmployeeUb = {...createRandomPolicy(1), employeeList: ubEmployeeList};
 

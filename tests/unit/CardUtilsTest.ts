@@ -252,7 +252,7 @@ const oAuthAccountDetails = {
 };
 
 const directFeedCardsSingleList: WorkspaceCardsList = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
     '21570652': {
         accountID: 18439984,
         bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
@@ -270,7 +270,7 @@ const directFeedCardsSingleList: WorkspaceCardsList = {
 };
 
 const directFeedCardsMultipleList: WorkspaceCardsList = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
     '21570655': {
         accountID: 18439984,
         bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
@@ -285,7 +285,7 @@ const directFeedCardsMultipleList: WorkspaceCardsList = {
         scrapeMinDate: '2024-08-27',
         state: 3,
     },
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
     '21570656': {
         accountID: 18439984,
         bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
@@ -302,7 +302,7 @@ const directFeedCardsMultipleList: WorkspaceCardsList = {
     },
 };
 const customFeedCardsList: WorkspaceCardsList = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
     '21310091': {
         accountID: 18439984,
         bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
@@ -318,11 +318,11 @@ const customFeedCardsList: WorkspaceCardsList = {
     },
 };
 customFeedCardsList.cardList = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
     '480801XXXXXX2111': 'ENCRYPTED_CARD_NUMBER',
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
     '480801XXXXXX2554': 'ENCRYPTED_CARD_NUMBER',
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
     '480801XXXXXX2566': 'ENCRYPTED_CARD_NUMBER',
 };
 const customFeedName = 'Custom feed name';
@@ -422,7 +422,7 @@ const cardFeedsCollection: Record<string, CardFeeds> = {
     },
 };
 
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 const allCardsList = createMock<OnyxCollection<WorkspaceCardsList>>({
     [`cards_11111111_${CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE}`]: directFeedCardsMultipleList,
     [`cards_11111111_${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}1`]: customFeedCardsList,

@@ -135,7 +135,7 @@ function GroupChildrenContent({
         }
         refreshTransactions();
         // Only refresh when a new transaction is created in this group — refreshTransactions is excluded to avoid infinite loops
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newTransactionID, isExpanded]);
 
     useEffect(() => {
@@ -144,7 +144,7 @@ function GroupChildrenContent({
         }
         refreshTransactions();
         // Only fetch on expand — refreshTransactions and isExpenseReportType are excluded to prevent re-fetching on every render
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isExpanded]);
 
     const wasScreenFocusedRef = React.useRef(isScreenFocused);
@@ -156,7 +156,7 @@ function GroupChildrenContent({
         }
         refreshTransactions();
         // Only refresh when returning to this screen while expanded — other deps excluded to avoid redundant fetches
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isScreenFocused]);
 
     const filteredViolations: Record<string, TransactionViolation[]> = useMemo(() => {

@@ -302,6 +302,7 @@ function subscribe<EventName extends PusherEventName>(
                                         channelName,
                                         message,
                                     });
+                                    // oxlint-disable-next-line prefer-promise-reject-errors -- pre-existing string rejection; ESLint's syntactic rule doesn't flag identifiers
                                     reject(message);
                                 },
                             });

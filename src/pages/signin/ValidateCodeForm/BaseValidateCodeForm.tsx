@@ -232,7 +232,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         clearLocalSignInData();
         // `clearLocalSignInData` is not required as a dependency, and adding it
         // over complicates things requiring clearLocalSignInData function to use useCallback
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingResendValidationForm]);
 
     useEffect(() => {

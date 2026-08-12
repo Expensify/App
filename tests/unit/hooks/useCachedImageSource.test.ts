@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import type {ImageSource} from 'expo-image';
 
 const MOCK_URI = 'https://example.com/image.png';
-// eslint-disable-next-line @typescript-eslint/naming-convention
+/* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
 const MOCK_HEADERS = {'X-Auth-Token': 'token123'};
 const MOCK_BLOB = new Blob(['image-data'], {type: 'image/png'});
 const MOCK_BLOB_URL = 'blob:http://localhost/mock-blob-url';

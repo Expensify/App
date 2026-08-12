@@ -14,5 +14,5 @@ const transactionViolationsByIDsSelector =
         return result;
     };
 
-// eslint-disable-next-line import/prefer-default-export -- this file will include more selectors, so we want don't want to export single selector as default
+/* oxlint-disable-next-line hosted/prefer-default-export */ // eslint-disable-next-line import/prefer-default-export -- this file will include more selectors, so we want don't want to export single selector as default
 export {transactionViolationsByIDsSelector};

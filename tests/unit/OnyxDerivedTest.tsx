@@ -10,7 +10,7 @@ import type {Report, Transaction, TransactionViolation, ReportAction, ReportActi
 
 import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 

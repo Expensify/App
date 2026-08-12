@@ -45,7 +45,7 @@ function BackgroundImage({width, isSmallScreen = false}: BackgroundImageProps) {
         return () => {
             handle.cancel();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (!isInteractionComplete && isAnonymous) {

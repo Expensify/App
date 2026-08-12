@@ -907,7 +907,7 @@ async function importPolicyCategories(policyID: string, categories: PolicyCatego
             categories.map((category) => ({
                 name: category.name,
                 enabled: category.enabled,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 'GL Code': String(category['GL Code']),
                 ...('maxAmountNoReceipt' in category && {maxAmountNoReceipt: category.maxAmountNoReceipt}),
                 ...('maxAmountNoItemizedReceipt' in category && {maxAmountNoItemizedReceipt: category.maxAmountNoItemizedReceipt}),
@@ -1086,10 +1086,10 @@ function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, pa
                         ...policyCategoryToUpdate,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         pendingFields: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             'Payroll Code': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         'Payroll Code': payrollCode,
                     },
                 },
@@ -1104,10 +1104,10 @@ function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, pa
                         ...policyCategoryToUpdate,
                         pendingAction: null,
                         pendingFields: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             'Payroll Code': null,
                         },
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         'Payroll Code': payrollCode,
                     },
                 },
@@ -1123,7 +1123,7 @@ function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, pa
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updatePayrollCodeFailureMessage'),
                         pendingAction: null,
                         pendingFields: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             'Payroll Code': null,
                         },
                     },
@@ -1154,10 +1154,10 @@ function setPolicyCategoryGLCode(policyID: string, categoryName: string, glCode:
                         ...policyCategoryToUpdate,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         pendingFields: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             'GL Code': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         'GL Code': glCode,
                     },
                 },
@@ -1172,10 +1172,10 @@ function setPolicyCategoryGLCode(policyID: string, categoryName: string, glCode:
                         ...policyCategoryToUpdate,
                         pendingAction: null,
                         pendingFields: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             'GL Code': null,
                         },
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         'GL Code': glCode,
                     },
                 },
@@ -1191,7 +1191,7 @@ function setPolicyCategoryGLCode(policyID: string, categoryName: string, glCode:
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateGLCodeFailureMessage'),
                         pendingAction: null,
                         pendingFields: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             'GL Code': null,
                         },
                     },
@@ -1769,7 +1769,7 @@ function setPolicyCategoryTax(policy: OnyxEntry<Policy>, categoryName: string, t
     if (!existingCategoryExpenseRule) {
         updatedExpenseRules.push({
             tax: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 field_id_TAX: {
                     externalID: taxID,
                 },

@@ -89,9 +89,9 @@ async function hidePreviousComment(repo: string, issueNumber: number, commentPre
         {
             owner: CONST.GITHUB_OWNER,
             repo,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             issue_number: issueNumber,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             per_page: 100,
         },
         (response) => response.data,

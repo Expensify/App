@@ -59,7 +59,7 @@ describe('AttachmentStorage', () => {
         // Mock global fetch and response for attachment
         global.fetch = TestHelper.getGlobalFetchMock({
             headers: new Headers({
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 'Content-Type': 'image/jpg',
             }),
         });

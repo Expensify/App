@@ -116,7 +116,7 @@ const writeSpy = jest.spyOn(API, 'write');
 // A report actions map containing a single visible comment — used to exercise the real
 // doesReportHaveVisibleActions instead of mocking it.
 const REPORT_ACTIONS_WITH_VISIBLE_COMMENT: Record<string, ReportAction> = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
     '1': {
         reportActionID: '1',
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,

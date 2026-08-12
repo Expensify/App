@@ -13,7 +13,7 @@ import type Category from './Category';
 type SuperClassType = {superClass: {name?: string; object: {name: string}; property: {name: string}} | null; name: string};
 
 type GithubPaylod = WebhookPayload & {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
     pull_request?: {
         head: {
             ref?: string;

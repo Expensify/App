@@ -640,9 +640,9 @@ describe('actions/Domain', () => {
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const, {
             memberErrors: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 [accountID]: {errors: {123: 'error'}},
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 [email]: {errors: {456: 'error'}},
             },
         });
@@ -963,6 +963,7 @@ describe('actions/Domain', () => {
             expect(pendingUpdate?.value).toMatchObject({member: {[EMPLOYEE_EMAIL]: null}});
 
             const errorsUpdate = failureData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${DOMAIN_ACCOUNT_ID}`);
+            // oxlint-disable-next-line no-unsafe-optional-chaining -- ts-eslint doesn't flag optional chains wrapped in a type assertion; tsgolint does
             expect((errorsUpdate?.value as Record<string, Record<string, unknown>>).memberErrors?.[EMPLOYEE_EMAIL]).toHaveProperty('changeDomainSecurityGroupErrors');
             apiWriteSpy.mockRestore();
         });
@@ -1239,7 +1240,7 @@ describe('actions/Domain', () => {
                     optimisticData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             value: {domain_defaultSecurityGroupID: groupID},
                         }),
                         expect.objectContaining({
@@ -1264,7 +1265,7 @@ describe('actions/Domain', () => {
                     failureData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             value: {domain_defaultSecurityGroupID: previousGroupID},
                         }),
                         expect.objectContaining({
@@ -1298,7 +1299,7 @@ describe('actions/Domain', () => {
                     failureData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             value: {domain_defaultSecurityGroupID: undefined},
                         }),
                         expect.objectContaining({
@@ -1406,14 +1407,14 @@ describe('actions/Domain', () => {
                     optimisticData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             value: expect.objectContaining({domain_defaultSecurityGroupID: FIXED_GROUP_ID}),
                         }),
                     ]),
                     failureData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             value: expect.objectContaining({domain_defaultSecurityGroupID: previousDefaultGroupID}),
                         }),
                     ]),

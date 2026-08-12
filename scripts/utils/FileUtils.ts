@@ -7,7 +7,7 @@ const DEFAULT_EXTENSIONS = ['.ts', '.tsx'];
 const ERROR_MESSAGES = {
     SOURCE_CANNOT_BE_EMPTY: 'Source cannot be empty',
     INDEX_CANNOT_BE_NEGATIVE: 'Index cannot be negative',
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
     INDEX_OUT_OF_BOUNDS: (sourceLength: number, index: number) => `Index ${index} is out of bounds for source length ${sourceLength}`,
 } as const;
 

@@ -220,7 +220,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         // so we need it in dependencies to re-run the effect with the correct remaining transaction.
         // For more details see https://github.com/Expensify/App/pull/80107
         // We don't want this hook to re-run on the every report change
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportIDFromRoute, transactionThreadReportID, oneTransactionID, betas]);
 
     useEffect(() => {
@@ -334,7 +334,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         return !reportID && hasLoadedReportActionsForAccessError && !hasAnyTransactions;
 
         // isLoadingApp intentionally omitted to avoid re-computing after initial load completes.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         reportID,
         hasLoadedReportActionsForAccessError,

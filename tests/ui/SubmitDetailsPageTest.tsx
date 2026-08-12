@@ -62,7 +62,7 @@ jest.mock('@hooks/useReportAttributes', () => jest.fn(() => ({})));
 jest.mock('@hooks/useReportIsArchived', () => jest.fn(() => false));
 
 // `type: 'chat'` is the CONST.REPORT.TYPE.CHAT literal — inlined because jest.mock factories can't reference imports.
-// eslint-disable-next-line @typescript-eslint/naming-convention -- numeric account IDs are the Onyx participants key shape
+/* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention -- numeric account IDs are the Onyx participants key shape
 jest.mock('@hooks/useReportOrReportDraft', () => jest.fn((reportID?: string) => (reportID ? {reportID, participants: {1: {}, 2: {}}, type: 'chat'} : undefined)));
 
 jest.mock('@libs/Navigation/Navigation', () => ({

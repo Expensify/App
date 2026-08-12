@@ -204,7 +204,7 @@ function MoneyRequestAmountInput({
         }
 
         // we want to re-initialize the state only when the amount changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [amount, shouldKeepUserInput]);
 
     const formatAmount = useCallback(() => {

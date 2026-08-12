@@ -166,7 +166,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 
     // Once we have updated the array of all Super Wide RHP keys, we should sync it with the array of RHP keys visible on the screen
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        /* oxlint-disable-next-line rh/set-state-in-effect */ // eslint-disable-next-line react-hooks/set-state-in-effect
         syncRHPKeys();
     }, [allSuperWideRHPRouteKeys, allWideRHPRouteKeys, syncRHPKeys]);
 

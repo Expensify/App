@@ -1734,7 +1734,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 scan: {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route,
                                 },
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 'per-diem': {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.route,
                                 },
@@ -1747,19 +1747,19 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.DISTANCE_REQUEST_CREATE.route,
                             exact: true,
                             screens: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 'distance-map': {
                                     path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MAP.route,
                                 },
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 'distance-manual': {
                                     path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MANUAL.route,
                                 },
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 'distance-gps': {
                                     path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.route,
                                 },
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 'distance-odometer': {
                                     path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.route,
                                 },

@@ -6,7 +6,7 @@ import GithubUtils from '@github/libs/GithubUtils';
 /**
  * @jest-environment node
  */
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 import {RequestError} from '@octokit/request-error';
 
 import createMock from '../utils/createMock';

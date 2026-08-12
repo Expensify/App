@@ -169,6 +169,7 @@ function AddAgentRulePage({
         }
 
         Navigation.dismissModal({
+            // oxlint-disable-next-line react/no-unstable-nested-components -- JSX passed as modal config, not a component definition; ESLint's rule doesn't flag this
             afterTransition: () => {
                 showConfirmModal({
                     title: translate('workspace.rules.agentRules.agentCreatedTitle'),

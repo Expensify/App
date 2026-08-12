@@ -96,7 +96,7 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
                 setCurrentRHPReportID(modalReportID);
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to re-render when onSetCurrentReportID changes
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to re-render when onSetCurrentReportID changes
         [setCurrentReportID, setCurrentRHPReportID, currentRHPReportID],
     );
 

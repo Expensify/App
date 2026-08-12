@@ -107,7 +107,7 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
             return;
         }
         openReport({reportID: route.params.reportID, introSelected, betas, hasReportActions});
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (isEditing && isLoadingApp) {

@@ -91,7 +91,7 @@ function ScheduleCallPage() {
         return () => {
             sendScheduleCallNudge(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, adminsRoomReportID);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const loadTimeSlotsAndSaveDate = useCallback((date: string) => {

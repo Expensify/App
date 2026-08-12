@@ -15,7 +15,7 @@ import path from 'path';
  * @jest-environment node
  */
 
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 
 // Mock fs
 jest.mock('fs');

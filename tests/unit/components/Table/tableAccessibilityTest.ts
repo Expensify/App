@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention -- ARIA attributes are kebab-case by spec. */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention -- ARIA attributes are kebab-case by spec. */
 import * as tableAccessibilityModule from '@components/Table/tableAccessibility';
 
 import CONST from '@src/CONST';

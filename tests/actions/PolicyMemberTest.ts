@@ -704,7 +704,7 @@ describe('actions/PolicyMember', () => {
         describe('buildAddMembersToWorkspaceOnyxData currentUser dependency', () => {
             const buildForCurrentUser = (currentUserInput: {accountID: number; displayName?: string; email?: string; avatar?: string}) =>
                 Member.buildAddMembersToWorkspaceOnyxData(
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     {'new-member@example.com': 9001},
                     {},
                     createRandomPolicy(101),

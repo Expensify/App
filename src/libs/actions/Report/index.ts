@@ -3197,7 +3197,7 @@ function deleteReportComment(
     const deletedTime = DateUtils.getDBTime();
     for (const whisperID of unresolvedMentionWhisperIDs) {
         optimisticReportActions[whisperID] = {
-            originalMessage: {deleted: deletedTime},
+            originalMessage: {deleted: deletedTime}, // oxlint-disable-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         };
     }
 
@@ -3232,7 +3232,7 @@ function deleteReportComment(
     };
     for (const whisperID of unresolvedMentionWhisperIDs) {
         failureReportActionsData[whisperID] = {
-            originalMessage: {deleted: null},
+            originalMessage: {deleted: null}, // oxlint-disable-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         };
     }
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
@@ -3369,7 +3369,7 @@ function handleUserDeletedLinksInHtml(
         userEmailDomain,
         availableMentionLogins: allPersonalDetailLogins,
         parserOptions: {
-            extras: {videoAttributeCache},
+            extras: {videoAttributeCache}, // oxlint-disable-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         },
     });
 
@@ -5976,6 +5976,7 @@ function resolveActionableMentionWhisper(
             value: {
                 [reportAction.reportActionID]: {
                     message: [updatedMessage],
+                    // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
                     originalMessage: {
                         resolution,
                     },
@@ -6007,6 +6008,7 @@ function resolveActionableMentionWhisper(
             value: {
                 [reportAction.reportActionID]: {
                     message: [message],
+                    // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
                     originalMessage: {
                         resolution: null,
                     },
@@ -6095,6 +6097,7 @@ function resolveActionableReportMentionWhisper(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
             value: {
                 [reportAction.reportActionID]: {
+                    // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
                     originalMessage: {
                         resolution,
                     },
@@ -6114,6 +6117,7 @@ function resolveActionableReportMentionWhisper(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
             value: {
                 [reportAction.reportActionID]: {
+                    // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
                     originalMessage: {
                         resolution: null,
                     },
@@ -6154,6 +6158,7 @@ function dismissTrackExpenseActionableWhisper(reportID: string | undefined, repo
             value: {
                 [reportAction.reportActionID]: {
                     message: isArrayMessage ? [updatedMessage] : updatedMessage,
+                    // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
                     originalMessage: {
                         resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
                     },
@@ -6169,6 +6174,7 @@ function dismissTrackExpenseActionableWhisper(reportID: string | undefined, repo
             value: {
                 [reportAction.reportActionID]: {
                     message: [message],
+                    // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
                     originalMessage: {
                         resolution: null,
                     },
@@ -6802,6 +6808,7 @@ function deleteAppReport({
                 value: {
                     [newReportActionID]: {
                         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
                         originalMessage: {
                             IOUTransactionID: transactionID,
                             movedToReportID: selfDMReportID,
@@ -7610,6 +7617,7 @@ function buildOptimisticChangePolicyData({
             value: {
                 [oldReportPreviewActionID]: {
                     ...reportPreviewAction,
+                    // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
                     originalMessage: {
                         deleted: null,
                     },
@@ -8081,6 +8089,7 @@ function resolveConciergeOptions(
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [reportActionID]: {
+            // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
             originalMessage: {
                 [selectedField]: selectedValue,
             },

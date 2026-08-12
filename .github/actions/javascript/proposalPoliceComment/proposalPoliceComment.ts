@@ -174,7 +174,7 @@ async function run() {
             console.log('ProposalPolice™ withdrawing duplicated proposal...');
             await GithubUtils.octokit.issues.updateComment({
                 ...context.repo,
-                /* eslint-disable @typescript-eslint/naming-convention */
+                /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
                 comment_id: commentID,
                 body: duplicateCheckWithdrawMessage,
             });

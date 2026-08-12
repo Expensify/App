@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+/* oxlint-disable hosted/naming-convention, hosted/no-import-module-exports */ /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
 import * as ActionUtils from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';

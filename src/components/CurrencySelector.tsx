@@ -28,7 +28,7 @@ type CurrencySelectorProps = {
 
     /** inputID used by the Form component */
     // eslint-disable-next-line react/no-unused-prop-types
-    inputID: string;
+    inputID: string; // oxlint-disable-line hosted/no-unused-prop-types -- a prepended block comment would hide the JSDoc above from jsdoc/require-jsdoc
 
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
@@ -76,7 +76,7 @@ function CurrencySelector({
     useEffect(() => {
         // This will cause the form to revalidate and remove any error related to currency
         onInputChange(currency);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currency]);
 
     return (

@@ -94,19 +94,19 @@ describe('CustomFormula', () => {
             jest.clearAllMocks();
 
             const mockReportActions = createMock<ReportActions>({
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     created: '2025-01-10T08:00:00Z', // Oldest action
                     actionName: 'CREATED',
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '2': {
                     reportActionID: '2',
                     created: '2025-01-15T10:30:00Z', // Later action
                     actionName: 'IOU',
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '3': {
                     reportActionID: '3',
                     created: '2025-01-12T14:20:00Z', // Middle action
@@ -213,7 +213,7 @@ describe('CustomFormula', () => {
 
         test('should compute expenses count using allTransactions from context', () => {
             const allTransactions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 transactions_trans1: createMock<Transaction>({
                     transactionID: 'trans1',
                     reportID: '123',
@@ -221,7 +221,7 @@ describe('CustomFormula', () => {
                     amount: 5000,
                     merchant: 'ACME Ltd.',
                 }),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 transactions_trans2: createMock<Transaction>({
                     transactionID: 'trans2',
                     reportID: '123',
@@ -229,7 +229,7 @@ describe('CustomFormula', () => {
                     amount: 3000,
                     merchant: 'ACME Ltd.',
                 }),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 transactions_trans3: createMock<Transaction>({
                     transactionID: 'trans3',
                     reportID: '123',
@@ -1266,13 +1266,13 @@ describe('CustomFormula', () => {
                 name: 'Test Policy',
                 glCodes: true,
                 employeeList: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'john.doe@company.com': {
                         email: 'john.doe@company.com',
                         employeeUserID: 'EMP001',
                         employeePayrollID: 'PAY123',
                     },
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'jane.smith@company.com': {
                         email: 'jane.smith@company.com',
                         employeeUserID: 'EMP002',
@@ -1288,13 +1288,13 @@ describe('CustomFormula', () => {
             jest.clearAllMocks();
 
             const mockReportActions = createMock<ReportActions>({
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     created: '2025-01-10T08:00:00Z',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '2': {
                     reportActionID: '2',
                     created: '2025-01-15T10:30:00Z',
@@ -1384,7 +1384,7 @@ describe('CustomFormula', () => {
                         name: 'Test Policy',
                         glCodes: true,
                         employeeList: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             'other.user@company.com': {
                                 email: 'other.user@company.com',
                                 employeeUserID: 'EMP999',
@@ -1404,7 +1404,7 @@ describe('CustomFormula', () => {
                         name: 'Test Policy',
                         glCodes: false,
                         employeeList: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             'john.doe@company.com': {
                                 email: 'john.doe@company.com',
                                 employeeUserID: 'EMP001',

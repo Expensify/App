@@ -1770,7 +1770,7 @@ describe('compoundParamsKey', () => {
 
     it('should preserve array structure (not collapse to object keys)', () => {
         // An object with numeric keys should NOT match the equivalent array — they're different param shapes.
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         const asObject = {ids: {'0': 'a', '1': 'b'}};
         expect(compoundParamsKey('search-x', {ids: ['a', 'b']})).not.toBe(compoundParamsKey('search-x', asObject));
     });

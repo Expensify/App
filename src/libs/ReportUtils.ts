@@ -4312,6 +4312,7 @@ function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amoun
                 currency,
             },
         ],
+        // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         originalMessage: {
             cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
             expenseReportID,
@@ -6711,6 +6712,7 @@ function buildOptimisticAddCommentReportAction({
                     text: textForNewComment,
                 },
             ],
+            // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
             originalMessage: {
                 html: htmlForNewComment,
                 whisperedTo: [],
@@ -6741,7 +6743,7 @@ function buildConciergeGreetingReportAction({reportID, greetingText, created}: B
         person: [{style: 'strong', text: CONST.CONCIERGE_DISPLAY_NAME, type: 'TEXT'}],
         created,
         message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: greetingText, text: greetingText}],
-        originalMessage: {html: greetingText, whisperedTo: []},
+        originalMessage: {html: greetingText, whisperedTo: []}, // oxlint-disable-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         shouldShow: true,
     } as ReportAction;
 }
@@ -7581,7 +7583,7 @@ function buildOptimisticApprovedReportAction(
         automatic: false,
         avatar: getCurrentUserAvatar(),
         isAttachmentOnly: false,
-        originalMessage,
+        originalMessage, // oxlint-disable-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
         person: [
             {
@@ -7609,6 +7611,7 @@ function buildOptimisticUnapprovedReportAction(amount: number, currency: string,
         automatic: false,
         avatar: getCurrentUserAvatar(),
         isAttachmentOnly: false,
+        // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         originalMessage: {
             amount,
             currency,
@@ -7648,6 +7651,7 @@ function buildOptimisticCreatedReportForUnapprovedAction(
         created: createdTime,
         lastModified: createdTime,
         message: [],
+        // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         originalMessage: {
             originalID: originalReportID,
         },
@@ -7700,7 +7704,7 @@ function buildOptimisticMovedReportAction(
         automatic: false,
         avatar: getCurrentUserAvatar(),
         isAttachmentOnly: false,
-        originalMessage,
+        originalMessage, // oxlint-disable-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         message: movedActionMessage,
         person: [
             {
@@ -7752,7 +7756,7 @@ function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefine
         actorAccountID: currentUserAccountID,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
-        originalMessage,
+        originalMessage, // oxlint-disable-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         message: changePolicyReportActionMessage,
         person: [
             {
@@ -7785,7 +7789,7 @@ function buildOptimisticTransactionAction(
         actorAccountID: deprecatedCurrentUserAccountID,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
-        originalMessage: {fromReportID},
+        originalMessage: {fromReportID}, // oxlint-disable-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -7850,7 +7854,7 @@ function buildOptimisticSubmittedReportAction(
         automatic: false,
         avatar: getCurrentUserAvatar(),
         isAttachmentOnly: false,
-        originalMessage,
+        originalMessage, // oxlint-disable-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, Math.abs(amount), '', currency),
         person: [
             {
@@ -7898,6 +7902,7 @@ function buildOptimisticReportPreview(
         reportID: chatReport?.reportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         originalMessage: {
             linkedReportID: iouReport?.reportID,
         },
@@ -7948,6 +7953,7 @@ function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOURe
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
             },
         ],
+        // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         originalMessage: {
             lastModified: DateUtils.addMillisecondsFromDateTime(currentTime, 1),
             transactionID,
@@ -7996,7 +8002,7 @@ function buildOptimisticModifiedExpenseReportAction(
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
             },
         ],
-        originalMessage,
+        originalMessage, // oxlint-disable-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         person: [
             {
                 style: 'strong',
@@ -8100,7 +8106,7 @@ function updateReportPreview(
             : recentReceiptTransactions,
         // As soon as we add a transaction without a receipt to the report, it will have ready expenses,
         // so we remove the whisper
-        originalMessage: originalMessage
+        originalMessage: originalMessage // oxlint-disable-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
             ? {
                   ...originalMessage,
                   whisperedTo: hasReceipt ? originalMessage.whisperedTo : [],
@@ -8135,7 +8141,7 @@ function buildOptimisticTaskReportAction(
         automatic: false,
         avatar: getCurrentUserAvatar(),
         isAttachmentOnly: false,
-        originalMessage,
+        originalMessage, // oxlint-disable-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         message: [
             {
                 text: message,
@@ -8360,6 +8366,7 @@ function buildOptimisticRenamedRoomReportAction(newName: string, oldName: string
                 text: getCurrentUserDisplayNameOrEmail(),
             },
         ],
+        // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         originalMessage: {
             oldName,
             newName,
@@ -8397,6 +8404,7 @@ function buildOptimisticRoomDescriptionUpdatedReportAction(description: string):
                 text: getCurrentUserDisplayNameOrEmail(),
             },
         ],
+        // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         originalMessage: {
             description,
             lastModified: now,
@@ -8429,6 +8437,7 @@ function buildOptimisticRoomAvatarUpdatedReportAction(avatarURL: string): Optimi
                 text: getCurrentUserDisplayNameOrEmail(),
             },
         ],
+        // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         originalMessage: {
             avatarURL,
             lastModified: now,
@@ -8638,7 +8647,7 @@ function buildOptimisticCardAssignedReportAction(assigneeAccountID: number, curr
         actorAccountID: currentUserAccountID,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
-        originalMessage: {assigneeAccountID, cardID: -1},
+        originalMessage: {assigneeAccountID, cardID: -1}, // oxlint-disable-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, text: '', html: ''}],
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         person: [
@@ -8717,6 +8726,7 @@ function buildOptimisticClosedReportAction(
                 text: ' closed this report',
             },
         ],
+        // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         originalMessage: {
             policyName,
             reason,
@@ -8759,7 +8769,7 @@ function buildOptimisticDismissedViolationReportAction(
                 text,
             },
         ],
-        originalMessage,
+        originalMessage, // oxlint-disable-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         person: [
             {
@@ -8824,6 +8834,7 @@ function buildOptimisticChangeApproverReportAction(
                 text: getCurrentUserDisplayNameOrEmail(),
             },
         ],
+        // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
         originalMessage: {
             lastModified: created,
             mentionedAccountIDs: [managerID],
@@ -10488,7 +10499,7 @@ function getMoneyRequestOptions(
  * This function will be removed once the transition occurs in oldDot to new links.
  */
 // TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-// eslint-disable-next-line @typescript-eslint/naming-convention
+/* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
 function temporary_getMoneyRequestOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,

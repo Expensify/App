@@ -481,6 +481,7 @@ describe('ReportNameUtils', () => {
                 lastModified: '',
                 actorAccountID: 1,
                 person: [],
+                // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
                 originalMessage: {
                     type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                     paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
@@ -1593,7 +1594,7 @@ describe('ReportNameUtils', () => {
                 ...createRandomPolicy(201, CONST.POLICY.TYPE.TEAM),
                 id: '201',
                 fieldList: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     text_title: {
                         defaultValue: '{report:type} {report:startdate}',
                         deletable: false,
@@ -1640,7 +1641,7 @@ describe('ReportNameUtils', () => {
                 id: '202',
                 name: '',
                 fieldList: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     text_title: {
                         defaultValue: '{report:type} {report:startdate}',
                         deletable: false,
@@ -1689,6 +1690,7 @@ describe('ReportNameUtils', () => {
                 lastModified: '',
                 actorAccountID: 1,
                 person: [],
+                // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
                 originalMessage: {
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     IOUTransactionID: transactionID,
@@ -1765,6 +1767,7 @@ describe('ReportNameUtils', () => {
                 lastModified: '',
                 actorAccountID: 1,
                 person: [],
+                // oxlint-disable-next-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
                 originalMessage: {
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     IOUTransactionID: transactionID,

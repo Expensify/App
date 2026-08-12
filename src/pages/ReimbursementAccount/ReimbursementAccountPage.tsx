@@ -282,7 +282,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         }
         fetchData();
         // Run only on the loading transition, not when fetchData's identity changes.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingWorkspaceReimbursement, prevIsLoadingWorkspaceReimbursement]);
 
     const isBackupMatchRoute =
@@ -320,7 +320,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             fetchData();
         }
         // fetchData is intentionally omitted; this must react to the shared data being clobbered, not to fetchData's identity.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFocused, isChangingBankAccount, isConnectedVerifiedBankAccountData, shouldShowContinueSetupButtonValue, reimbursementAccountBackup, isBackupMatchRoute]);
 
     useEffect(() => {
@@ -351,7 +351,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             hasRequestedNewBankAccountRef.current = true;
         }
         fetchData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPreviousPolicy]); // Only re-run this effect when isPreviousPolicy changes, which happens once when the component first loads
 
     useEffect(() => {
@@ -378,7 +378,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         // USDBankAccountStep is intentionally omitted from deps. This effect must only react to server-side
         // achData changes — not to local USDBankAccountStep updates — otherwise it races with prepareNextStep
         // and briefly pulls USDBankAccountStep back to the server value before the Onyx merge lands.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policyIDParam, achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDSetup, isPreviousPolicy, achData?.state, policyCurrency]);
 
     useEffect(() => {
@@ -448,7 +448,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 hideBankAccountErrors();
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
         [
             isOffline,
             reimbursementAccount?.draftStep,

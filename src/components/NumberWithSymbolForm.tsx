@@ -230,7 +230,7 @@ function NumberWithSymbolForm({
         if (number !== '') {
             return;
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing internal state to an externally-driven prop reset (Onyx); mirrors the existing pattern in this file
+        /* oxlint-disable-next-line rh/set-state-in-effect */ // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing internal state to an externally-driven prop reset (Onyx); mirrors the existing pattern in this file
         setCurrentNumber('');
         setSelection({start: 0, end: 0});
     }, [number]);
@@ -366,7 +366,7 @@ function NumberWithSymbolForm({
         setNewNumber(stripDecimalsFromAmount(currentNumber));
 
         // we want to update only when decimals change.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [decimals]);
 
     /**

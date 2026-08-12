@@ -184,11 +184,11 @@ type Card = OnyxValueWithOfflineFeedback<{
 
         /** Card's primary account identifier */
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        expensifyCard_panReferenceID?: string;
+        expensifyCard_panReferenceID?: string; // oxlint-disable-line hosted/naming-convention
 
         /** List of token reference ids */
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        expensifyCard_tokenReferenceIdList?: string[];
+        expensifyCard_tokenReferenceIdList?: string[]; // oxlint-disable-line hosted/naming-convention
 
         /** Date when card becomes valid (YYYY-MM-DD format) */
         validFrom?: string;
@@ -265,7 +265,7 @@ type ProvisioningCardData = {
 
         /** Postal code of the city */
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        postal_code: string;
+        postal_code: string; // oxlint-disable-line hosted/naming-convention
 
         /** Card holder's state of living */
         state: string;

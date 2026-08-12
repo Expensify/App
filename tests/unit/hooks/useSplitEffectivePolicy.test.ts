@@ -49,7 +49,7 @@ function buildPolicyWithRate(policyID: string, customUnitID: string, customUnitR
     return {
         ...createRandomPolicy(1),
         id: policyID,
-        // eslint-disable-next-line @typescript-eslint/naming-convention -- email address is a valid employeeList key format
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention -- email address is a valid employeeList key format
         employeeList: withEmployeeList ? {'user@example.com': {email: 'user@example.com'}} : {},
         customUnits: {
             [customUnitID]: {
@@ -104,7 +104,7 @@ describe('useSplitEffectivePolicy', () => {
         const emptyPolicy = buildPolicyWithRate('workspace-search', 'unit-a', 'rate-a');
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${emptyPolicy.id}`, emptyPolicy);
 
-        // eslint-disable-next-line @typescript-eslint/naming-convention -- email address is a valid employeeList key format
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention -- email address is a valid employeeList key format
         const searchPolicy = {...emptyPolicy, employeeList: {'user@example.com': {email: 'user@example.com'}}};
         mockCurrentSearchResults = {
             data: {

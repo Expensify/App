@@ -252,7 +252,7 @@ function Expensify() {
         return () => {
             appStateChangeListener.current?.remove();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
     const didInitReconnectRef = useRef(false);
@@ -271,7 +271,7 @@ function Expensify() {
         updateLastRoute('');
         Navigation.navigate(lastRoute as Route);
         // Disabling this rule because we only want it to run on the first render.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isNavigationReady]);
 
     // Display a blank page until the onyx migration completes

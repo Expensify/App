@@ -36,7 +36,7 @@ const FAKE_POLICY: Policy = {
         C9031B6F4725D: {
             ...distanceCustomUnitBase,
             rates: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '222AAF6B93BCB': {
                     attributes: {},
                     currency: 'USD',

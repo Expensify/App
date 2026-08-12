@@ -142,7 +142,7 @@ function BaseTextInput({
 
         input.current.focus();
         // We only want this to run on mount
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Derive `isFocused` from the actual DOM focus state instead of mirroring it into local state.

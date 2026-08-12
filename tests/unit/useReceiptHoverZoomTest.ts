@@ -14,7 +14,7 @@ import type {View} from 'react-native';
  * (which renders via react-test-renderer and would not produce HTMLElement refs).
  */
 /* eslint-disable testing-library/no-unnecessary-act -- we drive react-dom roots manually, not Testing Library, so `act` is required around render/event dispatch. */
-/* eslint-disable @typescript-eslint/naming-convention -- the Probe fixture passes kebab-case `data-*` attributes through `React.createElement`, which requires string keys that don't fit the camelCase/PascalCase rule. */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention -- the Probe fixture passes kebab-case `data-*` attributes through `React.createElement`, which requires string keys that don't fit the camelCase/PascalCase rule. */
 import {act, createElement} from 'react';
 import {createRoot} from 'react-dom/client';
 

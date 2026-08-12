@@ -13,7 +13,7 @@ function reopenIssueWithComment(): Promise<CreateCommentResponse> {
         .update({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             issue_number: issueNumber,
             state: 'open',
         })
@@ -22,7 +22,7 @@ function reopenIssueWithComment(): Promise<CreateCommentResponse> {
             return GithubUtils.octokit.issues.createComment({
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 issue_number: issueNumber,
                 body: comment,
             });

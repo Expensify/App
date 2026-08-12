@@ -283,7 +283,7 @@ function Search({
                 }
             };
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- useState setters are referentially stable
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- useState setters are referentially stable
         [],
     );
 
@@ -329,7 +329,7 @@ function Search({
                 waitForUpcomingTransition: true,
             });
             return () => handle.cancel();
-            // eslint-disable-next-line react-hooks/exhaustive-deps -- useState setters and refs are referentially stable
+            /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- useState setters and refs are referentially stable
         }, []),
     );
 
@@ -414,7 +414,7 @@ function Search({
         });
 
         // We don't need to run the effect on change of isFocused.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [handleSearch, hasErrors, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy]);
 
     useEffect(() => {

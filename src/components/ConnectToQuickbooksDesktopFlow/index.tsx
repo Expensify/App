@@ -21,7 +21,7 @@ function ConnectToQuickbooksDesktopFlow({policyID}: ConnectToQuickbooksDesktopFl
         }
         Navigation.navigate(getQuickbooksDesktopSetupEntryRoute(policyID));
         // Runs once on mount — re-running when hasReusablePoliciesConnectedToQBD changes mid-flow would interrupt an in-progress setup.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return null;

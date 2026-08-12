@@ -112,7 +112,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                 }
 
                 openReport({reportID, introSelected, betas, hasReportActions, currentUserAccountID});
-                // eslint-disable-next-line react-hooks/exhaustive-deps
+                /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
             }, [shouldFetchReport, isReportLoaded, reportID, currentUserAccountID]);
 
             if (shouldRequireReportID || isReportIdInRoute) {

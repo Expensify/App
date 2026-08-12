@@ -64,7 +64,7 @@ describe('getPullRequestIncrementalChanges', () => {
         context.eventName = 'pull_request';
         context.payload = {
             action: 'synchronize',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             pull_request: {number: 123},
             before: 'abc123',
             after: 'def456',
@@ -209,7 +209,7 @@ describe('getPullRequestIncrementalChanges', () => {
         // Set up opened action context
         context.payload = {
             action: 'opened',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             pull_request: {number: 123},
         };
 
@@ -234,7 +234,7 @@ describe('getPullRequestIncrementalChanges', () => {
 
         context.payload = {
             action: 'closed',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             pull_request: {number: 123},
         };
 

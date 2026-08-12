@@ -1,5 +1,5 @@
 // The cards_ object keys don't follow normal naming convention, so to test this reliably we have to disable liner
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 import {buildCardsData} from '@libs/CardFeedUtils';
 import type {CompanyCardFeedIcons} from '@libs/CardUtils';
 

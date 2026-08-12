@@ -116,7 +116,7 @@ function createSidebarTestData(): {
     };
 
     const reportAttributes = {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         '0': {
             requiresAttention: false,
             reportName: 'Test Report',

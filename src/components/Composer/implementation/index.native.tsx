@@ -68,7 +68,7 @@ function Composer({
 
         return () => clearTimeout(timeoutID);
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
     /**
@@ -89,7 +89,7 @@ function Composer({
             // return a ref to the component, but rather the HTML element by default
             ref(textInputRef.current as ComposerRef);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
         [isInLandscapeMode],
     );
 

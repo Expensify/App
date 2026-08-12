@@ -159,7 +159,7 @@ describe('DebugTabView', () => {
                             email: 'foo@bar.com',
                         },
                         [ONYXKEYS.LOGINS]: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                             '1_john.doe@mail.com': {
                                 partnerID: 1,
                                 partnerUserID: 'john.doe@mail.com',
@@ -176,7 +176,7 @@ describe('DebugTabView', () => {
             describe('Has RBR', () => {
                 it('renders DebugTabView', async () => {
                     await Onyx.set(ONYXKEYS.LOGINS, {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         '1_foo@bar.com': {
                             partnerID: 1,
                             partnerUserID: 'foo@bar.com',
@@ -201,7 +201,7 @@ describe('DebugTabView', () => {
             (useResponsiveLayout as jest.Mock).mockReturnValue({shouldUseNarrowLayout: false});
             Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, true);
             Onyx.set(ONYXKEYS.LOGINS, {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1_foo@bar.com': {
                     partnerID: 1,
                     partnerUserID: 'foo@bar.com',

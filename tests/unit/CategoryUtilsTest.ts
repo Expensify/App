@@ -265,7 +265,7 @@ describe('hasAnyCategoryRules', () => {
 
     it('returns false when category has only metadata and no rule fields', () => {
         const categories: PolicyCategories = {
-            Advertising: createCategory({name: 'Advertising', 'GL Code': '1234'}), // eslint-disable-line @typescript-eslint/naming-convention
+            Advertising: createCategory({name: 'Advertising', 'GL Code': '1234'}) /* oxlint-disable-line hosted/naming-convention */, // eslint-disable-line @typescript-eslint/naming-convention
         };
         expect(hasAnyCategoryRules(categories)).toBe(false);
     });
@@ -357,7 +357,7 @@ describe('hasAnyCategoryRules', () => {
 
     it('returns true when only the second category has a rule field', () => {
         const categories: PolicyCategories = {
-            Advertising: createCategory({name: 'Advertising', 'GL Code': '1234'}), // eslint-disable-line @typescript-eslint/naming-convention
+            Advertising: createCategory({name: 'Advertising', 'GL Code': '1234'}) /* oxlint-disable-line hosted/naming-convention */, // eslint-disable-line @typescript-eslint/naming-convention
             Travel: createCategory({name: 'Travel', maxAmountNoReceipt: 0}),
         };
         expect(hasAnyCategoryRules(categories)).toBe(true);
@@ -365,7 +365,7 @@ describe('hasAnyCategoryRules', () => {
 
     it('returns false when multiple categories have no rule fields', () => {
         const categories: PolicyCategories = {
-            Advertising: createCategory({name: 'Advertising', 'GL Code': '1234'}), // eslint-disable-line @typescript-eslint/naming-convention
+            Advertising: createCategory({name: 'Advertising', 'GL Code': '1234'}) /* oxlint-disable-line hosted/naming-convention */, // eslint-disable-line @typescript-eslint/naming-convention
             Meals: createCategory({name: 'Meals', enabled: true}),
         };
         expect(hasAnyCategoryRules(categories)).toBe(false);
@@ -403,7 +403,7 @@ describe('getCategoryGLCode', () => {
                 enabled: true,
                 name: 'Meals',
                 pendingAction: null,
-                'GL Code': '1200', // eslint-disable-line @typescript-eslint/naming-convention
+                'GL Code': '1200' /* oxlint-disable-line hosted/naming-convention */, // eslint-disable-line @typescript-eslint/naming-convention
             },
         };
         expect(getCategoryGLCode(categories, 'Meals')).toBe('1200');
@@ -416,7 +416,7 @@ describe('getCategoryGLCode', () => {
                 name: 'Meals',
                 pendingAction: null,
                 // @ts-expect-error - Defensively handles malformed Onyx data that violates the string type.
-                'GL Code': 1200, // eslint-disable-line @typescript-eslint/naming-convention
+                'GL Code': 1200 /* oxlint-disable-line hosted/naming-convention */, // eslint-disable-line @typescript-eslint/naming-convention
             },
         };
         expect(getCategoryGLCode(categories, 'Meals')).toBe('1200');
@@ -428,7 +428,7 @@ describe('getCategoryGLCode', () => {
                 enabled: true,
                 name: 'Meals',
                 pendingAction: null,
-                'GL Code': '"1200"', // eslint-disable-line @typescript-eslint/naming-convention
+                'GL Code': '"1200"' /* oxlint-disable-line hosted/naming-convention */, // eslint-disable-line @typescript-eslint/naming-convention
             },
         };
         expect(getCategoryGLCode(categories, 'Meals')).toBe('1200');

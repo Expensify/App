@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 // All timezones were taken from: https://raw.githubusercontent.com/leon-do/Timezones/main/timezone.json
 import type {TupleToUnion} from 'type-fest';
 

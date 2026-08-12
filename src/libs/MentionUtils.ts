@@ -40,5 +40,5 @@ const getReportMentionDetails = (htmlAttributeReportID: string, currentReport: O
     return {reportID, mentionDisplayText};
 };
 
-// eslint-disable-next-line import/prefer-default-export
+/* oxlint-disable-next-line hosted/prefer-default-export */ // eslint-disable-next-line import/prefer-default-export
 export {getReportMentionDetails};

@@ -95,7 +95,7 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0}: Co
         if (!isInLandscapeMode && isFocused && naturalHeightValue !== -1) {
             animatedHeight.set(withTiming(naturalHeightValue, {duration: RESTORE_DURATION}));
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isInLandscapeMode]);
 
     // Restores the header when the screen loses focus
@@ -109,7 +109,7 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0}: Co
             return;
         }
         animatedHeight.set(withTiming(naturalHeightValue, {duration: RESTORE_DURATION}));
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to run this effect when the screen loses focus
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to run this effect when the screen loses focus
     }, [isFocused]);
 
     // Runs on the UI thread whenever keyboard state changes.

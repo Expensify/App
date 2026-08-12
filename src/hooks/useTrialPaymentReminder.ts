@@ -167,7 +167,7 @@ function useTrialPaymentReminder() {
             // Onyx resolves asynchronously after mount, so the initial LOADING → READY/PRE_TRIAL/GRACE transition
             // must be driven by an effect once the Onyx value settles.
             if (!firstDayFreeTrial) {
-                // eslint-disable-next-line react-hooks/set-state-in-effect
+                /* oxlint-disable-next-line rh/set-state-in-effect */ // eslint-disable-next-line react-hooks/set-state-in-effect
                 setReadinessState(READINESS_STATE.PRE_TRIAL);
                 return;
             }

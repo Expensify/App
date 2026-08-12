@@ -6,5 +6,5 @@ function startTestDrive() {
     Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
 }
 
-// eslint-disable-next-line import/prefer-default-export
+/* oxlint-disable-next-line hosted/prefer-default-export */ // eslint-disable-next-line import/prefer-default-export
 export {startTestDrive};

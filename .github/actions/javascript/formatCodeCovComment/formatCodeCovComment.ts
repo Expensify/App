@@ -227,7 +227,7 @@ async function run() {
         await GithubUtils.octokit.issues.updateComment({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             comment_id: commentId,
             body: formattedBody,
         });

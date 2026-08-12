@@ -4,5 +4,5 @@ function getDefaultVendorName(defaultVendor?: string, vendors?: SageIntacctDataE
     return (vendors ?? []).find((vendor) => vendor.id === defaultVendor)?.value ?? defaultVendor;
 }
 
-// eslint-disable-next-line import/prefer-default-export
+/* oxlint-disable-next-line hosted/prefer-default-export */ // eslint-disable-next-line import/prefer-default-export
 export {getDefaultVendorName};

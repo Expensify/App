@@ -22,14 +22,14 @@ const isDOMPlatform = getPlatform() === CONST.PLATFORM.WEB;
 type TableAccessibilityProps = {
     role?: Role;
 
-    /* eslint-disable @typescript-eslint/naming-convention -- ARIA attributes are kebab-case by spec. */
+    /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention -- ARIA attributes are kebab-case by spec. */
     'aria-label'?: string;
     'aria-rowcount'?: number;
     'aria-colcount'?: number;
     'aria-rowindex'?: number;
     'aria-colindex'?: number;
     'aria-sort'?: 'ascending' | 'descending' | 'none';
-    /* eslint-enable @typescript-eslint/naming-convention */
+    /* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 };
 
 /**
@@ -54,14 +54,14 @@ function getTableContainerAccessibilityProps(isEnabled: boolean, label: string |
     return {
         role: CONST.ROLE.TABLE,
 
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         'aria-label': label,
 
         // The header row is rendered as a sibling of the data rows, so it has to be counted separately.
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         'aria-rowcount': rowCount + 1,
 
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         'aria-colcount': columnCount,
     };
 }
@@ -84,7 +84,7 @@ function getRowAccessibilityProps(isEnabled: boolean, rowIndex: number, isHeader
     return {
         role: CONST.ROLE.ROW,
 
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         'aria-rowindex': isHeaderRow ? 1 : rowIndex + 2,
     };
 }
@@ -135,13 +135,13 @@ function getCellAccessibilityProps(isEnabled: boolean, columnIndex?: number): Ta
     return cellProps;
 }
 
-/* eslint-disable @typescript-eslint/naming-convention -- ARIA attributes are kebab-case by spec. */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention -- ARIA attributes are kebab-case by spec. */
 type CellElementProps = {
     role?: string;
     children?: React.ReactNode;
     'aria-colindex'?: number;
 };
-/* eslint-enable @typescript-eslint/naming-convention */
+/* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 
 /**
  * Clones a row's cell subtree, tagging each `role="cell"` element with a 1-based `aria-colindex` in document order. This
@@ -164,7 +164,7 @@ function assignCellColumnIndexes(node: React.ReactNode): React.ReactNode {
                 const columnIndex = nextColumnIndex;
                 nextColumnIndex += 1;
 
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 return React.cloneElement(child, {'aria-colindex': columnIndex});
             }
 

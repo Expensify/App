@@ -227,9 +227,9 @@ describe('AssignCardFeed', () => {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'testaccount+1@gmail.com': {email: 'testaccount+1@gmail.com'},
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'testaccount+2@gmail.com': {email: 'testaccount+2@gmail.com'},
                 },
             };
@@ -267,7 +267,7 @@ describe('AssignCardFeed', () => {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'testaccount+1@gmail.com': {email: 'testaccount+1@gmail.com'},
                 },
             };
@@ -305,9 +305,9 @@ describe('AssignCardFeed', () => {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'testaccount+1@gmail.com': {email: 'testaccount+1@gmail.com'},
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'testaccount+2@gmail.com': {email: 'testaccount+2@gmail.com'},
                 },
             };
@@ -553,7 +553,7 @@ describe('AssignCardFeed', () => {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'testaccount+1@gmail.com': {email: 'testaccount+1@gmail.com'},
                 },
             };
@@ -593,7 +593,7 @@ describe('AssignCardFeed', () => {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     'testaccount+1@gmail.com': {email: 'testaccount+1@gmail.com'},
                 },
             };

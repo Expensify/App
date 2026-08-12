@@ -269,7 +269,7 @@ function DatePresetFilterBase({
         }
 
         setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, getRangeQueryValue(rangeEphemeralValues.from, rangeEphemeralValues.to) || undefined);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rangeEphemeralValues.from, rangeEphemeralValues.to]);
 
     // Used to discard unsaved range picks when the user leaves Range mode without saving.

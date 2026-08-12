@@ -60,7 +60,7 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
             );
         }
         // we want to update only when shouldShow changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldShow]);
 
     const animatedIndicatorStyle = useAnimatedStyle(() => ({

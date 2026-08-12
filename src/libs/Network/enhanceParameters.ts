@@ -64,7 +64,7 @@ function getBaseRequestParameters(email?: unknown) {
         // This application does not save its authToken in cookies like the classic Expensify app.
         // Setting api_setCookie to false will ensure that the Expensify API doesn't set any cookies
         // and prevents interfering with the cookie authToken that Expensify classic uses.
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         api_setCookie: false,
         // Include current user's email in every request and the server logs
         email: email ?? getCurrentUserEmail(),

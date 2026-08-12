@@ -147,7 +147,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             clearTimeout(timeoutId);
             linkingChangeListener.current?.remove();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally excluding allReports, isAuthenticated, and onInitialUrl to avoid re-triggering deep link handling on every report update
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally excluding allReports, isAuthenticated, and onInitialUrl to avoid re-triggering deep link handling on every report update
     }, [
         conciergeReportID,
         introSelected,

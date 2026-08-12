@@ -5,5 +5,5 @@ const submitWithDismissFirst = ({executeWrite}: {executeWrite: (overrides: Write
     executeWrite({shouldHandleNavigation: true});
 };
 
-// eslint-disable-next-line import/prefer-default-export -- named export matches the real module's API
+/* oxlint-disable-next-line hosted/prefer-default-export */ // eslint-disable-next-line import/prefer-default-export -- named export matches the real module's API
 export {submitWithDismissFirst};

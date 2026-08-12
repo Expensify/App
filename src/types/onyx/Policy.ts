@@ -858,7 +858,7 @@ type AccountTypeValues = '_accountsPayable' | '_otherCurrentLiability' | '_credi
 type NetSuiteAccount = {
     /** GL code assigned to the financial account */
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    'GL Code'?: string;
+    'GL Code'?: string; // oxlint-disable-line hosted/naming-convention
 
     /** Name of the account */
     name: string;
@@ -2366,12 +2366,14 @@ type ApprovalRule = {
 type ExpenseRule = {
     /** Object containing information about the tax field id and its external identifier */
     tax: {
+        /* oxlint-disable hosted/naming-convention -- a trailing directive cannot be used here: oxfmt moves it inside the object body */
         /** Object wrapping the external tax id */
         // eslint-disable-next-line @typescript-eslint/naming-convention
         field_id_TAX: {
             /** The external id of the tax field. */
             externalID: string;
         };
+        /* oxlint-enable hosted/naming-convention */
     };
     /** Set of conditions under which the expense rule should be applied */
     applyWhen: ApplyRulesWhen[];
@@ -2394,6 +2396,7 @@ type CodingRuleFilter = {
 
 /** Tax configuration for coding rule */
 type CodingRuleTax = {
+    /* oxlint-disable hosted/naming-convention -- a trailing directive cannot be used here: oxfmt moves it inside the object body */
     /** Object wrapping the tax field - field_id_TAX matches the backend API format */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     field_id_TAX: {
@@ -2406,6 +2409,7 @@ type CodingRuleTax = {
         /** The name of the tax rate */
         name: string;
     };
+    /* oxlint-enable hosted/naming-convention */
 };
 
 /** Policy coding rule data model */

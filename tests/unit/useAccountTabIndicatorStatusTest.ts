@@ -84,7 +84,7 @@ const TEST_CASES = {
 const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
     ({
         [ONYXKEYS.BANK_ACCOUNT_LIST]: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             12345: {
                 methodID: 12345,
                 errors:
@@ -134,7 +134,7 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
                           }
                         : undefined,
             },
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             '1_otheruser@expensify.com': {
                 partnerID: 1,
                 partnerName: 'Other User',
@@ -283,7 +283,7 @@ describe('useAccountTabIndicatorStatus', () => {
             await act(async () => {
                 await Onyx.multiSet({
                     [ONYXKEYS.BANK_ACCOUNT_LIST]: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         12345: {
                             methodID: 12345,
                             errors: {
@@ -339,7 +339,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     },
                     [ONYXKEYS.WALLET_TERMS]: {},
                     [ONYXKEYS.LOGINS]: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         '1_johndoe12@expensify.com': {
                             partnerID: 1,
                             partnerName: 'John Doe',

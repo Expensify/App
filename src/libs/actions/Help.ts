@@ -5,5 +5,5 @@ function openHelpPage() {
     API.read(READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA, null);
 }
 
-// eslint-disable-next-line import/prefer-default-export
+/* oxlint-disable-next-line hosted/prefer-default-export */ // eslint-disable-next-line import/prefer-default-export
 export {openHelpPage};

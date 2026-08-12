@@ -78,10 +78,10 @@ class OpenAIUtils {
                     model,
                     input,
                     instructions,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     prompt_cache_key: promptCacheKey,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    prompt_cache_retention: '24h',
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
+                    prompt_cache_retention: '24h', // oxlint-disable-line typescript/no-deprecated -- write to a deprecated field; typescript-eslint misses writes (typescript-eslint#10643)
                 }),
             {isRetryable: (err) => OpenAIUtils.isRetryableError(err)},
         );
@@ -113,7 +113,7 @@ class OpenAIUtils {
         let run = await retryWithBackoff(
             () =>
                 this.client.beta.threads.runs.create(thread.id, {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     assistant_id: assistantID,
                 }),
             {isRetryable: (err) => OpenAIUtils.isRetryableError(err)},
@@ -123,7 +123,7 @@ class OpenAIUtils {
         let response = '';
         let count = 0;
         while (!response && count < OpenAIUtils.MAX_POLL_COUNT) {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             run = await this.client.beta.threads.runs.retrieve(run.id, {thread_id: thread.id});
             if (run.status !== OpenAIUtils.OPENAI_RUN_COMPLETED) {
                 count++;

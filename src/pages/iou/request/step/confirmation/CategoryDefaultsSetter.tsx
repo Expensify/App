@@ -52,7 +52,7 @@ function CategoryDefaultsSetter({
             }
         }
         // We don't want to clear out category every time the transactions change
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy?.id, policyCategories, transactions.length]);
 
     const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
@@ -66,7 +66,7 @@ function CategoryDefaultsSetter({
             setMoneyRequestCategory(item.transactionID, defaultCategory, policy, getCurrencyDecimals, isMovingTransactionFromTrackExpense);
         }
         // Prevent resetting to default when unselect category
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionIDs, requestType, defaultCategory, policy?.id]);
 
     return null;

@@ -53,6 +53,7 @@ const useFocusEffect = isJestEnv
 const usePreventRemove = isJestEnv ? jest.fn() : () => {};
 const useNavigationState = isJestEnv ? realReactNavigation.useNavigationState : () => {};
 
+// oxlint-disable-next-line import/export -- oxlint's resolver can't enumerate @react-navigation/core's named exports here; ESLint's import/export accepts it
 export * from '@react-navigation/core';
 export {
     // Overridden modules

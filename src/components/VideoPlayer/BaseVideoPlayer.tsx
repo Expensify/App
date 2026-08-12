@@ -154,7 +154,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     const shouldUseSharedVideoElementRef = useRef(shouldUseSharedVideoElement);
     // This needs to be updated synchronously during render (not in an effect) so that
     // cleanup functions of useLayoutEffect always read the latest value.
-    // eslint-disable-next-line react-hooks/refs
+    /* oxlint-disable-next-line rh/refs */ // eslint-disable-next-line react-hooks/refs
     shouldUseSharedVideoElementRef.current = shouldUseSharedVideoElement;
     const canUseTouchScreen = canUseTouchScreenLib();
     const isCurrentlyURLSet = currentlyPlayingURL === url;

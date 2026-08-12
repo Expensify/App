@@ -59,7 +59,7 @@ function useNewTransactions(
 
         // We don't need to recalculate on change of prevTransactions as it will make the value
         // disappear quickly which will break the scroll and highlight on slower devices like mobile app.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactions, reportID, pendingNewTransactionIDs]);
 
     useEffect(() => {

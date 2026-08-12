@@ -42,7 +42,7 @@ describe('actions/Delegate', () => {
                         // @ts-expect-error - errorFields is not defined in the type
                         errorFields: {
                             addDelegate: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                                 '12211': {
                                     email: 'Invalid email address',
                                 },
@@ -149,7 +149,7 @@ describe('actions/Delegate', () => {
                 ],
                 errorFields: {
                     addDelegate: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         'test@test.com': {
                             email: 'Invalid email address',
                         },

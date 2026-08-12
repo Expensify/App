@@ -47,7 +47,7 @@ function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
             return;
         }
         fetchAuthUrl();
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only fetch once on mount when online
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- only fetch once on mount when online
     }, []);
 
     useEffect(

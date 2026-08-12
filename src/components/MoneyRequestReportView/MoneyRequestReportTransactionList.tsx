@@ -433,7 +433,7 @@ function MoneyRequestReportTransactionList({
     useEffect(() => {
         clearSelectedTransactions(true);
         // We don't want to run the effect on change of clearSelectedTransactions since it can cause an infinite loop.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportID]);
 
     const [sortConfig, setSortConfig] = useState<SortedTransactions>({
@@ -546,7 +546,7 @@ function MoneyRequestReportTransactionList({
         if (pendingLayoutSelection === null || pendingLayoutSelection !== onyxLayoutSelection) {
             return;
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- syncs the click latch to Onyx so subsequent authoritative updates aren't masked by stale local state
+        /* oxlint-disable-next-line rh/set-state-in-effect */ // eslint-disable-next-line react-hooks/set-state-in-effect -- syncs the click latch to Onyx so subsequent authoritative updates aren't masked by stale local state
         setPendingLayoutSelection(null);
     }, [pendingLayoutSelection, onyxLayoutSelection]);
 
@@ -564,7 +564,7 @@ function MoneyRequestReportTransactionList({
         return groupTransactionsByCategory(resolvedTransactions, report, localeCompare);
         // groupTransactionsByTag() and groupTransactionsByCategory() use the full report object to perform a null check.
         // We skip including the report as a dependency to avoid unnecessary re-renders as it changes often and we only need to recalculate when currency changes.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [resolvedTransactions, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldGroupTransactions]);
 
     const visualOrderTransactionIDs = useMemo(() => {
@@ -597,7 +597,7 @@ function MoneyRequestReportTransactionList({
         return () => {
             clearActiveTransactionIDs();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is a primitive proxy for the array to avoid re-firing on referential-only changes
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is a primitive proxy for the array to avoid re-firing on referential-only changes
     }, [visualOrderTransactionIDsKey]);
 
     const groupSelectionState = useMemo(() => {

@@ -46,7 +46,7 @@ function TableSearchBar({label}: TableSearchBarProps) {
     useEffect(() => {
         return () => updateSearchString('');
         // We only want the cleanup to run on unmount to reset the search state
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleSearchStringChange = (text: string) => {

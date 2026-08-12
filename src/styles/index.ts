@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
 
 /* eslint-disable max-lines */
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 import type {LineLayerStyle as LineLayerStyleProps} from '@rnmapbox/maps';
 import type {LineLayerSpecification} from 'react-map-gl/mapbox';
 // eslint-disable-next-line no-restricted-imports

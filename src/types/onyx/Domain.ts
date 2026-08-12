@@ -48,7 +48,7 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** ID of the default security group for the domain */
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    domain_defaultSecurityGroupID: string;
+    domain_defaultSecurityGroupID: string; // oxlint-disable-line hosted/naming-convention
 }> &
     PrefixedRecord<typeof CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, number> &
     PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup> &

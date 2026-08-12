@@ -496,7 +496,7 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current.at(0)?.text).toBe('Test Workspace');
     });
 
-    /* eslint-disable @typescript-eslint/naming-convention -- test fixtures use accountID-keyed maps and email-keyed exclusion records */
+    /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention -- test fixtures use accountID-keyed maps and email-keyed exclusion records */
     describe('Expensify team exclusions on user-filter autocomplete', () => {
         const personalDetailsWithMix = {
             '1': {accountID: 1, login: 'am@expensify.com'},
@@ -566,7 +566,7 @@ describe('useAutocompleteSuggestions', () => {
             expect(lastSearchOptionsCallExclusions()).toEqual({});
         });
     });
-    /* eslint-enable @typescript-eslint/naming-convention */
+    /* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 
     describe('withdrawal-status autocomplete', () => {
         it('returns all settlement statuses when value is empty', () => {

@@ -108,9 +108,9 @@ async function hasStandingInternalApproval(orgToken: string): Promise<boolean> {
     const reviews = await GitHubUtils.paginate(GitHubUtils.octokit.pulls.listReviews, {
         owner,
         repo,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         pull_number: issue,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         per_page: 100,
     });
 

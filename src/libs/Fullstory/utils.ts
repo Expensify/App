@@ -189,7 +189,7 @@ function buildFullstoryUserVars({
         userStatus = hasCompletedOnboarding ? 'returning' : 'new';
     }
 
-    /* eslint-disable @typescript-eslint/naming-convention -- FullStory schema uses external snake_case keys. */
+    /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention -- FullStory schema uses external snake_case keys. */
     return filterObject(
         {
             user_type_path: buildUserTypePath(currentOnboardingChoice, companySize, account?.isFromPublicDomain),
@@ -209,7 +209,7 @@ function buildFullstoryUserVars({
         } satisfies FullstoryUserVars,
         (_key, value) => value !== undefined,
     );
-    /* eslint-enable @typescript-eslint/naming-convention */
+    /* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 }
 
 function trackFullstoryEvent<TEventName extends FullstoryEventName>(eventName: TEventName, eventProperties: FullstoryEventPropertiesMap[TEventName]) {
@@ -220,16 +220,16 @@ function trackFullstoryEvent<TEventName extends FullstoryEventName>(eventName: T
 }
 
 function buildPageViewedEvent(screenName: string, currentPath: string, entryPoint?: string): FullstoryEventPropertiesMap['Page_viewed'] {
-    /* eslint-disable @typescript-eslint/naming-convention -- FullStory schema uses external snake_case keys. */
+    /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention -- FullStory schema uses external snake_case keys. */
     return {
         screen_name: screenName,
         entry_point: entryPoint,
         onb_step: getOnboardingStep(currentPath),
     };
-    /* eslint-enable @typescript-eslint/naming-convention */
+    /* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 }
 
-/* eslint-disable @typescript-eslint/naming-convention -- The comparable snapshot preserves FullStory's external snake_case field names. */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention -- The comparable snapshot preserves FullStory's external snake_case field names. */
 type ComparableFullstoryUserVars = Omit<FullstoryUserVars, 'free_trial_end_date'> & {
     free_trial_end_date?: string;
 };
@@ -240,6 +240,6 @@ function getComparableFullstoryUserVars(userVars: FullstoryUserVars): Comparable
         free_trial_end_date: userVars.free_trial_end_date?.toISOString(),
     };
 }
-/* eslint-enable @typescript-eslint/naming-convention */
+/* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 
 export {buildFullstoryUserVars, buildPageViewedEvent, getComparableFullstoryUserVars, getOnboardingStep, trackFullstoryEvent};

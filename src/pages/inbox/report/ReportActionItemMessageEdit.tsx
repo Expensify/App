@@ -134,7 +134,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
 
     useEffect(() => {
         // When the current edit message selection changes, we need to update the selection state
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        /* oxlint-disable-next-line rh/set-state-in-effect */ // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectionState(currentEditMessageSelection ?? defaultSelection);
     }, [currentEditMessageSelection, defaultSelection, draft.length, setSelection]);
 
@@ -253,7 +253,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
 
     useEffect(() => {
         updateDraft(draft);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- run this only when language is changed
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- run this only when language is changed
     }, [action.reportActionID, preferredLocale]);
 
     const {publishDraft, deleteDraft} = useEditMessage({

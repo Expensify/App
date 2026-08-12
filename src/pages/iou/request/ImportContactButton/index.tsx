@@ -1,9 +1,9 @@
 type ImportContactButtonProps = {
-    // eslint-disable-next-line react/no-unused-prop-types
+    /* oxlint-disable-next-line hosted/no-unused-prop-types */ // eslint-disable-next-line react/no-unused-prop-types
     showImportContacts?: boolean;
-    // eslint-disable-next-line react/no-unused-prop-types
+    /* oxlint-disable-next-line hosted/no-unused-prop-types */ // eslint-disable-next-line react/no-unused-prop-types
     inputHelperText?: string;
-    // eslint-disable-next-line react/no-unused-prop-types
+    /* oxlint-disable-next-line hosted/no-unused-prop-types */ // eslint-disable-next-line react/no-unused-prop-types
     isInSearch?: boolean;
 };
 

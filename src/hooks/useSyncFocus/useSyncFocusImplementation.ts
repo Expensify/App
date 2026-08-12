@@ -33,7 +33,7 @@ const useSyncFocusImplementation = (ref: RefObject<View | HTMLElement | null>, i
         }
 
         ref.current?.focus({preventScroll: true});
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [didScreenTransitionEnd, isFocused, ref]);
 };
 

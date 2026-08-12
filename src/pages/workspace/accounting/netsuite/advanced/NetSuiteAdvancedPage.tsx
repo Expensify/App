@@ -357,6 +357,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         case 'accordion':
                             return (
                                 <Accordion
+                                    key="netsuite-advanced-accordion"
                                     isExpanded={item.shouldExpand}
                                     isToggleTriggered={item.shouldAnimateSection}
                                 >

@@ -506,9 +506,9 @@ class Git {
             const files = await GitHubUtils.paginate(GitHubUtils.octokit.pulls.listFiles, {
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 pull_number: context.payload.pull_request?.number ?? 0,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 per_page: 100,
             });
 

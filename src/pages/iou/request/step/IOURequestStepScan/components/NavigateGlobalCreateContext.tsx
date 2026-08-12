@@ -67,7 +67,7 @@ function NavigateGlobalCreateProvider({children, ...rest}: ProviderProps) {
     }, []);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional one-tick defer to keep heavy Onyx subscriptions off the camera-mount critical path
+        /* oxlint-disable-next-line rh/set-state-in-effect */ // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional one-tick defer to keep heavy Onyx subscriptions off the camera-mount critical path
         setIsReady(true);
     }, []);
 

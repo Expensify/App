@@ -49,6 +49,7 @@ jest.mock('@components/FullscreenLoadingIndicator', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const ReactNative = require('react-native');
     return () => {
+        // oxlint-disable-next-line typescript/no-unsafe-member-access -- ts-eslint skips JSX member expressions; tsgolint checks them
         return <ReactNative.View testID="FullScreenLoadingIndicator" />;
     };
 });

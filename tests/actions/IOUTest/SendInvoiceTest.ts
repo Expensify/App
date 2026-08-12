@@ -163,12 +163,12 @@ describe('actions/SendInvoice', () => {
             chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
             type: CONST.REPORT.TYPE.CHAT,
             participants: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '123': {
                     role: CONST.REPORT.ROLE.MEMBER,
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 '456': {
                     role: CONST.REPORT.ROLE.MEMBER,
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
@@ -585,13 +585,13 @@ describe('actions/SendInvoice', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     '123': {
                         accountID: 123,
                         role: CONST.REPORT.ROLE.MEMBER,
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     '456': {
                         accountID: receiverAccountID,
                         role: CONST.REPORT.ROLE.MEMBER,

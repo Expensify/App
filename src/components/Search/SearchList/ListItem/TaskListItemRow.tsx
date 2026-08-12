@@ -45,7 +45,7 @@ type TaskListItemRowProps = {
 };
 
 type CellProps = {
-    // eslint-disable-next-line react/no-unused-prop-types
+    /* oxlint-disable-next-line hosted/no-unused-prop-types */ // eslint-disable-next-line react/no-unused-prop-types
     showTooltip: boolean;
     isLargeScreenWidth: boolean;
 };

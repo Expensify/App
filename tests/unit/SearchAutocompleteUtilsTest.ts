@@ -11,11 +11,11 @@ describe('SearchAutocompleteUtils', () => {
     describe('parseForLiveMarkdown', () => {
         const currentUserName = 'currentuser@example.com';
         const mockSubstitutionMap: SubstitutionMap = {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             'in:123456': 'Office Chat',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             'from:john@example.com': 'John Doe',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             'policyID:ABC123': 'Test Policy',
         };
 
@@ -267,7 +267,7 @@ describe('SearchAutocompleteUtils', () => {
         it('should handle substitution map values for new filters', () => {
             const mockSubstitutionMapWithNewFilters: SubstitutionMap = {
                 ...mockSubstitutionMap,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 'attendee:emp123': 'Employee Name',
             };
 
@@ -307,7 +307,7 @@ describe('SearchAutocompleteUtils', () => {
             const input = 'bankAccount:Chase';
             const substitutionMapWithBankAccount: SubstitutionMap = {
                 ...mockSubstitutionMap,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 'bankAccount:Chase': '42',
             };
 

@@ -24,7 +24,7 @@ import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 
 import type {ValueOf} from 'type-fest';
 
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 import {add as dateAdd} from 'date-fns';
 import {sub as dateSubtract} from 'date-fns/sub';
 import Config from 'react-native-config';

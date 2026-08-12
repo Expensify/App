@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
 import {getUpdatedSubstitutionsMap} from '@src/components/Search/SearchRouter/getUpdatedSubstitutionsMap';
 

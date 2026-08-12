@@ -113,7 +113,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
             });
 
             it('returns card from allUserCards when card exists', async () => {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 mockUseCardList.mockReturnValue({'123': mockCard});
 
                 const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
@@ -151,7 +151,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
 
             it('returns card from allExpensifyCards when card exists', async () => {
                 const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}123_${CONST.EXPENSIFY_CARD.BANK}`;
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                 mockUseWorkspaceCardList.mockReturnValue({[workspaceCardsKey]: {123: mockCard}});
 
                 const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
@@ -193,7 +193,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
 
             expect(result.current).toBeUndefined();
 
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             mockUseCardList.mockReturnValue({'123': mockCard});
 
             // Re-render the hook to get the updated result
@@ -227,7 +227,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
             expect(result.current).toBeUndefined();
 
             const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}123_${CONST.EXPENSIFY_CARD.BANK}`;
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             mockUseWorkspaceCardList.mockReturnValue({[workspaceCardsKey]: {123: mockCard}});
             const {result: updatedResult} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
             await waitForBatchedUpdatesWithAct();
@@ -251,7 +251,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
             };
             mockUsePolicy.mockReturnValue(testPolicy);
 
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             mockUseCardList.mockReturnValue({'123': mockCard});
 
             const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
@@ -273,7 +273,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
             mockIsPolicyAdmin.mockReturnValue(true);
 
             const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}456_${CONST.EXPENSIFY_CARD.BANK}`;
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             mockUseWorkspaceCardList.mockReturnValue({[workspaceCardsKey]: {123: mockCard}});
 
             const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
@@ -291,7 +291,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
             mockIsPolicyAdmin.mockReturnValue(true);
 
             const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${CONST.DEFAULT_NUMBER_ID}_${CONST.EXPENSIFY_CARD.BANK}`;
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             mockUseWorkspaceCardList.mockReturnValue({[workspaceCardsKey]: {123: mockCard}});
 
             const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));

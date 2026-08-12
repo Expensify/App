@@ -51,7 +51,7 @@ const queuedOnyxUpdates: Array<
     {
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2175919089355165`,
         value: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             '4135522899867010163': {
                 reportActionID: '4135522899867010163',
             },

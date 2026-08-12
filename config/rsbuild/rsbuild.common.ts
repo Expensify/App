@@ -113,7 +113,7 @@ function mapEnvironmentToLogoSuffix(environmentFile: string): string {
  */
 function getDefineValues(file: string): DefinePluginOptions {
     const isDevelopmentFile = file === '.env' || file === '.env.development';
-    /* eslint-disable @typescript-eslint/naming-convention */
+    /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
     return {
         process: {env: {}},
         // react-native-worklets (and other RN libs) reference the Node.js `global` identifier,
@@ -132,7 +132,7 @@ function getDefineValues(file: string): DefinePluginOptions {
         // Empty string in non-development builds.
         __GIT_BRANCH__: JSON.stringify(isDevelopmentFile ? localBranchName : ''),
     };
-    /* eslint-enable @typescript-eslint/naming-convention */
+    /* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 }
 
 /**
@@ -143,7 +143,7 @@ function getDefineValues(file: string): DefinePluginOptions {
  * manages its own HTML/output and isn't a deployable release of the app.
  */
 const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environment): RsbuildConfig => {
-    /* eslint-disable @typescript-eslint/naming-convention */
+    /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
     return {
         source: {
             define: getDefineValues(file),
@@ -310,7 +310,7 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
             },
         },
     };
-    /* eslint-enable @typescript-eslint/naming-convention */
+    /* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 };
 
 /**
@@ -328,7 +328,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
         console.debug(`[SENTRY ${platform.toUpperCase()}] Assets Path: ${'./dist/**/*.{js,map}'}`);
     }
 
-    /* eslint-disable @typescript-eslint/naming-convention */
+    /* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
     return {
         ...shared,
         source: {
@@ -579,7 +579,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
             },
         },
     };
-    /* eslint-enable @typescript-eslint/naming-convention */
+    /* oxlint-enable hosted/naming-convention */ /* eslint-enable @typescript-eslint/naming-convention */
 };
 
 export default getCommonConfiguration;

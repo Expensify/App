@@ -144,7 +144,7 @@ function SearchTransactionsChangeReport() {
             Onyx.update(onyxUpdates);
         }
         // Hydration should only run once on mount using the initial snapshot data
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {

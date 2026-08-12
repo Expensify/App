@@ -53,13 +53,17 @@ function GlobalModals() {
             <DelegateNoAccessModalProvider>
                 {shouldRenderContextMenu && (
                     <LazyModalSlot>
-                        {/* eslint-disable-next-line react-hooks/refs -- module-level createRef, safe to pass as ref prop */}
+                        {/* oxlint-disable rh/refs */
+                        /* eslint-disable-next-line react-hooks/refs -- module-level createRef, safe to pass as ref prop */}
                         <LazyPopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                        {/* oxlint-enable rh/refs */}
                     </LazyModalSlot>
                 )}
             </DelegateNoAccessModalProvider>
-            {/* eslint-disable-next-line react-hooks/refs -- module-level createRef, safe to pass as ref prop */}
+            {/* oxlint-disable rh/refs */
+            /* eslint-disable-next-line react-hooks/refs -- module-level createRef, safe to pass as ref prop */}
             <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
+            {/* oxlint-enable rh/refs */}
             {shouldRenderDeferredModals && (
                 <>
                     {/* Order matters: BaseModal hardcodes zIndex: 1 on every modal, so DOM source order

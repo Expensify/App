@@ -10,5 +10,5 @@ type CaptureReceiptOptions = {
 
 type CaptureReceipt = (camera: Camera, options: CaptureReceiptOptions) => Promise<PhotoFile>;
 
-// eslint-disable-next-line import/prefer-default-export
+/* oxlint-disable-next-line hosted/prefer-default-export */ // eslint-disable-next-line import/prefer-default-export
 export type {CaptureReceipt};

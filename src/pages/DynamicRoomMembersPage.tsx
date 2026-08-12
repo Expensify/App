@@ -149,7 +149,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     useEffect(() => {
         clearUserSearchPhrase();
         getRoomMembers();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const clearTableSearch = useCallback(() => {

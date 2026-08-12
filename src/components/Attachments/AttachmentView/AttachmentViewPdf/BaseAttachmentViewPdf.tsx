@@ -29,7 +29,7 @@ function BaseAttachmentViewPdf({
             return;
         }
         actions.onScaleChanged?.(1);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
     }, []);
 
     /**

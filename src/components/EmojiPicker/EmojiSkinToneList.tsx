@@ -43,7 +43,7 @@ function EmojiSkinToneList() {
             return;
         }
         toggleIsSkinToneListVisible();
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only run when preferredSkinTone updates
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- only run when preferredSkinTone updates
     }, [preferredSkinTone]);
 
     const currentSkinTone = getSkinToneEmojiFromIndex(preferredSkinTone);

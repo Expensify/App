@@ -1,6 +1,6 @@
 import type {EmojisList} from './types';
 
-/* eslint-disable @typescript-eslint/naming-convention */
+/* oxlint-disable hosted/naming-convention */ /* eslint-disable @typescript-eslint/naming-convention */
 const esEmojis: EmojisList = {
     '😀': {
         name: 'sonriendo',

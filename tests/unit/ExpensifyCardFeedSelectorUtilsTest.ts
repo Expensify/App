@@ -18,7 +18,7 @@ function createDomain(email: string, accountID: number): Domain {
         accountID,
         email,
         // Backend-provided key name; not camelCase in Onyx data.
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         domain_defaultSecurityGroupID: '0',
     };
 }

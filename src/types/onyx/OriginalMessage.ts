@@ -1101,7 +1101,7 @@ type PolicyRulesModifiedFields = {
     tax?: {
         /** The tax rate being used  */
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        field_id_TAX: PolicyRuleTaxRate;
+        field_id_TAX: PolicyRuleTaxRate; // oxlint-disable-line hosted/naming-convention
     };
 };
 
@@ -1132,7 +1132,7 @@ type PersonalRulesModifiedFields = {
     tax?: {
         /** The tax rate being used  */
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        field_id_TAX: PolicyRuleTaxRate;
+        field_id_TAX: PolicyRuleTaxRate; // oxlint-disable-line hosted/naming-convention
     };
 
     /** The value that the report name was set to */

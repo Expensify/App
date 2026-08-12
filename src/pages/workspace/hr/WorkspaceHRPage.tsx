@@ -113,7 +113,7 @@ function WorkspaceHRPage({
             return;
         }
 
-        // eslint-disable-next-line react-hooks/purity -- random key forces remount on every press, even for the same provider
+        /* oxlint-disable-next-line rh/purity */ // eslint-disable-next-line react-hooks/purity -- random key forces remount on every press, even for the same provider
         setActiveHRFlow({setupLink: card.setupLink, key: Math.random()});
     };
 

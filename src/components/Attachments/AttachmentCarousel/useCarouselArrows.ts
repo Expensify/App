@@ -48,7 +48,7 @@ function useCarouselArrows() {
 
     useEffect(() => {
         autoHideArrows();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows};

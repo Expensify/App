@@ -69,7 +69,7 @@ const server = http.createServer((request: IncomingMessage, response: ServerResp
         headers: {
             ...request.headers,
             host: hostname,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
             'user-agent': request.headers['user-agent']?.concat(' Development-NewDot/1.0'),
         },
         port: 443,

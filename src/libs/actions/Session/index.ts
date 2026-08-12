@@ -1152,9 +1152,9 @@ function authenticatePusher(socketID: string, channelName: string, callback?: Ch
     Log.info('[PusherAuthorizer] Attempting to authorize Pusher', false, {channelName});
 
     const params: AuthenticatePusherParams = {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         socket_id: socketID,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         channel_name: channelName,
         shouldRetry: false,
         forceNetworkRequest: true,
@@ -1185,7 +1185,7 @@ function authenticatePusher(socketID: string, channelName: string, callback?: Ch
             } else {
                 return {
                     auth: response.auth,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                     shared_secret: response.shared_secret,
                 };
             }

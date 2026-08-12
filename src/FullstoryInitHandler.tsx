@@ -35,7 +35,7 @@ function FullstoryInitHandler() {
                     error: error instanceof Error ? error.message : String(error),
                 });
             });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userMetadata, sessionMetadata]);
 
     return null;

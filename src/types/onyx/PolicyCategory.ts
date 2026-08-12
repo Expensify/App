@@ -19,11 +19,11 @@ type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** "General Ledger code" that corresponds to this category in an accounting system. Similar to an ID. */
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    'GL Code'?: string;
+    'GL Code'?: string; // oxlint-disable-line hosted/naming-convention
 
     /** Payroll code is used to keep track of taxes, deductions, and an employee’s earnings */
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    'Payroll Code'?: string;
+    'Payroll Code'?: string; // oxlint-disable-line hosted/naming-convention
 
     /** An ID for this category from an external accounting system */
     externalID?: string;

@@ -28,7 +28,7 @@ type Login = OnyxValueWithOfflineFeedback<
         additionalData?: {
             /** The app version used where this account is logged in */
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            app_version: string;
+            app_version: string; // oxlint-disable-line hosted/naming-convention
 
             /** The device name where this account is logged in */
             deviceName: string;

@@ -20,7 +20,7 @@ const mccGroup = {
 };
 
 const customUnits: Record<string, CustomUnit> = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
     '6XD9': {
         attributes: {
             taxEnabled: false,
@@ -45,7 +45,7 @@ const customUnits: Record<string, CustomUnit> = {
 };
 
 const fieldList: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField, 'defaultValue' | 'deletable'>> = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
     text_title: {
         defaultValue: '{report:type} {report:startdate}',
         deletable: true,
@@ -141,5 +141,5 @@ const policy420A: Policy = {
     },
 };
 
-// eslint-disable-next-line import/prefer-default-export
+/* oxlint-disable-next-line hosted/prefer-default-export */ // eslint-disable-next-line import/prefer-default-export
 export {policy420A};

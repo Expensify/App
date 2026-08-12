@@ -390,7 +390,7 @@ function BaseValidateCodeForm({
                     <DotIndicatorMessage
                         type="success"
                         style={[styles.mt6, styles.flex0]}
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
                         messages={{0: translate('validateCodeModal.successfulNewCodeRequest')}}
                     />
                 )}

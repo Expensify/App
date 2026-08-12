@@ -119,7 +119,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
         }
         openRoomMembersPage(report.reportID);
         // We only want to fetch room members once on mount, not when report changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useSearchBackPress({

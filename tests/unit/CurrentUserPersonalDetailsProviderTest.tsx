@@ -56,7 +56,7 @@ describe('CurrentUserPersonalDetailsProvider', () => {
         mockUseSession.mockReturnValue({accountID: 1, email: 'owner@example.com'});
 
         const selector = getSelector();
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         const result = selector({1: {accountID: 1, login: 'owner@example.com', displayName: 'Owner'}});
 
         expect(result.accountID).toBe(1);
@@ -69,7 +69,7 @@ describe('CurrentUserPersonalDetailsProvider', () => {
 
         const selector = getSelector();
         const cached = {accountID: 2, login: 'agent@example.com', displayName: 'Agent'} as const;
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         const allPersonalDetails = {2: {...cached}};
 
         selector(allPersonalDetails);
@@ -82,7 +82,7 @@ describe('CurrentUserPersonalDetailsProvider', () => {
         mockUseSession.mockReturnValue({accountID: 3, email: 'user@example.com'});
 
         const selector = getSelector();
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         const allPersonalDetails = {3: {accountID: 3, login: 'user@example.com', displayName: 'User'}};
 
         const first = selector(allPersonalDetails);

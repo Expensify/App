@@ -49,7 +49,7 @@ function outputForkedRepoUrl(PR: PullRequest) {
 GithubUtils.octokit.pulls
     .get({
         ...DEFAULT_PAYLOAD,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* oxlint-disable-next-line hosted/naming-convention */ // eslint-disable-next-line @typescript-eslint/naming-convention
         pull_number: pullRequestNumber as number,
     })
     .then(({data: PR}) => {

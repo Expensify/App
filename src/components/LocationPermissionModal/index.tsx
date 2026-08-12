@@ -167,7 +167,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             isModalActiveRef.current = false;
             closeModal();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
+        /* oxlint-disable-next-line rh/exhaustive-deps */ // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
     }, [startPermissionFlow]);
 
     return null;

@@ -9,6 +9,7 @@ import type {PublicScreensParamList} from '@navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
 import SAMLSignInPage from '@pages/signin/SAMLSignInPage';
+// oxlint-disable-next-line import/no-named-as-default -- the default export (wrapper) is intended here, not the named `SignInPage` export
 import SignInPage from '@pages/signin/SignInPage';
 import UnlinkLoginPage from '@pages/UnlinkLoginPage';
 import ValidateLoginPage from '@pages/ValidateLoginPage';
