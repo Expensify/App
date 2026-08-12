@@ -473,8 +473,10 @@
         // OFF, blocked upstream: needs typeChecker.isArrayType to tell arrays from records, so a
         // syntactic port would fire on every obj[key].
         "rulesdir/prefer-at": "off",
-        // OFF, portable: the type check only asks "is the receiver a string", and only strings have
-        // localeCompare, so a receiver-agnostic rewrite is near-exact. Not written yet.
+        // OFF here, ON for src/**/*.ts(x) below, mirroring ESLint's scope exactly. ESLint's copy of
+        // this rule needs the type checker, so oxlint runs a type-free rewrite
+        // (oxlint-probe/preferLocaleCompareFromContext.mjs): the only type question it asks is
+        // "is the receiver a string", and localeCompare exists on exactly one built-in prototype.
         "rulesdir/prefer-locale-compare-from-context": "off",
         // Wired 2026-08-12 behind the React Compiler gate (oxlint-probe/reactCompilerGate.mjs).
         // Without the gate this reports 238 findings across 186 files that ESLint never shows,
@@ -2080,7 +2082,8 @@
         {
             "files": ["src/**/*.ts", "src/**/*.tsx"],
             "rules": {
-                "rulesdir/no-object-keys-includes": "error"
+                "rulesdir/no-object-keys-includes": "error",
+                "rulesdir/prefer-locale-compare-from-context": "error"
             }
         },
         {

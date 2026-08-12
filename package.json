@@ -56,6 +56,7 @@
     "oxlint-rule-fixtures": "python3 oxlint-probe/port-probe/compareFixtures.py",
     "oxlint-rule-availability": "python3 oxlint-probe/listAllRules.py --available --json oxlint-probe/rule-availability.json",
     "oxlint-react-compiler-gate": "python3 oxlint-probe/checkReactCompilerGate.py",
+    "oxlint-locale-compare-port": "python3 oxlint-probe/checkLocaleComparePort.py",
     "lint-watch": "onchange '**/*.{js,jsx,ts,tsx,mjs,cjs}' -- ./scripts/lint.sh {{changed}}",
     "eslint-report": "bun scripts/eslint-report.ts",
     "knip": "KNIP=true knip --include dependencies --exclude unlisted --no-exit-code --reporter compact",

@@ -59,15 +59,18 @@ function withGating(rule, shouldGate) {
         create(context) {
             const gatedContext = Object.create(context, {
                 report: {
-                    value(descriptor) {
-                        if (shouldGate(rule, descriptor)) {
+                    // Forwarded as-is rather than as a single descriptor: ESLint also accepts the
+                    // legacy `report(node, message)` form, and dropping the extra arguments would
+                    // silently change a rule's message.
+                    value(...args) {
+                        if (shouldGate(rule, args[0])) {
                             const filename = context.filename ?? context.getFilename();
                             const sourceText = (context.sourceCode ?? context.getSourceCode()).text;
                             if (isFileMemoizedByBothCompilers(filename, sourceText)) {
                                 return;
                             }
                         }
-                        return context.report(descriptor);
+                        return context.report(...args);
                     },
                 },
             });
