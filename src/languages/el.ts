@@ -1206,6 +1206,7 @@ const translations: TranslationDeepObject<typeof en> = {
         importSpreadsheetLibraryError: 'Αποτυχία φόρτωσης της μονάδας υπολογιστικού φύλλου. Παρακαλούμε ελέγξτε τη σύνδεσή σας στο διαδίκτυο και δοκιμάστε ξανά.',
         importSpreadsheet: 'Εισαγωγή υπολογιστικού φύλλου',
         importWorkflows: 'Εισαγωγή ροών εργασίας',
+        downloadWorkflows: 'Λήψη ροών εργασίας',
         downloadCSV: 'Λήψη CSV',
         importMemberConfirmation: () => ({
             one: `Παρακαλούμε επιβεβαιώστε τα παρακάτω στοιχεία για το νέο μέλος του χώρου εργασίας που θα προστεθεί ως μέρος αυτής της αποστολής. Τα υπάρχοντα μέλη δεν θα λάβουν καμία ενημέρωση ρόλου ή μήνυμα πρόσκλησης.`,
@@ -6378,7 +6379,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 cardFeedAllowDeletingTransaction: 'Να επιτρέπεται η διαγραφή συναλλαγών',
                 removeCardFeed: 'Αφαίρεση ροής κάρτας',
                 removeCardFeedTitle: (feedName: string) => `Κατάργηση ροής ${feedName}`,
-                removeCardFeedDescription: 'Είστε βέβαιοι ότι θέλετε να καταργήσετε αυτήν την τροφοδοσία καρτών; Αυτό θα αποδεσμεύσει όλες τις κάρτες.',
+                removeCardFeedDescription:
+                    'Είστε βέβαιοι ότι θέλετε να καταργήσετε αυτήν τη ροή καρτών; Αυτό θα αποδεσμεύσει όλες τις κάρτες και θα διαγράψει τις μη υποβληθείσες συναλλαγές.',
                 error: {
                     feedNameRequired: 'Απαιτείται όνομα ροής κάρτας',
                     statementCloseDateRequired: 'Επιλέξτε μια ημερομηνία κλεισίματος της κατάστασης.',
@@ -8021,6 +8023,8 @@ ${reportName}`,
                 importColumnUpdatedCategory: 'Ενημερωμένη κατηγορία',
                 importColumnUpdatedTag: 'Ενημερωμένη ετικέτα',
                 importColumnUpdatedDescription: 'Ενημερωμένη περιγραφή',
+                vendorUnavailable: 'Ο προμηθευτής δεν είναι διαθέσιμος',
+                supplierUnavailable: 'Ο προμηθευτής δεν είναι διαθέσιμος',
             },
             newRule: {
                 title: 'Νέος κανόνας',
@@ -9774,7 +9778,16 @@ ${reportName}`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Αρχικό: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Αφαιρέθηκαν ${distance} διαδρομές εκτός έδρας (${unit})`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `Αφαιρέθηκε ${distance} μίλι μετακίνησης`,
+                    other: `Αφαιρέθηκαν ${distance} μίλια μετακίνησης`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `Αφαιρέθηκε ${distance} χιλιόμετρο μετακίνησης`,
+                    other: `Καταργήθηκαν ${distance} χιλιόμετρα μετακίνησης`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `Αφαιρέθηκαν ${distance} διαδρομές μετακίνησης ${unit} βάσει του ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ρυθμίσεις απόστασης χώρου εργασίας</a>` : 'ρυθμίσεις απόστασης χώρου εργασίας'}.`,
         },
@@ -10610,6 +10623,7 @@ ${reportName}`,
         currentView: 'Τρέχουσα προβολή',
         reportLevelExport: 'Όλα τα δεδομένα - σε επίπεδο αναφοράς',
         expenseLevelExport: 'Όλα τα δεδομένα - επίπεδο δαπάνης',
+        multipleTaxExport: 'Καναδική εξαγωγή πολλαπλών φόρων',
         exportInProgress: 'Εξαγωγή σε εξέλιξη',
         conciergeWillSend: 'Ο Concierge θα σας στείλει το αρχείο σύντομα.',
         downloadStatementPDF: 'Λήψη κατάστασης',

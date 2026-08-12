@@ -1957,10 +1957,12 @@ const CONST = {
             DOWNLOAD_CSV: 'downloadCSV',
             REPORT_LEVEL_EXPORT: 'report_level_export',
             EXPENSE_LEVEL_EXPORT: 'detailed_export',
+            MULTIPLE_TAX_EXPORT: 'multiple_tax_export',
         },
         EXPORT_OPTION_LABELS: {
             REPORT_LEVEL_EXPORT: 'All Data - Report Level Export',
             EXPENSE_LEVEL_EXPORT: 'All Data - Expense Level Export',
+            MULTIPLE_TAX_EXPORT: 'Canadian Multiple Tax Export',
             DEFAULT_CSV: 'Default CSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
@@ -2446,6 +2448,8 @@ const CONST = {
     TRANSACTION: {
         RESULTS_PAGE_SIZE: 20,
         DEFAULT_MERCHANT: 'Expense',
+        DEFAULT_ROUTE_KEY: 'route0',
+        ALTERNATE_ROUTE_KEY: 'route1',
         UNKNOWN_MERCHANT: 'Unknown Merchant',
         PARTIAL_TRANSACTION_MERCHANT: '(none)',
         TYPE: {
@@ -8313,6 +8317,8 @@ const CONST = {
         GPS_TOOLTIP: 'gpsTooltip',
         HAS_FILTER_NEGATION: 'hasFilterNegation',
         MILEAGE_RATE_AUTO_UPDATED: 'mileageRateAutoUpdated',
+        REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleReceiptCouplingTooltip',
+        REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleItemizedReceiptCouplingTooltip',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
@@ -9446,6 +9452,14 @@ const CONST = {
         ROUTE_BORDER: 'route-border',
         WAYPOINTS_SOURCE: 'waypoints-source',
         WAYPOINTS: 'waypoints',
+    },
+
+    ALTERNATE_DIRECTIONS_MAP_VIEW_LAYERS: {
+        SOURCE: 'alternate-directions-route-source',
+        UNSELECTED_FILL: 'alternate-directions-unselected-route-fill',
+        UNSELECTED_BORDER: 'alternate-directions-unselected-route-border',
+        SELECTED_FILL: 'alternate-directions-selected-route-fill',
+        SELECTED_BORDER: 'alternate-directions-selected-route-border',
     },
 
     MAP_CURRENT_LOCATION_FILL_COLOR: '#0185FF',

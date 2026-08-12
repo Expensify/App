@@ -1150,6 +1150,7 @@ const translations: TranslationDeepObject<typeof en> = {
         importSpreadsheetLibraryError: 'スプレッドシートモジュールの読み込みに失敗しました。インターネット接続を確認して、もう一度お試しください。',
         importSpreadsheet: 'スプレッドシートをインポート',
         importWorkflows: 'ワークフローをインポート',
+        downloadWorkflows: 'ワークフローをダウンロード',
         downloadCSV: 'CSV をダウンロード',
         importMemberConfirmation: () => ({
             one: `このアップロードの一部として追加される新しいワークスペースメンバーの詳細を、以下で確認してください。既存のメンバーにはロールの更新や招待メッセージは送信されません。`,
@@ -6137,7 +6138,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 cardFeedAllowDeletingTransaction: '取引の削除を許可',
                 removeCardFeed: 'カードフィードを削除',
                 removeCardFeedTitle: (feedName: string) => `${feedName}フィードを削除`,
-                removeCardFeedDescription: 'このカードフィードを削除してもよろしいですか？すべてのカードの割り当てが解除されます。',
+                removeCardFeedDescription: 'このカードフィードを削除してもよろしいですか？すべてのカードの割り当てが解除され、未提出の取引が削除されます。',
                 error: {
                     feedNameRequired: 'カードフィード名は必須です',
                     statementCloseDateRequired: '明細書の締め日を選択してください。',
@@ -7570,6 +7571,8 @@ ${reportName}`,
                 expenseDefaultsSubtitle: '申請者が何も操作しなくてもフィールドを更新する',
                 ifAnyExpenseMatches: 'いずれかの経費が次の条件に一致する場合：',
                 thenApplyFollowingDefaults: '次に、以下のデフォルトを適用します。',
+                vendorUnavailable: 'ベンダーを利用できません',
+                supplierUnavailable: 'サプライヤーを利用できません',
             },
             categoryRules: {
                 title: 'カテゴリルール',
@@ -9399,7 +9402,16 @@ ${reportName}`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `元の距離: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} の通勤${unit}を削除しました`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `${distance}マイルの通勤距離を削除しました`,
+                    other: `${distance}マイルの通勤距離を削除しました`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `${distance}キロメートルの通勤距離を削除しました`,
+                    other: `${distance}キロメートルの通勤距離を削除しました`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ワークスペースの距離設定</a>` : 'ワークスペース距離設定'} に基づき、通勤距離 ${distance} ${unit} を削除しました。`,
         },
@@ -10227,6 +10239,7 @@ ${reportName}`,
         basicExport: '基本エクスポート',
         reportLevelExport: 'すべてのデータ - レポートレベル',
         expenseLevelExport: 'すべてのデータ - 経費レベル',
+        multipleTaxExport: 'カナダの複数税エクスポート',
         exportInProgress: 'エクスポート処理中',
         conciergeWillSend: 'Conciergeがまもなくファイルを送信します。',
         currentView: '現在のビュー',

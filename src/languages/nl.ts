@@ -299,7 +299,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replace: 'Vervangen',
         distance: 'Afstand',
         mile: 'mijl',
-        miles: 'mijl',
+        miles: 'mijlen',
         kilometer: 'kilometer',
         kilometers: 'kilometers',
         recent: 'Recent',
@@ -1165,6 +1165,7 @@ const translations: TranslationDeepObject<typeof en> = {
         importSpreadsheetLibraryError: 'Laden van spreadsheetmodule mislukt. Controleer je internetverbinding en probeer het opnieuw.',
         importSpreadsheet: 'Spreadsheet importeren',
         importWorkflows: 'Workflows importeren',
+        downloadWorkflows: 'Workflows downloaden',
         downloadCSV: 'CSV downloaden',
         importMemberConfirmation: () => ({
             one: `Bevestig hieronder de gegevens voor een nieuw werkruimte‑lid dat wordt toegevoegd als onderdeel van deze upload. Bestaande leden ontvangen geen rolupdates of uitnodigingsberichten.`,
@@ -6205,7 +6206,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 cardFeedAllowDeletingTransaction: 'Verwijderen van transacties toestaan',
                 removeCardFeed: 'Kaartfeed verwijderen',
                 removeCardFeedTitle: (feedName: string) => `Feed ${feedName} verwijderen`,
-                removeCardFeedDescription: 'Weet je zeker dat je deze kaartfeed wilt verwijderen? Hierdoor worden alle kaarten losgekoppeld.',
+                removeCardFeedDescription: 'Weet je zeker dat je deze kaartfeed wilt verwijderen? Hiermee worden alle kaarten losgekoppeld en worden niet-ingediende transacties verwijderd.',
                 error: {
                     feedNameRequired: 'Naam van kaartfeed is vereist',
                     statementCloseDateRequired: 'Selecteer een afsluitdatum voor het afschrift.',
@@ -7644,6 +7645,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 expenseDefaultsSubtitle: 'Velden bijwerken zonder dat de indiener iets hoeft te doen',
                 ifAnyExpenseMatches: 'Als een uitgave overeenkomt:',
                 thenApplyFollowingDefaults: 'Pas vervolgens de volgende standaardinstellingen toe:',
+                vendorUnavailable: 'Leverancier niet beschikbaar',
+                supplierUnavailable: 'Leverancier niet beschikbaar',
             },
             categoryRules: {
                 title: 'Categorisatieregels',
@@ -9495,7 +9498,16 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Origineel: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} woon-werk${unit} verwijderd`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `${distance} woon-werkmijl verwijderd`,
+                    other: `${distance} woon-werkmijlen verwijderd`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `${distance} woon-werk kilometer verwijderd`,
+                    other: `${distance} woon-werkkilometers verwijderd`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `${distance} woon-werk-${unit} verwijderd op basis van ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">werkruimte-afstandsinstellingen</a>` : 'instelling voor werkruimte-afstand'}.`,
         },
@@ -10335,6 +10347,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         basicExport: 'Standaardexport',
         reportLevelExport: 'Alle gegevens - rapportniveau',
         expenseLevelExport: 'Alle gegevens - uitgaveniveau',
+        multipleTaxExport: 'Canadese export met meerdere belastingen',
         exportInProgress: 'Export bezig',
         conciergeWillSend: 'Concierge stuurt je het bestand zo meteen.',
         currentView: 'Huidige weergave',
