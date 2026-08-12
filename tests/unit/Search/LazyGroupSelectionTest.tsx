@@ -936,6 +936,42 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['1']).toBeUndefined();
     });
 
+    it('starts a cold session when the search changes, so an old span cannot collapse rows in the new results', async () => {
+        groupedSearchResults = {...makeFlatSearchResults(undefined), search: {...makeFlatSearchResults(undefined).search, hash: 1}};
+        const {result, rerender} = renderSelection(SearchChangeWrapper);
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given a range painted across both children under one search
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+
+        // When the query changes and the same rows come back, since a transaction can match both searches
+        groupedSearchResults = {...groupedSearchResults, search: {...groupedSearchResults.search, hash: 2}};
+        rerender({});
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then a shift+click starts fresh rather than continuing the previous search's span and collapsing the row that fell out of it
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+    });
+
     it('still ranges a group reopened before its rows were published again', async () => {
         const {result} = renderSelection();
         const [firstChild, secondChild] = loadedChildren;

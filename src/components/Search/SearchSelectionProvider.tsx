@@ -128,7 +128,8 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
             }
             if (shouldRecordExclusions) {
                 areAllMatchingItemsSelected = true;
-                excludedTransactions = {...prevState.excludedTransactions};
+                // Built on whatever the caller passed, so a reconcile that pruned or refreshed exclusions in the same commit is not thrown away.
+                excludedTransactions = {...excludedTransactions};
                 for (const [key, transaction] of Object.entries(prevState.selectedTransactions)) {
                     if (!Object.hasOwn(selectedTransactions, key)) {
                         excludedTransactions[key] = transaction;

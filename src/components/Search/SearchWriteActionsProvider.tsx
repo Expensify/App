@@ -712,6 +712,12 @@ function SearchWriteActionsProvider({
         isHeaderItem: isShiftRangeHeaderItem,
     });
 
+    // The session belongs to one search, the same as the registry: a row matching both queries would otherwise let the old span collapse rows in the new results.
+    useEffect(() => {
+        rangeApi.clearAnchor();
+        pendingSeedGroupKeyRef.current = undefined;
+    }, [searchHash, rangeApi]);
+
     const seedGroup = (groupChildren: TransactionListItemType[]) => rangeApi.seedRangeFromSelection(new Set(groupChildren.map((child) => child.keyForList).filter(Boolean)));
 
     const toggle: SearchRowSelectionActionsValue['toggle'] = (item, itemTransactions, shiftKey) => {
