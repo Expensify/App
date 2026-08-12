@@ -521,8 +521,8 @@ describe('UserAvatarUtils', () => {
         it.each([
             ['the display name when available', personalDetails, 'John Doe'],
             ['the login when there is no display name', {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: 'john@example.com'}}, 'john@example.com'],
-            ['an empty string when the account is missing from personal details', {}, ''],
-        ])('should embed %s as the sortable display name', (_case, details: PersonalDetailsList, expectedDisplayName: string) => {
+            ['an empty string when the account is missing from personal details', {}, undefined],
+        ])('should embed %s as the sortable display name', (_case, details: PersonalDetailsList, expectedDisplayName?: string) => {
             const {result: avatars} = renderHook(() => useDefaultAvatars());
             const icon = UserAvatarUtils.buildUserIcon({accountID: ACCOUNT_ID, personalDetails: details, defaultAvatars: avatars.current});
 

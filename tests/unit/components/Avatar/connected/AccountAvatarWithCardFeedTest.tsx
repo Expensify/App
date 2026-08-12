@@ -72,6 +72,7 @@ describe('AccountAvatarWithCardFeed (connected)', () => {
             type: CONST.ICON_TYPE_AVATAR,
             source: AVATAR_URL,
             name: LOGIN,
+            displayName: LOGIN,
             fallbackIcon: undefined,
         });
     });
