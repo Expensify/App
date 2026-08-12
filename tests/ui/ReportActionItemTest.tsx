@@ -2328,7 +2328,7 @@ describe('ReportActionItem', () => {
                 testTitle: 'UPDATE_AUTO_HARVESTING',
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
                 originalMessage: {value: true},
-                assertion: /enabled scheduled submit/i,
+                assertion: /enabled submissions/i,
             },
             {testTitle: 'SET_AUTO_JOIN', actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN, originalMessage: {enabled: true}, assertion: /enabled pre-approval/i},
             {testTitle: 'UPDATE_TIME_ENABLED', actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED, originalMessage: {enabled: true}, assertion: /time tracking/i},

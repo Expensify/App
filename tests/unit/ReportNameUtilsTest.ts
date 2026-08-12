@@ -47,6 +47,7 @@ describe('ReportNameUtils', () => {
         currentUserID = currentUserAccountID,
     ) =>
         computeReportNameOriginal({
+            dateFnsLocale: undefined,
             conciergeReportID: undefined,
             report,
             reports,
@@ -298,6 +299,7 @@ describe('ReportNameUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'lagertha2@vikings.net', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
             const translateWithYouMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.you' ? 'You Marker' : translateLocal(path, ...parameters));
             const name = computeReportNameOriginal({
+                dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 report,
                 reports: emptyCollections.reports,
@@ -685,6 +687,7 @@ describe('ReportNameUtils', () => {
             } as OnyxCollection<PolicyTagLists>;
 
             const name = computeReportNameOriginal({
+                dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 report: thread,
                 reports: emptyCollections.reports,
@@ -1970,6 +1973,7 @@ describe('ReportNameUtils', () => {
 
             // When the threaded conciergeReportID matches the report
             const nameWithMatchingID = computeReportNameOriginal({
+                dateFnsLocale: undefined,
                 conciergeReportID: 'concierge-name-1',
                 report,
                 transactions: undefined,
@@ -1983,6 +1987,7 @@ describe('ReportNameUtils', () => {
 
             // And an identical report with a non-matching conciergeReportID keeps its regular name
             const nameWithDifferentID = computeReportNameOriginal({
+                dateFnsLocale: undefined,
                 conciergeReportID: 'a-different-report-id',
                 report,
                 transactions: undefined,

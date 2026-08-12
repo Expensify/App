@@ -1,6 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {getParticipantsOption, getUserToInviteOption} from '@libs/OptionsListUtils';
@@ -37,6 +38,7 @@ function useGroupChatDraftParticipantSync(
     const shouldRestoreSelectedOptionsRef = useRef(true);
     const isScreenFocusedRef = useIsFocusedRef();
 
+    const {dateFnsLocale} = useLocalize();
     const draftParticipantsSelector = (draft: NewGroupChatDraft | undefined) => {
         const isSubscriptionActive = shouldRestoreSelectedOptionsRef.current || !isScreenFocusedRef.current;
         return isSubscriptionActive ? draft?.participants : undefined;
@@ -62,6 +64,7 @@ function useGroupChatDraftParticipantSync(
                 ? // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- participant-shaped option built from real personal details
                   (getParticipantsOption({accountID: participant.accountID, login: participant.login}, allPersonalDetails, translate) as OptionData)
                 : getUserToInviteOption({
+                      dateFnsLocale,
                       searchValue: participant?.login,
                       personalDetails: allPersonalDetails,
                       loginList,

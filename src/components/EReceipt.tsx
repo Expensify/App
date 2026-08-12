@@ -76,7 +76,7 @@ const backgroundImageMinWidth: number = variables.eReceiptBackgroundImageMinWidt
 function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false, overrideTheme}: EReceiptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
@@ -100,7 +100,7 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false, 
         created: transactionDate,
         cardID: transactionCardID,
         cardName: transactionCardName,
-    } = getTransactionDetails(transactionItem ?? transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
+    } = getTransactionDetails(transactionItem ?? transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT, undefined, false, false, undefined, dateFnsLocale) ?? {};
     const formattedAmount = convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = getCurrencySymbol(transactionCurrency ?? '');
     const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;
