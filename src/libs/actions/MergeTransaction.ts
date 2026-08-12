@@ -34,7 +34,19 @@ import CONST from '@src/CONST';
 import {getReportOwnerAccountIDAsAttendee, getReportOwnerAsAttendee, isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {CardList, MergeTransaction, PersonalDetailsList, Policy, PolicyCategories, PolicyTagLists, Report, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {
+    CardList,
+    MergeTransaction,
+    PersonalDetailsList,
+    Policy,
+    PolicyCategories,
+    PolicyTagLists,
+    Report,
+    ReportAction,
+    ReportActions,
+    Transaction,
+    TransactionViolations,
+} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
@@ -396,6 +408,8 @@ type MergeTransactionRequestParams = {
     selfDMReportActions: OnyxEntry<ReportActions>;
     reportPolicyTags: OnyxEntry<PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
+    sourceTransactionThreadReportActions: OnyxEntry<ReportActions>;
+    sourceIOUAction: OnyxEntry<ReportAction>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 /**
@@ -427,6 +441,8 @@ function mergeTransactionRequest({
     selfDMReportActions,
     reportPolicyTags,
     isTrackIntentUser,
+    sourceTransactionThreadReportActions,
+    sourceIOUAction,
     getCurrencyDecimals,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
@@ -591,14 +607,14 @@ function mergeTransactionRequest({
 
         // Only clear the transaction thread report if we select the target report for merging
         if (mergeTransaction.reportID === targetTransaction.reportID) {
-            const sourceIouAction = getIOUActionForReportID(sourceTransaction.reportID, sourceTransaction.transactionID);
-            const sourceTransactionThreadReportID = sourceIouAction?.childReportID;
+            const sourceTransactionThreadReportID = sourceIOUAction?.childReportID;
             const shouldDeleteTransactionThread = !!sourceTransactionThreadReportID;
             const cleanUpSourceTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({
                 transactionThreadID: sourceTransactionThreadReportID,
                 shouldDeleteTransactionThread,
-                reportAction: sourceIouAction,
+                reportAction: sourceIOUAction,
                 currentUserAccountID: currentUserAccountIDParam,
+                transactionThreadReportActionsParam: sourceTransactionThreadReportActions,
             });
             optimisticSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.optimisticData);
             successSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.successData);

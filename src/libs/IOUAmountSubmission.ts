@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -82,6 +82,7 @@ type SubmitAmountArgs = {
     amount: string;
     paymentMethod?: PaymentMethodType;
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 
     // Submit-time Onyx data — supplied by the screen via AmountSubmitDataSync so this module owns no subscriptions.
     allPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -323,6 +324,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         action,
         currentUserPersonalDetails,
         isTrackIntentUser,
+        formatPhoneNumber,
         getCurrencyDecimals,
     } = args;
     const {currentUserAccountID, currentUserEmail, existingTransactionID, isASAPSubmitBetaEnabled, newAmount: backendAmount} = ctx;
@@ -410,6 +412,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 optimisticTransactionID,
                 delegateAccountID,
                 isTrackIntentUser,
+                formatPhoneNumber,
                 getCurrencyDecimals,
             });
         }

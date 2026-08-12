@@ -462,6 +462,7 @@ type MergeReportsProps = {
     isTrackIntentUser: boolean | undefined;
     personalPolicyOutputCurrency: string | undefined;
     selfDMReportActions: OnyxEntry<ReportActions>;
+    delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
@@ -2292,9 +2293,8 @@ type CreateTransactionThreadReportParams = {
     /** The violations for the transaction, if any */
     transactionViolations?: TransactionViolations;
 
-    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
     /** The personal details of the participants */
-    personalDetails?: OnyxEntry<PersonalDetailsList>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** Whether the user has seen the self tour */
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
@@ -2365,14 +2365,13 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
     if (iouReportAction?.actorAccountID && iouReportAction.actorAccountID !== currentUserAccountID) {
         participantAccountIDsForDetails.push(iouReportAction.actorAccountID);
     }
-    const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDsForDetails, personalDetails ?? allPersonalDetails);
+    const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDsForDetails, personalDetails);
     const participants = buildParticipantInfoFromLogins(participantLogins);
     openReport({
         reportID: optimisticTransactionThreadReportID,
         introSelected,
         participants,
-        // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-        personalDetails: personalDetails ?? allPersonalDetails,
+        personalDetails,
         newReportObject: optimisticTransactionThread,
         parentReportActionID: iouReportAction?.reportActionID,
         transaction,
@@ -6502,6 +6501,7 @@ type DeleteAppReportProps = {
     reportTransactions: Record<string, Transaction>;
     allTransactionViolations: OnyxCollection<TransactionViolations>;
     bankAccountList: OnyxEntry<BankAccountList>;
+    delegateAccountID: number | undefined;
     hash?: number;
 };
 
@@ -6622,6 +6622,7 @@ function deleteAppReport({
     reportTransactions,
     allTransactionViolations,
     bankAccountList,
+    delegateAccountID,
     hash,
 }: DeleteAppReportProps) {
     if (!report?.reportID) {
@@ -6790,7 +6791,7 @@ function deleteAppReport({
             );
 
             if (isOnHold(transaction)) {
-                const unHoldAction = buildOptimisticUnHoldReportAction();
+                const unHoldAction = buildOptimisticUnHoldReportAction(delegateAccountID);
                 optimisticData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
@@ -8300,6 +8301,7 @@ function mergeReports({
     isTrackIntentUser,
     personalPolicyOutputCurrency,
     selfDMReportActions,
+    delegateAccountID,
     getCurrencyDecimals,
 }: MergeReportsProps) {
     const reports = allReportsParam ?? allReports;
@@ -8329,6 +8331,7 @@ function mergeReports({
         isTrackIntentUser,
         personalPolicyOutputCurrency,
         selfDMReportActions,
+        delegateAccountID,
         getCurrencyDecimals,
     });
 

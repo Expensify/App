@@ -83,6 +83,7 @@ type CrossReportMergeToSourceReportFixtures = {
     mergeTransactionID: string;
     sourceExpenseReport: Report;
     targetReport: Report;
+    sourceIOUAction: ReportAction;
     sourceIOUActionID: string;
     targetIOUActionID: string;
     targetIOUAction: ReportAction;
@@ -185,6 +186,7 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
         mergeTransactionID,
         sourceExpenseReport,
         targetReport,
+        sourceIOUAction,
         sourceIOUActionID,
         targetIOUActionID,
         targetIOUAction,
@@ -195,7 +197,7 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
 }
 
 function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSourceReportFixtures) {
-    const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetTransactionThread} = fixtures;
+    const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetTransactionThread, sourceIOUAction} = fixtures;
 
     mergeTransactionRequest({
         iouReportOwnerLogin: undefined,
@@ -217,6 +219,8 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         selfDMReportActions: undefined,
         delegateAccountID: undefined,
         isTrackIntentUser: false,
+        sourceTransactionThreadReportActions: undefined,
+        sourceIOUAction,
         getCurrencyDecimals: getCurrencyDecimalsLocal,
     });
 }
@@ -335,6 +339,8 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            sourceTransactionThreadReportActions: undefined,
+            sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
@@ -454,6 +460,8 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            sourceTransactionThreadReportActions: undefined,
+            sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
@@ -558,6 +566,8 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            sourceTransactionThreadReportActions: undefined,
+            sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
@@ -724,6 +734,8 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            sourceTransactionThreadReportActions: undefined,
+            sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
@@ -831,6 +843,8 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            sourceTransactionThreadReportActions: undefined,
+            sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
@@ -1018,6 +1032,8 @@ describe('mergeTransactionRequest', () => {
             selfDMReportActions: undefined,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            sourceTransactionThreadReportActions: undefined,
+            sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
@@ -1219,6 +1235,8 @@ describe('mergeTransactionRequest', () => {
                 selfDMReport: undefined,
                 selfDMReportActions: undefined,
                 isTrackIntentUser: false,
+                sourceTransactionThreadReportActions: undefined,
+                sourceIOUAction: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
@@ -1422,6 +1440,8 @@ describe('mergeTransactionRequest', () => {
                 selfDMReport: undefined,
                 selfDMReportActions: undefined,
                 isTrackIntentUser: false,
+                sourceTransactionThreadReportActions: undefined,
+                sourceIOUAction,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
@@ -1574,6 +1594,8 @@ describe('mergeTransactionRequest', () => {
                 selfDMReport,
                 selfDMReportActions: undefined,
                 isTrackIntentUser: false,
+                sourceTransactionThreadReportActions: undefined,
+                sourceIOUAction: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
