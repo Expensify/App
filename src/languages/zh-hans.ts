@@ -1489,6 +1489,7 @@ const translations: TranslationDeepObject<typeof en> = {
         waitingOnEnabledWallet: (submitterDisplayName: string) => `已开始结算。在 ${submitterDisplayName} 启用其钱包之前，付款将被暂挂。`,
         enableWallet: '启用钱包',
         hold: '暂挂',
+        sendToSomeone: '发送给某人',
         unhold: '解除保留',
         holdExpense: () => ({
             one: '暂挂报销',

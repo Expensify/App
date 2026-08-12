@@ -1542,6 +1542,7 @@ const translations: TranslationDeepObject<typeof en> = {
         waitingOnEnabledWallet: (submitterDisplayName: string) => `começou a acertar as contas. O pagamento está em espera até ${submitterDisplayName} ativar a carteira.`,
         enableWallet: 'Ativar carteira',
         hold: 'Reter',
+        sendToSomeone: 'Enviar para alguém',
         unhold: 'Remover bloqueio',
         holdExpense: () => ({
             one: 'Reter despesa',

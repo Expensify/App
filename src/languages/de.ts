@@ -1548,6 +1548,7 @@ const translations: TranslationDeepObject<typeof en> = {
         waitingOnEnabledWallet: (submitterDisplayName: string) => `hat mit dem Ausgleich begonnen. Die Zahlung ist ausgesetzt, bis ${submitterDisplayName} das Wallet aktiviert.`,
         enableWallet: 'Wallet aktivieren',
         hold: 'Warteschleife',
+        sendToSomeone: 'An jemanden senden',
         unhold: 'Zurückhalten aufheben',
         holdExpense: () => ({
             one: 'Ausgabe zurückhalten',

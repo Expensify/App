@@ -27,6 +27,12 @@ type CleanupAndNavigateAfterExpenseCreateParams = {
      * Read from Onyx in render context by the calling component/hook and forwarded to `navigateAfterExpenseCreate`.
      */
     isLookingAroundUser?: boolean;
+
+    /**
+     * Whether the sole destination for this expense is the current user's self-DM (Personal Space). Forwarded to
+     * `navigateAfterExpenseCreate` so the LOOKING_AROUND "route to Spend > Expenses" behaviour only fires for the self-DM case.
+     */
+    isSelfDMDestination?: boolean;
     /** When false, runs cleanup only — use when dismiss/reveal already handled navigation.
      * IMPORTANT: Caller must own telemetry span lifecycle. SubmitExpenseOrchestrator starts
      * SPAN_SUBMIT_EXPENSE before calling createTransaction; when shouldNavigate=false, caller
@@ -52,6 +58,7 @@ function cleanupAndNavigateAfterExpenseCreate({
     linkedTrackedExpenseReportAction,
     action,
     isLookingAroundUser,
+    isSelfDMDestination,
     shouldNavigate = true,
     navigationReportID,
 }: CleanupAndNavigateAfterExpenseCreateParams) {
@@ -78,6 +85,7 @@ function cleanupAndNavigateAfterExpenseCreate({
         hasMultipleTransactions,
         shouldAddPendingNewTransactionIDs,
         isLookingAroundUser,
+        isSelfDMDestination,
         shouldNavigate,
     });
 }

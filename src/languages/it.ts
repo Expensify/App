@@ -1547,6 +1547,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `ha iniziato a saldare il conto. Il pagamento è in sospeso finché ${submitterDisplayName} non abilita il proprio portafoglio.`,
         enableWallet: 'Abilita portafoglio',
         hold: 'Metti in attesa',
+        sendToSomeone: 'Invia a qualcuno',
         unhold: 'Rimuovi blocco',
         holdExpense: () => ({
             one: 'Metti in sospeso la spesa',

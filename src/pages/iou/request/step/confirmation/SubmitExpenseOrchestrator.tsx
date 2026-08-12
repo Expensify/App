@@ -215,6 +215,7 @@ function SubmitExpenseOrchestrator({
             isSearchTopmostFullScreen: isSearchTopmostFullScreenRoute(),
             isDestinationReportLoaded: !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport)?.reportID,
             isLookingAroundUser,
+            isSelfDMDestination,
         };
     };
 

@@ -97,9 +97,9 @@ describe('navigateAfterExpenseCreate', () => {
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('should navigate to search for a LOOKING_AROUND user even when on the inbox tab', () => {
-        // A "Looking around / Something else" user creating an expense from global create while on the Inbox should
-        // land in Spend > Expenses, not their self-DM. Passing isLookingAroundUser treats them as "not on inbox".
+    it('should navigate to search for a LOOKING_AROUND user whose expense lands in their self-DM, even on the inbox tab', () => {
+        // A "Looking around / Something else" user creating an expense from global create while on the Inbox that lands in
+        // their self-DM should end up in Spend > Expenses, not that self-DM. The gate is scoped to isSelfDMDestination.
         mockIsReportTopmostSplitNavigator.mockReturnValue(true);
         mockGetIsNarrowLayout.mockReturnValue(true);
 
@@ -109,10 +109,29 @@ describe('navigateAfterExpenseCreate', () => {
             isFromGlobalCreate: true,
             hasMultipleTransactions: false,
             isLookingAroundUser: true,
+            isSelfDMDestination: true,
         });
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}), {forceReplace: true});
         expect(Navigation.dismissModalWithReport).not.toHaveBeenCalled();
+    });
+
+    it('should NOT route a LOOKING_AROUND user to search when the destination is a real report (not the self-DM)', () => {
+        // A LOOKING_AROUND user who later has a workspace and submits to a real report/friend from the Inbox must open that
+        // report, not be permanently misrouted to Search. isSelfDMDestination is false, so they are treated as "on inbox".
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        mockGetIsNarrowLayout.mockReturnValue(true);
+
+        navigateAfterExpenseCreate({
+            activeReportID: 'report-123',
+            transactionID: 'txn-1',
+            isFromGlobalCreate: true,
+            hasMultipleTransactions: false,
+            isLookingAroundUser: true,
+            isSelfDMDestination: false,
+        });
+
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}), {forceReplace: true});
     });
 
     it('should dismiss to report when transactionID is missing', () => {

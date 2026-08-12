@@ -1629,6 +1629,7 @@ const translations = {
         waitingOnEnabledWallet: (submitterDisplayName: string) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable wallet',
         hold: 'Hold',
+        sendToSomeone: 'Send to someone',
         unhold: 'Remove hold',
         holdExpense: () => ({
             one: 'Hold expense',

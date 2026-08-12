@@ -57,6 +57,7 @@ import {
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+import {isLookingAroundOnboardingChoice} from '@libs/OnboardingUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
@@ -274,7 +275,7 @@ function IOURequestStepConfirmation({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     // "Something else" (LOOKING_AROUND) users have no workspace, so their global-create expense lands in their self-DM.
     // We route them to Spend > Expenses (Search) after creating instead of dropping them into that self-DM report.
-    const isLookingAroundUser = introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+    const isLookingAroundUser = isLookingAroundOnboardingChoice(introSelected?.choice);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const receiptFilename = transaction?.receipt?.filename;

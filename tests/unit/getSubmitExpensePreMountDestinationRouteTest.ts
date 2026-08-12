@@ -175,6 +175,24 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
     });
 
+    it('still pre-inserts the report for a LOOKING_AROUND user when the destination is a real report, not the self-DM (PAY)', () => {
+        // A LOOKING_AROUND user who later has a workspace and submits to a real report/friend must keep the report
+        // pre-insert - the LOOKING_AROUND gate is scoped to isSelfDMDestination, so it does not fire here.
+        const route = getSubmitExpensePreMountDestinationRoute({
+            isTransactionReady: true,
+            destinationReportID: '123',
+            destinationReport: {reportID: '123'},
+            isFromGlobalCreate: true,
+            canPreInsertSearch: false,
+            iouType: CONST.IOU.TYPE.PAY,
+            isCreatingTrackExpense: false,
+            isSelfDMDestination: false,
+            isLookingAroundUser: true,
+        });
+
+        expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123'));
+    });
+
     it('returns undefined when the destination report is not loaded in Onyx', () => {
         mockIsReportTopmostSplitNavigator.mockReturnValue(true);
 

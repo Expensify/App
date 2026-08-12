@@ -374,6 +374,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             optimisticChatReportID: chatReportID,
             linkedTrackedExpenseReportAction: lastTransaction?.linkedTrackedExpenseReportAction,
             isLookingAroundUser,
+            isSelfDMDestination,
         });
     }
 
@@ -685,6 +686,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     shouldAddPendingNewTransactionIDs: (shouldHandleNavigation && targetReportID === chatReportID) || isOneToTwoTransition,
                     shouldNavigate: shouldHandleNavigation,
                     isLookingAroundUser,
+                    isSelfDMDestination,
                 });
             }
         }

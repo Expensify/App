@@ -1604,6 +1604,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `ξεκίνησε τη διαδικασία τακτοποίησης. Η πληρωμή έχει τεθεί σε αναμονή μέχρι ο/η ${submitterDisplayName} να ενεργοποιήσει το πορτοφόλι του/της.`,
         enableWallet: 'Ενεργοποίηση πορτοφολιού',
         hold: 'Σε αναμονή',
+        sendToSomeone: 'Αποστολή σε κάποιον',
         unhold: 'Αφαίρεση κράτησης',
         holdExpense: () => ({
             one: 'Αναστολή δαπάνης',

@@ -1166,6 +1166,7 @@ function getSecondaryTransactionThreadActions({
     isChatReportArchived,
     grandParentReport,
     isProduction,
+    hasWorkspaceToSubmitTo = false,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -1180,6 +1181,8 @@ function getSecondaryTransactionThreadActions({
     isChatReportArchived: boolean;
     grandParentReport?: OnyxEntry<Report>;
     isProduction: boolean;
+    /** Whether the user belongs to a workspace they can submit an expense to (self-DM split expenses can only be submitted to a workspace). */
+    hasWorkspaceToSubmitTo?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -1230,7 +1233,11 @@ function getSecondaryTransactionThreadActions({
     // submitted to a workspace/report), where the same convert-from-track "Choose a recipient" flow from the
     // track-expense whisper applies. Once submitted, parentReport is no longer a self-DM and reportAction is no longer
     // a track action, so this correctly hides.
-    if (isTrackExpenseReportNew(transactionThreadReport, parentReport, reportAction)) {
+    // Self-DM split expenses can only be submitted to a workspace, so hide the action for a split unless the user has a
+    // workspace to submit to - matching the track-expense whisper and the report-details menu, which suppress it for the
+    // same unsupported case (otherwise the recipient picker opens onto a flow with no valid workspace destination).
+    const {isExpenseSplit: isSelfDMExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
+    if (isTrackExpenseReportNew(transactionThreadReport, parentReport, reportAction) && (!isSelfDMExpenseSplit || hasWorkspaceToSubmitTo)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
     }
 

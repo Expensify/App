@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {IntroSelected, OnboardingRHPVariant, ReportNameValuePairs} from '@src/types/onyx';
+import type {OnboardingRHPVariant, ReportNameValuePairs} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -24,16 +24,6 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT,
     callback: (value) => {
         onboardingRHPVariant = value;
-    },
-});
-
-// Read the onboarding intro choice at module level (non-render context) so navigateAfterOnboarding can explicitly land
-// "Looking around / Something else" (LOOKING_AROUND) users on the Home page instead of relying on the default route.
-let introSelected: OnyxEntry<IntroSelected>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => {
-        introSelected = value;
     },
 });
 
@@ -116,14 +106,9 @@ function navigateAfterOnboarding(
         onboardingAdminsChatReportID,
         shouldPreventOpenAdminRoom,
     );
-    // "Something else" (LOOKING_AROUND) users have no workspace/report, so we explicitly land them on the Home page.
-    // Forcing the navigation (rather than depending on Home being the default route) guarantees they don't end up on
-    // another tab such as Spend > Expenses, regardless of the navigation state left behind by onboarding.
-    const isLookingAroundUser = introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
-
     if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), navigationOptions);
-    } else if (isLookingAroundUser || !isReportTopmostSplitNavigator()) {
+    } else if (!isReportTopmostSplitNavigator()) {
         // Navigate to home to trigger guard evaluation
         Navigation.navigate(ROUTES.HOME, navigationOptions);
     }

@@ -1539,6 +1539,7 @@ const translations: TranslationDeepObject<typeof en> = {
         waitingOnEnabledWallet: (submitterDisplayName: string) => `rozpoczął rozliczanie. Płatność jest wstrzymana, dopóki ${submitterDisplayName} nie włączy swojego portfela.`,
         enableWallet: 'Włącz portfel',
         hold: 'Wstrzymaj',
+        sendToSomeone: 'Wyślij do kogoś',
         unhold: 'Usuń blokadę',
         holdExpense: () => ({
             one: 'Wstrzymaj wydatek',

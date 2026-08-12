@@ -43,7 +43,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {sortAndSectionPopoverMenuItems, TRANSACTION_MORE_MENU_SECTIONS} from '@libs/PopoverMenuSections';
-import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getTrackExpenseActionableWhisper, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -85,9 +85,9 @@ import {useRoute} from '@react-navigation/native';
 import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
-import {createFilteredPoliciesInfoSelector} from '@selectors/Policy';
-import {validTransactionDraftIDsSelector, validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import React, {useRef, useState} from 'react';
+import {createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
+import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
+import React, {useMemo, useRef, useState} from 'react';
 
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
 
@@ -186,8 +186,13 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     // track-expense whisper in ChatActionableButtons).
     const activePolicy = useActivePolicy();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
-    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(currentUserLogin)});
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    // Memoize the selector factory so useOnyx keeps a stable selector identity across this header's frequent re-renders
+    // (hold/violation/attribute churn) - an inline factory returns a fresh {filteredPoliciesCount, firstPolicyID} each render.
+    const filteredPoliciesInfoSelector = useMemo(() => createFilteredPoliciesInfoSelector(currentUserLogin), [currentUserLogin]);
+    const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
+    // Derive the draft IDs from the existing transactionDrafts subscription instead of subscribing to the same collection twice.
+    // validTransactionDraftsSelector is keyed by transactionID, so its keys are exactly the valid draft transaction IDs.
+    const draftTransactionIDs = useMemo(() => Object.keys(transactionDrafts ?? {}), [transactionDrafts]);
 
     // Custom hooks
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -200,6 +205,11 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    // A self-DM split expense can only be submitted to a workspace, so the "Send to someone" row is gated on this - mirrors
+    // the track-expense whisper (ChatActionableButtons) and the report-details menu (DynamicReportDetailsPage).
+    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const hasWorkspaceToSubmitToSelector = useMemo(() => createHasWorkspaceToSubmitToSelector(currentUserLogin, isSubmit2026BetaEnabled), [currentUserLogin, isSubmit2026BetaEnabled]);
+    const [hasWorkspaceToSubmitTo = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasWorkspaceToSubmitToSelector});
     const {showConfirmModal} = useConfirmModal();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -341,6 +351,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             isChatReportArchived: isChatIOUReportArchived,
             grandParentReport,
             isProduction,
+            hasWorkspaceToSubmitTo,
         });
     })();
 
@@ -606,7 +617,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE]: {
-            text: translate('actionableMentionTrackExpense.submit'),
+            text: translate('iou.sendToSomeone'),
             icon: expensifyIcons.Send,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE,
             onSelected: () => {
@@ -617,10 +628,13 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
                 // Reuse the exact track-expense whisper flow: create a draft from the tracked expense and open the
                 // "Choose a recipient" RHP. Scoped against the self-DM (parentReport), matching the whisper.
+                // Resolve the track-expense actionable whisper the same way the report-details menu does so the
+                // convert flow can mark the original self-DM whisper resolved once the expense is sent - passing
+                // undefined here would leave that whisper stranded and offering to submit an already-sent expense.
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: parentReport?.reportID,
                     actionName: CONST.IOU.ACTION.SUBMIT,
-                    reportActionID: undefined,
+                    reportActionID: getTrackExpenseActionableWhisper(transaction?.transactionID, parentReport?.reportID, parentReportActions)?.reportActionID,
                     reportActions: parentReportActions,
                     introSelected,
                     draftTransactionIDs,
