@@ -302,10 +302,12 @@ function ProfilePage({route}: ProfilePageProps) {
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('profilePage.customInstructions')}
-                                    title={agentPrompt?.prompt?.trim() ?? ''}
+                                    title={Str.htmlDecode(agentPrompt?.prompt?.trim() ?? '')}
+                                    shouldParseTitle
+                                    shouldTruncateTitle
+                                    characterLimit={CONST.AGENT_PROMPT_LIMIT}
                                     shouldShowRightIcon
                                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.getRoute(accountID))}
-                                    numberOfLinesTitle={2}
                                 />
                             </OfflineWithFeedback>
                         )}
