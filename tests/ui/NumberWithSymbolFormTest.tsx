@@ -982,13 +982,24 @@ describe('NumberWithSymbolForm', () => {
 
             expect(getTextInput().props.selection).toEqual({start: 2, end: 2});
 
-            fireEvent(screen.getByTestId('button_<'), 'longPress');
-            await waitForBatchedUpdatesWithAct();
+            // `onLongPress` flips `shouldUpdateSelection` off via `longPressHandlerStateChanged(true)`.
+            // BigNumberPad also starts a 100ms interval that would call `updateValueNumberPad('<')`;
+            // pin timers so that interval cannot fire, then release the press to clear it.
+            jest.useFakeTimers({doNotFake: ['nextTick']});
+            try {
+                const backspace = screen.getByTestId('button_<');
+                fireEvent(backspace, 'longPress');
 
-            fireEvent(getTextInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
-            await waitForBatchedUpdatesWithAct();
+                fireEvent(getTextInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
 
-            expect(getTextInput().props.selection).toEqual({start: 2, end: 2});
+                expect(getTextInput().props.selection).toEqual({start: 2, end: 2});
+                expect(screen.getByDisplayValue('1234')).toBeTruthy();
+
+                fireEvent(backspace, 'pressOut');
+            } finally {
+                jest.runOnlyPendingTimers();
+                jest.useRealTimers();
+            }
         });
     });
 
