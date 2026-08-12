@@ -3242,6 +3242,11 @@ describe('actions/Duplicate', () => {
             const waypoints = distanceCall?.[1]?.waypoints;
             expect(waypoints).toBeDefined();
             expect(waypoints).not.toBe('null');
+            expect(distanceCall?.[1]).toEqual(
+                expect.objectContaining({
+                    distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                }),
+            );
         });
 
         it('should duplicate GPS distance expenses as manual distance expenses', async () => {
