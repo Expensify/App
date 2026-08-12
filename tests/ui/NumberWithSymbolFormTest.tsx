@@ -378,6 +378,13 @@ describe('NumberWithSymbolForm', () => {
             expect(screen.queryByText('USD')).toBeNull();
         });
 
+        it('renders the currency button with an empty label when currency is not provided', async () => {
+            renderForm({value: '10'});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText('Select a currency, ')).toBeTruthy();
+        });
+
         it('hides the number pad when `shouldShowBigNumberPad` is false', async () => {
             renderForm({value: '10', shouldShowBigNumberPad: false});
             await waitForBatchedUpdatesWithAct();
@@ -523,6 +530,13 @@ describe('NumberWithSymbolForm', () => {
 
             expect(queryAllById('numberView')).toHaveLength(0);
             expect(screen.getByDisplayValue('10')).toBeTruthy();
+        });
+
+        it('renders the currency button with an empty label when currency is not provided', async () => {
+            renderForm({value: '10'});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText('Select a currency, ')).toBeTruthy();
         });
 
         it('renders the symbol in the suffix position', async () => {
