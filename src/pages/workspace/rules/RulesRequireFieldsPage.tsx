@@ -278,8 +278,6 @@ function RulesRequireFieldsPage({
                     {hasPerLevelTagRequired ? (
                         tagLists.map((tagList, tagListIndex) => {
                             const label = getTagLevelLabel(tagList.name);
-                            // Per the Tags table, only this level's own tags matter, so a required level stays togglable
-                            // even when no level has an enabled tag.
                             const isLevelToggleDisabled = isTagFeatureDisabled || (!tagList.required && !hasEnabledOptions(Object.values(tagList.tags ?? {})));
                             return (
                                 <ToggleSettingOptionRow
