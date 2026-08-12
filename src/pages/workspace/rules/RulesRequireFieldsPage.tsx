@@ -23,7 +23,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import {enablePolicyCategories, setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
 import {clearPolicyErrorField} from '@userActions/Policy/Policy';
-import {clearPolicyTagListErrorField, enablePolicyTags, setPolicyRequiresTag, setWorkspaceTagRequired} from '@userActions/Policy/Tag';
+import {clearPolicyTagListErrorField, enablePolicyTags, openPolicyTagsPage, setPolicyRequiresTag, setWorkspaceTagRequired} from '@userActions/Policy/Tag';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -74,6 +74,11 @@ function RulesRequireFieldsPage({
 
     useEffect(() => {
         syncedPolicyIDRef.current = undefined;
+    }, [policyID]);
+
+    useEffect(() => {
+        // The tag lists are only fetched by the Tags pages, so without this the per-level rows stay hidden until one is opened.
+        openPolicyTagsPage(policyID);
     }, [policyID]);
 
     useEffect(() => {
@@ -269,6 +274,9 @@ function RulesRequireFieldsPage({
                     {hasPerLevelTagRequired ? (
                         tagLists.map((tagList, tagListIndex) => {
                             const label = getTagLevelLabel(tagList.name);
+                            // Same rule the Tags table used: a level with no enabled tags can't be required, but one that
+                            // already is stays togglable so it can be turned off.
+                            const isLevelToggleDisabled = isTagToggleDisabled || (!tagList.required && !hasEnabledOptions(Object.values(tagList.tags ?? {})));
                             return (
                                 <ToggleSettingOptionRow
                                     key={tagList.name}
@@ -277,7 +285,7 @@ function RulesRequireFieldsPage({
                                     shouldPlaceSubtitleBelowSwitch
                                     wrapperStyle={styles.pv3}
                                     isActive={!!tagRequiredByLevel[tagList.orderWeight]}
-                                    disabled={isTagToggleDisabled}
+                                    disabled={isLevelToggleDisabled}
                                     showLockIcon={shouldShowTagLock}
                                     disabledText={tagDisabledText}
                                     disabledAction={shouldShowTagLock ? promptEnableTagsForRequireTag : undefined}
