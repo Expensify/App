@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Header from '@components/Header';
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
@@ -20,6 +20,7 @@ import variables from '@styles/variables';
 import {updateApp} from '@userActions/AppUpdate';
 
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -73,12 +74,13 @@ function UpdateRequiredView() {
                     </View>
                 </View>
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => updateApp(isProduction)}
-                    text={translate('common.update')}
                     style={styles.updateRequiredViewTextContainer}
-                />
+                >
+                    <Button.Text>{translate('common.update')}</Button.Text>
+                </Button>
             </View>
         </View>
     );

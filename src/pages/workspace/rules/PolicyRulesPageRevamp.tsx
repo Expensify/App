@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -76,7 +76,7 @@ const agentsRulesBannerDismissedSelector = (value: OnyxEntry<DismissedProductTra
 
 function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const {translate} = useLocalize();
-    const {policyID} = route.params;
+    const {policyID, tab: requestedTab} = route.params;
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
@@ -113,6 +113,15 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, RULES_TAB.GENERAL);
     }, [activeTab, policy]);
+
+    useEffect(() => {
+        // The tab param is an entry hint (deep link, post-upgrade bounce-back); the selected tab itself lives in Onyx.
+        if (!requestedTab || !isRulesTab(requestedTab)) {
+            return;
+        }
+
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, requestedTab);
+    }, [requestedTab]);
 
     const clearAllTableSelection = useCallback(() => {
         setSelectedRuleKeysByTab((prev) => (Object.keys(prev).length > 0 ? {} : prev));
@@ -260,13 +269,19 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             return;
         }
 
-        if (key !== RULES_TAB.GENERAL && tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, rulesUpgradeBackTo)) {
+        // Come back to the tab the user asked for, so upgrading lands them where they were headed.
+        if (key !== RULES_TAB.GENERAL && tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, ROUTES.WORKSPACE_RULES.getRoute(policyID, key))) {
             return;
         }
 
         setSelectedRuleKeysByTab({});
         turnOffMobileSelectionMode();
         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, key);
+
+        // Drop the entry hint once the user picks their own tab, otherwise a refresh would re-apply it over that choice.
+        if (requestedTab) {
+            Navigation.setParams({tab: undefined});
+        }
     };
 
     const getHeaderContent = () => {
@@ -291,31 +306,28 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             return null;
         }
 
-        if (activeTab !== RULES_TAB.EXPENSE_DEFAULTS) {
-            return (
-                <Button
-                    success
-                    onPress={handleNewRule}
-                    text={translate('workspace.rules.merchantRules.addRuleTitle')}
-                    icon={icons.Plus}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.w100]}
-                />
-            );
-        }
-
         const moreOptions: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [
-            getImportMerchantRulesOption({policyID, canWriteRules, showReadOnlyModal, translate, icon: icons.Table}),
+            getImportMerchantRulesOption({
+                policyID,
+                canWriteRules,
+                showReadOnlyModal,
+                translate,
+                icon: icons.Table,
+                // Collect sees More on General, so gate it like New rule. backTo only applies after a successful upgrade.
+                tryNavigateToUpgrade: () => tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, ROUTES.RULES_MERCHANT_IMPORT.getRoute(policyID)),
+            }),
         ];
 
         return (
             <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.w100]}>
                 <Button
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={handleNewRule}
-                    text={translate('workspace.rules.merchantRules.addRuleTitle')}
-                    icon={icons.Plus}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                />
+                >
+                    <Button.Icon src={icons.Plus} />
+                    <Button.Text>{translate('workspace.rules.merchantRules.addRuleTitle')}</Button.Text>
+                </Button>
                 <ButtonWithDropdownMenu
                     // onPress is required by ButtonWithDropdownMenu but never fires for a non-split button, where pressing only opens the dropdown menu
                     onPress={() => {}}
@@ -385,6 +397,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                 policyID={policyID}
                                 canWriteRules={canWriteRules}
                                 isAgentsRulesBannerDismissed={isAgentsRulesBannerDismissed}
+                                onOpenAgentsTab={() => handleTabPress(RULES_TAB.AGENTS)}
                             />
                         )}
                         {isTableTab && (
