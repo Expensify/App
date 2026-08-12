@@ -101,7 +101,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
 
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
     const achData = reimbursementAccount?.achData;
-    const shouldShowContinueModal = () => hasInProgressVBBA(achData, isNonUSDWorkspace, policy?.id);
+    const shouldShowContinueModal = hasInProgressVBBA(achData, isNonUSDWorkspace, policy?.id);
 
     const showAddBankAccountPermissionModal = useCallback(() => {
         showConfirmModal({
