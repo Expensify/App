@@ -1,17 +1,9 @@
 import CONST from '@src/CONST';
 import type {OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 
-// Resolve which of the transaction's routes is the selected one.
-// This function is placed in a separate file to avoid circular dependencies.
-//
-// `comment.selectedRouteKey` is a frontend-only field: it is set when the user taps a route on the map and is
-// cleared whenever the waypoints change. The BE never returns it — it only echoes the distance of the route the
-// expense was created with, as `comment.customUnit.routeDistanceMeters`. So for an already-saved expense (e.g.
-// after a fresh login, on the edit screen) the selection has to be recovered by matching that distance against
-// the re-fetched routes.
-//
-// `routeDistanceMeters` is the route-calculated distance, not the displayed one, so this stays correct even when
-// the user has a manual `customUnit.quantity` override on top of the route.
+// Kept in its own file to avoid circular dependencies. `comment.selectedRouteKey` is frontend-only —
+// only the selected route's distance survives a save, echoed as `comment.customUnit.routeDistanceMeters`
+// (route distance, not displayed), so a saved pick is recovered by matching it.
 function getSelectedRouteKey(transaction: OnyxInputOrEntry<Transaction>): string {
     const routes = transaction?.routes;
 

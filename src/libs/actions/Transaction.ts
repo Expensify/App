@@ -498,12 +498,9 @@ function setSelectedRoute(
     return Onyx.merge(`${keyPrefix}${transactionID}`, {
         comment: {
             selectedRouteKey: routeKey,
-            // `getDistanceInMeters` reads `customUnit.quantity` before it consults `selectedRouteKey`, so the quantity has to
-            // follow the pick or every distance/amount/merchant consumer keeps showing the previously selected route until the
-            // expense is saved. `routeDistanceMeters` is kept in sync because it is what `getSelectedRouteKey` distance-matches
-            // on when `selectedRouteKey` is absent, and what `hasManualDistanceOverride` compares against.
-            // This intentionally overwrites a manually typed distance: saving from the map tab drops that override anyway
-            // (see `shouldDropManualDistance` in IOURequestStepDistance), so writing it here keeps the pre-save state honest.
+            // `getDistanceInMeters` prefers `quantity` over the selected route, so it has to follow the pick or consumers keep
+            // showing the old route until save. `routeDistanceMeters` moves with it: `getSelectedRouteKey` distance-matches on it
+            // and `hasManualDistanceOverride` compares against it. It overwrites a typed distance, which the map tab drops anyway.
             ...(routeDistanceInMeters && distanceUnit
                 ? {
                       customUnit: {
