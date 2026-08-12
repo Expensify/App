@@ -16,14 +16,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {hasAccountingConnections, hasDependentTags as hasDependentTagsUtil, isMultiLevelTags as isMultiLevelTagsUtil} from '@libs/PolicyUtils';
+import {getCleanedTagName, getTagLists, hasAccountingConnections, hasDependentTags as hasDependentTagsUtil, isMultiLevelTags as isMultiLevelTagsUtil} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {enablePolicyCategories, setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
 import {clearPolicyErrorField} from '@userActions/Policy/Policy';
-import {enablePolicyTags, setPolicyRequiresTag} from '@userActions/Policy/Tag';
+import {clearPolicyTagListErrorField, enablePolicyTags, setPolicyRequiresTag, setWorkspaceTagRequired} from '@userActions/Policy/Tag';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,13 +58,18 @@ function RulesRequireFieldsPage({
     const hasEnabledTags = hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
     const isTagFeatureDisabled = !policy?.areTagsEnabled;
     const isTagToggleDisabled = isTagFeatureDisabled || !hasEnabledTags || isConnectedToAccounting;
-    // For independent multi-level tags, Required is configured per level in each tag list's RHP, so the policy-wide toggle is hidden (same gate as WorkspaceTagsSettingsPage).
-    const shouldShowTagToggle = !isMultiLevelTagsUtil(policyTags) || hasDependentTagsUtil(policy, policyTags);
+
+    // Independent multi-level tags carry Required on each list, so they get a row per level. Single-level and
+    // dependent tags have only the policy-wide flag, matching where the Tags table offers a per-level switch.
+    const tagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
+    const hasPerLevelTagRequired = isMultiLevelTagsUtil(policyTags) && !hasDependentTagsUtil(policy, policyTags);
     const initialCategoryRequired = !!policy?.requiresCategory;
     const initialTagRequired = !!policy?.requiresTag;
+    const initialTagRequiredByLevel = useMemo(() => Object.fromEntries(tagLists.map((tagList) => [tagList.orderWeight, !!tagList.required])), [tagLists]);
 
     const [categoryRequired, setCategoryRequired] = useState(initialCategoryRequired);
     const [tagRequired, setTagRequired] = useState(initialTagRequired);
+    const [tagRequiredByLevel, setTagRequiredByLevel] = useState<Record<number, boolean>>(initialTagRequiredByLevel);
     const syncedPolicyIDRef = useRef<string | undefined>(undefined);
 
     useEffect(() => {
@@ -79,11 +84,17 @@ function RulesRequireFieldsPage({
         syncedPolicyIDRef.current = policy.id;
         setCategoryRequired(!!policy.requiresCategory);
         setTagRequired(!!policy.requiresTag);
-    }, [policy?.id, policy?.isLoading, policy?.requiresCategory, policy?.requiresTag]);
+        setTagRequiredByLevel(initialTagRequiredByLevel);
+    }, [policy?.id, policy?.isLoading, policy?.requiresCategory, policy?.requiresTag, initialTagRequiredByLevel]);
+
+    const changedTagLevels = useMemo(
+        () => (hasPerLevelTagRequired ? tagLists.filter((tagList) => tagRequiredByLevel[tagList.orderWeight] !== !!tagList.required) : []),
+        [hasPerLevelTagRequired, tagLists, tagRequiredByLevel],
+    );
 
     const hasChanges = useMemo(
-        () => categoryRequired !== initialCategoryRequired || tagRequired !== initialTagRequired,
-        [categoryRequired, initialCategoryRequired, tagRequired, initialTagRequired],
+        () => categoryRequired !== initialCategoryRequired || (hasPerLevelTagRequired ? changedTagLevels.length > 0 : tagRequired !== initialTagRequired),
+        [categoryRequired, initialCategoryRequired, hasPerLevelTagRequired, changedTagLevels, tagRequired, initialTagRequired],
     );
 
     const handleSave = useCallback(() => {
@@ -95,16 +106,38 @@ function RulesRequireFieldsPage({
         if (categoryRequired !== initialCategoryRequired) {
             setWorkspaceRequiresCategory(policyData, categoryRequired);
         }
-        if (tagRequired !== initialTagRequired) {
+
+        if (hasPerLevelTagRequired) {
+            // One call per direction so a mixed change is two requests rather than one per level.
+            const levelsToRequire = changedTagLevels.filter((tagList) => tagRequiredByLevel[tagList.orderWeight]).map((tagList) => tagList.orderWeight);
+            const levelsToMakeOptional = changedTagLevels.filter((tagList) => !tagRequiredByLevel[tagList.orderWeight]).map((tagList) => tagList.orderWeight);
+
+            if (levelsToRequire.length > 0) {
+                setWorkspaceTagRequired(policyData, levelsToRequire, true);
+            }
+            if (levelsToMakeOptional.length > 0) {
+                setWorkspaceTagRequired(policyData, levelsToMakeOptional, false);
+            }
+        } else if (tagRequired !== initialTagRequired) {
             setPolicyRequiresTag(policyData, tagRequired);
         }
+
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
-    }, [hasChanges, categoryRequired, initialCategoryRequired, tagRequired, initialTagRequired, policyData]);
+    }, [hasChanges, categoryRequired, initialCategoryRequired, hasPerLevelTagRequired, changedTagLevels, tagRequiredByLevel, tagRequired, initialTagRequired, policyData]);
 
     // Lock UX only when the feature itself is off (or categories are accounting-controlled).
     // Feature on but no enabled items: toggle stays disabled without lock/modal.
     const shouldShowCategoryLock = isCategoryFeatureDisabled || isConnectedToAccounting;
     const shouldShowTagLock = isTagFeatureDisabled || isConnectedToAccounting;
+
+    /** Tag lists are named by the admin, so show that name and keep the generic label only for unnamed lists. */
+    const getTagLevelLabel = (tagListName: string | undefined) => {
+        const cleanedName = tagListName ? getCleanedTagName(tagListName) : '';
+        return cleanedName || translate('workspace.rules.requireFields.tag');
+    };
+
+    // The single toggle covers every level, so a list name would only fit when there is exactly one list.
+    const singleTagRowLabel = tagLists.length === 1 ? getTagLevelLabel(tagLists.at(0)?.name) : translate('workspace.rules.requireFields.tag');
 
     const categoryDisabledText = (() => {
         if (!shouldShowCategoryLock) {
@@ -233,10 +266,32 @@ function RulesRequireFieldsPage({
                         onToggle={setCategoryRequired}
                     />
 
-                    {shouldShowTagToggle && (
+                    {hasPerLevelTagRequired ? (
+                        tagLists.map((tagList, tagListIndex) => {
+                            const label = getTagLevelLabel(tagList.name);
+                            return (
+                                <ToggleSettingOptionRow
+                                    key={tagList.name}
+                                    title={label}
+                                    switchAccessibilityLabel={label}
+                                    shouldPlaceSubtitleBelowSwitch
+                                    wrapperStyle={styles.pv3}
+                                    isActive={!!tagRequiredByLevel[tagList.orderWeight]}
+                                    disabled={isTagToggleDisabled}
+                                    showLockIcon={shouldShowTagLock}
+                                    disabledText={tagDisabledText}
+                                    disabledAction={shouldShowTagLock ? promptEnableTagsForRequireTag : undefined}
+                                    pendingAction={tagList.pendingFields?.required}
+                                    errors={tagList.errorFields?.required ?? undefined}
+                                    onCloseError={() => clearPolicyTagListErrorField({policyID, tagListIndex, errorField: 'required', policyTags})}
+                                    onToggle={(isOn) => setTagRequiredByLevel((previous) => ({...previous, [tagList.orderWeight]: isOn}))}
+                                />
+                            );
+                        })
+                    ) : (
                         <ToggleSettingOptionRow
-                            title={translate('workspace.rules.requireFields.tag')}
-                            switchAccessibilityLabel={translate('workspace.rules.requireFields.tag')}
+                            title={singleTagRowLabel}
+                            switchAccessibilityLabel={singleTagRowLabel}
                             shouldPlaceSubtitleBelowSwitch
                             wrapperStyle={styles.pv3}
                             isActive={tagRequired}

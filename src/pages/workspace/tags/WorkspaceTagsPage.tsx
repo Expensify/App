@@ -367,7 +367,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     pendingAction: getPendingAction(policyTagList),
                     isLocked: !canWriteTags || isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList]),
                     showEnabledSwitch: false,
-                    showRequiredSwitch: !hasDependentTags,
+                    // Required is configured from Rules once the revamp is on.
+                    showRequiredSwitch: !hasDependentTags && !isRulesRevampEnabled,
                     action: () => navigateToTagSettings(policyTagList.name, policyTagList.orderWeight),
                     onToggleRequired: (required: boolean) => handleTagListRequiredToggle(required, policyTagList),
                     onClose: () => {},
@@ -423,6 +424,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         hasDependentTags,
         isMultiLevelTags,
         isOffline,
+        isRulesRevampEnabled,
         navigateToTagSettings,
         policy,
         policyID,
@@ -701,7 +703,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             }
         }
 
-        if (requiredTagCount > 0 && !hasDependentTags && isMultiLevelTags) {
+        if (requiredTagCount > 0 && !hasDependentTags && isMultiLevelTags && !isRulesRevampEnabled) {
             options.push({
                 icon: expensifyIcons.Close,
                 text: translate('workspace.tags.notRequireTags'),
@@ -722,7 +724,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             });
         }
 
-        if (optionalTagCount > 0 && !hasDependentTags && isMultiLevelTags) {
+        if (optionalTagCount > 0 && !hasDependentTags && isMultiLevelTags && !isRulesRevampEnabled) {
             options.push({
                 icon: expensifyIcons.Checkmark,
                 text: translate(requiredTagCount === 1 ? 'workspace.tags.requireTag' : 'workspace.tags.requireTags'),
