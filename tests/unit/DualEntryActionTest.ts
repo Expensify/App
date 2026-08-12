@@ -19,14 +19,16 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
     __esModule: true,
     default: {isHybridApp: () => false},
 }));
+const mockErrorTimestamp = 123;
+
 jest.mock('@libs/ErrorUtils', () => ({
-    getMicroSecondOnyxErrorWithTranslationKey: () => ({[123]: 'common.genericErrorMessage'}),
+    getMicroSecondOnyxErrorWithTranslationKey: () => ({[mockErrorTimestamp]: 'common.genericErrorMessage'}),
 }));
 
 const mockWrite = jest.mocked(write);
 const policyID = 'policyID';
 const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
-const error = {[123]: 'common.genericErrorMessage'};
+const error = {[mockErrorTimestamp]: 'common.genericErrorMessage'};
 
 function getOnyxData() {
     const onyxData = mockWrite.mock.calls.at(0)?.at(2);
