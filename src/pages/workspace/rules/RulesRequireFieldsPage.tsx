@@ -102,7 +102,7 @@ function RulesRequireFieldsPage({
 
     const hasChanges = useMemo(
         () => categoryRequired !== initialCategoryRequired || (hasPerLevelTagRequired ? changedTagLevels.length > 0 : tagRequired !== initialTagRequired),
-        [categoryRequired, initialCategoryRequired, hasPerLevelTagRequired, changedTagLevels, tagRequired, initialTagRequired],
+        [categoryRequired, initialCategoryRequired, hasPerLevelTagRequired, changedTagLevels.length, tagRequired, initialTagRequired],
     );
 
     const handleSave = useCallback(() => {
@@ -134,7 +134,7 @@ function RulesRequireFieldsPage({
     }, [hasChanges, categoryRequired, initialCategoryRequired, hasPerLevelTagRequired, changedTagLevels, getLevelRequired, tagRequired, initialTagRequired, policyData]);
 
     const handleToggleTagLevel = useCallback(
-        async (orderWeight: number, isOn: boolean) => {
+        (orderWeight: number, isOn: boolean) => {
             // The Tags table blocked clearing the last required level while the workspace still requires a tag, so that
             // guard moves here with the control. It reads the pending edits rather than isMakingLastRequiredTagListOptional,
             // which only sees saved state and would miss levels switched off earlier in this same visit.
@@ -142,7 +142,7 @@ function RulesRequireFieldsPage({
                 !isOn && !!policy?.requiresTag && tagLists.every((tagList) => tagList.orderWeight === orderWeight || !getLevelRequired(tagList.orderWeight, tagList.required));
 
             if (wouldClearLastRequiredLevel) {
-                await showConfirmModal({
+                showConfirmModal({
                     title: translate('workspace.tags.cannotMakeAllTagsOptional.title'),
                     prompt: translate('workspace.tags.cannotMakeAllTagsOptional.description'),
                     confirmText: translate('common.buttonConfirm'),

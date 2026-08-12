@@ -127,11 +127,11 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
 
-    const tagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
+    const tagLists = getTagLists(policyTags);
     const hasPerLevelTagRequired = isMultiLevelTagsUtil(policyTags) && !hasDependentTagsUtil(policy, policyTags);
 
     // Name the tag lists the way the Require fields page rows do, instead of a generic "Tag".
-    const requiredTagLabels = useMemo(() => {
+    const requiredTagLabels = (() => {
         if (hasPerLevelTagRequired) {
             return tagLists.filter((tagList) => tagList.required).map((tagList) => getCleanedTagName(tagList.name));
         }
@@ -142,7 +142,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
 
         const singleTagListName = tagLists.length === 1 ? getCleanedTagName(tagLists.at(0)?.name ?? '') : '';
         return [singleTagListName || translate('common.tag')];
-    }, [hasPerLevelTagRequired, policy?.requiresTag, tagLists, translate]);
+    })();
 
     const requiredFieldsList = [policy?.requiresCategory && translate('common.category'), ...requiredTagLabels].filter(Boolean).join(', ');
 
