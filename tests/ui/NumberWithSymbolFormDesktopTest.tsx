@@ -12,6 +12,7 @@ import React from 'react';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/DeviceCapabilities', () => ({canUseTouchScreen: () => false}));
+jest.mock('@libs/shouldIgnoreSelectionWhenUpdatedManually', () => false);
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
@@ -53,5 +54,29 @@ describe('NumberWithSymbolForm on desktop', () => {
 
         fireEvent.press(currencyButton);
         expect(onSymbolButtonPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('applies the selection event after a manual update on web', async () => {
+        render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <NumberWithSymbolForm
+                    symbol="$"
+                    label={INPUT_LABEL}
+                    value="12"
+                    displayAsTextInput
+                />
+            </ComposeProviders>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+
+        const textInput = screen.getByLabelText(INPUT_LABEL);
+        fireEvent.changeText(textInput, '13');
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent(textInput, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(textInput.props.selection).toEqual({start: 0, end: 0});
     });
 });
