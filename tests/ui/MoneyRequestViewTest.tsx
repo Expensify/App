@@ -4,6 +4,8 @@ import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -124,6 +126,7 @@ describe('MoneyRequestView edit fields', () => {
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+        initOnyxDerivedValues();
     });
 
     afterEach(async () => {
@@ -551,6 +554,43 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
+    it('shows the persisted vendor name over the externalID when the vendor is missing from every connection', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                // The vendor is gone from every synced list (e.g. it went inactive in Intacct), but its
+                // display name was persisted on the transaction at match/assign time, so the title must
+                // render the name — not the raw externalID.
+                comment: {vendor: {externalID: 'stale-vendor-id', name: 'Amazon', isManuallySet: false}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    data: {vendors: []},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
+            expect(vendorTitle).toHaveTextContent('Amazon');
+            expect(vendorTitle).not.toHaveTextContent('stale-vendor-id');
+        });
+    });
+
     it('falls back to the vendor externalID before the synced vendor list has loaded', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
@@ -618,6 +658,101 @@ describe('MoneyRequestView edit fields', () => {
             const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
             expect(vendorTitle).toHaveTextContent('Stale Intacct Vendor');
             expect(vendorTitle).not.toHaveTextContent('violations.inactiveVendor');
+        });
+    });
+
+    describe('commuter exclusion in the Distance field', () => {
+        const selfDMReportID = 'self_dm_mrv_123';
+        // `translate` is mocked to return the key, so the commuter description is the plain distance label plus the "Original" key
+        const commuterDistanceDescription = `common.distance ${CONST.DOT_SEPARATOR} distance.commuterExclusion.original`;
+        const distanceTransactionUpdate = {
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            merchant: '3.00 mi @ $0.67 / mi',
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    quantity: 4,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    commuterExclusion: 1,
+                    reimbursableDistance: 3,
+                    commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                },
+            },
+        };
+
+        it('shows the original distance and removed commuter miles on a workspace expense', async () => {
+            const threadReport = {
+                ...LHNTestUtils.getFakeReport(),
+                parentReportID: expenseReportID,
+                parentReportActionID,
+            };
+
+            await setupTestData();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, distanceTransactionUpdate);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderMoneyRequestView(threadReport);
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByTestId(`menu-item-${commuterDistanceDescription}`)).toBeOnTheScreen();
+            });
+        });
+
+        it('does not show the commuter exclusion on a self-DM expense that carries the fields', async () => {
+            const threadReport = {
+                ...LHNTestUtils.getFakeReport(),
+                parentReportID: selfDMReportID,
+                parentReportActionID,
+            };
+
+            await setupTestData();
+            await act(async () => {
+                // The expense lives in the self-DM, so it has no workspace report backing it
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {
+                    reportID: selfDMReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                    ownerAccountID: currentUserAccountID,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, {
+                    [parentReportActionID]: {
+                        ...LHNTestUtils.getFakeReportAction(),
+                        reportActionID: parentReportActionID,
+                        reportID: selfDMReportID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        actorAccountID: currentUserAccountID,
+                        originalMessage: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                            IOUTransactionID: transactionID,
+                            amount: 5000,
+                            currency: CONST.CURRENCY.USD,
+                        },
+                    },
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {...distanceTransactionUpdate, reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider]}>
+                    <MoneyRequestView
+                        transactionThreadReport={threadReport}
+                        parentReportID={selfDMReportID}
+                        expensePolicy={undefined}
+                        shouldShowAnimatedBackground={false}
+                    />
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByTestId('menu-item-common.distance')).toBeOnTheScreen();
+            });
+            expect(screen.queryByTestId(`menu-item-${commuterDistanceDescription}`)).not.toBeOnTheScreen();
         });
     });
 });

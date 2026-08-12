@@ -12,6 +12,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {shouldShowInitialCategoryFilterLoading} from '@hooks/useSearchFilterSync';
 
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
@@ -137,7 +138,9 @@ function FilterPopup({baseFilterKey, searchAdvancedFiltersForm, closeOverlay, se
 
 function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarResult {
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const {translate, localeCompare} = useLocalize();
+    const [areCategoriesLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED);
+    const [isLoadingCategories] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA);
+    const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const {isOffline} = useNetwork();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
@@ -146,6 +149,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         searchAdvancedFiltersForm,
         SKIPPED_SEARCH_FILTERS,
         translate,
+        dateFnsLocale,
         localeCompare,
         convertToDisplayStringWithoutCurrency,
         (filterKey): FilterItem => ({
@@ -199,11 +203,12 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         setFilterQueryParams(getAdvancedFiltersToReset(searchAdvancedFiltersForm ?? {}));
         setSearchContext(false);
     };
+    const isCategoryFilterLoading = shouldShowInitialCategoryFilterLoading(queryJSON, areCategoriesLoaded, isLoadingCategories, isOffline);
 
     return {
         filters,
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
-        shouldShowFiltersBarLoading,
+        shouldShowFiltersBarLoading: shouldShowFiltersBarLoading || isCategoryFilterLoading,
         clearFilters,
     };
 }

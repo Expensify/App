@@ -3,6 +3,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
@@ -58,7 +59,7 @@ describe('HelpPage', () => {
     function renderPage() {
         return render(
             <NavigationContainer>
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <ComposeProviders components={[OnyxListItemProvider, PersonalDetailsByLoginProvider, LocaleContextProvider]}>
                     <HelpPage />
                 </ComposeProviders>
             </NavigationContainer>,
@@ -67,7 +68,7 @@ describe('HelpPage', () => {
 
     it('shows the Book a call button on the account manager row and opens the calendar link when pressed', async () => {
         // Given an account manager with a calendar link
-        await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(ACCOUNT_MANAGER_ACCOUNT_ID), accountManagerCalendarLink: CALENDAR_LINK});
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: ACCOUNT_MANAGER_ACCOUNT_ID, accountManagerCalendarLink: CALENDAR_LINK});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ACCOUNT_MANAGER_ACCOUNT_ID]: {accountID: ACCOUNT_MANAGER_ACCOUNT_ID, login: 'am@example.com', displayName: ACCOUNT_MANAGER_NAME}});
         await waitForBatchedUpdates();
 
@@ -85,7 +86,7 @@ describe('HelpPage', () => {
 
     it('hides the duplicate account manager row when the account manager is Concierge', async () => {
         // Given Concierge assigned as the account manager
-        await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(CONST.ACCOUNT_ID.CONCIERGE)});
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: CONST.ACCOUNT_ID.CONCIERGE});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, login: CONST.EMAIL.CONCIERGE, displayName: 'Concierge'},
         });
@@ -117,7 +118,7 @@ describe('HelpPage', () => {
 
     it('still renders a non-Concierge account manager row', async () => {
         // Given a human account manager (not Concierge)
-        await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: String(ACCOUNT_MANAGER_ACCOUNT_ID)});
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID: ACCOUNT_MANAGER_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ACCOUNT_MANAGER_ACCOUNT_ID]: {accountID: ACCOUNT_MANAGER_ACCOUNT_ID, login: 'am@example.com', displayName: ACCOUNT_MANAGER_NAME}});
         await waitForBatchedUpdates();
 

@@ -41,6 +41,10 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.STASHED_CREDENTIALS,
     ONYXKEYS.HYBRID_APP,
 
+    // Otherwise it's wiped and refetched by OpenApp, letting the product-marketing window flash back in
+    // before the dismissal value round-trips back from the server.
+    ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
+
     // We need to preserve the sidebar loaded state since we never unmount the sidebar when connecting as a delegate
     // This allows the report screen to load correctly when the delegate token expires and the delegate is returned to their original account.
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,

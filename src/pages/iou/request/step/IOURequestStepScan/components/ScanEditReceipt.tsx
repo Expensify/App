@@ -45,6 +45,7 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
 
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
@@ -73,6 +74,7 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
                 transactionPolicyCategories: policyCategories,
                 transactionPolicyTagList: policyTagList,
                 transactionViolations,
+                transactionReport,
             });
         } else {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
@@ -80,7 +82,7 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
         navigateBack();
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
+    const {validateFiles, PDFValidationComponent} = useFilesValidation((files: FileObject[]) => {
         const file = files.at(0);
         if (!file) {
             return;
@@ -103,7 +105,6 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
                 isReplacingReceipt
             />
-            {ErrorModal}
         </StepScreenDragAndDropWrapper>
     );
 }
