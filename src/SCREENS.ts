@@ -933,6 +933,7 @@ const SCREENS = {
         RULES_MERCHANT_CATEGORY: 'Rules_Merchant_Category',
         RULES_MERCHANT_TAG: 'Rules_Merchant_Tag',
         RULES_MERCHANT_TAX: 'Rules_Merchant_Tax',
+        RULES_MERCHANT_VENDOR: 'Rules_Merchant_Vendor',
         RULES_MERCHANT_DESCRIPTION: 'Rules_Merchant_Description',
         RULES_MERCHANT_REIMBURSABLE: 'Rules_Merchant_Reimbursable',
         RULES_MERCHANT_BILLABLE: 'Rules_Merchant_Billable',
