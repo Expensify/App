@@ -70,7 +70,7 @@ describe('ProfilePage - agent custom instructions', () => {
             } as PersonalDetails,
             [AGENT_ACCOUNT_ID]: {
                 accountID: AGENT_ACCOUNT_ID,
-                login: `testbot_${AGENT_ACCOUNT_ID}@expensify.ai`,
+                login: `agent_${AGENT_ACCOUNT_ID}@expensify.ai`,
                 displayName: 'Test Agent',
                 isCustomAgent: true,
             } as PersonalDetails,
