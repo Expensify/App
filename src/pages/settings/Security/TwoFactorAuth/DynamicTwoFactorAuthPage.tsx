@@ -200,6 +200,7 @@ function DynamicTwoFactorAuthPage() {
                                 setError('');
                                 setCodesAreCopied();
                                 announceStatus(translate('fileDownload.success.title'));
+                                // PUSH on web so browser Back returns to the recovery codes. Native has no browser Back, so REPLACE.
                                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path, backPath), {forceReplace: !isWeb});
                             }}
                         >
