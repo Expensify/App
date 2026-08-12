@@ -144,12 +144,12 @@ function seedRangeState<TItem>(params: Params<TItem>, isIncluded: (key: string) 
 }
 
 /**
- * What a session with no history starts from. It adopts rows that read as selected without having been picked on their own,
- * since those came from a block selection like a group that a range is entitled to narrow. Empty unless `isItemProtected` is passed.
+ * A session with no continuity adopts rows that read as selected without having been picked on their own, since those came from a
+ * block selection a range may narrow. Inert unless `isItemProtected` is passed.
  */
-function startingPainted<TItem>(params: Params<TItem>, state: SessionState): ReadonlySet<string> {
+function startingPainted<TItem>(params: Params<TItem>, sameAnchor: boolean): ReadonlySet<string> {
     const keys = new Set<string>();
-    if (state.kind !== 'idle') {
+    if (sameAnchor) {
         return keys;
     }
     const isProtected = params.isItemProtected ?? params.isItemSelected;
@@ -197,7 +197,7 @@ function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, ta
     // The session survives only while the same anchor does; a re-resolved or cold anchor starts fresh.
     const sameAnchor = state.kind !== 'idle' && anchor === state.anchor;
     const continuing = state.kind === 'ranging' && sameAnchor;
-    const prevPainted: ReadonlySet<string> = continuing ? state.painted : startingPainted(params, state);
+    const prevPainted: ReadonlySet<string> = continuing ? state.painted : startingPainted(params, sameAnchor);
     const preSelected = protectedKeys(params, prevPainted);
 
     const anchorIdx = keyToIndex.get(anchor);

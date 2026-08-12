@@ -533,6 +533,22 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['b', 'c'], toDeselect: ['d']});
         });
 
+        it('adopts the block when the remembered anchor is gone, since that session is over', () => {
+            const onApplyRange = makeApplyMock();
+            const {result, rerender} = renderHook(
+                ({items}: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({items, onApplyRange, isItemSelected: (row) => row.keyForList !== 'a', isItemProtected: () => false})),
+                {initialProps: {items: [...ROWS]}},
+            );
+            // Anchored on 'a', which the next render drops from the list
+            act(() => result.current.notifyAnchor(ROW_A));
+            rerender({items: ROWS.slice(1)});
+            act(() => {
+                result.current.applyShiftClick(ROW_C, true);
+            });
+            // The anchor re-resolved to the block's first row, and the rest of the block fell out of the range with it.
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c'], toDeselect: ['d', 'e']});
+        });
+
         it('leaves a block alone when the session already has an anchor, so an unrelated range cannot dissolve it', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() =>
