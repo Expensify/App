@@ -656,8 +656,10 @@ function MoneyRequestReportTransactionList({
             const nextSelectedIDs = anySelected ? selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id)) : [...selectedTransactionIDs, ...groupTransactionIDs];
             setSelectedTransactions(nextSelectedIDs);
             if (anySelected) {
+                // Deselecting paints no block, so reset instead of leaving a stale span to collapse.
                 rangeApi.clearAnchor();
             } else {
+                // Seed just this block: seeding the whole selection would span unrelated rows and deselect them.
                 rangeApi.seedRangeFromSelection(groupTransactionIDs);
             }
         },

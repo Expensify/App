@@ -531,6 +531,9 @@ function SearchWriteActionsProvider({
         });
     };
 
+    // Every write path has to agree on this: a deselection is recorded as an exclusion only where the backend can be told about it.
+    const canRecordExclusions = type === CONST.SEARCH.DATA_TYPES.EXPENSE;
+
     // Expense-report rows are the selectable unit. Only group-by rows are headers whose children flatten in.
     const hasValidGroupBy = areItemsGrouped && !isExpenseReportType;
     const flattenedShiftRangeItems = buildShiftRangeItems(renderedData, groupChildrenByKey, openGroupKeys, hasValidGroupBy);
@@ -570,7 +573,7 @@ function SearchWriteActionsProvider({
             return {};
         }
         // Only select-all-matching can express a deselection as an exclusion. A group selected on its own is written out instead.
-        if (!areAllMatchingItemsSelected || isTransactionPendingDelete(row)) {
+        if (!canRecordExclusions || !areAllMatchingItemsSelected || isTransactionPendingDelete(row)) {
             return {};
         }
         const selectedTransactions = getSelectedTransactions();
@@ -653,7 +656,7 @@ function SearchWriteActionsProvider({
                 data: filteredData,
                 totalSelectableItemsCount,
                 // Matches the row and group toggles, so narrowing records exclusions rather than dropping every unloaded match.
-                shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
+                shouldPreserveAllMatchingSelection: canRecordExclusions,
                 shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
                 deselectedWithoutEntry: rangeExclusions,
             },
@@ -763,7 +766,7 @@ function SearchWriteActionsProvider({
                 applySelection((selectedTransactions) => selectedTransactions, {
                     data: filteredData,
                     totalSelectableItemsCount,
-                    shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    shouldPreserveAllMatchingSelection: canRecordExclusions,
                     shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
                     deselectedWithoutEntry: clickExclusion,
                 });
@@ -812,7 +815,7 @@ function SearchWriteActionsProvider({
                 },
                 {
                     totalSelectableItemsCount,
-                    shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    shouldPreserveAllMatchingSelection: canRecordExclusions,
                     shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
                 },
             );
@@ -867,7 +870,7 @@ function SearchWriteActionsProvider({
             },
             {
                 totalSelectableItemsCount,
-                shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
+                shouldPreserveAllMatchingSelection: canRecordExclusions,
                 shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
             },
         );
@@ -926,7 +929,7 @@ function SearchWriteActionsProvider({
                 data: filteredData,
                 totalSelectableItemsCount,
                 // Selecting the page covers rows that were excluded, so the exclusions go with it. Clearing must not preserve them.
-                shouldPreserveAllMatchingSelection: !isClearing && type === CONST.SEARCH.DATA_TYPES.EXPENSE,
+                shouldPreserveAllMatchingSelection: !isClearing && canRecordExclusions,
                 shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
             },
         );

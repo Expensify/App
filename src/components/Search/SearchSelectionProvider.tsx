@@ -101,10 +101,12 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         setSelectionState((prevState) => {
             const selectedTransactions = updater(prevState.selectedTransactions);
             const reconciledExcludedTransactions = options?.reconciledExcludedTransactions;
-            const shouldClearAllMatchingSelection = options?.shouldClearAllMatchingSelectionWhenEmpty && isEmptyObject(selectedTransactions);
+            // An empty map means the selection ran out, unless the caller is naming a row it just took out of it: that row was checked, so something was still selected.
+            const hasNamedDeselection = !isEmptyObject(options?.deselectedWithoutEntry ?? {});
+            const shouldClearAllMatchingSelection = options?.shouldClearAllMatchingSelectionWhenEmpty && isEmptyObject(selectedTransactions) && !hasNamedDeselection;
             // A deselection can only be recorded as an exclusion while an all-matching selection is being preserved.
             const shouldRecordExclusions = prevState.areAllMatchingItemsSelected && !!options?.shouldPreserveAllMatchingSelection && !shouldClearAllMatchingSelection;
-            const hasDeselectedWithoutEntry = shouldRecordExclusions && !isEmptyObject(options?.deselectedWithoutEntry ?? {});
+            const hasDeselectedWithoutEntry = shouldRecordExclusions && hasNamedDeselection;
             // Turning the flag off is a change even when the selection map is untouched, since it is what the rows read to render checked.
             const needsAllMatchingClear = !!shouldClearAllMatchingSelection && prevState.areAllMatchingItemsSelected;
             if (

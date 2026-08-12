@@ -121,14 +121,14 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
         expect(Object.keys(result.current.state.excludedTransactions)).toEqual(['tx_3']);
     });
 
-    it('turns all-matching off when the last checked row is deselected and nothing more can load', () => {
+    it('records a named deselection rather than clearing, since the row it names was still checked', () => {
         const {result} = renderSelection();
         seedAllMatchingSelection(result);
         act(() => {
             result.current.actions.setSelectedTransactions({});
         });
 
-        // The updater has nothing to remove, so clearing the flag is the only thing this commit does
+        // The map is empty, which normally reads as "the selection ran out" — but a row was just unchecked, so it had not
         act(() => {
             result.current.actions.applySelection((selectedTransactions) => selectedTransactions, {
                 shouldPreserveAllMatchingSelection: true,
@@ -137,8 +137,26 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
             });
         });
 
+        expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
+        expect(Object.keys(result.current.state.excludedTransactions)).toEqual(['tx_3']);
+    });
+
+    it('turns all-matching off when a commit leaves nothing selected and nothing more can load', () => {
+        const {result} = renderSelection();
+        seedAllMatchingSelection(result);
+        act(() => {
+            result.current.actions.setSelectedTransactions({});
+        });
+
+        // Nothing is named here, so an empty map really does mean there is nothing left to act on
+        act(() => {
+            result.current.actions.applySelection((selectedTransactions) => selectedTransactions, {
+                shouldPreserveAllMatchingSelection: true,
+                shouldClearAllMatchingSelectionWhenEmpty: true,
+            });
+        });
+
         expect(result.current.state.areAllMatchingItemsSelected).toBe(false);
-        expect(result.current.state.excludedTransactions).toEqual({});
     });
 
     it('leaves the state untouched when a named deselection has nowhere to be recorded', () => {
