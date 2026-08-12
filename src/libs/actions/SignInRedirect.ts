@@ -43,8 +43,8 @@ Onyx.connectWithoutView({
     },
 });
 
-// Read synchronously so the preserve list is built before `Onyx.clear` runs. Awaiting a read here would
-// put a tick between clearing the credentials and clearing the store, which this teardown path cannot afford.
+// The list of keys to preserve has to be ready before `Onyx.clear` runs below, and reading the draft
+// from Onyx at that point would delay the clear, so the value is kept here instead of being read on demand.
 Onyx.connectWithoutView({
     key: ONYXKEYS.GPS_DRAFT_DETAILS,
     callback: (value) => {
@@ -105,8 +105,8 @@ function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?:
         Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: true});
 
         // A forced re-auth is involuntary, so an in-progress trip is kept and offered back on return.
-        // Voluntary sign-out still discards it, and the stamped accountID gates who may resume it.
-        if (hasGpsTripInProgress) {
+        // Only keep a trip we can record an owner for, so it is never resumed by whoever signs in next.
+        if (hasGpsTripInProgress && currentSessionAccountID) {
             Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {accountID: currentSessionAccountID});
             keysToPreserve.push(ONYXKEYS.GPS_DRAFT_DETAILS);
         }
