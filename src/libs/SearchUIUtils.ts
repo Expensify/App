@@ -1907,6 +1907,7 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
     // The payer is the actor on the latest payment action.
     let lastReimbursedTime = -Infinity;
     let lastReimbursedAction: OnyxTypes.ReportAction | undefined;
+    let lastReimbursementDequeuedTime = -Infinity;
 
     for (const action of Object.values(actions)) {
         if (action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
@@ -1944,6 +1945,10 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
             }
         }
 
+        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED) {
+            lastReimbursementDequeuedTime = Math.max(lastReimbursementDequeuedTime, new Date(action.created).getTime());
+        }
+
         if (isMoneyRequestAction(action)) {
             const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action);
             const transactionID = originalMessage?.IOUTransactionID;
@@ -1967,7 +1972,8 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
         ctx.firstApprovedActionByReportID.set(reportID, firstApprovalAction);
     }
 
-    if (lastReimbursedAction) {
+    // A payment sharing the same timestamp as a cancellation counts as canceled, matching the backend
+    if (lastReimbursedAction && lastReimbursedTime > lastReimbursementDequeuedTime) {
         ctx.lastReimbursedActionByReportID.set(reportID, lastReimbursedAction);
     }
 }
