@@ -36,6 +36,7 @@ const mockLocalize: ReturnType<typeof useLocalize> = {
     formatPhoneNumber: () => '',
     toLocaleDigit: () => '',
     toLocaleOrdinal: () => '',
+    toLocaleOrdinalWithWords: () => '',
     fromLocaleDigit: () => '',
     localeCompare: () => 0,
     formatTravelDate: () => '',

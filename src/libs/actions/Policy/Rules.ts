@@ -74,6 +74,7 @@ function mapFormFieldsToRuleForOnyx(form: MerchantRuleForm, policy: Policy | und
         category: form.category || null,
         tag: form.tag || null,
         tax: buildTaxObject(form.tax, policy) ?? null,
+        vendorID: form.vendorID || null,
         comment: convertCommentToHTML(form.comment),
         reimbursable: form.reimbursable ?? null,
         billable: form.billable ?? null,
@@ -99,6 +100,9 @@ function mapFormFieldsToRuleForAPI(form: MerchantRuleForm, policy: Policy | unde
     const tax = buildTaxObject(form.tax, policy);
     if (tax) {
         rule.tax = tax;
+    }
+    if (form.vendorID) {
+        rule.vendorID = form.vendorID;
     }
     const commentHTML = convertCommentToHTML(form.comment);
     if (commentHTML) {
@@ -678,6 +682,8 @@ function clearPolicyAgentRuleErrors(policyID: string, agentRuleID: string, agent
 export {
     openPolicyRulesPage,
     getAgentRuleSuggestions,
+    mapFormFieldsToRuleForOnyx,
+    mapFormFieldsToRuleForAPI,
     setPolicyCodingRule,
     importMerchantRulesSpreadsheet,
     deletePolicyCodingRule,
