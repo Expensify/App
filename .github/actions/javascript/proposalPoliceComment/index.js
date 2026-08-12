@@ -40678,7 +40678,11 @@ const TEMPLATE_CHECK_RESPONSE_FORMAT = {
     schema: {
         type: 'object',
         properties: {
-            action: { type: 'string', enum: [CONST_1.default.NO_ACTION, CONST_1.default.ACTION_REQUIRED] },
+            action: {
+                type: 'string',
+                enum: [CONST_1.default.NO_ACTION, CONST_1.default.ACTION_REQUIRED],
+                description: `${CONST_1.default.ACTION_REQUIRED} if the comment is a proposal missing a mandatory line, otherwise ${CONST_1.default.NO_ACTION}.`,
+            },
         },
         required: ['action'],
         additionalProperties: false,
@@ -40692,7 +40696,11 @@ const EDIT_CHECK_RESPONSE_FORMAT = {
     schema: {
         type: 'object',
         properties: {
-            action: { type: 'string', enum: [CONST_1.default.NO_ACTION, CONST_1.default.ACTION_EDIT] },
+            action: {
+                type: 'string',
+                enum: [CONST_1.default.NO_ACTION, CONST_1.default.ACTION_EDIT],
+                description: `${CONST_1.default.ACTION_EDIT} if the edit substantially changed the ROOT CAUSE or SOLUTION, otherwise ${CONST_1.default.NO_ACTION}.`,
+            },
         },
         required: ['action'],
         additionalProperties: false,
@@ -40706,8 +40714,16 @@ const DUPLICATE_CHECK_RESPONSE_FORMAT = {
     schema: {
         type: 'object',
         properties: {
-            similarity: { type: 'number' },
-            duplicateCommentId: { type: ['number', 'null'] },
+            similarity: {
+                type: 'integer',
+                minimum: 0,
+                maximum: 100,
+                description: 'How similar the new proposal is to the most similar prior proposal, from 0 (unrelated) to 100 (identical).',
+            },
+            duplicateCommentId: {
+                type: ['number', 'null'],
+                description: 'The comment_id of the prior proposal that scored the reported similarity, or null if no prior proposal is similar.',
+            },
         },
         required: ['similarity', 'duplicateCommentId'],
         additionalProperties: false,
@@ -40733,7 +40749,9 @@ function isDuplicateCheckResponse(value) {
         return false;
     }
     const { similarity, duplicateCommentId } = value;
-    return typeof similarity === 'number' && (duplicateCommentId === null || typeof duplicateCommentId === 'number');
+    // Require the declared 0-100 integer scale, so a rescaled score (e.g. 0.95 on a 0-1 scale) is rejected
+    // outright rather than silently comparing below the duplicate threshold and reading as "not a duplicate".
+    return Number.isInteger(similarity) && (similarity ?? -1) >= 0 && (similarity ?? -1) <= 100 && (duplicateCommentId === null || typeof duplicateCommentId === 'number');
 }
 
 
