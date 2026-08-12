@@ -89,6 +89,7 @@ import {
     isActionableMentionWhisper,
     isActionOfType,
     isAddCommentAction,
+    isCategoryModificationAction,
     isClosedAction,
     isCreatedAction,
     isCreatedTaskReportAction,
@@ -976,12 +977,7 @@ function getLastMessageTextForReport({
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY)) {
         lastMessageTextFromReport = getMccGroupCategoryMessage(translate, lastReportAction);
     }
-    if (
-        isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY) ||
-        isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY) ||
-        isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY) ||
-        isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME)
-    ) {
+    if (lastReportAction?.actionName && isCategoryModificationAction(lastReportAction.actionName)) {
         lastMessageTextFromReport = getWorkspaceCategoryUpdateMessage(translate, lastReportAction, policy);
     }
     if (

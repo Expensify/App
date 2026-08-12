@@ -1850,6 +1850,15 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
  * @param actionName - The name of the action
  * @returns - Whether the action is a tag modification action
  * */
+function isCategoryModificationAction(actionName: string): boolean {
+    return (
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY ||
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY ||
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY ||
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME
+    );
+}
+
 function isTagModificationAction(actionName: string): boolean {
     return (
         actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG ||
@@ -4990,6 +4999,7 @@ export {
     getMostRecentActiveDEWApproveFailedAction,
     hasPendingDEWApprove,
     isWhisperActionTargetedToOthers,
+    isCategoryModificationAction,
     isTagModificationAction,
     isIOUActionMatchingTransactionList,
     isResolvedActionableWhisper,
