@@ -2076,7 +2076,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 transactionViolations: {},
-                allReports: undefined,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`]: draftReport},
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -2123,7 +2123,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 transactionViolations: {},
-                allReports: undefined,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${submittedReport.reportID}`]: submittedReport},
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
