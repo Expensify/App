@@ -1,3 +1,4 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
@@ -82,7 +83,7 @@ import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getAllReports} from './index';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
-import {getMoneyRequestInformation, getReportPreviewAction} from './MoneyRequestBuilder';
+import {getMoneyRequestInformation, getReportPreviewReportAction} from './MoneyRequestBuilder';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
 import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
 
@@ -121,6 +122,7 @@ type UpdateSplitTransactionsParams = {
     isOffline: boolean;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
@@ -203,6 +205,7 @@ function updateSplitTransactions({
     isOffline,
     delegateAccountID,
     isTrackIntentUser,
+    formatPhoneNumber,
     getCurrencyDecimals,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
@@ -385,7 +388,7 @@ function updateSplitTransactions({
     }
 
     let updatedReportPreviewAction: Partial<OnyxTypes.ReportAction> | undefined;
-    const originalReportPreviewAction = getReportPreviewAction(
+    const originalReportPreviewAction = getReportPreviewReportAction(
         expenseReport?.chatReportID,
         expenseReport?.reportID,
         allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.chatReportID}`],
@@ -666,6 +669,7 @@ function updateSplitTransactions({
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
+            formatPhoneNumber,
             getCurrencyDecimals,
         } as MoneyRequestInformationParams;
 
@@ -781,6 +785,7 @@ function updateSplitTransactions({
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
+            formatPhoneNumber,
             getCurrencyDecimals,
         });
 
@@ -1645,6 +1650,7 @@ function updateSplitTransactions({
                     reportAction: iouActionToCleanUp,
                     updatedReportPreviewAction: updatedReportPreviewAction as OnyxTypes.ReportAction,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
+                    transactionThreadReportActionsParam: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouActionToCleanUp.childReportID}`],
                 });
 
                 onyxData.optimisticData?.push(...optimisticData);

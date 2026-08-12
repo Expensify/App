@@ -2661,7 +2661,6 @@ function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportActio
 /**
  * Check if the current user is the requestor of the action
  */
-// TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
 function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID?: number): boolean {
     return (currentUserAccountID ?? deprecatedCurrentUserAccountID) === reportAction?.actorAccountID;
 }
@@ -3050,6 +3049,11 @@ function getWorkspaceCategoryUpdateMessage(translate: LocalizedTranslate, action
 
         if (updatedField === 'areCommentsRequired' && typeof oldValue === 'boolean') {
             return translate('workspaceActions.updateAreCommentsRequired', decodedOptionName, oldValue);
+        }
+
+        // oldValue is an empty string the first time attendees are required on a category, so key off newValue
+        if (updatedField === 'areAttendeesRequired' && typeof newValue === 'boolean') {
+            return translate('workspaceActions.updateAreAttendeesRequired', decodedOptionName, newValue);
         }
 
         if (updatedField === 'Payroll Code' && typeof oldValue === 'string' && typeof newValue === 'string') {
@@ -3486,7 +3490,7 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
                 return translate('workflowsPage.frequencies.lastBusinessDayOfMonth');
             }
             if (typeof autoReportingOffset === 'number') {
-                return toLocaleOrdinal(IntlStore.getCurrentLocale(), autoReportingOffset, false);
+                return toLocaleOrdinal(IntlStore.getCurrentLocale(), autoReportingOffset);
             }
             return '';
         };
@@ -4603,6 +4607,7 @@ function getCardIssuedMessage({
     expensifyCard,
     companyCard,
     translate,
+    currentUserAccountID,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     shouldRenderHTML?: boolean;
@@ -4611,6 +4616,7 @@ function getCardIssuedMessage({
     expensifyCard?: Card;
     companyCard?: Card;
     translate: LocaleContextProps['translate'];
+    currentUserAccountID: number;
 }) {
     const cardIssuedActionOriginalMessage = isCardIssuedAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
 
@@ -4624,7 +4630,7 @@ function getCardIssuedMessage({
     const isExpensifyCardActive = isCardActive(expensifyCard);
     const expensifyCardLink = (expensifyCardLinkText: string) =>
         shouldRenderHTML && isExpensifyCardActive ? `<a href='${environmentURL}/${navigateRoute}'>${expensifyCardLinkText}</a>` : expensifyCardLinkText;
-    const isAssigneeCurrentUser = deprecatedCurrentUserAccountID === assigneeAccountID;
+    const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
     const companyCardLink =
         shouldRenderHTML && isAssigneeCurrentUser && companyCard
             ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translate('workspace.companyCards.companyCard')}</a>`
@@ -4969,7 +4975,6 @@ export {
     isHoldAction,
     isWhisperAction,
     isSubmittedAction,
-    isSubmittedAndClosedAction,
     isDynamicExternalWorkflowSubmitAction,
     isMarkAsClosedAction,
     isForwardedAction,

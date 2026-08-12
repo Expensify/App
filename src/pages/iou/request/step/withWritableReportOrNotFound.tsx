@@ -1,5 +1,6 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
@@ -57,8 +58,8 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT
-    | typeof SCREENS.MONEY_REQUEST.STEP_TIME
-    | typeof SCREENS.MONEY_REQUEST.STEP_TIME_EDIT
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME_EDIT
     | typeof SCREENS.MONEY_REQUEST.STEP_SUBRATE
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_EDIT_REPORT
     | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE
@@ -94,6 +95,7 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
@@ -105,7 +107,7 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
         if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
             return;
         }
-        openReport({reportID: route.params.reportID, introSelected, betas, hasReportActions});
+        openReport({reportID: route.params.reportID, introSelected, betas, hasReportActions, currentUserAccountID});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

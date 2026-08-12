@@ -63,10 +63,10 @@ import type {PerDiemExpenseInformation} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
 
-import {getAllReports, getAllTransactions, getPolicyTags} from '.';
+import {getAllReports, getAllTransactions} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
-import {getPerDiemExpensePolicyID, submitPerDiemExpense} from './PerDiem';
+import {submitPerDiemExpense} from './PerDiem';
 import {createDistanceRequest} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 
@@ -308,6 +308,7 @@ function mergeDuplicates({
                 updatedReportPreviewAction,
                 shouldAddUpdatedReportPreviewActionToOnyxData: index === actions.length - 1,
                 currentUserAccountID,
+                transactionThreadReportActionsParam: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`],
             });
             cleanUpTransactionThreadReportsOptimisticData.push(...cleanUp.optimisticData);
             cleanUpTransactionThreadReportsSuccessData.push(...cleanUp.successData);
@@ -441,6 +442,7 @@ function resolveDuplicates({
     transactionThreadReportIDMap,
     allTransactionViolations,
     allReportActionsList,
+    delegateAccountID,
     ...params
 }: MergeDuplicatesParams & {
     taxAmount?: number;
@@ -448,6 +450,7 @@ function resolveDuplicates({
     transactionThreadReportIDMap: Record<string, string | undefined>;
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
+    delegateAccountID: number | undefined;
 }) {
     if (!params.transactionID) {
         return;
@@ -513,7 +516,7 @@ function resolveDuplicates({
             continue;
         }
 
-        const createdReportAction = buildOptimisticHoldReportAction();
+        const createdReportAction = buildOptimisticHoldReportAction(delegateAccountID);
         reportActionIDList.push(createdReportAction.reportActionID);
         resolvedTransactionIDList.push(transactionID);
         optimisticHoldTransactionActions.push({
@@ -674,6 +677,7 @@ function createExpenseByType({
     formatPhoneNumber,
     dateFnsLocale,
     participantsPolicyTags,
+    policyTags,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -690,6 +694,7 @@ function createExpenseByType({
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     dateFnsLocale: DateFnsLocale | undefined;
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
+    policyTags: OnyxTypes.PolicyTagLists;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
@@ -732,9 +737,6 @@ function createExpenseByType({
             return createDistanceRequest(distanceParams);
         }
         case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
-            const earlyPolicyID = getPerDiemExpensePolicyID(params);
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
-
             const perDiemParams: PerDiemExpenseInformation = {
                 ...params,
                 dateFnsLocale,
@@ -821,6 +823,7 @@ function duplicateExpenseTransaction({
     formatPhoneNumber,
     getCurrencyDecimals,
     participantsPolicyTags,
+    targetPolicyTags,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -872,6 +875,7 @@ function duplicateExpenseTransaction({
         shouldDeferAutoSubmit,
         isTrackIntentUser,
         delegateAccountID,
+        formatPhoneNumber,
         getCurrencyDecimals,
     };
 
@@ -942,6 +946,7 @@ function duplicateExpenseTransaction({
         isTrackIntentUser,
         formatPhoneNumber,
         participantsPolicyTags,
+        policyTags: targetPolicyTags ?? {},
     });
 }
 
@@ -1108,6 +1113,7 @@ function duplicateReport({
             shouldDeferAutoSubmit: !isLastExpense,
             isTrackIntentUser,
             delegateAccountID,
+            formatPhoneNumber,
             getCurrencyDecimals,
         };
 
@@ -1127,6 +1133,7 @@ function duplicateReport({
             isTrackIntentUser,
             formatPhoneNumber,
             participantsPolicyTags,
+            policyTags: targetPolicyTags ?? {},
         });
 
         if (result?.iouReport) {

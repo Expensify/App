@@ -62,6 +62,7 @@ import {
     isIOUActionMatchingTransactionList,
     isNewerReportAction,
     shouldHideNewMarker,
+    wasActionTakenByCurrentUser,
 } from '../../src/libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -2199,6 +2200,7 @@ describe('ReportActionsUtils', () => {
                     policyID: testPolicyID,
                     expensifyCard: undefined,
                     translate: translateLocal,
+                    currentUserAccountID: 1,
                 });
 
                 expect(messageResult).toBe('issued <mention-user accountID="456"/> a virtual Expensify Card! The card can be used right away.');
@@ -2211,12 +2213,88 @@ describe('ReportActionsUtils', () => {
                     policyID: testPolicyID,
                     expensifyCard: activeExpensifyCard,
                     translate: translateLocal,
+                    currentUserAccountID: 1,
                 });
 
                 expect(messageResult).toBe(
                     `issued <mention-user accountID="456"/> a virtual Expensify Card! The <a href='https://dev.new.expensify.com:8082/settings/card/789'>card</a> can be used right away.`,
                 );
             });
+        });
+
+        describe('render company card assigned messages with currentUserAccountID', () => {
+            const mockCardAssignedAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
+                reportActionID: 'card-assigned-action-123',
+                actorAccountID: 123,
+                created: '2024-01-01',
+                message: [],
+                originalMessage: {
+                    assigneeAccountID: 456,
+                    cardID: 789,
+                },
+            } as ReportAction;
+
+            const mockCompanyCard: Card = {
+                cardID: 789,
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                availableSpend: 0,
+                domainName: '',
+                lastFourPAN: '',
+                lastUpdated: '2024-01-01',
+                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+            };
+
+            it('should render company card link when current user is assignee', () => {
+                const messageResult = getCardIssuedMessage({
+                    reportAction: mockCardAssignedAction,
+                    shouldRenderHTML: true,
+                    companyCard: mockCompanyCard,
+                    translate: translateLocal,
+                    currentUserAccountID: 456,
+                });
+
+                expect(messageResult).toContain(`<a href='https://dev.new.expensify.com:8082/settings/wallet'>`);
+            });
+
+            it('should render plain text company card when current user is not assignee', () => {
+                const messageResult = getCardIssuedMessage({
+                    reportAction: mockCardAssignedAction,
+                    shouldRenderHTML: true,
+                    companyCard: mockCompanyCard,
+                    translate: translateLocal,
+                    currentUserAccountID: 1,
+                });
+
+                expect(messageResult).not.toContain('<a href=');
+            });
+        });
+    });
+
+    describe('wasActionTakenByCurrentUser', () => {
+        const mockAction: ReportAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            reportActionID: '1',
+            actorAccountID: 42,
+            created: '2024-01-01',
+            message: [],
+        } as ReportAction;
+
+        it('returns true when currentUserAccountID matches actorAccountID', () => {
+            expect(wasActionTakenByCurrentUser(mockAction, 42)).toBe(true);
+        });
+
+        it('returns false when currentUserAccountID does not match actorAccountID', () => {
+            expect(wasActionTakenByCurrentUser(mockAction, 99)).toBe(false);
+        });
+
+        it('returns false for undefined reportAction', () => {
+            expect(wasActionTakenByCurrentUser(undefined, 42)).toBe(false);
+        });
+
+        it('returns false for null reportAction', () => {
+            expect(wasActionTakenByCurrentUser(null, 42)).toBe(false);
         });
     });
 
@@ -6328,6 +6406,62 @@ describe('ReportActionsUtils', () => {
 
         it('returns false for an undefined action', () => {
             expect(ReportActionsUtils.isPolicyCopyReportAction(undefined)).toBe(false);
+        });
+    });
+
+    describe('getWorkspaceCategoryUpdateMessage', () => {
+        function buildUpdateCategoryAction(originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY>['originalMessage']) {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
+                created: '',
+                originalMessage,
+            };
+            return action;
+        }
+
+        it('should return the correct message when required attendees are enabled for the first time', () => {
+            const action = buildUpdateCategoryAction({
+                categoryName: 'Advertising',
+                updatedField: 'areAttendeesRequired',
+                oldValue: '',
+                newValue: true,
+            });
+            const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
+            expect(actual).toBe('changed the "Advertising" category attendees to required (previously not required)');
+        });
+
+        it('should return the correct message when required attendees are disabled', () => {
+            const action = buildUpdateCategoryAction({
+                categoryName: 'Advertising',
+                updatedField: 'areAttendeesRequired',
+                oldValue: true,
+                newValue: false,
+            });
+            const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
+            expect(actual).toBe('changed the "Advertising" category attendees to not required (previously required)');
+        });
+
+        it('should return the correct message when a required description is enabled', () => {
+            const action = buildUpdateCategoryAction({
+                categoryName: 'Advertising',
+                updatedField: 'areCommentsRequired',
+                oldValue: false,
+                newValue: true,
+            });
+            const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
+            expect(actual).toBe('changed the "Advertising" category description to required (previously not required)');
+        });
+
+        it('should return the correct message when a required description is disabled', () => {
+            const action = buildUpdateCategoryAction({
+                categoryName: 'Advertising',
+                updatedField: 'areCommentsRequired',
+                oldValue: true,
+                newValue: false,
+            });
+            const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
+            expect(actual).toBe('changed the "Advertising" category description to not required (previously required)');
         });
     });
 });

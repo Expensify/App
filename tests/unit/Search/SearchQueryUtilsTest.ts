@@ -37,10 +37,12 @@ import {
     isSearchBeforeViolationsSnapshotStarted,
     isSearchRootParams,
     serializeQueryJSONForBackend,
+    sanitizeSearchValue,
     shouldHighlight,
     shouldResetSort,
     shouldResetSortForViewChange,
     sortOptionsWithEmptyValue,
+    stripSearchValueQuotes,
     withExactMatchFilterKeys,
 } from '@src/libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -57,7 +59,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import createMock from 'tests/utils/createMock';
 
 import createRandomPolicy from '../../utils/collections/policies';
-import {localeCompare, translateLocal} from '../../utils/TestHelper';
+import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
 
 const mockGetRootState = jest.fn();
 
@@ -940,6 +942,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -971,6 +974,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -1007,6 +1011,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -1046,6 +1051,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -1070,6 +1076,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -1094,6 +1101,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -2094,9 +2102,10 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
-            expect(result).toBe('+15551234567');
+            expect(result).toBe(formatPhoneNumber('+15551234567@expensify.sms'));
             expect(result).not.toContain('@expensify.sms');
         });
 
@@ -2119,6 +2128,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('Jane Doe');
@@ -2143,6 +2153,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe(CONST.SEARCH.ME);
@@ -2161,6 +2172,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe(CONST.SEARCH.ME);
@@ -2179,6 +2191,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('88888');
@@ -2203,6 +2216,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('Custom Name');
@@ -2228,9 +2242,10 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
-            expect(result).toBe('+15551112222');
+            expect(result).toBe(formatPhoneNumber('+15551112222@expensify.sms'));
             expect(result).not.toContain('@expensify.sms');
         });
 
@@ -2261,9 +2276,10 @@ describe('SearchQueryUtils', () => {
                     policies: mockPolicies,
                     currentUserAccountID,
                     translate: translateLocal,
+                    formatPhoneNumber,
                 });
 
-                expect(result).toBe('+15553334444');
+                expect(result).toBe(formatPhoneNumber('+15553334444@expensify.sms'));
                 expect(result).not.toContain('@expensify.sms');
             }
         });
@@ -2731,6 +2747,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             // The result depends on getReportName internal logic, but
@@ -2750,6 +2767,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('nonexistent-report-id');
@@ -2766,6 +2784,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('1500');
@@ -2782,9 +2801,45 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT);
+        });
+
+        it('should display the label the backend records for the Canadian multiple tax export template', () => {
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+                filterValue: CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT,
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+                formatPhoneNumber,
+            });
+
+            expect(result).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT);
+        });
+
+        it('should return a custom export template name as-is', () => {
+            const customTemplateName = 'Custom Export Layout';
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+                filterValue: customTemplateName,
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+                formatPhoneNumber,
+            });
+
+            expect(result).toBe(customTemplateName);
         });
 
         it('should handle policyID filter by looking up policy name', () => {
@@ -2804,6 +2859,7 @@ describe('SearchQueryUtils', () => {
                 policies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('My Workspace');
@@ -2820,6 +2876,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
             });
 
             expect(result).toBe('GL:travel');
@@ -2846,6 +2903,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
                 bankAccountList,
             });
 
@@ -2863,6 +2921,7 @@ describe('SearchQueryUtils', () => {
                 policies: mockPolicies,
                 currentUserAccountID,
                 translate: translateLocal,
+                formatPhoneNumber,
                 bankAccountList: {},
             });
 
@@ -2901,6 +2960,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(2);
@@ -2929,6 +2989,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -2957,6 +3018,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -2985,6 +3047,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3005,6 +3068,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3033,6 +3097,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3061,6 +3126,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3090,6 +3156,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3111,6 +3178,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(1);
@@ -3131,6 +3199,7 @@ describe('SearchQueryUtils', () => {
                 emptyPolicies,
                 currentUserAccountID,
                 translateLocal,
+                formatPhoneNumber,
             );
 
             expect(result).toHaveLength(0);
@@ -3171,6 +3240,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -3204,6 +3274,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -3236,6 +3307,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -3260,6 +3332,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: true,
                 translate: translateLocal,
+                formatPhoneNumber,
                 reportAttributes: undefined,
             });
 
@@ -4025,6 +4098,33 @@ describe('SearchQueryUtils', () => {
             }
 
             expect(isSearchBeforeViolationsSnapshotStarted(queryJSON, violationSnapshotStartedAt)).toBe(false);
+        });
+    });
+
+    describe('sanitizeSearchValue', () => {
+        it('leaves a value without a delimiter untouched', () => {
+            expect(sanitizeSearchValue('Acme')).toBe('Acme');
+        });
+
+        it('quotes on a space or a non-breaking space', () => {
+            expect(sanitizeSearchValue('Acme Inc')).toBe('"Acme Inc"');
+            expect(sanitizeSearchValue('Acme\xA0Inc')).toBe('"Acme\xA0Inc"');
+        });
+
+        it('only quotes on a comma when asked to', () => {
+            expect(sanitizeSearchValue('Acme,Inc')).toBe('Acme,Inc');
+            expect(sanitizeSearchValue('Acme,Inc', true)).toBe('"Acme,Inc"');
+        });
+    });
+
+    describe('stripSearchValueQuotes', () => {
+        it('removes straight and curly quotes', () => {
+            expect(stripSearchValueQuotes('Acme,"Inc')).toBe('Acme,Inc');
+            expect(stripSearchValueQuotes('Acme “US” Inc')).toBe('Acme US Inc');
+        });
+
+        it('leaves a value without quotes untouched', () => {
+            expect(stripSearchValueQuotes('Acme, Inc.')).toBe('Acme, Inc.');
         });
     });
 });
