@@ -121,6 +121,7 @@ import Parser from './Parser';
 import {getLoginByAccountID, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled,
+    arePolicyRulesEnabled,
     canSendInvoice,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -143,6 +144,8 @@ import {
     isMoneyRequestAction,
     isReportActionVisible,
     isResolvedActionableWhisper,
+    isSubmittedAction,
+    isSubmittedAndClosedAction,
     isWhisperActionTargetedToOthers,
 } from './ReportActionsUtils';
 import {deprecatedGetReportName} from './ReportNameUtils';
@@ -437,6 +440,7 @@ const nonSortableColumns = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.ACTION,
     CONST.SEARCH.TABLE_COLUMNS.IN,
     CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+    CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
 ]);
 
 function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE> {
@@ -566,6 +570,7 @@ const SEARCH_TYPE_MENU_ICON_NAMES = [
     'CreditCardHourglass',
     'Bank',
     'User',
+    'UserEye',
     'Folder',
     'Basket',
     'CalendarSolid',
@@ -1049,6 +1054,38 @@ function getSuggestedSearches(
             CONST.SEARCH.TOP_SEARCH_LIMIT,
             CONST.SEARCH.VIEW.PIE,
         ),
+        [CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]: {
+            key: CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER,
+            translationPath: 'search.tabs.violationsBySubmitter',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: 'UserEye',
+            searchQuery: buildQueryStringFromFilterFormValues(
+                {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.FROM,
+                    submittedOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                    has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION],
+                    view: CONST.SEARCH.VIEW.TABLE,
+                    limit: String(CONST.SEARCH.TOP_SEARCH_LIMIT),
+                },
+                {
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                },
+            ),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
+            get hash() {
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
         [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: {
             key: CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
             translationPath: 'search.spendOverTime',
@@ -1121,6 +1158,7 @@ function getSuggestedSearchesVisibility(
     let shouldShowTopSpendersSuggestion = false;
     let shouldShowTopCategoriesSuggestion = false;
     let shouldShowTopMerchantsSuggestion = false;
+    let shouldShowViolationsBySubmitterSuggestion = false;
     let hasGroupPoliciesWithExpenseChat = false;
     let shouldShowSpendOverTimeSuggestion = false;
     const topSpendersPolicyIDs: string[] = [];
@@ -1168,6 +1206,7 @@ function getSuggestedSearchesVisibility(
         const isEligibleForTopSpendersSuggestion = isGroupPolicyEligible && (isAdmin || isAuditor || isUserApprover) && memberCount >= 2;
         const isEligibleForTopCategoriesSuggestion = isGroupPolicyEligible && policy.areCategoriesEnabled === true;
         const isEligibleForTopMerchantsSuggestion = isGroupPolicyEligible;
+        const isEligibleForViolationsBySubmitterSuggestion = isGroupPolicyEligible && (isAdmin || isAuditor) && arePolicyRulesEnabled(policy) && memberCount >= 2;
 
         shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
         shouldShowPaySuggestion ||= isEligibleForPaySuggestion;
@@ -1184,6 +1223,7 @@ function getSuggestedSearchesVisibility(
         }
         shouldShowTopCategoriesSuggestion ||= isEligibleForTopCategoriesSuggestion;
         shouldShowTopMerchantsSuggestion ||= isEligibleForTopMerchantsSuggestion;
+        shouldShowViolationsBySubmitterSuggestion ||= isEligibleForViolationsBySubmitterSuggestion;
         hasGroupPoliciesWithExpenseChat ||=
             isGroupPolicyEligible &&
             !!policy.isPolicyExpenseChatEnabled &&
@@ -1208,6 +1248,7 @@ function getSuggestedSearchesVisibility(
             [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: shouldShowTopSpendersSuggestion && !isTrackIntentWithWorkflowsDisabled,
             [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: shouldShowTopCategoriesSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: shouldShowTopMerchantsSuggestion,
+            [CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]: shouldShowViolationsBySubmitterSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: shouldShowSpendOverTimeSuggestion,
         },
         hasGroupPoliciesWithExpenseChat,
@@ -4529,6 +4570,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
             return 'common.type';
         case CONST.SEARCH.TABLE_COLUMNS.TAG:
             return 'common.tag';
+        case CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS:
+            return 'common.violations';
         case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
             return 'common.purchaseAmount';
         case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
@@ -4918,6 +4961,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
             CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
             CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
             CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
+            CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER,
         ];
 
         for (const key of insightsSearchKeys) {
@@ -5032,6 +5076,64 @@ function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes) {
         default:
             return [];
     }
+}
+
+type SubmittedTransactionViolationShortName = ValueOf<typeof CONST.VIOLATIONS>;
+
+const SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET = new Set<string>(Object.values(CONST.VIOLATIONS));
+
+function isSubmittedTransactionViolationShortName(name: string): name is SubmittedTransactionViolationShortName {
+    return SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET.has(name);
+}
+
+/**
+ * Returns a parameter-free display label for a submitted violation name.
+ * Falls back to the raw identifier when no short-name translation exists.
+ */
+function getSubmittedViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
+    return isSubmittedTransactionViolationShortName(violationName) ? translate(`violations.shortName.${violationName}`) : violationName;
+}
+
+/**
+ * Collects a transaction's submitted violations from its report's submit actions.
+ * A report can be submitted more than once, so this aggregates across every submit action,
+ * dedupes by violation name, and returns a comma-separated display string.
+ * When `translate` is provided, violation identifiers are converted to localized short labels.
+ */
+function getSubmittedViolationsForTransaction(reportActions: OnyxTypes.ReportAction[] | undefined, transactionID: string | undefined, translate?: LocalizedTranslate): string | undefined {
+    if (!reportActions?.length || !transactionID) {
+        return undefined;
+    }
+
+    const violationNames = new Set<string>();
+    for (const action of reportActions) {
+        if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action)) {
+            continue;
+        }
+
+        const originalMessage = getOriginalMessage(action);
+        const transactionViolations = originalMessage?.violations?.transactions?.[transactionID];
+        if (!transactionViolations?.length) {
+            continue;
+        }
+
+        for (const violation of transactionViolations) {
+            if (violation.name) {
+                violationNames.add(violation.name);
+            }
+        }
+    }
+
+    if (violationNames.size === 0) {
+        return undefined;
+    }
+
+    const names = Array.from(violationNames);
+    if (!translate) {
+        return names.join(', ');
+    }
+
+    return names.map((name) => getSubmittedViolationDisplayName(name, translate)).join(', ');
 }
 
 function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
@@ -6168,6 +6270,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MCC]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_CODE]: false,
@@ -6201,6 +6304,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MCC]: false,
@@ -6309,6 +6413,13 @@ function getColumnsToShow({
         }
         if (hasTag) {
             columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = !isExpenseReportViewFromIOUReport;
+        }
+
+        if (!isExpenseReportView && !Array.isArray(data)) {
+            const reportActions = Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {});
+            if (getSubmittedViolationsForTransaction(reportActions, transaction.transactionID)) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS] = true;
+            }
         }
 
         // Data-presence checks for columns that are hidden when empty.
@@ -6426,6 +6537,14 @@ function getColumnsToShow({
     }
 
     if (customResult) {
+        if (columns[CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS] && !customResult.includes(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)) {
+            const totalAmountIndex = customResult.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+            if (totalAmountIndex === -1) {
+                customResult.push(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+            } else {
+                customResult.splice(totalAmountIndex, 0, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+            }
+        }
         return customResult;
     }
 
@@ -6693,6 +6812,7 @@ const FLEX_COLUMNS = new Set<string>([
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
     CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
+    CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
     CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
     CONST.SEARCH.TABLE_COLUMNS.CARD,
     CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
@@ -6826,6 +6946,7 @@ export {
     getWithdrawalStatusDisplayText,
     getColumnsToShow,
     getHasOptions,
+    getSubmittedViolationsForTransaction,
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getSearchColumnTranslationKey,
