@@ -115,13 +115,13 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     }, [activeTab, policy]);
 
     useEffect(() => {
-        // The tab param is only an entry hint (deep link, post-upgrade bounce-back). The selected tab itself lives in
-        // Onyx so it survives leaving the page, which is why tab presses update Onyx rather than the URL.
+        // The tab param is a one-shot entry hint; the selected tab lives in Onyx. Clear it so a refresh doesn't re-apply it.
         if (!requestedTab || !isRulesTab(requestedTab)) {
             return;
         }
 
         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, requestedTab);
+        Navigation.setParams({tab: undefined});
     }, [requestedTab]);
 
     const clearAllTableSelection = useCallback(() => {
