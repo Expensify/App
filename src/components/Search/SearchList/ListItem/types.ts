@@ -267,14 +267,14 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** Final and formatted "first approver" value used for displaying and sorting */
         formattedFirstApprover?: string;
 
-        /** The avatar of the payer */
-        payerAvatar?: AvatarSource;
+        /** The avatar of the user the report was paid by */
+        paidByAvatar?: AvatarSource;
 
-        /** Account ID of the payer (actor on the latest payment report action) */
-        payerAccountID?: number;
+        /** Account ID of the user the report was paid by (actor on the latest payment report action) */
+        paidByAccountID?: number;
 
-        /** Final and formatted "payer" value used for displaying and sorting */
-        formattedPayer?: string;
+        /** Final and formatted "paid by" value used for displaying and sorting */
+        formattedPaidBy?: string;
 
         /** Whether the status field should be shown in a pending state */
         shouldShowStatusAsPending?: boolean;

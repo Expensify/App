@@ -32,7 +32,7 @@ describe('Column availability single source of truth', () => {
         TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL,
         TABLE_COLUMNS.FIRST_APPROVER,
         TABLE_COLUMNS.FIRST_APPROVED,
-        TABLE_COLUMNS.PAYER,
+        TABLE_COLUMNS.PAID_BY,
         TABLE_COLUMNS.PAID_STATUS,
         // Grouped search views.
         TABLE_COLUMNS.EXPENSES,

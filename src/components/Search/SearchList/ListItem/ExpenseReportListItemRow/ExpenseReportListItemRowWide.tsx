@@ -121,13 +121,13 @@ function ExpenseReportListItemRowWide({
                 />
             </View>
         ),
-        [CONST.SEARCH.TABLE_COLUMNS.PAYER]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PAYER)]}>
-                {!!item.payerAccountID && (
+        [CONST.SEARCH.TABLE_COLUMNS.PAID_BY]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PAID_BY)]}>
+                {!!item.paidByAccountID && (
                     <UserInfoCell
-                        accountID={item.payerAccountID}
-                        avatar={item.payerAvatar}
-                        displayName={item.formattedPayer ?? ''}
+                        accountID={item.paidByAccountID}
+                        avatar={item.paidByAvatar}
+                        displayName={item.formattedPaidBy ?? ''}
                         isLargeScreenWidth
                     />
                 )}

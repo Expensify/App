@@ -193,6 +193,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
             return substitutionMap[`${range.key}:${range.value}`] !== undefined || userLogins.get().includes(range.value) || range.value === CONST.SEARCH.ME;

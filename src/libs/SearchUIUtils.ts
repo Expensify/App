@@ -337,7 +337,7 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 'approved' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER]: 'formattedFirstApprover' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED]: 'firstApproved' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.PAYER]: 'formattedPayer' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.PAID_BY]: 'formattedPaidBy' as const,
     [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: 'exported' as const,
     [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'formattedStatus' as const,
     [CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS]: 'formattedPaidStatus' as const,
@@ -678,6 +678,7 @@ const SKIPPED_SEARCH_FILTERS = new Set([
     FILTER_KEYS.LIMIT,
     FILTER_KEYS.TYPE,
     FILTER_KEYS.VIEW,
+    FILTER_KEYS.PAYER,
     FILTER_KEYS.ACTION,
     FILTER_KEYS.COLUMNS,
     FILTER_KEYS.KEYWORD,
@@ -858,7 +859,7 @@ function getSuggestedSearches(
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 action: CONST.SEARCH.ACTION_FILTERS.PAY,
                 reimbursable: CONST.SEARCH.BOOLEAN.YES,
-                payer: [`${accountID}`],
+                payer: accountID?.toString(),
             }),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
@@ -1899,7 +1900,7 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
     const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const reportOwnerAccountID = report?.ownerAccountID;
 
-    // Only paid reports carry a payer-determining payment action, matching the backend status gate
+    // Only paid reports carry a determining payment action, matching the backend status gate
     const isReportPaid = report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
     let latestExportTime = -Infinity;
@@ -1909,7 +1910,7 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
     let firstApprovalTime = Infinity;
     let firstApprovalAction: OnyxTypes.ReportAction | undefined;
 
-    // The payer is the actor on the latest payment action. Payment actions are collected first because
+    // The paid-by user is the actor on the latest payment action. Payment actions are collected first because
     // whether the owner's ones count depends on a receipt confirmation that may appear later in the scan.
     const paymentActions: OnyxTypes.ReportAction[] = [];
     let lastOwnerReceiptConfirmedTime = -Infinity;
@@ -3119,11 +3120,11 @@ function getReportSections({
                 const formattedTo = !shouldShowBlankTo ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: toDetails, translate, formatPhoneNumber}) : '';
                 const formattedFirstApprover = firstApproverAccountID ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: firstApproverDetails, translate, formatPhoneNumber}) : '';
 
-                // The payer is the actor on the latest payment action; blank until the report is paid.
+                // The paid-by user is the actor on the latest payment action; blank until the report is paid.
                 const lastReimbursedAction = lastReimbursedActionByReportID.get(reportItem.reportID);
-                const payerAccountID = lastReimbursedAction?.actorAccountID;
-                const payerDetails = payerAccountID ? mergedPersonalDetails?.[payerAccountID] : undefined;
-                const formattedPayer = payerAccountID ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: payerDetails, translate, formatPhoneNumber}) : '';
+                const paidByAccountID = lastReimbursedAction?.actorAccountID;
+                const paidByDetails = paidByAccountID ? mergedPersonalDetails?.[paidByAccountID] : undefined;
+                const formattedPaidBy = paidByAccountID ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: paidByDetails, translate, formatPhoneNumber}) : '';
 
                 const formattedStatus = getReportStatusTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate});
                 const formattedPaidStatus = getReportStatusTooltipTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate});
@@ -3170,9 +3171,9 @@ function getReportSections({
                     firstApproverAvatar: firstApproverDetails?.avatar,
                     firstApproverAccountID,
                     formattedFirstApprover,
-                    payerAvatar: payerDetails?.avatar,
-                    payerAccountID,
-                    formattedPayer,
+                    paidByAvatar: paidByDetails?.avatar,
+                    paidByAccountID,
+                    formattedPaidBy,
                     formattedFrom,
                     formattedTo,
                     formattedStatus,
@@ -4608,8 +4609,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
             return 'search.filters.firstApprover';
         case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED:
             return 'search.filters.firstApproved';
-        case CONST.SEARCH.TABLE_COLUMNS.PAYER:
-            return 'search.filters.payer';
+        case CONST.SEARCH.TABLE_COLUMNS.PAID_BY:
+            return 'search.filters.paidBy';
         case CONST.SEARCH.TABLE_COLUMNS.POSTED:
             return 'search.filters.posted';
         case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
@@ -5535,8 +5536,8 @@ const FILTER_VIEW_MAP = {
         labelKey: 'common.merchant',
         icon: 'Basket',
     },
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER]: {
-        labelKey: 'search.filters.payer',
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY]: {
+        labelKey: 'search.filters.paidBy',
         icon: 'MoneyBag',
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID]: {

@@ -270,8 +270,8 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'search.filters.firstApproved',
     },
     {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.PAYER,
-        translationKey: 'search.filters.payer',
+        columnName: CONST.SEARCH.TABLE_COLUMNS.PAID_BY,
+        translationKey: 'search.filters.paidBy',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
