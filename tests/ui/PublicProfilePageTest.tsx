@@ -20,19 +20,19 @@ import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
-import {act} from 'react';
-import React from 'react';
+import React, {act} from 'react';
 import Onyx from 'react-native-onyx';
 
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-// Surface the HTML that MenuItem hands to RenderHTML so the test can assert the prompt was parsed as markdown.
+// Render the HTML that MenuItem produces as the plain text a user would see, so tests can assert on what is displayed.
 jest.mock('@components/RenderHTML', () => {
-    const ReactMock = require('react') as typeof React;
-    const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
+    const ReactMock = jest.requireActual<typeof React>('react');
+    const {Text} = jest.requireActual<{Text: React.ComponentType<{children?: React.ReactNode}>}>('react-native');
+    const {Str} = jest.requireActual<{Str: {htmlDecode: (text: string) => string}}>('expensify-common');
 
-    return ({html}: {html: string}) => ReactMock.createElement(Text, null, html);
+    return ({html}: {html: string}) => ReactMock.createElement(Text, null, Str.htmlDecode(html.replaceAll(/<[^>]*>/g, '')));
 });
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -55,7 +55,11 @@ describe('ProfilePage - agent custom instructions', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    async function setUpAgent(prompt: string) {
+    // The prompt is stored HTML-encoded, so it has to be decoded before it is parsed, otherwise entities are escaped again and shown verbatim.
+    it.each([
+        ['parses markdown', 'Reject *gambling* expenses.', 'Reject gambling expenses.'],
+        ['decodes HTML entities', 'Reject Bob&#39;s expenses.', "Reject Bob's expenses."],
+    ])('%s in the custom instructions', async (_name, prompt, expectedText) => {
         await TestHelper.signInWithTestUser(CURRENT_USER_ACCOUNT_ID, 'user@expensify.com');
 
         const personalDetails: PersonalDetailsList = {
@@ -95,18 +99,7 @@ describe('ProfilePage - agent custom instructions', () => {
             </ComposeProviders>,
         );
         await waitForBatchedUpdatesWithAct();
-    }
 
-    it('renders the prompt markdown as formatted HTML', async () => {
-        await setUpAgent('Reject *gambling* expenses.');
-
-        expect(screen.getByText('<comment>Reject <strong>gambling</strong> expenses.</comment>')).toBeDefined();
-    });
-
-    it('decodes the stored prompt before parsing it', async () => {
-        // The prompt is stored HTML-encoded, so an undecoded entity would be escaped again and shown to the user verbatim.
-        await setUpAgent('Reject *Bob&#39;s* expenses.');
-
-        expect(screen.getByText('<comment>Reject <strong>Bob&#x27;s</strong> expenses.</comment>')).toBeDefined();
+        expect(screen.getByText(expectedText)).toBeDefined();
     });
 });
