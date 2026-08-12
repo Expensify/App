@@ -1,4 +1,4 @@
-import {useActivePolicy} from '@components/ActivePolicyProvider';
+import {useActivePolicyContext} from '@components/ActivePolicyProvider';
 import {useSession} from '@components/OnyxListItemProvider';
 
 import {canSubmitPerDiemExpenseFromWorkspace, isGroupPolicy, isPolicyMemberWithoutPendingDelete, isTimeTrackingEnabled} from '@libs/PolicyUtils';
@@ -89,7 +89,7 @@ type PolicyForMovingExpenses = {
 };
 
 function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: boolean, expensePolicyID?: string, isUnreportedManagedCardTransaction?: boolean): PolicyForMovingExpenses {
-    const {activePolicyID, activePolicy} = useActivePolicy();
+    const {activePolicyID, activePolicy} = useActivePolicyContext();
 
     const session = useSession();
     const login = session?.email ?? '';

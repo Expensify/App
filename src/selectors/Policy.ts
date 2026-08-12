@@ -30,8 +30,6 @@ type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.RILLET
     | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
 
-const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined);
-
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
 
 type OwnedPaidPoliciesCounts = {
@@ -391,7 +389,6 @@ const createAdminPoliciesSelector =
 
 export type {PolicySelector};
 export {
-    activePolicySelector,
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
     createOwnedPaidPoliciesCountsSelector,

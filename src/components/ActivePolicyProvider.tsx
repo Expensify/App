@@ -27,9 +27,9 @@ function ActivePolicyProvider({children}: ChildrenProps) {
     return <ActivePolicyContext.Provider value={{activePolicyID, activePolicy}}>{children}</ActivePolicyContext.Provider>;
 }
 
-function useActivePolicy() {
+function useActivePolicyContext() {
     return useContext(ActivePolicyContext);
 }
 
 export default ActivePolicyProvider;
-export {useActivePolicy};
+export {useActivePolicyContext};
