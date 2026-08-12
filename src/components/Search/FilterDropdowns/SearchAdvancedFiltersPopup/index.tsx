@@ -56,7 +56,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
 
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
 
-    const handleFilterHoverIn = (key: SearchFilter['key']) => {
+    const selectFilter = (key: SearchFilter['key']) => {
         setIsDescribeMode(false);
         setSelectedFilter(key);
     };
@@ -115,8 +115,8 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                         type={searchAdvancedFiltersForm?.type}
                         policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, searchAdvancedFiltersForm)}
                         selectedFilter={isDescribeMode ? undefined : selectedFilter}
-                        onHoverIn={handleFilterHoverIn}
-                        onFocus={handleFilterHoverIn}
+                        onHoverIn={selectFilter}
+                        onFocus={selectFilter}
                     />
                 </View>
                 <View
