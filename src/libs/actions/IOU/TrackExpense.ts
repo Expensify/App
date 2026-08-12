@@ -124,7 +124,13 @@ import type {
 
 import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from './DeleteMoneyRequest';
 import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations} from './index';
-import {buildMinimalTransactionForFormula, getMoneyRequestInformation, getReceiptError, getReportPreviewAction, getTransactionWithPreservedLocalReceiptSource} from './MoneyRequestBuilder';
+import {
+    buildMinimalTransactionForFormula,
+    getMoneyRequestInformation,
+    getReceiptError,
+    getReportPreviewReportAction,
+    getTransactionWithPreservedLocalReceiptSource,
+} from './MoneyRequestBuilder';
 import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import {getSearchOnyxUpdate} from './SearchUpdate';
@@ -1154,7 +1160,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
 
     let reportPreviewAction: OnyxInputValue<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = null;
     if (shouldUseMoneyReport && iouReport) {
-        reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+        reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewReportAction(chatReport.reportID, iouReport.reportID);
 
         if (reportPreviewAction) {
             reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, false, comment, optimisticTransaction);

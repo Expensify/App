@@ -4,6 +4,7 @@ import * as core from '@actions/core';
 
 import CONST from '../../.github/libs/CONST';
 import * as DeployChecklistUtils from '../../.github/libs/DeployChecklistUtils';
+import createMock from '../utils/createMock';
 
 const mockGetDeployChecklist = jest.fn<typeof DeployChecklistUtils.getDeployChecklist>();
 
@@ -37,10 +38,12 @@ afterAll(() => {
 describe('isDeployChecklistLockedTest', () => {
     describe('GitHub action run function', () => {
         test('Single issue with lock label → locked', () => {
-            mockGetDeployChecklist.mockResolvedValue({
-                number: 42,
-                labels: [{name: CONST.LABELS.LOCK_DEPLOY}],
-            } as unknown as Awaited<ReturnType<typeof DeployChecklistUtils.getDeployChecklist>>);
+            mockGetDeployChecklist.mockResolvedValue(
+                createMock<Awaited<ReturnType<typeof DeployChecklistUtils.getDeployChecklist>>>({
+                    number: 42,
+                    labels: [{name: CONST.LABELS.LOCK_DEPLOY}],
+                }),
+            );
             const setOutputMock = jest.spyOn(core, 'setOutput');
             const setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation(() => {});
             return run().then(() => {
@@ -51,10 +54,12 @@ describe('isDeployChecklistLockedTest', () => {
         });
 
         test('Single issue without lock label → unlocked', () => {
-            mockGetDeployChecklist.mockResolvedValue({
-                number: 99,
-                labels: [{name: CONST.LABELS.STAGING_DEPLOY}],
-            } as unknown as Awaited<ReturnType<typeof DeployChecklistUtils.getDeployChecklist>>);
+            mockGetDeployChecklist.mockResolvedValue(
+                createMock<Awaited<ReturnType<typeof DeployChecklistUtils.getDeployChecklist>>>({
+                    number: 99,
+                    labels: [{name: CONST.LABELS.STAGING_DEPLOY}],
+                }),
+            );
             const setOutputMock = jest.spyOn(core, 'setOutput');
             const setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation(() => {});
             return run().then(() => {

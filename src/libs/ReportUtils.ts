@@ -14412,6 +14412,5 @@ export type {
     PartialReportAction,
     SelfDMParameters,
     OptimisticReportAction,
-    CreateDraftTransactionParams,
     ActionErrorsByTransaction,
 };

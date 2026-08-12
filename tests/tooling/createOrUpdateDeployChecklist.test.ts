@@ -3,7 +3,7 @@ import {afterAll, afterEach, beforeAll, describe, expect, jest, mock, test} from
 
 import CONST from '@github/libs/CONST';
 import * as DeployChecklistUtils from '@github/libs/DeployChecklistUtils';
-import type {InternalOctokit} from '@github/libs/GithubUtils';
+import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
 
@@ -11,6 +11,8 @@ import * as core from '@actions/core';
 import * as fns from 'date-fns';
 import {fs as memfsFs, vol} from 'memfs';
 import path from 'path';
+
+import createMock from '../utils/createMock';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
@@ -24,15 +26,21 @@ const {default: run} = await import('@scripts/createOrUpdateDeployChecklist');
 
 const mockGetInput = jest.fn();
 
-type Arguments = {
-    issue_number?: number;
-    labels?: string;
-};
+type ListForRepoParameters = Parameters<ListForRepoMethod>;
+type ListForRepoResponse = Awaited<ReturnType<ListForRepoMethod>>;
+
+type CreateIssueParameters = Parameters<InternalOctokit['rest']['issues']['create']>;
+type CreateIssueResponse = Awaited<ReturnType<InternalOctokit['rest']['issues']['create']>>;
+type UpdateIssueParameters = Parameters<InternalOctokit['rest']['issues']['update']>;
+type UpdateIssueResponse = Awaited<ReturnType<InternalOctokit['rest']['issues']['update']>>;
+type PullsListResponse = Awaited<ReturnType<InternalOctokit['rest']['pulls']['list']>>;
 
 const PATH_TO_PACKAGE_JSON = path.resolve(__dirname, '../../package.json');
 
-const mockListIssues = jest.fn();
-const mockGetMergedPRsDeployedBetween = jest.fn() as Mock<typeof GitUtils.getMergedPRsDeployedBetween>;
+let mockCreateIssue: Mock<InternalOctokit['rest']['issues']['create']>;
+let mockUpdateIssue: Mock<InternalOctokit['rest']['issues']['update']>;
+let mockListIssues: Mock<ListForRepoMethod>;
+const mockGetMergedPRsDeployedBetween = jest.fn<typeof GitUtils.getMergedPRsDeployedBetween>();
 const mockGetWorkflowRunURLForCommit = jest.fn().mockResolvedValue(undefined);
 
 beforeAll(() => {
@@ -40,43 +48,55 @@ beforeAll(() => {
     // clock: otherwise the two reads can straddle local midnight. Jest froze Date globally via fakeTimers.
     jest.setSystemTime(new Date('2026-02-03T12:00:00Z'));
 
-    // Mock octokit module
-    const mockOctokit = {
-        rest: {
-            issues: {
-                create: jest.fn().mockImplementation((arg: Arguments) =>
-                    Promise.resolve({
-                        data: {
-                            ...arg,
-                            html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-                        },
-                    }),
-                ),
-                update: jest.fn().mockImplementation((arg: Arguments) =>
-                    Promise.resolve({
-                        data: {
-                            ...arg,
-                            html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${arg.issue_number}`,
-                        },
-                    }),
-                ),
-                listForRepo: mockListIssues,
-            },
-            pulls: {
-                // Static mock for pulls.list (only used to filter out automated PRs, and that functionality is covered
-                // in the test for GithubUtils.generateDeployChecklistBody
-                list: jest.fn().mockResolvedValue([]),
-            },
-        },
-        paginate: jest
-            .fn()
-            .mockImplementation((objectMethod: (args: Record<string, unknown>) => Promise<{data: unknown}>, args: Record<string, unknown>) => objectMethod(args).then(({data}) => data)),
-    } as unknown as InternalOctokit;
-    GithubUtils.internalOctokit = mockOctokit;
+    GithubUtils.initOctokitWithToken('fake_token');
+    const mockOctokit = GithubUtils.internalOctokit;
+    if (!mockOctokit) {
+        throw new Error('GithubUtils failed to initialize Octokit.');
+    }
 
-    // Mock GitUtils
-    GitUtils.getMergedPRsDeployedBetween = mockGetMergedPRsDeployedBetween;
-    GithubUtils.getWorkflowRunURLForCommit = mockGetWorkflowRunURLForCommit;
+    // Octokit endpoint methods carry `defaults`/`endpoint` statics. A Bun mock doesn't, and `paginate` reads them
+    // off the method, so they're copied back onto each mock below. mockImplementation insists on the statics too,
+    // which a plain stub can't provide - only the call signature matters here.
+    const createIssue = (...args: CreateIssueParameters): Promise<CreateIssueResponse> => {
+        const [arg] = args;
+        if (!arg) {
+            throw new Error('GithubUtils issues.create mock requires request parameters.');
+        }
+        return Promise.resolve(
+            createMock<CreateIssueResponse>({
+                data: {
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                },
+            }),
+        );
+    };
+    const updateIssue = (...args: UpdateIssueParameters): Promise<UpdateIssueResponse> => {
+        const [arg] = args;
+        if (!arg) {
+            throw new Error('GithubUtils issues.update mock requires request parameters.');
+        }
+        return Promise.resolve(
+            createMock<UpdateIssueResponse>({
+                data: {
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${arg.issue_number}`,
+                },
+            }),
+        );
+    };
+    mockCreateIssue = jest
+        .spyOn(mockOctokit.rest.issues, 'create')
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the stub deliberately omits the statics described above
+        .mockImplementation(createIssue as unknown as InternalOctokit['rest']['issues']['create']);
+    mockUpdateIssue = jest
+        .spyOn(mockOctokit.rest.issues, 'update')
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the stub deliberately omits the statics described above
+        .mockImplementation(updateIssue as unknown as InternalOctokit['rest']['issues']['update']);
+    const {endpoint: listForRepoEndpoint, defaults: listForRepoDefaults} = mockOctokit.rest.issues.listForRepo;
+    const {endpoint: pullsListEndpoint, defaults: pullsListDefaults} = mockOctokit.rest.pulls.list;
+    mockListIssues = Object.assign(jest.spyOn(mockOctokit.rest.issues, 'listForRepo'), {endpoint: listForRepoEndpoint, defaults: listForRepoDefaults});
+    const mockListPullRequests = Object.assign(jest.spyOn(mockOctokit.rest.pulls, 'list'), {endpoint: pullsListEndpoint, defaults: pullsListDefaults});
+    mockListPullRequests.mockResolvedValue(createMock<PullsListResponse>({data: [], headers: {}}));
+    GithubUtils.internalOctokit = mockOctokit;
 
     // Mock @actions/core for input handling and logging in tests. Real ESM module namespace exports are read-only
     // live bindings, so these can't be reassigned directly (unlike Jest's Babel-transpiled CJS interop); spy on
@@ -87,6 +107,9 @@ beforeAll(() => {
     jest.spyOn(core, 'endGroup').mockImplementation(() => {});
     jest.spyOn(core, 'setFailed').mockImplementation(() => {});
 
+    // Mock GitUtils
+    GitUtils.getMergedPRsDeployedBetween = mockGetMergedPRsDeployedBetween;
+    GithubUtils.getWorkflowRunURLForCommit = mockGetWorkflowRunURLForCommit;
     mockGetInput.mockImplementation((arg) => (arg === 'GITHUB_TOKEN' ? 'fake_token' : ''));
 
     vol.reset();
@@ -97,6 +120,8 @@ beforeAll(() => {
 
 afterEach(() => {
     mockGetInput.mockClear();
+    mockCreateIssue.mockClear();
+    mockUpdateIssue.mockClear();
     mockListIssues.mockClear();
     mockGetMergedPRsDeployedBetween.mockClear();
     mockGetWorkflowRunURLForCommit.mockClear();
@@ -106,6 +131,29 @@ afterAll(() => {
     jest.clearAllMocks();
     jest.useRealTimers();
 });
+
+function mockDeployChecklistIssuesByLabel(responseByLabel: Partial<Record<string, Parameters<typeof createMock<ListForRepoResponse>>[0]['data']>>) {
+    const listForRepo = (...parameters: ListForRepoParameters): Promise<ListForRepoResponse> => {
+        const receivedParameters = parameters[0];
+        if (!receivedParameters) {
+            throw new Error('GithubUtils issues.listForRepo mock requires request parameters.');
+        }
+        let labels: string | undefined;
+        if ('url' in receivedParameters) {
+            const {url} = receivedParameters;
+            if (typeof url !== 'string') {
+                throw new Error('GithubUtils issues.listForRepo request options require a string URL.');
+            }
+            labels = new URL(url).searchParams.get('labels') ?? undefined;
+        } else {
+            labels = receivedParameters.labels;
+        }
+        const data = labels === undefined ? [] : (responseByLabel[labels] ?? []);
+        return Promise.resolve(createMock<ListForRepoResponse>({data, headers: {}}));
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the stub deliberately omits the statics described in beforeAll
+    mockListIssues.mockImplementation(listForRepo as unknown as ListForRepoMethod);
+}
 
 const LABELS = {
     STAGING_DEPLOY_CASH: {
@@ -205,14 +253,18 @@ describe('createOrUpdateDeployChecklist', () => {
 
     type ChronologicalEntry = {type: 'pr'; prNumber: number} | {type: 'submodule'; version: string; buildLink?: string; commit?: string; mobileExpensifyPRs?: number[]};
 
+    function isNumberEntries(entries: number[] | ChronologicalEntry[]): entries is number[] {
+        return entries.every((entry) => typeof entry === 'number');
+    }
+
     function buildChronologicalSection(entries: number[] | ChronologicalEntry[], pendingMobileExpensifyPRs: number[] = []): string {
         let normalizedEntries: ChronologicalEntry[];
         if (entries.length === 0) {
             normalizedEntries = [];
-        } else if (typeof entries[0] === 'number') {
-            normalizedEntries = (entries as number[]).map((n): ChronologicalEntry => ({type: 'pr', prNumber: n}));
+        } else if (isNumberEntries(entries)) {
+            normalizedEntries = entries.map((n): ChronologicalEntry => ({type: 'pr', prNumber: n}));
         } else {
-            normalizedEntries = entries as ChronologicalEntry[];
+            normalizedEntries = entries;
         }
 
         if (normalizedEntries.length === 0) {
@@ -263,21 +315,16 @@ describe('createOrUpdateDeployChecklist', () => {
             return {mergedPRs: [], submoduleUpdates: []};
         });
 
-        mockListIssues.mockImplementation((args: Arguments) => {
-            if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                return Promise.resolve({data: [closedDeployChecklist]});
-            }
-
-            return Promise.resolve({data: []});
+        mockDeployChecklistIssuesByLabel({
+            [CONST.LABELS.STAGING_DEPLOY]: [closedDeployChecklist],
         });
 
         const result = await run();
-        expect(result as unknown).toStrictEqual({
+        expect(mockCreateIssue).toHaveBeenCalledWith({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
             title: `Deploy Checklist: New Expensify ${fns.format(new Date(), 'yyyy-MM-dd')}`,
             labels: [CONST.LABELS.STAGING_DEPLOY, CONST.LABELS.LOCK_DEPLOY, CONST.LABELS.DAILY],
-            html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
             assignees: [CONST.APPLAUSE_BOT],
             body:
                 `${baseExpectedOutput()}` +
@@ -294,6 +341,9 @@ describe('createOrUpdateDeployChecklist', () => {
                 `${lineBreak}${openCheckbox}${sentryVerificationPreviousRelease('1.0.1-0')}` +
                 `${lineBreak}${openCheckbox}${ghVerification}` +
                 `${lineBreak}${ccApplauseLeads}`,
+        });
+        expect(result as unknown).toStrictEqual({
+            html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
         });
     });
 
@@ -314,21 +364,16 @@ describe('createOrUpdateDeployChecklist', () => {
             return {mergedPRs: [], submoduleUpdates: []};
         });
 
-        mockListIssues.mockImplementation((args: Arguments) => {
-            if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                return Promise.resolve({data: [closedDeployChecklist]});
-            }
-
-            return Promise.resolve({data: []});
+        mockDeployChecklistIssuesByLabel({
+            [CONST.LABELS.STAGING_DEPLOY]: [closedDeployChecklist],
         });
 
         const result = await run();
-        expect(result as unknown).toStrictEqual({
+        expect(mockCreateIssue).toHaveBeenCalledWith({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
             title: `Deploy Checklist: New Expensify ${fns.format(new Date(), 'yyyy-MM-dd')}`,
             labels: [CONST.LABELS.STAGING_DEPLOY, CONST.LABELS.LOCK_DEPLOY, CONST.LABELS.DAILY],
-            html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
             assignees: [CONST.APPLAUSE_BOT],
             body:
                 `${baseExpectedOutput('1.0.2-1', false)}` +
@@ -342,6 +387,9 @@ describe('createOrUpdateDeployChecklist', () => {
                 `${lineBreak}${openCheckbox}${sentryVerificationPreviousRelease('1.0.1-0')}` +
                 `${lineBreak}${openCheckbox}${ghVerification}` +
                 `${lineBreak}${ccApplauseLeads}`,
+        });
+        expect(result as unknown).toStrictEqual({
+            html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
         });
     });
 
@@ -408,41 +456,30 @@ describe('createOrUpdateDeployChecklist', () => {
                 return {mergedPRs: [], submoduleUpdates: []};
             });
 
-            mockListIssues.mockImplementation((args: Arguments) => {
-                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve({data: [openDeployChecklistBefore, closedDeployChecklist]});
-                }
-
-                if (args.labels === CONST.LABELS.DEPLOY_BLOCKER) {
-                    return Promise.resolve({
-                        data: [
-                            ...currentDeployBlockers,
-                            {
-                                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/11`, // New
-                                number: 11,
-                                state: 'open',
-                                labels: [LABELS.DEPLOY_BLOCKER_CASH],
-                            },
-                            {
-                                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/12`, // New
-                                number: 12,
-                                state: 'open',
-                                labels: [LABELS.DEPLOY_BLOCKER_CASH],
-                            },
-                        ],
-                    });
-                }
-
-                return Promise.resolve({data: []});
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [openDeployChecklistBefore, closedDeployChecklist],
+                [CONST.LABELS.DEPLOY_BLOCKER]: [
+                    ...currentDeployBlockers,
+                    {
+                        html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/11`, // New
+                        number: 11,
+                        state: 'open',
+                        labels: [LABELS.DEPLOY_BLOCKER_CASH],
+                    },
+                    {
+                        html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/12`, // New
+                        number: 12,
+                        state: 'open',
+                        labels: [LABELS.DEPLOY_BLOCKER_CASH],
+                    },
+                ],
             });
 
             const result = await run();
-            expect(result as unknown).toStrictEqual({
+            expect(mockUpdateIssue).toHaveBeenCalledWith({
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
                 issue_number: openDeployChecklistBefore.number,
-
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
 
                 body:
                     `${baseExpectedOutput('1.0.2-2')}` +
@@ -470,6 +507,9 @@ describe('createOrUpdateDeployChecklist', () => {
                     `${lineBreak}${openCheckbox}${ghVerification}` +
                     `${lineBreak}${ccApplauseLeads}`,
             });
+            expect(result as unknown).toStrictEqual({
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
+            });
         });
 
         test('without NPM_VERSION input, just a new deploy blocker', async () => {
@@ -487,42 +527,31 @@ describe('createOrUpdateDeployChecklist', () => {
                 }
                 return {mergedPRs: [], submoduleUpdates: []};
             });
-            mockListIssues.mockImplementation((args: Arguments) => {
-                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve({data: [openDeployChecklistBefore, closedDeployChecklist]});
-                }
-
-                if (args.labels === CONST.LABELS.DEPLOY_BLOCKER) {
-                    return Promise.resolve({
-                        data: [
-                            // Suppose the first deploy blocker is demoted, it should not be removed from the checklist and instead just be checked off
-                            ...currentDeployBlockers.slice(1),
-                            {
-                                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/11`, // New
-                                number: 11,
-                                state: 'open',
-                                labels: [LABELS.DEPLOY_BLOCKER_CASH],
-                            },
-                            {
-                                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/12`, // New
-                                number: 12,
-                                state: 'open',
-                                labels: [LABELS.DEPLOY_BLOCKER_CASH],
-                            },
-                        ],
-                    });
-                }
-
-                return Promise.resolve({data: []});
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [openDeployChecklistBefore, closedDeployChecklist],
+                [CONST.LABELS.DEPLOY_BLOCKER]: [
+                    // Suppose the first deploy blocker is demoted, it should not be removed from the checklist and instead just be checked off
+                    ...currentDeployBlockers.slice(1),
+                    {
+                        html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/11`, // New
+                        number: 11,
+                        state: 'open',
+                        labels: [LABELS.DEPLOY_BLOCKER_CASH],
+                    },
+                    {
+                        html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/12`, // New
+                        number: 12,
+                        state: 'open',
+                        labels: [LABELS.DEPLOY_BLOCKER_CASH],
+                    },
+                ],
             });
 
             const result = await run();
-            expect(result as unknown).toStrictEqual({
+            expect(mockUpdateIssue).toHaveBeenCalledWith({
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
                 issue_number: openDeployChecklistBefore.number,
-
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
 
                 body:
                     `${baseExpectedOutput('1.0.2-1')}` +
@@ -546,6 +575,9 @@ describe('createOrUpdateDeployChecklist', () => {
                     `${lineBreak}${closedCheckbox}${ghVerification}` +
                     `${lineBreak}${ccApplauseLeads}`,
             });
+            expect(result as unknown).toStrictEqual({
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
+            });
         });
 
         test('without Mobile-Expensify PRs, just app PRs and deploy blockers', async () => {
@@ -564,25 +596,16 @@ describe('createOrUpdateDeployChecklist', () => {
                 }
                 return {mergedPRs: [], submoduleUpdates: []};
             });
-            mockListIssues.mockImplementation((args: Arguments) => {
-                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve({data: [openDeployChecklistBefore, closedDeployChecklist]});
-                }
-
-                if (args.labels === CONST.LABELS.DEPLOY_BLOCKER) {
-                    return Promise.resolve({data: currentDeployBlockers});
-                }
-
-                return Promise.resolve({data: []});
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [openDeployChecklistBefore, closedDeployChecklist],
+                [CONST.LABELS.DEPLOY_BLOCKER]: currentDeployBlockers,
             });
 
             const result = await run();
-            expect(result as unknown).toStrictEqual({
+            expect(mockUpdateIssue).toHaveBeenCalledWith({
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
                 issue_number: openDeployChecklistBefore.number,
-
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
 
                 body:
                     `${baseExpectedOutput('1.0.2-1', false)}` +
@@ -600,6 +623,9 @@ describe('createOrUpdateDeployChecklist', () => {
                     `${lineBreak}${closedCheckbox}${sentryVerificationPreviousRelease('1.0.1-0')}` +
                     `${lineBreak}${closedCheckbox}${ghVerification}` +
                     `${lineBreak}${ccApplauseLeads}`,
+            });
+            expect(result as unknown).toStrictEqual({
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
             });
         });
     });
@@ -648,28 +674,31 @@ describe('createOrUpdateDeployChecklist', () => {
             }));
 
             // Mock list of issues to return a closed previous checklist
-            mockListIssues.mockImplementation((args: Arguments) => {
-                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve({
-                        data: [
-                            {
-                                number: 29,
-                                state: 'closed',
-                                labels: [LABELS.STAGING_DEPLOY_CASH],
-                            },
-                        ],
-                    });
-                }
-                return Promise.resolve({data: []});
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [
+                    {
+                        number: 29,
+                        state: 'closed',
+                        labels: [LABELS.STAGING_DEPLOY_CASH],
+                    },
+                ],
             });
 
             const result = await run();
+            expect(result as unknown).toStrictEqual({
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+            });
+            const createCall = mockCreateIssue.mock.lastCall;
+            if (!createCall || !createCall[0]) {
+                throw new Error('Expected issues.create to receive a request payload.');
+            }
+            const createPayload = createCall[0];
 
             // Verify that only new PRs (10, 11) are included, not the previously included ones (6, 8)
-            expect(result?.body).toContain('https://github.com/Expensify/App/pull/10');
-            expect(result?.body).toContain('https://github.com/Expensify/App/pull/11');
-            expect(result?.body).not.toContain('https://github.com/Expensify/App/pull/6');
-            expect(result?.body).not.toContain('https://github.com/Expensify/App/pull/8');
+            expect(createPayload.body).toContain('https://github.com/Expensify/App/pull/10');
+            expect(createPayload.body).toContain('https://github.com/Expensify/App/pull/11');
+            expect(createPayload.body).not.toContain('https://github.com/Expensify/App/pull/6');
+            expect(createPayload.body).not.toContain('https://github.com/Expensify/App/pull/8');
 
             mockGetDeployChecklistData.mockRestore();
         });
@@ -713,32 +742,35 @@ describe('createOrUpdateDeployChecklist', () => {
                 version: '1.0.2-1',
             }));
 
-            mockListIssues.mockImplementation((args: Arguments) => {
-                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve({
-                        data: [
-                            {
-                                number: 29,
-                                state: 'closed',
-                                labels: [LABELS.STAGING_DEPLOY_CASH],
-                            },
-                        ],
-                    });
-                }
-                return Promise.resolve({data: []});
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [
+                    {
+                        number: 29,
+                        state: 'closed',
+                        labels: [LABELS.STAGING_DEPLOY_CASH],
+                    },
+                ],
             });
 
             const result = await run();
+            expect(result as unknown).toStrictEqual({
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+            });
+            const createCall = mockCreateIssue.mock.lastCall;
+            if (!createCall || !createCall[0]) {
+                throw new Error('Expected issues.create to receive a request payload.');
+            }
+            const createPayload = createCall[0];
 
             // Verify that only new PRs (10, 11) are included, not the previously included ones (6, 8)
-            expect(result?.body).toContain('https://github.com/Expensify/App/pull/10');
-            expect(result?.body).toContain('https://github.com/Expensify/App/pull/11');
-            expect(result?.body).not.toContain('https://github.com/Expensify/App/pull/6');
-            expect(result?.body).not.toContain('https://github.com/Expensify/App/pull/8');
+            expect(createPayload.body).toContain('https://github.com/Expensify/App/pull/10');
+            expect(createPayload.body).toContain('https://github.com/Expensify/App/pull/11');
+            expect(createPayload.body).not.toContain('https://github.com/Expensify/App/pull/6');
+            expect(createPayload.body).not.toContain('https://github.com/Expensify/App/pull/8');
 
             // Verify no Mobile-Expensify PRs section exists
-            expect(result?.body).not.toContain('**Mobile-Expensify PRs:**');
-            expect(result?.body).not.toContain('Mobile-Expensify/pull/');
+            expect(createPayload.body).not.toContain('**Mobile-Expensify PRs:**');
+            expect(createPayload.body).not.toContain('Mobile-Expensify/pull/');
 
             mockGetDeployChecklistData.mockRestore();
         });
@@ -787,15 +819,19 @@ describe('createOrUpdateDeployChecklist', () => {
                 return undefined;
             });
 
-            mockListIssues.mockImplementation((args: Arguments) => {
-                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve({data: [closedDeployChecklist]});
-                }
-                return Promise.resolve({data: []});
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [closedDeployChecklist],
             });
 
             const result = await run();
-            const body = result?.body ?? '';
+            expect(result as unknown).toStrictEqual({
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+            });
+            const createCall = mockCreateIssue.mock.lastCall;
+            if (!createCall || !createCall[0]) {
+                throw new Error('Expected issues.create to receive a request payload.');
+            }
+            const body = createCall[0].body;
 
             const expectedChronologicalSection = buildChronologicalSection([
                 {type: 'pr', prNumber: 6},
@@ -833,15 +869,19 @@ describe('createOrUpdateDeployChecklist', () => {
                 return {mergedPRs: [], submoduleUpdates: []};
             });
 
-            mockListIssues.mockImplementation((args: Arguments) => {
-                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve({data: [closedDeployChecklist]});
-                }
-                return Promise.resolve({data: []});
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [closedDeployChecklist],
             });
 
             const result = await run();
-            const body = result?.body ?? '';
+            expect(result as unknown).toStrictEqual({
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+            });
+            const createCall = mockCreateIssue.mock.lastCall;
+            if (!createCall || !createCall[0]) {
+                throw new Error('Expected issues.create to receive a request payload.');
+            }
+            const body = createCall[0].body;
 
             const expectedChronologicalSection = buildChronologicalSection(
                 [
@@ -904,18 +944,21 @@ describe('createOrUpdateDeployChecklist', () => {
                 state: 'open',
             };
 
-            mockListIssues.mockImplementation((args: Arguments) => {
-                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve({data: [openDeployChecklistWithSubmodule, closedDeployChecklist]});
-                }
-                if (args.labels === CONST.LABELS.DEPLOY_BLOCKER) {
-                    return Promise.resolve({data: []});
-                }
-                return Promise.resolve({data: []});
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [openDeployChecklistWithSubmodule, closedDeployChecklist],
+                [CONST.LABELS.DEPLOY_BLOCKER]: [],
             });
 
             const result = await run();
-            const body = result?.body ?? '';
+            expect(result as unknown).toStrictEqual({
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+            });
+            const updateCall = mockUpdateIssue.mock.lastCall;
+            if (!updateCall || !updateCall[0]) {
+                throw new Error('Expected issues.update to receive a request payload.');
+            }
+            const updatePayload = updateCall[0];
+            const body = updatePayload.body;
 
             // Verify the chronological section contains submodule interleaving.
             // Mobile-Expensify PR 21 (Jan 3 12:00) is after the only submodule bump (Jan 2), so it's pending.
@@ -934,7 +977,7 @@ describe('createOrUpdateDeployChecklist', () => {
             expect(body).toContain(`${closedCheckbox}${basePRList.at(6)}`);
 
             // Verify this is an update (not a create) by checking the issue_number
-            expect(result).toHaveProperty('issue_number', 29);
+            expect(updatePayload.issue_number).toBe(29);
         });
 
         test('each Mobile-Expensify PR appears under exactly one submodule update, not duplicated across multiple', async () => {
@@ -980,15 +1023,22 @@ describe('createOrUpdateDeployChecklist', () => {
                 return {mergedPRs: [], submoduleUpdates: []};
             });
 
-            mockListIssues.mockImplementation((args: Arguments) => {
-                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve({data: [closedDeployChecklist]});
-                }
-                return Promise.resolve({data: []});
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [closedDeployChecklist],
             });
 
             const result = await run();
-            const body = result?.body ?? '';
+            expect(result as unknown).toStrictEqual({
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+            });
+            const createCall = mockCreateIssue.mock.lastCall;
+            if (!createCall || !createCall[0]) {
+                throw new Error('Expected issues.create to receive a request payload.');
+            }
+            const body = createCall[0].body;
+            if (body === undefined) {
+                throw new Error('Expected issues.create to receive a request body.');
+            }
 
             // Mobile-Expensify PR #20 should ONLY appear under 9.3.21-2, and PR #21 ONLY under 9.3.21-4
             // cspell:disable
@@ -1035,15 +1085,19 @@ describe('createOrUpdateDeployChecklist', () => {
                 return {mergedPRs: [], submoduleUpdates: []};
             });
 
-            mockListIssues.mockImplementation((args: Arguments) => {
-                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return Promise.resolve({data: [closedDeployChecklist]});
-                }
-                return Promise.resolve({data: []});
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [closedDeployChecklist],
             });
 
             const result = await run();
-            const body = result?.body ?? '';
+            expect(result as unknown).toStrictEqual({
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+            });
+            const createCall = mockCreateIssue.mock.lastCall;
+            if (!createCall || !createCall[0]) {
+                throw new Error('Expected issues.create to receive a request payload.');
+            }
+            const body = createCall[0].body;
 
             const expectedChronologicalSection = buildChronologicalSection([6, 7]);
             expect(body).toContain(expectedChronologicalSection);
