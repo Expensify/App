@@ -19,7 +19,7 @@ import React, {useImperativeHandle, useState} from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
-import type {SearchGroupBy, SearchQueryJSON, SelectedTransactions} from './types';
+import type {SearchQueryJSON, SelectedTransactions} from './types';
 
 import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
@@ -36,13 +36,6 @@ type ExpenseGroupedSearchViewProps = CommonSearchViewProps & TransactionViewExtr
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
 
 const isRowDeleted = (item: SearchListItem) => item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-const GROUP_BY_OPTIONS_WITH_SELECTABLE_HEADERS = new Set<SearchGroupBy>([
-    CONST.SEARCH.GROUP_BY.MERCHANT,
-    CONST.SEARCH.GROUP_BY.CATEGORY,
-    CONST.SEARCH.GROUP_BY.FROM,
-    CONST.SEARCH.GROUP_BY.CARD,
-]);
 
 const isGroupRowExiting = (item: SearchListItem) => isRowDeleted(item) || (isTransactionGroupListItemType(item) && item.transactions.length > 0 && item.transactions.every(isRowDeleted));
 
@@ -221,10 +214,7 @@ function ExpenseGroupedSearchView({
         layout.size = variables.tableRowHeight;
     };
 
-    // FlashList sticky headers render in a separate web layer, which breaks native multi-row text selection
-    // when dragging from the first grouped header in text-heavy group-by views.
-    const shouldUseStickyGroupHeaders = shouldSplit && !GROUP_BY_OPTIONS_WITH_SELECTABLE_HEADERS.has(groupBy);
-    const stickyHeaderConfig = shouldUseStickyGroupHeaders ? {hideRelatedCell: true, useNativeDriver: true, zIndex: 2} : undefined;
+    const stickyHeaderConfig = shouldSplit ? {hideRelatedCell: true, useNativeDriver: true, zIndex: 2} : undefined;
 
     const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
         if (isGroupHeaderItem(item)) {
@@ -363,7 +353,7 @@ function ExpenseGroupedSearchView({
                 newTransactions={newTransactions}
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                stickyHeaderIndices={shouldUseStickyGroupHeaders ? stickyHeaderIndices : undefined}
+                stickyHeaderIndices={stickyHeaderIndices}
                 getItemType={getItemType}
                 stickyHeaderConfig={stickyHeaderConfig}
                 disabledIndexes={shouldSplit ? childrenContainerIndices : undefined}
