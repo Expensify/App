@@ -39569,26 +39569,29 @@ function isCommentEditedEvent(payload) {
     return payload.action === CONST_1.default.ACTIONS.EDITED;
 }
 /**
- * Point the Conversation's copy of a proposal at the text the comment holds now, so later duplicate
- * checks stop comparing against a superseded version.
+ * Make the Conversation hold exactly one copy of this comment, containing the text it has now, and
+ * only while it is still a proposal. Duplicate checks read the Conversation rather than live GitHub
+ * comments, so anything missing from it is invisible to them and anything stale misleads them.
  *
- * Replaces rather than adds: two versions of the same comment_id in the Conversation would be worse
- * for duplicate detection than the stale copy this sets out to fix, so a proposal that isn't already
- * recorded is logged and left alone.
+ * Dropping the existing copy before re-adding covers every way an edit can land: the text changed, the
+ * comment only became a proposal on this edit (nothing stored yet), or it stopped being one (the stored
+ * copy has to go, with nothing put back).
  */
 async function refreshStoredProposal(openAI, issueNumber, commentID, proposalBody) {
     const trackedConversationID = (0, ProposalPoliceConversation_1.findTrackedConversationID)(await GithubUtils_1.default.getAllCommentDetails(issueNumber));
     if (!trackedConversationID) {
-        console.log('Issue has no tracked Conversation, so there is no recorded proposal to refresh.');
+        console.log('Issue has no tracked Conversation, so there is nothing to record this proposal against.');
         return;
     }
     const staleItemID = (0, ProposalPoliceConversation_1.findConversationItemIDForComment)(await openAI.listConversationItems(trackedConversationID), commentID);
-    if (!staleItemID) {
-        console.log('Could not find this proposal in the Conversation, leaving it untouched.', commentID);
+    if (staleItemID) {
+        await openAI.deleteConversationItem(trackedConversationID, staleItemID);
+    }
+    if (!(0, ProposalUtils_1.default)(proposalBody)) {
+        console.log('Comment is no longer a proposal, so it is not being recorded for duplicate checks.', commentID);
         return;
     }
-    console.log('Refreshing the recorded copy of this proposal for future duplicate checks.', commentID);
-    await openAI.deleteConversationItem(trackedConversationID, staleItemID);
+    console.log('Recording the current text of this proposal for future duplicate checks.', commentID);
     await openAI.addConversationItems(trackedConversationID, [(0, input_1.buildDuplicateCheckSeedItem)(proposalBody, commentID)]);
 }
 // Main function to process the workflow event

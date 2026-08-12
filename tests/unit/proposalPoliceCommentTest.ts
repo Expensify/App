@@ -274,17 +274,37 @@ describe('proposalPoliceComment', () => {
         expect(items?.at(0)).toEqual(expect.objectContaining({content: expect.stringContaining('completely different solution')}));
     });
 
-    it('leaves the Conversation untouched when the edited proposal is not recorded in it', async () => {
-        // Adding without a matching removal would leave two versions of the same comment_id behind
+    it('records a comment that only became a proposal on this edit', async () => {
+        // It was not a proposal when posted, so the created path never recorded it. Nothing else will
+        // ever add it, and duplicate checks only read the Conversation, so it has to be added here.
         mockComments([makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'})]);
-        setPayload({action: 'edited', comment: makeComment({id: 7, body: `${VALID_PROPOSAL_BODY}\nedited`}), changes: {body: {from: VALID_PROPOSAL_BODY}}});
+        setPayload({action: 'edited', comment: makeComment({id: 7, body: VALID_PROPOSAL_BODY}), changes: {body: {from: 'Proposal: I might write one later'}}});
         MockedOpenAIUtils.prototype.listConversationItems.mockResolvedValue([conversationMessage('item_9', 9)]);
         MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: JSON.stringify({action: 'ACTION_EDIT'}), responseID: 'resp_edit'});
 
         await run();
 
+        // Nothing stored for this comment yet, so there is nothing to remove
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(MockedOpenAIUtils.prototype.deleteConversationItem).not.toHaveBeenCalled();
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.addConversationItems).toHaveBeenCalledWith('conv_existing', [
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- expect.stringContaining is typed as `any`
+            expect.objectContaining({content: expect.stringContaining('comment_id="7"')}),
+        ]);
+    });
+
+    it('drops the stored copy when a proposal is edited into something that is no longer one', async () => {
+        // A retracted proposal must not go on matching future proposals from the Conversation
+        mockComments([makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'})]);
+        setPayload({action: 'edited', comment: makeComment({id: 7, body: 'Proposal withdrawn, disregard this.'}), changes: {body: {from: VALID_PROPOSAL_BODY}}});
+        MockedOpenAIUtils.prototype.listConversationItems.mockResolvedValue([conversationMessage('item_7', 7)]);
+        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: JSON.stringify({action: 'ACTION_EDIT'}), responseID: 'resp_edit'});
+
+        await run();
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.deleteConversationItem).toHaveBeenCalledWith('conv_existing', 'item_7');
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(MockedOpenAIUtils.prototype.addConversationItems).not.toHaveBeenCalled();
     });
