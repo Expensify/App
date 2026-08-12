@@ -29,7 +29,7 @@ type CompanyListItem = ListItem & {
     value: DualEntryCompany['id'];
 };
 
-function DualEntryCompanySelector({policy}: WithPolicyConnectionsProps) {
+function DualEntrySubsidiarySelector({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const companyList = policy?.connections?.dualEntry?.data?.companies;
@@ -80,7 +80,7 @@ function DualEntryCompanySelector({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="DualEntryCompanySelector"
+            displayName="DualEntrySubsidiarySelector"
             data={filteredData}
             textInputOptions={textInputOptions}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.DUALENTRY}
@@ -98,4 +98,4 @@ function DualEntryCompanySelector({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-export default withPolicyConnections(DualEntryCompanySelector);
+export default withPolicyConnections(DualEntrySubsidiarySelector);
