@@ -37,10 +37,12 @@ import {
     isSearchBeforeViolationsSnapshotStarted,
     isSearchRootParams,
     serializeQueryJSONForBackend,
+    sanitizeSearchValue,
     shouldHighlight,
     shouldResetSort,
     shouldResetSortForViewChange,
     sortOptionsWithEmptyValue,
+    stripSearchValueQuotes,
     withExactMatchFilterKeys,
 } from '@src/libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -4061,6 +4063,33 @@ describe('SearchQueryUtils', () => {
             }
 
             expect(isSearchBeforeViolationsSnapshotStarted(queryJSON, violationSnapshotStartedAt)).toBe(false);
+        });
+    });
+
+    describe('sanitizeSearchValue', () => {
+        it('leaves a value without a delimiter untouched', () => {
+            expect(sanitizeSearchValue('Acme')).toBe('Acme');
+        });
+
+        it('quotes on a space or a non-breaking space', () => {
+            expect(sanitizeSearchValue('Acme Inc')).toBe('"Acme Inc"');
+            expect(sanitizeSearchValue('Acme\xA0Inc')).toBe('"Acme\xA0Inc"');
+        });
+
+        it('only quotes on a comma when asked to', () => {
+            expect(sanitizeSearchValue('Acme,Inc')).toBe('Acme,Inc');
+            expect(sanitizeSearchValue('Acme,Inc', true)).toBe('"Acme,Inc"');
+        });
+    });
+
+    describe('stripSearchValueQuotes', () => {
+        it('removes straight and curly quotes', () => {
+            expect(stripSearchValueQuotes('Acme,"Inc')).toBe('Acme,Inc');
+            expect(stripSearchValueQuotes('Acme “US” Inc')).toBe('Acme US Inc');
+        });
+
+        it('leaves a value without quotes untouched', () => {
+            expect(stripSearchValueQuotes('Acme, Inc.')).toBe('Acme, Inc.');
         });
     });
 });

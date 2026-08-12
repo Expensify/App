@@ -77,6 +77,7 @@ import {
     getTravelUpdateMessage,
     getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
+    getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     getUpdateRoomDescriptionMessage,
@@ -968,6 +969,9 @@ function getLastMessageTextForReport({
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG)) {
         lastMessageTextFromReport = getRequiresTagMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING)) {
+        lastMessageTextFromReport = getUpdatedAutoHarvestingMessage(translate, lastReportAction);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT)) {
         // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
@@ -3236,13 +3240,6 @@ function getNoneOption(searchValue: string, isSelected: boolean, translate: Loca
 }
 
 /**
- * Helper method to check whether an option can show tooltip or not
- */
-function shouldOptionShowTooltip(option: SearchOptionData): boolean {
-    return !option.private_isArchived;
-}
-
-/**
  * Handles the logic for displaying selected participants from the search term
  */
 // We'll refactor this function to have less parameters in the future (https://github.com/Expensify/App/issues/66415)
@@ -3698,7 +3695,6 @@ export {
     orderPersonalDetailsOptions,
     orderWorkspaceOptions,
     recentReportComparator,
-    shouldOptionShowTooltip,
     shouldShowLastActorDisplayName,
     shouldUseBoldText,
     sortAlphabetically,
