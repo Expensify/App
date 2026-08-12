@@ -6738,6 +6738,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 chooseLimitType: 'Choisissez un type de limite',
                 smartLimit: 'Limite intelligente',
                 smartLimitDescription: 'Dépenser jusqu’à un certain montant avant de nécessiter une approbation',
+                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
+                    `<muted-text-label>Dépenser jusqu’à un certain montant avant de nécessiter une approbation. <a href="${workspaceWorkflowsLink}">Activez les approbations</a> pour sélectionner cette option.</muted-text-label>`,
                 monthly: 'Mensuel',
                 monthlyDescription: 'Dépenser jusqu’à un certain montant par mois',
                 fixedAmount: 'Montant fixe',

@@ -6672,6 +6672,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 chooseLimitType: 'Escolha um tipo de limite',
                 smartLimit: 'Limite Inteligente',
                 smartLimitDescription: 'Gaste até um determinado valor antes de exigir aprovação',
+                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
+                    `<muted-text-label>Gaste até um determinado valor antes de exigir aprovação. <a href="${workspaceWorkflowsLink}">Ative as aprovações</a> para selecionar esta opção.</muted-text-label>`,
                 monthly: 'Mensal',
                 monthlyDescription: 'Gastar até um determinado valor por mês',
                 fixedAmount: 'Valor fixo',

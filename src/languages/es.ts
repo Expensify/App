@@ -6885,6 +6885,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 chooseLimitType: 'Elegir un tipo de límite',
                 smartLimit: 'Límite inteligente',
                 smartLimitDescription: 'Gasta hasta un determinado importe antes de requerir aprobación',
+                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
+                    `<muted-text-label>Gasta hasta un determinado importe antes de requerir aprobación. <a href="${workspaceWorkflowsLink}">Habilita las aprobaciones</a> para seleccionar esta opción.</muted-text-label>`,
                 monthly: 'Mensual',
                 monthlyDescription: 'Gasta hasta un determinado importe al mes',
                 fixedAmount: 'Importe fijo',

@@ -6866,6 +6866,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 chooseLimitType: 'Επιλέξτε τύπο ορίου',
                 smartLimit: 'Έξυπνο όριο',
                 smartLimitDescription: 'Ξοδέψτε έως ένα συγκεκριμένο ποσό πριν απαιτείται έγκριση',
+                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
+                    `<muted-text-label>Ξοδέψτε έως ένα συγκεκριμένο ποσό πριν απαιτείται έγκριση. <a href="${workspaceWorkflowsLink}">Ενεργοποιήστε τις εγκρίσεις</a> για να επιλέξετε αυτήν την επιλογή.</muted-text-label>`,
                 monthly: 'Μηνιαίως',
                 monthlyDescription: 'Το όριο ανανεώνεται μηνιαία',
                 fixedAmount: 'Σταθερό ποσό',
