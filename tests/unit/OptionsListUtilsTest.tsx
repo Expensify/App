@@ -53,6 +53,7 @@ import {
     getAddedCardFeedMessage,
     getAssignedCompanyCardMessage,
     getChangedApproverActionMessage,
+    getCurrencyConversionFeeMessage,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getDynamicExternalWorkflowRoutedMessage,
@@ -5842,6 +5843,32 @@ describe('OptionsListUtils', () => {
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(getRequireCompanyCardsEnabledMessage(translateLocal, action));
+        });
+        it('UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {preference: CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getCurrencyConversionFeeMessage(translateLocal, action));
         });
         it('ADD_CARD_FEED action', async () => {
             const report: Report = createRandomReport(0, undefined);

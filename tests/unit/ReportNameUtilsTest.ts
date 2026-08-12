@@ -26,6 +26,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createRandomReportAction from '../utils/collections/reportActions';
 import {createAdminRoom, createExpenseReport, createPolicyExpenseChat, createRegularChat, createRegularTaskReport, createSelfDM, createWorkspaceThread} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
@@ -793,6 +794,50 @@ describe('ReportNameUtils', () => {
                 currentUserAccountID,
             );
             expect(disabledName).toBe('disabled the company card purchases requirement');
+        });
+
+        test('UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE parent action', () => {
+            const thread: Report = createWorkspaceThread(151);
+            const companyPaysParentAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE,
+                reportActionID: String(thread.parentReportActionID),
+                originalMessage: {
+                    preference: CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY,
+                },
+            };
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const companyPaysName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: companyPaysParentAction}},
+                currentUserAccountID,
+            );
+            expect(companyPaysName).toBe('updated the currency conversion fee setting to "Company pays"');
+
+            const employeePaysParentAction: ReportAction = {
+                ...companyPaysParentAction,
+                originalMessage: {
+                    preference: CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.EMPLOYEE,
+                },
+            };
+            const employeePaysName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: employeePaysParentAction}},
+                currentUserAccountID,
+            );
+            expect(employeePaysName).toBe('updated the currency conversion fee setting to "Employee pays"');
         });
 
         test('UPDATE_CATEGORY_TAX_RATE parent action renders the rendered category default tax rate change', () => {
