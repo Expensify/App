@@ -2731,9 +2731,7 @@ function getValidOptions(
         const isWorkspaceChat = (report: SearchOption<Report>) => shouldSeparateWorkspaceChat && report.isPolicyExpenseChat && !report.private_isArchived;
         const isSelfDMChat = (report: SearchOption<Report>) => shouldSeparateSelfDMChat && report.isSelfDM && !report.private_isArchived;
 
-        // An empty search matches every report, so skip building and normalizing the search text
-        // entirely rather than testing for it once per report.
-        const matchesEverySearchTerm = (report: SearchOption<Report>) => {
+        const isSearchTermsFound = (report: SearchOption<Report>) => {
             let searchText = `${report.text ?? ''}${report.login ?? ''}`;
             if (report.isThread) {
                 searchText += report.alternateText ?? '';
@@ -2748,7 +2746,6 @@ function getValidOptions(
             searchText = deburr(searchText.toLocaleLowerCase());
             return searchTerms.every((term) => searchText.includes(term));
         };
-        const isSearchTermsFound = searchTerms.length === 0 ? () => true : matchesEverySearchTerm;
 
         const filteringFunction = (report: SearchOption<Report>) => {
             if (excludeHidden) {
