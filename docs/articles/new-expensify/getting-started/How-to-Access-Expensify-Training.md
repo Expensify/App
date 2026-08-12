@@ -63,7 +63,7 @@ You’ll learn how to:
 
 ## What You’ll Learn in Company Card Admin Training
 
-**Duration:** 1 hour (45-minute walkthrough + 15-minute Q&A)
+**Duration:** 1 hour 15 minutes (65-minute walkthrough + 10-minute Q&A)
 
 Company Card Admin Training is designed for Workspace Admins and Card Admins using a company card or the Expensify Card.
 
