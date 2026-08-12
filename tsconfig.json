@@ -43,5 +43,14 @@
         "**/*.nitro/*.ts",
         "**/*.nitro/*.tsx"
     ],
-    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*", ".claude/worktrees/**"]
+    "exclude": [
+        "**/node_modules/*",
+        "**/dist/*",
+        ".github/actions/**/index.js",
+        "**/docs/*",
+        ".claude/worktrees/**",
+        // These import `bun:test` and are type-checked by tests/tooling/tsconfig.json instead, which declares
+        // @types/bun — bun:test's ambient types aren't compatible with this config's `jest` types.
+        "tests/tooling/**"
+    ]
 }

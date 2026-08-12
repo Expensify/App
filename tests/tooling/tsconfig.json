@@ -1,0 +1,11 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        // bun:test's ambient types, which conflict with the `jest` types the root config uses everywhere else.
+        "types": ["@types/bun"]
+    },
+    "include": ["./**/*.ts"],
+    // Reset the parent's `exclude`, which excludes this directory (see the root tsconfig.json) so these files
+    // aren't checked twice with the wrong `types`.
+    "exclude": ["../../**/node_modules/*"]
+}

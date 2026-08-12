@@ -7,6 +7,11 @@ on:
     paths:
       - 'server/**'
       - 'src/**'
+      - 'tests/tooling/**'
+      - '.github/actions/javascript/**'
+      - '.github/libs/**'
+      - '.github/scripts/**'
+      - 'scripts/**'
       - 'bunfig.toml'
       - '.bun-version'
       - 'package.json'
@@ -30,6 +35,9 @@ jobs:
 
       - name: Run Bun tests
         run: npm run test:bun
+
+      - name: Run tooling tests (.github + scripts)
+        run: npm run test:tooling
 
       - name: Build victory-chart-renderer Linux x64 binary
         run: npm run server:vcr:build:linux
