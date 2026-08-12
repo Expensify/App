@@ -62,7 +62,7 @@ type ButtonBehaviorProps = {
      * the pressed state resets when the screen regains focus. Leave it off for handlers that only navigate, toggle local
      * state, or bail out on validation — those should use the `loading` controller passed to `onPress` instead.
      */
-    shouldShowLoadingImmediatelyOnPress?: boolean;
+    showInstantLoadingOnPress?: boolean;
 
     /** Indicates whether the button should be disabled */
     isDisabled?: boolean;

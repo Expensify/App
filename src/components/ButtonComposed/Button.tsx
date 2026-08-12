@@ -28,7 +28,7 @@ function Button({
     contentContainerStyle = [],
     size = CONST.BUTTON_SIZE.MEDIUM,
     isLoading: isOnyxLoading = false,
-    shouldShowLoadingImmediatelyOnPress = false,
+    showInstantLoadingOnPress = false,
     isDisabled = false,
     onLayout = () => {},
     onPress = () => {},
@@ -76,7 +76,7 @@ function Button({
             return;
         }
         // Simple tier: wrap the whole handler. Otherwise hand the controller to onPress so it can opt in per branch.
-        if (shouldShowLoadingImmediatelyOnPress) {
+        if (showInstantLoadingOnPress) {
             return startWithLoading(() => onPress(event, loadingController));
         }
         return onPress(event, loadingController);
