@@ -7589,7 +7589,8 @@ ${reportName}`,
                 flagAmountsOverSubtitle: 'これは、すべての経費の上限金額を上書きします。',
                 expenseLimitTypes: {
                     expense: '個別経費',
-                    expenseSubtitle: 'カテゴリごとに経費金額にフラグを付けます。このルールは、経費金額の上限に関するワークスペース全体の一般ルールを上書きします。',
+                    expenseSubtitle:
+                        'カテゴリごとに経費金額にフラグを付けます。このルールは、経費金額の上限に関するワークスペース全体の一般ルールを上書きします。複数日にわたる予約は、1泊あたりの平均額で評価されます。',
                     daily: 'カテゴリ合計',
                     dailySubtitle: '経費レポートごとに、カテゴリ別の1日あたり合計支出をフラグ設定する。',
                 },
@@ -9687,6 +9688,8 @@ ${reportName}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `料金は${startDate}からのみ有効です`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `料金は${endDate}までのみ有効です`,
         cannotMergeDuplicates: '経費を統合できるのは、下書きまたは未清算のレポートのみです。レポートを取り下げて、もう一度お試しください。',
+        overCategoryLimitPerNight: (formattedLimit: string) => `1泊あたりの料金が、1人あたりのカテゴリ上限 ${formattedLimit} を超えています`,
+        overLimitPerNight: (formattedLimit: string) => `1人あたり上限額 ${formattedLimit} を超える宿泊単価`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} は必須です`,

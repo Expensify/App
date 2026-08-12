@@ -152,7 +152,7 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName, isCategoryLock
                         ListItem={SingleSelectListItem}
                         onSelectRow={(item) => setExpenseLimitType(item.value as PolicyCategoryExpenseLimitType)}
                         shouldSingleExecuteRowSelect
-                        alternateNumberOfSupportedLines={3}
+                        alternateNumberOfSupportedLines={4}
                         disableKeyboardShortcuts
                         initiallyFocusedItemKey={selectedExpenseLimitType}
                     />

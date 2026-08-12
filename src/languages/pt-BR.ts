@@ -7663,7 +7663,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 flagAmountsOverSubtitle: 'Isso substitui o valor máximo para todas as despesas.',
                 expenseLimitTypes: {
                     expense: 'Despesa individual',
-                    expenseSubtitle: 'Sinalize valores de despesas por categoria. Esta regra substitui a regra geral do workspace para valor máximo de despesa.',
+                    expenseSubtitle:
+                        'Sinalize os valores de despesas por categoria. Esta regra substitui a regra geral do espaço de trabalho para o valor máximo de despesa. Reservas de vários dias são avaliadas usando a média por noite.',
                     daily: 'Total da categoria',
                     dailySubtitle: 'Sinalizar o gasto total diário por categoria em cada relatório de despesas.',
                 },
@@ -9782,6 +9783,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `A tarifa só é válida a partir de ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `A tarifa só é válida até ${endDate}`,
         cannotMergeDuplicates: 'Você só pode mesclar despesas em relatórios rascunho ou pendentes. Retraia o relatório e tente novamente.',
+        overCategoryLimitPerNight: (formattedLimit: string) => `Tarifa por noite acima do limite de categoria de ${formattedLimit}/pessoa`,
+        overLimitPerNight: (formattedLimit: string) => `Tarifa por noite acima do limite de ${formattedLimit}/pessoa`,
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} é obrigatório`,

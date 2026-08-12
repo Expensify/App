@@ -125,6 +125,9 @@ type TransactionViolationData = {
 
     /** End date of the rate's valid range (for customUnitRateOutOfDateRange) */
     endDate?: string;
+
+    /** Number of nights the limit was averaged over, for overLimit/overCategoryLimit on a multi-day reservation */
+    nights?: number;
 };
 
 /** Model of a transaction violation */

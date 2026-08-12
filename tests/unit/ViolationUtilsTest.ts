@@ -1008,6 +1008,153 @@ describe('getViolationsOnyxData', () => {
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeUndefined();
         });
+
+        describe('multi-day reservations are measured against the nightly rate', () => {
+            const getViolations = (): TransactionViolation[] => {
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                return Array.isArray(result.value) ? result.value : [];
+            };
+            const findOverLimit = (violations: TransactionViolation[]) => violations.find((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
+
+            it('should not add overLimit violation when the nightly average equals the limit exactly', () => {
+                // 5 nights at exactly the limit per night
+                transaction.amount = -1000000;
+                transaction.receipt = {hotelReservationStartDate: '2026-03-01', hotelReservationEndDate: '2026-03-06'};
+                policy.maxExpenseAmount = 200000;
+
+                expect(findOverLimit(getViolations())).toBeUndefined();
+            });
+
+            it('should add overLimit violation with the night count when the nightly average is over the limit', () => {
+                // 5 nights, averaging 200001 per night
+                transaction.amount = -1000005;
+                transaction.receipt = {hotelReservationStartDate: '2026-03-01', hotelReservationEndDate: '2026-03-06'};
+                policy.maxExpenseAmount = 200000;
+
+                expect(findOverLimit(getViolations())).toEqual(expect.objectContaining({data: expect.objectContaining({nights: 5})}));
+            });
+
+            it('should add overLimit violation with a single night for a one-night stay over the limit', () => {
+                transaction.amount = -200001;
+                transaction.receipt = {hotelReservationStartDate: '2026-03-01', hotelReservationEndDate: '2026-03-02'};
+                policy.maxExpenseAmount = 200000;
+
+                expect(findOverLimit(getViolations())).toEqual(expect.objectContaining({data: expect.objectContaining({nights: 1})}));
+            });
+
+            it('should flag the full amount and omit the night count when the receipt has no reservation dates', () => {
+                transaction.amount = -1000000;
+                policy.maxExpenseAmount = 200000;
+
+                const overLimit = findOverLimit(getViolations());
+                expect(overLimit).toBeDefined();
+                expect(overLimit?.data?.nights).toBeUndefined();
+            });
+
+            it('should flag the full amount when only one of the two reservation dates is present', () => {
+                transaction.amount = -1000000;
+                transaction.receipt = {hotelReservationStartDate: '2026-03-01'};
+                policy.maxExpenseAmount = 200000;
+
+                const overLimit = findOverLimit(getViolations());
+                expect(overLimit).toBeDefined();
+                expect(overLimit?.data?.nights).toBeUndefined();
+            });
+
+            it('should flag the full amount when the reservation ends on or before it starts', () => {
+                transaction.amount = -1000000;
+                policy.maxExpenseAmount = 200000;
+
+                transaction.receipt = {hotelReservationStartDate: '2026-03-06', hotelReservationEndDate: '2026-03-06'};
+                const sameDay = findOverLimit(getViolations());
+                expect(sameDay).toBeDefined();
+                expect(sameDay?.data?.nights).toBeUndefined();
+
+                transaction.receipt = {hotelReservationStartDate: '2026-03-06', hotelReservationEndDate: '2026-03-01'};
+                const inverted = findOverLimit(getViolations());
+                expect(inverted).toBeDefined();
+                expect(inverted?.data?.nights).toBeUndefined();
+            });
+
+            it('should keep using the full amount for the receipt-required threshold', () => {
+                // 5 nights, so the nightly average (200000) is under the threshold while the total (1000000) is over it
+                transaction.amount = -1000000;
+                transaction.receipt = {hotelReservationStartDate: '2026-03-01', hotelReservationEndDate: '2026-03-06'};
+                policy.maxExpenseAmountNoReceipt = 500000;
+
+                expect(getViolations().find((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED)).toBeDefined();
+            });
+
+            it('should keep using the full amount for the itemized-receipt-required threshold', () => {
+                // Same 5-night stay: the nightly average is under the threshold, the total is over it
+                transaction.amount = -1000000;
+                transaction.receipt = {hotelReservationStartDate: '2026-03-01', hotelReservationEndDate: '2026-03-06'};
+                policy.maxExpenseAmountNoItemizedReceipt = 500000;
+
+                expect(getViolations().find((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED)).toBeDefined();
+            });
+
+            it('should add the night count to an existing overLimit violation once the reservation dates arrive', () => {
+                // 5 nights, averaging 200001 per night, flagged before the receipt was scanned
+                transaction.amount = -1000005;
+                policy.maxExpenseAmount = 200000;
+                transactionViolations = [
+                    {
+                        name: CONST.VIOLATIONS.OVER_LIMIT,
+                        data: {amount: 200000, currency: CONST.CURRENCY.USD},
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ];
+                transaction.receipt = {hotelReservationStartDate: '2026-03-01', hotelReservationEndDate: '2026-03-06'};
+
+                expect(findOverLimit(getViolations())).toEqual(expect.objectContaining({data: expect.objectContaining({nights: 5})}));
+            });
+
+            it('should drop the night count from an existing overLimit violation when the reservation dates go away', () => {
+                // The total still breaks the limit once there are no dates to average over
+                transaction.amount = -1000005;
+                policy.maxExpenseAmount = 200000;
+                transactionViolations = [
+                    {
+                        name: CONST.VIOLATIONS.OVER_LIMIT,
+                        data: {amount: 200000, currency: CONST.CURRENCY.USD, nights: 5},
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ];
+                transaction.receipt = {};
+
+                const overLimit = findOverLimit(getViolations());
+                expect(overLimit).toBeDefined();
+                expect(overLimit?.data?.nights).toBeUndefined();
+            });
+
+            it('should keep a single overLimit violation when the night count is unchanged', () => {
+                transaction.amount = -1000005;
+                policy.maxExpenseAmount = 200000;
+                transactionViolations = [
+                    {
+                        name: CONST.VIOLATIONS.OVER_LIMIT,
+                        data: {amount: 200000, currency: CONST.CURRENCY.USD, nights: 5},
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ];
+                transaction.receipt = {hotelReservationStartDate: '2026-03-01', hotelReservationEndDate: '2026-03-06'};
+
+                expect(getViolations().filter((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT)).toHaveLength(1);
+            });
+        });
     });
 
     describe('policyCategoryRules', () => {
@@ -3441,6 +3588,22 @@ describe('getViolationTranslation', () => {
         expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnection530Violation, translate: translateLocal, convertToDisplayString})).toBe(
             brokenCardConnection530ViolationExpected,
         );
+    });
+
+    describe('per-night over limit messages', () => {
+        const limit = {amount: 200000, currency: CONST.CURRENCY.USD};
+        const formattedLimit = convertToDisplayString(limit.amount, limit.currency);
+
+        it.each([
+            [CONST.VIOLATIONS.OVER_LIMIT, 'violations.overLimitPerNight', 'violations.overLimit'] as const,
+            [CONST.VIOLATIONS.OVER_CATEGORY_LIMIT, 'violations.overCategoryLimitPerNight', 'violations.overCategoryLimit'] as const,
+        ])('should use the per-night copy for %s only when the violation carries a night count', (name, perNightKey, defaultKey) => {
+            const withNights: TransactionViolation = {name, type: CONST.VIOLATION_TYPES.VIOLATION, data: {...limit, nights: 3}};
+            const withoutNights: TransactionViolation = {name, type: CONST.VIOLATION_TYPES.VIOLATION, data: limit};
+
+            expect(ViolationsUtils.getViolationTranslation({violation: withNights, translate: translateLocal, convertToDisplayString})).toBe(translateLocal(perNightKey, formattedLimit));
+            expect(ViolationsUtils.getViolationTranslation({violation: withoutNights, translate: translateLocal, convertToDisplayString})).toBe(translateLocal(defaultKey, formattedLimit));
+        });
     });
 
     describe('increasedDistance violation', () => {
