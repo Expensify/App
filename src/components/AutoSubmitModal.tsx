@@ -94,26 +94,28 @@ function AutoSubmitModal() {
                     innerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getBackgroundColorStyle(colors.green700), styles.p8]}
                     outerContainerStyle={styles.p0}
                 />
-                <FeatureTraining.Body innerStyle={[styles.mb5]}>
-                    <FeatureTraining.Title style={[styles.mb1]}>{translate('autoSubmitModal.title')}</FeatureTraining.Title>
-                    <FeatureTraining.Description>{translate('autoSubmitModal.description')}</FeatureTraining.Description>
-                    {menuSections.map((section) => (
-                        <View
-                            key={section.titleTranslationKey}
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}
-                        >
-                            <Icon
-                                width={variables.menuIconSize}
-                                height={variables.menuIconSize}
-                                src={section.icon}
-                                additionalStyles={[styles.mr4]}
-                            />
-                            <View style={[styles.flex1, styles.justifyContentCenter]}>
-                                <Text style={[styles.textStrong, styles.mb1]}>{translate(section.titleTranslationKey as TranslationPaths)}</Text>
-                                <Text style={[styles.mutedTextLabel, styles.lh16]}>{translate(section.descriptionTranslationKey as TranslationPaths)}</Text>
+                <FeatureTraining.Body>
+                    <FeatureTraining.BodyText style={styles.mb5}>
+                        <FeatureTraining.Title style={styles.mb1}>{translate('autoSubmitModal.title')}</FeatureTraining.Title>
+                        <FeatureTraining.Description>{translate('autoSubmitModal.description')}</FeatureTraining.Description>
+                        {menuSections.map((section) => (
+                            <View
+                                key={section.titleTranslationKey}
+                                style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}
+                            >
+                                <Icon
+                                    width={variables.menuIconSize}
+                                    height={variables.menuIconSize}
+                                    src={section.icon}
+                                    additionalStyles={[styles.mr4]}
+                                />
+                                <View style={[styles.flex1, styles.justifyContentCenter]}>
+                                    <Text style={[styles.textStrong, styles.mb1]}>{translate(section.titleTranslationKey as TranslationPaths)}</Text>
+                                    <Text style={[styles.mutedTextLabel, styles.lh16]}>{translate(section.descriptionTranslationKey as TranslationPaths)}</Text>
+                                </View>
                             </View>
-                        </View>
-                    ))}
+                        ))}
+                    </FeatureTraining.BodyText>
                     {shouldShowDismissOption && <FeatureTraining.DismissOption />}
                     <FeatureTraining.ButtonRow>
                         <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
