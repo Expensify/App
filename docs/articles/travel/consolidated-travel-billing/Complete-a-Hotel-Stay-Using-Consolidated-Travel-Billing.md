@@ -93,4 +93,4 @@ Not always. Some hotels do not accept virtual or centrally billed cards, which m
 
 ## Can I use Consolidated Travel Billing for same-day stays?
 
-Usually not. Most hotels have a 48-72 hour window prior to booking after which they will not accept CCA forms. The process itself can often take some time to complete as we need the hotel to send, and then confirm receipt of forms. 
+Usually not. Most hotels have a 48-72 hour window prior to booking after which they will not accept Credit Card Authorization (CCA) forms. The process itself can often take some time to complete because Expensify needs the hotel to send and then confirm receipt of the forms.
