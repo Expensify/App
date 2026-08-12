@@ -3,20 +3,42 @@ import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 import {useEffect, useRef, useState} from 'react';
 
 type Params<TItem> = {
+    /** The rendered rows, in the order they appear on screen */
     items: TItem[];
+
+    /** Keys must be unique within `items`. A null key keeps a row out of ranges, since there is no identity to collapse it by later */
     getItemKey: (item: TItem) => string | null | undefined;
+
+    /** Whether a row reads as selected, which is how a cold shift+click finds an anchor */
     isItemSelected: (item: TItem) => boolean;
+
+    /** Rows a range must never deselect. Defaults to `isItemSelected`; pass it where a row can read as selected without having been picked on its own */
     isItemProtected?: (item: TItem) => boolean;
+
+    /** Headers are never part of a range, and never anchor one */
     isHeaderItem?: (item: TItem) => boolean;
+
+    /** Disabled rows are excluded from ranges, anchors and targets */
     isDisabledItem?: (item: TItem) => boolean;
+
+    /** Called with the rows to select and the rows to give back, once a shift+click resolves */
     onApplyRange?: (batch: ShiftRangeBatch<TItem>) => void;
 };
 
 type Api<TItem> = {
+    /** Applies a range when the click carried Shift, and reports whether it handled the click */
     applyShiftClick: (item: TItem, shiftKey?: boolean) => boolean;
+
+    /** Records a plainly clicked row, so the next shift+click continues from there */
     notifyAnchor: (item: TItem) => void;
+
+    /** Lets a selection made elsewhere, such as a group header, be narrowed by the next shift+click */
     seedRangeFromSelection: (selectedKeys: ReadonlySet<string> | readonly string[]) => void;
+
+    /** The same, for Select All */
     seedFullRange: () => void;
+
+    /** Forgets the session, so the next shift+click starts cold */
     clearAnchor: () => void;
 };
 

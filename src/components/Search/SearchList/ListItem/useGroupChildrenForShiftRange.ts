@@ -18,16 +18,29 @@ type GetSectionsArgs = Parameters<typeof getSections>[0];
 type UseGroupChildrenForShiftRangeArgs = {
     /** The group's original (un-prefixed) key, which children are registered under */
     groupKey: string;
+
+    /** Whether the group is open, which is what decides if its children join a range */
     isExpanded: boolean;
+
     /** Whether this component owns the group's expanded state, so the registration goes down with it */
     shouldUnregisterOnUnmount: boolean;
+
+    /** Whether this is the expense-report view, where the rows arrive ready to render */
     isExpenseReportType: boolean;
+
     /** The children source in expense-report views */
     groupTransactions: TransactionListItemType[];
+
     /** The children source in group-by views, loaded when the group opens */
     snapshotData: GetSectionsArgs['data'] | undefined;
+
+    /** Needed to build the rows, and passed down rather than read again per group */
     bankAccountList: GetSectionsArgs['bankAccountList'];
+
+    /** Needed to build the rows, and passed down rather than read again per group */
     cardFeeds: GetSectionsArgs['cardFeeds'];
+
+    /** Needed to build the rows, and passed down rather than read again per group */
     conciergeReportID: GetSectionsArgs['conciergeReportID'];
 };
 
