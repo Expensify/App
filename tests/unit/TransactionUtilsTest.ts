@@ -1303,10 +1303,10 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateTransaction({receipt: undefined}))).toBe(false);
         });
 
-        it('agrees with itself for a GPS distance expense, which also gets a generated receipt', () => {
+        it('treats a GPS distance expense the same way, because it also gets a generated receipt', () => {
             expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS}))).toBe(false);
             expect(
-                TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS, pendingFields: {distance: UPDATE}})),
+                TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS, pendingFields: {merchant: UPDATE}})),
             ).toBe(true);
         });
     });
