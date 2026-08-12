@@ -9,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type * as NativeNavigation from '@react-navigation/native';
@@ -170,6 +171,20 @@ describe('NumberWithSymbolForm', () => {
 
             expect(screen.queryByText('Flip')).toBeNull();
             expect(screen.queryByText('USD')).toBeNull();
+        });
+
+        it('passes the symbol as the prefix character for a display text input', async () => {
+            renderForm({displayAsTextInput: true, value: '10', symbol: '$'});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('$')).toBeTruthy();
+        });
+
+        it('does not pass a prefix character when the symbol is hidden', async () => {
+            renderForm({displayAsTextInput: true, value: '10', symbol: '$', hideSymbol: true});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText('$')).toBeNull();
         });
 
         it('assigns the text input instance to the separate `ref` prop', async () => {
@@ -508,6 +523,33 @@ describe('NumberWithSymbolForm', () => {
 
             expect(queryAllById('numberView')).toHaveLength(0);
             expect(screen.getByDisplayValue('10')).toBeTruthy();
+        });
+
+        it('renders the symbol in the suffix position', async () => {
+            renderForm({value: '10', symbol: 'hrs', symbolPosition: CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('hrs')).toBeTruthy();
+        });
+
+        it('does not make the inline symbol pressable when the input is wrapped', async () => {
+            const onSymbolButtonPress = jest.fn();
+            renderForm({value: '10', symbol: '$', onSymbolButtonPress});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText('$'));
+
+            expect(onSymbolButtonPress).not.toHaveBeenCalled();
+        });
+
+        it('makes the inline symbol pressable when the input is not wrapped', async () => {
+            const onSymbolButtonPress = jest.fn();
+            renderForm({value: '10', symbol: '$', onSymbolButtonPress, shouldWrapInputInContainer: false});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText('$'));
+
+            expect(onSymbolButtonPress).toHaveBeenCalledTimes(1);
         });
 
         it('renders the currency button and delegates to onSymbolButtonPress', async () => {
