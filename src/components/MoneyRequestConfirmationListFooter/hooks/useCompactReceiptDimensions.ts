@@ -34,11 +34,16 @@ function useCompactReceiptDimensions({showMoreFields, isScan, isInLandscapeMode,
     const [compactReceiptContainerWidth, setCompactReceiptContainerWidth] = useState(0);
     const hasEndedReceiptLoadSpan = useRef(false);
 
-    const handleReceiptLoad = (event?: {nativeEvent: {width: number; height: number}}) => {
-        if (!hasEndedReceiptLoadSpan.current) {
-            hasEndedReceiptLoadSpan.current = true;
-            endSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
+    const endReceiptLoadSpan = () => {
+        if (hasEndedReceiptLoadSpan.current) {
+            return;
         }
+        hasEndedReceiptLoadSpan.current = true;
+        endSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
+    };
+
+    const handleReceiptLoad = (event?: {nativeEvent: {width: number; height: number}}) => {
+        endReceiptLoadSpan();
         const width = event?.nativeEvent.width ?? 0;
         const height = event?.nativeEvent.height ?? 0;
         if (!width || !height) {
@@ -81,6 +86,7 @@ function useCompactReceiptDimensions({showMoreFields, isScan, isInLandscapeMode,
     return {
         isCompactMode,
         handleReceiptLoad,
+        endReceiptLoadSpan,
         handleCompactReceiptContainerLayout,
         compactReceiptStyle,
         compactReceiptContainerStyle,

@@ -68,7 +68,7 @@ function RateField({
     shouldShowRateAutoUpdatedTooltip,
 }: RateFieldProps) {
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, dateFnsLocale} = useLocalize();
     const {getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     const {isOffline} = useNetwork();
@@ -77,6 +77,7 @@ function RateField({
     const policyRate = customUnitRateID && policy ? DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy}) : undefined;
     const rateOutOfDateRangeErrorText = isRateOutOfDateRange
         ? ViolationsUtils.getViolationTranslation({
+              dateFnsLocale,
               violation: {
                   name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
                   type: CONST.VIOLATION_TYPES.WARNING,

@@ -339,6 +339,7 @@ type ContextMenuActionPayload = {
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
+    dateFnsLocale: LocaleContextProps['dateFnsLocale'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     harvestReport?: OnyxEntry<ReportType>;
@@ -611,11 +612,14 @@ const ContextMenuActions: ContextMenuAction[] = [
             (canEditReportAction(reportAction, iouTransaction) || canEditReportAction(moneyRequestAction, iouTransaction)) &&
             !isArchivedRoom &&
             !isChronosReport,
-        onPress: (closePopover, {reportID, reportActions, originalReportActions, originalReportID, reportAction, moneyRequestAction, introSelected, betas, childReportActions}) => {
+        onPress: (
+            closePopover,
+            {reportID, reportActions, originalReportActions, originalReportID, reportAction, moneyRequestAction, introSelected, betas, childReportActions, currentUserAccountID},
+        ) => {
             if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
                 const editExpense = () => {
                     const childReportID = reportAction?.childReportID;
-                    openReport({reportID: childReportID, introSelected, betas, hasReportActions: !!childReportActions});
+                    openReport({reportID: childReportID, introSelected, betas, hasReportActions: !!childReportActions, currentUserAccountID});
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 };
                 if (closePopover) {
@@ -654,7 +658,17 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (
             closePopover,
-            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails, isTrackIntentUser},
+            {
+                moneyRequestAction,
+                iouTransaction,
+                iouTransactionViolations,
+                isDelegateAccessRestricted,
+                showDelegateNoAccessModal,
+                isOffline,
+                currentUserPersonalDetails,
+                isTrackIntentUser,
+                delegateAccountID,
+            },
         ) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
@@ -671,6 +685,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         currentUserPersonalDetails.accountID,
                         iouTransactionViolations,
                         isTrackIntentUser,
+                        delegateAccountID,
                     ),
                 );
                 return;
@@ -685,6 +700,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 currentUserPersonalDetails.accountID,
                 iouTransactionViolations,
                 isTrackIntentUser,
+                delegateAccountID,
             );
         },
         getDescription: () => {},
@@ -703,7 +719,17 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (
             closePopover,
-            {moneyRequestAction, iouTransaction, iouTransactionViolations, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails, isTrackIntentUser},
+            {
+                moneyRequestAction,
+                iouTransaction,
+                iouTransactionViolations,
+                isDelegateAccessRestricted,
+                showDelegateNoAccessModal,
+                isOffline,
+                currentUserPersonalDetails,
+                isTrackIntentUser,
+                delegateAccountID,
+            },
         ) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
@@ -720,6 +746,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         currentUserPersonalDetails.accountID,
                         iouTransactionViolations,
                         isTrackIntentUser,
+                        delegateAccountID,
                     ),
                 );
                 return;
@@ -734,6 +761,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 currentUserPersonalDetails.accountID,
                 iouTransactionViolations,
                 isTrackIntentUser,
+                delegateAccountID,
             );
         },
         getDescription: () => {},
@@ -946,6 +974,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 getLocalDateFromDatetime,
                 policyTags,
                 translate,
+                dateFnsLocale,
                 convertToDisplayString,
                 formatPhoneNumber,
                 harvestReport,
@@ -956,6 +985,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 originalReportOfUnapprovedTransaction,
                 personalDetails,
                 memberChangeLogRoomReportName,
+                currentUserAccountID,
             },
         ) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
@@ -1065,9 +1095,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_CUSTOM_UNIT_RATES) {
                     Clipboard.setString(getWorkspaceCustomUnitRateImportedMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE) {
-                    Clipboard.setString(getWorkspaceCustomUnitRateAddedMessage(translate, reportAction));
+                    Clipboard.setString(getWorkspaceCustomUnitRateAddedMessage(translate, dateFnsLocale, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE) {
-                    Clipboard.setString(getWorkspaceCustomUnitRateUpdatedMessage(translate, reportAction));
+                    Clipboard.setString(getWorkspaceCustomUnitRateUpdatedMessage(translate, dateFnsLocale, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
                     Clipboard.setString(getWorkspaceCustomUnitRateDeletedMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_SUB_RATE) {
@@ -1138,6 +1168,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(
                         getReimbursedMessage(
                             translate,
+                            dateFnsLocale,
                             reportAction,
                             report?.ownerAccountID,
                             getLoginByAccountID(report?.ownerAccountID, personalDetails),
@@ -1244,7 +1275,15 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isCardIssuedAction(reportAction)) {
                     const shouldNavigateToCardDetails = isPolicyAdmin(policy, currentUserPersonalDetails.login);
                     setClipboardMessage(
-                        getCardIssuedMessage({reportAction, shouldRenderHTML: true, shouldNavigateToCardDetails, policyID: report?.policyID, expensifyCard: card, translate}),
+                        getCardIssuedMessage({
+                            reportAction,
+                            shouldRenderHTML: true,
+                            shouldNavigateToCardDetails,
+                            policyID: report?.policyID,
+                            expensifyCard: card,
+                            translate,
+                            currentUserAccountID,
+                        }),
                     );
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION)) {
                     setClipboardMessage(getAddedConnectionMessage(translate, reportAction));
@@ -1325,7 +1364,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isMovedAction(reportAction)) {
                     setClipboardMessage(getMovedActionMessage(translate, reportAction, originalReport));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT)) {
-                    setClipboardMessage(getActionableCardFraudAlertMessage(translate, reportAction, getLocalDateFromDatetime, convertToDisplayString));
+                    setClipboardMessage(getActionableCardFraudAlertMessage(translate, dateFnsLocale, reportAction, getLocalDateFromDatetime, convertToDisplayString));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL)) {
                     setClipboardMessage(getActionableCard3DSTransactionApprovalMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
@@ -1362,7 +1401,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
                     const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
                     const missingFields = getOriginalMessage(reportAction)?.missingFields;
-                    setClipboardMessage(translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields}));
+                    setClipboardMessage(translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction, currentUserAccountID), missingFields}));
                 } else if (content) {
                     setClipboardMessageWithCleanedMentions(content);
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {

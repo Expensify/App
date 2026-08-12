@@ -40,10 +40,17 @@ import {
     buildOptimisticEmptyReport,
     buildOptimisticExpenseReport,
     buildOptimisticGroupChatReport,
+    buildOptimisticHoldReportAction,
+    buildOptimisticHoldReportActionComment,
     buildOptimisticInvoiceReport,
     buildOptimisticIOUReportAction,
     buildOptimisticMoneyRequestEntities,
+    buildOptimisticRejectReportAction,
+    buildOptimisticRejectReportActionComment,
+    buildOptimisticReportLevelRejectAction,
+    buildOptimisticReportLevelRejectCommentAction,
     buildOptimisticReportPreview,
+    buildOptimisticUnHoldReportAction,
     buildOptimisticWorkspaceChats,
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
@@ -341,6 +348,7 @@ const computeReportName = (
     conciergeReportID?: string,
 ) =>
     computeReportNameOriginal({
+        dateFnsLocale: undefined,
         report,
         reports,
         policies,
@@ -1284,7 +1292,7 @@ describe('ReportUtils', () => {
         it('should use the passed translate to name the workspace when the policy name cannot be resolved', () => {
             // Given a report whose policy is unavailable and that carries no stored policy name
             const report = {...LHNTestUtils.getFakeReport(), policyID: 'nonExistentPolicyID1'};
-            // And a custom translate that returns a sentinel for the unavailable-workspace key
+            // And a custom translate that returns a placeholder value for the unavailable-workspace key
             const customTranslate: LocalizedTranslate = () => 'CUSTOM_UNAVAILABLE_WS';
 
             // When the workspace icon is built with that translate
@@ -1309,7 +1317,7 @@ describe('ReportUtils', () => {
             // Given an available policy and a report pointing at it
             const availablePolicy = LHNTestUtils.getFakePolicy('wsIconAvailableID', 'Available WS');
             const report = {...LHNTestUtils.getFakeReport(), policyID: availablePolicy.id};
-            // And a custom translate that would surface a sentinel if the fallback were used
+            // And a custom translate that would surface a placeholder if the fallback were used
             const customTranslate: LocalizedTranslate = () => 'CUSTOM_UNAVAILABLE_WS';
 
             // When the workspace icon is built with the available policy
@@ -5230,7 +5238,7 @@ describe('ReportUtils', () => {
                 canUnholdRequest: false,
             });
 
-            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false, currentUserEmail, currentUserAccountID, undefined, false, []);
+            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false, currentUserEmail, currentUserAccountID, undefined, false, undefined, []);
             await waitForBatchedUpdates();
 
             const expenseReportUpdated = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -5472,7 +5480,7 @@ describe('ReportUtils', () => {
             const unholdRequestSpy = jest.spyOn(HoldUtils, 'unholdRequest').mockImplementation(() => undefined);
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false);
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false, undefined);
 
             // Then unholdRequest should be called with the correct parameters and navigation should not be called
             expect(unholdRequestSpy).toHaveBeenCalledWith(
@@ -5484,6 +5492,7 @@ describe('ReportUtils', () => {
                 currentUserAccountID,
                 undefined,
                 false,
+                undefined,
             );
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
@@ -5527,7 +5536,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false);
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false, undefined);
 
             // Then navigation should be called with the correct parameters
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -10141,8 +10150,8 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            const reportNameValuePairs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: {private_isArchived: '2024-01-01 00:00:00.000'}};
-            expect(isReportOutstanding(report, policy.id, reportNameValuePairs)).toBe(false);
+            const reportNameValuePair = {private_isArchived: '2024-01-01 00:00:00.000'};
+            expect(isReportOutstanding(report, policy.id, reportNameValuePair)).toBe(false);
         });
     });
 
@@ -11629,8 +11638,8 @@ describe('ReportUtils', () => {
         });
 
         it('should push a missingCategory violation for an Uncategorized expense when categories are enabled', () => {
-            // A new expense is seeded with the 'Uncategorized' sentinel, not an empty category. Enabling categories must
-            // treat that sentinel as missing so the violation is written immediately.
+            // A new expense is seeded with the 'Uncategorized' placeholder, not an empty category. Enabling categories must
+            // treat that placeholder as missing so the violation is written immediately.
             const fakePolicyCategories = createRandomPolicyCategories(3);
             const fakeCategoryName = Object.keys(fakePolicyCategories).at(0) ?? '';
 
@@ -12980,6 +12989,7 @@ describe('ReportUtils', () => {
         };
 
         const createFormulaContext = (reportParam: Report, policyParam: Policy, reportTransactions: Record<string, Transaction> = {}): FormulaContext => ({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             report: reportParam,
             policy: policyParam,
             allTransactions: reportTransactions,
@@ -18455,7 +18465,17 @@ describe('ReportUtils', () => {
             const timeOfCreation = DateUtils.getDBTime();
 
             // Then the report name should be "New Report"
-            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, currentUserEmail, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
+            const optimisticReport = buildOptimisticEmptyReport(
+                reportID,
+                accountID,
+                currentUserEmail,
+                parentReport,
+                parentReportActionID,
+                policyWithEmptyFieldList,
+                timeOfCreation,
+                betas,
+                getCurrencyDecimalsLocal,
+            );
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
 
@@ -18484,7 +18504,17 @@ describe('ReportUtils', () => {
             const timeOfCreation = DateUtils.getDBTime();
 
             // Then the report name should be "New Report"
-            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, currentUserEmail, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
+            const optimisticReport = buildOptimisticEmptyReport(
+                reportID,
+                accountID,
+                currentUserEmail,
+                parentReport,
+                parentReportActionID,
+                policyWithEmptyFieldList,
+                timeOfCreation,
+                betas,
+                getCurrencyDecimalsLocal,
+            );
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
     });
@@ -20584,6 +20614,34 @@ describe('ReportUtils', () => {
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
         });
+
+        it('should fall back to the stored action message when the destination policy is not available locally', () => {
+            const storedHtml = 'moved this report to the <a href="https://new.expensify.com">Test Workspace</a> workspace';
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: storedHtml,
+                        text: 'moved this report to the Test Workspace workspace',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                    },
+                ],
+                originalMessage: {
+                    // A policy ID that is intentionally not present in Onyx, mirroring a non-member user.
+                    toPolicyID: '99999999',
+                    newParentReportID: '11111',
+                    movedReportID: '22222',
+                },
+            });
+
+            const report = LHNTestUtils.getFakeReport();
+            const result = getMovedActionMessage(translateLocal, action, report);
+            expect(result).toBe(storedHtml);
+        });
     });
     describe('getReportActionWithSmartscanError', () => {
         const chatReportID = '100';
@@ -21984,6 +22042,45 @@ describe('areAllRequestsBeingSmartScanned', () => {
         const transactions = [buildScanningTransaction(1), scannedReceipt];
 
         expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(false);
+    });
+});
+
+describe('hold/unhold/reject optimistic builders set delegateAccountID', () => {
+    const DELEGATE_ACCOUNT_ID = 424242;
+
+    it('buildOptimisticHoldReportAction sets the passed delegateAccountID', () => {
+        expect(buildOptimisticHoldReportAction(DELEGATE_ACCOUNT_ID).delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        expect(buildOptimisticHoldReportAction(undefined).delegateAccountID).toBeUndefined();
+    });
+
+    it('buildOptimisticHoldReportActionComment sets the passed delegateAccountID', () => {
+        expect(buildOptimisticHoldReportActionComment('hold reason', DELEGATE_ACCOUNT_ID).delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        expect(buildOptimisticHoldReportActionComment('hold reason', undefined).delegateAccountID).toBeUndefined();
+    });
+
+    it('buildOptimisticUnHoldReportAction sets the passed delegateAccountID', () => {
+        expect(buildOptimisticUnHoldReportAction(DELEGATE_ACCOUNT_ID).delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        expect(buildOptimisticUnHoldReportAction(undefined).delegateAccountID).toBeUndefined();
+    });
+
+    it('buildOptimisticRejectReportAction sets the passed delegateAccountID', () => {
+        expect(buildOptimisticRejectReportAction(DELEGATE_ACCOUNT_ID).delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        expect(buildOptimisticRejectReportAction(undefined).delegateAccountID).toBeUndefined();
+    });
+
+    it('buildOptimisticRejectReportActionComment sets the passed delegateAccountID', () => {
+        expect(buildOptimisticRejectReportActionComment('reject reason', DELEGATE_ACCOUNT_ID).delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        expect(buildOptimisticRejectReportActionComment('reject reason', undefined).delegateAccountID).toBeUndefined();
+    });
+
+    it('buildOptimisticReportLevelRejectAction sets the passed delegateAccountID', () => {
+        expect(buildOptimisticReportLevelRejectAction(true, currentUserAccountID, 'Test User', undefined, DELEGATE_ACCOUNT_ID).delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        expect(buildOptimisticReportLevelRejectAction(true, currentUserAccountID, 'Test User', undefined, undefined).delegateAccountID).toBeUndefined();
+    });
+
+    it('buildOptimisticReportLevelRejectCommentAction sets the passed delegateAccountID', () => {
+        expect(buildOptimisticReportLevelRejectCommentAction('reject reason', currentUserAccountID, 'Test User', undefined, DELEGATE_ACCOUNT_ID).delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        expect(buildOptimisticReportLevelRejectCommentAction('reject reason', currentUserAccountID, 'Test User', undefined, undefined).delegateAccountID).toBeUndefined();
     });
 });
 

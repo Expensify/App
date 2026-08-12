@@ -83,7 +83,7 @@ function SubmitDetailsPage({
     },
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
@@ -95,6 +95,7 @@ function SubmitDetailsPage({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const transactionReport = useReportOrReportDraft(transaction?.reportID);
+    const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transactionReport?.reportID)}`);
     const iouType = isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
     // Self-DM's FAKE policyID can't load real policy data — usePolicyForTransaction resolves the active workspace instead.
     const {policy} = usePolicyForTransaction({
@@ -224,17 +225,10 @@ function SubmitDetailsPage({
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
         return participant?.accountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(
-                  participant,
-                  privateIsArchived,
-                  policy,
-                  personalDetails,
-                  conciergeReportID,
-                  reportAttributesDerived,
-                  reportDraft,
-                  currentUserPersonalDetails.accountID,
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID, {
                   translate,
-              );
+                  dateFnsLocale,
+              });
     });
 
     const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
@@ -273,7 +267,7 @@ function SubmitDetailsPage({
     const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
     const listOfParticipants = participants.filter((participant) => participant.selected);
     const participant = listOfParticipants.at(0) ?? selectedParticipants.at(0);
-    const reportToSubmit = resolveReportForMoneyRequest({transaction, transactionReport, routeReport: report, policy});
+    const reportToSubmit = resolveReportForMoneyRequest({transaction, transactionReport, routeReport: report, policy, reportNameValuePair});
     const postSubmitNavigationReportID = (isSelfDM(report) ? report : reportToSubmit)?.reportID ?? reportOrAccountID;
     const isIouReport = isMoneyRequestReport(reportToSubmit);
     const policyTagsForRequestMoney = useMoneyRequestPolicyTags({
@@ -465,6 +459,7 @@ function SubmitDetailsPage({
                     optimisticTransactionID,
                     isTrackIntentUser,
                     delegateAccountID,
+                    formatPhoneNumber,
                     optimisticChatReportID: routeReportID,
                 });
             }

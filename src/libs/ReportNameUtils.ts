@@ -17,6 +17,7 @@ import type {
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /**
@@ -89,6 +90,7 @@ import {
     getTravelUpdateMessage,
     getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
+    getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     getUpdatedProhibitedExpensesMessage,
@@ -178,6 +180,7 @@ import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUp
 import {hasNonReimbursableTransactions} from './TransactionUtils';
 
 type ComputeReportName = {
+    dateFnsLocale: DateFnsLocale | undefined;
     report?: Report;
     reports?: OnyxCollection<Report>;
     policies?: OnyxCollection<Policy>;
@@ -352,7 +355,11 @@ function getInvoicesChatName({
     }
 
     if (isIndividual) {
-        return formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[invoiceReceiverAccountID], translate}));
+        return temporaryGetDisplayNameOrDefault({
+            passedPersonalDetails: personalDetails?.[invoiceReceiverAccountID],
+            translate,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
+        });
     }
 
     return getPolicyName({report, policy: receiverPolicy, unavailableTranslation: translate('workspace.common.unavailable')});
@@ -393,7 +400,7 @@ function getInvoicePayerName(
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 
     if (isIndividual) {
-        return formatPhoneNumberPhoneUtils(temporaryGetDisplayNameOrDefault({passedPersonalDetails: invoiceReceiverPersonalDetail ?? undefined, translate}));
+        return temporaryGetDisplayNameOrDefault({passedPersonalDetails: invoiceReceiverPersonalDetail ?? undefined, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils});
     }
 
     return getPolicyName({report, policy: invoiceReceiverPolicy, unavailableTranslation: translate('workspace.common.unavailable')});
@@ -464,17 +471,31 @@ function getMoneyRequestReportName({
     return payerPaidAmountMessage;
 }
 
-function computeReportNameBasedOnReportAction(
-    translate: LocalizedTranslate,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    parentReportAction: ReportAction | undefined,
-    report: Report | undefined,
-    reportPolicy: Policy | undefined,
-    parentReport: Report | undefined,
-    personalDetailsList: OnyxEntry<PersonalDetailsList>,
-    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
-    isTrackIntentUser: boolean | undefined,
-): string | undefined {
+function computeReportNameBasedOnReportAction({
+    translate,
+    dateFnsLocale,
+    formatPhoneNumber,
+    parentReportAction,
+    report,
+    reportPolicy,
+    parentReport,
+    personalDetailsList,
+    reportAttributes,
+    isTrackIntentUser,
+    currentUserAccountID,
+}: {
+    translate: LocalizedTranslate;
+    dateFnsLocale: DateFnsLocale | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    parentReportAction: ReportAction | undefined;
+    report: Report | undefined;
+    reportPolicy: Policy | undefined;
+    parentReport: Report | undefined;
+    personalDetailsList: OnyxEntry<PersonalDetailsList>;
+    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined;
+    isTrackIntentUser: boolean | undefined;
+    currentUserAccountID: number;
+}): string | undefined {
     if (!parentReportAction) {
         return undefined;
     }
@@ -538,7 +559,7 @@ function computeReportNameBasedOnReportAction(
             iouAction = getReportAction(parentReport?.parentReportID, parentReport?.parentReportActionID);
         }
         const missingFields = getOriginalMessage(parentReportAction)?.missingFields;
-        return translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields});
+        return translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction, currentUserAccountID), missingFields});
     }
 
     if (isReimbursementDeQueuedOrCanceledAction(parentReportAction)) {
@@ -583,6 +604,9 @@ function computeReportNameBasedOnReportAction(
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY) {
         return getWorkspaceFrequencyUpdateMessage(translate, parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING) {
+        return getUpdatedAutoHarvestingMessage(translate, parentReportAction);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD) {
         return getWorkspaceReportFieldAddMessage(translate, parentReportAction);
@@ -808,10 +832,10 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE)) {
-        return getWorkspaceCustomUnitRateAddedMessage(translate, parentReportAction);
+        return getWorkspaceCustomUnitRateAddedMessage(translate, dateFnsLocale, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE)) {
-        return getWorkspaceCustomUnitRateUpdatedMessage(translate, parentReportAction);
+        return getWorkspaceCustomUnitRateUpdatedMessage(translate, dateFnsLocale, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE)) {
         return getWorkspaceCustomUnitRateDeletedMessage(translate, parentReportAction);
@@ -834,7 +858,7 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isCardIssuedAction(parentReportAction)) {
-        return getCardIssuedMessage({reportAction: parentReportAction, translate});
+        return getCardIssuedMessage({reportAction: parentReportAction, translate, currentUserAccountID});
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED)) {
         return getAddedCardFeedMessage(translate, parentReportAction);
@@ -985,6 +1009,7 @@ function computeChatThreadReportName(
  * In all other cases you should use `getReportName`
  */
 function computeReportName({
+    dateFnsLocale,
     report,
     reports,
     policies,
@@ -1010,9 +1035,10 @@ function computeReportName({
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const parentReportAction = isThread(report) ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report.parentReportActionID] : undefined;
 
-    const parentReportActionBasedName = computeReportNameBasedOnReportAction(
+    const parentReportActionBasedName = computeReportNameBasedOnReportAction({
         translate,
-        formatPhoneNumberPhoneUtils,
+        dateFnsLocale,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
         parentReportAction,
         report,
         reportPolicy,
@@ -1020,7 +1046,8 @@ function computeReportName({
         personalDetailsList,
         reportAttributes,
         isTrackIntentUser,
-    );
+        currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+    });
 
     if (parentReportActionBasedName) {
         return parentReportActionBasedName;
@@ -1034,6 +1061,7 @@ function computeReportName({
         const {originalID} = getOriginalMessage(parentReportAction) ?? {};
         const originalReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
         const reportName = computeReportName({
+            dateFnsLocale,
             report: originalReport,
             reports,
             policies,

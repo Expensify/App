@@ -1,4 +1,4 @@
-import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
+import {createTransaction, getMoneyRequestParticipantOptions, setMoneyRequestCommuterExclusionFields} from '@libs/actions/IOU/MoneyRequest';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
@@ -774,7 +774,7 @@ describe('MoneyRequest', () => {
             isTrackIntentUser: false,
             formatPhoneNumber,
             delegateAccountID: undefined,
-            participants: getMoneyRequestParticipantOptions(1, fakeReport, fakePolicy, {}, undefined, false, {}, undefined, translateLocal),
+            participants: getMoneyRequestParticipantOptions(1, fakeReport, fakePolicy, {}, undefined, false, {}, undefined, translateLocal, undefined),
             participantsPolicyTags: {},
         };
         const splitShares: SplitShares = {
@@ -1521,6 +1521,103 @@ describe('MoneyRequest', () => {
         });
     });
 
+    describe('setMoneyRequestCommuterExclusionFields', () => {
+        const COMMUTER_TRANSACTION_ID = 'commuter-transaction-1';
+        const COMMUTER_RATE_ID = 'commuterRate1';
+        const COMMUTER_CUSTOM_UNIT_ID = 'commuterCustomUnit1';
+        const ROUTE_DISTANCE_METERS = DistanceRequestUtils.convertToDistanceInMeters(4, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+        const commuterPolicy = {
+            ...createRandomPolicy(9, CONST.POLICY.TYPE.TEAM),
+            outputCurrency: CONST.CURRENCY.USD,
+            customUnits: {
+                [COMMUTER_CUSTOM_UNIT_ID]: {
+                    customUnitID: COMMUTER_CUSTOM_UNIT_ID,
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    rates: {
+                        [COMMUTER_RATE_ID]: {
+                            customUnitRateID: COMMUTER_RATE_ID,
+                            name: 'Default Rate',
+                            rate: 67,
+                            currency: CONST.CURRENCY.USD,
+                            enabled: true,
+                            attributes: {},
+                            subRates: [],
+                        },
+                    },
+                },
+            },
+            commuterExclusions: {
+                method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                fixedDistance: 1,
+                fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            },
+        } as Policy;
+        const commuterTransaction = {
+            ...createRandomTransaction(9),
+            transactionID: COMMUTER_TRANSACTION_ID,
+            currency: CONST.CURRENCY.USD,
+            comment: {
+                customUnit: {
+                    customUnitRateID: COMMUTER_RATE_ID,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    routeDistanceMeters: ROUTE_DISTANCE_METERS,
+                },
+            },
+        };
+        const commuterFieldParams = {
+            transactionID: COMMUTER_TRANSACTION_ID,
+            policy: commuterPolicy,
+            customUnitRateID: COMMUTER_RATE_ID,
+            routeDistanceMeters: ROUTE_DISTANCE_METERS,
+            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            translate: translateLocal,
+            toLocaleDigit: (digit: string) => digit,
+            getCurrencySymbol,
+        };
+
+        afterEach(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${COMMUTER_TRANSACTION_ID}`, null);
+            await waitForBatchedUpdates();
+        });
+
+        it('applies the workspace commuter exclusion to a workspace expense', async () => {
+            setMoneyRequestCommuterExclusionFields({...commuterFieldParams, transaction: commuterTransaction, isPolicyExpenseChat: true});
+            await waitForBatchedUpdates();
+
+            // The 1 mile exclusion leaves 3 of the 4 route miles reimbursable, and the amount follows the reimbursable distance
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${COMMUTER_TRANSACTION_ID}`);
+            expect(draft?.comment?.customUnit?.commuterExclusion).toBe(1);
+            expect(draft?.comment?.customUnit?.reimbursableDistance).toBe(3);
+            expect(draft?.modifiedAmount).toBe(201);
+        });
+
+        it('clears commuter fields for a self-DM expense created on a workspace rate', async () => {
+            // A workspace participant was selected first, so the draft already carries the exclusion
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${COMMUTER_TRANSACTION_ID}`, {
+                modifiedAmount: 201,
+                modifiedMerchant: '3.00 mi @ $0.67 / mi',
+                comment: {customUnit: {commuterExclusion: 1, reimbursableDistance: 3}},
+            });
+            await waitForBatchedUpdates();
+
+            const transactionWithExclusion = {
+                ...commuterTransaction,
+                comment: {customUnit: {...commuterTransaction.comment.customUnit, commuterExclusion: 1, reimbursableDistance: 3}},
+            };
+            setMoneyRequestCommuterExclusionFields({...commuterFieldParams, transaction: transactionWithExclusion, isPolicyExpenseChat: false});
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${COMMUTER_TRANSACTION_ID}`);
+            expect(draft?.comment?.customUnit?.commuterExclusion).toBeUndefined();
+            expect(draft?.comment?.customUnit?.reimbursableDistance).toBeUndefined();
+            expect(draft?.comment?.customUnit?.commuterExclusionMethod).toBeUndefined();
+            expect(draft?.modifiedAmount).toBeUndefined();
+            expect(draft?.modifiedMerchant).toBeUndefined();
+        });
+    });
+
     describe('getMoneyRequestParticipantOptions', () => {
         const fakeReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         const fakePolicy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
@@ -1542,17 +1639,39 @@ describe('MoneyRequest', () => {
         });
 
         it('should return participants when conciergeReportID is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should return participants when conciergeReportID is provided', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, 'concierge123', undefined, undefined, undefined, translateLocal);
+            const participants = getMoneyRequestParticipantOptions(
+                currentUserAccountID,
+                fakeReport,
+                fakePolicy,
+                {},
+                'concierge123',
+                undefined,
+                undefined,
+                undefined,
+                translateLocal,
+                undefined,
+            );
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should pass conciergeReportID through to getReportOption for policy expense chat participants', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, 'concierge456', undefined, undefined, undefined, translateLocal);
+            const participants = getMoneyRequestParticipantOptions(
+                currentUserAccountID,
+                fakeReport,
+                fakePolicy,
+                {},
+                'concierge456',
+                undefined,
+                undefined,
+                undefined,
+                translateLocal,
+                undefined,
+            );
             // For policy expense chat, participants have accountID 0 and go through getReportOption
             // which uses conciergeReportID for identifying concierge chat
             expect(Array.isArray(participants)).toBe(true);
@@ -1560,7 +1679,7 @@ describe('MoneyRequest', () => {
         });
 
         it('should return participants with privateIsArchived passed through', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, true, undefined, undefined, translateLocal);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, true, undefined, undefined, translateLocal, undefined);
             expect(Array.isArray(participants)).toBe(true);
         });
 
@@ -1569,26 +1688,26 @@ describe('MoneyRequest', () => {
                 ...createRandomReport(2, undefined),
                 participants: {},
             };
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, dmReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, dmReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should mark policy expense chat participant as disabled when reportDrafts contains the report', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, fakeReport, translateLocal);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, fakeReport, translateLocal, undefined);
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             expect(participants.at(0)).toMatchObject({isDisabled: true});
         });
 
         it('should not mark participant as disabled when reportDraft is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             expect(participants.at(0)).toMatchObject({isDisabled: false});
         });
 
         it('should not mark participant as disabled when reportDrafts is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             // When reportDrafts is undefined, isDraftReport is called which checks Onyx directly

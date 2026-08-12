@@ -4631,7 +4631,7 @@ function createWorkspaceFromIOUPayment({
             transactionsRecord[transaction.transactionID] = transaction;
         }
     }
-    const computedExpenseReportName = ReportUtils.computeOptimisticReportName(expenseReport, newWorkspace as Policy, policyID, transactionsRecord);
+    const computedExpenseReportName = ReportUtils.computeOptimisticReportName(expenseReport, newWorkspace as Policy, policyID, transactionsRecord, getCurrencyDecimals);
     if (computedExpenseReportName !== null) {
         expenseReport.reportName = computedExpenseReportName;
     }

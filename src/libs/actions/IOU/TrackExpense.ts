@@ -124,7 +124,13 @@ import type {
 
 import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from './DeleteMoneyRequest';
 import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations} from './index';
-import {buildMinimalTransactionForFormula, getMoneyRequestInformation, getReceiptError, getReportPreviewAction, getTransactionWithPreservedLocalReceiptSource} from './MoneyRequestBuilder';
+import {
+    buildMinimalTransactionForFormula,
+    getMoneyRequestInformation,
+    getReceiptError,
+    getReportPreviewReportAction,
+    getTransactionWithPreservedLocalReceiptSource,
+} from './MoneyRequestBuilder';
 import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import {getSearchOnyxUpdate} from './SearchUpdate';
@@ -1156,7 +1162,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
 
     let reportPreviewAction: OnyxInputValue<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = null;
     if (shouldUseMoneyReport && iouReport) {
-        reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+        reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewReportAction(chatReport.reportID, iouReport.reportID);
 
         if (reportPreviewAction) {
             reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, formatPhoneNumber, getCurrencyDecimals, false, comment, optimisticTransaction);
@@ -1680,6 +1686,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         shouldDeferAutoSubmit,
         delegateAccountID,
         isTrackIntentUser,
+        formatPhoneNumber,
         getCurrencyDecimals,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
@@ -1791,6 +1798,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         personalDetails,
         delegateAccountID,
         isTrackIntentUser,
+        formatPhoneNumber,
         getCurrencyDecimals,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
@@ -1987,6 +1995,7 @@ function convertBulkTrackedExpensesToIOU({
     selfDMReportActions,
     delegateAccountID,
     isTrackIntentUser,
+    formatPhoneNumber,
     getCurrencyDecimals,
 }: {
     transactions: OnyxTypes.Transaction[];
@@ -2004,6 +2013,7 @@ function convertBulkTrackedExpensesToIOU({
     selfDMReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 }) {
     const iouReportID = iouReport?.reportID;
@@ -2125,6 +2135,7 @@ function convertBulkTrackedExpensesToIOU({
             },
             delegateAccountID,
             isTrackIntentUser,
+            formatPhoneNumber,
             getCurrencyDecimals,
         });
 
@@ -2494,6 +2505,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         isFromGlobalCreate = false,
         gpsCoordinates,
         distanceRequestType,
+        selectedRouteDistance,
     } = transactionData;
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
@@ -2538,6 +2550,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             linkedTrackedExpenseReportAction,
             linkedTrackedExpenseReportID,
             customUnitRateID,
+            selectedRouteDistance,
         },
         quickAction,
         isSelfTourViewed,
@@ -2694,6 +2707,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
+                selectedRouteDistance,
             };
             const policyParams: TrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID,
@@ -2747,6 +2761,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
+                selectedRouteDistance,
             };
             const policyParams: TrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID,
@@ -2799,6 +2814,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
+                selectedRouteDistance,
             };
             const policyParams: TrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID,
@@ -2880,6 +2896,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 description: parsedComment,
                 gpsCoordinates,
                 distanceRequestType,
+                selectedRouteDistance,
                 isDistance:
                     isGPSDistanceRequest ||
                     isMapDistanceRequest(transaction) ||

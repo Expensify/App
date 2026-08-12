@@ -104,6 +104,7 @@ describe('libs/NextStepUtils', () => {
                     policy,
                     '2025-03-31 13:23:11',
                     [CONST.BETAS.ALL],
+                    getCurrencyDecimalsLocal,
                 );
 
                 const expectedResult: ReportNextStep = {
@@ -1080,7 +1081,7 @@ describe('libs/NextStepUtils', () => {
             };
 
             // A currentUserAccountID different from the actor renders the actor as an OTHER_USER, so its name appears in the message.
-            const message = buildNextStepMessage(nextStep, translateWithHiddenMarker, 999999, formatPhoneNumber);
+            const message = buildNextStepMessage(nextStep, translateWithHiddenMarker, undefined, 999999, formatPhoneNumber);
             expect(message).toBe('<next-step>Waiting for HiddenMarker to submit expenses.</next-step>');
         });
 
@@ -1102,7 +1103,7 @@ describe('libs/NextStepUtils', () => {
             };
             const formatPhoneNumberMock = jest.fn((phoneNumber: string) => `formatted:${phoneNumber}`);
 
-            const message = buildNextStepMessage(nextStep, translateWithActorName, 999999, formatPhoneNumberMock);
+            const message = buildNextStepMessage(nextStep, translateWithActorName, undefined, 999999, formatPhoneNumberMock);
 
             expect(formatPhoneNumberMock).toHaveBeenCalledWith(phoneActorLogin);
             expect(message).toBe(`<next-step>Waiting for formatted:${phoneActorLogin} to submit expenses.</next-step>`);
