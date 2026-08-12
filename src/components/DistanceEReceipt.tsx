@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import {getWaypointIndex, hasReceipt, isFetchingWaypointsFromServer} from '@libs/TransactionUtils';
+import {getWaypointIndex, hasPendingDistanceReceiptRegeneration, hasReceipt} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
 import type {TranslationPaths} from '@src/languages/types';
@@ -65,7 +65,9 @@ function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptP
                     />
 
                     <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
-                        {isFetchingWaypointsFromServer(transaction) || !thumbnailSource ? (
+                        {/* The thumbnail is a page of the stored receipt file, therefore an edit that makes the server
+                            build a new file also invalidates it. Draw the pending map until the new file arrives. */}
+                        {hasPendingDistanceReceiptRegeneration(transaction) || !thumbnailSource ? (
                             <PendingMapView />
                         ) : (
                             <ReceiptImage

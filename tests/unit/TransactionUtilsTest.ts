@@ -1250,6 +1250,67 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('hasDistanceRouteErrors', () => {
+        it('returns false when the route is clean', () => {
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction())).toBe(false);
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errors: {}, errorFields: {}}))).toBe(false);
+        });
+
+        it('returns true for a transaction, route or waypoint error', () => {
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errors: {someError: 'Something went wrong'}}))).toBe(true);
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errorFields: {route: {someError: 'No route found'}}}))).toBe(true);
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errorFields: {waypoints: {someError: 'Bad waypoint'}}}))).toBe(true);
+        });
+    });
+
+    describe('shouldRenderLocalDistanceEReceipt', () => {
+        const UPDATE = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+        const PDF_RECEIPT = {source: 'https://www.expensify.com/receipts/w_abc123.pdf', filename: 'w_abc123.pdf'};
+
+        function generateMapDistanceTransaction(values: Partial<Transaction> = {}): Transaction {
+            return generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, receipt: PDF_RECEIPT, ...values});
+        }
+
+        it('returns false for a map distance expense whose generated PDF receipt is current', () => {
+            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction())).toBe(false);
+        });
+
+        it('returns true when there is no receipt file yet', () => {
+            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({receipt: undefined}))).toBe(true);
+        });
+
+        it('returns true while the server rebuilds the receipt after an edit', () => {
+            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({pendingFields: {waypoints: UPDATE}}))).toBe(true);
+            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({pendingFields: {merchant: UPDATE}}))).toBe(true);
+        });
+
+        it('returns true when the route failed', () => {
+            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({errorFields: {route: {someError: 'No route found'}}}))).toBe(true);
+        });
+
+        it('returns true for an older expense that stored the bare map image', () => {
+            const imageReceipt = {source: 'https://www.expensify.com/receipts/w_abc123.jpg', filename: 'w_abc123.jpg'};
+            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({receipt: imageReceipt}))).toBe(true);
+        });
+
+        it('returns false for odometer, manual distance and non-distance expenses', () => {
+            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, receipt: undefined}))).toBe(
+                false,
+            );
+            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, receipt: undefined}))).toBe(
+                false,
+            );
+            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateTransaction({receipt: undefined}))).toBe(false);
+        });
+
+        it('agrees with itself for a GPS distance expense, which also gets a generated receipt', () => {
+            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS}))).toBe(false);
+            expect(
+                TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS, pendingFields: {distance: UPDATE}})),
+            ).toBe(true);
+        });
+    });
+
     describe('calculateTaxAmount', () => {
         it('returns 0 for undefined percentage', () => {
             const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 2);

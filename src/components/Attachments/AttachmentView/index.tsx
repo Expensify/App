@@ -28,7 +28,7 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFileResolution, isHighResolutionImage} from '@libs/fileDownload/FileUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {hasEReceipt, hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
+import {hasEReceipt, hasReceiptSource, isPerDiemRequest, shouldRenderLocalDistanceEReceipt} from '@libs/TransactionUtils';
 
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
@@ -255,6 +255,13 @@ function AttachmentView({
         );
     }
 
+    // A distance expense normally shows the receipt file that the server generated, which the PDF branch below
+    // renders. Draw the card only for the cases that file cannot cover, and do it before that branch so the
+    // stale URL of a receipt that the server is rebuilding is never requested.
+    if (transaction && shouldRenderLocalDistanceEReceipt(transaction)) {
+        return <DistanceEReceipt transaction={transaction} />;
+    }
+
     // Check both source and file.name since PDFs dragged into the text field
     // will appear with a source that is a blob
     const isSourcePDF = typeof source === 'string' && Str.isPDF(source);
@@ -312,14 +319,6 @@ function AttachmentView({
                 />
             </View>
         );
-    }
-
-    if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && !isOdometerDistanceRequest(transaction) && transaction) {
-        // Distance eReceipts are now generated as a PDF, but to keep it backwards compatible we still show the old eReceipt view for image receipts
-        const isImageReceiptSource = checkIsFileImage(source, file?.name);
-        if (!hasReceiptSource(transaction) || isImageReceiptSource) {
-            return <DistanceEReceipt transaction={transaction} />;
-        }
     }
 
     // For this check we use both source and file.name since temporary file source is a blob

@@ -34,6 +34,7 @@ import {
     hasReceiptSource,
     isOdometerDistanceRequest,
     isReceiptBeingScanned,
+    shouldRenderLocalDistanceEReceipt,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
@@ -292,7 +293,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         draftTransactionID,
     });
 
-    const allowDownload = !isEReceipt;
+    // A distance expense that falls back to the local card has no receipt file to hand over, or has one that the
+    // server is rebuilding. Downloading it would save a file that does not match what is on screen.
+    const allowDownload = !isEReceipt && !shouldRenderLocalDistanceEReceipt(transaction);
 
     const applyDurableReceipt = useCallback(
         (imageUri: string, filename: string, file: File, isSameReceipt?: boolean) => {

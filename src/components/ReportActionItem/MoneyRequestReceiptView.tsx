@@ -57,6 +57,7 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isMapBasedDistanceRequest,
     isScanning,
+    shouldRenderLocalDistanceEReceipt,
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 
@@ -185,13 +186,12 @@ function MoneyRequestReceiptView({
     const displayedTransaction = updatedTransaction ?? transaction;
     const isDistanceRequest = isDistanceRequestTransactionUtils(displayedTransaction);
 
-    // The hover overlay shows the full distance e-receipt (map + amount + waypoints), so only surface it for
-    // map/route-based distance expenses. Odometer and pure-manual distance expenses have no map and must be excluded.
     const isMapDistanceRequest = isMapBasedDistanceRequest(displayedTransaction);
     const isPendingReceiptRegeneration = hasPendingDistanceReceiptRegeneration(displayedTransaction);
-    // While the receipt is regenerating (e.g. after an offline waypoint edit) the stored map is stale and can't be
-    // redrawn locally, so don't surface the e-receipt overlay — the receipt box already shows the pending map.
-    const canShowDistanceEReceipt = isMapDistanceRequest && !isPendingReceiptRegeneration;
+    // The overlay draws the distance e-receipt card from the expense, therefore it must appear only where the
+    // receipt box has no generated file to show. Over a generated file it would state a total and a mileage that
+    // the file itself can contradict, which is the whole of https://github.com/Expensify/App/issues/97013.
+    const canShowDistanceEReceipt = shouldRenderLocalDistanceEReceipt(displayedTransaction);
     // The Expand button opens the full-screen receipt on the stored map. While regeneration is pending that map is
     // stale and can't be redrawn locally, so disable Expand for map distance requests until the refreshed receipt arrives.
     const shouldDisableExpandReceipt = isMapDistanceRequest && isPendingReceiptRegeneration;
