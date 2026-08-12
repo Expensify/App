@@ -1248,6 +1248,7 @@ const translations = {
         importSpreadsheetLibraryError: 'Failed to load spreadsheet module. Please check your internet connection and try again.',
         importSpreadsheet: 'Import spreadsheet',
         importWorkflows: 'Import workflows',
+        downloadWorkflows: 'Download workflows',
         downloadCSV: 'Download CSV',
         importMemberConfirmation: () => ({
             one: `Please confirm the details below for a new workspace member that will be added as part of this upload. Existing members won’t receive any role updates or invite messages.`,
@@ -6332,7 +6333,7 @@ const translations = {
                 cardFeedAllowDeletingTransaction: 'Allow deleting transactions',
                 removeCardFeed: 'Remove card feed',
                 removeCardFeedTitle: (feedName: string) => `Remove ${feedName} feed`,
-                removeCardFeedDescription: 'Are you sure you want to remove this card feed? This will unassign all cards.',
+                removeCardFeedDescription: 'Are you sure you want to remove this card feed? This will unassign all cards and delete unsubmitted transactions.',
                 error: {
                     feedNameRequired: 'Card feed name is required',
                     statementCloseDateRequired: 'Please select a statement close date.',
@@ -7922,6 +7923,8 @@ const translations = {
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Update ${fieldName} to "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Mark as  "${reimbursable ? 'reimbursable' : 'non-reimbursable'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Mark as "${billable ? 'billable' : 'non-billable'}"`,
+                vendorUnavailable: 'Vendor unavailable',
+                supplierUnavailable: 'Supplier unavailable',
                 matchType: 'Match type',
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Exactly matches',
@@ -10549,6 +10552,7 @@ const translations = {
         currentView: 'Current view',
         reportLevelExport: 'All Data - report level',
         expenseLevelExport: 'All Data - expense level',
+        multipleTaxExport: 'Canadian Multiple Tax Export',
         exportInProgress: 'Export in progress',
         conciergeWillSend: 'Concierge will send you the file shortly.',
     },

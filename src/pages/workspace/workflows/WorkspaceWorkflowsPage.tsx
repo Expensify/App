@@ -13,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
+import {downloadMembersCSV} from '@libs/actions/Policy/Member';
 import {openPolicyWorkflowsPage} from '@libs/actions/Policy/Policy';
 import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -52,7 +53,7 @@ function WorkspaceWorkflowsPage(props: WorkspaceWorkflowsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Workflows']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Table']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Table', 'Download']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
@@ -115,40 +116,77 @@ function WorkspaceWorkflowsPage(props: WorkspaceWorkflowsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_IMPORT.getRoute(policyID));
     }, [isAccountLocked, showLockedAccountModal, isOffline, showConfirmModal, translate, policyID, canAccessSubmit2026Features, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
+    // The Workflows CSV export reuses the Members export command so the downloaded file is identical to Members > Download CSV.
+    const downloadWorkflowsAction = useCallback(() => {
+        if (isOffline) {
+            showConfirmModal({
+                title: translate('common.youAppearToBeOffline'),
+                prompt: translate('common.thisFeatureRequiresInternet'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                shouldHandleNavigationBack: true,
+            });
+            return;
+        }
+        downloadMembersCSV(
+            policyID,
+            () => {
+                showConfirmModal({
+                    title: translate('common.downloadFailedTitle'),
+                    prompt: translate('common.downloadFailedDescription'),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                });
+            },
+            translate,
+        );
+    }, [isOffline, showConfirmModal, translate, policyID]);
+
     if (isRulesRevampEnabled) {
         return <WorkspaceWorkflowsPageRevamp {...props} />;
     }
 
-    const approvalSecondaryActions: Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [
-        {
+    const shouldBlockApprovalWorkflowEditing = isAnyHRReadOnlyWorkflowMode(policy);
+
+    const approvalSecondaryActions: Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [];
+    // Importing modifies the workflows, so only offer it when editing is allowed.
+    if (!shouldBlockApprovalWorkflowEditing) {
+        approvalSecondaryActions.push({
             icon: expensifyIcons.Table,
             text: translate('spreadsheet.importWorkflows'),
             onSelected: importWorkflowsAction,
             value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
-        },
-    ];
+        });
+    }
+    // Downloading is read-only, so it stays available even when editing is blocked.
+    approvalSecondaryActions.push({
+        icon: expensifyIcons.Download,
+        text: translate('spreadsheet.downloadWorkflows'),
+        onSelected: downloadWorkflowsAction,
+        value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+    });
 
-    const shouldBlockApprovalWorkflowEditing = isAnyHRReadOnlyWorkflowMode(policy);
     const shouldShowSubmissionFrequency = canWriteWorkflows || !canWriteApprovals;
     const shouldShowPayments = canMemberRead(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
 
     const isGroupPolicy = isGroupPolicyUtil(policy);
     const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
-    const headerButtons =
-        !shouldBlockApprovalWorkflowEditing && canWriteApprovals ? (
-            <View style={[styles.flexRow, styles.gap2]}>
-                <ButtonWithDropdownMenu
-                    onPress={() => {}}
-                    shouldAlwaysShowDropdownMenu
-                    customText={translate('common.more')}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_DROPDOWN}
-                    options={approvalSecondaryActions}
-                    isSplitButton={false}
-                    wrapperStyle={styles.flexGrow0}
-                />
-            </View>
-        ) : undefined;
+    // Show the More dropdown whenever the user can manage workflows. When editing is blocked it renders download-only
+    // (the Import action is filtered out of approvalSecondaryActions above).
+    const headerButtons = canWriteApprovals ? (
+        <View style={[styles.flexRow, styles.gap2]}>
+            <ButtonWithDropdownMenu
+                onPress={() => {}}
+                shouldAlwaysShowDropdownMenu
+                customText={translate('common.more')}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_DROPDOWN}
+                options={approvalSecondaryActions}
+                isSplitButton={false}
+                wrapperStyle={styles.flexGrow0}
+            />
+        </View>
+    ) : undefined;
 
     return (
         <AccessOrNotFoundWrapper

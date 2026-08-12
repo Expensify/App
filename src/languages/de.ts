@@ -1166,6 +1166,7 @@ const translations: TranslationDeepObject<typeof en> = {
         importSpreadsheetLibraryError: 'Laden des Tabellenmoduls fehlgeschlagen. Bitte überprüfe deine Internetverbindung und versuche es erneut.',
         importSpreadsheet: 'Tabellenkalkulation importieren',
         importWorkflows: 'Workflows importieren',
+        downloadWorkflows: 'Workflows herunterladen',
         downloadCSV: 'CSV herunterladen',
         importMemberConfirmation: () => ({
             one: `Bitte bestätige die folgenden Details für ein neues Workspace-Mitglied, das im Rahmen dieses Uploads hinzugefügt wird. Bestehende Mitglieder erhalten keine Rollenaktualisierungen oder Einladungsnachrichten.`,
@@ -6243,7 +6244,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 cardFeedAllowDeletingTransaction: 'Löschen von Transaktionen erlauben',
                 removeCardFeed: 'Kartenfeed entfernen',
                 removeCardFeedTitle: (feedName: string) => `${feedName}-Feed entfernen`,
-                removeCardFeedDescription: 'Möchtest du diesen Kartenfeed wirklich entfernen? Dadurch werden alle Karten zugewiesen.',
+                removeCardFeedDescription:
+                    'Sind Sie sicher, dass Sie diesen Kartenfeed entfernen möchten? Dadurch wird die Zuweisung aller Karten aufgehoben und alle nicht eingereichten Transaktionen werden gelöscht.',
                 error: {
                     feedNameRequired: 'Name des Kartenfeeds ist erforderlich',
                     statementCloseDateRequired: 'Bitte wählen Sie ein Abrechnungsenddatum aus.',
@@ -7693,6 +7695,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 expenseDefaultsSubtitle: 'Felder aktualisieren, ohne dass die einreichende Person etwas tun muss',
                 ifAnyExpenseMatches: 'Wenn eine Ausgabe übereinstimmt:',
                 thenApplyFollowingDefaults: 'Wenden Sie dann die folgenden Standardwerte an:',
+                vendorUnavailable: 'Anbieter nicht verfügbar',
+                supplierUnavailable: 'Lieferant nicht verfügbar',
             },
             categoryRules: {
                 title: 'Kategorienregeln',
@@ -10394,6 +10398,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         basicExport: 'Standardexport',
         reportLevelExport: 'Alle Daten – Berichtsebene',
         expenseLevelExport: 'Alle Daten – Ausgabenebene',
+        multipleTaxExport: 'Kanadischer Export mit mehreren Steuern',
         exportInProgress: 'Export wird ausgeführt',
         conciergeWillSend: 'Concierge wird dir die Datei in Kürze senden.',
         currentView: 'Aktuelle Ansicht',
