@@ -476,9 +476,10 @@
         // OFF, portable: the type check only asks "is the receiver a string", and only strings have
         // localeCompare, so a receiver-agnostic rewrite is near-exact. Not written yet.
         "rulesdir/prefer-locale-compare-from-context": "off",
-        // OFF, needs the React Compiler gate: ESLint's processor drops every message from this rule
-        // in files both compilers memoize. The per-file gating shim exists in rh-plugin.mjs.
-        "rulesdir/no-inline-useOnyx-selector": "off",
+        // Wired 2026-08-12 behind the React Compiler gate (oxlint-probe/reactCompilerGate.mjs).
+        // Without the gate this reports 238 findings across 186 files that ESLint never shows,
+        // because its processor drops every message from this rule in a dual-memoized file.
+        "rulesdir/no-inline-useOnyx-selector": "error",
         "no-array-constructor": "error",
         "no-bitwise": "error",
         "no-lonely-if": "error",
@@ -668,15 +669,14 @@
         // OFF, shadowed not dropped: oxlint's native port also fires inside Jest mock factories,
         // where ESLint's does not. ESLint's own rule runs as `hosted/function-component-definition`.
         "react/function-component-definition": "off",
-        // ON, native rather than hosted behind the React Compiler gate (decided 2026-08-12).
-        // The native rule costs nothing measurable, but it cannot be gated the way ESLint's
-        // processor gates its own copy, so the 115 findings ESLint never shows are suppressed
-        // inline instead. Every comment states which of three reasons it exists for; regenerate
-        // them with `python3 oxlint-probe/ctxValuesSuppressionCodemod.py`. Two known divergences
-        // from ESLint's rule, both upstream bugs, both measured by
-        // `python3 oxlint-probe/compareNativeCtxValues.py`: it anchors on the JSX provider rather
+        // OFF, shadowed not dropped: ESLint's own rule runs as `hosted/jsx-no-constructed-context-values`
+        // behind the React Compiler gate, which a native Rust rule cannot have. Going native was
+        // measured and rejected on 2026-08-12: it works, but it needs 115 inline suppressions plus
+        // one for every context provider written from then on, because it cannot ask the compilers.
+        // The native port also diverges twice (both upstream bugs, measured by
+        // `python3 oxlint-probe/compareNativeCtxValues.py`): it anchors on the JSX provider rather
         // than the declaration, and it does not require the value to be declared in a component.
-        "react/jsx-no-constructed-context-values": "error",
+        "react/jsx-no-constructed-context-values": "off",
         "react/no-unstable-nested-components": "error",
         "react/no-namespace": "error",
         "react/style-prop-object": "error",
@@ -877,6 +877,9 @@
         "core/no-unreachable-loop": ["error", {"ignore": []}],
         "hosted/jsx-no-bind": ["error", {"ignoreRefs": true, "allowArrowFunctions": true, "allowFunctions": false, "allowBind": false, "ignoreDOMComponents": true}],
         "hosted/function-component-definition": ["error", {"namedComponents": "function-declaration", "unnamedComponents": "arrow-function"}],
+        // Wired 2026-08-12 behind the React Compiler gate (oxlint-probe/reactCompilerGate.mjs),
+        // which is why it is hosted rather than native: see the `react/` entry above.
+        "hosted/jsx-no-constructed-context-values": "error",
         "hosted/prefer-default-export": "error",
         "hosted/order": ["error", {"groups": [["builtin", "external", "internal"]], "distinctGroup": true, "sortTypesGroup": false, "named": false, "warnOnUnassignedImports": false}],
         "hosted/no-types": "error",

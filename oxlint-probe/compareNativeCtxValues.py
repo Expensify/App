@@ -3,10 +3,15 @@
     python3 oxlint-probe/compareNativeCtxValues.py            # whole repo, ~2 min
     python3 oxlint-probe/compareNativeCtxValues.py src/pages  # or a subtree, seconds
 
-Runs oxlint ONCE with two implementations of the same rule enabled:
+Runs oxlint ONCE with two implementations of the same rule enabled, both switched on in a throwaway
+copy of the real config:
 
-  react/jsx-no-constructed-context-values   oxlint's native Rust port  (already on in .oxlintrc.json)
-  esr/jsx-no-constructed-context-values     ESLint's own rule, hosted through a jsPlugin
+  react/jsx-no-constructed-context-values   oxlint's native Rust port  (off in production)
+  esr/jsx-no-constructed-context-values     ESLint's own rule, hosted through a jsPlugin, ungated
+
+The production config runs neither of these. It runs `hosted/jsx-no-constructed-context-values`,
+ESLint's rule behind the React Compiler gate. The `esr` alias here is deliberately ungated, because
+the point is to compare rule behaviour, not to reproduce what ships.
 
 and pairs their findings so the differences are readable rather than a wall of counts. ESLint's
 message states BOTH lines it cares about ("(at line 53) ... (at line 58)"), so pairing is exact:
@@ -48,11 +53,11 @@ PLUGIN_ENTRY = PLUGIN_ANCHOR + ',\n        {"name": "esr", "specifier": "./oxlin
 
 def write_config():
     text = open(os.path.join(ROOT, '.oxlintrc.json')).read()
-    native_on = f'"{RULE}": "error"'
-    if text.count(native_on) != 1:
-        sys.exit(f'expected exactly one `{native_on}` in .oxlintrc.json; enable the native rule first')
+    native_off = f'"{RULE}": "off"'
+    if text.count(native_off) != 1:
+        sys.exit(f'expected exactly one `{native_off}` in .oxlintrc.json, found {text.count(native_off)}')
     text = text.replace(PLUGIN_ANCHOR, PLUGIN_ENTRY)
-    text = text.replace(native_on, native_on + ',\n        "esr/jsx-no-constructed-context-values": "error"')
+    text = text.replace(native_off, f'"{RULE}": "error",\n        "esr/jsx-no-constructed-context-values": "error"')
     open(CONFIG, 'w').write(text)
 
 

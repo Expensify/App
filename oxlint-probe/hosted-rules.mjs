@@ -11,6 +11,9 @@
 //
 //   jsx-no-bind                    eslint-plugin-react   -- no native oxlint port
 //   function-component-definition  eslint-plugin-react   -- native port diverges (#6)
+//   jsx-no-constructed-context-    eslint-plugin-react   -- native port diverges, AND this one
+//     values                                                needs the React Compiler gate, which
+//                                                           only a JS plugin can host
 //   prefer-default-export          eslint-plugin-import  -- native port diverges (#6)
 //   order                          eslint-plugin-import  -- no native port (oxfmt also enforces a stricter grouping)
 //   no-types                       eslint-plugin-jsdoc   -- no native oxlint port
@@ -23,6 +26,8 @@
 import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+
+import {withFullGating} from './reactCompilerGate.mjs';
 
 const require = createRequire(import.meta.url);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -124,6 +129,9 @@ const plugin = {
     rules: {
         'jsx-no-bind': react['jsx-no-bind'],
         'function-component-definition': react['function-component-definition'],
+        // ESLint's processor drops every message from this rule in a dual-memoized file, so the
+        // gate is what keeps oxlint at parity. Without it: 69 findings ESLint never shows.
+        'jsx-no-constructed-context-values': withFullGating(react['jsx-no-constructed-context-values']),
         'prefer-default-export': importPlugin['prefer-default-export'],
         order: importPlugin.order,
         'no-types': jsdoc['no-types'],
