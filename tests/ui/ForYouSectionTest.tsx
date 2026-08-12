@@ -57,6 +57,11 @@ jest.mock('@pages/home/ForYouSection/ForYouSkeleton', () => () => {
     return ReactModule.createElement('View', {testID: 'for-you-skeleton'});
 });
 
+jest.mock('@pages/home/ForYouSection/ConciergePromptBox', () => () => {
+    const ReactModule = jest.requireActual<typeof React>('react');
+    return ReactModule.createElement('View', {testID: 'concierge-prompt-box'});
+});
+
 // ForYouSection calls useIsFocused() to freeze useTodoCounts when unfocused; this test renders it outside a
 // NavigationContainer, so stub the focus hook (useTodoCounts is mocked, so the focus value itself is irrelevant).
 jest.mock('@react-navigation/native', () => {
