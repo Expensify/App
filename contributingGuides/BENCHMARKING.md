@@ -22,21 +22,39 @@ The app uses `console.warn` for this opt-in output because production bundles re
 
 ## Run the benchmark
 
-The benchmark runs one unmeasured warm-up followed by 20 measured cold-process launches by default. It prints each sample and summary statistics, and stores raw samples under the git-ignored `.benchmarks` directory.
+The benchmark runs one unmeasured warm-up followed by 20 measured cold-process launches by default. It collects every span configured in `EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS`, prints a separate statistics row for each span, and stores the raw samples under the git-ignored `.benchmarks` directory.
 
 Android:
 
 ```shell
-nr benchmark-app-startup -- android 20 30 --span ManualAppStartup --device emulator-5554
+nr benchmark-app-startup -- android 20 --device emulator-5554
 ```
 
 iOS physical device:
 
 ```shell
-nr benchmark-app-startup -- ios 20 30 --span ManualAppStartup --device "Developer's iPhone"
+nr benchmark-app-startup -- ios 20 --device "Developer's iPhone"
 ```
 
-The positional arguments are platform, measured run count, and timeout in seconds. Use `--span` to measure any other span included in `EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS`, `--app-id` for a nonstandard Android application ID or iOS bundle identifier, and `--output` to select another CSV path.
+The positional arguments are the platform and measured run count. By default, each launch collects metrics for 30 seconds. Use `--wait-time` to change that collection window:
+
+```shell
+nr benchmark-app-startup -- ios 20 --wait-time 10
+```
+
+Use `--wait-until-span` to finish a run early when a particular configured span ends. The wait time remains the maximum time allowed for that span to end:
+
+```shell
+nr benchmark-app-startup -- ios 20 --wait-time 30 --wait-until-span ManualAppStartup
+```
+
+Pass `--span` to restrict the statistics and CSV output to one span. The wait-until span can be different from the measured span as long as both are included in `EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS`:
+
+```shell
+nr benchmark-app-startup -- ios 20 --span ManualAppStartupNetworkRequest --wait-until-span ManualAppStartup
+```
+
+Use `--app-id` for a nonstandard Android application ID or iOS bundle identifier, and `--output` to select another CSV path. Runs where a configured metric does not end within the collection window are reported as `not observed` and are omitted from that metric's percentile calculations.
 
 The script runs with Bun and also exports `benchmarkAppStartups` and `benchmarkStartups`. Other local tooling, such as the PGO workflow, can install an artifact and invoke the same benchmark implementation. The lower-level Android and iOS process tooling lives in `scripts/lib/nativeAppBenchmark.ts` so callers do not need to duplicate `adb` or `xcrun devicectl` behavior.
 
@@ -51,9 +69,10 @@ await benchmarkAppStartups({
     deviceIdentifier,
     appID: 'org.me.mobiexpensifyg',
     mode: 'process',
-    spanName: 'ManualAppStartup',
+    spanNames: ['ManualAppStartup', 'ManualAppStartupNetworkRequest'],
     runs,
-    timeoutSeconds,
+    waitTimeSeconds: 30,
+    waitUntilSpan: 'ManualAppStartup',
     outputPath,
 });
 ```
@@ -65,13 +84,13 @@ By default, each run terminates and relaunches the existing app process without 
 On Android, true-cold mode clears package data and resets compiled package state with `cmd package compile --reset`:
 
 ```shell
-nr benchmark-app-startup -- android --span ManualAppStartup --cold --device emulator-5554
+nr benchmark-app-startup -- android --cold --device emulator-5554
 ```
 
 On iOS, clearing app data requires uninstalling and reinstalling the signed app, so `--app-path` is required:
 
 ```shell
-nr benchmark-app-startup -- ios --span ManualAppStartup --cold --device "Developer's iPhone" --app-path /path/to/Expensify.app
+nr benchmark-app-startup -- ios --cold --device "Developer's iPhone" --app-path /path/to/Expensify.app
 ```
 
 True-cold runs start with no authenticated account or persisted application state. Cold-process runs are usually more suitable for benchmarking authenticated startup flows.

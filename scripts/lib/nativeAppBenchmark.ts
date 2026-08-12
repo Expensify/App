@@ -22,12 +22,17 @@ type BenchmarkLogEvent = {
     durationMs: number;
     timestamp: number;
 };
+type CollectBenchmarkEventsOptions = {
+    spanNames: string[];
+    waitTimeSeconds: number;
+    waitUntilSpan?: string;
+};
 type NativeAppBenchmarkAdapter = {
     name: PlatformName;
     appID: string;
     deviceIdentifier: string;
     prepareStartup: (mode: StartupMode, appPath?: string) => Promise<void>;
-    launchAndWait: (spanName: string, timeoutSeconds: number) => Promise<number>;
+    launchAndCollect: (options: CollectBenchmarkEventsOptions) => Promise<BenchmarkLogEvent[]>;
 };
 type NativeAppBenchmarkAdapterOptions = {
     platform: PlatformName;
@@ -122,6 +127,17 @@ function findBenchmarkDuration(output: string, spanName: string): number | undef
     return parseBenchmarkLogEvents(output).findLast((event) => event.span === spanName)?.durationMs;
 }
 
+function latestBenchmarkEvents(events: BenchmarkLogEvent[], spanNames: string[]): BenchmarkLogEvent[] {
+    return [...new Set(spanNames)].flatMap((spanName) => {
+        const event = events.findLast((candidate) => candidate.span === spanName);
+        return event ? [event] : [];
+    });
+}
+
+function benchmarkCollectionSpanNames(options: CollectBenchmarkEventsOptions): string[] {
+    return [...new Set([...options.spanNames, ...(options.waitUntilSpan ? [options.waitUntilSpan] : [])])];
+}
+
 function iosBenchmarkMarkerPath(spanName: string): string {
     return `${IOS_BENCHMARK_DIRECTORY}/${encodeURIComponent(spanName)}.log`;
 }
@@ -192,19 +208,23 @@ function createAndroidAdapter({rootDirectory, deviceIdentifier, appID}: Omit<Nat
             adb(['logcat', '-c']);
             await sleep(RELAUNCH_DELAY_MS);
         },
-        launchAndWait: async (spanName, timeoutSeconds) => {
+        launchAndCollect: async (options) => {
             adb(['shell', 'am', 'start', '-W', '-n', activity]);
-            const deadline = Date.now() + timeoutSeconds * 1000;
+            const deadline = Date.now() + options.waitTimeSeconds * 1000;
             let logs = '';
             while (Date.now() < deadline) {
                 logs = adbCapture(['logcat', '-d', '-v', 'raw']);
-                const duration = findBenchmarkDuration(logs, spanName);
-                if (duration !== undefined) {
-                    return duration;
+                const events = parseBenchmarkLogEvents(logs);
+                if (options.waitUntilSpan && events.some((event) => event.span === options.waitUntilSpan)) {
+                    return latestBenchmarkEvents(events, options.spanNames);
                 }
                 await sleep(POLL_INTERVAL_MS);
             }
-            fail(`Timed out after ${timeoutSeconds}s waiting for benchmark span ${spanName}.\n${logs}`);
+            const events = parseBenchmarkLogEvents(logs);
+            if (options.waitUntilSpan) {
+                fail(`Timed out after ${options.waitTimeSeconds}s waiting for benchmark span ${options.waitUntilSpan}.\n${logs}`);
+            }
+            return latestBenchmarkEvents(events, options.spanNames);
         },
     };
 }
@@ -352,23 +372,33 @@ function createIosAdapter({rootDirectory, deviceIdentifier, appID}: Omit<NativeA
             }
             await sleep(RELAUNCH_DELAY_MS);
         },
-        launchAndWait: async (spanName, timeoutSeconds) => {
-            const previousMarker = readBenchmarkMarker(spanName);
+        launchAndCollect: async (options) => {
+            const collectionSpanNames = benchmarkCollectionSpanNames(options);
+            const previousMarkers = new Map(collectionSpanNames.map((spanName) => [spanName, readBenchmarkMarker(spanName)]));
             launch();
 
-            const deadline = Date.now() + timeoutSeconds * 1000;
-            let marker: string | undefined;
+            const deadline = Date.now() + options.waitTimeSeconds * 1000;
+            const eventsBySpan = new Map<string, BenchmarkLogEvent>();
             while (Date.now() < deadline) {
-                marker = readBenchmarkMarker(spanName);
-                if (marker !== undefined && marker !== previousMarker) {
-                    const duration = findBenchmarkDuration(marker, spanName);
-                    if (duration !== undefined) {
-                        return duration;
+                for (const spanName of collectionSpanNames) {
+                    const marker = readBenchmarkMarker(spanName);
+                    if (marker === undefined || marker === previousMarkers.get(spanName)) {
+                        continue;
                     }
+                    const event = parseBenchmarkLogEvents(marker).findLast((candidate) => candidate.span === spanName);
+                    if (event) {
+                        eventsBySpan.set(spanName, event);
+                    }
+                }
+                if (options.waitUntilSpan && eventsBySpan.has(options.waitUntilSpan)) {
+                    return latestBenchmarkEvents([...eventsBySpan.values()], options.spanNames);
                 }
                 await sleep(POLL_INTERVAL_MS);
             }
-            fail(`Timed out after ${timeoutSeconds}s waiting for benchmark span ${spanName}.\n${marker ?? 'No iOS benchmark marker was found.'}`);
+            if (options.waitUntilSpan) {
+                fail(`Timed out after ${options.waitTimeSeconds}s waiting for benchmark span ${options.waitUntilSpan}.`);
+            }
+            return latestBenchmarkEvents([...eventsBySpan.values()], options.spanNames);
         },
     };
 }
@@ -390,5 +420,6 @@ export {
     parseBenchmarkLogEvents,
     parseIosLaunchProcessIdentifier,
     parseIosRunningAppProcessIdentifier,
+    latestBenchmarkEvents,
 };
-export type {BenchmarkLogEvent, NativeAppBenchmarkAdapter, NativeAppBenchmarkAdapterOptions, PlatformName, StartupMode};
+export type {BenchmarkLogEvent, CollectBenchmarkEventsOptions, NativeAppBenchmarkAdapter, NativeAppBenchmarkAdapterOptions, PlatformName, StartupMode};

@@ -3,11 +3,14 @@ import {
     benchmarkStats,
     findBenchmarkDuration,
     iosBenchmarkMarkerPath,
+    latestBenchmarkEvents,
     parseIosInstalledAppURL,
     parseBenchmarkLogEvents,
     parseIosLaunchProcessIdentifier,
     parseIosRunningAppProcessIdentifier,
+    parseSpanNames,
     percentile,
+    selectBenchmarkSpanNames,
 } from '@scripts/benchmarkAppStartup';
 
 import {mkdtempSync, readFileSync, rmSync} from 'node:fs';
@@ -28,6 +31,22 @@ describe('benchmarkAppStartup', () => {
 
     it('creates an app-container-safe marker path for an iOS span', () => {
         expect(iosBenchmarkMarkerPath('Manual/App Startup')).toBe('Library/Caches/ExpensifyBenchmark/Manual%2FApp%20Startup.log');
+    });
+
+    it('keeps the latest event for each requested span in metric order', () => {
+        expect(
+            latestBenchmarkEvents(
+                [
+                    {event: 'span_end', span: 'Second', durationMs: 200, timestamp: 2},
+                    {event: 'span_end', span: 'First', durationMs: 100, timestamp: 1},
+                    {event: 'span_end', span: 'First', durationMs: 150, timestamp: 3},
+                ],
+                ['First', 'Missing', 'Second'],
+            ),
+        ).toEqual([
+            {event: 'span_end', span: 'First', durationMs: 150, timestamp: 3},
+            {event: 'span_end', span: 'Second', durationMs: 200, timestamp: 2},
+        ]);
     });
 
     it('reads the launched iOS process identifier from CoreDevice output', () => {
@@ -69,39 +88,62 @@ describe('benchmarkAppStartup', () => {
         });
     });
 
-    it('measures the configured span through a reusable adapter', async () => {
+    it('selects all configured spans unless --span narrows the benchmark', () => {
+        const configuredSpanNames = parseSpanNames('ManualAppStartup, ManualAppStartupNetworkRequest,ManualAppStartup');
+
+        expect(configuredSpanNames).toEqual(['ManualAppStartup', 'ManualAppStartupNetworkRequest']);
+        expect(selectBenchmarkSpanNames(configuredSpanNames)).toEqual(configuredSpanNames);
+        expect(selectBenchmarkSpanNames(configuredSpanNames, 'ManualAppStartupNetworkRequest')).toEqual(['ManualAppStartupNetworkRequest']);
+        expect(() => selectBenchmarkSpanNames(configuredSpanNames, 'MissingSpan')).toThrow('is not included in EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS');
+    });
+
+    it('measures each configured span through a reusable adapter', async () => {
         const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-test-'));
         const outputPath = join(temporaryDirectory, 'samples.csv');
         const prepareStartup = jest.fn(async () => undefined);
-        const launchAndWait = jest.fn(async () => 123);
+        const launchAndCollect = jest
+            .fn()
+            .mockResolvedValueOnce([])
+            .mockResolvedValueOnce([
+                {event: 'span_end', span: 'ManualAppStartup', durationMs: 456, timestamp: 1000},
+                {event: 'span_end', span: 'ManualAppStartupNetworkRequest', durationMs: 123, timestamp: 900},
+            ]);
         const consoleTable = jest.spyOn(console, 'table').mockImplementation(() => undefined);
 
         try {
             const result = await benchmarkStartups(
-                {name: 'android', appID: 'org.me.mobiexpensifyg', deviceIdentifier: 'emulator-5554', prepareStartup, launchAndWait},
+                {name: 'android', appID: 'org.me.mobiexpensifyg', deviceIdentifier: 'emulator-5554', prepareStartup, launchAndCollect},
                 {
                     mode: 'process',
-                    spanName: 'ManualAppStartupNetworkRequest',
+                    spanNames: ['ManualAppStartup', 'ManualAppStartupNetworkRequest'],
                     runs: 1,
-                    timeoutSeconds: 30,
+                    waitTimeSeconds: 30,
+                    waitUntilSpan: 'ManualAppStartup',
                     outputPath,
                 },
             );
 
-            expect(launchAndWait).toHaveBeenNthCalledWith(1, 'ManualAppStartupNetworkRequest', 30);
-            expect(launchAndWait).toHaveBeenNthCalledWith(2, 'ManualAppStartupNetworkRequest', 30);
-            expect(result.samples).toEqual([123]);
-            expect(readFileSync(outputPath, 'utf8')).toBe('run,duration_ms\n1,123\n');
+            const collectionOptions = {
+                spanNames: ['ManualAppStartup', 'ManualAppStartupNetworkRequest'],
+                waitTimeSeconds: 30,
+                waitUntilSpan: 'ManualAppStartup',
+            };
+            expect(launchAndCollect).toHaveBeenNthCalledWith(1, collectionOptions);
+            expect(launchAndCollect).toHaveBeenNthCalledWith(2, collectionOptions);
+            expect(result.metrics.ManualAppStartup?.samples).toEqual([456]);
+            expect(result.metrics.ManualAppStartupNetworkRequest?.samples).toEqual([123]);
+            expect(readFileSync(outputPath, 'utf8')).toBe('run,span,duration_ms\n1,ManualAppStartup,456\n1,ManualAppStartupNetworkRequest,123\n');
             expect(consoleTable).toHaveBeenNthCalledWith(1, [
                 {
                     platform: 'android',
                     device: 'emulator-5554',
                     appID: 'org.me.mobiexpensifyg',
-                    span: 'ManualAppStartupNetworkRequest',
+                    spans: 'ManualAppStartup, ManualAppStartupNetworkRequest',
                     mode: 'process',
                     measuredRuns: 1,
                     warmUpRuns: 1,
-                    timeoutSeconds: 30,
+                    waitTimeSeconds: 30,
+                    waitUntilSpan: 'ManualAppStartup',
                     appPath: 'installed app',
                     outputPath,
                 },
