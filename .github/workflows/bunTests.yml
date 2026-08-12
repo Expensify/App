@@ -1,6 +1,7 @@
 name: Bun tests
 
 on:
+  workflow_call:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
@@ -37,11 +38,23 @@ jobs:
       - name: Run Bun tests
         run: npm run test:bun
 
-      - name: Run tooling tests (.github + scripts)
-        run: npm run test:tooling
-
       - name: Build victory-chart-renderer Linux x64 binary
         run: npm run server:vcr:build:linux
 
       - name: Smoke-test compiled victory-chart-renderer binary
         run: ./server/victory-chart-renderer/dist/victory-chart-renderer-linux-x64 --chart-xml "$(cat server/victory-chart-renderer/tests/fixtures/top-categories-6.xml)" --out /tmp/vcr-smoke.png && test -s /tmp/vcr-smoke.png
+
+  # A separate job so a server-test failure doesn't hide the tooling results, and so the git-heavy tooling suite
+  # runs alongside rather than after the victory-chart-renderer build.
+  tooling:
+    name: Tooling tests
+    runs-on: blacksmith-8vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Run tooling tests
+        run: npm run test:tooling

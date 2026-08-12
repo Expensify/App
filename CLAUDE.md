@@ -232,7 +232,8 @@ React Compiler auto-memoizes object literals, callbacks, JSX, and derived values
 
 ### Testing
 
-- **Unit Tests**: Jest with React Native Testing Library
+- **Unit Tests**: Jest with React Native Testing Library. Tests for `.github/` and `scripts/` live in
+  `tests/tooling/` and run under `bun:test` (`npm run test:tooling`) — see `tests/tooling/README.md`.
 - **Performance Tests**: Reassure framework
 
 ## Special Considerations
@@ -293,6 +294,9 @@ npm run fmt
 
 # Testing
 npm run test
+
+# Testing the repo's own tooling (.github/ and scripts/)
+npm run test:tooling
 ```
 
 ### Platform Builds
