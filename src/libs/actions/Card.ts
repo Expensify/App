@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import * as API from '@libs/API';
 import type {
@@ -1921,13 +1921,25 @@ function getOwnerEmailForCard(card: Card, personalDetailsList: PersonalDetailsLi
     return personalDetailsList?.[String(accountID)]?.login ?? '';
 }
 
-function getCardholderNameForCSV(card: Card, personalDetailsList: PersonalDetailsList | undefined, translate: LocalizedTranslate): string {
+function getCardholderNameForCSV(
+    card: Card,
+    personalDetailsList: PersonalDetailsList | undefined,
+    translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): string {
     const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const details = personalDetailsList?.[String(accountID)];
     if (!details?.displayName?.trim()) {
         return '';
     }
-    return temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, defaultValue: '', shouldFallbackToHidden: false, shouldAddCurrentUserPostfix: false, translate});
+    return temporaryGetDisplayNameOrDefault({
+        passedPersonalDetails: details,
+        defaultValue: '',
+        shouldFallbackToHidden: false,
+        shouldAddCurrentUserPostfix: false,
+        translate,
+        formatPhoneNumber,
+    });
 }
 
 type ExportExpensifyCardListToCSVParams = {
@@ -1944,9 +1956,12 @@ type ExportExpensifyCardListToCSVParams = {
     settlementCurrency: string;
 
     translate: LocalizedTranslate;
+
+    /** Formats a phone-number login for display in the current locale */
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
-function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, settlementCurrency, translate}: ExportExpensifyCardListToCSVParams) {
+function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, settlementCurrency, translate, formatPhoneNumber}: ExportExpensifyCardListToCSVParams) {
     if (cards.length === 0) {
         return;
     }
@@ -1964,7 +1979,7 @@ function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, set
 
     const rows = cards.map((card) => {
         const owner = getOwnerEmailForCard(card, personalDetailsList);
-        const ownerNameColumn = getCardholderNameForCSV(card, personalDetailsList, translate);
+        const ownerNameColumn = getCardholderNameForCSV(card, personalDetailsList, translate, formatPhoneNumber);
         const lastFourColumn = card.lastFourPAN ?? '';
         const typeColumn = card.nameValuePairs?.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
         const limitTypeColumn = translate(getTranslationKeyForLimitType(card.nameValuePairs?.limitType));
