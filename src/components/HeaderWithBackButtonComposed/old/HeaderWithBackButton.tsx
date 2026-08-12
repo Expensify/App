@@ -1,10 +1,11 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Avatar from '@components/Avatar';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import HeaderCloseButtonTooltip from '@components/HeaderWithBackButtonComposed/primitives/HeaderCloseButtonTooltip';
 import HeaderHelpButton from '@components/HeaderWithBackButtonComposed/primitives/HeaderHelpButton';
+import HeaderIcon from '@components/HeaderWithBackButtonComposed/primitives/HeaderIcon';
 import HeaderMenuItemButtonTooltip from '@components/HeaderWithBackButtonComposed/primitives/HeaderMenuItemButtonTooltip';
 import HeaderPinButton from '@components/HeaderWithBackButtonComposed/primitives/HeaderPinButton';
+import HeaderPolicyAvatar from '@components/HeaderWithBackButtonComposed/primitives/HeaderPolicyAvatar';
 import HeaderProgressBar from '@components/HeaderWithBackButtonComposed/primitives/HeaderProgressBar';
 import HeaderReportAvatar from '@components/HeaderWithBackButtonComposed/primitives/HeaderReportAvatar';
 import HeaderRotateButton from '@components/HeaderWithBackButtonComposed/primitives/HeaderRotateButton';
@@ -28,14 +29,10 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import {Keyboard, StyleSheet, View} from 'react-native';
-
-import HeaderPolicyAvatar from '../primitives/HeaderPolicyAvatar';
 
 function HeaderWithBackButton({
     icon,
@@ -173,12 +170,12 @@ function HeaderWithBackButton({
                     </Tooltip>
                 )}
                 {!!icon && (
-                    <Icon
+                    <HeaderIcon
                         src={icon}
-                        width={iconWidth ?? variables.iconHeader}
-                        height={iconHeight ?? variables.iconHeader}
-                        additionalStyles={[styles.mr2, iconStyles]}
-                        fill={iconFill}
+                        width={iconWidth}
+                        height={iconHeight}
+                        style={iconStyles}
+                        iconFill={iconFill}
                     />
                 )}
                 {!!policyAvatar && <HeaderPolicyAvatar policyAvatar={policyAvatar} />}
