@@ -43,6 +43,8 @@ Onyx.connectWithoutView({
     },
 });
 
+// Read synchronously so the preserve list is built before `Onyx.clear` runs. Awaiting a read here would
+// put a tick between clearing the credentials and clearing the store, which this teardown path cannot afford.
 Onyx.connectWithoutView({
     key: ONYXKEYS.GPS_DRAFT_DETAILS,
     callback: (value) => {
