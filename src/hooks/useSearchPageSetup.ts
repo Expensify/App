@@ -45,11 +45,14 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
 
     // `errors` counts as a resolution in isSearchDataLoaded, so a snapshot left errored by a failed
     // request looks loaded and the early return below skips the request that would clear those errors.
-    // The Search page then renders its error view on every mount with nothing in flight, and only the
-    // Try again button can break out of it. Allow one recovery attempt per hash per mount instead: a
-    // transient failure heals on the next visit, and a persistent one still settles on the error view
-    // rather than looping request -> failure -> request.
-    const hashesWithAttemptedRecovery = useRef<Set<number>>(new Set());
+    // The Search page then renders its error view with nothing in flight, and only the Try again
+    // button can break out of it. Allow one recovery attempt per hash instead, so a transient failure
+    // heals by itself while a persistent one still settles on the error view rather than looping
+    // request -> failure -> request.
+    // The Set is scoped to this hook instance, which lives as long as the Search page stays mounted.
+    // Changing the query only swaps route params, and an inactive tab is hidden rather than unmounted,
+    // so a hash that already spent its attempt gets another one only after a real remount.
+    const hashesWithAttemptedRecoveryRef = useRef<Set<number>>(new Set());
     // The server already judged the query itself malformed, so re-sending it cannot succeed.
     const isInvalidQuery = currentSearchResults?.search?.responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
     const hasRecoverableErrors = currentSearchResults?.errors != null && !isInvalidQuery;
@@ -82,7 +85,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             lastSavedSearchHash = hash;
         }
 
-        const shouldRecoverFromErrors = hasRecoverableErrors && !hashesWithAttemptedRecovery.current.has(hash);
+        const shouldRecoverFromErrors = hasRecoverableErrors && !hashesWithAttemptedRecoveryRef.current.has(hash);
 
         // A pending initial request may be stale after reload and can be restarted through request deduplication.
         // Pagination must not restart page one.
@@ -91,7 +94,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         }
 
         if (shouldRecoverFromErrors) {
-            hashesWithAttemptedRecovery.current.add(hash);
+            hashesWithAttemptedRecoveryRef.current.add(hash);
         }
 
         const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);

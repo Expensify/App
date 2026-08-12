@@ -3,6 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import useSearchPageSetup from '@hooks/useSearchPageSetup';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -11,6 +12,8 @@ import type * as ReactNavigation from '@react-navigation/native';
 
 const mockSearch = jest.fn();
 let mockSearchResults: SearchResults | undefined;
+// Mutable so a test can move a real effect dependency and force the effect to run again.
+let mockSearchKey: SearchKey | undefined;
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
@@ -37,7 +40,7 @@ jest.mock('@hooks/useSearchShouldCalculateTotals', () => () => false);
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchResultsContext: () => ({shouldUseLiveData: false, currentSearchResults: mockSearchResults}),
-    useSearchQueryContext: () => ({currentSearchKey: undefined}),
+    useSearchQueryContext: () => ({currentSearchKey: mockSearchKey}),
     useSearchSelectionActions: () => ({clearSelectedTransactions: jest.fn()}),
 }));
 
@@ -67,6 +70,7 @@ describe('useSearchPageSetup', () => {
     beforeEach(() => {
         mockSearch.mockClear();
         mockSearchResults = undefined;
+        mockSearchKey = undefined;
     });
 
     it('re-requests a query whose snapshot was left errored by a failed request', () => {
@@ -79,11 +83,14 @@ describe('useSearchPageSetup', () => {
         expect(mockSearch).toHaveBeenCalledTimes(1);
     });
 
-    it('does not re-request more than once per mount when the retry fails again', () => {
+    it('does not re-request the same hash again when the recovery attempt fails', () => {
         mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
 
         const {rerender} = renderHook(() => useSearchPageSetup(queryJSON));
-        // The retry failed and wrote `errors` back, so the effect re-runs against the same errored snapshot.
+
+        // The recovery attempt failed and wrote `errors` back, so the snapshot still looks recoverable.
+        // Move a real effect dependency as well, otherwise the effect never re-runs and this asserts nothing.
+        mockSearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES;
         rerender({});
 
         expect(mockSearch).toHaveBeenCalledTimes(1);
