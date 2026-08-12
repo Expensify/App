@@ -20,9 +20,6 @@ TZ=utc bun test --parallel --preload ./scripts/stubReactNative.js --preload ./te
 
 # One test, by name
 npm run test:bun -- -t 'getPullRequestNumberFromURL'
-
-# Show the output the code under test writes (silenced by default, see setup.ts)
-TEST_VERBOSE=true npm run test:bun
 ```
 
 The leading `./` on a file path is required: without it Bun treats the argument as a name filter and finds

@@ -29,25 +29,11 @@ const DUMMY_DIR = path.join(SANDBOX_DIR, 'checkout');
 const mockGetInput = jest.fn<(name: string) => string | undefined>();
 type CompareCommitsCommit = NonNullable<Awaited<ReturnType<typeof GithubUtils.octokit.repos.compareCommits>>['data']['commits']>[number];
 
-const isVerbose = process.env.TEST_VERBOSE === 'true';
-
-/**
- * Bun's shell, wrapped to log each command and to keep the subprocess output quiet unless TEST_VERBOSE is set.
- *
- * Interpolated values are escaped by Bun, so call sites need no quoting: `` $`git commit -m ${message}` `` is
- * correct even when the message contains spaces. Commands run in `process.cwd()`, which the suite moves between
- * the remote and the checkout.
- *
- * A Proxy rather than a wrapper function because `$` returns a lazy, chainable `ShellPromise`, and `.text()` and
- * `.nothrow()` both have to survive the wrapping — a function that awaited internally would destroy them.
- * For the same reason nothing here handles failures: attaching a rejection handler would start the command
- * early, and later `.quiet()`/`.cwd()` calls would then throw "Shell is already running". It is not needed
- * anyway, as bun:test prints the ShellError with its stderr and the source line of the failing command.
- */
+// Bun's shell, wrapped to log each command and to keep the subprocess output quiet.
 const $ = new Proxy(bun$, {
     apply(target, thisArg, args: [TemplateStringsArray, ...string[]]) {
         Log.info(String.raw({raw: args[0]}, ...args.slice(1)));
-        return Reflect.apply(target, thisArg, args).quiet(!isVerbose);
+        return Reflect.apply(target, thisArg, args).quiet();
     },
 });
 

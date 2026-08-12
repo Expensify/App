@@ -11,15 +11,13 @@ if (!('GITHUB_REPOSITORY' in process.env)) {
 }
 
 // The code under test logs heavily, which drowns out the actual results. Jest's CI runs pass --silent for the same
-// reason; `bun test` has no equivalent flag, so swap in stubs. Set TEST_VERBOSE=true to see the output. Workflow
-// commands that @actions/core writes straight to process.stdout still come through.
-if (process.env.TEST_VERBOSE !== 'true') {
-    globalThis.console = {
-        ...console,
-        log: jest.fn(),
-        info: jest.fn(),
-        debug: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-    };
-}
+// reason; `bun test` has no equivalent flag, so swap in stubs. Workflow commands that @actions/core writes straight
+// to process.stdout still come through, as does anything bun:test reports about a failure.
+globalThis.console = {
+    ...console,
+    log: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+};
