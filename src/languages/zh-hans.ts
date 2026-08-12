@@ -1117,6 +1117,7 @@ const translations: TranslationDeepObject<typeof en> = {
         importSpreadsheetLibraryError: '加载电子表格模块失败。请检查您的互联网连接，然后重试。',
         importSpreadsheet: '导入电子表格',
         importWorkflows: '导入工作流程',
+        downloadWorkflows: '下载工作流程',
         downloadCSV: '下载 CSV',
         importMemberConfirmation: () => ({
             one: `请确认以下新工作区成员的详细信息，该成员将作为此次上传的一部分被添加。现有成员不会收到任何角色更新或邀请消息。`,
