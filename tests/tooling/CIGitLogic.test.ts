@@ -8,7 +8,7 @@ import * as VersionUpdater from '@github/libs/versionUpdater';
 import type {SemverLevel} from '@github/libs/versionUpdater';
 
 import * as core from '@actions/core';
-import {$} from 'bun';
+import {$ as bun$} from 'bun';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -32,41 +32,40 @@ type CompareCommitsCommit = NonNullable<Awaited<ReturnType<typeof GithubUtils.oc
 const isVerbose = process.env.TEST_VERBOSE === 'true';
 
 /**
- * Runs a command through the Bun shell, logging it first and echoing its output only when TEST_VERBOSE is set.
+ * Bun's shell, wrapped to log each command and to keep the subprocess output quiet unless TEST_VERBOSE is set.
  *
- * This is a tagged template that forwards to `$`, so interpolated values are escaped by Bun and need no quoting
- * at the call site: `` exec`git commit -m ${message}` `` is correct even when the message contains spaces.
- * Commands run in `process.cwd()`, which the suite moves between the remote and the checkout.
+ * Interpolated values are escaped by Bun, so call sites need no quoting: `` $`git commit -m ${message}` `` is
+ * correct even when the message contains spaces. Commands run in `process.cwd()`, which the suite moves between
+ * the remote and the checkout.
+ *
+ * A Proxy rather than a wrapper function because `$` returns a lazy, chainable `ShellPromise`, and `.text()` and
+ * `.nothrow()` both have to survive the wrapping — a function that awaited internally would destroy them.
+ * For the same reason nothing here handles failures: attaching a rejection handler would start the command
+ * early, and later `.quiet()`/`.cwd()` calls would then throw "Shell is already running". It is not needed
+ * anyway, as bun:test prints the ShellError with its stderr and the source line of the failing command.
  */
-async function exec(strings: TemplateStringsArray, ...values: Array<string | number>) {
-    Log.info(String.raw({raw: strings}, ...values));
-    try {
-        return await $(strings, ...values).quiet(!isVerbose);
-    } catch (error) {
-        if (error instanceof $.ShellError) {
-            Log.error(error.stderr.toString());
-        } else {
-            Log.error('Error:', error);
-        }
-        throw error;
-    }
-}
+const $ = new Proxy(bun$, {
+    apply(target, thisArg, args: [TemplateStringsArray, ...string[]]) {
+        Log.info(String.raw({raw: args[0]}, ...args.slice(1)));
+        return Reflect.apply(target, thisArg, args).quiet(!isVerbose);
+    },
+});
 
 /** Whether a ref resolves in the repo at `process.cwd()`. `nothrow` because a missing ref is an expected answer here, not a failure. */
 async function refExists(ref: string) {
-    return (await $`git rev-parse --verify ${ref}`.quiet().nothrow()).exitCode === 0;
+    return (await $`git rev-parse --verify ${ref}`.nothrow()).exitCode === 0;
 }
 
 async function setupGitAsHuman() {
     Log.info('Switching to human git user');
-    await exec`git config --local user.name test`;
-    await exec`git config --local user.email test@test.com`;
+    await $`git config --local user.name test`;
+    await $`git config --local user.email test@test.com`;
 }
 
 async function setupGitAsOSBotify() {
     Log.info('Switching to OSBotify git user');
-    await exec`git config --local user.name ${CONST.OS_BOTIFY}`;
-    await exec`git config --local user.email infra+osbotify@expensify.com`;
+    await $`git config --local user.name ${CONST.OS_BOTIFY}`;
+    await $`git config --local user.email infra+osbotify@expensify.com`;
 }
 
 function getVersion(): string {
@@ -209,27 +208,27 @@ async function initGitServer() {
     Log.info('Initializing git server...');
     fs.mkdirSync(GIT_REMOTE, {recursive: true});
     process.chdir(GIT_REMOTE);
-    await exec`git init -b main`;
+    await $`git init -b main`;
     await setupGitAsHuman();
-    await exec`npm init -y`;
-    await exec`npm version --no-git-tag-version 1.0.0-0`;
+    await $`npm init -y`;
+    await $`npm version --no-git-tag-version 1.0.0-0`;
     fs.appendFileSync('.gitignore', 'node_modules/\n');
-    await exec`git add -A`;
-    await exec`git commit -m "Initial commit"`;
-    await exec`git switch -c staging`;
-    await exec`git switch -c production`;
+    await $`git add -A`;
+    await $`git commit -m "Initial commit"`;
+    await $`git switch -c staging`;
+    await $`git switch -c production`;
 
     // Tag the production branch with 1.0.0.0
-    await exec`git tag ${getVersion()}`;
+    await $`git tag ${getVersion()}`;
 
     // Bump version to 2.0.0.0
     await bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR, true);
-    await exec`git branch -D staging production`;
-    await exec`git switch -c staging`;
-    await exec`git switch -c production`;
-    await exec`git tag ${getVersion()}`;
-    await exec`git switch staging`;
-    await exec`git config --local receive.denyCurrentBranch ignore`;
+    await $`git branch -D staging production`;
+    await $`git switch -c staging`;
+    await $`git switch -c production`;
+    await $`git tag ${getVersion()}`;
+    await $`git switch staging`;
+    await $`git config --local receive.denyCurrentBranch ignore`;
     Log.success(`Initialized git server in ${GIT_REMOTE}`);
 }
 
@@ -240,35 +239,35 @@ async function checkoutRepo() {
     }
     fs.mkdirSync(DUMMY_DIR);
     process.chdir(DUMMY_DIR);
-    await exec`git init`;
-    await exec`git remote add origin ${GIT_REMOTE}`;
-    await exec`git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +refs/heads/main:refs/remotes/origin/main`;
-    await exec`git checkout --progress --force -B main refs/remotes/origin/main`;
+    await $`git init`;
+    await $`git remote add origin ${GIT_REMOTE}`;
+    await $`git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +refs/heads/main:refs/remotes/origin/main`;
+    await $`git checkout --progress --force -B main refs/remotes/origin/main`;
     Log.success('Checked out repo at $DUMMY_DIR!');
 }
 
 async function bumpVersion(level: SemverLevel, isRemote = false) {
     Log.info('Bumping version...');
     await setupGitAsOSBotify();
-    await exec`git switch main`;
+    await $`git switch main`;
     const nextVersion = VersionUpdater.incrementVersion(getVersion(), level);
-    await exec`npm --no-git-tag-version version ${nextVersion}`;
-    await exec`git add package.json`;
-    await exec`git commit -m "Update version to ${nextVersion}"`;
+    await $`npm --no-git-tag-version version ${nextVersion}`;
+    await $`git add package.json`;
+    await $`git commit -m "Update version to ${nextVersion}"`;
     if (!isRemote) {
-        await exec`git push origin main`;
+        await $`git push origin main`;
     }
     Log.success(`Version bumped to ${nextVersion} on main`);
 }
 
 async function updateStagingFromMain() {
     Log.info('Recreating staging from main...');
-    await exec`git switch main`;
+    await $`git switch main`;
     if (await refExists('staging')) {
-        await exec`git branch -D staging`;
+        await $`git branch -D staging`;
     }
-    await exec`git switch -c staging`;
-    await exec`git push --force origin staging`;
+    await $`git switch -c staging`;
+    await $`git push --force origin staging`;
     Log.success('Recreated staging from main!');
 }
 
@@ -276,18 +275,18 @@ async function updateProductionFromStaging() {
     Log.info('Recreating production from staging...');
 
     if (!(await refExists('staging'))) {
-        await exec`git fetch origin staging --depth=1`;
+        await $`git fetch origin staging --depth=1`;
     }
 
-    await exec`git switch staging`;
+    await $`git switch staging`;
 
     if (await refExists('production')) {
-        await exec`git branch -D production`;
+        await $`git branch -D production`;
     }
 
-    await exec`git switch -c production`;
-    await exec`git tag ${getVersion()}`;
-    await exec`git push --force --tags origin production`;
+    await $`git switch -c production`;
+    await $`git tag ${getVersion()}`;
+    await $`git push --force --tags origin production`;
     Log.success('Recreated production from staging!');
 }
 
@@ -299,11 +298,11 @@ async function createBasicPR(num: number) {
     Log.info(`Creating PR #${num}`);
     await checkoutRepo();
     await setupGitAsHuman();
-    await exec`git pull`;
-    await exec`git switch -c ${branchName}`;
+    await $`git pull`;
+    await $`git switch -c ${branchName}`;
     fs.appendFileSync(filePath, content);
-    await exec`git add ${filePath}`;
-    await exec`git commit -m ${content}`;
+    await $`git add ${filePath}`;
+    await $`git commit -m ${content}`;
     Log.success(`Created PR #${num} in branch ${branchName}`);
 }
 
@@ -311,10 +310,10 @@ async function mergePR(num: number) {
     const branchName = `pr-${num}`;
 
     Log.info(`Merging PR #${num} to main`);
-    await exec`git switch main`;
-    await exec`git merge ${branchName} --no-ff -m "Merge pull request #${num} from Expensify/${branchName}"`;
-    await exec`git push origin main`;
-    await exec`git branch -d ${branchName}`;
+    await $`git switch main`;
+    await $`git merge ${branchName} --no-ff -m "Merge pull request #${num} from Expensify/${branchName}"`;
+    await $`git push origin main`;
+    await $`git branch -d ${branchName}`;
     Log.success(`Merged PR #${num} to main`);
 }
 
@@ -330,13 +329,13 @@ async function cherryPickPRToStaging(num: number, resolveVersionBumpConflicts: (
     const previousPatchVersion = getPreviousVersion();
 
     // --shallow-exclude is used to speed up the fetch
-    await exec`git fetch origin main staging --no-tags --shallow-exclude=${previousPatchVersion}`;
+    await $`git fetch origin main staging --no-tags --shallow-exclude=${previousPatchVersion}`;
 
-    await exec`git switch staging`;
-    await exec`git switch -c cherry-pick-staging`;
+    await $`git switch staging`;
+    await $`git switch -c cherry-pick-staging`;
 
     try {
-        await exec`git cherry-pick -x --mainline 1 ${versionBumpCommit}`;
+        await $`git cherry-pick -x --mainline 1 ${versionBumpCommit}`;
     } catch (e) {
         await resolveVersionBumpConflicts();
     }
@@ -344,16 +343,16 @@ async function cherryPickPRToStaging(num: number, resolveVersionBumpConflicts: (
     await setupGitAsHuman();
 
     try {
-        await exec`git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs ${prMergeCommit}`;
+        await $`git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs ${prMergeCommit}`;
     } catch (e) {
         await resolveMergeCommitConflicts();
     }
 
     await setupGitAsOSBotify();
-    await exec`git switch staging`;
-    await exec`git merge cherry-pick-staging --no-ff -m "Merge pull request #${num + 1} from Expensify/cherry-pick-staging"`;
-    await exec`git branch -d cherry-pick-staging`;
-    await exec`git push origin staging`;
+    await $`git switch staging`;
+    await $`git merge cherry-pick-staging --no-ff -m "Merge pull request #${num + 1} from Expensify/cherry-pick-staging"`;
+    await $`git branch -d cherry-pick-staging`;
+    await $`git push origin staging`;
     Log.info(`Merged PR #${num + 1} into staging`);
     await tagStaging();
     Log.success(`Successfully cherry-picked PR #${num} to staging!`);
@@ -369,13 +368,13 @@ async function cherryPickPRToProduction(num: number, resolveVersionBumpConflicts
 
     mockGetInput.mockReturnValue(VersionUpdater.SEMANTIC_VERSION_LEVELS.MINOR);
     const previousPatchVersion = getPreviousVersion();
-    await exec`git fetch origin main production --no-tags --shallow-exclude=${previousPatchVersion}`;
+    await $`git fetch origin main production --no-tags --shallow-exclude=${previousPatchVersion}`;
 
-    await exec`git switch production`;
-    await exec`git switch -c cherry-pick-production`;
+    await $`git switch production`;
+    await $`git switch -c cherry-pick-production`;
 
     try {
-        await exec`git cherry-pick -x --mainline 1 -Xtheirs ${versionBumpCommit}`;
+        await $`git cherry-pick -x --mainline 1 -Xtheirs ${versionBumpCommit}`;
     } catch (e) {
         await resolveVersionBumpConflicts();
     }
@@ -383,26 +382,26 @@ async function cherryPickPRToProduction(num: number, resolveVersionBumpConflicts
     await setupGitAsHuman();
 
     try {
-        await exec`git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs ${prMergeCommit}`;
+        await $`git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs ${prMergeCommit}`;
     } catch (e) {
         await resolveMergeCommitConflicts();
     }
 
     await setupGitAsOSBotify();
-    await exec`git switch production`;
-    await exec`git merge cherry-pick-production --no-ff -m "Merge pull request #${num + 1} from Expensify/cherry-pick-production"`;
-    await exec`git branch -d cherry-pick-production`;
-    await exec`git push origin production`;
+    await $`git switch production`;
+    await $`git merge cherry-pick-production --no-ff -m "Merge pull request #${num + 1} from Expensify/cherry-pick-production"`;
+    await $`git branch -d cherry-pick-production`;
+    await $`git push origin production`;
     Log.info(`Merged PR #${num + 1} into production`);
     await tagProduction();
 
     await checkoutRepo();
     await bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.BUILD);
     versionBumpCommit = (await $`git rev-parse HEAD`.text()).trim();
-    await exec`git fetch origin staging --depth=1`;
-    await exec`git switch staging`;
-    await exec`git cherry-pick -x --mainline 1 -Xtheirs ${versionBumpCommit}`;
-    await exec`git push origin staging`;
+    await $`git fetch origin staging --depth=1`;
+    await $`git switch staging`;
+    await $`git cherry-pick -x --mainline 1 -Xtheirs ${versionBumpCommit}`;
+    await $`git push origin staging`;
     await tagStaging();
     Log.success(`Pushed to staging after CP to production`);
 
@@ -414,11 +413,11 @@ async function tagStaging() {
     await checkoutRepo();
     await setupGitAsOSBotify();
     if (!(await refExists('staging'))) {
-        await exec`git fetch origin staging --depth=1`;
+        await $`git fetch origin staging --depth=1`;
     }
-    await exec`git switch staging`;
-    await exec`git tag ${getVersion()}-staging`;
-    await exec`git push --tags`;
+    await $`git switch staging`;
+    await $`git tag ${getVersion()}-staging`;
+    await $`git push --tags`;
     Log.success(`Created new tag ${getVersion()}`);
 }
 
@@ -428,11 +427,11 @@ async function tagProduction() {
     await checkoutRepo();
     await setupGitAsOSBotify();
     if (!(await refExists('production'))) {
-        await exec`git fetch origin production --depth=1`;
+        await $`git fetch origin production --depth=1`;
     }
-    await exec`git switch production`;
-    await exec`git tag ${getVersion()}`;
-    await exec`git push --tags`;
+    await $`git switch production`;
+    await $`git tag ${getVersion()}`;
+    await $`git push --tags`;
     Log.success(`Created new tag ${getVersion()}`);
 }
 
@@ -570,12 +569,12 @@ describe.serial('CIGitLogic', () => {
     test('Deploying a PR, then CPing a revert, then adding the same code back again before the next production deploy results in the correct code on staging and production', async () => {
         Log.info('Creating myFile.txt in PR #7');
         await setupGitAsHuman();
-        await exec`git switch main`;
-        await exec`git switch -c pr-7`;
+        await $`git switch main`;
+        await $`git switch -c pr-7`;
         const initialFileContent = 'Changes from PR #7';
         fs.appendFileSync('myFile.txt', 'Changes from PR #7');
-        await exec`git add myFile.txt`;
-        await exec`git commit -m "Add myFile.txt in PR #7"`;
+        await $`git add myFile.txt`;
+        await $`git commit -m "Add myFile.txt in PR #7"`;
 
         await mergePR(7);
         await deployStaging();
@@ -588,16 +587,16 @@ describe.serial('CIGitLogic', () => {
 
         Log.info('Appending and prepending content to myFile.txt in PR #8');
         await setupGitAsHuman();
-        await exec`git switch main`;
-        await exec`git switch -c pr-8`;
+        await $`git switch main`;
+        await $`git switch -c pr-8`;
         const newFileContent = `
 Prepended content
 ${initialFileContent}
 Appended content
 `;
         fs.writeFileSync('myFile.txt', newFileContent, {encoding: 'utf-8'});
-        await exec`git add myFile.txt`;
-        await exec`git commit -m "Append and prepend content in myFile.txt"`;
+        await $`git add myFile.txt`;
+        await $`git commit -m "Append and prepend content in myFile.txt"`;
         await mergePR(8);
         await deployStaging();
 
@@ -609,20 +608,20 @@ Appended content
 
         Log.info('Making an unrelated change in PR #9');
         await setupGitAsHuman();
-        await exec`git switch main`;
-        await exec`git switch -c pr-9`;
+        await $`git switch main`;
+        await $`git switch -c pr-9`;
         fs.appendFileSync('anotherFile.txt', 'some content');
-        await exec`git add anotherFile.txt`;
-        await exec`git commit -m "Create another file"`;
+        await $`git add anotherFile.txt`;
+        await $`git commit -m "Create another file"`;
         await mergePR(9);
 
         Log.info('Reverting the append + prepend on main in PR #10');
         await setupGitAsHuman();
-        await exec`git switch main`;
-        await exec`git switch -c pr-10`;
+        await $`git switch main`;
+        await $`git switch -c pr-10`;
         fs.writeFileSync('myFile.txt', initialFileContent);
-        await exec`git add myFile.txt`;
-        await exec`git commit -m "Revert append and prepend"`;
+        await $`git add myFile.txt`;
+        await $`git commit -m "Revert append and prepend"`;
         await mergePR(10);
         await cherryPickPRToStaging(10);
 
@@ -632,11 +631,11 @@ Appended content
 
         Log.info('Repeating previously reverted append + prepend on main in PR #10');
         await setupGitAsHuman();
-        await exec`git switch main`;
-        await exec`git switch -c pr-11`;
+        await $`git switch main`;
+        await $`git switch -c pr-11`;
         fs.writeFileSync('myFile.txt', newFileContent, {encoding: 'utf-8'});
-        await exec`git add myFile.txt`;
-        await exec`git commit -m "Append and prepend content in myFile.txt"`;
+        await $`git add myFile.txt`;
+        await $`git commit -m "Append and prepend content in myFile.txt"`;
 
         await mergePR(11);
         await deployProduction();
@@ -650,7 +649,7 @@ Appended content
 
     test('Force-pushing to a branch after rebasing older commits', async () => {
         await createBasicPR(12);
-        await exec`git push origin pr-12`;
+        await $`git push origin pr-12`;
         await createBasicPR(13);
         await mergePR(13);
         await deployStaging();
@@ -663,10 +662,10 @@ Appended content
 
         await checkoutRepo();
         await setupGitAsHuman();
-        await exec`git fetch origin pr-12`;
-        await exec`git switch pr-12`;
-        await exec`git rebase main -Xours`;
-        await exec`git push --force origin pr-12`;
+        await $`git fetch origin pr-12`;
+        await $`git switch pr-12`;
+        await $`git rebase main -Xours`;
+        await $`git push --force origin pr-12`;
         await mergePR(12);
 
         await deployProduction();
@@ -682,13 +681,13 @@ Appended content
         Log.info('Creating manual version bump in PR #14');
         await checkoutRepo();
         await setupGitAsHuman();
-        await exec`git pull`;
-        await exec`git switch -c pr-14`;
+        await $`git pull`;
+        await $`git switch -c pr-14`;
         for (let i = 0; i < 3; i++) {
-            await exec`npm --no-git-tag-version version ${VersionUpdater.incrementVersion(getVersion(), VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR)}`;
+            await $`npm --no-git-tag-version version ${VersionUpdater.incrementVersion(getVersion(), VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR)}`;
         }
-        await exec`git add package.json`;
-        await exec`git commit -m "Manually bump version to ${getVersion()} in PR #14"`;
+        await $`git add package.json`;
+        await $`git commit -m "Manually bump version to ${getVersion()} in PR #14"`;
         Log.success('Created manual version bump in PR #13 in branch pr-14');
 
         await mergePR(14);
@@ -704,13 +703,13 @@ Appended content
         Log.info('Creating manual version bump in PR #15');
         await checkoutRepo();
         await setupGitAsHuman();
-        await exec`git pull`;
-        await exec`git switch -c pr-15`;
+        await $`git pull`;
+        await $`git switch -c pr-15`;
         for (let i = 0; i < 3; i++) {
-            await exec`npm --no-git-tag-version version ${VersionUpdater.incrementVersion(getVersion(), VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR)}`;
+            await $`npm --no-git-tag-version version ${VersionUpdater.incrementVersion(getVersion(), VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR)}`;
         }
-        await exec`git add package.json`;
-        await exec`git commit -m "Manually bump version to ${getVersion()} in PR #15"`;
+        await $`git add package.json`;
+        await $`git commit -m "Manually bump version to ${getVersion()} in PR #15"`;
         Log.success('Created manual version bump in PR #15 in branch pr-15');
 
         const packageJSONBefore = fs.readFileSync('package.json', {encoding: 'utf-8'});
@@ -719,11 +718,11 @@ Appended content
             15,
             async () => {
                 fs.writeFileSync('package.json', packageJSONBefore);
-                await exec`git add package.json`;
-                await exec`git cherry-pick --no-edit --continue`;
+                await $`git add package.json`;
+                await $`git cherry-pick --no-edit --continue`;
             },
             async () => {
-                await exec`git commit --no-edit --allow-empty`;
+                await $`git commit --no-edit --allow-empty`;
             },
         );
 
