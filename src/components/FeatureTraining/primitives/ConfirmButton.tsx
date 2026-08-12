@@ -44,4 +44,3 @@ function ConfirmButton({children, sentryLabel, style}: ConfirmButtonProps) {
 ConfirmButton.displayName = 'FeatureTraining.ConfirmButton';
 
 export default ConfirmButton;
-export type {ConfirmButtonProps};

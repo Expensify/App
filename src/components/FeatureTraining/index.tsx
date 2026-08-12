@@ -30,4 +30,3 @@ const FeatureTraining = Object.assign(FeatureTrainingBase, {
 });
 
 export default FeatureTraining;
-export type {FeatureTrainingProps, FeatureTrainingCarouselProps, FeatureTrainingModalProps} from './types';

@@ -37,4 +37,3 @@ function BodyText({children, style, onLayout}: BodyTextProps) {
 BodyText.displayName = 'FeatureTraining.BodyText';
 
 export default BodyText;
-export type {BodyTextProps};

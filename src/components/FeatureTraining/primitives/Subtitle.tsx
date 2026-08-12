@@ -23,4 +23,3 @@ function Subtitle({children}: SubtitleProps) {
 Subtitle.displayName = 'FeatureTraining.Subtitle';
 
 export default Subtitle;
-export type {SubtitleProps};

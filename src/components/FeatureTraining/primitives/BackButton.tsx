@@ -38,4 +38,3 @@ function BackButton({style}: BackButtonProps) {
 BackButton.displayName = 'FeatureTraining.BackButton';
 
 export default BackButton;
-export type {BackButtonProps};

@@ -23,4 +23,3 @@ function Page({children}: PageProps) {
 Page.displayName = 'FeatureTraining.Page';
 
 export default Page;
-export type {PageProps};

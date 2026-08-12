@@ -33,4 +33,3 @@ function Title({children, style}: TitleProps) {
 Title.displayName = 'FeatureTraining.Title';
 
 export default Title;
-export type {TitleProps};

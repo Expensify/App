@@ -22,4 +22,3 @@ function Body({children, style}: BodyProps) {
 Body.displayName = 'FeatureTraining.Body';
 
 export default Body;
-export type {BodyProps};

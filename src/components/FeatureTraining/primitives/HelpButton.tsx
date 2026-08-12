@@ -30,4 +30,3 @@ function HelpButton({children, onPress, sentryLabel}: HelpButtonProps) {
 HelpButton.displayName = 'FeatureTraining.HelpButton';
 
 export default HelpButton;
-export type {HelpButtonProps};

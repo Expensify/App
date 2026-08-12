@@ -1,5 +1,4 @@
 import type {ReactNode} from 'react';
-import type {ViewStyle} from 'react-native';
 
 type FeatureTrainingProps = {
     /** Called when the user confirms the tutorial. `willShowAgain` reflects the DismissOption checkbox (true by default). */
@@ -32,9 +31,4 @@ type FeatureTrainingCarouselProps = FeatureTrainingProps & {
     onPageChange?: (index: number) => void;
 };
 
-type FeatureTrainingModalProps = FeatureTrainingProps & {
-    /** Style for the outer Modal inner container */
-    modalInnerContainerStyle?: ViewStyle;
-};
-
-export type {FeatureTrainingProps, FeatureTrainingCarouselProps, FeatureTrainingModalProps};
+export type {FeatureTrainingProps, FeatureTrainingCarouselProps};

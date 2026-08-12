@@ -32,4 +32,3 @@ function Description({children, shouldRenderHTML = false}: DescriptionProps) {
 Description.displayName = 'FeatureTraining.Description';
 
 export default Description;
-export type {DescriptionProps};
