@@ -1,4 +1,4 @@
-import AccountAvatars from '@components/Avatar/connected/AccountAvatars';
+import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
 import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -293,7 +293,7 @@ function WorkspaceInviteMessageComponent({
                     )}
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <AvatarTooltipsProvider isEnabled={shouldShowTooltip}>
-                            <AccountAvatars
+                            <MultiAccountAvatar
                                 size={CONST.AVATAR_SIZE.XXX_LARGE}
                                 accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
                                 horizontalOptions={{

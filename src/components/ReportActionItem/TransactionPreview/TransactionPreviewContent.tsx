@@ -1,4 +1,4 @@
-import AccountAvatars from '@components/Avatar/connected/AccountAvatars';
+import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -337,12 +337,12 @@ function TransactionPreviewContent({
                                         <Text style={[isDeleted && styles.lineThrough, styles.textLabelSupporting, styles.flex1, styles.lh16, previewTextMargin]}>{previewHeaderText}</Text>
                                         {isBillSplit && (
                                             <View style={styles.moneyRequestPreviewBoxAvatar}>
-                                                <AccountAvatars
+                                                <MultiAccountAvatar
                                                     accountIDs={participantAccountIDs}
                                                     horizontalOptions={{
                                                         avatarBorderColor: theme.cardBG,
                                                     }}
-                                                    sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.ID}
+                                                    sortBy={[CONST.REPORT_ACTION_AVATARS.SORT_BY.ID]}
                                                     size={CONST.AVATAR_SIZE.XX_SMALL}
                                                 />
                                             </View>

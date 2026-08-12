@@ -19,17 +19,24 @@ import React from 'react';
 
 import useAccountIcons from './useAccountIcons';
 
-type SortingOptions = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
+type SortByValue = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
 
-type AccountAvatarsProps = {
+type SortBy =
+    | readonly [typeof CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME]
+    | readonly [typeof CONST.REPORT_ACTION_AVATARS.SORT_BY.ID]
+    | readonly [typeof CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE]
+    | readonly [typeof CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME, typeof CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE]
+    | readonly [typeof CONST.REPORT_ACTION_AVATARS.SORT_BY.ID, typeof CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE];
+
+type MultiAccountAvatarProps = {
     /** Account IDs to display avatars for. Entries equal to `CONST.DEFAULT_NUMBER_ID` are dropped; when none remain, a single placeholder avatar renders so the slot keeps its size. */
     accountIDs: number[];
 
     /** Options for the horizontal stack */
     horizontalOptions?: HorizontalStackingOptions;
 
-    /** How to order the avatars before rendering them. Every avatar sits in an equivalent slot, so any order is renderable */
-    sort?: SortingOptions | SortingOptions[];
+    /** How to order the avatars before rendering them. Every avatar sits in an equivalent slot, so any order is renderable. Omit to leave them in the order `accountIDs` was passed */
+    sortBy?: SortBy;
 
     /** Emails of invited, not-yet-registered accounts. Also seeds a deterministic fallback avatar for each invited account */
     invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
@@ -44,25 +51,22 @@ type AccountAvatarsProps = {
     isInReportAction?: boolean;
 };
 
-/** Applies the requested ordering. `undefined` sorting leaves the icons in the order the account IDs were passed. */
-function sortIcons(
-    icons: Icon[],
-    sort: SortingOptions | SortingOptions[] | undefined,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    localeCompare: ReturnType<typeof useLocalize>['localeCompare'],
-) {
-    if (!sort) {
+/** Applies the requested ordering. `undefined` leaves the icons in the order the account IDs were passed. */
+function sortIcons(icons: Icon[], sortBy: SortBy | undefined, personalDetails: OnyxEntry<PersonalDetailsList>, localeCompare: ReturnType<typeof useLocalize>['localeCompare']) {
+    if (!sortBy) {
         return icons;
     }
 
+    const sortKeys: readonly SortByValue[] = sortBy;
+
     let sortedIcons = icons;
-    if (sort.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME)) {
+    if (sortKeys.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME)) {
         sortedIcons = sortIconsByName(icons, personalDetails, localeCompare);
-    } else if (sort.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.ID)) {
+    } else if (sortKeys.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.ID)) {
         sortedIcons = lodashSortBy(icons, (icon) => icon.id);
     }
 
-    return sort.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE) ? [...sortedIcons].reverse() : sortedIcons;
+    return sortKeys.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE) ? [...sortedIcons].reverse() : sortedIcons;
 }
 
 /**
@@ -70,15 +74,15 @@ function sortIcons(
  * (zero Onyx subscriptions). Use `AccountAvatar` when there is exactly one account, and `ReportActionAvatars` when the
  * actors still have to be resolved from a report, a report action or a policy.
  */
-function AccountAvatars({
+function MultiAccountAvatar({
     accountIDs,
     horizontalOptions,
-    sort,
+    sortBy,
     invitedEmailsToAccountIDs,
     size = CONST.AVATAR_SIZE.DEFAULT,
     fallbackDisplayName,
     isInReportAction = false,
-}: AccountAvatarsProps) {
+}: MultiAccountAvatarProps) {
     const personalDetails = usePersonalDetails();
     const {localeCompare} = useLocalize();
 
@@ -104,11 +108,11 @@ function AccountAvatars({
         <HorizontalAvatars
             {...horizontalOptions}
             size={size}
-            icons={sortIcons(icons, sort, personalDetails, localeCompare)}
+            icons={sortIcons(icons, sortBy, personalDetails, localeCompare)}
             isInReportAction={isInReportAction}
             fallbackDisplayName={fallbackDisplayName}
         />
     );
 }
 
-export default AccountAvatars;
+export default MultiAccountAvatar;

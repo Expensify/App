@@ -1,6 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 
-import AccountAvatars from '@components/Avatar/connected/AccountAvatars';
+import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
 
 import CONST from '@src/CONST';
 import type {PersonalDetailsList} from '@src/types/onyx';
@@ -67,7 +67,7 @@ function iconsForAccountsInOrder(...accountIDs: number[]) {
     return accountIDs.map((accountID) => expect.objectContaining({id: accountID}));
 }
 
-describe('AccountAvatars (connected)', () => {
+describe('MultiAccountAvatar (connected)', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockCapturedHorizontalAvatarsProps = {};
@@ -81,13 +81,13 @@ describe('AccountAvatars (connected)', () => {
 
     describe('accounts to render', () => {
         it('should hand every account to the horizontal stack, in the order they were passed', () => {
-            render(<AccountAvatars accountIDs={[FIRST_ACCOUNT_ID, SECOND_ACCOUNT_ID, THIRD_ACCOUNT_ID]} />);
+            render(<MultiAccountAvatar accountIDs={[FIRST_ACCOUNT_ID, SECOND_ACCOUNT_ID, THIRD_ACCOUNT_ID]} />);
 
             expect(mockCapturedHorizontalAvatarsProps.icons).toEqual(iconsForAccountsInOrder(FIRST_ACCOUNT_ID, SECOND_ACCOUNT_ID, THIRD_ACCOUNT_ID));
         });
 
         it('should drop placeholder account IDs', () => {
-            render(<AccountAvatars accountIDs={[CONST.DEFAULT_NUMBER_ID, FIRST_ACCOUNT_ID]} />);
+            render(<MultiAccountAvatar accountIDs={[CONST.DEFAULT_NUMBER_ID, FIRST_ACCOUNT_ID]} />);
 
             expect(mockCapturedHorizontalAvatarsProps.icons).toEqual(iconsForAccountsInOrder(FIRST_ACCOUNT_ID));
         });
@@ -96,7 +96,7 @@ describe('AccountAvatars (connected)', () => {
             ['no account IDs at all', []],
             ['only placeholder account IDs', [CONST.DEFAULT_NUMBER_ID]],
         ])('should render one placeholder avatar for %s, so the slot keeps its size', (_case, accountIDs) => {
-            render(<AccountAvatars accountIDs={accountIDs} />);
+            render(<MultiAccountAvatar accountIDs={accountIDs} />);
 
             expect(mockCapturedSingleAvatarProps.avatar).toEqual(expect.objectContaining({id: CONST.DEFAULT_NUMBER_ID}));
             // The lone placeholder must not go through the stack, which would draw the overlap border around it
@@ -106,7 +106,7 @@ describe('AccountAvatars (connected)', () => {
 
     describe('sorting', () => {
         it('should leave the icons in the order they were passed when no sorting is requested', () => {
-            render(<AccountAvatars accountIDs={[FIRST_ACCOUNT_ID, SECOND_ACCOUNT_ID]} />);
+            render(<MultiAccountAvatar accountIDs={[FIRST_ACCOUNT_ID, SECOND_ACCOUNT_ID]} />);
 
             expect(mockSortIconsByName).not.toHaveBeenCalled();
             expect(mockCapturedHorizontalAvatarsProps.icons).toEqual(iconsForAccountsInOrder(FIRST_ACCOUNT_ID, SECOND_ACCOUNT_ID));
@@ -114,9 +114,9 @@ describe('AccountAvatars (connected)', () => {
 
         it('should sort by ID', () => {
             render(
-                <AccountAvatars
+                <MultiAccountAvatar
                     accountIDs={[FIRST_ACCOUNT_ID, SECOND_ACCOUNT_ID, THIRD_ACCOUNT_ID]}
-                    sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.ID}
+                    sortBy={[CONST.REPORT_ACTION_AVATARS.SORT_BY.ID]}
                 />,
             );
 
@@ -125,9 +125,9 @@ describe('AccountAvatars (connected)', () => {
 
         it('should delegate sorting by name', () => {
             render(
-                <AccountAvatars
+                <MultiAccountAvatar
                     accountIDs={[FIRST_ACCOUNT_ID, SECOND_ACCOUNT_ID]}
-                    sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME}
+                    sortBy={[CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME]}
                 />,
             );
 
@@ -137,9 +137,9 @@ describe('AccountAvatars (connected)', () => {
 
         it('should reverse the order after sorting', () => {
             render(
-                <AccountAvatars
+                <MultiAccountAvatar
                     accountIDs={[FIRST_ACCOUNT_ID, SECOND_ACCOUNT_ID, THIRD_ACCOUNT_ID]}
-                    sort={[CONST.REPORT_ACTION_AVATARS.SORT_BY.ID, CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE]}
+                    sortBy={[CONST.REPORT_ACTION_AVATARS.SORT_BY.ID, CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE]}
                 />,
             );
 
@@ -150,7 +150,7 @@ describe('AccountAvatars (connected)', () => {
     describe('forwarded presentation props', () => {
         it('should forward the stacking options', () => {
             render(
-                <AccountAvatars
+                <MultiAccountAvatar
                     accountIDs={[FIRST_ACCOUNT_ID]}
                     horizontalOptions={{maxRows: 2, isHovered: true}}
                     isInReportAction
@@ -165,7 +165,7 @@ describe('AccountAvatars (connected)', () => {
             ['the passed size', CONST.AVATAR_SIZE.SMALL, CONST.AVATAR_SIZE.SMALL],
         ])('should forward %s', (_case, size, expectedSize) => {
             render(
-                <AccountAvatars
+                <MultiAccountAvatar
                     accountIDs={[FIRST_ACCOUNT_ID]}
                     size={size}
                 />,
@@ -176,7 +176,7 @@ describe('AccountAvatars (connected)', () => {
 
         it('should forward the tooltip fallback display name', () => {
             render(
-                <AccountAvatars
+                <MultiAccountAvatar
                     accountIDs={[FIRST_ACCOUNT_ID]}
                     fallbackDisplayName="John Doe"
                 />,

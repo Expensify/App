@@ -1,4 +1,4 @@
-import AccountAvatars from '@components/Avatar/connected/AccountAvatars';
+import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -147,7 +147,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             />
             <View style={styles.ph5}>
                 <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                    <AccountAvatars
+                    <MultiAccountAvatar
                         size={CONST.AVATAR_SIZE.XXX_LARGE}
                         accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
                         horizontalOptions={{
