@@ -11084,7 +11084,6 @@ function getIOUReportActionDisplayMessage(
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     policyACHAccountNumber: string | undefined,
     transaction?: OnyxEntry<Transaction>,
-    report?: Report,
     bankAccountList?: OnyxEntry<BankAccountList>,
 ): string {
     if (!isMoneyRequestAction(reportAction)) {

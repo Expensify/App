@@ -780,6 +780,9 @@ function getLastMessageTextForReport({
                 iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
                 shouldConsiderScanningReceiptOrPendingRoute: true,
                 isPreviewMessageForParentChatReport: reportUtilsIsChatReport(report),
+                // `policy` is the containing report's policy. A group-policy expense report renders its preview in the
+                // policy expense chat, which is handled by the branch above, so every report that reaches here shares
+                // its policy with `report` (DM/group personal reports have none; invoice rooms share the room's policy).
                 policy,
                 isForListPreview: true,
                 originalReportAction: lastReportAction,
