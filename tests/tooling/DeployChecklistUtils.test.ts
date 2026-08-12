@@ -24,14 +24,14 @@ let internalOctokit: InternalOctokit;
 
 /**
  * Runs `operation` with fake timers so its retry backoff resolves instantly, advancing the clock by exactly
- * `expectedBackoffsMs` in order. Advancing by the exact delays rather than some arbitrarily large amount keeps
+ * `expectedDelaysMs` in order. Advancing by the exact delays rather than some arbitrarily large amount keeps
  * these tests pinned to LIST_RETRY_DELAYS_MS: lengthen a delay there and the operation never settles.
  *
  * Bun only exposes a synchronous `jest.advanceTimersByTime`, and the code under test schedules each backoff timer
  * from a `catch` block - i.e. several microtasks after the call starts - so yield until that timer exists before
  * firing it.
  */
-async function runWithFakeTimers<T>(operation: () => Promise<T>, expectedBackoffsMs: number[]): Promise<T> {
+async function runWithFakeTimers<T>(operation: () => Promise<T>, expectedDelaysMs: number[]): Promise<T> {
     try {
         jest.useFakeTimers();
         let isSettled = false;
@@ -43,18 +43,18 @@ async function runWithFakeTimers<T>(operation: () => Promise<T>, expectedBackoff
         // doesn't trip Bun's unhandled-rejection reporting in the meantime.
         pending.catch(() => {});
 
-        for (const backoffMs of expectedBackoffsMs) {
+        for (const delayMs of expectedDelaysMs) {
             for (let i = 0; jest.getTimerCount() === 0 && !isSettled && i < 100; i++) {
                 await Promise.resolve();
             }
-            jest.advanceTimersByTime(backoffMs);
+            jest.advanceTimersByTime(delayMs);
         }
 
         for (let i = 0; !isSettled && i < 100; i++) {
             await Promise.resolve();
         }
         if (!isSettled) {
-            throw new Error(`Operation did not settle after advancing the clock by ${expectedBackoffsMs.join(' + ')}ms; did its retry schedule change?`);
+            throw new Error(`Operation did not settle after advancing the clock by ${expectedDelaysMs.join(' + ')}ms; did its retry schedule change?`);
         }
         return await pending;
     } finally {
