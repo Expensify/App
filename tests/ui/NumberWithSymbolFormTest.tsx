@@ -228,6 +228,15 @@ describe('NumberWithSymbolForm', () => {
             expect(ref.current).toBeTruthy();
         });
 
+        it('assigns the text input instance via a callback `ref` prop', async () => {
+            const ref = jest.fn();
+            renderForm({displayAsTextInput: true, value: '10', ref});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(ref).toHaveBeenCalled();
+            expect(ref.mock.calls.at(-1)?.[0]).toBeTruthy();
+        });
+
         describe('setFormattedNumber / addLeadingZero', () => {
             it('adds a leading zero when the value starts with a decimal separator', async () => {
                 const onInputChange = jest.fn();
@@ -632,6 +641,15 @@ describe('NumberWithSymbolForm', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(ref.current).toBeTruthy();
+        });
+
+        it('assigns the text input instance via a callback `ref` prop', async () => {
+            const ref = jest.fn();
+            renderForm({value: '10', ref});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(ref).toHaveBeenCalled();
+            expect(ref.mock.calls.at(-1)?.[0]).toBeTruthy();
         });
 
         it('renders the negative symbol when `isNegative` is set', async () => {
