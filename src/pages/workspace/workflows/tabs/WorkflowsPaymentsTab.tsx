@@ -51,7 +51,7 @@ type WorkflowsPaymentsTabProps = {
 };
 
 function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Plus']);
@@ -95,8 +95,9 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                 passedPersonalDetails: getPersonalDetailByEmail(policyReimburserEmail ?? ''),
                 defaultValue: policyReimburserEmail,
                 translate,
+                formatPhoneNumber,
             }),
-        [policyReimburserEmail, translate],
+        [policyReimburserEmail, translate, formatPhoneNumber],
     );
 
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;

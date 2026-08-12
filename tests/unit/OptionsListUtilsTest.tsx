@@ -6791,8 +6791,7 @@ describe('OptionsListUtils', () => {
             const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined, translateLocal);
 
             // Then it should return the display name from reportAction.person
-            // Note: formatPhoneNumberPhoneUtils replaces spaces with non-breaking spaces
-            expect(result).toBe('Unknown User'.replaceAll(' ', '\u00A0'));
+            expect(result).toBe('Unknown User');
         });
 
         it('should return "You" when the last actor is the current user', async () => {
