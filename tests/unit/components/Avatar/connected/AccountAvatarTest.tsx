@@ -66,10 +66,10 @@ describe('AccountAvatar (connected)', () => {
     });
 
     it.each([
-        ['the personal-details context', {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: LOGIN, avatar: AVATAR_URL}}, AVATAR_URL, LOGIN],
-        ['the fallback avatar when the account has details but no avatar', {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: LOGIN}}, MockFallbackAvatar, LOGIN],
-        ['the fallback avatar and an empty name when the account has no personal details', {}, MockFallbackAvatar, ''],
-    ])('should resolve the icon from %s', (_case, personalDetails, expectedSource, expectedName) => {
+        ['the personal-details context', {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: LOGIN, avatar: AVATAR_URL}}, AVATAR_URL, LOGIN, LOGIN],
+        ['the fallback avatar when the account has details but no avatar', {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: LOGIN}}, MockFallbackAvatar, LOGIN, LOGIN],
+        ['the fallback avatar and an empty name when the account has no personal details', {}, MockFallbackAvatar, '', undefined],
+    ])('should resolve the icon from %s', (_case, personalDetails, expectedSource, expectedName, expectedDisplayName) => {
         mockPersonalDetails = personalDetails;
 
         render(<AccountAvatar accountID={ACCOUNT_ID} />);
@@ -79,6 +79,7 @@ describe('AccountAvatar (connected)', () => {
             type: CONST.ICON_TYPE_AVATAR,
             source: expectedSource,
             name: expectedName,
+            displayName: expectedDisplayName,
             fallbackIcon: undefined,
         });
     });
