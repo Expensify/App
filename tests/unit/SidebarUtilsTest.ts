@@ -2621,7 +2621,6 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 localeCompare,
-                formatPhoneNumber,
                 lastAction: enabledAction,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
@@ -2658,7 +2657,6 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 localeCompare,
-                formatPhoneNumber,
                 lastAction: disabledAction,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
@@ -2702,13 +2700,13 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 localeCompare,
-                formatPhoneNumber,
                 lastAction: enabledAction,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(enabledResult?.alternateText).toBe('enabled the expense categorization requirement');
@@ -2744,6 +2742,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(disabledResult?.alternateText).toBe('disabled the expense categorization requirement');
@@ -2786,6 +2785,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(enabledResult?.alternateText).toBe('enabled the expense tagging requirement');
@@ -2815,13 +2815,13 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 localeCompare,
-                formatPhoneNumber,
                 lastAction: disabledAction,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                formatPhoneNumber,
             });
 
             expect(disabledResult?.alternateText).toBe('disabled the expense tagging requirement');
