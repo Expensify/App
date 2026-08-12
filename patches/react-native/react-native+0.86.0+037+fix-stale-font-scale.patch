@@ -1,7 +1,8 @@
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp
+index c0f5dab..0a09558 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp
-@@ -480,6 +480,7 @@ void YogaLayoutableShadowNode::updateYogaProps() {
+@@ -469,6 +469,7 @@ void YogaLayoutableShadowNode::updateYogaProps() {
  
  void YogaLayoutableShadowNode::configureYogaTree(
      float pointScaleFactor,
@@ -9,7 +10,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/vie
      YGErrata defaultErrata,
      bool swapLeftAndRight) {
    ensureUnsealed();
-@@ -489,6 +490,18 @@ void YogaLayoutableShadowNode::configureYogaTree(
+@@ -478,6 +479,18 @@ void YogaLayoutableShadowNode::configureYogaTree(
    YGConfigSetErrata(&yogaConfig_, errata);
    YGConfigSetPointScaleFactor(&yogaConfig_, pointScaleFactor);
  
@@ -28,7 +29,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/vie
    // TODO: `swapLeftAndRight` modified backing props and cannot be undone
    if (swapLeftAndRight) {
      swapStyleLeftAndRight();
-@@ -507,6 +520,8 @@ void YogaLayoutableShadowNode::configureYogaTree(
+@@ -496,6 +509,8 @@ void YogaLayoutableShadowNode::configureYogaTree(
  
      if (child.yogaTreeHasBeenConfigured_ &&
          childLayoutMetrics.pointScaleFactor == pointScaleFactor &&
@@ -37,7 +38,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/vie
          childLayoutMetrics.wasLeftAndRightSwapped == swapLeftAndRight &&
          childErrata == child.resolveErrata(errata)) {
        continue;
-@@ -515,10 +530,13 @@ void YogaLayoutableShadowNode::configureYogaTree(
+@@ -504,10 +519,13 @@ void YogaLayoutableShadowNode::configureYogaTree(
      if (doesOwn(child)) {
        auto& mutableChild = const_cast<YogaLayoutableShadowNode&>(child);
        mutableChild.configureYogaTree(
@@ -53,7 +54,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/vie
      }
    }
  }
-@@ -627,6 +645,7 @@ void YogaLayoutableShadowNode::layoutTree(
+@@ -604,6 +622,7 @@ void YogaLayoutableShadowNode::layoutTree(
      TraceSection s2("YogaLayoutableShadowNode::configureYogaTree");
      configureYogaTree(
          layoutContext.pointScaleFactor,
@@ -61,7 +62,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/vie
          YGErrataAll /*defaultErrata*/,
          swapLeftAndRight);
    }
-@@ -692,6 +711,7 @@ void YogaLayoutableShadowNode::layoutTree(
+@@ -669,6 +688,7 @@ void YogaLayoutableShadowNode::layoutTree(
    if (yogaNode_.getHasNewLayout()) {
      auto layoutMetrics = layoutMetricsFromYogaNode(yogaNode_);
      layoutMetrics.pointScaleFactor = layoutContext.pointScaleFactor;
@@ -69,7 +70,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/vie
      layoutMetrics.wasLeftAndRightSwapped = swapLeftAndRight;
      setLayoutMetrics(layoutMetrics);
      yogaNode_.setHasNewLayout(false);
-@@ -739,6 +759,7 @@ void YogaLayoutableShadowNode::layout(LayoutContext layoutContext) {
+@@ -716,6 +736,7 @@ void YogaLayoutableShadowNode::layout(LayoutContext layoutContext) {
  
        auto newLayoutMetrics = layoutMetricsFromYogaNode(*childYogaNode);
        newLayoutMetrics.pointScaleFactor = layoutContext.pointScaleFactor;
@@ -78,9 +79,10 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/vie
            layoutContext.swapLeftAndRightInRTL &&
            newLayoutMetrics.layoutDirection == LayoutDirection::RightToLeft;
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.h b/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.h
+index 25714d5..fff9c00 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.h
-@@ -134,7 +134,8 @@ class YogaLayoutableShadowNode : public LayoutableShadowNode {
+@@ -137,7 +137,8 @@ class YogaLayoutableShadowNode : public LayoutableShadowNode {
     * ShadowTree has been constructed, but before it has been is laid out or
     * committed.
     */
@@ -91,6 +93,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/vie
    /**
     * Return an errata based on a `layoutConformance` prop if given, otherwise
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/core/LayoutMetrics.h b/node_modules/react-native/ReactCommon/react/renderer/core/LayoutMetrics.h
+index 794f899..cc20fae 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/core/LayoutMetrics.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/core/LayoutMetrics.h
 @@ -40,6 +40,8 @@ struct LayoutMetrics {
@@ -111,6 +114,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/core/LayoutMet
    }
  };
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/SurfaceHandler.cpp b/node_modules/react-native/ReactCommon/react/renderer/scheduler/SurfaceHandler.cpp
+index 3d4adc6..930472f 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/SurfaceHandler.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/scheduler/SurfaceHandler.cpp
 @@ -9,7 +9,6 @@
@@ -222,6 +226,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Surf
          {/* default commit options */});
    }
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/SurfaceHandler.h b/node_modules/react-native/ReactCommon/react/renderer/scheduler/SurfaceHandler.h
+index b031a51..93cfb22 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/SurfaceHandler.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/scheduler/SurfaceHandler.h
 @@ -151,12 +151,6 @@ class SurfaceHandler {
