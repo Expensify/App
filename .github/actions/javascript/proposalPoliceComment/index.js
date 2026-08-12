@@ -39536,7 +39536,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PROPOSAL_POLICE_MODEL = void 0;
+exports.DUPLICATE_SIMILARITY_THRESHOLD = exports.PROPOSAL_POLICE_MODEL = void 0;
 const CONST_1 = __importDefault(__nccwpck_require__(29873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(19296));
 const isBotUser_1 = __importDefault(__nccwpck_require__(37887));
@@ -39557,6 +39557,13 @@ const date_fns_tz_1 = __nccwpck_require__(99297);
  */
 const PROPOSAL_POLICE_MODEL = 'gpt-5.6-luna';
 exports.PROPOSAL_POLICE_MODEL = PROPOSAL_POLICE_MODEL;
+/**
+ * How similar (0-100) a new proposal must be to an existing one before it's withdrawn as a duplicate.
+ * The model only reports a similarity score; this threshold is applied here so tuning it doesn't
+ * depend on the model reproducing a cutoff stated in the prompt.
+ */
+const DUPLICATE_SIMILARITY_THRESHOLD = 85;
+exports.DUPLICATE_SIMILARITY_THRESHOLD = DUPLICATE_SIMILARITY_THRESHOLD;
 function isCommentCreatedEvent(payload) {
     return payload.action === CONST_1.default.ACTIONS.CREATED;
 }
@@ -39585,7 +39592,7 @@ async function run() {
         return;
     }
     // If event is `edited` and comment was already edited by the bot, return early
-    if (isCommentEditedEvent(payload) && payload.comment?.body.trim().includes('Edited by **proposal-police**')) {
+    if (isCommentEditedEvent(payload) && payload.comment?.body.trim().includes(messages_1.SUBSTANTIVE_EDIT_MESSAGE_PREFIX)) {
         console.log('Comment was already edited by proposal-police once.\n', payload.comment?.body);
         return;
     }
@@ -39627,7 +39634,7 @@ async function run() {
         // Reusing a tracked Conversation implies it has at least one prior proposal in it (that's why it was created);
         // a freshly created one only has prior proposals if we seeded it with any.
         let hasPriorProposals = !!conversationID;
-        if (!hasPriorProposals) {
+        if (!conversationID) {
             console.log("No tracked Conversation found for this issue. Creating one and seeding it with the issue's prior proposals...");
             const seedItems = (0, ProposalPoliceConversation_1.buildSeedItems)(commentsResponse, newProposalCreatedAt);
             hasPriorProposals = seedItems.length > 0;
@@ -39656,7 +39663,7 @@ async function run() {
             console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
             core.endGroup();
             const similarityPercentage = parsedDuplicateCheckResponse?.similarity ?? 0;
-            if (parsedDuplicateCheckResponse?.action === CONST_1.default.ACTION_HIDE_DUPLICATE && similarityPercentage >= 85) {
+            if (similarityPercentage >= DUPLICATE_SIMILARITY_THRESHOLD) {
                 console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
                 // Sanity-check the model's reported duplicateCommentId against the real comment list before trusting it for the notice link
                 const originalProposal = commentsResponse.find((comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentId && comment.id !== commentID && (0, ProposalUtils_1.default)(comment.body));
@@ -39700,33 +39707,24 @@ async function run() {
     core.startGroup('Parsed Response');
     console.log('parsedResponse: ', parsedResponse);
     core.endGroup();
-    // fallback to empty strings to avoid crashing in case parsing fails
-    const { action = '', message = '' } = parsedResponse ?? {};
-    const isNoAction = action.trim() === CONST_1.default.NO_ACTION;
-    const isActionEdit = action.trim() === CONST_1.default.ACTION_EDIT;
-    const isActionRequired = action.trim() === CONST_1.default.ACTION_REQUIRED;
-    // If the response is NO_ACTION and there's no message, return early
-    if (isNoAction && !message) {
+    // Fall back to NO_ACTION so a parse failure leaves the comment untouched
+    const action = parsedResponse?.action ?? CONST_1.default.NO_ACTION;
+    if (action === CONST_1.default.NO_ACTION) {
         console.log('Detected NO_ACTION for comment, returning early.');
         return;
     }
-    if (isCommentCreatedEvent(payload) && isActionRequired) {
-        const formattedResponse = message
-            // replace {user} from response template with @username
-            .replaceAll('{user}', `@${payload.comment?.user.login}`);
-        // Create a comment with the response
+    if (isCommentCreatedEvent(payload) && action === CONST_1.default.ACTION_REQUIRED) {
         console.log('ProposalPolice™ commenting on issue...');
-        await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, issueNumber, formattedResponse);
+        await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, issueNumber, (0, messages_1.buildTemplateReminderMessage)(payload.comment?.user.login));
         // edit comment if substantial changes were detected
     }
-    else if (isActionEdit) {
-        const formattedResponse = message.replace('{updated_timestamp}', formattedDate);
+    else if (action === CONST_1.default.ACTION_EDIT) {
         console.log('ProposalPolice™ editing issue comment...', commentID);
         await GithubUtils_1.default.octokit.issues.updateComment({
             ...github_1.context.repo,
             /* eslint-disable @typescript-eslint/naming-convention */
             comment_id: commentID,
-            body: `${formattedResponse}\n\n${payload.comment?.body}`,
+            body: `${(0, messages_1.buildSubstantiveEditMessage)(formattedDate)}\n\n${payload.comment?.body}`,
         });
     }
 }
@@ -39810,7 +39808,6 @@ const CONST = {
     NO_ACTION: 'NO_ACTION',
     ACTION_EDIT: 'ACTION_EDIT',
     ACTION_REQUIRED: 'ACTION_REQUIRED',
-    ACTION_HIDE_DUPLICATE: 'ACTION_HIDE_DUPLICATE',
 };
 exports["default"] = CONST;
 
@@ -40381,83 +40378,25 @@ exports.EDITED_COMMENT_ACTIONS = exports.NEW_COMMENT_ACTIONS = void 0;
 const CONST_1 = __importDefault(__nccwpck_require__(29873));
 const expensify_common_1 = __nccwpck_require__(64851);
 /**
- * How to respond to a newly created comment. Used only by the template-check call.
+ * How to classify a newly created comment. Used only by the template-check call.
  */
 const NEW_COMMENT_ACTIONS = expensify_common_1.Str.dedent(`
-    NEW COMMENTS: For each new comment, check if it's a proposal by verifying the PROPOSAL TEMPLATE and the presence of mandatory lines in the proposal template - user content is allowed here.
+    NEW COMMENTS: Decide whether the comment is a proposal that follows the PROPOSAL TEMPLATE. User content within the sections is allowed to be anything.
 
-    - If any proposal template MANDATORY LINE is missing, respond with:
-
-    ATTENTION BELOW, mandatory maintain the "{}" brackets around {user} as that will be used for variable extraction.
-
-    - action: "${CONST_1.default.ACTION_REQUIRED}"
-    - message: ⚠️ {user} Thanks for your proposal. Please update it to follow the [proposal template](https://github.com/Expensify/App/blob/main/contributingGuides/PROPOSAL_TEMPLATE.md?plain=1), as proposals are only reviewed if they follow that format (note the mandatory sections).
-
-    - If all mandatory lines are present OR the comment does not contain (## Proposal), respond with:
-
-    - action: "${CONST_1.default.NO_ACTION}"
-    - message: ""
+    - "${CONST_1.default.ACTION_REQUIRED}" if the comment is a proposal but is missing any MANDATORY LINE.
+    - "${CONST_1.default.NO_ACTION}" if every mandatory line is present, or if the comment is not a proposal at all.
 `);
 exports.NEW_COMMENT_ACTIONS = NEW_COMMENT_ACTIONS;
 /**
- * How to respond to an edited comment. Used only by the edit-check call.
+ * How to classify an edit to a proposal comment. Used only by the edit-check call.
  */
 const EDITED_COMMENT_ACTIONS = expensify_common_1.Str.dedent(`
-    EDITED COMMENTS: For each edited proposal comment containing the (## Proposal) template title, compare the given initial proposal with the latest edit.
+    EDITED COMMENTS: Compare the original proposal with its latest edit.
 
-    - If changes are SUBSTANTIAL, respond with:
-
-    ATTENTION BELOW, mandatory maintain the "{}" brackets around {updated_timestamp} as that will be used for variable extraction.
-
-    - action: "${CONST_1.default.ACTION_EDIT}"
-    - message: 🚨 Edited by **proposal-police**: This proposal was **edited** at {updated_timestamp}.
-
-    - If changes are MINOR, respond with:
-
-    - action: "${CONST_1.default.NO_ACTION}"
-    - message: ""
+    - "${CONST_1.default.ACTION_EDIT}" if the changes are SUBSTANTIAL.
+    - "${CONST_1.default.NO_ACTION}" if the changes are MINOR.
 `);
 exports.EDITED_COMMENT_ACTIONS = EDITED_COMMENT_ACTIONS;
-
-
-/***/ }),
-
-/***/ 62192:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const expensify_common_1 = __nccwpck_require__(64851);
-/**
- * The decision tree used only by the template-check call, for classifying a newly created comment.
- */
-exports["default"] = expensify_common_1.Str.dedent(`
-    DECISION TREE (starts and ends at "___"):
-    ___
-    For each new comment:
-    Does it contain the word "Proposal"?
-
-    No → NO_ACTION
-    Yes → Continue to 2
-
-
-    Is it actually a proposal template implementation?
-
-    Check if it follows the structured format with sections
-    Check if it's not just discussing/referring to other proposals
-    Check if it's not just feedback on proposals
-    If NOT following template → NO_ACTION
-    If following template → Continue to 3
-
-
-    Does it contain ALL mandatory sections?
-
-    No → ACTION_REQUIRED with template message
-    Yes → NO_ACTION
-
-    ___
-`);
 
 
 /***/ }),
@@ -40475,38 +40414,20 @@ const expensify_common_1 = __nccwpck_require__(64851);
 exports["default"] = expensify_common_1.Str.dedent(`
     DUPLICATE PROPOSAL DETECTION:
 
-    When a new proposal is posted, compare it to existing proposals in the same issue that were posted by different users. Consider ONLY these two proposal template sections:
+    Compare the new proposal against every prior proposal already in this conversation (each was posted as its own message tagged with a comment_id attribute). Consider ONLY the ROOT CAUSE and SOLUTION sections.
 
-    - What is the root cause of that problem?
-    - What changes do you think we should make in order to solve the problem?
-
-    Instructions for Similarity Calculation:
-    Give at least 80% weight to the "What changes do you think we should make in order to solve the problem?" section (the solution section) when calculating similarity.
-    - If the solution section in both proposals describes the same or nearly the same technical approach, code, or implementation - even if worded differently - consider them highly similar.
-    - If the solution section describes a different technical approach, code, or implementation, consider them dissimilar, even if the problem and root cause are similar.
-    - The "What is the root cause of that problem?" section should be considered, but only as a secondary factor (at most 20% of the similarity score).
-    - If both the root cause and solution are nearly identical, the similarity should be very high (close to 100).
-    - If the solution is the same but the root cause is different, the similarity should still be high (over 90).
-    - If the solution is different - even if the root cause is the same - the similarity should be much lower (well below 90).
-
-    IMPORTANT: When comparing the "What changes do you think we should make in order to solve the problem?" section:
-    - If the mechanism or approach to solving the problem is different, the proposals are NOT duplicates, even if they mention similar files, variables, or error messages.
-    - For example, if one proposal suggests "clear the error in the selection handler" and another suggests "disable the confirm button to prevent the error," these are fundamentally different solutions and should have a LOW similarity score (well below 90).
-    - Only consider proposals as duplicates (similarity >= 90) if they propose the same technical approach (e.g., both say to clear the error in the same handler, or both say to disable the button in the same way).
-    - If the solutions are mutually exclusive or would not be implemented together, they are NOT duplicates.
-    - Do NOT base similarity on the presence of the same keywords, file names, or error messages alone—focus on the actual change being proposed.
+    SCORING: Weight the SOLUTION section at least 80% and the ROOT CAUSE section at most 20%. Two proposals are similar only to the extent they propose the same technical change:
+    - Same mechanism or approach, even if worded differently → very high similarity.
+    - Different mechanism or approach → low similarity, even when the root cause, files, variables, or error messages are identical. Judge the actual change being proposed, not shared keywords.
+    - Solutions that are mutually exclusive, or that would not be implemented together, are never similar.
 
     EXAMPLES:
-    1. If Proposal A says "clear the error in onSelectRow" and Proposal B says "disable the confirm button so the error never appears," these are NOT duplicates (similarity < 50).
-    2. If Proposal A and Proposal B both say "clear the error in onSelectRow" (even if worded differently), these ARE duplicates (similarity >= 90).
+    1. A says "clear the error in onSelectRow", B says "disable the confirm button so the error never appears" → different mechanisms, similarity < 50.
+    2. A and B both say "clear the error in onSelectRow" (even if worded differently) → same mechanism, similarity >= 90.
 
-    Summary:
-    - Only assign a high similarity score if the core technical solution is the same.
-    - If the solutions are different approaches—even if the problem and files are the same—assign a low similarity score.
+    Use your best judgment as a Senior React Engineer and code reviewer to determine whether the technical solution is the same.
 
-    Use your best judgment as a Senior React Engineer and code reviewer to determine if the technical solution is the same or different.
-
-    HOW TO RESPOND: compare the new proposal against every prior proposal already in this conversation (each was posted as its own message tagged with a comment_id attribute). If the highest similarity found is 90 or above, respond with that similarity and the comment_id of the prior proposal it matches. Otherwise, similarity is the highest score found (which will be below 90) and the comment_id field is not applicable.
+    HOW TO RESPOND: report the highest similarity you found, and the comment_id of the prior proposal that scored it. If no prior proposal is similar, report that highest score with a null comment_id.
 `);
 
 
@@ -40524,10 +40445,13 @@ const expensify_common_1 = __nccwpck_require__(64851);
  * to a proposal comment as MINOR (no action) or SUBSTANTIAL (flag the edit).
  */
 exports["default"] = expensify_common_1.Str.dedent(`
+    CHANGES CLASSIFICATION: judge an edit ONLY by what it does to the ROOT CAUSE and SOLUTION sections.
+
+    - MINOR: fixing typos, or adding permalinks, videos, screenshots, emojis, or the ALTERNATIVES section, without considerably changing the ROOT CAUSE or SOLUTION text.
+    - SUBSTANTIAL: the edit names a different ROOT CAUSE, or considerably changes the SOLUTION.
+
     EDIT CLASSIFICATION EXAMPLES (starts and ends at "___"):
     ___
-    MINOR Edit Examples:
-
     Original:
     ## Proposal
 
@@ -40548,9 +40472,8 @@ exports["default"] = expensify_common_1.Str.dedent(`
 
     ### What alternative solutions did you explore? (Optional)
     We could also consider using a third-party upload service
-    [MINOR: Added screenshot link, emoji, and optional section without changing core content]
+    [MINOR: Added an emoji and the ALTERNATIVES section without changing ROOT CAUSE or SOLUTION]
 
-    SUBSTANTIAL Edit Examples:
     Original:
     ## Proposal
 
@@ -40568,17 +40491,8 @@ exports["default"] = expensify_common_1.Str.dedent(`
 
     ### What changes do you think we should make in order to solve the problem?
     Redesign the profile page to include settings section and add clear navigation paths
-
-    [SUBSTANTIAL: Changed root cause understanding and proposed solution significantly]
+    [SUBSTANTIAL: Changed both the ROOT CAUSE and the SOLUTION]
     ___
-
-    CHANGES CLASSIFICATION:
-
-    When comparing an initial proposal (non-edited) with the latest edit of a proposal comment, ONLY consider the following 'CHANGES' CLASSIFICATIONS:
-
-    a. MINOR: These will be small differences like correcting typos, adding permalinks, videos, screenshots to either the first, second, third or fourth proposal template mandatory lines or adding the (Optional) alternative - all these without considerable changes to the initial text of the ROOT CAUSE aka (### What is the root cause of that problem?), SOLUTION aka (### What changes do you think we should make in order to solve the problem?).
-
-    b. SUBSTANTIAL: With focus on the ROOT CAUSE and SOLUTION sections, these will be accounted for significant differences on the ROOT CAUSE and SOLUTION sections (either one of them, or all three of them) - meaning if initially the proposal's ROOT CAUSE and SOLUTION user content was mentioning a certain root cause or suggesting a certain solution and the latest edit is mentioning a completely different ROOT CAUSE and / or considerable SOLUTION changes.
 `);
 
 
@@ -40648,7 +40562,6 @@ exports.buildTemplateCheckInstructions = buildTemplateCheckInstructions;
 exports.buildEditCheckInstructions = buildEditCheckInstructions;
 exports.buildDuplicateCheckInstructions = buildDuplicateCheckInstructions;
 const botActions_1 = __nccwpck_require__(58977);
-const decisionTree_1 = __importDefault(__nccwpck_require__(62192));
 const duplicateDetection_1 = __importDefault(__nccwpck_require__(54443));
 const editCheckExamples_1 = __importDefault(__nccwpck_require__(36420));
 const templateCheckExamples_1 = __importDefault(__nccwpck_require__(72009));
@@ -40656,7 +40569,7 @@ const templateDefinition_1 = __importDefault(__nccwpck_require__(22169));
 const ROLE = 'You are a GitHub bot using AI capabilities to monitor and enforce proposal comments on GitHub repository issues.';
 /**
  * Instructions for checking whether a newly created comment is a valid proposal.
- * Only includes the template definition, validation/identification examples, decision tree, and new-comment actions —
+ * Only includes the template definition, validation examples, and new-comment actions —
  * nothing about edits or duplicate detection, since this call never needs them.
  */
 function buildTemplateCheckInstructions() {
@@ -40665,7 +40578,6 @@ function buildTemplateCheckInstructions() {
         `<role>\n${ROLE}\n</role>`,
         `<proposal_template>\n${templateDefinition_1.default}\n</proposal_template>`,
         `<examples>\n${templateCheckExamples_1.default}\n</examples>`,
-        `<decision_tree>\n${decisionTree_1.default}\n</decision_tree>`,
         `<bot_actions>\n${botActions_1.NEW_COMMENT_ACTIONS}\n</bot_actions>`,
         '</system_prompt>',
     ].join('\n');
@@ -40708,15 +40620,29 @@ function buildDuplicateCheckInstructions() {
 
 "use strict";
 
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DUPLICATE_CHECK_WITHDRAW_MESSAGE = void 0;
-exports.buildDuplicateCheckNoticeMessage = buildDuplicateCheckNoticeMessage;
 /**
- * GitHub-facing message templates for the duplicate-check flow. These are posted directly by
- * proposalPoliceComment.ts and are not sent to or generated by the model.
+ * Every GitHub-facing message ProposalPolice posts. The model only decides *which* of these applies;
+ * it never writes or echoes the text, so the wording here is what contributors actually see.
  */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SUBSTANTIVE_EDIT_MESSAGE_PREFIX = exports.DUPLICATE_CHECK_WITHDRAW_MESSAGE = void 0;
+exports.buildTemplateReminderMessage = buildTemplateReminderMessage;
+exports.buildSubstantiveEditMessage = buildSubstantiveEditMessage;
+exports.buildDuplicateCheckNoticeMessage = buildDuplicateCheckNoticeMessage;
 const DUPLICATE_CHECK_WITHDRAW_MESSAGE = '#### 🚫 Duplicated proposal withdrawn by 🤖 ProposalPolice.';
 exports.DUPLICATE_CHECK_WITHDRAW_MESSAGE = DUPLICATE_CHECK_WITHDRAW_MESSAGE;
+/**
+ * Marks a comment ProposalPolice has already flagged as substantively edited. Matched against comment
+ * bodies to avoid flagging the same edit twice, so it must stay a literal prefix of the message below.
+ */
+const SUBSTANTIVE_EDIT_MESSAGE_PREFIX = '🚨 Edited by **proposal-police**:';
+exports.SUBSTANTIVE_EDIT_MESSAGE_PREFIX = SUBSTANTIVE_EDIT_MESSAGE_PREFIX;
+function buildTemplateReminderMessage(proposalAuthor) {
+    return `⚠️ @${proposalAuthor} Thanks for your proposal. Please update it to follow the [proposal template](https://github.com/Expensify/App/blob/main/contributingGuides/PROPOSAL_TEMPLATE.md?plain=1), as proposals are only reviewed if they follow that format (note the mandatory sections).`;
+}
+function buildSubstantiveEditMessage(updatedTimestamp) {
+    return `${SUBSTANTIVE_EDIT_MESSAGE_PREFIX} This proposal was **edited** at ${updatedTimestamp}.`;
+}
 function buildDuplicateCheckNoticeMessage(proposalAuthor, originalProposalURL) {
     const existingProposalWithURL = originalProposalURL ? `[existing proposal](${originalProposalURL})` : 'existing proposal';
     return `⚠️ @${proposalAuthor} Your proposal is a duplicate of an already ${existingProposalWithURL} and has been automatically withdrawn to prevent spam. Please review the existing proposals before submitting a new one.`;
@@ -40747,9 +40673,8 @@ const TEMPLATE_CHECK_RESPONSE_FORMAT = {
         type: 'object',
         properties: {
             action: { type: 'string', enum: [CONST_1.default.NO_ACTION, CONST_1.default.ACTION_REQUIRED] },
-            message: { type: 'string' },
         },
-        required: ['action', 'message'],
+        required: ['action'],
         additionalProperties: false,
     },
 };
@@ -40762,9 +40687,8 @@ const EDIT_CHECK_RESPONSE_FORMAT = {
         type: 'object',
         properties: {
             action: { type: 'string', enum: [CONST_1.default.NO_ACTION, CONST_1.default.ACTION_EDIT] },
-            message: { type: 'string' },
         },
-        required: ['action', 'message'],
+        required: ['action'],
         additionalProperties: false,
     },
 };
@@ -40776,11 +40700,10 @@ const DUPLICATE_CHECK_RESPONSE_FORMAT = {
     schema: {
         type: 'object',
         properties: {
-            action: { type: 'string', enum: [CONST_1.default.NO_ACTION, CONST_1.default.ACTION_HIDE_DUPLICATE] },
             similarity: { type: 'number' },
             duplicateCommentId: { type: ['number', 'null'] },
         },
-        required: ['action', 'similarity', 'duplicateCommentId'],
+        required: ['similarity', 'duplicateCommentId'],
         additionalProperties: false,
     },
 };
@@ -40789,22 +40712,22 @@ function isTemplateCheckResponse(value) {
     if (typeof value !== 'object' || value === null) {
         return false;
     }
-    const { action, message } = value;
-    return (action === CONST_1.default.NO_ACTION || action === CONST_1.default.ACTION_REQUIRED) && typeof message === 'string';
+    const { action } = value;
+    return action === CONST_1.default.NO_ACTION || action === CONST_1.default.ACTION_REQUIRED;
 }
 function isEditCheckResponse(value) {
     if (typeof value !== 'object' || value === null) {
         return false;
     }
-    const { action, message } = value;
-    return (action === CONST_1.default.NO_ACTION || action === CONST_1.default.ACTION_EDIT) && typeof message === 'string';
+    const { action } = value;
+    return action === CONST_1.default.NO_ACTION || action === CONST_1.default.ACTION_EDIT;
 }
 function isDuplicateCheckResponse(value) {
     if (typeof value !== 'object' || value === null) {
         return false;
     }
-    const { action, similarity, duplicateCommentId } = value;
-    return ((action === CONST_1.default.NO_ACTION || action === CONST_1.default.ACTION_HIDE_DUPLICATE) && typeof similarity === 'number' && (duplicateCommentId === null || typeof duplicateCommentId === 'number'));
+    const { similarity, duplicateCommentId } = value;
+    return typeof similarity === 'number' && (duplicateCommentId === null || typeof duplicateCommentId === 'number');
 }
 
 
@@ -40822,10 +40745,8 @@ const expensify_common_1 = __nccwpck_require__(64851);
  * and what counts as a proposal comment at all (vs. discussion/feedback that merely mentions one).
  */
 exports["default"] = expensify_common_1.Str.dedent(`
-    PROPOSAL TEMPLATE VALIDATION EXAMPLES (starts and ends at "___"):
+    PROPOSAL EXAMPLES (starts and ends at "___"):
     ___
-    Valid Proposal Examples:
-
     ## Proposal
 
     ### What is the root cause of that problem?
@@ -40833,6 +40754,7 @@ exports["default"] = expensify_common_1.Str.dedent(`
 
     ### What changes do you think we should make in order to solve the problem?
     Implement image compression before upload
+    [VALID: every mandatory line is present]
 
     # 🔧 Proposal
 
@@ -40844,50 +40766,36 @@ exports["default"] = expensify_common_1.Str.dedent(`
 
     ### What alternative solutions did you explore? (Optional)
     Considered adding a floating settings button
+    [VALID: single "#" and an emoji are fine, and ALTERNATIVES is optional]
 
-    Invalid Proposal Examples:
     ## Proposal
 
     ### What changes do you think we should make in order to solve the problem?
     Fix the login system
+    [INVALID: missing the ROOT CAUSE line]
+    ___
 
-    [INVALID: Missing "What is the root cause of that problem?" section]
-
+    COMMENTS THAT ARE NOT PROPOSALS AT ALL, even though they contain the word "Proposal" (starts and ends at "___"):
+    ___
     Bug Report:
     The app is crashing when uploading images
     We should fix this by implementing compression
+    [Does not follow the template at all]
 
-    [INVALID: Not following proposal template format at all]
-    ___
-
-    PROPOSAL IDENTIFICATION EXAMPLES (starts and ends at "___"):
-    ___
-    Valid Proposal Comments:
-    ## Proposal
-
-    ### What is the root cause of that problem?
-    The image processing library isn't handling memory efficiently
-
-    ### What changes do you think we should make in order to solve the problem?
-    Implement image compression before upload
-
-    [VALID: Contains "Proposal" and follows template structure with all mandatory sections]
-
-    Not Actually Proposals (Even Though They Contain "Proposal" Word):
     ## Proposal Review Status
     I've looked at the proposal above and it needs more details about the implementation.
-    [NOT A PROPOSAL: Just discussing a proposal]
+    [Just discussing a proposal]
 
     The previous proposal was rejected because it didn't address the core issue. Here's my thoughts on what we should do instead...
-    [NOT A PROPOSAL: Mentions proposal but doesn't follow template]
+    [Mentions a proposal but doesn't follow the template]
 
     ## Proposal
     I think we should fix the login system. It's not working properly right now.
-    [NOT A PROPOSAL: Has "Proposal" header but doesn't follow required template structure]
+    [Has a "Proposal" header but no template structure]
 
     ## Proposal Feedback
     @username Your proposal looks good, but could you clarify the testing strategy?
-    [NOT A PROPOSAL: Just commenting on someone else's proposal]
+    [Commenting on someone else's proposal]
     ___
 `);
 
@@ -40924,10 +40832,15 @@ exports["default"] = expensify_common_1.Str.dedent(`
     {optional user content here}
     ___
 
+    SECTION SHORTHAND used throughout these instructions:
+    - ROOT CAUSE = "What is the root cause of that problem?"
+    - SOLUTION = "What changes do you think we should make in order to solve the problem?"
+    - ALTERNATIVES = "What alternative solutions did you explore? (Optional)"
+
     IMPORTANT NOTES ON THE PROPOSAL TEMPLATE:
     - the "###" are optional, it can be just one #, two ## or 3 ### but these are OPTIONAL and the proposal should still be classified as VALID with different levels of markdown bold or none;
     - besides the "#" mentioned above, also adding emojis in between the bold markdown notation and the mandatory lines should still be classified as VALID with different levels of markdown bold or none; example: ## 🤖 Proposal - should be valid;
-    - the last proposal optional line (What alternative solutions did you explore? (Optional)) can exist or not and no matter its {optional user content here}, the proposal should still be classified as VALID;
+    - the ALTERNATIVES line can exist or not and no matter its {optional user content here}, the proposal should still be classified as VALID;
 `);
 
 
