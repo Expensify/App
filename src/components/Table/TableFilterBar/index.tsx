@@ -66,7 +66,7 @@ export default function TableFilterBar({label, shouldShowClearFiltersButton, chi
                     onClosePress={filter.onClosePress}
                 />
             ))}
-            {shouldShowClearFiltersButton && <SearchFiltersClearButton onPress={clearAllFilters} />}
+            {!!shouldShowClearFiltersButton && <SearchFiltersClearButton onPress={clearAllFilters} />}
         </View>
     );
 
