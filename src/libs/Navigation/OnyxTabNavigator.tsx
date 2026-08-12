@@ -28,7 +28,7 @@ import type {EventArg, EventMapCore, NavigationProp, NavigationState, ParamListB
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {TabActions, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {Keyboard, StyleSheet, View} from 'react-native';
 
 import type {RegisterTabSwitchGuard, TabSwitchGuard} from './TabSwitchGuardContext';
 
@@ -204,7 +204,10 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     };
 
     const runAfterKeyboardDismiss = (callback: () => void) => {
-        if (!shouldDismissKeyboardBeforeTabSwitch) {
+        // Only wait when there is actually a keyboard to wait for. `Keyboard.isVisible` is React Native's own tracking
+        // rather than the flag inside `KeyboardUtils`, so a stale flag there can't defer a jump that has nothing to wait
+        // on.
+        if (!shouldDismissKeyboardBeforeTabSwitch || !Keyboard.isVisible()) {
             callback();
             return;
         }
@@ -238,7 +241,8 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
             runAfterKeyboardDismiss(() => navigation.dispatch(TabActions.jumpTo(targetRoute.name)));
         };
         if (!guard || !guard.getHasUnsavedChanges()) {
-            if (!shouldDismissKeyboardBeforeTabSwitch) {
+            if (!shouldDismissKeyboardBeforeTabSwitch || !Keyboard.isVisible()) {
+                // Nothing to wait for, so leave the jump to react-navigation and keep it synchronous.
                 return;
             }
             // No unsaved changes means no modal is shown, but the input can still be focused with the keyboard up. Take

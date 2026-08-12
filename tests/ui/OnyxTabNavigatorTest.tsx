@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
 
 import React from 'react';
+import {Keyboard} from 'react-native';
 
 type MockNavigation = {
     getState: () => {
@@ -155,10 +156,16 @@ describe('OnyxTabNavigator tab discard input blur', () => {
 describe('OnyxTabNavigator keyboard dismissal before tab switch', () => {
     const mockedKeyboardUtils = jest.mocked(KeyboardUtils);
 
+    /** The navigator only defers a tab switch when React Native reports a visible keyboard. */
+    function mockKeyboardVisible(isVisible: boolean) {
+        jest.spyOn(Keyboard, 'isVisible').mockReturnValue(isVisible);
+    }
+
     beforeEach(() => {
         jest.clearAllMocks();
         mockScreenListeners = undefined;
         mockedKeyboardUtils.dismiss.mockImplementation(() => Promise.resolve());
+        mockKeyboardVisible(true);
     });
 
     afterEach(() => {
@@ -233,6 +240,18 @@ describe('OnyxTabNavigator keyboard dismissal before tab switch', () => {
 
         const event = pressTargetTab();
 
+        expect(event.preventDefault).not.toHaveBeenCalled();
+        expect(mockedKeyboardUtils.dismiss).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('leaves the jump to react-navigation when no keyboard is showing', () => {
+        mockKeyboardVisible(false);
+        renderTabNavigator(false, true);
+
+        const event = pressTargetTab();
+
+        // Nothing to wait for, so the press is not taken over and stays synchronous.
         expect(event.preventDefault).not.toHaveBeenCalled();
         expect(mockedKeyboardUtils.dismiss).not.toHaveBeenCalled();
         expect(mockDispatch).not.toHaveBeenCalled();
