@@ -4,7 +4,14 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePrevious from '@hooks/usePrevious';
 
-import {clearMoneyRequestRateAutoUpdated, setCustomUnitRateID, setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestPendingFields} from '@libs/actions/IOU/MoneyRequest';
+import {
+    clearMoneyRequestRateAutoUpdated,
+    setCustomUnitRateID,
+    setMoneyRequestAmount,
+    setMoneyRequestCommuterExclusionFields,
+    setMoneyRequestMerchant,
+    setMoneyRequestPendingFields,
+} from '@libs/actions/IOU/MoneyRequest';
 import {setSplitShares} from '@libs/actions/IOU/Split';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
@@ -146,10 +153,10 @@ function DistanceRequestController({
         if (isReadOnly) {
             return;
         }
-        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
-        setMoneyRequestAmount(transactionID, amount, currency ?? '');
+        // Use the (commuter-exclusion-aware) reimbursable amount so the seeded amount matches what the backend will calculate.
+        setMoneyRequestAmount(transactionID, distanceRequestAmount, currency ?? '');
         isFirstUpdatedDistanceAmount.current = true;
-    }, [distance, rate, isReadOnly, unit, transactionID, currency, isDistanceRequest]);
+    }, [distanceRequestAmount, isReadOnly, transactionID, currency, isDistanceRequest]);
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount || !transactionID || isReadOnly) {
@@ -239,6 +246,19 @@ function DistanceRequestController({
             isManualDistanceRequest,
         );
         setMoneyRequestMerchant(transactionID, distanceMerchant, true);
+
+        setMoneyRequestCommuterExclusionFields({
+            transactionID,
+            transaction,
+            policy,
+            customUnitRateID,
+            routeDistanceMeters: distance,
+            distanceUnit: unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            translate,
+            toLocaleDigit,
+            getCurrencySymbol,
+            personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+        });
     }, [
         isDistanceRequestWithPendingRoute,
         hasRoute,
@@ -254,6 +274,9 @@ function DistanceRequestController({
         isReadOnly,
         getCurrencySymbol,
         isManualDistanceRequest,
+        policy,
+        customUnitRateID,
+        personalPolicy?.outputCurrency,
     ]);
 
     return null;

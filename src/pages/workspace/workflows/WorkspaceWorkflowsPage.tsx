@@ -158,7 +158,7 @@ function WorkflowsLoadMoreCard({count, onPress}: {count: number; onPress: () => 
 
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.workflows');
-    const {translate, localeCompare} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const illustrations = useMemoizedLazyIllustrations(['Workflows']);
@@ -216,6 +216,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             passedPersonalDetails: details,
             defaultValue: policyReimburserEmail,
             translate,
+            formatPhoneNumber,
         }),
     );
 
