@@ -1,5 +1,5 @@
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
-import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
@@ -7,10 +7,12 @@ import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCr
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
@@ -19,6 +21,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID, getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isManualDistanceRequest as isManualDistanceRequestUtil, isOdometerDistanceRequest as isOdometerDistanceRequestUtil, isUnreportedManagedCardTransaction} from '@libs/TransactionUtils';
 
@@ -43,6 +46,21 @@ function SearchTransactionsChangeReport() {
     const delegateAccountID = useDelegateAccountID();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
+    const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const {isOffline} = useNetwork();
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+
+    // Moving expenses creates or updates reports and report actions without adding or removing any transaction, so the
+    // Search snapshot is not refetched on its own and the moved rows keep serving their pre-move report context (which
+    // hides Submit, Hold and Move to report). Refetch explicitly, the same way approving and paying from Search do.
+    const refreshSearch = () =>
+        refreshSearchAfterReportAction({
+            currentSearchQueryJSON,
+            currentSearchKey,
+            shouldCalculateTotals,
+            isOffline,
+            isLoading: !!currentSearchResults?.search?.isLoading,
+        });
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
     const transactions = Object.values(selectedTransactions)
@@ -190,6 +208,7 @@ function SearchTransactionsChangeReport() {
                 delegateAccountID,
                 getCurrencyDecimals,
             });
+            refreshSearch();
             clearSelectedTransactions();
         });
         Navigation.goBack();
@@ -277,6 +296,7 @@ function SearchTransactionsChangeReport() {
             delegateAccountID,
             getCurrencyDecimals,
         });
+        refreshSearch();
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
 
@@ -301,6 +321,7 @@ function SearchTransactionsChangeReport() {
             delegateAccountID,
             getCurrencyDecimals,
         });
+        refreshSearch();
         clearSelectedTransactions();
         Navigation.goBack();
     };
