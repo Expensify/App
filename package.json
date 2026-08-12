@@ -81,7 +81,7 @@
     "compress-svg": "bun scripts/compressSvg.ts --dir assets/images && bun scripts/compressSvg.ts --dir docs/assets/images",
     "server:vcr:dev": "npm run dev -w @expensify/victory-chart-renderer --",
     "server:vcr:test": "npm run test -w @expensify/victory-chart-renderer --",
-    "test:bun": "TZ=utc bun test --isolate --preload ./scripts/stubReactNative.js --preload ./tests/tooling/setup.ts ./server ./tests/tooling",
+    "test:bun": "TZ=utc bun test --parallel --preload ./scripts/stubReactNative.js --preload ./tests/tooling/setup.ts ./server ./tests/tooling",
     "server:vcr:build:linux": "npm run build:linux -w @expensify/victory-chart-renderer --",
     "server:vcr:build:linux-arm": "npm run build:linux-arm -w @expensify/victory-chart-renderer --",
     "server:vcr:build:macos": "npm run build:macos -w @expensify/victory-chart-renderer --"

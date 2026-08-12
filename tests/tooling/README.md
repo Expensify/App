@@ -13,10 +13,10 @@ These run as part of `test:bun`, alongside the `server/` suite — one Bun invoc
 npm run test:bun
 
 # Just this directory
-TZ=utc bun test --isolate --preload ./scripts/stubReactNative.js --preload ./tests/tooling/setup.ts ./tests/tooling
+TZ=utc bun test --parallel --preload ./scripts/stubReactNative.js --preload ./tests/tooling/setup.ts ./tests/tooling
 
 # One file
-TZ=utc bun test --isolate --preload ./scripts/stubReactNative.js --preload ./tests/tooling/setup.ts ./tests/tooling/GithubUtils.test.ts
+TZ=utc bun test --parallel --preload ./scripts/stubReactNative.js --preload ./tests/tooling/setup.ts ./tests/tooling/GithubUtils.test.ts
 
 # One test, by name
 npm run test:bun -- -t 'getPullRequestNumberFromURL'
@@ -30,12 +30,19 @@ nothing, because `bunfig.toml` points bare `bun test` at `server/`.
 
 Neither flag is optional:
 
-- `--isolate` — several files replace `fs`, `child_process` or a shared lib with `mock.module()`, and Bun shares
-  one module registry across files unless each gets its own. It also keeps `CIGitLogic`, whose tests build on each
-  other's git state, from running concurrently with anything else.
+- `--parallel` — runs each file in a worker process, and implies `--isolate`. Isolation is the load-bearing part:
+  several files replace `fs`, `child_process` or a shared lib with `mock.module()`, and Bun shares one module
+  registry (and `process.env`) across files unless each gets its own. Separate processes additionally give
+  `CIGitLogic` its own working directory, which it changes.
 - `--preload ./scripts/stubReactNative.js` — `generateTranslations.test.ts` reaches `src/languages/en`, which pulls
   in `react-native`, whose Flow syntax Bun can't parse. `bunfig.toml`'s top-level `preload` does not apply to
   `bun test`, so it has to be passed here. It's the same stub `bun scripts/generateTranslations.ts` runs with.
+
+`--concurrent` is deliberately not used. It makes the tests *within* each file run at once, which does not help:
+under `--parallel` the wall clock is set by the single longest file (`CIGitLogic`, ~52s of the ~53s total), and
+that file has to stay ordered. It also breaks tests — 16 of the files here reset module-level spies in
+`beforeEach`, so a concurrent sibling clears the mocks a running test is about to assert on. Measured on the full
+suite: `--parallel` 52.9s and passing, `--parallel --concurrent --max-concurrency 7` 57.2s with 9 failures.
 
 ## Why bun:test and not Jest
 
@@ -47,16 +54,8 @@ That is also the rule for where a new test belongs: **if its import graph reache
 it goes here.** Everything else — including scripts that only use `scripts/utils/*` — can stay in `tests/unit/`
 under Jest.
 
-There is one hard constraint on top of that rule: **nothing here may pull `src/` into its type graph.** This
-directory type-checks with `@types/bun`, whose ambient JSX declarations conflict with the app's React and
-react-native types, so a file that reaches `src/CONST` or `src/types/onyx` drags ~3,000 app files into this
-project and produces thousands of spurious errors. Import the narrowest module that has what you need —
-`@src/CONST/LOCALES` is self-contained, `@src/types/onyx/Locale` re-exports the whole `@src/CONST` barrel.
-
-That constraint is why `tests/unit/generateTranslationsTest.ts` is still on Jest even though the script it covers
-reaches `@actions/*`: the script itself imports `src/languages/en`, so its type graph can't be narrowed from the
-test side. It needs the pure logic extracted, or its own type-check strategy, before it can move — and it has to
-move before `@actions/*` goes ESM-only.
+Prefer importing the narrowest module that has what you need — `@src/CONST/LOCALES` is self-contained, whereas
+`@src/types/onyx/Locale` re-exports the whole `@src/CONST` barrel and drags a large part of the app in with it.
 
 ## Differences from the Jest tests
 

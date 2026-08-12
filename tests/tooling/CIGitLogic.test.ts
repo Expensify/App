@@ -16,8 +16,14 @@ import path from 'path';
 import * as Log from '../../scripts/utils/Logger';
 import createMock from '../utils/createMock';
 
-const DUMMY_DIR = path.resolve(os.homedir(), 'DumDumRepo');
-const GIT_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/DumDumRepo');
+// Every run gets its own throw-away sandbox, so nothing on the machine is shared: this suite can run
+// alongside other test files in sibling worker processes, a second copy of itself, or a developer's own
+// checkout, without any of them fighting over the same directory.
+// os.tmpdir() is resolved because on macOS it is a symlink (/var -> /private/var) and git reports the
+// real path, which would make path comparisons against process.cwd() disagree.
+const SANDBOX_DIR = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'ci-git-logic-'));
+const GIT_REMOTE = path.join(SANDBOX_DIR, 'remote');
+const DUMMY_DIR = path.join(SANDBOX_DIR, 'checkout');
 
 // Used to mock the Octokit GithubAPI
 const mockGetInput = jest.fn<(name: string) => string | undefined>();
@@ -190,10 +196,6 @@ function initGithubAPIMocking() {
 
 function initGitServer() {
     Log.info('Initializing git server...');
-    if (fs.existsSync(GIT_REMOTE)) {
-        Log.info(`${GIT_REMOTE} exists, removing it now...`);
-        fs.rmSync(GIT_REMOTE, {recursive: true});
-    }
     fs.mkdirSync(GIT_REMOTE, {recursive: true});
     process.chdir(GIT_REMOTE);
     exec('git init -b main');
@@ -467,10 +469,14 @@ async function assertPRsMergedBetween(from: string, to: string, expected: number
  * including a number of real-world edge cases we have encountered and fixed.
  *
  * However, because they are different, there are a few additional "rules" with these tests:
- *   - They should not be run in parallel with other tests on the same machine. They will not play nicely with other tests.
  *   - The whole suite should be run. Running individual tests from the suite may not work as expected.
  *   - Each test builds on the repo state the previous one left behind, so the first failure cascades into the rest.
- *     Re-run with `--bail` to see only the first one; Bun has no per-file equivalent.
+ *     That chain is why the suite is `describe.serial`, which pins the order no matter what flags Bun is given.
+ *     Re-run with `--bail` to see only the first failure; Bun has no per-file equivalent.
+ *   - The suite changes the process-wide cwd, because the git helpers it exercises resolve `git` against
+ *     `process.cwd()` exactly as they do in a real GitHub Actions checkout. It is restored in `afterAll`,
+ *     but it does mean this file needs its own process to run truly in parallel with other files (`--parallel`,
+ *     which Bun implements with worker processes, gives it one).
  */
 
 // These tests shell out to real `git`/`npm` subprocesses many times per test and can exceed the default 5000ms
@@ -478,7 +484,7 @@ async function assertPRsMergedBetween(from: string, to: string, expected: number
 setDefaultTimeout(30000);
 
 let startingDir: string;
-describe('CIGitLogic', () => {
+describe.serial('CIGitLogic', () => {
     beforeAll(() => {
         Log.info('Starting setup');
         startingDir = process.cwd();
@@ -490,9 +496,9 @@ describe('CIGitLogic', () => {
 
     afterAll(() => {
         jest.restoreAllMocks();
-        fs.rmSync(DUMMY_DIR, {recursive: true, force: true});
-        fs.rmSync(path.resolve(GIT_REMOTE, '..'), {recursive: true, force: true});
+        // Restore the cwd before removing the sandbox, so the process is never left sitting in a deleted directory.
         process.chdir(startingDir);
+        fs.rmSync(SANDBOX_DIR, {recursive: true, force: true});
     });
 
     test('Merge a pull request while the checklist is unlocked', async () => {

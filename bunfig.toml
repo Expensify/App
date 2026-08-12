@@ -3,7 +3,7 @@
 preload = ["./scripts/stubReactNative.js"]
 
 # Where a bare `bun test` looks. Both suites are actually run through the `test:bun` npm script, which passes
-# their roots explicitly along with the --isolate and --preload flags they need (see tests/tooling/README.md).
+# their roots explicitly along with the --parallel and --preload flags they need (see tests/tooling/README.md).
 [test]
 root = "server"
 pathIgnorePatterns = ["**/fixtures/**", "**/dist/**", "**/.dev/**", "**/__output__/**", "**/__golden__/**"]
