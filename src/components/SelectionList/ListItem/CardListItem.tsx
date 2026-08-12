@@ -1,4 +1,5 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -85,11 +86,12 @@ function CardListItem<TItem extends ListItem>({
                     <View style={[styles.mr3]}>
                         {item.shouldShowOwnersAvatar ? (
                             <View>
-                                <AccountAvatar
-                                    accountID={item.cardOwnerPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                                    shouldShowTooltip={showTooltip}
-                                    fallbackDisplayName={item.cardOwnerPersonalDetails?.displayName}
-                                />
+                                <AvatarTooltipsProvider isEnabled={showTooltip}>
+                                    <AccountAvatar
+                                        accountID={item.cardOwnerPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                                        fallbackDisplayName={item.cardOwnerPersonalDetails?.displayName}
+                                    />
+                                </AvatarTooltipsProvider>
                                 <View style={[styles.cardItemSecondaryIconStyle, StyleUtils.getBorderColorStyle(theme.componentBG)]}>
                                     {!!item?.plaidUrl && (
                                         <PlaidCardFeedIcon

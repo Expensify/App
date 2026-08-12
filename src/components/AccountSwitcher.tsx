@@ -35,6 +35,7 @@ import {View} from 'react-native';
 import type {PopoverMenuItem} from './PopoverMenu';
 
 import AccountAvatar from './Avatar/connected/AccountAvatar';
+import {AvatarTooltipsProvider} from './Avatar/tooltips/AvatarTooltipContext';
 import Button from './Button';
 import {ModalActions} from './Modal/Global/ModalContext';
 import PopoverMenu from './PopoverMenu';
@@ -264,11 +265,12 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         <>
             <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flexGrow1, styles.flex1, styles.mnw0]}>
                 <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex1, styles.flexShrink1, styles.mnw0, styles.justifyContentCenter]}>
-                    <AccountAvatar
-                        size={CONST.AVATAR_SIZE.DEFAULT}
-                        accountID={currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                        shouldShowTooltip={false}
-                    />
+                    <AvatarTooltipsProvider isEnabled={false}>
+                        <AccountAvatar
+                            size={CONST.AVATAR_SIZE.DEFAULT}
+                            accountID={currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                        />
+                    </AvatarTooltipsProvider>
                     <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
                         {doesDisplayNameContainEmojis ? (
                             <Text numberOfLines={1}>

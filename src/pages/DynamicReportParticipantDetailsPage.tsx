@@ -1,4 +1,5 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -59,7 +60,7 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
 
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
-    const displayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate}));
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
     const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const removeUser = () => {
@@ -88,12 +89,13 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
             />
             <ScrollView contentContainerStyle={[!isInLandscapeMode && [styles.containerWithSpaceBetween, styles.justifyContentStart], styles.pointerEventsBoxNone]}>
                 <View style={[styles.avatarSectionWrapper, styles.pb0]}>
-                    <AccountAvatar
-                        containerStyle={[styles.mv5, styles.noOutline]}
-                        accountID={accountID}
-                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                        shouldShowTooltip={false}
-                    />
+                    <AvatarTooltipsProvider isEnabled={false}>
+                        <AccountAvatar
+                            containerStyle={[styles.mv5, styles.noOutline]}
+                            accountID={accountID}
+                            size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                        />
+                    </AvatarTooltipsProvider>
                     {!!(displayName ?? '') && (
                         <Text
                             style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}

@@ -1,4 +1,5 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -54,7 +55,7 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
         selector: personalDetailsSelector,
     });
 
-    const displayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate}));
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber});
     const phoneNumber = getPhoneNumber(personalDetails);
     const memberLogin = personalDetails?.login ?? '';
     const isSMSLogin = Str.isSMSLogin(memberLogin);
@@ -72,12 +73,13 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <OfflineWithFeedback pendingAction={personalDetails?.pendingFields?.avatar}>
-                                <AccountAvatar
-                                    containerStyle={[styles.mb4, styles.noOutline]}
-                                    accountID={accountID}
-                                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                                    shouldShowTooltip={false}
-                                />
+                                <AvatarTooltipsProvider isEnabled={false}>
+                                    <AccountAvatar
+                                        containerStyle={[styles.mb4, styles.noOutline]}
+                                        accountID={accountID}
+                                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                                    />
+                                </AvatarTooltipsProvider>
                             </OfflineWithFeedback>
 
                             {!!displayName && (
