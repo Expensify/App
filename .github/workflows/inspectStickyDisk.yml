@@ -1,0 +1,90 @@
+name: Inspect sticky disk
+
+on:
+  workflow_dispatch:
+    inputs:
+      hybrid:
+        description: Also inspect the OldDot (Mobile-Expensify) node_modules disk
+        type: boolean
+        default: false
+  push:
+    paths:
+      - '.github/workflows/inspectStickyDisk.yml'
+
+jobs:
+  inspect:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        with:
+          submodules: ${{ inputs.hybrid || false }}
+
+      # Must match setupNode exactly, otherwise the key hash differs and a fresh empty disk is mounted
+      - name: Remove E/App version from package-lock.json
+        run: jq 'del(.version, .packages[""].version)' package-lock.json > normalized-package-lock.json
+
+      - name: Mount NewDot node_modules sticky disk
+        uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
+        with:
+          key: ${{ format('{0}-{1}-{2}-node-modules-{3}', github.repository, runner.os, runner.arch, inputs.hybrid == true && hashFiles('normalized-package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**') || hashFiles('normalized-package-lock.json', 'patches/**')) }}
+          path: node_modules
+
+      - name: Mount OldDot node_modules sticky disk
+        if: inputs.hybrid == true
+        uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
+        with:
+          key: ${{ format('{0}-{1}-{2}-old-dot-node-modules-{3}', github.repository, runner.os, runner.arch, hashFiles('Mobile-Expensify/package-lock.json', 'Mobile-Expensify/patches/**')) }}
+          path: Mobile-Expensify/node_modules
+
+      - name: Mount npm cache sticky disk
+        uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
+        with:
+          key: ${{ format('{0}-{1}-{2}-npm', github.repository, runner.os, runner.arch) }}
+          path: ~/.npm
+
+      - name: Inspect disks
+        shell: bash
+        run: |
+          inspect() {
+            local label="$1" path="$2"
+            echo "::group::$label ($path)"
+            if [[ ! -d "$path" ]]; then
+              echo "not mounted / does not exist"
+              echo "::endgroup::"
+              return
+            fi
+            echo "=== df: real allocated blocks (what Blacksmith bills) ==="
+            df -h "$path" || true
+            echo
+            echo "=== du: logical file size ==="
+            du -sh "$path" 2>/dev/null || true
+            echo
+            echo "=== top-25 heaviest entries ==="
+            du -sh "$path"/* "$path"/.[!.]* 2>/dev/null | sort -rh | head -25
+            echo "::endgroup::"
+          }
+
+          inspect "NewDot node_modules" node_modules
+          inspect "NewDot node_modules/.cache" node_modules/.cache
+          inspect "npm cache" ~/.npm
+          if [[ -d Mobile-Expensify/node_modules ]]; then
+            inspect "OldDot node_modules" Mobile-Expensify/node_modules
+          fi
+
+      - name: Summary
+        shell: bash
+        run: |
+          {
+            echo "## Sticky disk usage"
+            echo
+            echo "| Disk | df (billed) | du (logical) |"
+            echo "|---|---|---|"
+            for entry in "NewDot node_modules:node_modules" "npm cache:$HOME/.npm" "OldDot node_modules:Mobile-Expensify/node_modules"; do
+              label="${entry%%:*}"; path="${entry##*:}"
+              [[ -d "$path" ]] || continue
+              billed=$(df -h --output=used "$path" 2>/dev/null | tail -1 | tr -d ' ')
+              logical=$(du -sh "$path" 2>/dev/null | cut -f1)
+              echo "| $label | $billed | $logical |"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
