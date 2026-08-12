@@ -874,15 +874,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             let columnsToExport: SearchColumnType[];
 
             if (groupBy) {
-                // The expense rows of a grouped export carry the expense columns configured for the view, so the
-                // group columns getColumnsToShow resolves for a grouped search are not what the export needs. Its
-                // pass that hides columns with no data is skipped too: a grouped snapshot holds only groups (each
-                // group's expenses arrive when it is expanded), so every expense column would look empty.
                 const expensePermittedColumns: string[] = Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
                 const expenseColumns: SearchColumnType[] = (visibleColumns ?? []).filter((column) => expensePermittedColumns.includes(column));
 
-                // Type is not one of the configurable columns, so it is never in visibleColumns: the table shows it
-                // first on every expense row and getColumnsToShow adds it the same way for an ungrouped search.
                 columnsToExport = [CONST.SEARCH.TABLE_COLUMNS.TYPE, ...(expenseColumns.length > 0 ? expenseColumns : Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE))];
             } else {
                 columnsToExport = getColumnsToShow({

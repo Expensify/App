@@ -182,9 +182,7 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getSelectedGroupFilterEntry: jest.fn(),
     navigateToSearchRHP: jest.fn(),
     getValidGroupBy: jest.fn((groupBy?: string) => groupBy),
-    // Column labels are asserted as keys rather than translations, so the label lookup is the identity.
     getSearchColumnTranslationKey: jest.fn((column: string) => column),
-    // A grouped export resolves its columns without this, so a call from a grouped case is itself a failure.
     getColumnsToShow: jest.fn(() => []),
 }));
 
@@ -517,11 +515,6 @@ describe('useSearchBulkActions - export options', () => {
     });
 
     it('offers Current view as the only plain-CSV export on a grouped search', async () => {
-        /**
-         * A grouped basic export produces a fixed set of columns, which is fewer than Current view gives most
-         * configured views. Offering both would leave the user choosing between two similarly named exports
-         * where the more official-sounding one carries less of their data.
-         */
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
@@ -534,16 +527,6 @@ describe('useSearchBulkActions - export options', () => {
     });
 
     it('exports the current view of a grouped search with the default expense columns', async () => {
-        /**
-         * Given: a grouped search the user has not customised any columns on.
-         *
-         * When: Current view is selected.
-         *
-         * Then: the request is a current-view export (not a basic one) carrying the view's default expense
-         *       columns - including From, whose absence is the reported bug, and Type, which the table always
-         *       shows first. The columns cannot come from the data-presence pass in getColumnsToShow, because a
-         *       grouped snapshot has no transactions to see.
-         */
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
@@ -570,14 +553,6 @@ describe('useSearchBulkActions - export options', () => {
     });
 
     it('exports the current view of a grouped search with the configured expense columns in order', async () => {
-        /**
-         * Given: a grouped search whose visible columns mix expense columns with a group-level one.
-         *
-         * When: Current view is selected.
-         *
-         * Then: only the expense columns are requested, in the order the user arranged them and led by Type,
-         *       since the group summary block keeps its own fixed columns.
-         */
         await Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {
             columns: [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, CONST.SEARCH.TABLE_COLUMNS.TAG, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.FROM],
         });
