@@ -1949,14 +1949,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                requiredDepositCurrency?: string,
             ) => {
+                const account = requiredDepositCurrency ? `τραπεζικό λογαριασμό σε ${requiredDepositCurrency}` : 'τραπεζικό λογαριασμό';
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμένουμε από <strong>εσάς</strong> να προσθέσετε έναν τραπεζικό λογαριασμό.`;
+                        return `Αναμένουμε από <strong>εσάς</strong> να προσθέσετε έναν ${account}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για να προσθέσει ο/η <strong>${actor}</strong> έναν τραπεζικό λογαριασμό.`;
+                        return `Αναμονή για να προσθέσει ο/η <strong>${actor}</strong> έναν ${account}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για να προσθέσει ένας διαχειριστής έναν τραπεζικό λογαριασμό.`;
+                        return `Αναμονή για να προσθέσει ένας διαχειριστής έναν ${account}.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
