@@ -37,6 +37,7 @@ const mockSearchStateContext = {
     selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
+    excludedTransactions: {},
     shouldTurnOffSelectionMode: false,
     shouldResetSearchQuery: false,
     lastSearchType: undefined,
