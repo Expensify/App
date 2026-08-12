@@ -1,3 +1,4 @@
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
@@ -46,7 +47,7 @@ type AddExistingExpenseFooterProps = {
 };
 
 function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy, policyCategories, errorMessage, setErrorMessage}: AddExistingExpenseFooterProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -56,7 +57,6 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const delegateAccountID = useDelegateAccountID();
     const personalPolicy = usePersonalPolicy();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -68,6 +68,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const [transactions] = useTransactionsByID([...selectedIds]);
+    const reports = useChangeTransactionsReportReports(transactions, reportToConfirm?.reportID);
 
     const handleConfirm = () => {
         if (selectedIds.size === 0) {
@@ -95,6 +96,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         selfDMReportActions,
                         delegateAccountID,
                         isTrackIntentUser,
+                        formatPhoneNumber,
                     });
                 } else {
                     changeTransactionsReport({
@@ -108,10 +110,11 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         policyTagList,
                         transactions,
                         allTransactionViolation: transactionViolations,
-                        allReports,
+                        reports,
                         isTrackIntentUser,
                         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                         selfDMReportActions,
+                        delegateAccountID,
                         getCurrencyDecimals,
                     });
                 }
