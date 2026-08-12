@@ -476,7 +476,7 @@ function getAccountingIntegrationData(
                     CONST.RILLET_CONFIG.EXPORTER,
                     CONST.RILLET_CONFIG.EXPORT_DATE,
                     CONST.RILLET_CONFIG.REIMBURSABLE,
-                    CONST.RILLET_CONFIG.COMPANY_CARD,
+                    CONST.RILLET_CONFIG.NON_REIMBURSABLE,
                     CONST.RILLET_CONFIG.DEFAULT_VENDORID,
                     CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE,
                     CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
@@ -521,7 +521,7 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
-                onImportPagePress: () => null,
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_IMPORT.getRoute(policyID)),
                 subscribedImportSettings: [
                     CONST.DUALENTRY_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.DUALENTRY_CONFIG.SYNC_TAX_RATES,
