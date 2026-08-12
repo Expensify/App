@@ -12987,6 +12987,7 @@ describe('ReportUtils', () => {
         };
 
         const createFormulaContext = (reportParam: Report, policyParam: Policy, reportTransactions: Record<string, Transaction> = {}): FormulaContext => ({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             report: reportParam,
             policy: policyParam,
             allTransactions: reportTransactions,
@@ -18451,7 +18452,17 @@ describe('ReportUtils', () => {
             const timeOfCreation = DateUtils.getDBTime();
 
             // Then the report name should be "New Report"
-            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, currentUserEmail, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
+            const optimisticReport = buildOptimisticEmptyReport(
+                reportID,
+                accountID,
+                currentUserEmail,
+                parentReport,
+                parentReportActionID,
+                policyWithEmptyFieldList,
+                timeOfCreation,
+                betas,
+                getCurrencyDecimalsLocal,
+            );
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
 
@@ -18480,7 +18491,17 @@ describe('ReportUtils', () => {
             const timeOfCreation = DateUtils.getDBTime();
 
             // Then the report name should be "New Report"
-            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, currentUserEmail, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
+            const optimisticReport = buildOptimisticEmptyReport(
+                reportID,
+                accountID,
+                currentUserEmail,
+                parentReport,
+                parentReportActionID,
+                policyWithEmptyFieldList,
+                timeOfCreation,
+                betas,
+                getCurrencyDecimalsLocal,
+            );
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
     });
