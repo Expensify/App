@@ -10345,6 +10345,12 @@ ${reportName}`,
             domainName: 'ドメイン名',
             newDomain: '新しいドメイン',
         },
+        domainAlreadyExists: {
+            title: 'このドメインはすでに設定されています。アクセスをリクエストしますか？',
+            description: '誰かがこのドメインをExpensifyにすでに設定しています。管理者アクセスをリクエストしますか？',
+            nevermind: 'いいえ、結構です',
+            requestAccess: '管理者アクセスをリクエスト',
+        },
         domainAdded: {
             title: 'ドメインを追加しました',
             description: '次に、ドメインの所有権を確認し、セキュリティ設定を調整する必要があります。',

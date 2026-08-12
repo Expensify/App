@@ -10422,6 +10422,12 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             domainName: 'Nazwa domeny',
             newDomain: 'Nowa domena',
         },
+        domainAlreadyExists: {
+            title: 'Domena jest już skonfigurowana. Poprosić o dostęp?',
+            description: 'Ktoś już skonfigurował tę domenę w Expensify. Chcesz poprosić o dostęp administratora?',
+            nevermind: 'Nie, dzięki',
+            requestAccess: 'Poproś o dostęp administratora',
+        },
         domainAdded: {
             title: 'Dodano domenę',
             description: 'Następnie musisz potwierdzić własność domeny i dostosować ustawienia zabezpieczeń.',

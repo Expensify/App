@@ -10714,6 +10714,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             domainName: 'Nombre de dominio',
             newDomain: 'Nuevo dominio',
         },
+        domainAlreadyExists: {
+            title: 'Dominio ya configurado. ¿Solicitar acceso?',
+            description: 'Alguien ya configuró este dominio en Expensify. ¿Quieres solicitar acceso de administrador?',
+            nevermind: 'No, gracias',
+            requestAccess: 'Solicitar acceso de administrador',
+        },
         domainAdded: {
             title: 'Dominio añadido',
             description: 'A continuación, deberás verificar la propiedad del dominio y ajustar tu configuración de seguridad.',

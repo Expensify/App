@@ -10453,6 +10453,12 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             domainName: 'Domeinnaam',
             newDomain: 'Nieuw domein',
         },
+        domainAlreadyExists: {
+            title: 'Domein al ingesteld. Toegang aanvragen?',
+            description: 'Iemand heeft dit domein al ingesteld in Expensify. Wil je beheerderstoegang aanvragen?',
+            nevermind: 'Nee, bedankt',
+            requestAccess: 'Beheerderstoegang aanvragen',
+        },
         domainAdded: {
             title: 'Domein toegevoegd',
             description: 'Vervolgens moet je het eigendom van het domein verifiëren en je beveiligingsinstellingen aanpassen.',

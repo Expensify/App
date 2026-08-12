@@ -10513,6 +10513,12 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             domainName: 'Domainname',
             newDomain: 'Neue Domain',
         },
+        domainAlreadyExists: {
+            title: 'Domain bereits eingerichtet. Zugriff anfragen?',
+            description: 'Jemand hat diese Domain bereits in Expensify eingerichtet. Möchtest du Administratorzugriff anfragen?',
+            nevermind: 'Nein, danke',
+            requestAccess: 'Admin-Zugriff anfragen',
+        },
         domainAdded: {
             title: 'Domain hinzugefügt',
             description: 'Als Nächstes müssen Sie den Besitz der Domain verifizieren und Ihre Sicherheitseinstellungen anpassen.',

@@ -10096,6 +10096,12 @@ ${reportName}`,
             domainName: '域名',
             newDomain: '新域名',
         },
+        domainAlreadyExists: {
+            title: '该域名已被设置。要申请访问权限吗？',
+            description: '有人已经在 Expensify 中设置了此域名。要申请管理员权限吗？',
+            nevermind: '不用了，谢谢',
+            requestAccess: '申请管理员权限',
+        },
         domainAdded: {
             title: '已添加域名',
             description: '接下来，你需要验证该域名的所有权并调整安全设置。',

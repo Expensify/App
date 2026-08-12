@@ -10664,6 +10664,12 @@ const translations = {
             domainName: 'Domain name',
             newDomain: 'New domain',
         },
+        domainAlreadyExists: {
+            title: 'Domain already set up. Request access?',
+            description: 'Someone already set this domain up in Expensify. Want to request admin access?',
+            nevermind: 'Nevermind',
+            requestAccess: 'Ask for admin access',
+        },
         domainAdded: {
             title: 'Domain added',
             description: "Next, you'll need to verify ownership of the domain and adjust your security settings.",

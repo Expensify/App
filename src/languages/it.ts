@@ -10483,6 +10483,12 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             domainName: 'Nome di dominio',
             newDomain: 'Nuovo dominio',
         },
+        domainAlreadyExists: {
+            title: "Dominio già configurato. Vuoi richiedere l'accesso?",
+            description: "Qualcuno ha già configurato questo dominio in Expensify. Vuoi richiedere l'accesso come amministratore?",
+            nevermind: 'No, grazie',
+            requestAccess: "Richiedi l'accesso come amministratore",
+        },
         domainAdded: {
             title: 'Dominio aggiunto',
             description: 'Successivamente dovrai verificare la proprietà del dominio e regolare le impostazioni di sicurezza.',
