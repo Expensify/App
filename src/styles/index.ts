@@ -587,6 +587,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         textXXXLarge: {
             fontSize: variables.fontSizeXXXLarge,
+            lineHeight: variables.lineHeightXXXLarge,
         },
 
         textHero: {

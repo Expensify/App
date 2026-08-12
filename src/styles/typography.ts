@@ -5,8 +5,8 @@ import whiteSpace from './utils/whiteSpace';
 import variables from './variables';
 
 /**
- * Primitive typography scale. These are the only sizes, line heights, and families the app uses;
- * everything else composes them. Do not add raw `fontSize`/`lineHeight` literals outside this file
+ * Primitive typography scale. These are the only sizes, line heights, and families the app uses.
+ * Everything else composes them. Do not add raw `fontSize`/`lineHeight` literals outside this file
  * and variables.ts (enforced by the `rulesdir/no-raw-typography` lint rule).
  */
 const fontScale = {
@@ -41,8 +41,8 @@ const fontFamilyScale = {
 
 /**
  * Semantic text styles, named 1:1 after the `Product/*` text styles in the Figma library.
- * Type only — color is attached where a variant is used (theme-aware styles or the `color` prop),
- * never here.
+ * These carry type only. Color is attached where a variant is used (theme-aware styles or the
+ * `color` prop), never here.
  */
 const textVariants = {
     finePrint: {
