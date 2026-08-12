@@ -2196,6 +2196,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: 'Παρακαλούμε εγκαταστήστε την πιο πρόσφατη έκδοση του Expensify',
         toGetLatestChanges: 'Σε κινητό, κάντε λήψη και εγκαταστήστε την πιο πρόσφατη έκδοση. Σε web, ανανεώστε το πρόγραμμα περιήγησής σας.',
         newAppNotAvailable: 'Ενημερώστε τώρα και θα μας ευχαριστήσετε αργότερα.',
+        updateAvailable: 'Διαθέσιμη ενημέρωση',
+        pleaseRefresh: 'Παρακαλούμε ανανεώστε αυτή τη σελίδα για να λάβετε την πιο πρόσφατη έκδοση του Expensify.',
+        refreshPage: 'Ανανεώστε τη σελίδα',
     },
     initialSettingsPage: {
         about: 'Πληροφορίες',
