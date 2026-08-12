@@ -5,7 +5,7 @@ import isProposal from '@github/libs/ProposalUtils';
 
 import {buildDuplicateCheckInput, buildDuplicateCheckSeedItem, buildEditCheckInput, buildTemplateCheckInput} from '@prompts/proposalPolice/input';
 import {buildDuplicateCheckInstructions, buildEditCheckInstructions, buildTemplateCheckInstructions} from '@prompts/proposalPolice/instructions';
-import {buildDuplicateCheckNoticeMessage, buildDuplicateCheckWithdrawMessage} from '@prompts/proposalPolice/messages';
+import {buildDuplicateCheckNoticeMessage, DUPLICATE_CHECK_WITHDRAW_MESSAGE} from '@prompts/proposalPolice/messages';
 import {
     DUPLICATE_CHECK_RESPONSE_FORMAT,
     EDIT_CHECK_RESPONSE_FORMAT,
@@ -156,7 +156,6 @@ async function run() {
                 const originalProposal = commentsResponse.find(
                     (comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentId && comment.id !== commentID && isProposal(comment.body),
                 );
-                const duplicateCheckWithdrawMessage = buildDuplicateCheckWithdrawMessage();
                 const duplicateCheckNoticeMessage = buildDuplicateCheckNoticeMessage(newProposalAuthor, originalProposal?.html_url);
 
                 // If a duplicate proposal is detected, update the comment to withdraw it
@@ -165,7 +164,7 @@ async function run() {
                     ...context.repo,
                     /* eslint-disable @typescript-eslint/naming-convention */
                     comment_id: commentID,
-                    body: duplicateCheckWithdrawMessage,
+                    body: DUPLICATE_CHECK_WITHDRAW_MESSAGE,
                 });
 
                 // Post a comment to notify the user about the withdrawn duplicated proposal
@@ -198,6 +197,7 @@ async function run() {
     const parsedResponse: TemplateCheckResponse | EditCheckResponse | null = isCommentCreatedEvent(payload)
         ? openAI.parseJSONResponse<TemplateCheckResponse>(response.text, isTemplateCheckResponse)
         : openAI.parseJSONResponse<EditCheckResponse>(response.text, isEditCheckResponse);
+
     core.startGroup('Parsed Response');
     console.log('parsedResponse: ', parsedResponse);
     core.endGroup();
@@ -222,6 +222,7 @@ async function run() {
         // Create a comment with the response
         console.log('ProposalPolice™ commenting on issue...');
         await GithubUtils.createComment(CONST.APP_REPO, issueNumber, formattedResponse);
+
         // edit comment if substantial changes were detected
     } else if (isActionEdit) {
         const formattedResponse = message.replace('{updated_timestamp}', formattedDate);
