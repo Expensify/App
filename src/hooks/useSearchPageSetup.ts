@@ -7,6 +7,7 @@ import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
@@ -48,14 +49,16 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     // The Search page then renders its error view with nothing in flight, and only the Try again
     // button can break out of it. Allow one recovery attempt per hash instead, so a transient failure
     // heals by itself while a persistent one still settles on the error view rather than looping
-    // request -> failure -> request.
+    // from request to failure and back to request.
     // The Set is scoped to this hook instance, which lives as long as the Search page stays mounted.
     // Changing the query only swaps route params, and an inactive tab is hidden rather than unmounted,
     // so a hash that already spent its attempt gets another one only after a real remount.
     const hashesWithAttemptedRecoveryRef = useRef<Set<number>>(new Set());
     // The server already judged the query itself malformed, so re-sending it cannot succeed.
     const isInvalidQuery = currentSearchResults?.search?.responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
-    const hasRecoverableErrors = currentSearchResults?.errors != null && !isInvalidQuery;
+    // Same emptiness rule as the error view this recovery exists to unblock (Search/index.tsx), so the
+    // two cannot drift into a state where one shows the error and the other refuses to clear it.
+    const hasRecoverableErrors = !isEmptyObject(currentSearchResults?.errors) && !isInvalidQuery;
 
     // Clear selected transactions when navigating to a different search query
     function clearOnHashChange() {
