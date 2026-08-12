@@ -71,7 +71,7 @@ function MapView({
     const currentPosition = userLocation ?? initialLocation;
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
     const shouldInitializeCurrentPosition = useRef(true);
-    const isAccessTokenSet = useAccessToken({accessToken});
+    const isAccessTokenReady = useAccessToken({accessToken});
 
     const {distanceUnit, toggleDistanceUnit} = useDistanceUnit(unit);
 
@@ -283,7 +283,7 @@ function MapView({
         return utils.findClosestCoordinateOnLineFromCenter(boundsCenter, directionCoordinates);
     }, [waypoints, directionCoordinates]);
 
-    return !isOffline && isAccessTokenSet && !!defaultSettings ? (
+    return !isOffline && isAccessTokenReady && !!defaultSettings ? (
         <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
             <Mapbox.MapView
                 style={{flex: 1}}

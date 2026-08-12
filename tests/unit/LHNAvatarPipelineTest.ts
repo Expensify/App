@@ -1,3 +1,5 @@
+import type {AvatarIcon} from '@components/Avatar/types';
+
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getIcons, isChatThread, isExpenseRequest, isTaskReport, isTripRoom, isWorkspaceTaskReport, shouldReportShowSubscript} from '@libs/ReportUtils';
@@ -71,10 +73,9 @@ type ComputeParams = {
 };
 
 type AvatarResult = {
-    icons: Icon[];
+    icons: AvatarIcon[];
     shouldShowSubscript: boolean;
     avatarType: 'single' | 'subscript' | 'diagonal';
-    delegateTooltipAccountID: number | undefined;
 };
 
 /**
@@ -97,7 +98,7 @@ function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = f
     const shouldShowSubscript = rawShouldShowSubscript && !threadSuppression && !taskSuppression;
 
     const formatPhoneNumber = (s: string) => s;
-    let icons = getIcons(report, formatPhoneNumber, translateLocal, PERSONAL_DETAILS, null, '', -1, policy, undefined, isReportArchived);
+    let icons: AvatarIcon[] = getIcons(report, formatPhoneNumber, translateLocal, PERSONAL_DETAILS, null, '', -1, policy, undefined, isReportArchived);
 
     if (!shouldShowSubscript && report.type !== CONST.REPORT.TYPE.IOU && report.type !== CONST.REPORT.TYPE.INVOICE && icons.length > 1) {
         const firstIcon = icons.at(0);
@@ -112,13 +113,23 @@ function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = f
 
     // Stage 3: OptionRowLHN — Delegate icon replacement
     const skipDelegate = report.type === CONST.REPORT.TYPE.INVOICE || (isTaskReport(report) && !report.chatReportID);
-    let delegateTooltipAccountID: number | undefined;
     if (delegateAccountID && PERSONAL_DETAILS[delegateAccountID] && icons.length > 0 && !skipDelegate) {
-        delegateTooltipAccountID = Number(icons.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID);
         const delegateDetails = PERSONAL_DETAILS[delegateAccountID];
         const firstIcon = icons.at(0);
         if (firstIcon && delegateDetails) {
-            icons = [{...firstIcon, source: delegateDetails.avatar ?? '', name: delegateDetails.displayName ?? '', id: delegateAccountID}, ...icons.slice(1)];
+            icons = [
+                {
+                    ...firstIcon,
+                    source: delegateDetails.avatar ?? '',
+                    name: delegateDetails.displayName ?? '',
+                    id: delegateAccountID,
+                    copilot: {
+                        accountID: delegateAccountID,
+                        actedForAccountID: Number(firstIcon.id ?? CONST.DEFAULT_NUMBER_ID),
+                    },
+                },
+                ...icons.slice(1),
+            ];
         }
     }
 
@@ -132,7 +143,7 @@ function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = f
         avatarType = 'diagonal';
     }
 
-    return {icons, shouldShowSubscript, avatarType, delegateTooltipAccountID};
+    return {icons, shouldShowSubscript, avatarType};
 }
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
@@ -614,8 +625,8 @@ describe('LHN Avatar Pipeline', () => {
         expect(result.icons.at(0)?.source).toBe('https://avatar/5');
     });
 
-    // ── Case 25: delegateTooltipAccountID preserves original actor ──
-    it('delegateTooltipAccountID returns original actor ID when delegate is active', () => {
+    // ── Case 25: copilot preserves original actor on icon ──
+    it('copilot.actedForAccountID preserves original actor ID when delegate is active', () => {
         const report = {
             ...createExpenseReport(129),
             policyID: POLICY_ID,
@@ -623,12 +634,13 @@ describe('LHN Avatar Pipeline', () => {
         };
         const result = computeAvatarResult({report, delegateAccountID: 5});
 
-        expect(result.delegateTooltipAccountID).toBe(2);
+        expect(result.icons.at(0)?.copilot?.actedForAccountID).toBe(2);
+        expect(result.icons.at(0)?.copilot?.accountID).toBe(5);
         expect(result.icons.at(0)?.id).toBe(5);
     });
 
-    // ── Case 26: delegateTooltipAccountID undefined without delegate ─
-    it('delegateTooltipAccountID is undefined when no delegate', () => {
+    // ── Case 26: copilot undefined without delegate ─
+    it('copilot is undefined when no delegate', () => {
         const report = {
             ...createExpenseReport(130),
             policyID: POLICY_ID,
@@ -636,11 +648,11 @@ describe('LHN Avatar Pipeline', () => {
         };
         const result = computeAvatarResult({report});
 
-        expect(result.delegateTooltipAccountID).toBeUndefined();
+        expect(result.icons.at(0)?.copilot).toBeUndefined();
     });
 
-    // ── Case 27: delegateTooltipAccountID undefined when skipDelegate ─
-    it('delegateTooltipAccountID is undefined when skipDelegate is true', () => {
+    // ── Case 27: copilot undefined when skipDelegate ─
+    it('copilot is undefined when skipDelegate is true', () => {
         const report = {
             ...createInvoiceReport(131),
             policyID: POLICY_ID,
@@ -649,7 +661,7 @@ describe('LHN Avatar Pipeline', () => {
         } as Report;
         const result = computeAvatarResult({report, delegateAccountID: 5});
 
-        expect(result.delegateTooltipAccountID).toBeUndefined();
+        expect(result.icons.at(0)?.copilot).toBeUndefined();
         expect(result.icons.at(0)?.id).not.toBe(5);
     });
 });

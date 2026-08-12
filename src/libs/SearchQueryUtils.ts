@@ -46,6 +46,7 @@ import type {
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -163,13 +164,17 @@ function getUserFriendlyValue(value: string | undefined): UserFriendlyValue {
 
 /**
  * @private
- * Returns string value wrapped in quotes "", if the value contains space or &nbsp; (no-breaking space).
+ * Returns string value wrapped in quotes "", if the value contains space, &nbsp; (no-breaking space), or a comma when shouldQuoteComma is set.
  */
-function sanitizeSearchValue(str: string) {
-    if (str.includes(' ') || str.includes(`\xA0`)) {
+function sanitizeSearchValue(str: string, shouldQuoteComma = false) {
+    if (str.includes(' ') || str.includes(`\xA0`) || (shouldQuoteComma && str.includes(','))) {
         return `"${str}"`;
     }
     return str;
+}
+
+function stripSearchValueQuotes(str: string) {
+    return str.replaceAll(/["“”]/g, '');
 }
 
 const syntaxRegex = new RegExp(`^-?(${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(-.+)+)[:><=].+$`);
@@ -236,7 +241,13 @@ function getRangeBoundariesFromFormValue(rangeValue?: string, fallbackAfter?: st
     };
 }
 
-function getDateRangeDisplayValueFromFormValue(rangeValue?: string, fallbackAfter?: string, fallbackBefore?: string, shouldOmitCurrentYear = false) {
+function getDateRangeDisplayValueFromFormValue(
+    dateFnsLocale: DateFnsLocale | undefined,
+    rangeValue?: string,
+    fallbackAfter?: string,
+    fallbackBefore?: string,
+    shouldOmitCurrentYear = false,
+) {
     if (!rangeValue) {
         return '';
     }
@@ -244,11 +255,11 @@ function getDateRangeDisplayValueFromFormValue(rangeValue?: string, fallbackAfte
     const rangeBoundaries = getRangeBoundariesFromFormValue(rangeValue, fallbackAfter, fallbackBefore);
     if (rangeBoundaries.from && rangeBoundaries.to) {
         const shouldShowFullYear = !shouldOmitCurrentYear || DateUtils.doesDateBelongToAPastYear(rangeBoundaries.from) || DateUtils.doesDateBelongToAPastYear(rangeBoundaries.to);
-        return DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, shouldShowFullYear, shouldOmitCurrentYear);
+        return DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, dateFnsLocale, shouldShowFullYear, shouldOmitCurrentYear);
     }
 
     const singleBoundary = rangeBoundaries.from ?? rangeBoundaries.to;
-    return singleBoundary ? DateUtils.formatToReadableString(singleBoundary) : '';
+    return singleBoundary ? DateUtils.formatToReadableString(singleBoundary, dateFnsLocale) : '';
 }
 
 function parseRangeQueryValue(rangeValue?: string) {
@@ -898,7 +909,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     if (columns?.length) {
         const filterValueArray = [...new Set<string>(columns)];
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map(sanitizeSearchValue).join(',')}`);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`);
     }
 
     const mappedFilters = Object.entries(otherFilters)
@@ -1030,7 +1041,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
 
                 if (keyInCorrectForm) {
-                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
+                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`;
                 }
             }
 
@@ -1667,6 +1678,7 @@ type GetFilterDisplayValueParams = {
     policies: OnyxCollection<OnyxTypes.Policy>;
     currentUserAccountID: number;
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'];
     feedKeysWithCards?: FeedKeysWithAssignedCards;
     bankAccountList?: OnyxTypes.BankAccountList;
@@ -1685,6 +1697,7 @@ function getFilterDisplayValue({
     policies,
     currentUserAccountID,
     translate,
+    formatPhoneNumber,
     reportAttributes,
     feedKeysWithCards,
     bankAccountList,
@@ -1702,7 +1715,13 @@ function getFilterDisplayValue({
         }
         return filterValue === currentUserAccountID.toString()
             ? CONST.SEARCH.ME
-            : temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[filterValue], defaultValue: filterValue, shouldFallbackToHidden: false, translate});
+            : temporaryGetDisplayNameOrDefault({
+                  passedPersonalDetails: personalDetails?.[filterValue],
+                  defaultValue: filterValue,
+                  shouldFallbackToHidden: false,
+                  translate,
+                  formatPhoneNumber,
+              });
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
         const cardID = parseInt(filterValue, 10);
@@ -1760,6 +1779,7 @@ function getDisplayQueryFiltersForKey(
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
     feedKeysWithCards?: FeedKeysWithAssignedCards,
     bankAccountList?: OnyxTypes.BankAccountList,
@@ -1827,6 +1847,7 @@ function getDisplayQueryFiltersForKey(
                 policies,
                 currentUserAccountID,
                 translate,
+                formatPhoneNumber,
                 reportAttributes,
                 feedKeysWithCards,
                 bankAccountList,
@@ -1846,6 +1867,7 @@ function getDisplayQueryFiltersForKey(
             policies,
             currentUserAccountID,
             translate,
+            formatPhoneNumber,
             reportAttributes,
             feedKeysWithCards,
             bankAccountList,
@@ -1926,6 +1948,7 @@ type BuildUserReadableQueryStringParams = {
     currentUserAccountID: number;
     autoCompleteWithSpace: boolean;
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     feedKeysWithCards?: FeedKeysWithAssignedCards;
     reportAttributes: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
     bankAccountList?: OnyxTypes.BankAccountList;
@@ -1942,6 +1965,7 @@ function buildUserReadableQueryString({
     currentUserAccountID,
     autoCompleteWithSpace = false,
     translate,
+    formatPhoneNumber,
     feedKeysWithCards,
     reportAttributes,
     bankAccountList,
@@ -1988,6 +2012,7 @@ function buildUserReadableQueryString({
                 policies,
                 currentUserAccountID,
                 translate,
+                formatPhoneNumber,
                 reportAttributes,
                 feedKeysWithCards,
                 bankAccountList,
@@ -2037,6 +2062,7 @@ function buildUserReadableQueryString({
             policies,
             currentUserAccountID,
             translate,
+            formatPhoneNumber,
             reportAttributes,
             feedKeysWithCards,
             bankAccountList,
@@ -2590,6 +2616,7 @@ export {
     buildFilterFormValuesFromQuery,
     buildCannedSearchQuery,
     sanitizeSearchValue,
+    stripSearchValueQuotes,
     getQueryWithUpdatedValues,
     getKeywordQueryWithCurrentSearchContext,
     getCurrentSearchQueryJSON,

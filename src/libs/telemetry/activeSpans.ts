@@ -13,15 +13,7 @@ type ActiveSpanEntry = {
 
 const activeSpans = new Map<string, ActiveSpanEntry>();
 
-type StartSpanExtraOptions = Partial<{
-    /**
-     * Minimum duration of the span in milliseconds. If the span is shorter than this duration, it will be discarded (filtered out) before sending to Sentry.
-     *
-     */
-    minDuration: number;
-}>;
-
-function startSpan(spanId: string, options: StartSpanOptions, extraOptions: StartSpanExtraOptions = {}) {
+function startSpan(spanId: string, options: StartSpanOptions) {
     if ((AppState.currentState ?? CONST.APP_STATE.ACTIVE) !== CONST.APP_STATE.ACTIVE) {
         return;
     }
@@ -30,14 +22,9 @@ function startSpan(spanId: string, options: StartSpanOptions, extraOptions: Star
     console.debug(`[Sentry][${spanId}] Starting span`, {
         spanId,
         spanOptions: options,
-        spanExtraOptions: extraOptions,
         timestamp: Date.now(),
     });
     const span = Sentry.startInactiveSpan(options);
-
-    if (extraOptions.minDuration) {
-        span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_MIN_DURATION, extraOptions.minDuration);
-    }
 
     let startTimeForLog: number;
     if (typeof options.startTime === 'number') {

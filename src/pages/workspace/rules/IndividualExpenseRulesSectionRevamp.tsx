@@ -17,6 +17,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -47,7 +48,7 @@ type BasicRuleMenuItem = {
     title: string;
     description?: string;
     icon: IconAsset;
-    action: () => void;
+    route: Route;
     pendingAction?: PendingAction;
 };
 
@@ -100,10 +101,12 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const rulesUpgradeAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias;
 
     const handleMenuItemPress = (item: BasicRuleMenuItem) => {
-        if (isCollect && !COLLECT_ALLOWED_RULE_KEYS.has(item.key) && tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, rulesUpgradeBackTo)) {
+        // Return to the row's own page after upgrading rather than the Rules list, so the user lands where they were
+        // headed — same as the GL code upgrade flow in tag settings.
+        if (isCollect && !COLLECT_ALLOWED_RULE_KEYS.has(item.key) && tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, item.route)) {
             return;
         }
-        item.action();
+        Navigation.navigate(item.route);
     };
 
     const navigateToRulesControlUpgrade = () => {
@@ -133,7 +136,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             title: translate('workspace.rules.generalTab.expensesOlderThan'),
             description: maxExpenseAgeText,
             icon: icons.CalendarSolid,
-            action: () => Navigation.navigate(ROUTES.RULES_MAX_EXPENSE_AGE.getRoute(policyID)),
+            route: ROUTES.RULES_MAX_EXPENSE_AGE.getRoute(policyID),
             pendingAction: policy?.pendingFields?.maxExpenseAge,
         },
         {
@@ -141,7 +144,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             title: translate('workspace.rules.generalTab.expensesAboveAmount'),
             description: maxExpenseAmountText,
             icon: icons.Coins,
-            action: () => Navigation.navigate(ROUTES.RULES_MAX_EXPENSE_AMOUNT.getRoute(policyID)),
+            route: ROUTES.RULES_MAX_EXPENSE_AMOUNT.getRoute(policyID),
             pendingAction: policy?.pendingFields?.maxExpenseAmount,
         },
         {
@@ -149,7 +152,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             title: translate('workspace.rules.generalTab.flagReceiptLineItems'),
             description: prohibitedExpensesText,
             icon: icons.Receipt,
-            action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
+            route: ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID),
             pendingAction: !isEmptyObject(policy?.prohibitedExpenses?.pendingFields) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined,
         },
         {
@@ -157,7 +160,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             title: translate('workspace.rules.generalTab.receiptRequirements'),
             description: receiptRequirementText,
             icon: icons.ReceiptCheck,
-            action: () => Navigation.navigate(ROUTES.RULES_REQUIRE_RECEIPTS.getRoute(policyID)),
+            route: ROUTES.RULES_REQUIRE_RECEIPTS.getRoute(policyID),
             pendingAction: policy?.pendingFields?.maxExpenseAmountNoReceipt ?? policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt,
         },
         {
@@ -165,7 +168,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             title: translate('workspace.rules.generalTab.requireFieldsForAllExpenses'),
             description: requiredFieldsList,
             icon: icons.Task,
-            action: () => Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS.getRoute(policyID)),
+            route: ROUTES.RULES_REQUIRE_FIELDS.getRoute(policyID),
             pendingAction: policy?.pendingFields?.requiresCategory ?? policy?.pendingFields?.requiresTag,
         },
     ];
@@ -176,7 +179,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             title: translate('workspace.rules.generalTab.cashExpenses'),
             description: reimbursableModeText,
             icon: icons.Cash,
-            action: () => Navigation.navigate(ROUTES.RULES_REIMBURSABLE_DEFAULT.getRoute(policyID)),
+            route: ROUTES.RULES_REIMBURSABLE_DEFAULT.getRoute(policyID),
             pendingAction: policy?.pendingFields?.defaultReimbursable,
         },
         {
@@ -184,7 +187,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             title: translate('workspace.rules.generalTab.billableExpenses'),
             description: billableModeText,
             icon: icons.Cash,
-            action: () => Navigation.navigate(ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID)),
+            route: ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID),
             pendingAction: getBillableExpensesPendingAction(policy),
         },
     ];

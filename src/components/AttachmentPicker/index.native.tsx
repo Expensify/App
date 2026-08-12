@@ -102,7 +102,7 @@ const getErrorMessage = (error: unknown): string => (error instanceof Error && e
  * OS terminates the app for exceeding its memory limit. Processing one image at a time keeps the peak
  * at a single bitmap regardless of how many files were picked.
  */
-const processPickedAssetsSequentially = async (assets: Asset[], showGeneralAlert: (message?: string) => void): Promise<Asset[] | undefined> => {
+const processPickedAssetsSequentially = async (assets: Asset[], showGeneralAlert: (message?: string) => void, translate: (key: TranslationPaths) => string): Promise<Asset[] | undefined> => {
     const processedAssets: Asset[] = [];
 
     for (const asset of assets) {
@@ -150,8 +150,8 @@ const processPickedAssetsSequentially = async (assets: Asset[], showGeneralAlert
                     manipulatedImage.release();
                 }
             } catch (error) {
-                Log.warn('Failed to convert HEIC image, falling back to original', {error: getErrorMessage(error)});
-                processedAssets.push(processAssetWithFallbacks(asset));
+                Log.warn('Failed to convert HEIC image, skipping asset', {error: getErrorMessage(error)});
+                showGeneralAlert(translate('attachmentPicker.errorWhileConvertingHeic'));
             } finally {
                 imageManipulatorContext.release();
             }
@@ -293,7 +293,7 @@ function AttachmentPicker({
                         return resolve();
                     }
 
-                    processPickedAssetsSequentially(assets, showGeneralAlert).then(resolve).catch(reject);
+                    processPickedAssetsSequentially(assets, showGeneralAlert, translate).then(resolve).catch(reject);
                 });
             }),
         [fileLimit, showGeneralAlert, translate, type],
