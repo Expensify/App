@@ -32,6 +32,7 @@ jest.mock('@userActions/IOU/TrackExpense', () => ({
 jest.mock('@userActions/IOU/PerDiem', () => ({
     submitPerDiemExpense: (...args: unknown[]) => mockSubmitPerDiemExpenseAction(...args),
     submitPerDiemExpenseForSelfDM: (...args: unknown[]) => mockSubmitPerDiemExpenseForSelfDMAction(...args),
+    getPerDiemExpensePolicyID: jest.fn(),
 }));
 
 jest.mock('@userActions/IOU/Split', () => ({

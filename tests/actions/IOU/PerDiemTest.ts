@@ -1,4 +1,3 @@
-import {getPolicyTags} from '@libs/actions/IOU';
 import type {PerDiemExpenseTransactionParams} from '@libs/actions/IOU/PerDiem';
 import {
     addSubrate,
@@ -15,7 +14,7 @@ import type RequestMoneyParticipantParams from '@libs/actions/IOU/types/RequestM
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, RecentlyUsedTags, Report} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyTagLists, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
@@ -67,6 +66,7 @@ describe('PerDiem', () => {
         displayName: RORY_EMAIL,
         avatar: 'https://example.com/avatar.jpg',
     };
+    let allPolicyTags: OnyxCollection<PolicyTagLists>;
 
     beforeAll(() => {
         Onyx.init({
@@ -79,10 +79,12 @@ describe('PerDiem', () => {
         return waitForBatchedUpdates();
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllTimers();
         global.fetch = getGlobalFetchMock();
-        return Onyx.clear().then(waitForBatchedUpdates);
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+        allPolicyTags = await getOnyxValue(ONYXKEYS.COLLECTION.POLICY_TAGS);
     });
 
     describe('computePerDiemExpenseAmount', () => {
@@ -333,8 +335,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
                 dateFnsLocale: undefined,
@@ -439,8 +440,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
                 dateFnsLocale: undefined,
@@ -545,8 +545,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
                 dateFnsLocale: undefined,
@@ -664,8 +663,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
                 dateFnsLocale: undefined,
@@ -770,8 +768,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
                 dateFnsLocale: undefined,
@@ -832,6 +829,7 @@ describe('PerDiem', () => {
                 type: CONST.POLICY.TYPE.TEAM,
             });
             await waitForBatchedUpdates();
+            allPolicyTags = await getOnyxValue(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
             // When submitting a per diem expense
             const report = {
@@ -852,8 +850,7 @@ describe('PerDiem', () => {
                 betas,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
                 dateFnsLocale: undefined,
@@ -942,8 +939,7 @@ describe('PerDiem', () => {
                 betas,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
                 dateFnsLocale: undefined,
@@ -1046,8 +1042,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
                 dateFnsLocale: undefined,
@@ -1118,8 +1113,7 @@ describe('PerDiem', () => {
                 betas,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
                 dateFnsLocale: undefined,
