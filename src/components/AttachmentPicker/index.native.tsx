@@ -104,6 +104,9 @@ const getErrorMessage = (error: unknown): string => (error instanceof Error && e
  */
 const processPickedAssetsSequentially = async (assets: Asset[], showGeneralAlert: (message?: string) => void, translate: (key: TranslationPaths) => string): Promise<Asset[] | undefined> => {
     const processedAssets: Asset[] = [];
+    // Collected instead of alerted inline: a whole selection can fail the same way, and one native
+    // alert per file would leave the user dismissing a stack of identical modals.
+    const failureMessages = new Set<string>();
 
     for (const asset of assets) {
         if (!asset.uri) {
@@ -151,13 +154,17 @@ const processPickedAssetsSequentially = async (assets: Asset[], showGeneralAlert
                 }
             } catch (error) {
                 Log.warn('Failed to convert HEIC image, skipping asset', {error: getErrorMessage(error)});
-                showGeneralAlert(translate('attachmentPicker.errorWhileConvertingHeic'));
+                failureMessages.add(translate('attachmentPicker.errorWhileConvertingHeic'));
             } finally {
                 imageManipulatorContext.release();
             }
         } catch (error) {
-            showGeneralAlert(getErrorMessage(error));
+            failureMessages.add(getErrorMessage(error));
         }
+    }
+
+    for (const message of failureMessages) {
+        showGeneralAlert(message);
     }
 
     return processedAssets.length > 0 ? processedAssets : undefined;
@@ -614,3 +621,5 @@ function AttachmentPicker({
 }
 
 export default AttachmentPicker;
+// Exported for tests, which assert that only one image is decoded at a time.
+export {processPickedAssetsSequentially};
