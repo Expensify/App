@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import {getWaypointIndex, hasPendingDistanceReceiptRegeneration, hasReceipt} from '@libs/TransactionUtils';
+import {getWaypointIndex, hasDistanceRouteErrors, hasPendingDistanceReceiptRegeneration, hasReceipt} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
 import type {TranslationPaths} from '@src/languages/types';
@@ -41,6 +41,10 @@ function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptP
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = getTransactionDetails(transaction) ?? {};
     const formattedTransactionAmount = convertToDisplayString(transactionAmount, transactionCurrency);
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
+    // The thumbnail is a page of the stored receipt file. An edit that makes the server build a new file
+    // invalidates it, and a route error means the file does not describe the trip. Draw the pending map in
+    // both cases, so this card never shows a page that the rest of the app has already stopped trusting.
+    const canShowStoredReceiptPage = !hasPendingDistanceReceiptRegeneration(transaction) && !hasDistanceRouteErrors(transaction);
     const waypoints = useMemo(() => transaction?.comment?.waypoints ?? {}, [transaction?.comment?.waypoints]);
     const sortedWaypoints = useMemo<WaypointCollection>(
         () =>
@@ -65,9 +69,7 @@ function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptP
                     />
 
                     <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
-                        {/* The thumbnail is a page of the stored receipt file, therefore an edit that makes the server
-                            build a new file also invalidates it. Draw the pending map until the new file arrives. */}
-                        {hasPendingDistanceReceiptRegeneration(transaction) || !thumbnailSource ? (
+                        {!canShowStoredReceiptPage || !thumbnailSource ? (
                             <PendingMapView />
                         ) : (
                             <ReceiptImage
