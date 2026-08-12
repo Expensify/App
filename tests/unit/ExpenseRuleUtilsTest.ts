@@ -128,18 +128,21 @@ describe('extractRuleFromForm', () => {
         expect(result.comment).toBe(undefined);
     });
 
-    it('drops empty string billable and reimbursable but keeps an explicit false', () => {
+    it('drops every empty string field but keeps an explicit false', () => {
         const emptyForm = {
             merchantToMatch: 'Test',
             billable: '',
             reimbursable: '',
+            category: '',
+            tag: '',
         } as unknown as ExpenseRuleForm;
 
         const emptyRule = extractRuleFromForm(emptyForm);
         expect(emptyRule.billable).toBeUndefined();
         expect(emptyRule.reimbursable).toBeUndefined();
-        expect(JSON.stringify(emptyRule)).not.toContain('billable');
-        expect(JSON.stringify(emptyRule)).not.toContain('reimbursable');
+        expect(emptyRule.category).toBeUndefined();
+        expect(emptyRule.tag).toBeUndefined();
+        expect(Object.values(emptyRule)).not.toContain('');
 
         const falseForm: ExpenseRuleForm = {
             billable: 'false',
