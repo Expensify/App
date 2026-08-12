@@ -23,7 +23,7 @@ const GIT_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/DumDumRepo');
 const mockGetInput = jest.fn<(name: string) => string | undefined>();
 type CompareCommitsCommit = NonNullable<Awaited<ReturnType<typeof GithubUtils.octokit.repos.compareCommits>>['data']['commits']>[number];
 
-const isVerbose = process.env.VERBOSE === 'true';
+const isVerbose = process.env.TEST_VERBOSE === 'true';
 
 function exec(command: string) {
     try {
