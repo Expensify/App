@@ -68,27 +68,24 @@ function SubmitPlanWelcomeModal() {
                     innerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, styles.p5, StyleUtils.getBackgroundColorStyle(colors.yellow400)]}
                     outerContainerStyle={styles.p0}
                 />
-                <FeatureTraining.Body
-                    outerStyle={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}
-                    innerStyle={styles.mb5}
-                >
-                    <FeatureTraining.Title>{translate('submitPlanWelcomeModal.title')}</FeatureTraining.Title>
-                    <FeatureTraining.Description>{translate('submitPlanWelcomeModal.description')}</FeatureTraining.Description>
-                    <View style={[styles.gap2, styles.mt3]}>
-                        {FEATURE_TRANSLATION_KEYS.map((translationKey) => (
-                            <View
-                                key={translationKey}
-                                style={[styles.flexRow, styles.alignItemsStart]}
-                            >
-                                <Text style={styles.textSupporting}>{'•  '}</Text>
-                                <Text style={[styles.textSupporting, styles.flex1]}>{translate(translationKey)}</Text>
-                            </View>
-                        ))}
-                    </View>
+                <FeatureTraining.Body style={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}>
+                    <FeatureTraining.BodyText style={styles.mb5}>
+                        <FeatureTraining.Title style={shouldUseNarrowLayout && styles.mb1}>{translate('submitPlanWelcomeModal.title')}</FeatureTraining.Title>
+                        <FeatureTraining.Description>{translate('submitPlanWelcomeModal.description')}</FeatureTraining.Description>
+                        <View style={[styles.gap2, styles.mt3]}>
+                            {FEATURE_TRANSLATION_KEYS.map((translationKey) => (
+                                <View
+                                    key={translationKey}
+                                    style={[styles.flexRow, styles.alignItemsStart]}
+                                >
+                                    <Text style={styles.textSupporting}>{'•  '}</Text>
+                                    <Text style={[styles.textSupporting, styles.flex1]}>{translate(translationKey)}</Text>
+                                </View>
+                            ))}
+                        </View>
+                    </FeatureTraining.BodyText>
                     <FeatureTraining.HelpButton onPress={handleClose}>{translate('submitPlanWelcomeModal.dismissText')}</FeatureTraining.HelpButton>
-                    <FeatureTraining.ButtonRow>
-                        <FeatureTraining.ConfirmButton>{translate('submitPlanWelcomeModal.confirmText')}</FeatureTraining.ConfirmButton>
-                    </FeatureTraining.ButtonRow>
+                    <FeatureTraining.ConfirmButton>{translate('submitPlanWelcomeModal.confirmText')}</FeatureTraining.ConfirmButton>
                 </FeatureTraining.Body>
             </FeatureTraining>
         </CenteredModalLayout>
