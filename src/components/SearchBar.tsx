@@ -20,6 +20,7 @@ import TextInput from './TextInput';
 type SearchBarProps = {
     label: string;
     icon?: IconAsset;
+    shouldShowIcon?: boolean;
     inputValue: string;
     onChangeText?: (text: string) => void;
     onSubmitEditing?: (text: string) => void;
@@ -29,7 +30,7 @@ type SearchBarProps = {
     ref?: React.Ref<BaseTextInputRef>;
 };
 
-function SearchBar({ref, label, style, icon, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState, emptyStateContainerStyle}: SearchBarProps) {
+function SearchBar({ref, label, style, icon, shouldShowIcon = true, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState, emptyStateContainerStyle}: SearchBarProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -52,7 +53,7 @@ function SearchBar({ref, label, style, icon, inputValue, onChangeText, onSubmitE
                     inputMode={CONST.INPUT_MODE.TEXT}
                     selectTextOnFocus
                     spellCheck={false}
-                    icon={inputValue?.length ? undefined : (icon ?? expensifyIcons.MagnifyingGlass)}
+                    icon={inputValue?.length || !shouldShowIcon ? undefined : (icon ?? expensifyIcons.MagnifyingGlass)}
                     iconContainerStyle={styles.p0}
                     onSubmitEditing={() => onSubmitEditing?.(inputValue)}
                     shouldShowClearButton
