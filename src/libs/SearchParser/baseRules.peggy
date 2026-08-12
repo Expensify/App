@@ -84,6 +84,9 @@ groupBy = "groupBy"i / "group-by"i { return "groupBy"; }
 limit = "limit"i { return "limit"; }
 feed = "feed"i { return "feed"; }
 title = "title"i { return "title"; }
+submitterUserID = "submitterUserID"i / "submitter-user-id"i { return "submitterUserID"; }
+submitterPayrollID = "submitterPayrollID"i / "submitter-payroll-id"i { return "submitterPayrollID"; }
+orderDealNumbers = "orderDealNumbers"i / "order-deal-numbers"i { return "orderDealNumbers"; }
 assignee = "assignee"i { return "assignee"; }
 createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
 action = "action"i { return "action"; }
@@ -125,6 +128,8 @@ columnsValues
   / groupBankAccount
   / groupWithdrawn
   / groupWithdrawalId
+  / groupAmountDebited
+  / groupAmountReimbursed
   / groupCategory
   / groupTag
   / groupMerchant
@@ -159,6 +164,8 @@ groupFeed               = "group-feed"i &wordBoundary               { return "gr
 groupBankAccount        = "group-bank-account"i &wordBoundary       { return "groupBankAccount"; }
 groupWithdrawn          = "group-withdrawn"i &wordBoundary          { return "groupWithdrawn"; }
 groupWithdrawalId       = "group-withdrawal-id"i &wordBoundary      { return "groupWithdrawalID"; }
+groupAmountDebited      = "group-amount-debited"i &wordBoundary     { return "groupAmountDebited"; }
+groupAmountReimbursed   = "group-amount-reimbursed"i &wordBoundary  { return "groupAmountReimbursed"; }
 groupCategory           = "group-category"i &wordBoundary          { return "groupCategory"; }
 groupTag                = "group-tag"i &wordBoundary               { return "groupTag"; }
 groupMerchant           = "group-merchant"i &wordBoundary          { return "groupMerchant"; }

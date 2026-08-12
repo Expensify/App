@@ -9,6 +9,8 @@
  *   - defensively excludes expenses owned by another account when the snapshot carries the parent report
  *   - keeps a just-created expense visible after `pendingAction` clears but before the refreshed snapshot arrives,
  *     then shows the snapshot copy once it lands - without dropping or duplicating the row
+ *   - keeps a deleted expense hidden after the delete succeeds but while the snapshot still lists it, and brings it
+ *     back if the delete fails
  */
 import {renderHook} from '@testing-library/react-native';
 
@@ -343,6 +345,56 @@ describe('useRecentlyAddedData — offline-edited expenses', () => {
 
         const {result} = renderHook(() => useRecentlyAddedData());
 
+        expect(result.current.transactions.at(0)?.pendingAction).toBeNull();
+    });
+});
+
+describe('useRecentlyAddedData — deleted expenses', () => {
+    it('keeps the row visible with a DELETE pending action while the delete is still queued', () => {
+        setupSnapshot([makeTransaction({transactionID: 'doomed', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([makeTransaction({transactionID: 'doomed', inserted: '2026-06-01 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['doomed']);
+        expect(result.current.transactions.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    });
+
+    it('hides the row once the delete succeeds, even though the stale snapshot still lists the expense', () => {
+        // Render 1: the delete is queued, so the local copy carries pendingAction DELETE.
+        setupSnapshot(
+            [makeTransaction({transactionID: 'doomed', inserted: '2026-06-02 10:00:00'}), makeTransaction({transactionID: 'kept', inserted: '2026-06-01 10:00:00'})],
+            [makeReport('report_owned', ACCOUNT_ID)],
+        );
+        setupLocalTransactions([makeTransaction({transactionID: 'doomed', inserted: '2026-06-02 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})]);
+
+        const {result, rerender} = renderHook(() => useRecentlyAddedData());
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['doomed', 'kept']);
+
+        // Render 2: the delete succeeded, removing the local copy. The snapshot was fetched before the delete reached
+        // the server, so it still lists the expense — without the suppression the row would return as a live expense.
+        setupLocalTransactions([]);
+        rerender({});
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['kept']);
+
+        // Render 3: the refreshed snapshot finally drops it, and it stays gone.
+        setupSnapshot([makeTransaction({transactionID: 'kept', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+        rerender({});
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['kept']);
+    });
+
+    it('brings the row back when the delete fails and the local copy is restored without a pending action', () => {
+        setupSnapshot([makeTransaction({transactionID: 'doomed', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([makeTransaction({transactionID: 'doomed', inserted: '2026-06-01 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})]);
+
+        const {result, rerender} = renderHook(() => useRecentlyAddedData());
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['doomed']);
+
+        // The delete request failed, so failureData restores the transaction with its pending action cleared.
+        setupLocalTransactions([makeTransaction({transactionID: 'doomed', inserted: '2026-06-01 10:00:00'})]);
+        rerender({});
+
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['doomed']);
         expect(result.current.transactions.at(0)?.pendingAction).toBeNull();
     });
 });

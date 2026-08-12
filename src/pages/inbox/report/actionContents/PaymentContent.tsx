@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {getBankAccountLastFourDigits} from '@libs/PaymentUtils';
-import {getElsewherePaymentReportActionMessage, getOriginalMessage} from '@libs/ReportActionsUtils';
+import {getCrossBorderReimbursedMessage, getElsewherePaymentReportActionMessage, getOriginalMessage} from '@libs/ReportActionsUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
@@ -39,16 +39,17 @@ function PaymentContent({action, policyID}: PaymentContentProps) {
     }
 
     if (paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-        const last4Digits = getBankAccountLastFourDigits(originalMessage.bankAccountID, bankAccountList, policy);
+        const last4Digits = originalMessage.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage.bankAccountID, bankAccountList, policy);
+        const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
         if (wasAutoPaid) {
-            const translation = translate('iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
+            const translation = crossBorderMessage ?? translate('iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
             return (
                 <ReportActionItemBasicMessage>
                     <RenderHTML html={`<comment><muted-text>${translation}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         }
-        return <ReportActionItemBasicMessage message={translate('iou.businessBankAccount', '', last4Digits)} />;
+        return <ReportActionItemBasicMessage message={crossBorderMessage ?? translate('iou.businessBankAccount', '', last4Digits)} />;
     }
 
     if (wasAutoPaid) {

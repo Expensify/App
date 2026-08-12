@@ -94,6 +94,18 @@ type OriginalMessageIOU = {
     /** Currency of the transaction money */
     currency?: string;
 
+    /** Cross-border FX reimbursement: amount credited to the employee, in their deposit currency */
+    creditedAmount?: number;
+
+    /** Cross-border FX reimbursement: currency of `creditedAmount` (the employee deposit currency) */
+    creditedCurrency?: string;
+
+    /** Cross-border FX reimbursement: last 4 of the company withdrawal (VBA) account that was debited */
+    debitBankAccountLast4?: string;
+
+    /** Cross-border FX reimbursement: last 4 of the employee deposit account that was credited */
+    creditBankAccountLast4?: string;
+
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
 };
@@ -1323,6 +1335,12 @@ type OriginalMessageReimbursed = {
 
     /** For StripeConnect payments, indicates payment type ('card' or 'bank account') */
     stripePaymentType?: string;
+
+    /** Cents credited to the employee on a cross-border FX reimbursement, in the employee's deposit currency */
+    creditedAmount?: number;
+
+    /** Currency the creditedAmount is denominated in (the employee's deposit currency) */
+    creditedCurrency?: string;
 };
 
 /** Model of `trip room preview` report action */
@@ -1510,6 +1528,19 @@ type OriginalMessagePlaidBalanceFailure = {
 
     /** The reasoning for the failure (for AgentZero) */
     reasoning?: string;
+};
+
+/**
+ * Original message for a COMMUTER_EXCLUSION system action,
+ * posted to the workspace chat when a distance expense has the workspace's
+ * commuter exclusion applied to it.
+ */
+type OriginalMessageCommuterExclusion = {
+    /** The distance that was deducted, formatted to 2 decimals (e.g. "1.00") */
+    distance: string;
+
+    /** Display unit ("mi" or "km") */
+    unit: string;
 };
 
 /**
@@ -1775,6 +1806,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS]: OriginalMessageConciergeDescriptionOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MAP_MCC_GROUPS]: OriginalMessageConciergeAutoMapMccGroups;
     [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN]: OriginalMessageCompanyCardConnectionBroken;
+    [CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION]: OriginalMessageCommuterExclusion;
     [CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE]: OriginalMessagePlaidBalanceFailure;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
