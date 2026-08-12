@@ -40,6 +40,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
+// Icons are injected instead of imported from Expensicons so the page keeps lazy-loading them and this helper remains unit-testable.
 type WorkspaceMenuIconMap = Record<
     | 'Building'
     | 'Users'
