@@ -17,20 +17,15 @@ type OptionsWarmerProps = {
     onDone: () => void;
 };
 
-// The option list is only worth building while its inputs hold still, but a chatty account can keep
-// writing forever, so stop rescheduling after this many idle windows and build with what we have.
+// Stop waiting for quiet after this many idle windows; a chatty account never fully stops writing.
 const MAX_QUIET_WAIT_ATTEMPTS = 5;
 
 /**
- * Counts writes to the Onyx data the option-list cache is keyed on. `connectWithoutView` rather than
- * `useOnyx` because this must not render or build anything: it only answers "are the inputs still
- * settling?", and a subscribed component would rebuild the whole option list on every write.
- * The connections live only for the duration of the warmup.
+ * Counts writes to the Onyx data the option-list cache is keyed on. `connectWithoutView` because a
+ * subscribed component would rebuild the whole option list on every write; this only counts.
  */
 function startTrackingInputChurn(): {getVersion: () => number; stop: () => void} {
     let version = 0;
-    // Collection root keys hand the whole collection to the callback on any member change, so this
-    // fires once per write batch rather than once per report.
     const bump = () => {
         version += 1;
     };
@@ -53,18 +48,11 @@ function startTrackingInputChurn(): {getVersion: () => number; stop: () => void}
 }
 
 /**
- * Warms the SearchRouter open path once the app has settled:
- * - evaluates the SearchRouterPage and RightModalNavigator module graphs, moving their first-use
- *   cost (module factories, generated parsers) off the first search-open of the session;
- * - mounts SearchRouterOptionsWarmer once, so the empty-query option list is computed and cached
- *   ahead of that first open. The warmer unmounts as soon as the list is cached, so no live
- *   subscription keeps recomputing afterwards.
- *
- * Both steps wait for OpenApp to be applied (`isLoadingApp === false`) and then for an idle window on
- * the JS thread, so they never compete with startup or with an early user action. The option list
- * additionally waits for its Onyx inputs to hold still across a full idle window, because
- * `createFilteredOptionList` keys its cache on their identity — a list built while post-launch writes
- * are still landing is thrown away before the user can open the router.
+ * Moves the first search-open of the session off the critical path: evaluates the SearchRouterPage and
+ * RightModalNavigator module graphs, then mounts SearchRouterOptionsWarmer to build the empty-query
+ * option list into `createFilteredOptionList`'s cache. Runs after OpenApp is applied and the JS thread
+ * is idle. The option list also waits for its Onyx inputs to hold still, because the cache is keyed on
+ * their identity and a list built mid-write is discarded.
  */
 function SearchRouterWarmup() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
@@ -95,13 +83,13 @@ function SearchRouterWarmup() {
                     return;
                 }
 
-                // The router is already opening or open — it is paying these costs right now anyway.
+                // Already opening or open, so these costs are being paid live.
                 if (getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER)) {
                     stop();
                     return;
                 }
 
-                // Module evaluation is unaffected by Onyx writes, so it never needs to wait for quiet.
+                // Unaffected by Onyx writes, so no need to wait for quiet.
                 if (!areModulesLoaded) {
                     areModulesLoaded = true;
                     loadSearchRouterPage();

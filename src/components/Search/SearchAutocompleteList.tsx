@@ -111,11 +111,8 @@ const EMPTY_RANK_MAP: ReadonlyMap<string, number> = new Map();
 const INITIAL_MAX_RECENT_REPORTS = 100;
 const RECENT_REPORTS_BATCH_SIZE = 500;
 
-// Shared with SearchRouterOptionsWarmer, which pre-builds the same option list while the app is idle.
-// createFilteredOptionList keys its cache on these values, so keeping them in one place stops the two
-// call sites from drifting apart and silently building an entry the other one never reads.
-// deferContactsUntilSearch is true because the empty-query state renders only recent searches and
-// recent reports (no standalone contacts), so contacts can wait until the user types a query.
+// Shared with SearchRouterOptionsWarmer: createFilteredOptionList keys its cache on these values, so
+// the two call sites must not drift. Contacts can be deferred because the empty-query state shows none.
 const SEARCH_ROUTER_OPTIONS_CONFIG = {
     enabled: true,
     deferContactsUntilSearch: true,
