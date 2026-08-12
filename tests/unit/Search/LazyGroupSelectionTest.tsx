@@ -465,6 +465,32 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['4']).toBeUndefined();
     });
 
+    it('narrows a group selected while collapsed with a cached snapshot, whose children were stored individually', async () => {
+        const {result} = renderSelection();
+        const [firstChild] = loadedChildren;
+
+        // Given the group selected while collapsed but already cached, so the header passes its children and they are stored one by one
+        await act(async () => {
+            result.current.toggle(categoryGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+
+        // When the group is re-expanded and a shift+click collapses the range onto the first child
+        await act(async () => {
+            result.current.registerGroupChildren(GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the range narrows it, rather than the header's own rows counting as hand-picked and resisting the collapse
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']).toBeUndefined();
+    });
+
     it('selects every child of a group that was not already selected once its children loaded', async () => {
         const {result} = renderSelection();
 

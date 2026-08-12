@@ -583,11 +583,20 @@ function SearchWriteActionsProvider({
         return !!(parentGroupKey && getSelectedTransactions()[parentGroupKey]?.isSelected);
     };
 
+    // A row checked through a group header belongs to that block, so a range may take it back. Report rows are the row the user clicked, not a block.
+    const isRowHandPicked = (item: SearchData[number]) => {
+        if (isTransactionGroupListItemType(item) && item.transactions.length > 0) {
+            return isRowSelectedOnItsOwn(item);
+        }
+        const entry = item.keyForList ? getSelectedTransactions()[item.keyForList] : undefined;
+        return !!entry?.isSelected && !entry.isSelectedViaGroup;
+    };
+
     const rangeApi = useShiftRangeSelection<SearchData[number]>({
         items: flattenedShiftRangeItems,
         getItemKey: (item) => item.keyForList,
         isItemSelected: (item) => isRowSelectedOnItsOwn(item) || isRowSelectedViaGroup(item),
-        isItemProtected: isRowSelectedOnItsOwn,
+        isItemProtected: isRowHandPicked,
         isDisabledItem: (item) => (isTransactionListItemType(item) ? isTransactionPendingDelete(item) : item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
         onApplyRange: applyShiftRangeBatch,
         isHeaderItem: isShiftRangeHeaderItem,
