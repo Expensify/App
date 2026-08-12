@@ -16,7 +16,6 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {handleRestrictedEvent} from '@userActions/App';
 import {setPlaidEvent} from '@userActions/BankAccounts';
@@ -66,19 +65,9 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
     const plaidErrors = plaidData?.errors;
     const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors).at(0) ?? '') : '';
 
-    const activityReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'FixPersonalCardConnectionPage',
-        isConnectionCompleted,
-    };
-    const renderLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'FixPersonalCardConnectionPage',
-    };
     const renderLoading = () => (
         <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-            <ActivityIndicator
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={renderLoadingReasonAttributes}
-            />
+            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
         </View>
     );
 
@@ -147,7 +136,6 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
             <ActivityIndicator
                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                 style={styles.flex1}
-                reasonAttributes={renderLoadingReasonAttributes}
             />
         );
     };
@@ -185,7 +173,6 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}
-                        reasonAttributes={activityReasonAttributes}
                     />
                 )}
             </FullPageOfflineBlockingView>

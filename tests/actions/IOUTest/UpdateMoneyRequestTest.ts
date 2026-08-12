@@ -14,6 +14,7 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {editTransactionMerchantInline} from '@libs/actions/TransactionInlineEdit';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -25,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTagLists, RecentlyUsedTags, RecentWaypoint, Report, SearchResults} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+import type {Routes} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -41,7 +43,7 @@ import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/col
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+import {getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -177,9 +179,9 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals,
             });
 
             await waitForBatchedUpdates();
@@ -262,9 +264,9 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
                     isASAPSubmitBetaEnabled: false,
-                    parentReportNextStep: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    getCurrencyDecimals,
                 });
 
                 await waitForBatchedUpdates();
@@ -313,9 +315,9 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
                     isASAPSubmitBetaEnabled: false,
-                    parentReportNextStep: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    getCurrencyDecimals,
                 });
 
                 await waitForBatchedUpdates();
@@ -375,9 +377,9 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals,
             });
 
             await waitForBatchedUpdates();
@@ -448,7 +450,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
                 policyRecentlyUsedCurrencies: initialCurrencies,
-                parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
             });
@@ -521,7 +522,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
                 policyRecentlyUsedCurrencies: [],
-                parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
             });
@@ -669,7 +669,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
                 policyRecentlyUsedCurrencies: [],
-                parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
             });
@@ -709,7 +708,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: '',
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -747,7 +745,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: '',
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -812,7 +809,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -874,7 +870,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -950,10 +945,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isOffline: false,
                 isTrackIntentUser: false,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             await waitForBatchedUpdates();
@@ -1012,7 +1008,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isOffline: false,
                 isTrackIntentUser: false,
@@ -1049,7 +1044,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isOffline: false,
                 isTrackIntentUser: false,
@@ -1142,9 +1136,10 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 odometerStart: 10000,
                 odometerEnd: 15000,
-                parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             mockFetch?.resume?.();
@@ -1244,9 +1239,10 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'test@example.com',
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             await waitForBatchedUpdates();
@@ -1358,9 +1354,10 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isASAPSubmitBetaEnabled: false,
                 odometerStart: 50000,
                 odometerEnd: 50350,
-                parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             mockFetch?.resume?.();
@@ -1434,9 +1431,10 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'test@example.com',
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             await waitForBatchedUpdates();
@@ -1491,9 +1489,10 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'test@example.com',
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             await waitForBatchedUpdates();
@@ -1502,6 +1501,102 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             const transaction2AfterUpdate = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`);
 
             expect(transaction2AfterUpdate?.transactionID).toBe(transactionID2);
+        });
+
+        it('should send the selected route distance and recalculate the distance optimistically when only the route selection changed', async () => {
+            // Given a map distance expense created with the primary route, where the user picked the alternate route
+            const transactionID = 'transaction_alternate_route';
+            const parentReportID = 'parentReport_alternate_route';
+            const transactionThreadReportID = 'transactionReport_alternate_route';
+            const policyID = 'policy_alternate_route';
+            const routes: Routes = {
+                route0: {distance: 1000, geometry: {type: 'LineString', coordinates: [[0, 0]]}},
+                route1: {distance: 1500, geometry: {type: 'LineString', coordinates: [[1, 1]]}},
+            };
+            const waypoints = {
+                waypoint0: {keyForList: 'start', lat: 0, lng: 0, address: 'Start', name: 'Start'},
+                waypoint1: {keyForList: 'end', lat: 1, lng: 1, address: 'End', name: 'End'},
+            };
+
+            const transactionBackup: Transaction = {
+                transactionID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                merchant: '0.62 mi @ $0.70 / mi',
+                reportID: parentReportID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 0.62,
+                        routeDistanceMeters: routes.route0.distance,
+                    },
+                    waypoints,
+                },
+                routes,
+            };
+            const fakeTransaction: Transaction = {
+                ...transactionBackup,
+                comment: {...transactionBackup.comment, selectedRouteKey: 'route1'},
+            };
+
+            const fakePolicy = createRandomPolicy(Number(1));
+            const transactionThreadReport = {reportID: transactionThreadReportID, type: CONST.REPORT.TYPE.EXPENSE} as Report;
+            const parentReport = {reportID: parentReportID, type: CONST.REPORT.TYPE.IOU} as Report;
+
+            // The stored transaction is still the one built from the primary route, so the only change is the route selection
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transactionBackup);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+
+            mockFetch?.pause?.();
+
+            // When saving the edit without touching the waypoints
+            updateMoneyRequestDistance({
+                personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
+                transaction: fakeTransaction,
+                transactionThreadReport,
+                parentReport,
+                iouReportOwnerLogin: undefined,
+                waypoints,
+                recentWaypoints: [],
+                selectedRouteKey: 'route1',
+                policy: fakePolicy,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                transactionBackup,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'test@example.com',
+                isASAPSubmitBetaEnabled: false,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the optimistic transaction follows the alternate route without clearing the routes
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.comment?.customUnit?.quantity).toBe(0.93);
+            expect(transaction?.comment?.customUnit?.routeDistanceMeters).toBe(1500);
+            expect(transaction?.comment?.selectedRouteKey).toBe('route1');
+            expect(transaction?.routes).toEqual(routes);
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // And the alternate route's distance is sent to the BE, which is how it identifies the picked route
+            const distanceRequest = mockFetch.mock.calls.find(([url]) => typeof url === 'string' && url.endsWith(`/${WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE}?`));
+            const requestBody = distanceRequest?.[1]?.body;
+            const requestParams = requestBody instanceof FormData ? requestBody : undefined;
+            expect(requestParams?.get('transactionID')).toBe(transactionID);
+            expect(requestParams?.get('selectedRouteDistance')).toBe('1500');
         });
     });
 
@@ -1556,7 +1651,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -1593,7 +1687,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -1657,7 +1750,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -1714,7 +1806,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
@@ -1822,7 +1913,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     currentUserAccountIDParam: RORY_ACCOUNT_ID,
                     currentUserEmailParam: RORY_EMAIL,
                     isASAPSubmitBetaEnabled: false,
-                    parentReportNextStep: undefined,
                     isOffline,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
@@ -2082,10 +2172,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.anything(), expect.anything());
@@ -2212,10 +2303,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: 1,
                 currentUserEmailParam: 'test@test.com',
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.objectContaining({transactionID, created: '2025-06-15'}), expect.anything());
@@ -2311,10 +2403,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: 1,
                 currentUserEmailParam: 'test@test.com',
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.anything(), expect.anything());
@@ -2431,10 +2524,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: 1,
                 currentUserEmailParam: 'test@test.com',
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.objectContaining({transactionID, created: '2027-06-15'}), expect.anything());
@@ -2466,6 +2560,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 participants: [{accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}],
                 transactionID,
                 isPersonalTrackingExpense: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const transactionThread: Report = {
                 ...createRandomReport(2, undefined),
@@ -2553,10 +2648,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
                 isOffline: false,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.anything(), expect.anything());
@@ -2624,7 +2720,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     reportPolicyTags: undefined,
                     policyRecentlyUsedCategories: [],
                     policyRecentlyUsedTags: undefined,
-                    parentReportNextStep: undefined,
                     isOffline: false,
                     isSelfTourViewed: false,
                     hasCompletedGuidedSetupFlow: false,
@@ -2633,6 +2728,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
                     isTrackIntentUser: false,
                     personalDetailsList: undefined,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 },
                 newMerchant,
             );

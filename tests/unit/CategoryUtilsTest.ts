@@ -8,7 +8,6 @@ import {
     isCategoryMissing,
     processCategoryNameSegments,
 } from '@libs/CategoryUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,7 +15,7 @@ import type {Policy, PolicyCategories} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 
 describe(`isMissingCategory`, () => {
     it('returns true if category is undefined', () => {

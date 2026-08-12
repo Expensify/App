@@ -3,6 +3,8 @@ import getClipboardText from '@libs/Clipboard/getClipboardText';
 
 import CONST from '@src/CONST';
 
+import {formatPhoneNumber} from '../utils/TestHelper';
+
 jest.mock(
     'expo-web-browser',
     () => ({
@@ -55,6 +57,22 @@ const createPayload = (selection: string): Record<string, unknown> => ({
     getLocalDateFromDatetime: jest.fn(),
     policyTags: {},
     translate: (translateKey: string) => translateKey,
+    formatPhoneNumber,
+    currentUserPersonalDetails: {
+        accountID: 1,
+        login: 'user@expensify.com',
+        email: 'user@expensify.com',
+    },
+});
+
+const createReportActionPayload = (reportAction: Record<string, unknown>): Record<string, unknown> => ({
+    reportAction,
+    selection: '',
+    report: {},
+    originalReport: {},
+    getLocalDateFromDatetime: jest.fn(),
+    policyTags: {},
+    translate: (translateKey: string) => translateKey,
     currentUserPersonalDetails: {
         accountID: 1,
         login: 'user@expensify.com',
@@ -97,5 +115,38 @@ describe('ContextMenuActions copy message', () => {
         expect(mockGetClipboardText).toHaveBeenCalledWith(selection);
         expect(mockClipboard.setHtml).toHaveBeenCalledWith(selection, 'Expensify');
         expect(mockClipboard.setString).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        [
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE,
+            {ruleTitle: 'Receipts required', prompt: 'Flag any expense over $25 that is missing a receipt'},
+            'workspaceActions.agentRule.added',
+        ],
+        [
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE,
+            {ruleTitle: 'Receipts required', prompt: 'Reject any expense that includes alcohol'},
+            'workspaceActions.agentRule.updated',
+        ],
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE, {ruleTitle: 'Receipts required'}, 'workspaceActions.agentRule.deleted'],
+    ])('copies the localized message for a %s action', (actionName, originalMessage, expectedTranslationKey) => {
+        mockClipboard.canSetHtml.mockReturnValue(false);
+        mockGetClipboardText.mockReturnValue('mocked clipboard text');
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload({
+                actionName,
+                message: [{html: ''}],
+                originalMessage,
+            }),
+        );
+
+        expect(mockGetClipboardText).toHaveBeenCalledWith(expectedTranslationKey);
+        expect(mockClipboard.setString).toHaveBeenCalledWith('mocked clipboard text');
     });
 });

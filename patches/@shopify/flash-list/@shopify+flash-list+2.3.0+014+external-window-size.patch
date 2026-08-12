@@ -1,0 +1,104 @@
+diff --git a/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts b/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts
+index fa786bf..014eb62 100644
+--- a/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts
++++ b/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts
+@@ -99,6 +99,15 @@ export interface FlashListProps<TItem> extends Omit<ScrollViewProps, "maintainVi
+      * Rendered as the main scrollview.
+      */
+     renderScrollComponent?: React.ComponentType<ScrollViewProps> | React.ExoticComponent<ScrollViewProps> | React.FC<ScrollViewProps>;
++    /**
++     * When set, the list uses this as its visible window size instead of measuring its outer container.
++     * Intended for externally-driven lists (a custom non-scrolling `renderScrollComponent` fed synthetic scroll
++     * events), where the outer container is as tall as the full content and can't be used as the viewport.
++     */
++    overrideWindowSize?: {
++        width: number;
++        height: number;
++    };
+     /**
+      * Draw distance for advanced rendering (in dp/px)
+      */
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+index ef4daf2..063fd1a 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+@@ -28,7 +28,7 @@ import { RenderTimeTracker } from "./helpers/RenderTimeTracker";
+ const RecyclerViewComponent = (props, ref) => {
+     var _a, _b, _c, _d;
+     // Destructure props and initialize refs
+-    const { horizontal, renderItem, data, extraData, onLoad, CellRendererComponent, overrideProps, refreshing, onRefresh, progressViewOffset, ListEmptyComponent, ListHeaderComponent, ListHeaderComponentStyle, ListFooterComponent, ListFooterComponentStyle, ItemSeparatorComponent, renderScrollComponent, style, stickyHeaderIndices, maintainVisibleContentPosition, onCommitLayoutEffect, onChangeStickyIndex, stickyHeaderConfig, inverted, ...rest } = props;
++    const { horizontal, renderItem, data, extraData, onLoad, CellRendererComponent, overrideProps, refreshing, onRefresh, progressViewOffset, ListEmptyComponent, ListHeaderComponent, ListHeaderComponentStyle, ListFooterComponent, ListFooterComponentStyle, ItemSeparatorComponent, renderScrollComponent, style, stickyHeaderIndices, maintainVisibleContentPosition, onCommitLayoutEffect, onChangeStickyIndex, stickyHeaderConfig, inverted, overrideWindowSize, ...rest } = props;
+     const [renderTimeTracker] = useState(() => new RenderTimeTracker());
+     renderTimeTracker.startTracking();
+     // Sticky header config
+@@ -147,12 +147,15 @@ const RecyclerViewComponent = (props, ref) => {
+                 : horizontal
+                     ? firstChildViewLayout.x
+                     : firstChildViewLayout.y;
++            // overrideWindowSize lets an externally-driven list (no own scroller, container is as tall as the full
++            // content) declare its visible window; everything else still uses the real measurement.
++            const windowSize = overrideWindowSize !== null && overrideWindowSize !== void 0 ? overrideWindowSize : outerViewSize;
+             // Update the RecyclerView manager with window dimensions
+             recyclerViewManager.updateLayoutParams({
+-                width: horizontal ? outerViewSize.width : firstChildViewLayout.width,
++                width: horizontal ? windowSize.width : firstChildViewLayout.width,
+                 height: horizontal
+                     ? firstChildViewLayout.height
+-                    : outerViewSize.height,
++                    : windowSize.height,
+             }, isHorizontalRTL && recyclerViewManager.hasLayout()
+                 ? firstItemOffset -
+                     recyclerViewManager.getChildContainerDimensions().width
+diff --git a/node_modules/@shopify/flash-list/src/FlashListProps.ts b/node_modules/@shopify/flash-list/src/FlashListProps.ts
+index 76dd0c8..5a5c0f5 100644
+--- a/node_modules/@shopify/flash-list/src/FlashListProps.ts
++++ b/node_modules/@shopify/flash-list/src/FlashListProps.ts
+@@ -160,6 +160,16 @@ export interface FlashListProps<TItem>
+     | React.ExoticComponent<ScrollViewProps>
+     | React.FC<ScrollViewProps>;
+ 
++  /**
++   * When set, the list uses this as its visible window size instead of measuring its outer container.
++   * Intended for externally-driven lists (a custom non-scrolling `renderScrollComponent` fed synthetic scroll
++   * events), where the outer container is as tall as the full content and can't be used as the viewport.
++   */
++  overrideWindowSize?: {
++    width: number;
++    height: number;
++  };
++
+   /**
+    * Draw distance for advanced rendering (in dp/px)
+    */
+diff --git a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
+index bc27739..a7829d5 100644
+--- a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
++++ b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
+@@ -90,6 +90,7 @@ const RecyclerViewComponent = <T,>(
+     onChangeStickyIndex,
+     stickyHeaderConfig,
+     inverted,
++    overrideWindowSize,
+     ...rest
+   } = props;
+ 
+@@ -265,13 +266,17 @@ const RecyclerViewComponent = <T,>(
+           ? firstChildViewLayout.x
+           : firstChildViewLayout.y;
+ 
++      // overrideWindowSize lets an externally-driven list (no own scroller, container is as tall as the full
++      // content) declare its visible window; everything else still uses the real measurement.
++      const windowSize = overrideWindowSize ?? outerViewSize;
++
+       // Update the RecyclerView manager with window dimensions
+       recyclerViewManager.updateLayoutParams(
+         {
+-          width: horizontal ? outerViewSize.width : firstChildViewLayout.width,
++          width: horizontal ? windowSize.width : firstChildViewLayout.width,
+           height: horizontal
+             ? firstChildViewLayout.height
+-            : outerViewSize.height,
++            : windowSize.height,
+         },
+         isHorizontalRTL && recyclerViewManager.hasLayout()
+           ? firstItemOffset -
