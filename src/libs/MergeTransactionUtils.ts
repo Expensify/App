@@ -654,7 +654,7 @@ type GetMergeFieldUpdatedValuesParams<K extends MergeFieldKey> = {
  * A commuter exclusion belongs to the workspace the surviving expense ends up on, and always describes the distance
  * that is selected. Selections are stored with Onyx.merge, which deep merges the custom unit, so both the exclusion of
  * a workspace that is no longer the destination and the reimbursable distance of a previously selected merchant would
- * otherwise survive — and the distance field shows the reimbursable distance in place of the full distance.
+ * otherwise survive. The distance field then shows the reimbursable distance in place of the full distance.
  */
 function getCommuterExclusionCustomUnitUpdate(
     selectedCustomUnit: TransactionCustomUnit | undefined,
