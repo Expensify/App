@@ -3051,6 +3051,11 @@ function getWorkspaceCategoryUpdateMessage(translate: LocalizedTranslate, action
             return translate('workspaceActions.updateAreCommentsRequired', decodedOptionName, oldValue);
         }
 
+        // oldValue is an empty string the first time attendees are required on a category, so key off newValue
+        if (updatedField === 'areAttendeesRequired' && typeof newValue === 'boolean') {
+            return translate('workspaceActions.updateAreAttendeesRequired', decodedOptionName, newValue);
+        }
+
         if (updatedField === 'Payroll Code' && typeof oldValue === 'string' && typeof newValue === 'string') {
             return translate('workspaceActions.updateCategoryPayrollCode', decodedOptionName, newValue, oldValue);
         }
@@ -3485,7 +3490,7 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
                 return translate('workflowsPage.frequencies.lastBusinessDayOfMonth');
             }
             if (typeof autoReportingOffset === 'number') {
-                return toLocaleOrdinal(IntlStore.getCurrentLocale(), autoReportingOffset, false);
+                return toLocaleOrdinal(IntlStore.getCurrentLocale(), autoReportingOffset);
             }
             return '';
         };
@@ -4970,7 +4975,6 @@ export {
     isHoldAction,
     isWhisperAction,
     isSubmittedAction,
-    isSubmittedAndClosedAction,
     isDynamicExternalWorkflowSubmitAction,
     isMarkAsClosedAction,
     isForwardedAction,
