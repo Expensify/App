@@ -32,8 +32,8 @@ let internalOctokit: InternalOctokit;
  * firing it.
  */
 async function runWithFakeTimers<T>(operation: () => Promise<T>, expectedBackoffsMs: number[]): Promise<T> {
-    jest.useFakeTimers();
     try {
+        jest.useFakeTimers();
         let isSettled = false;
         const pending = operation().finally(() => {
             isSettled = true;

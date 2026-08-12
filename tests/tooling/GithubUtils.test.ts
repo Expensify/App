@@ -8,7 +8,6 @@ import GithubUtils from '@github/libs/GithubUtils';
 import * as core from '@actions/core';
 import {RequestError} from '@octokit/request-error';
 
-const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
 
 type ObjectMethodData<T> = {
@@ -16,13 +15,6 @@ type ObjectMethodData<T> = {
 };
 
 type OctokitCreateIssue = InternalOctokit['rest']['issues']['create'];
-
-beforeEach(() => {
-    // Mock core module. Real ESM module namespace exports are read-only live bindings, so `core.getInput` can't be
-    // reassigned directly (unlike Jest's Babel-transpiled CJS interop); spy on it instead. Re-installed per test
-    // rather than once, because getCommitHistoryBetweenTags' afterEach calls jest.restoreAllMocks().
-    jest.spyOn(core, 'getInput').mockImplementation(mockGetInput);
-});
 
 beforeAll(() => {
     // Mock octokit module
@@ -47,7 +39,6 @@ beforeAll(() => {
 });
 
 afterEach(() => {
-    mockGetInput.mockClear();
     mockListIssues.mockClear();
 });
 
