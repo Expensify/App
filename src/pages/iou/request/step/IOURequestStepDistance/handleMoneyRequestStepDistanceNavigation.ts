@@ -329,6 +329,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             delegateAccountID,
                             reportActionsList: undefined,
                             getCurrencyDecimals,
+                            formatPhoneNumber,
                         });
                         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                             report,

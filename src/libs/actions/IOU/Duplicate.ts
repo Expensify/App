@@ -910,6 +910,7 @@ function duplicateExpenseTransaction({
             currentUserLocalCurrency,
             delegateAccountID,
             reportActionsList: undefined,
+            formatPhoneNumber,
         };
         return trackExpense(trackExpenseParams);
     }
@@ -1007,6 +1008,7 @@ function duplicateReport({
         isTrackIntentUser,
         getCurrencyDecimals,
         false,
+        formatPhoneNumber,
         undefined,
         {
             reportName: newReportName,

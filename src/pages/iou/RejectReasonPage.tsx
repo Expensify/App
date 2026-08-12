@@ -34,7 +34,7 @@ type RejectReasonPageProps =
     | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>;
 
 function RejectReasonPage({route}: RejectReasonPageProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const {transactionID, reportID, backTo} = route.params;
@@ -62,6 +62,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
             currentUserLogin ?? '',
             betas,
             delegateAccountID,
+            formatPhoneNumber,
             getCurrencyDecimals,
         );
         removeTransaction(transactionID);

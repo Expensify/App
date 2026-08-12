@@ -40,7 +40,7 @@ import {View} from 'react-native';
 
 function SearchActionsBarCreateButton() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'Location', 'Document', 'Receipt', 'Coins', 'Cash', 'Transfer', 'MoneyCircle']);
 
     const createButtonRef = useRef<View>(null);
@@ -92,6 +92,7 @@ function SearchActionsBarCreateButton() {
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 false,
+                formatPhoneNumber,
                 shouldDismissEmptyReportsConfirmation,
             );
             Navigation.setNavigationActionToMicrotaskQueue(() => {

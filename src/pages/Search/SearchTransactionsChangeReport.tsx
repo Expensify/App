@@ -5,6 +5,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -37,6 +38,7 @@ type TransactionGroupListItem = ListItem & {
 };
 
 function SearchTransactionsChangeReport() {
+    const {formatPhoneNumber} = useLocalize();
     const {selectedTransactions} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
@@ -159,6 +161,7 @@ function SearchTransactionsChangeReport() {
             isTrackIntentUser,
             getCurrencyDecimals,
             false,
+            formatPhoneNumber,
             shouldDismissEmptyReportsConfirmation,
             {managedCardTransactionID},
         );

@@ -231,6 +231,7 @@ type HandleActionButtonPressParams = {
     isTrackIntentUser: boolean | undefined;
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function handleActionButtonPress({
@@ -270,6 +271,7 @@ function handleActionButtonPress({
     isTrackIntentUser,
     conciergeChat,
     getCurrencyDecimals,
+    formatPhoneNumber,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -323,6 +325,7 @@ function handleActionButtonPress({
                 isTrackIntentUser,
                 conciergeChat,
                 getCurrencyDecimals,
+                formatPhoneNumber,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -356,6 +359,7 @@ function handleActionButtonPress({
                 isTrackIntentUser,
                 ownerLogin: submitterLogin,
                 getCurrencyDecimals,
+                formatPhoneNumber,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
@@ -532,6 +536,7 @@ type GetPayActionCallbackParams = {
     isTrackIntentUser: boolean | undefined;
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function getPayActionCallback({
@@ -561,6 +566,7 @@ function getPayActionCallback({
     isTrackIntentUser,
     conciergeChat,
     getCurrencyDecimals,
+    formatPhoneNumber,
 }: GetPayActionCallbackParams) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
 
@@ -611,6 +617,7 @@ function getPayActionCallback({
         isTrackIntentUser,
         conciergeChat,
         getCurrencyDecimals,
+        formatPhoneNumber,
     });
 }
 
@@ -632,6 +639,7 @@ type GetApproveActionCallbackParams = {
     isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function getApproveActionCallback({
@@ -652,6 +660,7 @@ function getApproveActionCallback({
     isTrackIntentUser,
     ownerLogin,
     getCurrencyDecimals,
+    formatPhoneNumber,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
         return;
@@ -680,6 +689,7 @@ function getApproveActionCallback({
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
         isTrackIntentUser,
         getCurrencyDecimals,
+        formatPhoneNumber,
     });
 }
 
@@ -1418,18 +1428,31 @@ function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connecti
     });
 }
 
-function rejectMoneyRequestInBulk(
-    reportID: string,
-    comment: string,
-    policy: OnyxEntry<Policy>,
-    transactionIDs: string[],
-    currentUserAccountIDParam: number,
-    currentUserLogin: string,
-    betas: OnyxEntry<Beta[]>,
-    delegateAccountID: number | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    hash?: number,
-) {
+function rejectMoneyRequestInBulk({
+    reportID,
+    comment,
+    policy,
+    transactionIDs,
+    currentUserAccountIDParam,
+    currentUserLogin,
+    betas,
+    delegateAccountID,
+    getCurrencyDecimals,
+    hash,
+    formatPhoneNumber,
+}: {
+    reportID: string;
+    comment: string;
+    policy: OnyxEntry<Policy>;
+    transactionIDs: string[];
+    currentUserAccountIDParam: number;
+    currentUserLogin: string;
+    betas: OnyxEntry<Beta[]>;
+    delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    hash?: number;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+}) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const successData: RejectMoneyRequestData['successData'] = [];
@@ -1458,6 +1481,7 @@ function rejectMoneyRequestInBulk(
             delegateAccountID,
             getCurrencyDecimals,
             shouldUseBulkAction: true,
+            formatPhoneNumber,
         });
         if (data) {
             optimisticData.push(...data.optimisticData);
@@ -1486,18 +1510,31 @@ type TransactionReportInfo = {
     reportID?: string;
 };
 
-function rejectMoneyRequestsOnSearch(
-    hash: number,
-    selectedTransactions: Record<string, TransactionReportInfo>,
-    comment: string,
-    allPolicies: OnyxCollection<Policy>,
-    allReports: OnyxCollection<Report>,
-    currentUserAccountIDParam: number,
-    currentUserLogin: string,
-    betas: OnyxEntry<Beta[]>,
-    delegateAccountID: number | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-) {
+function rejectMoneyRequestsOnSearch({
+    hash,
+    selectedTransactions,
+    comment,
+    allPolicies,
+    allReports,
+    currentUserAccountIDParam,
+    currentUserLogin,
+    betas,
+    delegateAccountID,
+    getCurrencyDecimals,
+    formatPhoneNumber,
+}: {
+    hash: number;
+    selectedTransactions: Record<string, TransactionReportInfo>;
+    comment: string;
+    allPolicies: OnyxCollection<Policy>;
+    allReports: OnyxCollection<Report>;
+    currentUserAccountIDParam: number;
+    currentUserLogin: string;
+    betas: OnyxEntry<Beta[]>;
+    delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+}) {
     const transactionIDs = Object.keys(selectedTransactions);
 
     const transactionsByReport = transactionIDs.reduce<Record<string, string[]>>((acc, transactionID) => {
@@ -1529,7 +1566,19 @@ function rejectMoneyRequestsOnSearch(
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
-            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, currentUserLogin, betas, delegateAccountID, getCurrencyDecimals, hash);
+            rejectMoneyRequestInBulk({
+                reportID,
+                comment,
+                policy,
+                transactionIDs: selectedTransactionIDs,
+                currentUserAccountIDParam,
+                currentUserLogin,
+                betas,
+                delegateAccountID,
+                formatPhoneNumber,
+                getCurrencyDecimals,
+                hash,
+            });
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
@@ -1538,7 +1587,7 @@ function rejectMoneyRequestsOnSearch(
                 existingRejectedReport = nextRejectedReport;
             };
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, delegateAccountID, getCurrencyDecimals, {
+                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, delegateAccountID, formatPhoneNumber, getCurrencyDecimals, {
                     sharedRejectedToReportID,
                     existingRejectedReport,
                     setExistingRejectedReport,

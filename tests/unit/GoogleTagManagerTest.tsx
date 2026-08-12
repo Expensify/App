@@ -18,7 +18,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
-import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
+import {getCurrencyDecimalsLocal, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/GoogleTagManager');
@@ -300,6 +300,7 @@ describe('GoogleTagManagerTest', () => {
             currentUserLocalCurrency: undefined,
             delegateAccountID: undefined,
             reportActionsList: undefined,
+            formatPhoneNumber,
         });
 
         await waitForBatchedUpdatesWithAct();

@@ -35,6 +35,7 @@ import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/nativ
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import PusherHelper from '../utils/PusherHelper';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -812,6 +813,7 @@ describe('Unread Indicators', () => {
             currentUserLocalCurrency: undefined,
             delegateAccountID: undefined,
             reportActionsList: undefined,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 

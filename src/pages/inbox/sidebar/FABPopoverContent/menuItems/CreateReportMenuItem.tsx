@@ -55,7 +55,7 @@ const chatEnabledPaidGroupPoliciesSelector = (policies: OnyxCollection<OnyxTypes
 
 function CreateReportMenuItem() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Document']);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
@@ -94,6 +94,7 @@ function CreateReportMenuItem() {
             isTrackIntentUser,
             getCurrencyDecimals,
             false,
+            formatPhoneNumber,
             shouldDismissEmptyReportsConfirmation,
         );
         // Navigate to the Reports page first so getCreateReportRoute() resolves against

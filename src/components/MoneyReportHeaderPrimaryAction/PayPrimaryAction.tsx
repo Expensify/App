@@ -49,7 +49,7 @@ type PayPrimaryActionProps = {
 function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimationsContext();
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {accountID, email, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -164,6 +164,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 chatReportActions: getChatReportActions(payAsBusiness),
                 delegateAccountID,
                 isTrackIntentUser,
+                formatPhoneNumber,
             });
         } else {
             startAnimation();
@@ -189,6 +190,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 delegateAccountID,
                 isTrackIntentUser,
                 conciergeChat,
+                formatPhoneNumber,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({

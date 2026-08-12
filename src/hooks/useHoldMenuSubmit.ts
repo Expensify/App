@@ -21,6 +21,7 @@ import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePayChatReportActions from './usePayChatReportActions';
 import usePermissions from './usePermissions';
@@ -61,6 +62,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
+    const {formatPhoneNumber} = useLocalize();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -127,6 +129,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 delegateAccountID,
                 isTrackIntentUser,
                 conciergeChat,
+                formatPhoneNumber,
             });
         }
         onClose();

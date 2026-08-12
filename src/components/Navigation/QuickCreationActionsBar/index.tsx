@@ -39,7 +39,7 @@ import {View} from 'react-native';
 
 function QuickCreationActionsBar() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus', 'DocumentPlus', 'LocationAdd', 'LuggageWithLinesPlus']);
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -108,6 +108,7 @@ function QuickCreationActionsBar() {
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 false,
+                formatPhoneNumber,
                 shouldDismissEmptyReportsConfirmation,
             );
             // Navigate to the Reports page first so getCreateReportRoute() resolves against

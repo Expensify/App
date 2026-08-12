@@ -117,6 +117,7 @@ type ApproveMoneyRequestFunctionParams = {
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type SubmitReportFunctionParams = {
@@ -466,6 +467,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         shouldPlaySuccessSound = true,
         isTrackIntentUser,
         getCurrencyDecimals,
+        formatPhoneNumber,
     } = params;
     if (!expenseReport) {
         return;
@@ -749,6 +751,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             betas,
             delegateAccountID,
             getCurrencyDecimals,
+            formatPhoneNumber,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);

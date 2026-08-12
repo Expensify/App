@@ -22,7 +22,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
+import {getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, formatPhoneNumber} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -163,6 +163,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 TEST_USER_EMAIL,
                 [CONST.BETAS.ALL],
                 undefined,
+                formatPhoneNumber,
                 getCurrencyDecimalsLocal,
             );
 
@@ -180,7 +181,18 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, [CONST.BETAS.ALL], undefined, getCurrencyDecimalsLocal);
+            rejectMoneyRequest(
+                transaction.transactionID,
+                iouReport.reportID,
+                comment,
+                policy,
+                TEST_USER_ACCOUNT_ID,
+                TEST_USER_EMAIL,
+                [CONST.BETAS.ALL],
+                undefined,
+                formatPhoneNumber,
+                getCurrencyDecimalsLocal,
+            );
             await waitForBatchedUpdates();
 
             // Then: Verify violation is added
@@ -236,7 +248,18 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, [CONST.BETAS.ALL], undefined, getCurrencyDecimalsLocal);
+            rejectMoneyRequest(
+                transaction.transactionID,
+                iouReport.reportID,
+                comment,
+                policy,
+                TEST_USER_ACCOUNT_ID,
+                TEST_USER_EMAIL,
+                [CONST.BETAS.ALL],
+                undefined,
+                formatPhoneNumber,
+                getCurrencyDecimalsLocal,
+            );
             await waitForBatchedUpdates();
 
             // Then: createdIOUReportActionID shouldn't be undefined
@@ -284,6 +307,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 TEST_USER_EMAIL,
                 [CONST.BETAS.ALL],
                 undefined,
+                formatPhoneNumber,
                 getCurrencyDecimalsLocal,
                 {
                     sharedRejectedToReportID,
@@ -301,6 +325,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 TEST_USER_EMAIL,
                 [CONST.BETAS.ALL],
                 undefined,
+                formatPhoneNumber,
                 getCurrencyDecimalsLocal,
                 {
                     sharedRejectedToReportID,

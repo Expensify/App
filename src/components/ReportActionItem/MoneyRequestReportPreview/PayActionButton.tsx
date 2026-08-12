@@ -47,7 +47,7 @@ import useReportPreviewActionButtonData from './useReportPreviewActionButtonData
 
 function PayActionButton() {
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
@@ -122,6 +122,7 @@ function PayActionButton() {
                     chatReportActions: getChatReportActions(payAsBusiness),
                     delegateAccountID,
                     isTrackIntentUser,
+                    formatPhoneNumber,
                 });
             } else {
                 payMoneyRequest({
@@ -146,6 +147,7 @@ function PayActionButton() {
                     delegateAccountID,
                     isTrackIntentUser,
                     conciergeChat,
+                    formatPhoneNumber,
                 });
             }
         }

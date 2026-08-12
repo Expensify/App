@@ -377,7 +377,7 @@ function getChatReportForBulkPay(
 }
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -1366,6 +1366,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${payChatReportID}`],
                         delegateAccountID,
                         isTrackIntentUser,
+                        formatPhoneNumber,
                     });
                     paidReportCount += 1;
                     continue;
@@ -1396,6 +1397,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     delegateAccountID,
                     isTrackIntentUser,
                     conciergeChat,
+                    formatPhoneNumber,
                 });
                 paidReportCount += 1;
             }

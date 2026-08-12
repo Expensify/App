@@ -35,7 +35,7 @@ import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, translateLocal} from '../../utils/TestHelper';
+import {getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, translateLocal, formatPhoneNumber} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -263,6 +263,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -478,6 +479,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -649,6 +651,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -706,6 +709,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -793,6 +797,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
                     isTrackIntentUser: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    formatPhoneNumber,
                 });
 
                 await waitForBatchedUpdates();
@@ -881,6 +886,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -982,6 +988,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
             const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
@@ -1023,6 +1030,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1077,6 +1085,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1174,7 +1183,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             mockFetch?.pause?.();
 
-            markReportPaymentReceived(chatReport, reimbursedReport, currentUserAccountID, currentUserEmail, mockChatReportActions, false, getCurrencyDecimalsLocal);
+            markReportPaymentReceived(chatReport, reimbursedReport, currentUserAccountID, currentUserEmail, mockChatReportActions, false, getCurrencyDecimalsLocal, formatPhoneNumber);
             await waitForBatchedUpdates();
 
             const updatedChatReport = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -1247,6 +1256,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1317,6 +1327,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1377,6 +1388,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1417,6 +1429,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1548,6 +1561,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -1929,6 +1943,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    formatPhoneNumber,
                 });
             }
             await waitForBatchedUpdates();

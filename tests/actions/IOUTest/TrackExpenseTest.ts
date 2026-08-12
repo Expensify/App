@@ -213,6 +213,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -340,6 +341,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -450,6 +452,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -545,6 +548,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -605,6 +609,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -691,6 +696,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -751,6 +757,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -841,6 +848,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -901,6 +909,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -988,6 +997,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -1048,6 +1058,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -1154,6 +1165,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -1214,6 +1226,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -1279,6 +1292,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             };
         }
 
@@ -1542,6 +1556,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -1634,6 +1649,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -2006,6 +2022,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isSelfTourViewed: true,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                formatPhoneNumber,
             });
 
             // Then the result should contain valid track expense data
@@ -2055,6 +2072,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                formatPhoneNumber,
             });
 
             // Then the result should contain valid track expense data
@@ -2106,6 +2124,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isSelfTourViewed: true,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                formatPhoneNumber,
             });
 
             // Then result should be valid
@@ -2148,6 +2167,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                formatPhoneNumber,
             });
 
             expect(resultWithoutTourViewed).toBeDefined();
@@ -2218,6 +2238,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: 'USD',
                 delegateAccountID: undefined,
                 isDraftChatReport: true,
+                formatPhoneNumber,
             });
 
             // Then createdWorkspaceParams should be defined because the report is a draft
@@ -2267,6 +2288,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: 'USD',
                 delegateAccountID: undefined,
                 isDraftChatReport: false,
+                formatPhoneNumber,
             });
 
             // Then createdWorkspaceParams should be undefined because the report is not a draft
@@ -2356,6 +2378,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -2663,6 +2686,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 

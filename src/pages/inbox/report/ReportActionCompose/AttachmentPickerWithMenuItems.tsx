@@ -216,6 +216,7 @@ function AttachmentPickerWithMenuItems({
                         isTrackIntentUser,
                         getCurrencyDecimals,
                         true,
+                        formatPhoneNumber,
                         shouldDismissEmptyReportsConfirmation,
                     ),
                 true,
@@ -226,7 +227,7 @@ function AttachmentPickerWithMenuItems({
         if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmation();
         } else {
-            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, isTrackIntentUser, getCurrencyDecimals, true, false);
+            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, isTrackIntentUser, getCurrencyDecimals, true, formatPhoneNumber, false);
         }
     };
 

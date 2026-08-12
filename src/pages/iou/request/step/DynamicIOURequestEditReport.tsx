@@ -7,6 +7,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -49,6 +50,7 @@ type TransactionGroupListItem = ListItem & {
 type DynamicIOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_EDIT_REPORT>;
 
 function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) {
+    const {formatPhoneNumber} = useLocalize();
     const {reportID, action, shouldTurnOffSelectionMode, transactionID: transactionIDFromParams} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_EDIT_REPORT.path);
     const {selectedTransactionIDs} = useSearchSelectionContext();
@@ -168,6 +170,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             isTrackIntentUser,
             getCurrencyDecimals,
             false,
+            formatPhoneNumber,
             shouldDismissEmptyReportsConfirmation,
             {managedCardTransactionID},
         );
