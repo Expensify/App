@@ -11,6 +11,7 @@ import {
     buildTemplateReminderMessage,
     DUPLICATE_CHECK_WITHDRAW_MESSAGE,
     SUBSTANTIVE_EDIT_MESSAGE_PREFIX,
+    SUBSTANTIVE_EDIT_MESSAGE_REGEX,
 } from '@prompts/proposalPolice/messages';
 import {
     DUPLICATE_CHECK_RESPONSE_FORMAT,
@@ -60,6 +61,32 @@ function isCommentEditedEvent(payload: IssueCommentEvent): payload is IssueComme
     return payload.action === CONST.ACTIONS.EDITED;
 }
 
+/**
+ * Point the Conversation's copy of a proposal at the text the comment holds now, so later duplicate
+ * checks stop comparing against a superseded version.
+ *
+ * Replaces rather than adds: two versions of the same comment_id in the Conversation would be worse
+ * for duplicate detection than the stale copy this sets out to fix, so a proposal that isn't already
+ * recorded is logged and left alone.
+ */
+async function refreshStoredProposal(openAI: OpenAIUtils, issueNumber: number, commentID: number, proposalBody: string) {
+    const trackedConversationID = findTrackedConversationID(await GithubUtils.getAllCommentDetails(issueNumber));
+    if (!trackedConversationID) {
+        console.log('Issue has no tracked Conversation, so there is no recorded proposal to refresh.');
+        return;
+    }
+
+    const staleItemID = findConversationItemIDForComment(await openAI.listConversationItems(trackedConversationID), commentID);
+    if (!staleItemID) {
+        console.log('Could not find this proposal in the Conversation, leaving it untouched.', commentID);
+        return;
+    }
+
+    console.log('Refreshing the recorded copy of this proposal for future duplicate checks.', commentID);
+    await openAI.deleteConversationItem(trackedConversationID, staleItemID);
+    await openAI.addConversationItems(trackedConversationID, [buildDuplicateCheckSeedItem(proposalBody, commentID)]);
+}
+
 // Main function to process the workflow event
 async function run() {
     // Capture the timestamp immediately at the start of the run
@@ -83,12 +110,6 @@ async function run() {
     // Verify that the comment is not empty and contains the case sensitive `Proposal` keyword
     if (!payload.comment?.body.trim() || !payload.comment?.body.includes(CONST.PROPOSAL_KEYWORD)) {
         console.log('Comment body is either empty or doesn\'t contain the keyword "Proposal": ', payload.comment?.body);
-        return;
-    }
-
-    // If event is `edited` and comment was already edited by the bot, return early
-    if (isCommentEditedEvent(payload) && payload.comment?.body.trim().includes(SUBSTANTIVE_EDIT_MESSAGE_PREFIX)) {
-        console.log('Comment was already edited by proposal-police once.\n', payload.comment?.body);
         return;
     }
 
@@ -233,6 +254,16 @@ async function run() {
         }
     }
 
+    // A comment we already bannered must never be bannered again, which is the only thing the edit check
+    // decides, so skip it. The proposal text can still have changed though, and without this the
+    // Conversation would keep serving every future duplicate check the copy stored before this edit.
+    if (isCommentEditedEvent(payload) && payload.comment.body.trim().includes(SUBSTANTIVE_EDIT_MESSAGE_PREFIX)) {
+        console.log('Comment was already edited by proposal-police once, so only refreshing its recorded copy.\n', payload.comment.body);
+        // Store the proposal itself, not the banner a previous run prepended to it
+        await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment.body.replace(SUBSTANTIVE_EDIT_MESSAGE_REGEX, ''));
+        return;
+    }
+
     const instructions = isCommentCreatedEvent(payload) ? buildTemplateCheckInstructions() : buildEditCheckInstructions();
     const input = isCommentCreatedEvent(payload) ? buildTemplateCheckInput(payload.comment?.body) : buildEditCheckInput(payload.changes.body?.from, payload.comment?.body);
     const textFormat = isCommentCreatedEvent(payload) ? TEMPLATE_CHECK_RESPONSE_FORMAT : EDIT_CHECK_RESPONSE_FORMAT;
@@ -274,25 +305,9 @@ async function run() {
             body: `${buildSubstantiveEditMessage(formattedDate)}\n\n${payload.comment?.body}`,
         });
 
-        // The Conversation still holds this proposal as it read when first posted. Left alone, later
-        // duplicate checks compare against superseded text: a real duplicate of the new text is missed,
-        // and a proposal matching the old text gets withdrawn against something no longer being proposed.
-        // Only substantial edits land here, so minor rewording is deliberately left as-is.
-        const trackedConversationID = findTrackedConversationID(await GithubUtils.getAllCommentDetails(issueNumber));
-        if (!trackedConversationID) {
-            console.log('Issue has no tracked Conversation, so there is no recorded proposal to refresh.');
-            return;
-        }
-        const staleItemID = findConversationItemIDForComment(await openAI.listConversationItems(trackedConversationID), commentID);
-        if (!staleItemID) {
-            // Adding without removing would leave two versions of the same comment_id in the Conversation,
-            // which is worse for duplicate detection than the single stale copy we set out to replace.
-            console.log('Could not find this proposal in the Conversation, leaving it untouched.', commentID);
-            return;
-        }
-        console.log('Refreshing the recorded copy of this proposal for future duplicate checks.', commentID);
-        await openAI.deleteConversationItem(trackedConversationID, staleItemID);
-        await openAI.addConversationItems(trackedConversationID, [buildDuplicateCheckSeedItem(payload.comment?.body ?? '', commentID)]);
+        // The Conversation still holds this proposal as it read before the edit, so refresh it. Only
+        // substantial edits land here; minor rewording is deliberately left as-is.
+        await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment?.body ?? '');
     }
 }
 

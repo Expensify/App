@@ -5,7 +5,7 @@
 import run, {DUPLICATE_SIMILARITY_THRESHOLD, PROPOSAL_POLICE_MODEL} from '@github/actions/javascript/proposalPoliceComment/proposalPoliceComment';
 import GithubUtils from '@github/libs/GithubUtils';
 
-import {buildTemplateReminderMessage, DUPLICATE_CHECK_WITHDRAW_MESSAGE, SUBSTANTIVE_EDIT_MESSAGE_PREFIX} from '@prompts/proposalPolice/messages';
+import {buildSubstantiveEditMessage, buildTemplateReminderMessage, DUPLICATE_CHECK_WITHDRAW_MESSAGE, SUBSTANTIVE_EDIT_MESSAGE_PREFIX} from '@prompts/proposalPolice/messages';
 
 import OpenAIUtils from '@scripts/utils/OpenAIUtils';
 import type {ProposalComment} from '@scripts/utils/ProposalPolice/ProposalPoliceConversation';
@@ -223,6 +223,36 @@ describe('proposalPoliceComment', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- expect.stringContaining is typed as `any`
             expect.objectContaining({comment_id: 1, body: expect.stringContaining(SUBSTANTIVE_EDIT_MESSAGE_PREFIX)}),
         );
+    });
+
+    it('refreshes the recorded proposal when an already-bannered comment is edited again', async () => {
+        // The banner means this comment was flagged on a previous run. It must not be flagged twice, but
+        // the proposal underneath it can still have changed, and the stored copy would otherwise be stuck
+        // at whatever it said before this edit.
+        const bannered = (proposal: string) => `${buildSubstantiveEditMessage('2026-01-01 00:00:00 UTC')}\n\n${proposal}`;
+        mockComments([makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'})]);
+        setPayload({
+            action: 'edited',
+            comment: makeComment({id: 7, body: bannered(`${VALID_PROPOSAL_BODY}\nyet another solution`)}),
+            changes: {body: {from: bannered(VALID_PROPOSAL_BODY)}},
+        });
+        MockedOpenAIUtils.prototype.listConversationItems.mockResolvedValue([conversationMessage('item_7', 7)]);
+
+        await run();
+
+        // No second banner, and no model call - the edit check only decides whether to banner
+        expect(mockUpdateComment).not.toHaveBeenCalled();
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.promptResponses).not.toHaveBeenCalled();
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.deleteConversationItem).toHaveBeenCalledWith('conv_existing', 'item_7');
+        const [, items] = MockedOpenAIUtils.prototype.addConversationItems.mock.calls.at(0) ?? [];
+        const storedItem = items?.at(0);
+        const storedContent = storedItem && 'content' in storedItem && typeof storedItem.content === 'string' ? storedItem.content : '';
+        expect(storedContent).toContain('yet another solution');
+        // The banner is ours, not the contributor's proposal, so it must not pollute future comparisons
+        expect(storedContent).not.toContain(SUBSTANTIVE_EDIT_MESSAGE_PREFIX);
     });
 
     it('replaces the recorded proposal after a substantial edit so later duplicate checks see the new text', async () => {

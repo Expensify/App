@@ -16136,7 +16136,7 @@ function isObject(obj) {
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "worklet"; // This function is used in react-native-live-markdown parser and it must be a worklet to run in UI thread (react-native-reanimated)
-"use strict";var __assign=this&&this.__assign||function(){__assign=Object.assign||function(t){for(var s,i=1,n=arguments.length;i<n;i++){s=arguments[i];for(var p in s)if(Object.prototype.hasOwnProperty.call(s,p))t[p]=s[p]}return t};return __assign.apply(this,arguments)};Object.defineProperty(exports, "__esModule", ({value:true}));var named_references_1=__nccwpck_require__(6068);var numeric_unicode_map_1=__nccwpck_require__(45439);var surrogate_pairs_1=__nccwpck_require__(1454);var allNamedReferences=__assign(__assign({},named_references_1.namedReferences),{all:named_references_1.namedReferences.html5});var encodeRegExps={specialChars:/[<>'"&]/g,nonAscii:/[<>'"&\u0080-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g,nonAsciiPrintable:/[<>'"&\x01-\x08\x11-\x15\x17-\x1F\x7f-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g,nonAsciiPrintableOnly:/[\x01-\x08\x11-\x15\x17-\x1F\x7f-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g,extensive:/[\x01-\x0c\x0e-\x1f\x21-\x2c\x2e-\x2f\x3a-\x40\x5b-\x60\x7b-\x7d\x7f-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g};var defaultEncodeOptions={mode:"specialChars",level:"all",numeric:"decimal"};function encode(text,_a){var _b=_a===void 0?defaultEncodeOptions:_a,_c=_b.mode,mode=_c===void 0?"specialChars":_c,_d=_b.numeric,numeric=_d===void 0?"decimal":_d,_e=_b.level,level=_e===void 0?"all":_e;if(!text){return""}var encodeRegExp=encodeRegExps[mode];var references=allNamedReferences[level].characters;var isHex=numeric==="hexadecimal";return text.replace(encodeRegExp,(function(input){var result=references[input];if(!result){var code=input.length>1?surrogate_pairs_1.getCodePoint(input,0):input.charCodeAt(0);result=(isHex?"&#x"+code.toString(16):"&#"+code)+";"}return result}))}exports.encode=encode;var defaultDecodeOptions={scope:"body",level:"all"};var strict=/&(?:#\d+|#[xX][\da-fA-F]+|[0-9a-zA-Z]+);/g;var attribute=/&(?:#\d+|#[xX][\da-fA-F]+|[0-9a-zA-Z]+)[;=]?/g;var baseDecodeRegExps={xml:{strict:strict,attribute:attribute,body:named_references_1.bodyRegExps.xml},html4:{strict:strict,attribute:attribute,body:named_references_1.bodyRegExps.html4},html5:{strict:strict,attribute:attribute,body:named_references_1.bodyRegExps.html5}};var decodeRegExps=__assign(__assign({},baseDecodeRegExps),{all:baseDecodeRegExps.html5});var fromCharCode=String.fromCharCode;var outOfBoundsChar=fromCharCode(65533);var defaultDecodeEntityOptions={level:"all"};function getDecodedEntity(entity,references,isAttribute,isStrict){var decodeResult=entity;var decodeEntityLastChar=entity[entity.length-1];if(isAttribute&&decodeEntityLastChar==="="){decodeResult=entity}else if(isStrict&&decodeEntityLastChar!==";"){decodeResult=entity}else{var decodeResultByReference=references[entity];if(decodeResultByReference){decodeResult=decodeResultByReference}else if(entity[0]==="&"&&entity[1]==="#"){var decodeSecondChar=entity[2];var decodeCode=decodeSecondChar=="x"||decodeSecondChar=="X"?parseInt(entity.substr(3),16):parseInt(entity.substr(2));decodeResult=decodeCode>=1114111?outOfBoundsChar:decodeCode>65535?surrogate_pairs_1.fromCodePoint(decodeCode):fromCharCode(numeric_unicode_map_1.numericUnicodeMap[decodeCode]||decodeCode)}}return decodeResult}function decodeEntity(entity,_a){var _b=(_a===void 0?defaultDecodeEntityOptions:_a).level,level=_b===void 0?"all":_b;if(!entity){return""}return getDecodedEntity(entity,allNamedReferences[level].entities,false,false)}exports.decodeEntity=decodeEntity;function decode(text,_a){var _b=_a===void 0?defaultDecodeOptions:_a,_c=_b.level,level=_c===void 0?"all":_c,_d=_b.scope,scope=_d===void 0?level==="xml"?"strict":"body":_d;if(!text){return""}var decodeRegExp=decodeRegExps[level][scope];var references=allNamedReferences[level].entities;var isAttribute=scope==="attribute";var isStrict=scope==="strict";return text.replace(decodeRegExp,(function(entity){return getDecodedEntity(entity,references,isAttribute,isStrict)}))}exports.decode=decode;
+"worklet"; /* This function is used in the react-native-live-markdown parser and must be a worklet to run on the UI thread (react-native-reanimated). Kept on the same line as "use strict" so re-running patch-package detects the patch as already applied instead of inserting another copy. */ "use strict";var __assign=this&&this.__assign||function(){__assign=Object.assign||function(t){for(var s,i=1,n=arguments.length;i<n;i++){s=arguments[i];for(var p in s)if(Object.prototype.hasOwnProperty.call(s,p))t[p]=s[p]}return t};return __assign.apply(this,arguments)};Object.defineProperty(exports, "__esModule", ({value:true}));var named_references_1=__nccwpck_require__(6068);var numeric_unicode_map_1=__nccwpck_require__(45439);var surrogate_pairs_1=__nccwpck_require__(1454);var allNamedReferences=__assign(__assign({},named_references_1.namedReferences),{all:named_references_1.namedReferences.html5});var encodeRegExps={specialChars:/[<>'"&]/g,nonAscii:/[<>'"&\u0080-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g,nonAsciiPrintable:/[<>'"&\x01-\x08\x11-\x15\x17-\x1F\x7f-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g,nonAsciiPrintableOnly:/[\x01-\x08\x11-\x15\x17-\x1F\x7f-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g,extensive:/[\x01-\x0c\x0e-\x1f\x21-\x2c\x2e-\x2f\x3a-\x40\x5b-\x60\x7b-\x7d\x7f-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g};var defaultEncodeOptions={mode:"specialChars",level:"all",numeric:"decimal"};function encode(text,_a){var _b=_a===void 0?defaultEncodeOptions:_a,_c=_b.mode,mode=_c===void 0?"specialChars":_c,_d=_b.numeric,numeric=_d===void 0?"decimal":_d,_e=_b.level,level=_e===void 0?"all":_e;if(!text){return""}var encodeRegExp=encodeRegExps[mode];var references=allNamedReferences[level].characters;var isHex=numeric==="hexadecimal";return text.replace(encodeRegExp,(function(input){var result=references[input];if(!result){var code=input.length>1?surrogate_pairs_1.getCodePoint(input,0):input.charCodeAt(0);result=(isHex?"&#x"+code.toString(16):"&#"+code)+";"}return result}))}exports.encode=encode;var defaultDecodeOptions={scope:"body",level:"all"};var strict=/&(?:#\d+|#[xX][\da-fA-F]+|[0-9a-zA-Z]+);/g;var attribute=/&(?:#\d+|#[xX][\da-fA-F]+|[0-9a-zA-Z]+)[;=]?/g;var baseDecodeRegExps={xml:{strict:strict,attribute:attribute,body:named_references_1.bodyRegExps.xml},html4:{strict:strict,attribute:attribute,body:named_references_1.bodyRegExps.html4},html5:{strict:strict,attribute:attribute,body:named_references_1.bodyRegExps.html5}};var decodeRegExps=__assign(__assign({},baseDecodeRegExps),{all:baseDecodeRegExps.html5});var fromCharCode=String.fromCharCode;var outOfBoundsChar=fromCharCode(65533);var defaultDecodeEntityOptions={level:"all"};function getDecodedEntity(entity,references,isAttribute,isStrict){var decodeResult=entity;var decodeEntityLastChar=entity[entity.length-1];if(isAttribute&&decodeEntityLastChar==="="){decodeResult=entity}else if(isStrict&&decodeEntityLastChar!==";"){decodeResult=entity}else{var decodeResultByReference=references[entity];if(decodeResultByReference){decodeResult=decodeResultByReference}else if(entity[0]==="&"&&entity[1]==="#"){var decodeSecondChar=entity[2];var decodeCode=decodeSecondChar=="x"||decodeSecondChar=="X"?parseInt(entity.substr(3),16):parseInt(entity.substr(2));decodeResult=decodeCode>=1114111?outOfBoundsChar:decodeCode>65535?surrogate_pairs_1.fromCodePoint(decodeCode):fromCharCode(numeric_unicode_map_1.numericUnicodeMap[decodeCode]||decodeCode)}}return decodeResult}function decodeEntity(entity,_a){var _b=(_a===void 0?defaultDecodeEntityOptions:_a).level,level=_b===void 0?"all":_b;if(!entity){return""}return getDecodedEntity(entity,allNamedReferences[level].entities,false,false)}exports.decodeEntity=decodeEntity;function decode(text,_a){var _b=_a===void 0?defaultDecodeOptions:_a,_c=_b.level,level=_c===void 0?"all":_c,_d=_b.scope,scope=_d===void 0?level==="xml"?"strict":"body":_d;if(!text){return""}var decodeRegExp=decodeRegExps[level][scope];var references=allNamedReferences[level].entities;var isAttribute=scope==="attribute";var isStrict=scope==="strict";return text.replace(decodeRegExp,(function(entity){return getDecodedEntity(entity,references,isAttribute,isStrict)}))}exports.decode=decode;
 //# sourceMappingURL=./index.js.map
 
 /***/ }),
@@ -39568,6 +39568,29 @@ function isCommentCreatedEvent(payload) {
 function isCommentEditedEvent(payload) {
     return payload.action === CONST_1.default.ACTIONS.EDITED;
 }
+/**
+ * Point the Conversation's copy of a proposal at the text the comment holds now, so later duplicate
+ * checks stop comparing against a superseded version.
+ *
+ * Replaces rather than adds: two versions of the same comment_id in the Conversation would be worse
+ * for duplicate detection than the stale copy this sets out to fix, so a proposal that isn't already
+ * recorded is logged and left alone.
+ */
+async function refreshStoredProposal(openAI, issueNumber, commentID, proposalBody) {
+    const trackedConversationID = (0, ProposalPoliceConversation_1.findTrackedConversationID)(await GithubUtils_1.default.getAllCommentDetails(issueNumber));
+    if (!trackedConversationID) {
+        console.log('Issue has no tracked Conversation, so there is no recorded proposal to refresh.');
+        return;
+    }
+    const staleItemID = (0, ProposalPoliceConversation_1.findConversationItemIDForComment)(await openAI.listConversationItems(trackedConversationID), commentID);
+    if (!staleItemID) {
+        console.log('Could not find this proposal in the Conversation, leaving it untouched.', commentID);
+        return;
+    }
+    console.log('Refreshing the recorded copy of this proposal for future duplicate checks.', commentID);
+    await openAI.deleteConversationItem(trackedConversationID, staleItemID);
+    await openAI.addConversationItems(trackedConversationID, [(0, input_1.buildDuplicateCheckSeedItem)(proposalBody, commentID)]);
+}
 // Main function to process the workflow event
 async function run() {
     // Capture the timestamp immediately at the start of the run
@@ -39587,11 +39610,6 @@ async function run() {
     // Verify that the comment is not empty and contains the case sensitive `Proposal` keyword
     if (!payload.comment?.body.trim() || !payload.comment?.body.includes(CONST_1.default.PROPOSAL_KEYWORD)) {
         console.log('Comment body is either empty or doesn\'t contain the keyword "Proposal": ', payload.comment?.body);
-        return;
-    }
-    // If event is `edited` and comment was already edited by the bot, return early
-    if (isCommentEditedEvent(payload) && payload.comment?.body.trim().includes(messages_1.SUBSTANTIVE_EDIT_MESSAGE_PREFIX)) {
-        console.log('Comment was already edited by proposal-police once.\n', payload.comment?.body);
         return;
     }
     // GitHub only sends the previous body when the edit actually changed it. Without it there is no
@@ -39715,6 +39733,15 @@ async function run() {
             await openAI.addConversationItems(conversationID, [(0, input_1.buildDuplicateCheckSeedItem)(newProposalBody, commentID)]);
         }
     }
+    // A comment we already bannered must never be bannered again, which is the only thing the edit check
+    // decides, so skip it. The proposal text can still have changed though, and without this the
+    // Conversation would keep serving every future duplicate check the copy stored before this edit.
+    if (isCommentEditedEvent(payload) && payload.comment.body.trim().includes(messages_1.SUBSTANTIVE_EDIT_MESSAGE_PREFIX)) {
+        console.log('Comment was already edited by proposal-police once, so only refreshing its recorded copy.\n', payload.comment.body);
+        // Store the proposal itself, not the banner a previous run prepended to it
+        await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment.body.replace(messages_1.SUBSTANTIVE_EDIT_MESSAGE_REGEX, ''));
+        return;
+    }
     const instructions = isCommentCreatedEvent(payload) ? (0, instructions_1.buildTemplateCheckInstructions)() : (0, instructions_1.buildEditCheckInstructions)();
     const input = isCommentCreatedEvent(payload) ? (0, input_1.buildTemplateCheckInput)(payload.comment?.body) : (0, input_1.buildEditCheckInput)(payload.changes.body?.from, payload.comment?.body);
     const textFormat = isCommentCreatedEvent(payload) ? schema_1.TEMPLATE_CHECK_RESPONSE_FORMAT : schema_1.EDIT_CHECK_RESPONSE_FORMAT;
@@ -39750,25 +39777,9 @@ async function run() {
             comment_id: commentID,
             body: `${(0, messages_1.buildSubstantiveEditMessage)(formattedDate)}\n\n${payload.comment?.body}`,
         });
-        // The Conversation still holds this proposal as it read when first posted. Left alone, later
-        // duplicate checks compare against superseded text: a real duplicate of the new text is missed,
-        // and a proposal matching the old text gets withdrawn against something no longer being proposed.
-        // Only substantial edits land here, so minor rewording is deliberately left as-is.
-        const trackedConversationID = (0, ProposalPoliceConversation_1.findTrackedConversationID)(await GithubUtils_1.default.getAllCommentDetails(issueNumber));
-        if (!trackedConversationID) {
-            console.log('Issue has no tracked Conversation, so there is no recorded proposal to refresh.');
-            return;
-        }
-        const staleItemID = (0, ProposalPoliceConversation_1.findConversationItemIDForComment)(await openAI.listConversationItems(trackedConversationID), commentID);
-        if (!staleItemID) {
-            // Adding without removing would leave two versions of the same comment_id in the Conversation,
-            // which is worse for duplicate detection than the single stale copy we set out to replace.
-            console.log('Could not find this proposal in the Conversation, leaving it untouched.', commentID);
-            return;
-        }
-        console.log('Refreshing the recorded copy of this proposal for future duplicate checks.', commentID);
-        await openAI.deleteConversationItem(trackedConversationID, staleItemID);
-        await openAI.addConversationItems(trackedConversationID, [(0, input_1.buildDuplicateCheckSeedItem)(payload.comment?.body ?? '', commentID)]);
+        // The Conversation still holds this proposal as it read before the edit, so refresh it. Only
+        // substantial edits land here; minor rewording is deliberately left as-is.
+        await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment?.body ?? '');
     }
 }
 // Consistent with every other action in .github/actions/javascript/*: only auto-invoke when this file is
@@ -40668,7 +40679,7 @@ function buildDuplicateCheckInstructions() {
  * it never writes or echoes the text, so the wording here is what contributors actually see.
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SUBSTANTIVE_EDIT_MESSAGE_PREFIX = exports.DUPLICATE_CHECK_WITHDRAW_MESSAGE = void 0;
+exports.SUBSTANTIVE_EDIT_MESSAGE_REGEX = exports.SUBSTANTIVE_EDIT_MESSAGE_PREFIX = exports.DUPLICATE_CHECK_WITHDRAW_MESSAGE = void 0;
 exports.buildTemplateReminderMessage = buildTemplateReminderMessage;
 exports.buildSubstantiveEditMessage = buildSubstantiveEditMessage;
 exports.buildDuplicateCheckNoticeMessage = buildDuplicateCheckNoticeMessage;
@@ -40680,6 +40691,13 @@ exports.DUPLICATE_CHECK_WITHDRAW_MESSAGE = DUPLICATE_CHECK_WITHDRAW_MESSAGE;
  */
 const SUBSTANTIVE_EDIT_MESSAGE_PREFIX = '🚨 Edited by **proposal-police**:';
 exports.SUBSTANTIVE_EDIT_MESSAGE_PREFIX = SUBSTANTIVE_EDIT_MESSAGE_PREFIX;
+/**
+ * Matches the banner a previous run prepended, along with the blank line separating it from the
+ * proposal, so the proposal can be recovered from a comment that already carries one.
+ * ProposalPoliceMessagesTest pins this against buildSubstantiveEditMessage so the two cannot drift.
+ */
+const SUBSTANTIVE_EDIT_MESSAGE_REGEX = /^🚨 Edited by \*\*proposal-police\*\*:[^\n]*\n+/;
+exports.SUBSTANTIVE_EDIT_MESSAGE_REGEX = SUBSTANTIVE_EDIT_MESSAGE_REGEX;
 function buildTemplateReminderMessage(proposalAuthor) {
     return `⚠️ @${proposalAuthor} Thanks for your proposal. Please update it to follow the [proposal template](https://github.com/Expensify/App/blob/main/contributingGuides/PROPOSAL_TEMPLATE.md?plain=1), as proposals are only reviewed if they follow that format (note the mandatory sections).`;
 }

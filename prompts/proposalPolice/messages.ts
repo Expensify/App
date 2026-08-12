@@ -11,6 +11,13 @@ const DUPLICATE_CHECK_WITHDRAW_MESSAGE = '#### 🚫 Duplicated proposal withdraw
  */
 const SUBSTANTIVE_EDIT_MESSAGE_PREFIX = '🚨 Edited by **proposal-police**:';
 
+/**
+ * Matches the banner a previous run prepended, along with the blank line separating it from the
+ * proposal, so the proposal can be recovered from a comment that already carries one.
+ * ProposalPoliceMessagesTest pins this against buildSubstantiveEditMessage so the two cannot drift.
+ */
+const SUBSTANTIVE_EDIT_MESSAGE_REGEX = /^🚨 Edited by \*\*proposal-police\*\*:[^\n]*\n+/;
+
 function buildTemplateReminderMessage(proposalAuthor: string | undefined): string {
     return `⚠️ @${proposalAuthor} Thanks for your proposal. Please update it to follow the [proposal template](https://github.com/Expensify/App/blob/main/contributingGuides/PROPOSAL_TEMPLATE.md?plain=1), as proposals are only reviewed if they follow that format (note the mandatory sections).`;
 }
@@ -23,4 +30,11 @@ function buildDuplicateCheckNoticeMessage(proposalAuthor: string | undefined, or
     return `⚠️ @${proposalAuthor} Your proposal is a duplicate of an already [existing proposal](${originalProposalURL}) and has been automatically withdrawn to prevent spam. Please review the existing proposals before submitting a new one.`;
 }
 
-export {DUPLICATE_CHECK_WITHDRAW_MESSAGE, SUBSTANTIVE_EDIT_MESSAGE_PREFIX, buildTemplateReminderMessage, buildSubstantiveEditMessage, buildDuplicateCheckNoticeMessage};
+export {
+    DUPLICATE_CHECK_WITHDRAW_MESSAGE,
+    SUBSTANTIVE_EDIT_MESSAGE_PREFIX,
+    SUBSTANTIVE_EDIT_MESSAGE_REGEX,
+    buildTemplateReminderMessage,
+    buildSubstantiveEditMessage,
+    buildDuplicateCheckNoticeMessage,
+};
