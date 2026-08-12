@@ -936,7 +936,44 @@ describe('ReportNameUtils', () => {
             expect(name).toBe(expected);
         });
 
-        test('UPDATE_CATEGORY parent action formats receipt amounts with the policy currency', () => {
+        test('UPDATE_CATEGORY parent action renders the description hint as plain text', () => {
+            const thread: Report = createWorkspaceThread(163);
+            const parentAction = createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    categoryName: 'Advertising',
+                    updatedField: 'commentHint',
+                    oldValue: '',
+                    newValue: 'Client&#x27;s &amp; partner&#x27;s names',
+                },
+            });
+
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${String(thread.parentReportID)}`]: {
+                    [String(thread.parentReportActionID)]: parentAction,
+                },
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe(`added the description hint "Client's & partner's names" to the category "Advertising"`);
+        });
+
+        test('UPDATE_CATEGORY parent action formats the workspace default receipt amount with the policy currency', () => {
             const thread: Report = createWorkspaceThread(162);
             const parentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
@@ -950,7 +987,7 @@ describe('ReportNameUtils', () => {
                     categoryName: 'Advertising',
                     updatedField: 'maxAmountNoReceipt',
                     oldValue: 0,
-                    newValue: 2500,
+                    newValue: '',
                 },
             });
 
