@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention -- test fixtures use backend-shaped object keys that don't follow camelCase: email addresses for PolicyEmployeeList entries and human-readable names / 'GL Code' for PolicyCategories */
 import {renderHook, waitFor} from '@testing-library/react-native';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import useGettingStartedItems from '@pages/home/GettingStartedSection/hooks/useGettingStartedItems';
 
 import CONST from '@src/CONST';
@@ -761,6 +763,88 @@ describe('useGettingStartedItems', () => {
         });
     });
 
+    describe('row - Setup travel', () => {
+        it('should be shown when the travel feature is enabled', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {isTravelEnabled: true},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+            expect(travelItem).toBeDefined();
+        });
+
+        it('should not be shown when the travel feature is not enabled', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {isTravelEnabled: false},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+            expect(travelItem).toBeUndefined();
+        });
+
+        it('should navigate to the workspace travel route', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {isTravelEnabled: true},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+            expect(travelItem?.route).toBe(ROUTES.WORKSPACE_TRAVEL.getRoute(POLICY_ID));
+        });
+
+        it('should be not completed when the workspace has not been provisioned with Spotnana', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {isTravelEnabled: true, travelSettings: undefined},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+            expect(travelItem?.isComplete).toBe(false);
+        });
+
+        it('should be completed once the workspace is provisioned with a Spotnana company ID', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {isTravelEnabled: true, travelSettings: {spotnanaCompanyID: 'spotnana-company-1'}},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+            expect(travelItem?.isComplete).toBe(true);
+        });
+
+        it('should be completed once the workspace is provisioned with an associated Spotnana travel domain account (no Spotnana company ID)', async () => {
+            // Real-world Spotnana entity-based provisioning populates associatedTravelDomainAccountID rather
+            // than spotnanaCompanyID, so isComplete must not rely on spotnanaCompanyID alone.
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {isTravelEnabled: true, travelSettings: {associatedTravelDomainAccountID: '12345', hasAcceptedTerms: true}},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+            expect(travelItem?.isComplete).toBe(true);
+        });
+    });
+
     describe('row 4 - Set up spend rules', () => {
         it('should be shown when areRulesEnabled is true', async () => {
             await setupManageTeamScenario({
@@ -1315,6 +1399,27 @@ describe('useGettingStartedItems', () => {
                 expect(createWorkspaceItem?.route).toContain(ROUTES.WORKSPACE_INITIAL.getRoute(POLICY_ID).split('?').at(0) ?? '');
             });
 
+            it('should pin the createWorkspace backTo to Home on narrow layout even when the active route has drifted to the workspace page', async () => {
+                // Regression guard for #96172: opening the Connect-to-accounting task re-renders this section while a
+                // workspaces/{id} route is active, so Navigation.getActiveRoute() returns that route. Baking it into backTo
+                // made the createWorkspace route self-referential (workspaces/{id}?backTo=workspaces/{id}), which the linkTo
+                // arePathAndBackToEqual guard swallows, so the tap did nothing. backTo must stay Home regardless of the live route.
+                const getActiveRouteSpy = jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(ROUTES.WORKSPACE_INITIAL.getRoute(POLICY_ID));
+                // renderHook re-renders as Onyx settles, so pin narrow across every render (mockReturnValueOnce gets consumed by an early render).
+                useResponsiveLayoutMock.mockReturnValue({shouldUseNarrowLayout: true});
+                try {
+                    await setupTrackWorkspaceScenario();
+
+                    const {result} = renderHook(() => useGettingStartedItems());
+
+                    const createWorkspaceItem = result.current.items.find((item) => item.key === 'createWorkspace');
+                    expect(createWorkspaceItem?.route).toBe(ROUTES.WORKSPACE_INITIAL.getRoute(POLICY_ID, ROUTES.HOME));
+                } finally {
+                    useResponsiveLayoutMock.mockReturnValue({shouldUseNarrowLayout: false});
+                    getActiveRouteSpy.mockRestore();
+                }
+            });
+
             it('should resolve customizeCategories route to WORKSPACE_CATEGORIES', async () => {
                 await setupTrackWorkspaceScenario();
 
@@ -1492,6 +1597,53 @@ describe('useGettingStartedItems', () => {
 
                 const {result} = renderHook(() => useGettingStartedItems());
                 await waitFor(() => expect(result.current.items.find((item) => item.key === 'linkCompanyCards')?.isComplete).toBe(true));
+            });
+        });
+
+        describe('setup travel step', () => {
+            it('should insert setupTravel after linkCompanyCards when both travel and company cards are enabled', async () => {
+                await setupTrackWorkspaceScenario({policy: {isTravelEnabled: true, areCompanyCardsEnabled: true}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const keys = result.current.items.map((item) => item.key);
+                expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'linkCompanyCards', 'setupTravel', 'inviteAccountant']);
+            });
+
+            it('should not show setupTravel when travel is not enabled', async () => {
+                await setupTrackWorkspaceScenario({policy: {isTravelEnabled: false}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+                expect(travelItem).toBeUndefined();
+            });
+
+            it('should navigate to the workspace travel route', async () => {
+                await setupTrackWorkspaceScenario({policy: {isTravelEnabled: true}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+                expect(travelItem?.route).toBe(ROUTES.WORKSPACE_TRAVEL.getRoute(POLICY_ID));
+            });
+
+            it('should be completed once the workspace is provisioned with a Spotnana company ID', async () => {
+                await setupTrackWorkspaceScenario({policy: {isTravelEnabled: true, travelSettings: {spotnanaCompanyID: 'spotnana-company-1'}}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+                expect(travelItem?.isComplete).toBe(true);
+            });
+
+            it('should be completed once the workspace is provisioned with an associated Spotnana travel domain account (no Spotnana company ID)', async () => {
+                await setupTrackWorkspaceScenario({policy: {isTravelEnabled: true, travelSettings: {associatedTravelDomainAccountID: '12345', hasAcceptedTerms: true}}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const travelItem = result.current.items.find((item) => item.key === 'setupTravel');
+                expect(travelItem?.isComplete).toBe(true);
             });
         });
 

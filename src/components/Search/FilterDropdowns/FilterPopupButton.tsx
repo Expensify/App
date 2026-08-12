@@ -11,6 +11,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ReactNode, RefObject} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -92,14 +93,20 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     };
 
     const calculatePopoverPositionAndToggleOverlay = () => {
-        calculatePopoverPosition(anchorRef, popoverAnchorAlignment).then((position) => {
-            setPopoverTriggerPosition({...position, vertical: position.vertical});
-            // Latch in the same batch as the open (and only when it will actually open, mirroring toggleOverlay's
-            // alert-modal guard) so the deferred subtree mounts together with the popover becoming visible.
-            if (!isOverlayVisible && !willAlertModalBecomeVisible) {
-                setHasEverExpanded(true);
-            }
-            toggleOverlay();
+        // Dismiss the keyboard before opening the popover. On Android, if a search input is still focused, the
+        // keyboard stays up. The bottom-docked popover's KeyboardAvoidingView then reserves keyboard-height
+        // padding, so the sheet renders mid-screen instead of at the bottom. dismissKeyboardAndExecute waits for
+        // keyboardDidHide on Android before running the callback; on other platforms it runs immediately.
+        KeyboardUtils.dismissKeyboardAndExecute(() => {
+            calculatePopoverPosition(anchorRef, popoverAnchorAlignment).then((position) => {
+                setPopoverTriggerPosition({...position, vertical: position.vertical});
+                // Latch in the same batch as the open (and only when it will actually open, mirroring toggleOverlay's
+                // alert-modal guard) so the deferred subtree mounts together with the popover becoming visible.
+                if (!isOverlayVisible && !willAlertModalBecomeVisible) {
+                    setHasEverExpanded(true);
+                }
+                toggleOverlay();
+            });
         });
     };
 

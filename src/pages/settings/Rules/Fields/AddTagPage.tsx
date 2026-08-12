@@ -65,13 +65,16 @@ function AddTagPage({route}: AddTagPageProps) {
             titleKey="common.tag"
             title={tagList?.name}
             testID="AddTagPage"
-            selectedItem={selectedTagItem}
-            items={tagItems}
-            onSave={onSave}
-            onBack={() => Navigation.goBack(backToRoute)}
-            backToRoute={backToRoute}
             hash={hash}
-        />
+            onBack={() => Navigation.goBack(backToRoute)}
+        >
+            <RuleSelectionBase.Picker
+                selectedItem={selectedTagItem}
+                items={tagItems}
+                onSave={onSave}
+                backToRoute={backToRoute}
+            />
+        </RuleSelectionBase>
     );
 }
 

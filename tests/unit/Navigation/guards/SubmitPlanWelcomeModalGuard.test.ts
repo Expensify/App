@@ -72,6 +72,7 @@ describe('SubmitPlanWelcomeModalGuard', () => {
         isAuthenticated: true,
         isLoading: false,
         currentUrl: '',
+        isSupportalSession: false,
     };
 
     beforeEach(async () => {

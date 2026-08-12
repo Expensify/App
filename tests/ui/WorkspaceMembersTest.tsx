@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -36,7 +37,7 @@ const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.MEMBERS, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.MEMBERS]) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, ModalProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider, CurrentReportIDContextProvider, ModalProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
@@ -424,6 +425,92 @@ describe('WorkspaceMembers', () => {
             unmount();
             await waitForBatchedUpdatesWithAct();
         });
+
+        it('should hide role-change options when the selected member is the Authorized Payer resolved via policy.reimburser', async () => {
+            // Given a workspace whose Authorized Payer is an admin configured through policy.reimburser
+            // (the canonical resolution) rather than achAccount.reimburser. On the buggy code the guard
+            // only read achAccount.reimburser, so it failed to recognize this payer and wrongly offered
+            // the role-change options.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    reimburser: adminEmail,
+                });
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            });
+
+            // When that payer is bulk-selected and the actions dropdown is opened
+            selectCheckboxByMemberName('Admin');
+            fireEvent.press(await screen.findByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the Remove option is still available
+            const removeText = TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1});
+            await waitFor(() => {
+                expect(screen.getByTestId(`PopoverMenuItem-${removeText}`)).toBeOnTheScreen();
+            });
+
+            // ...and none of the role-change options are offered for the payer
+            const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeMemberText}`)).not.toBeOnTheScreen();
+
+            const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeAuditorText}`)).not.toBeOnTheScreen();
+
+            const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeCardAdminText}`)).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should hide the Make workspace admin option when the selected member is a Payments Admin who is the Authorized Payer', async () => {
+            // Given a Payments Admin who is also the Authorized Payer. PAYMENTS_ADMIN is the only non-admin
+            // role with write access to WORKFLOWS_PAYMENTS, so it is the sole role that can hold the payer
+            // role without already being an admin — which makes it the only path that can reach the
+            // "Make workspace admin" option. Every other role-change option is already gated on the payer,
+            // but adminOption was not, so it was wrongly offered for this payer.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    reimburser: userEmail,
+                    employeeList: {
+                        [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                    },
+                });
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
+            });
+
+            // When that payer is bulk-selected and the actions dropdown is opened
+            selectCheckboxByMemberName('Member');
+            fireEvent.press(await screen.findByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the Remove option is still available
+            const removeText = TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1});
+            await waitFor(() => {
+                expect(screen.getByTestId(`PopoverMenuItem-${removeText}`)).toBeOnTheScreen();
+            });
+
+            // ...but "Make workspace admin" is hidden for the payer, even though their role is not admin
+            const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeAdminText}`)).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
     describe('Removing members who are approvers and non-approvers', () => {
@@ -464,6 +551,78 @@ describe('WorkspaceMembers', () => {
             expect(screen.getByText(warningPrompt)).toBeOnTheScreen();
 
             unmount();
+        });
+    });
+
+    describe('RuleBot restrictions', () => {
+        const makeAdminTheRuleBot = async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    ruleBotAccountID: adminAccountID,
+                    rules: {
+                        agentRules: {
+                            rule1: {ruleID: 'rule1', prompt: 'Flag all weekend expenses', created: '2025-01-01 00:00:00'},
+                        },
+                    },
+                });
+            });
+        };
+
+        const selectAdminAndOpenDropdown = async () => {
+            await screen.findByText(ADMIN_OPTION);
+            selectCheckboxByMemberName('Admin');
+            fireEvent.press(await screen.findByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        it('should show the unable-to-remove modal when removing a RuleBot enforcing agent rules', async () => {
+            await makeAdminTheRuleBot();
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await selectAdminAndOpenDropdown();
+
+            const removeMenuItem = screen.getByText(TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1}));
+            fireEvent.press(removeMenuItem, {
+                nativeEvent: {},
+                type: 'press',
+                target: removeMenuItem,
+                currentTarget: removeMenuItem,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('workspace.rules.agentRules.unableToRemoveTitle'))).toBeOnTheScreen();
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should show the unable-to-change-role modal when demoting a RuleBot enforcing agent rules', async () => {
+            await makeAdminTheRuleBot();
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await selectAdminAndOpenDropdown();
+
+            const makeMemberMenuItem = screen.getByText(TestHelper.translateLocal('workspace.people.makeMember', {count: 1}));
+            fireEvent.press(makeMemberMenuItem, {
+                nativeEvent: {},
+                type: 'press',
+                target: makeMemberMenuItem,
+                currentTarget: makeMemberMenuItem,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('workspace.rules.agentRules.unableToChangeRoleTitle'))).toBeOnTheScreen();
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
         });
     });
 

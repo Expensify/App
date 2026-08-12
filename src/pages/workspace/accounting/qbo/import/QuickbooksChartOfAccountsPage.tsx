@@ -10,6 +10,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -23,6 +24,7 @@ import React from 'react';
 
 function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -33,6 +35,7 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
             displayName="QuickbooksChartOfAccountsPage"
             headerTitle="workspace.accounting.accounts"
             title="workspace.qbo.accountsDescription"
+            titleAlreadyTranslated={translate('workspace.qbo.accountsDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}

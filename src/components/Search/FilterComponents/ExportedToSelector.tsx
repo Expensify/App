@@ -1,6 +1,7 @@
 import Icon from '@components/Icon';
 import type {Filter, SearchFilterCommonProps} from '@components/Search/types';
 
+import useCombinedExportTemplates from '@hooks/useCombinedExportTemplates';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -8,8 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getSearchValueForConnection} from '@libs/AccountingUtils';
-import {getExportTemplates} from '@libs/actions/Search';
+import {getSearchValueForConnection, getStandardExportTemplateDisplayName, isStandardExportTemplate} from '@libs/AccountingUtils';
 import {getIntegrationIcon} from '@libs/ReportUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies} from '@libs/SearchQueryUtils';
 
@@ -18,8 +18,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
-
-import type {TupleToUnion} from 'type-fest';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -30,14 +28,9 @@ type ExportedToSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
     policyID: Filter | undefined;
 };
 
-const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {
-    [CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT,
-    [CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
-};
-
 function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: ExportedToSelectorProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -48,15 +41,17 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
         'QBDSquare',
         'CertiniaSquare',
         'RilletSquare',
+        'DualEntrySquare',
         'GustoSquare',
         'Table',
         'TablePencil',
     ]);
-    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
-    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const connectedIntegrationNames = getConnectedIntegrationNamesForPolicies(policies, policyID);
+
+    const policiesToLoadTemplatesFrom = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies);
+    const {combinedExportTemplates: deduplicatedExportTemplates} = useCombinedExportTemplates(policiesToLoadTemplatesFrom);
 
     const integrationConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
 
@@ -97,18 +92,6 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
             });
 
         const usedPickerValueKeys = new Set(connectedIntegrationPickerItems.map((item) => item.value));
-        const policiesToLoadTemplatesFrom = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies);
-        const exportTemplatesFromPolicies = policiesToLoadTemplatesFrom.flatMap((policy) => getExportTemplates([], {}, translate, policy, false));
-        const exportTemplatesFromAccount = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, undefined, true);
-        const allExportTemplates = [...exportTemplatesFromAccount, ...exportTemplatesFromPolicies];
-
-        const exportTemplatesByTemplateId = new Map<string, TupleToUnion<typeof allExportTemplates>>();
-        for (const template of allExportTemplates) {
-            if (template.templateName && !exportTemplatesByTemplateId.has(template.templateName)) {
-                exportTemplatesByTemplateId.set(template.templateName, template);
-            }
-        }
-        const deduplicatedExportTemplates = Array.from(exportTemplatesByTemplateId.values());
 
         const standardAndIntegrationCustomTemplatePickerItems = [];
 
@@ -118,13 +101,15 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
             }
 
             const displayName = template.name ?? template.templateName ?? '';
-            const filterValue = STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL[template.templateName] ?? displayName;
+
+            // Standard templates are filtered on by the label the backend records for them, while custom templates are filtered on by their display name
+            const isStandardTemplate = isStandardExportTemplate(template.templateName);
+            const filterValue = isStandardTemplate ? getStandardExportTemplateDisplayName(template.templateName) : displayName;
             if (usedPickerValueKeys.has(filterValue)) {
                 continue;
             }
 
             usedPickerValueKeys.add(filterValue);
-            const isStandardTemplate = !!STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL[template.templateName];
             standardAndIntegrationCustomTemplatePickerItems.push({
                 text: displayName,
                 value: filterValue,
@@ -142,6 +127,7 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
             value={selectedExportedTo}
             items={sortedExportedToPickerOptions}
             isSearchable={exportedToPickerOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+            isNegatable
             autoFocus={autoFocus}
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}

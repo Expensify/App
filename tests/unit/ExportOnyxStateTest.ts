@@ -5,6 +5,7 @@ import type {Session} from '@src/types/onyx';
 
 type ExampleOnyxState = {
     session: Session;
+    preservedUserSession?: Session;
     [key: string]: unknown;
 };
 
@@ -20,7 +21,8 @@ describe('maskOnyxState', () => {
 
     describe('whitelist functionality', () => {
         it('should only export whitelisted fields from session', () => {
-            const input = {session: mockSession};
+            // preservedUserSession holds a full Session (tokens included) and must be masked exactly like session
+            const input = {session: mockSession, [ONYXKEYS.PRESERVED_USER_SESSION]: mockSession};
             const result = maskOnyxState(input) as ExampleOnyxState;
 
             // Whitelisted fields should be preserved
@@ -34,6 +36,14 @@ describe('maskOnyxState', () => {
             expect(result.session.authToken).toHaveLength('sensitive-auth-token'.length);
             expect(result.session.encryptedAuthToken).not.toBe('sensitive-encrypted-token');
             expect(result.session.encryptedAuthToken).toHaveLength('sensitive-encrypted-token'.length);
+
+            // preservedUserSession must get the same treatment - tokens masked, whitelisted fields kept
+            expect(result.preservedUserSession?.email).toBe('user@example.com');
+            expect(result.preservedUserSession?.accountID).toBe(12345);
+            expect(result.preservedUserSession?.authToken).not.toBe('sensitive-auth-token');
+            expect(result.preservedUserSession?.authToken).toHaveLength('sensitive-auth-token'.length);
+            expect(result.preservedUserSession?.encryptedAuthToken).not.toBe('sensitive-encrypted-token');
+            expect(result.preservedUserSession?.encryptedAuthToken).toHaveLength('sensitive-encrypted-token'.length);
         });
 
         it('should mask fields in maskList while preserving structure', () => {
@@ -119,12 +129,13 @@ describe('maskOnyxState', () => {
             expect(processedReport.customField).toHaveLength('should-be-redacted'.length);
         });
 
-        it('should remove sensitive keys from export', () => {
+        it('should remove sensitive and transient keys from export', () => {
             const input = {
                 session: mockSession,
                 [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: 'sensitive-id',
                 [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: 'stripe-id',
                 [ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN]: 'plaid-token',
+                [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: true,
                 [ONYXKEYS.ONFIDO_TOKEN]: 'onfido-token',
             };
             const result = maskOnyxState(input);
@@ -133,6 +144,7 @@ describe('maskOnyxState', () => {
             expect(result[ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]).toBeUndefined();
             expect(result[ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]).toBeUndefined();
             expect(result[ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN]).toBeUndefined();
+            expect(result[ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]).toBeUndefined();
             expect(result[ONYXKEYS.ONFIDO_TOKEN]).toBeUndefined();
 
             // Session should still be present
@@ -349,6 +361,8 @@ describe('Onyx key export coverage', () => {
             ONYXKEYS.CREDENTIALS,
             ONYXKEYS.STASHED_CREDENTIALS,
             ONYXKEYS.ACCOUNT,
+            ONYXKEYS.PRESERVED_USER_SESSION,
+            ONYXKEYS.PRESERVED_ACCOUNT,
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
             ONYXKEYS.LOGINS,
@@ -369,7 +383,6 @@ describe('Onyx key export coverage', () => {
             ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
             ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING,
             ONYXKEYS.COLLECTION.DOMAIN_ERRORS,
-            ONYXKEYS.COLLECTION.NEXT_STEP,
             ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD,
             ONYXKEYS.WALLET_TERMS,
             ONYXKEYS.VALIDATE_ACTION_CODE,

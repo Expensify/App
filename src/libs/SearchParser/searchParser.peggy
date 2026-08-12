@@ -290,6 +290,9 @@ key "key"
       / withdrawn
       / feed
       / title
+      / submitterUserID
+      / submitterPayrollID
+      / orderDealNumbers
       / assignee
       / createdBy
       / reimbursable
