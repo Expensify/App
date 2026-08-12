@@ -686,6 +686,68 @@ describe('NumberWithSymbolForm', () => {
                 // `setNewNumber` itself never calls addLeadingZero - the pad handler does it for this path
                 expect(onInputChange).toHaveBeenLastCalledWith('0.');
             });
+
+            it('inserts a digit at the current caret position', async () => {
+                const onInputChange = jest.fn();
+                renderForm({value: '1234', decimals: 2, onInputChange});
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent(getTextInput(), 'selectionChange', {nativeEvent: {selection: {start: 2, end: 2}}});
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent.press(screen.getByTestId('button_9'));
+                await waitForBatchedUpdatesWithAct();
+
+                expect(screen.getByDisplayValue('12934')).toBeTruthy();
+                expect(getTextInput().props.selection).toEqual({start: 3, end: 3});
+                expect(onInputChange).toHaveBeenLastCalledWith('12934');
+            });
+
+            it('deletes the selected range', async () => {
+                const onInputChange = jest.fn();
+                renderForm({value: '1234', decimals: 2, onInputChange});
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent(getTextInput(), 'selectionChange', {nativeEvent: {selection: {start: 1, end: 3}}});
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent.press(screen.getByTestId('button_<'));
+                await waitForBatchedUpdatesWithAct();
+
+                expect(screen.getByDisplayValue('14')).toBeTruthy();
+                expect(getTextInput().props.selection).toEqual({start: 1, end: 1});
+                expect(onInputChange).toHaveBeenLastCalledWith('14');
+            });
+
+            it('does nothing when backspace is pressed for an empty value', async () => {
+                const onInputChange = jest.fn();
+                renderForm({value: '', decimals: 2, onInputChange});
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent.press(screen.getByTestId('button_<'));
+                await waitForBatchedUpdatesWithAct();
+
+                expect(screen.getByDisplayValue('')).toBeTruthy();
+                expect(getTextInput().props.selection).toEqual({start: 0, end: 0});
+                expect(onInputChange).not.toHaveBeenCalled();
+            });
+
+            it('keeps the caret position for a forward-delete keypress followed by pad deletion', async () => {
+                const onInputChange = jest.fn();
+                renderForm({value: '1234', decimals: 2, onInputChange});
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent(getTextInput(), 'selectionChange', {nativeEvent: {selection: {start: 2, end: 2}}});
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent(getTextInput(), 'keyPress', {nativeEvent: {key: 'Delete', ctrlKey: false}});
+                fireEvent.press(screen.getByTestId('button_<'));
+                await waitForBatchedUpdatesWithAct();
+
+                expect(screen.getByDisplayValue('134')).toBeTruthy();
+                expect(getTextInput().props.selection).toEqual({start: 2, end: 2});
+                expect(onInputChange).toHaveBeenLastCalledWith('134');
+            });
         });
     });
 
