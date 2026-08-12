@@ -3676,13 +3676,13 @@ describe('SidebarUtils', () => {
                     isReportArchived: undefined,
                     currentUserAccountID: session.accountID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    formatPhoneNumber,
                     visibleReportActionsData: {
                         [iouReportR14932.reportID]: {
                             [linkedCreateAction.reportActionID]: true,
                             [lastAction.reportActionID]: true,
                         },
                     },
+                    formatPhoneNumber,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);

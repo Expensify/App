@@ -265,20 +265,31 @@ function createTransaction({
     }
 }
 
-// eslint-disable-next-line @typescript-eslint/max-params
-function getMoneyRequestParticipantOptions(
-    currentUserAccountID: number,
-    report: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    conciergeReportID: string | undefined,
-    privateIsArchived: boolean | undefined,
-    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
-    reportDraft: OnyxEntry<Report> | undefined,
-    translate: LocalizedTranslate,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    dateFnsLocale: DateFnsLocale | undefined,
-): Array<Participant | OptionData> {
+function getMoneyRequestParticipantOptions({
+    currentUserAccountID,
+    report,
+    policy,
+    personalDetails,
+    conciergeReportID,
+    privateIsArchived,
+    reportAttributesDerived,
+    reportDraft,
+    translate,
+    formatPhoneNumber,
+    dateFnsLocale,
+}: {
+    currentUserAccountID: number;
+    report: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    conciergeReportID: string | undefined;
+    privateIsArchived: boolean | undefined;
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
+    reportDraft: OnyxEntry<Report> | undefined;
+    translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    dateFnsLocale: DateFnsLocale | undefined;
+}): Array<Participant | OptionData> {
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
