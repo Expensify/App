@@ -39,7 +39,9 @@ function DualEntryExpensifyCardAccountPage({policy}: WithPolicyConnectionsProps)
     const dualentryConfig = policy?.connections?.dualEntry?.config;
     const dualentryData = policy?.connections?.dualEntry?.data;
     const companyCardAccountID = dualentryConfig?.export?.creditCardAccountID;
-    const expensifyCardAccountID = dualentryConfig?.export?.expensifyCardAccountID ?? companyCardAccountID;
+    // An empty string means the custom Expensify Card account was cleared, so fall back to the company card account
+    const customExpensifyCardAccountID = dualentryConfig?.export?.expensifyCardAccountID;
+    const expensifyCardAccountID = customExpensifyCardAccountID === '' ? companyCardAccountID : (customExpensifyCardAccountID ?? companyCardAccountID);
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isExpensifyCardsEnabled = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT.getRoute(policyID) : undefined;
