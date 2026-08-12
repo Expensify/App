@@ -28,7 +28,7 @@ import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
-import {createGlobalFetchMock, formatPhoneNumber} from '../../utils/TestHelper';
+import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -201,6 +201,7 @@ describe('actions/SendInvoice', () => {
                 senderPolicyTags: baseSenderPolicyTags,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: Verify optimistic data is generated when policyRecentlyUsedCategories are provided
@@ -228,6 +229,7 @@ describe('actions/SendInvoice', () => {
                 senderPolicyTags: baseSenderPolicyTags,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(result.onyxData.optimisticData).toBeDefined();
@@ -281,6 +283,7 @@ describe('actions/SendInvoice', () => {
                 senderPolicyTags: mockPolicyTagList,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: Verify the result structure and key values
@@ -329,6 +332,7 @@ describe('actions/SendInvoice', () => {
                 senderPolicyTags: baseSenderPolicyTags,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             const reportLoadingStateUpdate = result.onyxData.failureData?.find(
@@ -369,6 +373,7 @@ describe('actions/SendInvoice', () => {
                 senderPolicyTags: baseSenderPolicyTags,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             const reportLoadingStateUpdate = result.onyxData.failureData?.find(
@@ -406,6 +411,7 @@ describe('actions/SendInvoice', () => {
                     senderPolicyTags: baseSenderPolicyTags,
                     formatPhoneNumber,
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
 
                 const reportActionsUpdate = result.onyxData.optimisticData?.find((update) => String(update.key) === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.invoiceReportID}`);
@@ -448,6 +454,7 @@ describe('actions/SendInvoice', () => {
                 senderPolicyTags: baseSenderPolicyTags,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: Verify the result uses existing chat report
@@ -486,6 +493,7 @@ describe('actions/SendInvoice', () => {
                 senderPolicyTags: baseSenderPolicyTags,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: Verify receipt handling
@@ -537,6 +545,7 @@ describe('actions/SendInvoice', () => {
                 senderPolicyTags: baseSenderPolicyTags,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: Verify function handles missing data gracefully
@@ -569,6 +578,7 @@ describe('actions/SendInvoice', () => {
                 senderPolicyTags: baseSenderPolicyTags,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(result.invoiceRoom).toBeDefined();
@@ -621,6 +631,7 @@ describe('actions/SendInvoice', () => {
                 senderPolicyTags: baseSenderPolicyTags,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(result.invoiceRoom).toBeDefined();
@@ -676,6 +687,7 @@ describe('actions/SendInvoice', () => {
                 senderPolicyTags: senderPolicyTags ?? {},
                 formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: optimisticData should contain a POLICY_RECENTLY_USED_TAGS update with the transaction tag prepended
@@ -725,6 +737,7 @@ describe('actions/SendInvoice', () => {
                 senderPolicyTags: senderPolicyTags ?? {},
                 formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: No POLICY_RECENTLY_USED_TAGS update should be in optimisticData
@@ -759,6 +772,7 @@ describe('actions/SendInvoice', () => {
                 senderPolicyTags: undefined,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then a new invoice chat is created instead of incorrectly using the invoice chat which has been converted from individual to business
@@ -789,6 +803,7 @@ describe('actions/SendInvoice', () => {
                 senderPolicyTags: undefined,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             mockFetch.fail();
@@ -830,6 +845,7 @@ describe('actions/SendInvoice', () => {
                 senderPolicyTags: undefined,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then onyxData should be passed to API.write
@@ -873,6 +889,7 @@ describe('actions/SendInvoice', () => {
                 },
                 formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             await waitForBatchedUpdates();
 
@@ -910,6 +927,7 @@ describe('actions/SendInvoice', () => {
                 senderPolicyTags: undefined,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(writeSpy).toHaveBeenCalledWith(

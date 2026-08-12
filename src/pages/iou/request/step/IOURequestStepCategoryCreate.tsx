@@ -1,6 +1,7 @@
 import type {FormOnyxValues} from '@components/Form/types';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
@@ -51,6 +52,7 @@ function IOURequestStepCategoryCreate({
     },
     transaction,
 }: IOURequestStepCategoryCreateProps) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -88,7 +90,6 @@ function IOURequestStepCategoryCreate({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportReal?.parentReportID ?? reportDraft?.parentReportID)}`);
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(reportReal?.parentReportID ?? reportDraft?.parentReportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -150,14 +151,13 @@ function IOURequestStepCategoryCreate({
         };
 
         if (isEditingSplit && transaction) {
-            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: categoryName}, policy);
+            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: categoryName}, policy, undefined, undefined, getCurrencyDecimals);
         } else if (isEditing && report) {
             updateMoneyRequestCategory({
                 transactionID: transaction?.transactionID ?? transactionID,
                 transactionThreadReport: report,
                 parentReport,
                 iouReportOwnerLogin,
-                parentReportNextStep,
                 category: categoryName,
                 policy,
                 policyTagList: policyTags,
@@ -170,9 +170,10 @@ function IOURequestStepCategoryCreate({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                getCurrencyDecimals,
             });
         } else {
-            setMoneyRequestCategory(transactionID, categoryName, policy);
+            setMoneyRequestCategory(transactionID, categoryName, policy, getCurrencyDecimals);
         }
 
         if (!isEditing && action === CONST.IOU.ACTION.CATEGORIZE && !backTo) {

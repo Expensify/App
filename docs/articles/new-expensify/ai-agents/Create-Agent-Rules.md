@@ -1,7 +1,7 @@
 ---
 title: Create Agent Rules
 description: Create AI-powered workspace rules using natural-language instructions to automate report reviews, routing, approvals, and other actions.
-keywords: [agent rules, RuleBot, AI rules, automated approvals, report routing, workspace automation, approval automation]
+keywords: [agent rules, RuleBot, AI rules, automated approvals, report routing, workspace automation, approval automation, edit agent rule, agent rule history, admins room audit trail, suggested rule, pre-written rule, rule template]
 internalScope: Audience is Workspace Admins. Covers creating, managing, and understanding Agent Rules and how RuleBot enforces them. Does not cover Agent management, personal AI features, or Concierge AI.
 ---
 
@@ -15,12 +15,9 @@ When you create your first Agent rule, Expensify automatically creates RuleBot, 
 
 ## Who can use Agent rules
 
-Agent Rules are currently available through an open beta program. If you'd like to try Agent rules and provide feedback, contact Concierge to request access.
-
 To create an Agent rule: 
 
  - You must be a Workspace Admin.
- - The workspace must have access to the Agent Rules beta.
  - **Rules** must be enabled for the workspace.
 
 ---
@@ -29,9 +26,14 @@ To create an Agent rule:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Your Workspace]**
 2. Click **Rules**.
-3. In the **Agent rules** section, click **Add AI rule**.
-4. Enter a natural-language description of the behavior you want.
-5. Click **Save**.
+3. In the **Agent rules** section, click **Add agent rule**. The **Suggested** tab opens with a list of recommended rules.
+4. Do one of the following:
+   - Select a suggested rule, then click **Next** to open it in the **Edit** tab. Use **Find a rule** to search the suggestions.
+   - Open the **Edit** tab to write your own rule from scratch.
+5. On the **Edit** tab, review or edit the natural-language description of the behavior you want.
+6. Click **Save**.
+
+For a list of the available suggested rules, see [Use Suggested Agent Rules](/articles/new-expensify/ai-agents/Use-Suggested-Agent-Rules).
 
 ---
 
@@ -94,6 +96,16 @@ For example, RuleBot might:
    
 ---
 
+## How to edit an Agent rule
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Workspace name]**
+2. Click **Rules**.
+3. In the **Agent rules** section, select the AI rule you want to change.
+4. Update the natural-language description of the behavior you want.
+5. Click **Save**.
+
+---
+
 ## How to delete an Agent rule
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Workspace name]**
@@ -111,6 +123,8 @@ Whenever an Agent rule is added, updated, or deleted, Expensify records a system
 
  - **Added** and **updated** messages show the rule's title and its full prompt.
  - **Deleted** messages show the rule's title.
+
+The **#admins** room's preview in your chat list shows a concise summary, such as that someone added, updated, or deleted an Agent rule.
 
 Because the **#admins** room is visible only to Workspace Admins, this history stays private to your admin team. To review it, open your workspace's **#admins** room and find the relevant system message.
 
@@ -137,3 +151,7 @@ When evaluating a report, RuleBot can review the 50 most recent report actions, 
 ## Do I need to create or manage RuleBot?
 
 No. RuleBot is created automatically when you add your first Agent rule and is managed by Expensify.
+
+## Where can I see a history of Agent rule changes?
+
+In the workspace's #admins room. Expensify posts a system message there each time an Agent rule is added, updated, or deleted.
