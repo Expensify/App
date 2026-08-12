@@ -304,6 +304,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                     description={translate('profilePage.customInstructions')}
                                     title={Str.htmlDecode(agentPrompt?.prompt?.trim() ?? '')}
                                     shouldParseTitle
+                                    excludedMarkdownRules={['reportMentions']}
                                     shouldTruncateTitle
                                     characterLimit={CONST.AGENT_PROMPT_LIMIT}
                                     shouldShowRightIcon
