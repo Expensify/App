@@ -258,10 +258,13 @@ function IOURequestEditReportCommon({
             return;
         }
 
-        // Reports can only hold up to CONST.REPORT.MAX_TRANSACTIONS transactions. The backend rejects a move into a report
-        // that is already at the limit, so prevent it up front with an explanatory warning instead of failing silently.
+        // Reports can only hold up to CONST.REPORT.MAX_TRANSACTIONS transactions. The backend rejects a move that would push
+        // the destination past the limit, so prevent it up front with an explanatory warning instead of failing silently.
+        // Account for how many transactions are being moved, not just the destination's current count (e.g. moving 12 into a
+        // report that already holds 490 would land at 502).
         const destinationReport = outstandingReports.find((report) => report?.reportID === item.value);
-        if ((destinationReport?.transactionCount ?? 0) >= CONST.REPORT.MAX_TRANSACTIONS) {
+        const numberOfTransactionsToMove = transactionIDs?.length ?? 1;
+        if ((destinationReport?.transactionCount ?? 0) + numberOfTransactionsToMove > CONST.REPORT.MAX_TRANSACTIONS) {
             showConfirmModal({
                 title: translate('iou.moveExpenses'),
                 prompt: translate('iou.moveExpensesMaxTransactionsError'),
