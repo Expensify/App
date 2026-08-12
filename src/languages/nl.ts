@@ -2949,7 +2949,7 @@ ${amount} voor ${merchant} - ${date}`,
         editAvatar: 'Profielavatar wisselen',
         defaultAgentName: (displayName: string) => `Agent van ${displayName}`,
         defaultPrompt:
-            'Wijs declaraties af die zijn voor gokken, films of andere duidelijk niet-zakelijke redenen.\n\nHerinner de gebruiker eraan altijd een bonafbeelding toe te voegen waarop de fooi duidelijk is.\n\nKeur het verslag goed als het sterk lijkt op eerdere verslagen van dezelfde gebruiker.\n\nWijs verslagen af met meer dan $500 aan reiskosten.',
+            'Categoriseer alle uitgaven bij koffiebars als Maaltijden.\n\nStel bij elke deelrit de omschrijving in op „Reiskosten klant”.\n\nLabel alles wat ik bij de elektronicawinkel koop als Materieel.\n\nMarkeer elke uitgave zonder bon, zodat ik er een kan toevoegen voordat ik indien.',
         copilotNote: 'Deze agent wordt toegevoegd als Copilot met volledige toegang tot je account, zodat hij namens jou kan handelen.',
     },
     editAgentPage: {

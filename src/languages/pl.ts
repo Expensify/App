@@ -2936,7 +2936,7 @@ ${amount} dla ${merchant} - ${date}`,
         editAvatar: 'Zmień awatar',
         defaultAgentName: (displayName: string) => `Agent ${displayName}`,
         defaultPrompt:
-            'Odrzucaj wydatki związane z hazardem, filmami lub innymi oczywistymi celami niezwiązanymi z działalnością biznesową.\n\nPrzypominaj użytkownikowi, aby zawsze dołączał zdjęcie paragonu, na którym wysokość napiwku jest wyraźnie widoczna.\n\nZatwierdź raport, jeśli jest bardzo podobny do wcześniejszych raportów tego samego użytkownika.\n\nOdrzucaj raporty zawierające więcej niż 500 USD wydatków na podróże.',
+            'Skategoryzuj wszystkie wydatki z kawiarni jako Posiłki.\n\nDla każdego przejazdu współdzielonego ustaw opis na „Podróż klienta”.\n\nOznacz wszystko, co kupuję w sklepie elektronicznym, jako Sprzęt.\n\nOznacz jako wymagające uwagi każdy wydatek bez paragonu, żebym mógł dodać go przed wysłaniem.',
         copilotNote: 'Ten agent zostanie dodany jako Copilot z pełnym dostępem do Twojego konta, aby mógł działać w Twoim imieniu.',
     },
     editAgentPage: {

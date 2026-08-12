@@ -2939,7 +2939,7 @@ ${amount} para ${merchant} - ${date}`,
         editAvatar: 'Trocar avatar',
         defaultAgentName: (displayName: string) => `Agente de ${displayName}`,
         defaultPrompt:
-            'Rejeite despesas relacionadas a jogos de azar, cinema ou outros motivos claramente não relacionados ao negócio.\n\nLembre o usuário de sempre incluir uma imagem do recibo em que a gorjeta fique clara.\n\nAprove o relatório se ele for muito semelhante a relatórios anteriores do mesmo usuário.\n\nRejeite relatórios com mais de US$ 500 em despesas de viagem.',
+            'Classifique todas as despesas de cafeterias como Refeições.\n\nPara cada corrida de aplicativo, defina a descrição como “Viagem do cliente”.\n\nMarque tudo o que eu comprar na loja de eletrônicos como Equipamentos.\n\nSinalize qualquer despesa que estiver sem recibo para que eu possa adicionar um antes de enviar.',
         copilotNote: 'Este agente será adicionado como Copilot com acesso total à sua conta, para que possa agir em seu nome.',
     },
     editAgentPage: {

@@ -2863,7 +2863,7 @@ ${amount} para ${merchant} - ${date}`,
         editAvatar: 'Cambiar avatar',
         defaultAgentName: (displayName: string) => `Agente de ${displayName}`,
         defaultPrompt:
-            'Rechazar gastos por juegos de azar, películas u otras razones claramente no comerciales.\n\nRecordar al usuario que siempre incluya una imagen del recibo que muestre claramente la propina.\n\nAprobar el informe si es muy similar a informes anteriores del mismo usuario.\n\nRechazar informes con más de $500 en gastos de viaje.',
+            'Clasifica todos los gastos de cafeterías como Comidas.\n\nEn cada viaje de transporte compartido, establece la descripción en «Viaje de cliente».\n\nEtiqueta todo lo que compre en la tienda de electrónica como Equipamiento.\n\nMarca cualquier gasto que no tenga recibo para que pueda añadir uno antes de enviarlo.',
         copilotNote: 'Este agente se añadirá como copiloto con acceso completo a tu cuenta, para que pueda actuar en tu nombre.',
     },
     editAgentPage: {
