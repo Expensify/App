@@ -347,6 +347,48 @@ describe('NumberWithSymbolForm', () => {
 
                 expect(onInputChange).toHaveBeenLastCalledWith('-');
             });
+
+            function typeAtSelection(key: string) {
+                const input = getTextInput();
+                const value = String(input.props.value ?? '');
+                const {start, end} = input.props.selection as {start: number; end: number};
+                fireEvent.changeText(input, `${value.slice(0, start)}${key}${value.slice(end)}`);
+            }
+
+            it('places the caret after the sign on an empty flip so the next digit becomes a negative amount', async () => {
+                const onInputChange = jest.fn();
+                renderForm({...flipProps, value: '', onInputChange});
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent.press(screen.getByText('Flip'));
+                await waitForBatchedUpdatesWithAct();
+
+                expect(getTextInput().props.selection).toEqual({start: 1, end: 1});
+
+                typeAtSelection('5');
+                await waitForBatchedUpdatesWithAct();
+
+                expect(onInputChange).toHaveBeenLastCalledWith('-5');
+                expect(screen.getByDisplayValue('-5')).toBeTruthy();
+            });
+
+            it('keeps the caret after the digits when flipping a non-empty value so further typing appends', async () => {
+                const onInputChange = jest.fn();
+                renderForm({...flipProps, value: '5', onInputChange});
+                await waitForBatchedUpdatesWithAct();
+
+                fireEvent.press(screen.getByText('Flip'));
+                await waitForBatchedUpdatesWithAct();
+
+                expect(onInputChange).toHaveBeenLastCalledWith('-5');
+                expect(getTextInput().props.selection).toEqual({start: 2, end: 2});
+
+                typeAtSelection('0');
+                await waitForBatchedUpdatesWithAct();
+
+                expect(onInputChange).toHaveBeenLastCalledWith('-50');
+                expect(screen.getByDisplayValue('-50')).toBeTruthy();
+            });
         });
 
         describe('currency button', () => {
