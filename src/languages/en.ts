@@ -320,7 +320,6 @@ const translations = {
         billable: 'Billable',
         nonBillable: 'Non-billable',
         tag: 'Tag',
-        violations: 'Violations',
         receipt: 'Receipt',
         verified: 'Verified',
         replace: 'Replace',
@@ -347,8 +346,6 @@ const translations = {
         automatic: 'Automatic',
         showing: 'Showing',
         of: 'of',
-        // @context Carousel pagination counter showing the current item's position out of the total (e.g. "3 of 50").
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} of ${total}`,
         default: 'Default',
         update: 'Update',
         member: 'Member',
@@ -2836,10 +2833,6 @@ const translations = {
             lastDayOfMonth: 'Last day of the month',
             lastBusinessDayOfMonth: 'Last business day of the month',
             ordinals: {
-                one: 'st',
-                two: 'nd',
-                few: 'rd',
-                other: 'th',
                 /* eslint-disable @typescript-eslint/naming-convention */
                 '1': 'First',
                 '2': 'Second',
@@ -5854,6 +5847,11 @@ const translations = {
             subsidiarySelectDescription: "Choose the subsidiary in DualEntry that you'd like to import data from.",
             noCompaniesFound: 'No companies found',
             noCompaniesFoundDescription: 'Please add a company in DualEntry and sync the connection again',
+            accountTypesDescription: 'Your DualEntry accounts will import as categories.',
+            enableNewAccountsTitle: 'Enable newly imported accounts',
+            enableNewAccountsDescription: 'New DualEntry accounts will be available as categories.',
+            classificationsImport: 'All DualEntry classifications import as tags',
+            importDescription: 'Choose which coding configurations to import from DualEntry.',
         },
         type: {
             free: 'Free',
@@ -6507,6 +6505,7 @@ const translations = {
         tags: {
             tagName: 'Tag name',
             requiresTag: 'Members must tag all expenses',
+            showTagGLCodes: 'Show GL codes when selecting a tag',
             trackBillable: 'Track billable expenses',
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',
@@ -7922,6 +7921,8 @@ const translations = {
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Update ${fieldName} to "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Mark as  "${reimbursable ? 'reimbursable' : 'non-reimbursable'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Mark as "${billable ? 'billable' : 'non-billable'}"`,
+                vendorUnavailable: 'Vendor unavailable',
+                supplierUnavailable: 'Supplier unavailable',
                 matchType: 'Match type',
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Exactly matches',
@@ -8394,6 +8395,9 @@ const translations = {
         },
         updateAreCommentsRequired: (categoryName: string, oldValue: boolean) => {
             return `changed the "${categoryName}" category description to ${!oldValue ? 'required' : 'not required'} (previously ${!oldValue ? 'not required' : 'required'})`;
+        },
+        updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
+            return `changed the "${categoryName}" category attendees to ${newValue ? 'required' : 'not required'} (previously ${newValue ? 'not required' : 'required'})`;
         },
         updateCategoryMaxExpenseAmount: (categoryName: string, newAmount?: string, oldAmount?: string) => {
             if (newAmount && !oldAmount) {
@@ -9025,7 +9029,6 @@ const translations = {
             topSpenders: 'Top spenders',
             topCategories: 'Top categories',
             topMerchants: 'Top merchants',
-            violationsBySubmitter: 'Violations by submitter',
         },
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
@@ -9987,57 +9990,6 @@ const translations = {
         resolvedDuplicates: 'resolved the duplicate',
         companyCardRequired: 'Company card purchases required',
         noRoute: 'Please select a valid address',
-        /**
-         * Parameter-free labels for submitted violations shown in Search table columns.
-         * Prefer these over sibling `violations.*` keys when violation data/context is unavailable.
-         */
-        shortName: {
-            allTagLevelsRequired: 'All tags required',
-            autoReportedRejectedExpense: 'Expense rejected',
-            billableExpense: 'Billable no longer valid',
-            cashExpenseWithNoReceipt: 'Receipt required',
-            categoryOutOfPolicy: 'Category no longer valid',
-            companyCardRequired: 'Company card required',
-            conversionSurcharge: 'Conversion surcharge applied',
-            customUnitOutOfPolicy: 'Rate not valid for workspace',
-            customUnitRateOutOfDateRange: 'Rate outside valid dates',
-            duplicatedTransaction: 'Potential duplicate',
-            fieldRequired: 'Report field required',
-            futureDate: 'Future date not allowed',
-            hold: 'Expense on hold',
-            inactiveVendor: 'Vendor no longer valid',
-            increasedDistance: 'Distance exceeds route',
-            invoiceMarkup: 'Invoice marked up',
-            itemizedReceiptRequired: 'Itemized receipt required',
-            maxAge: 'Expense too old',
-            missingAttendees: 'Attendees required',
-            missingCategory: 'Missing category',
-            missingComment: 'Description required',
-            missingTag: 'Missing tag',
-            modifiedAmount: 'Amount modified',
-            modifiedDate: 'Date modified',
-            noRoute: 'No valid route',
-            nonExpensiworksExpense: 'Non-Expensiworks expense',
-            overAutoApprovalLimit: 'Over auto-approval limit',
-            overCategoryLimit: 'Over category limit',
-            overLimit: 'Over limit',
-            overTripLimit: 'Over trip limit',
-            perDayLimit: 'Over daily limit',
-            prohibitedExpense: 'Prohibited expense',
-            receiptGeneratedWithAI: 'Possible AI-generated receipt',
-            receiptNotSmartScanned: 'Receipt added manually',
-            receiptRequired: 'Receipt required',
-            rter: 'Awaiting card match',
-            smartscanFailed: 'Receipt scanning failed',
-            someTagLevelsRequired: 'Tag required',
-            tagOutOfPolicy: 'Tag no longer valid',
-            overLimitAttendee: 'Over person limit',
-            customRules: 'Custom rule violation',
-            taxAmountChanged: 'Tax amount modified',
-            taxOutOfPolicy: 'Tax rate no longer valid',
-            taxRateChanged: 'Tax rate modified',
-            taxRequired: 'Missing tax rate',
-        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is required`,

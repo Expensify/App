@@ -3,7 +3,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
@@ -562,16 +562,19 @@ function resolveReportForMoneyRequest({
     transactionReport,
     routeReport,
     policy,
+    reportNameValuePair,
 }: {
     transaction: OnyxEntry<Transaction>;
     transactionReport: OnyxEntry<Report>;
     routeReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
+    reportNameValuePair: OnyxInputOrEntry<ReportNameValuePairs>;
 }): OnyxEntry<Report> {
     if (transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         return undefined;
     }
-    const canUseTransactionReport = !(isProcessingReport(transactionReport) && !policy?.harvesting?.enabled) && isReportOutstanding(transactionReport, policy?.id, undefined, false);
+    const canUseTransactionReport =
+        !(isProcessingReport(transactionReport) && !policy?.harvesting?.enabled) && isReportOutstanding(transactionReport, policy?.id, reportNameValuePair, false);
     const shouldUseTransactionReport = !!transactionReport && (canUseTransactionReport || !routeReport);
     if (shouldUseTransactionReport) {
         return transactionReport;
