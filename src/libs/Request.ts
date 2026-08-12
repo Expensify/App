@@ -12,6 +12,7 @@ import Log from './Log';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
 import {endSpan, startSpan} from './telemetry/activeSpans';
+import trackAppStartupResponseRender from './telemetry/trackAppStartupResponseRender';
 
 let middlewares: Middleware[] = [];
 
@@ -25,8 +26,7 @@ function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response
 function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isFromSequentialQueue = false): Promise<Response<TKey> | void> {
     let result = makeXHR(request);
 
-    // Time from the parsed startup response landing to the Onyx writes for it finishing. Splash-based startup spans miss this
-    // entirely for flows that never show a splash (magic code, copilot, supportal).
+    // The splash-based startup spans measure nothing for flows that never show a splash (magic code, copilot, supportal).
     const shouldMeasureResponseApply = APP_STARTUP_NETWORK_REQUEST.has(request.command);
     if (shouldMeasureResponseApply) {
         result = result.then((response) => {
@@ -45,7 +45,10 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
     }
 
     if (shouldMeasureResponseApply) {
-        result = result.finally(() => endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_RESPONSE_APPLY));
+        result = result.finally(() => {
+            endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_RESPONSE_APPLY);
+            trackAppStartupResponseRender(request.command);
+        });
     }
 
     return result.catch((reason: unknown) => {

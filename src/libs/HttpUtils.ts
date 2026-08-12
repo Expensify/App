@@ -112,7 +112,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
 
     registerPrefetchOnAppStart({prefetchKey, fetchParams, command, url});
 
-    // Split the startup request into the wait for the first byte and the body download+parse, which Chrome shows as "Waiting" and "Content Download".
+    // Mirrors the "Waiting" / "Content Download" split Chrome shows for this request.
     const isStartupRequest = !!command && APP_STARTUP_NETWORK_REQUEST.has(command);
     if (isStartupRequest) {
         startStartupNetworkPhaseSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_REQUEST_WAIT, command);

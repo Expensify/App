@@ -102,7 +102,8 @@ function init() {
                 context.triggeredKeys = triggeredKeys;
 
                 const spanId = `${CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE}_${key}`;
-                const startupSpan = getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
+                // No-splash flows end ManualAppStartup before the startup response lands, so without this fallback onlyIfParent drops every recompute it triggers.
+                const startupSpan = getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP) ?? getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_RESPONSE_APPLY);
                 startSpan(spanId, {
                     name: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
                     op: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
