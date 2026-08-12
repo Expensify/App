@@ -104,36 +104,33 @@ function MigratedUserWelcomeModal() {
                         outerContainerStyle={styles.p0}
                     />
                 )}
-                <FeatureTraining.Body
-                    outerStyle={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}
-                    innerStyle={[styles.mb5, styles.gap2]}
-                >
-                    <FeatureTraining.Title>{translate('migratedUserWelcomeModal.title')}</FeatureTraining.Title>
-                    <FeatureTraining.Description>{translate('migratedUserWelcomeModal.subtitle')}</FeatureTraining.Description>
-                    <View
-                        style={[styles.gap3, styles.pt1, styles.pl1]}
-                        fsClass={CONST.FULLSTORY.CLASS.UNMASK}
-                    >
-                        {ExpensifyFeatures.map(({translationKey, icon}) => (
-                            <View
-                                key={translationKey}
-                                style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto]}
-                            >
-                                <Icon
-                                    src={icon}
-                                    height={variables.menuIconSize}
-                                    width={variables.menuIconSize}
-                                />
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto, styles.flex1, styles.ml6]}>
-                                    <RenderHTML html={`<comment>${convertToLTR(translate(translationKey))}</comment>`} />
+                <FeatureTraining.Body style={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}>
+                    <FeatureTraining.BodyText style={[styles.mb5, styles.gap2]}>
+                        <FeatureTraining.Title>{translate('migratedUserWelcomeModal.title')}</FeatureTraining.Title>
+                        <FeatureTraining.Description>{translate('migratedUserWelcomeModal.subtitle')}</FeatureTraining.Description>
+                        <View
+                            style={[styles.gap3, styles.pt1, styles.pl1]}
+                            fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+                        >
+                            {ExpensifyFeatures.map(({translationKey, icon}) => (
+                                <View
+                                    key={translationKey}
+                                    style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto]}
+                                >
+                                    <Icon
+                                        src={icon}
+                                        height={variables.menuIconSize}
+                                        width={variables.menuIconSize}
+                                    />
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto, styles.flex1, styles.ml6]}>
+                                        <RenderHTML html={`<comment>${convertToLTR(translate(translationKey))}</comment>`} />
+                                    </View>
                                 </View>
-                            </View>
-                        ))}
-                    </View>
+                            ))}
+                        </View>
+                    </FeatureTraining.BodyText>
                     <FeatureTraining.HelpButton onPress={onHelp}>{translate('migratedUserWelcomeModal.helpText')}</FeatureTraining.HelpButton>
-                    <FeatureTraining.ButtonRow>
-                        <FeatureTraining.ConfirmButton>{translate('migratedUserWelcomeModal.confirmText')}</FeatureTraining.ConfirmButton>
-                    </FeatureTraining.ButtonRow>
+                    <FeatureTraining.ConfirmButton>{translate('migratedUserWelcomeModal.confirmText')}</FeatureTraining.ConfirmButton>
                 </FeatureTraining.Body>
             </FeatureTraining>
         </CenteredModalLayout>
