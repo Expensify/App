@@ -603,14 +603,18 @@ function resolveDuplicates({
     API.write(WRITE_COMMANDS.RESOLVE_DUPLICATES, parameters, {optimisticData, failureData});
 }
 
+function shouldDuplicateAsManualDistance(transaction: OnyxTypes.Transaction) {
+    return isGPSDistanceRequest(transaction);
+}
+
 /**
  * Builds the transactionParams object and computes waypoints used when duplicating a transaction.
  * Shared between duplicateExpenseTransaction and duplicateReport.
  */
 function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, transactionDetails: ReturnType<typeof getTransactionDetails>) {
     const {linkedTrackedExpenseReportAction, ...transactionWithoutLinkedAction} = transaction;
-    const shouldDuplicateAsManualDistance = isGPSDistanceRequest(transaction);
-    const waypoints = !isExpenseSplit(transaction) && !shouldDuplicateAsManualDistance ? (transactionDetails?.waypoints as WaypointCollection | undefined) : undefined;
+    const duplicateAsManualDistance = shouldDuplicateAsManualDistance(transaction);
+    const waypoints = !isExpenseSplit(transaction) && !duplicateAsManualDistance ? (transactionDetails?.waypoints as WaypointCollection | undefined) : undefined;
 
     const transactionParams = {
         ...transactionWithoutLinkedAction,
@@ -642,7 +646,7 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
         unit: transaction.comment?.units?.unit,
     };
 
-    if (isDistanceRequest(transaction) && (isExpenseSplit(transaction) || isOdometerDistanceRequest(transaction) || shouldDuplicateAsManualDistance)) {
+    if (isDistanceRequest(transaction) && (isExpenseSplit(transaction) || isOdometerDistanceRequest(transaction) || duplicateAsManualDistance)) {
         transactionParams.distance = transaction.comment?.customUnit?.quantity ?? undefined;
     }
 
@@ -660,7 +664,7 @@ function getDuplicateRequestType(transaction: OnyxTypes.Transaction) {
     if (sourceRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
         return CONST.IOU.REQUEST_TYPE.MANUAL;
     }
-    if (sourceRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS) {
+    if (shouldDuplicateAsManualDistance(transaction)) {
         return CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
     }
     return sourceRequestType;
