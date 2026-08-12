@@ -22,6 +22,9 @@ type UseCommuterExclusionGuardParams = {
 
     /** Whether the current flow is for an odometer distance request */
     isOdometerDistanceRequest?: boolean;
+
+    /** Whether an existing distance request is being edited */
+    isEditingExistingDistanceRequest?: boolean;
 };
 
 type PoliciesWithCommuterExclusions = Record<string, boolean>;
@@ -43,7 +46,12 @@ const policiesWithCommuterExclusionsSelector = (policies: OnyxCollection<Policy>
  * is supported (because exclusions are computed from the mapped route) and returns
  * true so callers can early return.
  */
-function useCommuterExclusionGuard({policyID, isManualDistanceRequest = false, isOdometerDistanceRequest = false}: UseCommuterExclusionGuardParams) {
+function useCommuterExclusionGuard({
+    policyID,
+    isManualDistanceRequest = false,
+    isOdometerDistanceRequest = false,
+    isEditingExistingDistanceRequest = false,
+}: UseCommuterExclusionGuardParams) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
@@ -53,7 +61,7 @@ function useCommuterExclusionGuard({policyID, isManualDistanceRequest = false, i
     return useCallback(
         (...policyIDsToCheck: [string?]) => {
             const policyIDToCheck = policyIDsToCheck.length > 0 ? policyIDsToCheck[0] : policyID;
-            if (!isManualDistanceRequest && !isOdometerDistanceRequest) {
+            if (isEditingExistingDistanceRequest || (!isManualDistanceRequest && !isOdometerDistanceRequest)) {
                 return false;
             }
 
@@ -76,7 +84,17 @@ function useCommuterExclusionGuard({policyID, isManualDistanceRequest = false, i
 
             return true;
         },
-        [policyID, isManualDistanceRequest, isOdometerDistanceRequest, policiesWithCommuterExclusions, showConfirmModal, translate, styles, illustrations.HouseWithMap],
+        [
+            policyID,
+            isManualDistanceRequest,
+            isOdometerDistanceRequest,
+            isEditingExistingDistanceRequest,
+            policiesWithCommuterExclusions,
+            showConfirmModal,
+            translate,
+            styles,
+            illustrations.HouseWithMap,
+        ],
     );
 }
 

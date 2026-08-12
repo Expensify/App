@@ -163,6 +163,7 @@ function IOURequestStepDistanceOdometer({
     const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
         policyID: report?.policyID ?? (shouldAutoReportToDefaultWorkspace ? defaultExpensePolicy?.id : undefined),
         isOdometerDistanceRequest: true,
+        isEditingExistingDistanceRequest: isEditing,
     });
 
     const mileageRate = DistanceRequestUtils.getRate({
