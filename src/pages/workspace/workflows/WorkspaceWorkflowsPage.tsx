@@ -67,7 +67,14 @@ import {
 } from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {convertPolicyEmployeesToApprovalWorkflows, getEligibleExistingBusinessBankAccounts, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
+import {
+    convertApprovalWorkflowRulesToWorkflows,
+    convertPolicyEmployeesToApprovalWorkflows,
+    filterRulesForPolicy,
+    getApprovalWorkflowRulesForPolicy,
+    getEligibleExistingBusinessBankAccounts,
+    INITIAL_APPROVAL_WORKFLOW,
+} from '@libs/WorkflowUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -87,7 +94,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import type Rule from '@src/types/onyx/Rule';
 
+import type {OnyxCollection} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -192,16 +201,19 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID, email: currentUserEmail = '', login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const isUserReimburser = account?.primaryLogin !== undefined && (policy?.achAccount?.reimburser ?? policy?.owner) === account?.primaryLogin;
-    const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
-        () =>
-            convertPolicyEmployeesToApprovalWorkflows({
-                policy,
-                personalDetails: personalDetails ?? {},
-                localeCompare,
-                currentUserLogin,
-            }),
-        [policy, personalDetails, localeCompare, currentUserLogin],
-    );
+    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
+    const policyRulesSelector = useCallback((rules: OnyxCollection<Rule>) => filterRulesForPolicy(rules, route.params.policyID), [route.params.policyID]);
+    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: policyRulesSelector});
+    const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(() => {
+        const params = {
+            policy,
+            personalDetails: personalDetails ?? {},
+            localeCompare,
+            currentUserLogin,
+            rules: getApprovalWorkflowRulesForPolicy(rulesCollection, route.params.policyID),
+        };
+        return isMultipleApproversBetaEnabled ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
+    }, [policy, personalDetails, localeCompare, currentUserLogin, rulesCollection, route.params.policyID, isMultipleApproversBetaEnabled]);
 
     const canAccessSubmit2026Features = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
     const canAccessWalletConnectionStatusFeatures = canAccessSubmitWorkspaceFeatures(policy, isWalletConnectionStatusBetaEnabled);
@@ -266,12 +278,21 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, []);
 
     const confirmDisableApprovals = useCallback(() => {
-        setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, isTrackIntentUser, {
-            transactionViolations,
-            betas,
-            personalDetailsList: personalDetails,
-        });
-    }, [betas, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser]);
+        setWorkspaceApprovalMode(
+            policy,
+            policy?.owner ?? '',
+            CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            currentUserAccountID,
+            currentUserEmail,
+            isTrackIntentUser,
+            {
+                transactionViolations,
+                betas,
+                personalDetailsList: personalDetails,
+            },
+            rulesCollection,
+        );
+    }, [betas, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser, rulesCollection]);
 
     const navigateToHRSettings = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(route.params.policyID));
@@ -371,7 +392,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const hrFinalApproverEmail = getHRFinalApprover(policy) ?? undefined;
 
     const filteredApprovalWorkflows =
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED || policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL || isHRAdvancedModeEnabled
+        isMultipleApproversBetaEnabled ||
+        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED ||
+        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL ||
+        isHRAdvancedModeEnabled
             ? approvalWorkflows
             : approvalWorkflows.filter((workflow) => workflow.isDefault);
 
@@ -668,6 +692,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                             betas,
                             personalDetailsList: personalDetails,
                         },
+                        rulesCollection,
                     );
                 },
                 subMenuItems: (
@@ -705,10 +730,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         />
                         {displayedWorkflows.map((workflow) => {
                             const firstApproverEmail = workflow.approvers.at(0)?.email ?? '';
+                            // The first approver isn't unique once rule-based chains diverge, so anchor the key/edit route
+                            // on a member too (each member belongs to exactly one workflow).
+                            const firstMemberEmail = workflow.members.at(0)?.email ?? '';
 
                             return (
                                 <OfflineWithFeedback
-                                    key={firstApproverEmail}
+                                    key={`${firstApproverEmail}-${firstMemberEmail}`}
                                     pendingAction={workflow.pendingAction}
                                 >
                                     <ApprovalWorkflowSection
@@ -719,7 +747,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                 : () => {
                                                       // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
                                                       clearApprovalWorkflow();
-                                                      Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApproverEmail));
+                                                      Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApproverEmail, firstMemberEmail));
                                                   }
                                         }
                                         onShowAllMembersPress={
@@ -1038,6 +1066,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         withWorkflowsReadOnlyFallback,
         showReadOnlyModal,
         isTrackIntentUser,
+        rulesCollection,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (

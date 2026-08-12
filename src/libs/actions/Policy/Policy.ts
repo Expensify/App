@@ -127,6 +127,7 @@ import type {
     Report,
     ReportAction,
     ReportActions,
+    Rule,
     TaxRatesWithDefault,
     Transaction,
     TransactionViolations,
@@ -928,6 +929,7 @@ function setWorkspaceApprovalMode(
     currentUserEmail: string,
     isTrackIntentUser: boolean | undefined,
     additionalData?: SetWorkspaceApprovalModeAdditionalData,
+    rules?: OnyxCollection<Rule>,
 ) {
     if (!policy) {
         return;
@@ -1043,7 +1045,7 @@ function setWorkspaceApprovalMode(
         }
     }
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.RULE | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -1062,7 +1064,7 @@ function setWorkspaceApprovalMode(
         optimisticData.push(...reportsOptimisticData);
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.RULE | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -1080,6 +1082,16 @@ function setWorkspaceApprovalMode(
         failureData.push(...reportsFailureData);
     }
 
+    if (approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && rules) {
+        for (const [ruleKey, rule] of Object.entries(rules)) {
+            if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policyID) {
+                continue;
+            }
+            const ruleOnyxKey: `${typeof ONYXKEYS.COLLECTION.RULE}${string}` = `${ONYXKEYS.COLLECTION.RULE}${ruleKey.slice(ONYXKEYS.COLLECTION.RULE.length)}`;
+            optimisticData.push({onyxMethod: Onyx.METHOD.SET, key: ruleOnyxKey, value: null});
+            failureData.push({onyxMethod: Onyx.METHOD.SET, key: ruleOnyxKey, value: rule});
+        }
+    }
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

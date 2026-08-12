@@ -1012,6 +1012,7 @@ const CONST = {
         INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
+        MULTIPLE_APPROVERS: 'multipleApprovers',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
@@ -8076,6 +8077,22 @@ const CONST = {
             CREATE: 'create',
             UPDATE: 'update',
             REMOVE: 'remove',
+        },
+    },
+
+    RULES: {
+        SCOPE: {
+            POLICY: 'policy',
+        },
+        APPROVAL_WORKFLOW: {
+            TRIGGER: {
+                REPORT_SUBMIT: 'ReportSubmit',
+                REPORT_APPROVE: 'ReportApprove',
+            },
+            ACTION: {
+                FORWARD_TO: 'ForwardTo',
+                APPROVE_REPORT: 'ApproveReport',
+            },
         },
     },
 
