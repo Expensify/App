@@ -1,5 +1,6 @@
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
@@ -7,34 +8,36 @@ import {clearPendingContactActionErrors, requestValidateCodeAction, verifyAddSec
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getContactMethod} from '@libs/UserUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 
-type NewContactMethodConfirmValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE>;
-
-function NewContactMethodConfirmValidateCodePage({route}: NewContactMethodConfirmValidateCodePageProps) {
+function DynamicNewContactMethodConfirmValidateCodePage() {
     const {translate} = useLocalize();
-    const navigateBackTo = route?.params?.backTo;
+    const listPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE.path);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const contactMethod = getContactMethod(account?.primaryLogin, session?.email);
     const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
     const validateCodeError = getLatestErrorField(pendingContactAction, 'addedLogin');
 
+    // Guards against firing twice: once this screen is replaced, useDynamicBackPath (reactive to
+    // navigation state) recomputes listPath against the NEW screen, so a second effect run would
+    // navigate forward again on top of an already-stale base path.
+    const hasNavigatedForwardRef = useRef(false);
     useEffect(() => {
-        if (!pendingContactAction?.isVerifiedValidateActionCode) {
+        if (hasNavigatedForwardRef.current || !pendingContactAction?.isVerifiedValidateActionCode) {
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(navigateBackTo));
-    }, [navigateBackTo, pendingContactAction?.isVerifiedValidateActionCode]);
+        hasNavigatedForwardRef.current = true;
+        // forceReplace so this transient confirm-validate-code step isn't left in the stack under
+        // the new contact method form - its back path assumes it sits directly on the contact methods list.
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_CONTACT_METHOD.path, listPath), {forceReplace: true});
+    }, [listPath, pendingContactAction?.isVerifiedValidateActionCode]);
 
     return (
         <ValidateCodeActionContent
@@ -48,11 +51,11 @@ function NewContactMethodConfirmValidateCodePage({route}: NewContactMethodConfir
                 clearPendingContactActionErrors();
             }}
             onClose={() => {
-                Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, navigateBackTo));
+                Navigation.goBack(listPath);
             }}
             isLoading={pendingContactAction?.isLoading}
         />
     );
 }
 
-export default NewContactMethodConfirmValidateCodePage;
+export default DynamicNewContactMethodConfirmValidateCodePage;
