@@ -54,13 +54,13 @@ function ChangePolicyEducationalModal() {
                     innerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getBackgroundColorStyle(colors.blue700)]}
                     outerContainerStyle={styles.p0}
                 />
-                <FeatureTraining.Body innerStyle={[styles.mb5, styles.gap2]}>
-                    <FeatureTraining.Title>{translate('iou.changePolicyEducational.title')}</FeatureTraining.Title>
-                    <FeatureTraining.Description>{translate('iou.changePolicyEducational.description')}</FeatureTraining.Description>
-                    <ChangeWorkspaceMenuSectionList />
-                    <FeatureTraining.ButtonRow>
-                        <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
-                    </FeatureTraining.ButtonRow>
+                <FeatureTraining.Body>
+                    <FeatureTraining.BodyText style={[styles.mb5, styles.gap2]}>
+                        <FeatureTraining.Title>{translate('iou.changePolicyEducational.title')}</FeatureTraining.Title>
+                        <FeatureTraining.Description>{translate('iou.changePolicyEducational.description')}</FeatureTraining.Description>
+                        <ChangeWorkspaceMenuSectionList />
+                    </FeatureTraining.BodyText>
+                    <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
                 </FeatureTraining.Body>
             </FeatureTraining>
         </CenteredModalLayout>
