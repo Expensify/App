@@ -1,3 +1,7 @@
+/**
+ * Renders the natural-language ("Describe your search") input that parses a plain-English
+ * query into a structured search URL and navigates the user to the results.
+ */
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
