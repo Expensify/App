@@ -7,7 +7,7 @@ import HeaderPinButton from '@components/HeaderWithBackButtonComposed/primitives
 import HeaderProgressBar from '@components/HeaderWithBackButtonComposed/primitives/HeaderProgressBar';
 import HeaderReportAvatar from '@components/HeaderWithBackButtonComposed/primitives/HeaderReportAvatar';
 import HeaderRotateButton from '@components/HeaderWithBackButtonComposed/primitives/HeaderRotateButton';
-import HeaderSearchButton from '@components/HeaderWithBackButtonComposed/primitives/HeaderSearchButton';
+import HeaderSearchRouter from '@components/HeaderWithBackButtonComposed/primitives/HeaderSearchRouter';
 import HeaderThreeDotsMenu from '@components/HeaderWithBackButtonComposed/primitives/HeaderThreeDotsMenu';
 import HeaderTitle from '@components/HeaderWithBackButtonComposed/primitives/HeaderTitle';
 import Icon from '@components/Icon';
@@ -258,7 +258,7 @@ function HeaderWithBackButton({
                     </View>
                     {threeDotMenuTooltipsSection}
                 </View>
-                {shouldDisplaySearchRouter && <HeaderSearchButton />}
+                {shouldDisplaySearchRouter && <HeaderSearchRouter />}
                 {shouldDisplayHelpButton && <SidePanelButton />}
             </View>
         </View>

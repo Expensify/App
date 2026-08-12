@@ -1,7 +1,7 @@
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 
-function HeaderSearchButton() {
+function HeaderSearchRouter() {
     return <SearchButton />;
 }
 
-export default HeaderSearchButton;
+export default HeaderSearchRouter;
