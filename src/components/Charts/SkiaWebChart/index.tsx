@@ -8,16 +8,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-import viewRef from '@src/types/utils/viewRef';
-
 import type {ComponentType} from 'react';
 
 import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
-import React, {useRef, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import isSkiaWebSupported from './isSkiaWebSupported';
-import useIsSkiaSurfaceUnavailable from './useIsSkiaSurfaceUnavailable';
 
 type SkiaWebChartProps<TProps> = {
     /** Lazily imports the Skia-backed chart component to render. */
@@ -57,18 +54,13 @@ function ChartUnavailable() {
 // eslint-disable-next-line @typescript-eslint/no-restricted-types
 function SkiaWebChart<TProps extends object>({getComponent, componentProps}: SkiaWebChartProps<TProps>) {
     const styles = useThemeStyles();
-    const containerRef = useRef<HTMLElement | null>(null);
 
     // Probe once per mount (not per render) so re-rendering doesn't repeatedly create WebGL contexts,
     // while a fresh chart still re-checks capability instead of trusting a stale session-wide result.
     const [isSupported] = useState(() => isSkiaWebSupported());
 
-    // The probe can pass while the renderer still ends up without a drawing surface, so also listen for the
-    // renderer reporting that and degrade to the empty state.
-    const isSurfaceUnavailable = useIsSkiaSurfaceUnavailable(containerRef);
-
     // If unsupported, the device can't give CanvasKit a usable WebGL surface.
-    if (!isSupported || isSurfaceUnavailable) {
+    if (!isSupported) {
         return <ChartUnavailable />;
     }
 
@@ -79,14 +71,12 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps}: Ski
     );
 
     return (
-        <View ref={viewRef(containerRef)}>
-            <WithSkiaWeb
-                opts={{locateFile: (file: string) => `/${file}`}}
-                getComponent={getComponent}
-                componentProps={componentProps}
-                fallback={fallback}
-            />
-        </View>
+        <WithSkiaWeb
+            opts={{locateFile: (file: string) => `/${file}`}}
+            getComponent={getComponent}
+            componentProps={componentProps}
+            fallback={fallback}
+        />
     );
 }
 
