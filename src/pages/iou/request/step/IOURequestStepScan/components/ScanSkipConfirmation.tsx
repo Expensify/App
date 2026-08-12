@@ -2,6 +2,7 @@ import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
@@ -12,10 +13,10 @@ import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import usePreMountDestination from '@hooks/usePreMountDestination';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
-import useSkipConfirmationPreInsert from '@hooks/useSkipConfirmationPreInsert';
 
 import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import {startSplitBill} from '@libs/actions/IOU/Split';
@@ -33,6 +34,7 @@ import type {ReceiptCaptureSource} from '@libs/telemetry/ReceiptObservability';
 import {getPickerCaptureSource} from '@libs/telemetry/ReceiptObservability';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 
+import getSkipConfirmationPreMountDestinationRoute from '@pages/iou/request/step/confirmation/getSkipConfirmationPreMountDestinationRoute';
 import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
@@ -95,6 +97,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
@@ -108,7 +111,8 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {disableMultiScan} = useMultiScanActions();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -124,6 +128,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         reportAttributesDerived,
         reportDraft,
         translate,
+        dateFnsLocale,
     );
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
@@ -135,7 +140,8 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     useScanFileReadabilityCheck(transactions, draftTransactionIDs ?? [], disableMultiScan);
 
     const preInsertReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;
-    useSkipConfirmationPreInsert(true, preInsertReportID);
+    const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(true, preInsertReportID);
+    usePreMountDestination(skipConfirmationPreMountRoute);
 
     // Pre-fetch location if GPS is required and permission is already granted
     useEffect(() => {
@@ -233,6 +239,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             submitWithDismissFirst({
                 executeWrite: (overrides) => {
                     startSplitBill({
+                        getCurrencyDecimals,
                         ...splitBaseParams,
                         shouldHandleNavigation: overrides.shouldHandleNavigation,
                         shouldDeferForSearch: false,
@@ -274,6 +281,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         });
 
         const baseParams = {
+            getCurrencyDecimals,
             transactions,
             iouType,
             report,
@@ -302,6 +310,8 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             isTrackIntentUser,
             delegateAccountID,
+            conciergeChat,
+            formatPhoneNumber,
         };
 
         const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;
@@ -374,7 +384,6 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             getFileSource,
             initialTransaction: transaction,
             initialTransactionID: transactionID,
-            currentUserPersonalDetails,
             reportID,
             shouldAcceptMultipleFiles: true,
             isMultiScanEnabled,
@@ -404,7 +413,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         submitWithGpsCheck(validReceiptFiles);
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
+    const {validateFiles, PDFValidationComponent} = useFilesValidation((files: FileObject[]) => {
         processReceipts(files, getPickerCaptureSource());
     });
 
@@ -420,7 +429,6 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                 onMultiScanSubmit={submitMultiScan}
                 shouldAcceptMultipleFiles
             />
-            {ErrorModal}
             <GpsPermissionGate
                 startLocationPermissionFlow={startLocationPermissionFlow}
                 receiptFiles={receiptFiles}

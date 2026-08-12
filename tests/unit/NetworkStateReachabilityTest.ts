@@ -1,6 +1,10 @@
+import CONST from '@src/CONST';
+import type Middleware from '@src/libs/Middleware/types';
 import type * as NetworkState from '@src/libs/NetworkState';
+import type Request from '@src/types/onyx/Request';
 
 import type {NetInfoState} from '@react-native-community/netinfo';
+import type {OnyxKey} from 'react-native-onyx';
 
 let netInfoListener: ((state: NetInfoState) => void) | null = null;
 const mockOnyxCallbacks = new Map<string, (value: unknown) => void>();
@@ -267,6 +271,119 @@ describe('NetworkState — reachability recovery triggers reconnect', () => {
         // NetInfo.refresh() would deliver current state — simulate that.
         // With the fix, prevIsInternetReachable is null so null→true fires reconnect.
         fireNetInfoState({isInternetReachable: true});
+        expect(reconnectListener).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('NetworkState — a successful request clears the INTERNET_UNREACHABLE hard stop', () => {
+    const mockRequest: Request<OnyxKey> = {command: 'MockCommand'};
+    let getIsOffline: typeof NetworkState.getIsOffline;
+    let onReachabilityConfirmed: typeof NetworkState.onReachabilityConfirmed;
+    let subscribe: typeof NetworkState.subscribe;
+    let FailureTracking: Middleware;
+
+    beforeEach(() => {
+        jest.resetModules();
+        netInfoListener = null;
+        mockOnyxCallbacks.clear();
+
+        // Require NetworkState and the middleware in the same module registry generation so
+        // they share FailureTracker's module state (recordSuccess → onSustainedFailureChange).
+        const mod = require<typeof NetworkState>('@src/libs/NetworkState');
+        getIsOffline = mod.getIsOffline;
+        onReachabilityConfirmed = mod.onReachabilityConfirmed;
+        subscribe = mod.subscribe;
+        FailureTracking = require<{default: Middleware}>('@src/libs/Middleware/FailureTracking').default;
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    test('success while INTERNET_UNREACHABLE is set clears the hard stop and fires reconnect once (jittered)', async () => {
+        jest.useFakeTimers();
+        const reconnectListener = jest.fn();
+        onReachabilityConfirmed(reconnectListener);
+
+        // Ping fails and sets the INTERNET_UNREACHABLE hard stop
+        fireNetInfoState({isInternetReachable: false});
+        expect(getIsOffline()).toBe(true);
+
+        // A read/side-effect command resolves through the FailureTracking middleware
+        await FailureTracking(Promise.resolve({jsonCode: 200}), mockRequest, false);
+
+        expect(getIsOffline()).toBe(false);
+        // Reconnect is deferred with jitter to stagger clients after a server-wide outage
+        expect(reconnectListener).not.toHaveBeenCalled();
+        jest.runAllTimers();
+        expect(reconnectListener).toHaveBeenCalledTimes(1);
+    });
+
+    test('success while the app was never offline is a complete no-op', async () => {
+        jest.useFakeTimers();
+        const reconnectListener = jest.fn();
+        const stateListener = jest.fn();
+        onReachabilityConfirmed(reconnectListener);
+
+        fireNetInfoState({isInternetReachable: true});
+        expect(getIsOffline()).toBe(false);
+        subscribe(stateListener);
+
+        await FailureTracking(Promise.resolve({jsonCode: 200}), mockRequest, false);
+        jest.runAllTimers();
+
+        expect(getIsOffline()).toBe(false);
+        expect(reconnectListener).not.toHaveBeenCalled();
+        expect(stateListener).not.toHaveBeenCalled();
+    });
+
+    test('after recovery-by-success, steady Ping failure does not re-trigger and a later Ping success does not double-fire', async () => {
+        jest.useFakeTimers();
+        const reconnectListener = jest.fn();
+        onReachabilityConfirmed(reconnectListener);
+
+        fireNetInfoState({isInternetReachable: false});
+        expect(getIsOffline()).toBe(true);
+
+        await FailureTracking(Promise.resolve({jsonCode: 200}), mockRequest, false);
+        jest.runAllTimers();
+        expect(getIsOffline()).toBe(false);
+        expect(reconnectListener).toHaveBeenCalledTimes(1);
+
+        // Ping keeps failing: prev stays false, so false→false must not re-set the hard stop
+        fireNetInfoState({isInternetReachable: false});
+        expect(getIsOffline()).toBe(false);
+
+        // Ping finally recovers: the app is already online, so the re-confirmation is ignored
+        fireNetInfoState({isInternetReachable: true});
+        jest.runAllTimers();
+        expect(reconnectListener).toHaveBeenCalledTimes(1);
+    });
+
+    test('success while BOTH hard stops are set clears both and fires reconnect exactly once', async () => {
+        jest.useFakeTimers();
+        const reconnectListener = jest.fn();
+        onReachabilityConfirmed(reconnectListener);
+
+        // Ping fails and sets the INTERNET_UNREACHABLE hard stop
+        fireNetInfoState({isInternetReachable: false});
+        expect(getIsOffline()).toBe(true);
+
+        // Requests fail past both thresholds, adding the SUSTAINED_FAILURES hard stop on top
+        const connectivityError = new Error(CONST.ERROR.FAILED_TO_FETCH);
+        for (let i = 0; i < CONST.NETWORK.SUSTAINED_FAILURE_THRESHOLD_COUNT - 1; i++) {
+            await expect(FailureTracking(Promise.reject(connectivityError), mockRequest, false)).rejects.toThrow();
+        }
+        jest.advanceTimersByTime(CONST.NETWORK.SUSTAINED_FAILURE_WINDOW_MS + 1);
+        await expect(FailureTracking(Promise.reject(connectivityError), mockRequest, false)).rejects.toThrow();
+        expect(getIsOffline()).toBe(true);
+
+        // One success clears both stops. The success listener resets the failure counters
+        // before recordSuccess reaches its early return, so the sustained-failure path
+        // must not schedule a second reconnect.
+        await FailureTracking(Promise.resolve({jsonCode: 200}), mockRequest, false);
+        expect(getIsOffline()).toBe(false);
+        jest.runAllTimers();
         expect(reconnectListener).toHaveBeenCalledTimes(1);
     });
 });

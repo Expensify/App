@@ -10,7 +10,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,25 +39,27 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT
     | typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION
     | typeof SCREENS.MONEY_REQUEST.STEP_DATE
-    | typeof SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT
     | typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS
     | typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT
-    | typeof SCREENS.MONEY_REQUEST.STEP_TAG
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAG
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION
     | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY
-    | typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_VENDOR
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
-    | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM
-    | typeof SCREENS.MONEY_REQUEST.STEP_REPORT
-    | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO
-    | typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION
-    | typeof SCREENS.MONEY_REQUEST.STEP_TIME
-    | typeof SCREENS.MONEY_REQUEST.STEP_TIME_EDIT
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SEND_FROM
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_REPORT
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_COMPANY_INFO
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME_EDIT
     | typeof SCREENS.MONEY_REQUEST.STEP_SUBRATE
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_GPS
+    | typeof SCREENS.MONEY_REQUEST.GPS_TRIP_EDIT
     | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER
@@ -111,22 +112,12 @@ function WithFullTransactionOrNotFoundImpl<TProps extends WithFullTransactionOrN
     }
 
     if (isLoadingTransaction && shouldShowLoadingIndicator) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'withFullTransactionOrNotFound',
-            isLoadingTransaction,
-        };
         return shouldHideHeader ? (
             <View style={[styles.flex1, styles.fullScreenLoading]}>
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={reasonAttributes}
-                />
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
             </View>
         ) : (
-            <FullScreenLoadingIndicator
-                reasonAttributes={reasonAttributes}
-                shouldUseGoBackButton
-            />
+            <FullScreenLoadingIndicator shouldUseGoBackButton />
         );
     }
     return (

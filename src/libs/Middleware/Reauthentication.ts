@@ -112,6 +112,13 @@ function handleExpiredSession<TKey extends OnyxKey>(
     return reauthenticate(request?.commandName)
         .then((wasSuccessful) => {
             if (!wasSuccessful) {
+                if (isFromSequentialQueue) {
+                    // A resolved 407 reads as success to SequentialQueue, which deletes the persisted write.
+                    // Throw on every give-up: the latched short-lived-token abort and the delegate restore return
+                    // false with the session alive. One that did sign out costs nothing, its Onyx.clear empties the queue first.
+                    throw new Error('Failed to reauthenticate');
+                }
+
                 // Reauth already handled the sign-in redirect, so do not briefly show the failed request UI before sign-in.
                 request.failureData = undefined;
                 request.finallyData = undefined;

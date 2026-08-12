@@ -1,14 +1,15 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {useExportDownloadStatus} from '@components/MoneyReportHeaderActions/ExportDownloadStatusContext';
+import {useExportDownloadStatus} from '@components/MoneyReportHeaderActions/ExportDownloadStatusProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 
+import {exportReceiptsToZip} from '@libs/actions/Export';
 import {openOldDotLink} from '@libs/actions/Link';
 import {exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {getExportTemplates, queueExportSearchWithTemplate} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getConnectedIntegration, getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
-import {getSecondaryExportReportActions} from '@libs/ReportSecondaryActionUtils';
+import {getReportAccountingExportActions} from '@libs/ReportSecondaryActionUtils';
 import {getIntegrationIcon, isExported as isExportedUtils} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -44,7 +45,7 @@ type UseExportActionsReturn = {
 };
 
 function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsParams): UseExportActionsReturn {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
 
@@ -63,7 +64,8 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 
     const connectedIntegration = getValidConnectedIntegration(policy);
     const connectedIntegrationFallback = getConnectedIntegration(policy);
-    const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy);
+    // The export templates available to the user, pre-grouped and sorted alphabetically. The basic export is part of the default group so it's sorted alongside the other default templates.
+    const {customTemplates, defaultTemplates} = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, policy, true, true);
     const isExported = isExportedUtils(reportActions, moneyRequestReport);
 
     const {showDecisionModal} = useDecisionModal();
@@ -83,6 +85,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         'QBDSquare',
         'CertiniaSquare',
         'RilletSquare',
+        'DualEntrySquare',
         'GustoSquare',
         'ArrowRight',
     ]);
@@ -155,10 +158,9 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             },
         },
         [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION]: {
-            text: translate('workspace.common.exportIntegrationSelected', {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                connectionName: connectedIntegrationFallback!,
-            }),
+            // connectedIntegrationFallback is guaranteed when this export option is offered
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            text: translate('workspace.common.exportIntegrationSelected', connectedIntegrationFallback!),
             icon: getIntegrationIcon(connectedIntegration ?? connectedIntegrationFallback, expensifyIcons),
             displayInDefaultIconColor: true,
             additionalIconStyles: styles.integrationIcon,
@@ -195,11 +197,16 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         },
     };
 
-    for (const template of exportTemplates) {
-        const isStandardTemplate = template.templateName === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT || template.templateName === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT;
+    // Register a submenu option for each export template. The basic export is skipped since it already has a dedicated DOWNLOAD_CSV option above
+    // (it downloads the CSV directly instead of queueing a template export).
+    for (const template of [...customTemplates, ...defaultTemplates]) {
+        if (template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV) {
+            continue;
+        }
+        const isDefaultTemplate = defaultTemplates.includes(template);
         exportSubmenuOptions[template.name] = {
             text: template.name,
-            icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
+            icon: isDefaultTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
             value: template.templateName,
             description: template.description,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
@@ -207,9 +214,29 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         };
     }
 
-    const secondaryExportActions = moneyRequestReport
-        ? getSecondaryExportReportActions(accountID, currentUserLogin ?? '', moneyRequestReport, bankAccountList, policy ?? undefined, exportTemplates)
+    // The accounting export actions (export to integration / mark as exported) the user is allowed to perform on the report
+    const secondaryExportActions: string[] = moneyRequestReport
+        ? getReportAccountingExportActions(accountID, currentUserLogin ?? '', moneyRequestReport, bankAccountList, policy ?? undefined)
         : [];
+
+    // Assemble the export submenu from its pre-sorted groups (accounting actions, custom templates, default templates), with a divider between each non-empty group
+    const exportSubMenuGroups: string[][] = moneyRequestReport
+        ? [
+              secondaryExportActions,
+              customTemplates.map((template) => template.name),
+              // The basic export was skipped in the loop above, so it isn't registered in exportSubmenuOptions under its name.
+              // It's keyed by DOWNLOAD_CSV instead (its dedicated direct-download option), so reference it by that key here so the lookup below resolves it.
+              defaultTemplates.map((template) => (template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV ? CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV : template.name)),
+          ]
+        : [];
+    const exportSubMenuItems = exportSubMenuGroups
+        .filter((group) => group.length > 0)
+        .flatMap((group, groupIndex) =>
+            group.flatMap((action, itemIndex) => {
+                const option = exportSubmenuOptions[action];
+                return option ? [{...option, addSeparatorBefore: groupIndex > 0 && itemIndex === 0}] : [];
+            }),
+        );
 
     const exportActionEntries: Record<string, DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = {
         [CONST.REPORT.SECONDARY_ACTIONS.EXPORT]: {
@@ -219,7 +246,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             icon: expensifyIcons.Export,
             rightIcon: expensifyIcons.ArrowRight,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT,
-            subMenuItems: secondaryExportActions.map((action) => exportSubmenuOptions[action as string]),
+            subMenuItems: exportSubMenuItems,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
@@ -236,6 +263,23 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
                 }
                 onPDFModalOpen?.();
                 exportReportToPDF({reportID: moneyRequestReport.reportID});
+            },
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS]: {
+            value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS,
+            text: translate('common.downloadReceipts'),
+            icon: expensifyIcons.Download,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DOWNLOAD_RECEIPTS,
+            onSelected: () => {
+                if (isOffline) {
+                    showOfflineModal();
+                    return;
+                }
+                if (!moneyRequestReport?.reportID) {
+                    return;
+                }
+                const exportID = exportReceiptsToZip([moneyRequestReport.reportID]);
+                trackExport(exportID);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.PRINT]: {
