@@ -57,18 +57,13 @@ PORT_PLAN = {
         'effort': 'none', 'proven': False,
         'notes': 'ESLint progress-bar plugin, no behaviour to preserve',
     },
-    # WIRED 2026-08-12: react/jsx-no-constructed-context-values now runs as oxlint's NATIVE rule.
-    # It cannot be gated on the React Compiler the way ESLint's processor gates its own copy, so
-    # the 115 findings ESLint never shows carry inline suppressions instead, written by
-    # oxlint-probe/ctxValuesSuppressionCodemod.py. Two upstream divergences remain, measured by
-    # oxlint-probe/compareNativeCtxValues.py: it anchors on the JSX provider rather than the
-    # declaration, and it does not require the value to be declared inside a component.
-    # -- proven portable, but needs the react-compiler per-file gate --
-    'rulesdir/no-inline-useOnyx-selector': {
-        'mechanism': 'enable the existing rulesdir jsPlugin + per-file react-compiler gate',
-        'effort': 'M', 'proven': True,
-        'notes': 'already exposed by oxlint-probe/expensify-rules.mjs; only the gate is missing',
-    },
+    # WIRED 2026-08-12, both of the react-compiler-gated rules: react/jsx-no-constructed-context-values
+    # (as hosted/, from eslint-plugin-react) and rulesdir/no-inline-useOnyx-selector. ESLint's
+    # processor drops every message from either one in a file both React compilers memoize, and
+    # oxlint-probe/reactCompilerGate.mjs replicates that inside the JS plugin. Native was built and
+    # measured for the context rule first and rejected: it cannot be gated, so it needs 115 inline
+    # suppressions and one per new context provider forever. Its two divergences from ESLint's rule
+    # are recorded in oxlint-probe/compareNativeCtxValues.py.
     # -- blocked by a missing API in oxlint's JS-plugin bridge, not by types --
     'no-invalid-this': {
         'mechanism': 'blocked - oxlint\'s bridge throws on sourceCode.getJSDocComment',
@@ -80,11 +75,12 @@ PORT_PLAN = {
                  'the plain .js/.mjs files',
     },
     # -- need TypeScript type info, which jsPlugins cannot reach --
-    'rulesdir/prefer-locale-compare-from-context': {
-        'mechanism': 'syntactic rewrite (the type check only asks "is the receiver a string")',
-        'effort': 'M', 'proven': False,
-        'notes': 'localeCompare only exists on strings, so a receiver-agnostic port is near-exact',
-    },
+    # WIRED 2026-08-12: rulesdir/prefer-locale-compare-from-context turned out not to need types at
+    # all. Its only type query is "is the receiver a string", and localeCompare exists on exactly one
+    # built-in prototype, so oxlint-probe/preferLocaleCompareFromContext.mjs drops the query rather
+    # than approximating it. The one shape where that differs from ESLint (a receiver defining its own
+    # localeCompare) does not occur in src/, and is asserted as an expected divergence by
+    # oxlint-probe/checkLocaleComparePort.py.
     'rulesdir/prefer-at': {
         'mechanism': 'blocked - needs typeChecker.isArrayType to tell arrays from records',
         'effort': 'blocked', 'proven': False,
@@ -133,6 +129,9 @@ ESLINT_RENAMES = {es: ox for ox, es in OXLINT_RENAMES.items()}
 HOSTED_RULE_ORIGIN = {
     'jsx-no-bind': 'react',
     'function-component-definition': 'react',
+    # wired 2026-08-12: hosted, not native, because only a JS plugin can hold the React Compiler
+    # gate (and the native port diverges twice -- see oxlint-probe/compareNativeCtxValues.py)
+    'jsx-no-constructed-context-values': 'react',
     'prefer-default-export': 'import',
     'order': 'import',
     'no-types': 'jsdoc',

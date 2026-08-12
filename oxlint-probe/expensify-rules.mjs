@@ -7,6 +7,7 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
+import * as preferLocaleCompareFromContext from './preferLocaleCompareFromContext.mjs';
 import {withFullGating} from './reactCompilerGate.mjs';
 
 const require = createRequire(import.meta.url);
@@ -38,6 +39,10 @@ const plugin = {
         // message from it is dropped in a dual-memoized file. Without the gate: 238 findings
         // across 186 files that ESLint never shows.
         'no-inline-useOnyx-selector': withFullGating(rules['no-inline-useOnyx-selector']),
+        // ESLint's copy of this one calls getParserServices at create() time, which throws in a
+        // jsPlugin. Replaced by a type-free rewrite -- see the module for why dropping the type
+        // query is exact rather than approximate, and for the one shape where it is not.
+        'prefer-locale-compare-from-context': preferLocaleCompareFromContext,
     },
 };
 
