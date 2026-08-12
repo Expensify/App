@@ -152,7 +152,7 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType 
             policyID: item.policyID ?? CONST.POLICY.ID_FAKE,
             amount: item.total ?? 0,
             currency,
-            // The footer defaults to -Math.abs(amount) for any item without groupAmount, which would flip a cash back credit's sign.
+            // Without groupAmount the footer falls back to -Math.abs(amount), flipping the credit's sign.
             ...(isCashBack ? {groupAmount: Math.abs(item.total ?? 0)} : {}),
             ...(currency ? {groupCurrency: currency} : {}),
         },

@@ -402,7 +402,9 @@ function GroupHeader({
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
-                hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
+                interactive={!isCashBackWithdrawal}
+                pressDimmingValue={isCashBackWithdrawal ? 1 : undefined}
+                hoverStyle={[!isExpanded && !item.isDisabled && !isCashBackWithdrawal && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={item.keyForList ?? ''}
@@ -430,6 +432,7 @@ function GroupHeader({
                             <View style={styles.flex1}>{renderHeader(hovered)}</View>
                             {isLargeScreenWidth &&
                                 (isCashBackWithdrawal ? (
+                                    // Reserves the toggle's footprint so the Total column stays aligned with the settlement rows.
                                     <View style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv2]}>
                                         <View style={StyleUtils.getWidthAndHeightStyle(variables.iconSizeNormal)} />
                                     </View>

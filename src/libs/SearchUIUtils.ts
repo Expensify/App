@@ -370,7 +370,7 @@ const transactionWithdrawalIDGroupColumnNamesToSortingProperty: TransactionWithd
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: 'bankName' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN]: 'debitPosted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: 'debitPosted' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'state' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'settlementStatusRank' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'formattedWithdrawalID' as const,
     // Both the backend page selection and this local sort rank the amounts as stored, without converting between
     // currencies, so a group can outrank one that is worth more in another currency.
@@ -1317,8 +1317,7 @@ function isTransactionWithdrawalIDGroupListItemType(item: ListItem): item is Tra
 }
 
 /**
- * Checks if a row is a cash back credit rather than a card settlement withdrawal. Cash back rows have no underlying
- * transactions, so they render without an expand affordance and contribute a credit to the selection footer.
+ * Checks if a row is a cash back credit rather than a card settlement withdrawal
  */
 function isCashBackWithdrawalGroup(item: ListItem): boolean {
     return isTransactionWithdrawalIDGroupListItemType(item) && !!item.isCashBack;
@@ -3477,6 +3476,9 @@ function getCardSections(
     return [cardSectionsValues, cardSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
+// Cash back is not a settlement state, so it ranks past all of them instead of taking a slot between them.
+const CASH_BACK_STATUS_SORT_RANK = Number.MAX_SAFE_INTEGER;
+
 /**
  * @private
  * Organizes data into List Sections grouped by card for display, for the TransactionWithdrawalIDGroupListItemType of Search Results.
@@ -3504,6 +3506,7 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
                 ...withdrawalIDGroup,
                 shouldShowYearWithdrawn,
                 formattedWithdrawalID: String(withdrawalIDGroup.entryID),
+                settlementStatusRank: withdrawalIDGroup.isCashBack ? CASH_BACK_STATUS_SORT_RANK : withdrawalIDGroup.state,
                 keyForList: key,
             };
         }
@@ -6485,7 +6488,6 @@ function getSettlementStatusBadgeProps(
     badgeStyles: ViewStyle;
     textStyles: TextStyle;
 } | null {
-    // Cash back is a credit rather than a settlement, so it replaces the state-derived badge instead of mapping to one.
     if (isCashBack) {
         return {
             text: translate('settlement.status.cashBack'),

@@ -314,7 +314,7 @@ function TransactionGroupListItemImpl({
     const isCashBackWithdrawal = isCashBackWithdrawalGroup(groupItem);
 
     const onPress = (event?: ModifiedMouseEvent) => {
-        // A cash back row has no drill-down children, so pressing it must not open a row or fetch a child query.
+        // A cash back row has no children to drill into.
         if (isCashBackWithdrawal) {
             return;
         }
@@ -579,7 +579,9 @@ function TransactionGroupListItemImpl({
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
-                hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
+                interactive={!isCashBackWithdrawal}
+                pressDimmingValue={isCashBackWithdrawal ? 1 : undefined}
+                hoverStyle={[!isExpanded && !item.isDisabled && !isCashBackWithdrawal && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={item.keyForList ?? ''}

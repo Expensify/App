@@ -34,10 +34,13 @@ const mockSearchStateContext = {
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
+    currentSearchTransactionsByReportID: new Map(),
+    currentSearchViolations: undefined,
     currentSelectedTransactionReportID: undefined,
     selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
+    excludedTransactions: {},
     shouldTurnOffSelectionMode: false,
     shouldResetSearchQuery: false,
     lastSearchType: undefined,
@@ -133,7 +136,7 @@ describe('WithdrawalIDListItemHeader', () => {
 
     describe('Cash back row', () => {
         it('should show the Cash back badge instead of the settlement status', async () => {
-            // state 8 would otherwise render "Cleared" — cash back has to win over the settlement state.
+            // state 8 would otherwise render "Cleared", so cash back has to win over the settlement state.
             renderHeader(createWithdrawalItem({isCashBack: true, count: 0, total: -2500, state: 8}));
             await waitForBatchedUpdatesWithAct();
 
