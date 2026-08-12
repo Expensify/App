@@ -39,18 +39,14 @@ on:
         description: Private key for OSBotify GitHub App
         required: true
 
+concurrency:
+  group: createNewVersion
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   createNewVersion:
     runs-on: blacksmith-6vcpu-macos-latest
-    timeout-minutes: 30
-    concurrency:
-      # Version bumps push to main in both E/App and Mobile-Expensify, so only one may run at a time.
-      # Pending bumps queue in FIFO order rather than cancelling each other: a dropped bump would leave
-      # E/App and Mobile-Expensify on different versions.
-      # The group is a literal because ${{ github.workflow }} resolves to the *calling* workflow here.
-      group: createNewVersion
-      cancel-in-progress: false
-      queue: max
     outputs:
       NEW_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
     steps:
@@ -138,16 +134,16 @@ jobs:
               echo "::notice::Successfully pushed E/App changes on attempt $i"
               exit 0
             fi
-            
+
             echo "::warning::Push attempt $i failed, retrying in ${RETRY_DELAY}s..."
             sleep $RETRY_DELAY
             RETRY_DELAY=$((RETRY_DELAY * 2))
-            
+
             if ! git fetch origin main; then
               echo "::error::Unable to fetch main on attempt $i"
               continue
             fi
-            
+
             if ! git rebase origin/main; then
               echo "::warning::Rebase failed on attempt $i, aborting and retrying..."
               git rebase --abort || true
