@@ -4292,9 +4292,8 @@ function buildNewReportOptimisticData({
         });
     }
 
-    // When a custom report name is provided (e.g. "Copy of …" from duplicating a report), don't seed the FORMULA
-    // title field. Otherwise a later expense edit would recompute the name from the policy title formula and
-    // overwrite the custom name. See https://github.com/Expensify/App/issues/97804.
+    // Skip seeding the FORMULA title field when a custom report name is set — otherwise a later
+    // expense edit would recompute the name from the policy title formula and overwrite it.
     if (!reportName) {
         optimisticData.push(...updateTitleFieldToMatchPolicy(reportID, policy));
     }
