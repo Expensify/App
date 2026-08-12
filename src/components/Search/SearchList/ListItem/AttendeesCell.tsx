@@ -51,7 +51,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const size = CONST.AVATAR_SIZE.X_SMALL;
-    const maxAvatarsInRow = CONST.AVATAR_ROW_SIZE.DEFAULT;
+    const maxAvatarsPerRow = CONST.AVATAR_ROW_SIZE.DEFAULT;
     const oneAvatarSize = StyleUtils.getAvatarStyle(size);
     const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(size).borderWidth ?? 0;
     const overlapSize = oneAvatarSize.width / 3 + 2 * oneAvatarBorderWidth;
@@ -66,7 +66,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
             style={avatarContainerStyles}
             testID="AttendeesCell-Row"
         >
-            {[...icons].splice(0, maxAvatarsInRow).map((icon, index) => (
+            {[...icons].splice(0, maxAvatarsPerRow).map((icon, index) => (
                 <UserDetailsTooltip
                     // eslint-disable-next-line react/no-array-index-key
                     key={`stackedAvatars-${icon.id}-${index}`}
@@ -85,7 +85,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
                                     isHovered,
                                     isPressed,
                                     isInReportAction: true,
-                                    shouldUseCardBackground: true,
+                                    avatarBorderColor: theme.cardBG,
                                     isActive: false,
                                     customPressedBorderColor: theme.activeComponentBG,
                                 }),
@@ -102,10 +102,10 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
                     </View>
                 </UserDetailsTooltip>
             ))}
-            {icons.length > maxAvatarsInRow && (
+            {icons.length > maxAvatarsPerRow && (
                 <Tooltip
                     // We only want to cap tooltips to only 10 users or so since some reports have hundreds of users, causing performance to degrade.
-                    text={tooltipTexts.slice(maxAvatarsInRow - 1, maxAvatarsInRow + 9).join(', ')}
+                    text={tooltipTexts.slice(maxAvatarsPerRow - 1, maxAvatarsPerRow + 9).join(', ')}
                     shouldRender
                 >
                     <View
@@ -118,7 +118,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
                                 isHovered,
                                 isPressed,
                                 isInReportAction: true,
-                                shouldUseCardBackground: true,
+                                avatarBorderColor: theme.cardBG,
                                 customPressedBorderColor: theme.activeComponentBG,
                             }),
 
@@ -132,7 +132,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
                             <Text
                                 style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(size), styles.userSelectNone, styles.textMicroBold, styles.buttonSuccessText]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                            >{`+${icons.length - maxAvatarsInRow}`}</Text>
+                            >{`+${icons.length - maxAvatarsPerRow}`}</Text>
                         </View>
                     </View>
                 </Tooltip>

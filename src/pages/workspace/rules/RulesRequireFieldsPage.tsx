@@ -16,7 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {hasDependentTags as hasDependentTagsUtil, isMultiLevelTags as isMultiLevelTagsUtil} from '@libs/PolicyUtils';
+import {hasAccountingConnections, hasDependentTags as hasDependentTagsUtil, isMultiLevelTags as isMultiLevelTagsUtil} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -48,14 +48,16 @@ function RulesRequireFieldsPage({
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
-    const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    // Match the Categories/Tags toggles on WorkspaceMoreFeaturesPage: only an accounting connection owns these
+    // features. policy.connections also holds HR connections, which must not lock the Required toggles.
+    const isConnectedToAccounting = hasAccountingConnections(policy);
     const hasEnabledCategories = hasEnabledOptions(policyData.categories);
     const isCategoryFeatureDisabled = !policy?.areCategoriesEnabled;
     const isCategoryToggleDisabled = isCategoryFeatureDisabled || !hasEnabledCategories || isConnectedToAccounting;
 
     const hasEnabledTags = hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
     const isTagFeatureDisabled = !policy?.areTagsEnabled;
-    const isTagToggleDisabled = isTagFeatureDisabled || !hasEnabledTags;
+    const isTagToggleDisabled = isTagFeatureDisabled || !hasEnabledTags || isConnectedToAccounting;
     // For independent multi-level tags, Required is configured per level in each tag list's RHP, so the policy-wide toggle is hidden (same gate as WorkspaceTagsSettingsPage).
     const shouldShowTagToggle = !isMultiLevelTagsUtil(policyTags) || hasDependentTagsUtil(policy, policyTags);
     const initialCategoryRequired = !!policy?.requiresCategory;
@@ -102,7 +104,7 @@ function RulesRequireFieldsPage({
     // Lock UX only when the feature itself is off (or categories are accounting-controlled).
     // Feature on but no enabled items: toggle stays disabled without lock/modal.
     const shouldShowCategoryLock = isCategoryFeatureDisabled || isConnectedToAccounting;
-    const shouldShowTagLock = isTagFeatureDisabled;
+    const shouldShowTagLock = isTagFeatureDisabled || isConnectedToAccounting;
 
     const categoryDisabledText = (() => {
         if (!shouldShowCategoryLock) {
@@ -147,7 +149,33 @@ function RulesRequireFieldsPage({
         setCategoryRequired(true);
     }, [isCategoryFeatureDisabled, isConnectedToAccounting, policyData, policyID, showConfirmModal, translate]);
 
+    const tagDisabledText = (() => {
+        if (!shouldShowTagLock) {
+            return undefined;
+        }
+        if (isConnectedToAccounting) {
+            return translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText');
+        }
+        return translate('workspace.rules.individualExpenseRules.enableTagsToUnlockPrompt');
+    })();
+
     const promptEnableTagsForRequireTag = useCallback(async () => {
+        // Accounting owns Tags while a connection is active, same as the Tags toggle on More features, so this must
+        // not force the feature on from here.
+        if (isConnectedToAccounting) {
+            const {action} = await showConfirmModal({
+                title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
+                prompt: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText'),
+                confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
+                cancelText: translate('common.cancel'),
+            });
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+            return;
+        }
+
         if (!isTagFeatureDisabled) {
             return;
         }
@@ -164,7 +192,7 @@ function RulesRequireFieldsPage({
         enablePolicyTags(policyData, true);
         setPolicyRequiresTag(policyData, true);
         setTagRequired(true);
-    }, [isTagFeatureDisabled, policyData, showConfirmModal, translate]);
+    }, [isConnectedToAccounting, isTagFeatureDisabled, policyData, policyID, showConfirmModal, translate]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -214,7 +242,7 @@ function RulesRequireFieldsPage({
                             isActive={tagRequired}
                             disabled={isTagToggleDisabled}
                             showLockIcon={shouldShowTagLock}
-                            disabledText={shouldShowTagLock ? translate('workspace.rules.individualExpenseRules.enableTagsToUnlockPrompt') : undefined}
+                            disabledText={tagDisabledText}
                             disabledAction={shouldShowTagLock ? promptEnableTagsForRequireTag : undefined}
                             pendingAction={policy?.pendingFields?.requiresTag}
                             errors={policy?.errorFields?.requiresTag ?? undefined}

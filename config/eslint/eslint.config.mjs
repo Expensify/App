@@ -336,6 +336,7 @@ const config = defineConfig([
             'rulesdir/require-a11y-disable-justification': 'error',
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
             'rulesdir/no-useOnyx-dependencies-arg': 'error',
+            'rulesdir/require-locale-for-localized-date-format': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
                 {
@@ -746,6 +747,7 @@ const config = defineConfig([
         'web/snippets/gib.js',
         // Generated language files - excluded from ESLint but still type-checked
         'src/languages/de.ts',
+        'src/languages/el.ts',
         'src/languages/es.ts',
         'src/languages/fr.ts',
         'src/languages/it.ts',

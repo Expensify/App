@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
@@ -53,7 +53,6 @@ import {
     getCleanedTagName,
     getConnectedIntegration,
     getCountOfEnabledTagsOfList,
-    getCurrentConnectionName,
     getTagApproverRule,
     getTagLists,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
@@ -63,9 +62,9 @@ import {
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 
 import {close} from '@userActions/Modal';
 
@@ -106,7 +105,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
     const connectedIntegration = getConnectedIntegration(policy) ?? syncingAccountingIntegration;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
-    const currentConnectionName = getCurrentConnectionName(policy);
+    const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Plus', 'Trashcan', 'Close', 'Trashcan', 'Checkmark']);
 
     const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
@@ -461,7 +460,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const isLoading = !isOffline && policyTags === undefined;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceTagsPage', isOffline, isPolicyTagsUndefined: policyTags === undefined};
     const hasVisibleTags = tagRows.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const navigateToImportSpreadsheet = useCallback(() => {
@@ -576,13 +574,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
                     {hasPrimaryActions && (
                         <Button
-                            success
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={navigateToCreateTagPage}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.ADD_BUTTON}
-                            icon={expensifyIcons.Plus}
-                            text={translate('workspace.tags.addTag')}
                             style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                        />
+                        >
+                            <Button.Icon src={expensifyIcons.Plus} />
+                            <Button.Text>{translate('workspace.tags.addTag')}</Button.Text>
+                        </Button>
                     )}
                     {secondaryActions.length > 0 && (
                         <ButtonWithDropdownMenu
@@ -871,7 +870,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.flex1]}
-                            reasonAttributes={reasonAttributes}
                         />
                     )}
                     {!isLoading && (

@@ -4,10 +4,13 @@ import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow/types';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
-import {convertToBackendAmount, getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
+import type {MachineDateFormat} from '@libs/DateUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -82,6 +85,7 @@ import type {
 } from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -97,6 +101,7 @@ import getDistanceInMeters from './getDistanceInMeters';
 type TransactionParams = {
     amount: number;
     modifiedAmount?: number;
+    modifiedMerchant?: string;
     currency: string;
     reportID: string | undefined;
     comment?: string;
@@ -182,6 +187,10 @@ function isManualDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
 
 function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
+}
+
+function hasAppliedCommuterExclusion(transaction: OnyxEntry<Transaction>): boolean {
+    return isDistanceRequest(transaction) && (transaction?.comment?.customUnit?.commuterExclusion ?? 0) > 0;
 }
 
 /**
@@ -330,6 +339,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     const {
         amount,
         modifiedAmount,
+        modifiedMerchant,
         currency,
         reportID,
         distance,
@@ -416,11 +426,16 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         if (customUnit) {
             lodashSet(commentJSON, 'customUnit', customUnit);
         } else {
+            const routeDistanceMeters = routes?.route0?.distance ?? existingTransaction?.routes?.route0?.distance;
+            lodashSet(commentJSON, 'customUnit', existingTransaction?.comment?.customUnit ?? {});
             // Set the distance unit, which comes from the policy distance unit or the P2P rate data
             lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
             lodashSet(commentJSON, 'customUnit.quantity', distance);
             lodashSet(commentJSON, 'customUnit.customUnitRateID', customUnitRateID);
             lodashSet(commentJSON, 'customUnit.name', existingTransaction?.comment?.customUnit?.name ?? CONST.CUSTOM_UNITS.NAME_DISTANCE);
+            if (typeof routeDistanceMeters === 'number') {
+                lodashSet(commentJSON, 'customUnit.routeDistanceMeters', routeDistanceMeters);
+            }
         }
     }
 
@@ -460,6 +475,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         taxAmount,
         taxValue,
         modifiedAmount,
+        modifiedMerchant,
         billable,
         reimbursable,
         inserted: DateUtils.getDBTime(),
@@ -481,6 +497,13 @@ function hasEReceipt(transaction: Transaction | undefined | null): boolean {
 
 function hasReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boolean {
     return !!transaction?.receipt?.state || hasEReceipt(transaction);
+}
+
+/**
+ * Whether the transaction already has its receipt stored server-side.
+ */
+function hasUploadedReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boolean {
+    return !!transaction?.receipt?.receiptID;
 }
 
 /** Check if the receipt has the source file */
@@ -610,6 +633,8 @@ function getUpdatedTransaction({
     policies = undefined,
     isSplitTransaction = false,
     personalPolicyOutputCurrency,
+    getCurrencyDecimals,
+    getCurrencySymbol,
 }: {
     transaction: Transaction;
     transactionChanges: TransactionChanges;
@@ -619,6 +644,8 @@ function getUpdatedTransaction({
     policies?: OnyxCollection<Policy>;
     isSplitTransaction?: boolean;
     personalPolicyOutputCurrency: string | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 }): Transaction {
     const isUnReportedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -735,10 +762,9 @@ function getUpdatedTransaction({
             lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
         }
 
-        if (!isFetchingWaypointsFromServer(transaction)) {
-            // When the waypoints are being fetched from the server, we have no information about the distance, and cannot recalculate the updated amount.
-            // Otherwise, recalculate the fields based on the new rate.
-
+        if (!isFetchingWaypointsFromServer(transaction) || hasLocallyKnownDistance(transaction)) {
+            // When the waypoints are being fetched from the server and we have no local distance, we cannot
+            // recalculate the updated amount. Otherwise, recalculate the fields based on the new rate.
             let updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
 
             // The provided `policy` may not own the new rate, leaving the amount at 0. Fall back to
@@ -762,7 +788,23 @@ function getUpdatedTransaction({
             const {unit, rate} = updatedMileageRate;
 
             const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
-            const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
+
+            // The commuter exclusion is expressed in distance units, so it has to be re-derived against the new
+            // rate's unit and the converted quantity. The amount and merchant then describe the reimbursable
+            // distance, matching what the backend stores for modifiedAmount/modifiedMerchant.
+            const commuterExclusionTransactionData = hasAppliedCommuterExclusion(updatedTransaction)
+                ? DistanceRequestUtils.getTransactionCommuterExclusionData({
+                      transaction: updatedTransaction,
+                      policy,
+                      personalPolicyOutputCurrency,
+                  })
+                : undefined;
+
+            if (commuterExclusionTransactionData) {
+                lodashSet(updatedTransaction, 'comment.customUnit', commuterExclusionTransactionData.customUnit);
+            }
+
+            const amount = commuterExclusionTransactionData?.modifiedAmount ?? DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
             const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
             const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
@@ -775,6 +817,7 @@ function getUpdatedTransaction({
                 (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 getCurrencySymbol,
                 isManualDistanceRequest(transaction),
+                DistanceRequestUtils.getCommuterExclusionDisplayData(commuterExclusionTransactionData?.customUnit, unit),
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -806,7 +849,7 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'category') && typeof transactionChanges.category === 'string') {
         updatedTransaction.category = transactionChanges.category;
-        const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy);
+        const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy, getCurrencyDecimals);
         if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
             updatedTransaction.taxCode = categoryTaxCode;
             updatedTransaction.taxAmount = categoryTaxAmount;
@@ -858,7 +901,19 @@ function getUpdatedTransaction({
         }
 
         const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
-        let amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
+        const commuterExclusionTransactionData = hasAppliedCommuterExclusion(updatedTransaction)
+            ? DistanceRequestUtils.getTransactionCommuterExclusionData({
+                  transaction: updatedTransaction,
+                  policy,
+                  personalPolicyOutputCurrency,
+              })
+            : undefined;
+
+        if (commuterExclusionTransactionData) {
+            lodashSet(updatedTransaction, 'comment.customUnit', commuterExclusionTransactionData.customUnit);
+        }
+
+        let amount = commuterExclusionTransactionData?.modifiedAmount ?? DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
         amount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
         const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
         const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
@@ -871,6 +926,7 @@ function getUpdatedTransaction({
             (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
             getCurrencySymbol,
             isManualDistanceRequest(transaction),
+            DistanceRequestUtils.getCommuterExclusionDisplayData(commuterExclusionTransactionData?.customUnit, unit),
         );
 
         // No locally resolvable rate (e.g. track expense without policy loaded) → scale the previous
@@ -1010,12 +1066,12 @@ function getPostedDate(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the formatted posted date from the transaction.
  */
-function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
+function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat: MachineDateFormat = CONST.DATE.FNS_FORMAT_STRING): string {
     const postedDate = getPostedDate(transaction);
     const parsedDate = parse(postedDate, 'yyyyMMdd', new Date());
 
     if (isValid(parsedDate)) {
-        return DateUtils.formatWithUTCTimeZone(format(parsedDate, 'yyyy-MM-dd'), dateFormat);
+        return DateUtils.formatMachineDateWithUTCTimeZone(format(parsedDate, 'yyyy-MM-dd'), dateFormat);
     }
     return '';
 }
@@ -1122,6 +1178,18 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
     return !!transaction?.pendingFields?.waypoints;
 }
 
+/**
+ * Whether the transaction's route distance is already known locally (from a computed route or stored quantity),
+ * so amount/merchant can be recalculated without waiting for the server.
+ *
+ * A waypoint edit whose route is still being computed by the server zeroes the amount but leaves the
+ * quantity/routes of the pre-edit route in place, so a zero amount means the stored distance is stale.
+ */
+function hasLocallyKnownDistance(transaction: OnyxInputOrEntry<Transaction>): boolean {
+    const hasDistanceSource = !!transaction?.comment?.customUnit?.quantity || !!transaction?.routes?.route0?.distance;
+    return hasDistanceSource && !!getAmount(transaction);
+}
+
 // Editing any of these fields makes the server regenerate the distance map receipt. `customUnitRateID`/`distance`
 // aren't typed `pendingFields` keys (they live on the comment), so this is matched by name rather than property access.
 const DISTANCE_RECEIPT_REGENERATION_FIELDS = new Set(['waypoints', 'distance', 'merchant', 'customUnitRateID']);
@@ -1154,7 +1222,7 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
 /**
  * Resolves the merchant string to display for a transaction. Returns the localized scanning label while a receipt is
  * scanning, and normalizes the `DEFAULT_MERCHANT` ("Expense") and `PARTIAL_TRANSACTION_MERCHANT` ("(none)") placeholder
- * sentinels to an empty string so they never leak into the UI.
+ * values to an empty string so they never leak into the UI.
  */
 function getMerchantName(transaction: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string): string {
     const shouldShowMerchant = transaction.shouldShowMerchant ?? true;
@@ -1253,6 +1321,10 @@ function getFormattedAttendees(modifiedAttendees?: Attendee[], attendees?: Atten
  */
 function getReimbursable(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return transaction?.reimbursable ?? true;
+}
+
+function hasNonReimbursableTransactions(transactions?: Transaction[]): boolean {
+    return !!transactions?.some((transaction) => !getReimbursable(transaction));
 }
 
 /**
@@ -1395,9 +1467,9 @@ function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
-function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
+function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING, dateFnsLocale?: DateFnsLocale): string {
     const created = getCreated(transaction);
-    return DateUtils.formatWithUTCTimeZone(created, dateFormat);
+    return DateUtils.formatWithUTCTimeZone(created, dateFormat, dateFnsLocale);
 }
 
 /**
@@ -2345,6 +2417,7 @@ function getDistanceRateTaxUpdates(
     policy: OnyxEntry<Policy>,
     transaction: OnyxEntry<Transaction>,
     customUnitRateID: string,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     distanceUnit?: Unit,
 ): {taxAmount: number; taxCode: string; taxValue: string | undefined} {
     const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
@@ -2870,7 +2943,7 @@ function buildMergeDuplicatesParams(
     };
 }
 
-function getCategoryTaxDetails(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>) {
+function getCategoryTaxDetails(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']) {
     const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax);
     if (!taxRules || taxRules?.length === 0 || isDistanceRequest(transaction)) {
         return {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
@@ -3009,19 +3082,6 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, origina
         }
         return currentTransaction?.comment?.source === CONST.IOU.TYPE.SPLIT;
     });
-}
-
-/**
- * Determines whether a report should display the expense breakdown.
- */
-function shouldShowExpenseBreakdown(transactions?: Transaction[]): boolean {
-    if (!transactions || transactions.length === 0) {
-        return false;
-    }
-
-    // Show breakdown if there is ANY non-reimbursable expense.
-    // If there are no non-reimbursable expenses (i.e., all are reimbursable), do not show the breakdown.
-    return transactions.some((transaction) => !getReimbursable(transaction));
 }
 
 /**
@@ -3236,6 +3296,7 @@ export {
     getTagForDisplay,
     getTransactionViolations,
     hasReceipt,
+    hasUploadedReceipt,
     hasEReceipt,
     hasRoute,
     isReceiptBeingScanned,
@@ -3249,8 +3310,10 @@ export {
     isGPSDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
+    hasAppliedCommuterExclusion,
     isDistanceExpenseType,
     isFetchingWaypointsFromServer,
+    hasLocallyKnownDistance,
     hasPendingDistanceReceiptRegeneration,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
@@ -3295,6 +3358,7 @@ export {
     buildMergeDuplicatesParams,
     canMergeDuplicates,
     getReimbursable,
+    hasNonReimbursableTransactions,
     isPayAtEndExpense,
     removeSettledAndApprovedTransactions,
     removeTransactionFromDuplicateTransactionViolation,
@@ -3345,7 +3409,6 @@ export {
     getMCCForDisplay,
     hasDisplayableMCC,
     getConvertedAmount,
-    shouldShowExpenseBreakdown,
     isTimeRequest,
     getExpenseTypeTranslationKey,
     getReceiptTypeTranslationKey,

@@ -2,6 +2,7 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -22,7 +23,7 @@ import {View} from 'react-native';
 import NetSuiteTokenInputForm from './subPages/NetSuiteTokenInputForm';
 import NetSuiteTokenSetupContent from './subPages/NetSuiteTokenSetupContent';
 
-const pages = [
+const tokenPages = [
     {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.INSTALL, component: NetSuiteTokenSetupContent},
     {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.AUTHENTICATION, component: NetSuiteTokenSetupContent},
     {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.SOAP, component: NetSuiteTokenSetupContent},
@@ -30,10 +31,22 @@ const pages = [
     {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.CREDENTIALS, component: NetSuiteTokenInputForm},
 ];
 
+const oauthPages = [
+    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.INSTALL, component: NetSuiteTokenSetupContent},
+    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.OAUTH, component: NetSuiteTokenSetupContent},
+    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.REST, component: NetSuiteTokenSetupContent},
+    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.CREDENTIALS, component: NetSuiteTokenInputForm},
+];
+
 function NetSuiteTokenInputPage({policy, route}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+
+    const canUseNetSuiteOAuth = isBetaEnabled(CONST.BETAS.NETSUITE_OAUTH);
+    const pages = canUseNetSuiteOAuth ? oauthPages : tokenPages;
+    const stepNames = canUseNetSuiteOAuth ? CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST : CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST;
 
     const hasAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
 
@@ -75,7 +88,7 @@ function NetSuiteTokenInputPage({policy, route}: WithPolicyConnectionsProps) {
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubPageHeader
                     currentStepIndex={pageIndex}
-                    stepNames={CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST}
+                    stepNames={stepNames}
                     currentStepAccessibilityDescription={translate('workspace.netsuite.tokenInput.title')}
                     onStepSelected={moveTo}
                 />

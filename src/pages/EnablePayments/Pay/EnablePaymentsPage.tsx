@@ -7,7 +7,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import FailedKYC from '@pages/EnablePayments/shared/FailedKYC';
 
@@ -65,11 +64,7 @@ function EnablePaymentsPage() {
 
     const isUserWalletEmpty = isEmptyObject(userWallet);
     if (isUserWalletEmpty || userWallet?.isLoading || (!hasFreshData && !isOffline)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'EnablePaymentsPage',
-            isUserWalletEmpty,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

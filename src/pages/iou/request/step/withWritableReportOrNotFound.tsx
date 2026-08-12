@@ -8,7 +8,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -45,23 +44,23 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE
     | typeof SCREENS.MONEY_REQUEST.CREATE
     | typeof SCREENS.MONEY_REQUEST.START
-    | typeof SCREENS.MONEY_REQUEST.STEP_TAG
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAG
     | typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS
     | typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SEND_FROM
-    | typeof SCREENS.MONEY_REQUEST.STEP_REPORT
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_REPORT
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_COMPANY_INFO
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ATTENDEES
     | typeof SCREENS.MONEY_REQUEST.STEP_ACCOUNTANT
     | typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT
-    | typeof SCREENS.MONEY_REQUEST.STEP_TIME
-    | typeof SCREENS.MONEY_REQUEST.STEP_TIME_EDIT
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME_EDIT
     | typeof SCREENS.MONEY_REQUEST.STEP_SUBRATE
-    | typeof SCREENS.MONEY_REQUEST.EDIT_REPORT
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_EDIT_REPORT
     | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_GPS
@@ -111,11 +110,7 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
     }, []);
 
     if (isEditing && isLoadingApp) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'withWritableReportOrNotFound',
-            isLoadingApp,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     if (iouTypeParamIsInvalid || !canUserPerformWriteAction(report ?? {reportID: ''}, isReportArchived)) {

@@ -61,11 +61,13 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const exportType = displayedExport?.exportType;
     const failedReportCount = displayedExport?.failedReportCount ?? 0;
     const reportCount = displayedExport?.reportCount ?? 0;
+    const receiptCount = displayedExport?.receiptCount;
+    const failedReceiptCount = displayedExport?.failedReceiptCount ?? 0;
     const isPreparing = state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !shouldSendFromConcierge;
     const isConcierge = !!shouldSendFromConcierge;
     const isReady = state === CONST.EXPORT_DOWNLOAD.STATE.READY;
     const isFailed = state === CONST.EXPORT_DOWNLOAD.STATE.FAILED;
-    const isPartialFailure = isReady && failedReportCount > 0;
+    const isEmptyReceipts = isReady && exportType === CONST.EXPORT_DOWNLOAD.TYPE.RECEIPTS && receiptCount === 0;
 
     // Build the secure download URL the same way downloadReportPDF does, so the host always follows
     // the app's current environment (instead of the env baked into a backend-built URL) and authenticates
@@ -82,12 +84,12 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     };
 
     useEffect(() => {
-        if (!isReady || !fileName || shouldSendFromConcierge) {
+        if (!isReady || !fileName || shouldSendFromConcierge || isEmptyReceipts) {
             return;
         }
         downloadFile();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isReady, fileName, shouldSendFromConcierge]);
+    }, [isReady, fileName, shouldSendFromConcierge, isEmptyReceipts]);
 
     const handleSendFromConcierge = () => {
         sendExportFileFromConcierge(exportID, displayedExport ?? undefined);
@@ -114,10 +116,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                 <>
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb2]}>
                         <Text style={[styles.exportDownloadTitle, styles.flexShrink1]}>{translate('exportDownload.preparingTitle')}</Text>
-                        <ActivityIndicator
-                            size="small"
-                            reasonAttributes={{context: 'ExportDownloadStatusModal.preparing'}}
-                        />
+                        <ActivityIndicator size="small" />
                     </View>
                     <Text style={styles.mb5}>{translate('exportDownload.preparingBody')}</Text>
                     <Button
@@ -149,11 +148,34 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
             );
         }
 
-        if (isReady) {
+        if (isEmptyReceipts) {
             return (
                 <>
-                    <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.readyTitle')}</Text>
-                    {isPartialFailure ? (
+                    <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.noReceiptsTitle')}</Text>
+                    <Text style={styles.mb5}>{translate('exportDownload.noReceiptsBody')}</Text>
+                    <Button
+                        text={translate('exportDownload.close')}
+                        onPress={onClose}
+                        style={styles.w100}
+                    />
+                </>
+            );
+        }
+
+        if (isReady) {
+            const renderPartialBody = () => {
+                if (exportType === CONST.EXPORT_DOWNLOAD.TYPE.RECEIPTS && failedReceiptCount > 0) {
+                    return (
+                        <Text style={styles.mb5}>
+                            {translate('exportDownload.receiptsPartialBody', {
+                                count: (receiptCount ?? 0) - failedReceiptCount,
+                                total: receiptCount ?? 0,
+                            })}
+                        </Text>
+                    );
+                }
+                if (failedReportCount > 0) {
+                    return (
                         <View style={styles.mb5}>
                             <RenderHTML
                                 html={translate('exportDownload.readyPartialBody', {
@@ -162,9 +184,15 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                                 })}
                             />
                         </View>
-                    ) : (
-                        <Text style={styles.mb5}>{translate('exportDownload.readyBody')}</Text>
-                    )}
+                    );
+                }
+                return <Text style={styles.mb5}>{translate('exportDownload.readyBody')}</Text>;
+            };
+
+            return (
+                <>
+                    <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.readyTitle')}</Text>
+                    {renderPartialBody()}
                     <Button
                         success
                         text={translate('exportDownload.downloadFile')}
@@ -176,7 +204,16 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         }
 
         if (isFailed) {
-            const resolvedFailedBody = failedBody ?? (exportType === CONST.EXPORT_DOWNLOAD.TYPE.CSV ? translate('exportDownload.csvFailedBody') : translate('exportDownload.pdfFailedBody'));
+            const getDefaultFailedBody = () => {
+                if (exportType === CONST.EXPORT_DOWNLOAD.TYPE.CSV) {
+                    return translate('exportDownload.csvFailedBody');
+                }
+                if (exportType === CONST.EXPORT_DOWNLOAD.TYPE.RECEIPTS) {
+                    return translate('exportDownload.receiptsFailedBody');
+                }
+                return translate('exportDownload.pdfFailedBody');
+            };
+            const resolvedFailedBody = failedBody ?? getDefaultFailedBody();
             return (
                 <>
                     <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.failedTitle')}</Text>
@@ -198,6 +235,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
             isVisible={isVisible}
             onClose={isNonDismissible ? () => {} : onClose}
             onBackdropPress={isNonDismissible ? () => {} : undefined}
+            shouldTreatModalAsCovering
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
         >
