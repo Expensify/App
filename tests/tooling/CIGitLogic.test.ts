@@ -8,7 +8,7 @@ import * as VersionUpdater from '@github/libs/versionUpdater';
 import type {SemverLevel} from '@github/libs/versionUpdater';
 
 import * as core from '@actions/core';
-import {execSync} from 'child_process';
+import {$} from 'bun';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -31,31 +31,42 @@ type CompareCommitsCommit = NonNullable<Awaited<ReturnType<typeof GithubUtils.oc
 
 const isVerbose = process.env.TEST_VERBOSE === 'true';
 
-function exec(command: string) {
+/**
+ * Runs a command through the Bun shell, logging it first and echoing its output only when TEST_VERBOSE is set.
+ *
+ * This is a tagged template that forwards to `$`, so interpolated values are escaped by Bun and need no quoting
+ * at the call site: `` exec`git commit -m ${message}` `` is correct even when the message contains spaces.
+ * Commands run in `process.cwd()`, which the suite moves between the remote and the checkout.
+ */
+async function exec(strings: TemplateStringsArray, ...values: Array<string | number>) {
+    Log.info(String.raw({raw: strings}, ...values));
     try {
-        Log.info(command);
-        execSync(command, {stdio: isVerbose ? 'inherit' : 'pipe'});
+        return await $(strings, ...values).quiet(!isVerbose);
     } catch (error) {
-        const stderr = typeof error === 'object' && error !== null && 'stderr' in error ? error.stderr : undefined;
-        if ((typeof stderr === 'string' || Buffer.isBuffer(stderr)) && stderr) {
-            Log.error(stderr.toString());
+        if (error instanceof $.ShellError) {
+            Log.error(error.stderr.toString());
         } else {
             Log.error('Error:', error);
         }
-        throw new Error(String(error));
+        throw error;
     }
 }
 
-function setupGitAsHuman() {
-    Log.info('Switching to human git user');
-    exec('git config --local user.name test');
-    exec('git config --local user.email test@test.com');
+/** Whether a ref resolves in the repo at `process.cwd()`. `nothrow` because a missing ref is an expected answer here, not a failure. */
+async function refExists(ref: string) {
+    return (await $`git rev-parse --verify ${ref}`.quiet().nothrow()).exitCode === 0;
 }
 
-function setupGitAsOSBotify() {
+async function setupGitAsHuman() {
+    Log.info('Switching to human git user');
+    await exec`git config --local user.name test`;
+    await exec`git config --local user.email test@test.com`;
+}
+
+async function setupGitAsOSBotify() {
     Log.info('Switching to OSBotify git user');
-    exec(`git config --local user.name ${CONST.OS_BOTIFY}`);
-    exec('git config --local user.email infra+osbotify@expensify.com');
+    await exec`git config --local user.name ${CONST.OS_BOTIFY}`;
+    await exec`git config --local user.email infra+osbotify@expensify.com`;
 }
 
 function getVersion(): string {
@@ -194,270 +205,262 @@ function initGithubAPIMocking() {
     GithubUtils.octokit.repos.compareCommits = mockCompareCommits as unknown as typeof GithubUtils.octokit.repos.compareCommits;
 }
 
-function initGitServer() {
+async function initGitServer() {
     Log.info('Initializing git server...');
     fs.mkdirSync(GIT_REMOTE, {recursive: true});
     process.chdir(GIT_REMOTE);
-    exec('git init -b main');
-    setupGitAsHuman();
-    exec('npm init -y');
-    exec('npm version --no-git-tag-version 1.0.0-0');
+    await exec`git init -b main`;
+    await setupGitAsHuman();
+    await exec`npm init -y`;
+    await exec`npm version --no-git-tag-version 1.0.0-0`;
     fs.appendFileSync('.gitignore', 'node_modules/\n');
-    exec('git add -A');
-    exec('git commit -m "Initial commit"');
-    exec('git switch -c staging');
-    exec('git switch -c production');
+    await exec`git add -A`;
+    await exec`git commit -m "Initial commit"`;
+    await exec`git switch -c staging`;
+    await exec`git switch -c production`;
 
     // Tag the production branch with 1.0.0.0
-    exec(`git tag ${getVersion()}`);
+    await exec`git tag ${getVersion()}`;
 
     // Bump version to 2.0.0.0
-    bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR, true);
-    exec('git branch -D staging production');
-    exec('git switch -c staging');
-    exec('git switch -c production');
-    exec(`git tag ${getVersion()}`);
-    exec(`git switch staging`);
-    exec('git config --local receive.denyCurrentBranch ignore');
+    await bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR, true);
+    await exec`git branch -D staging production`;
+    await exec`git switch -c staging`;
+    await exec`git switch -c production`;
+    await exec`git tag ${getVersion()}`;
+    await exec`git switch staging`;
+    await exec`git config --local receive.denyCurrentBranch ignore`;
     Log.success(`Initialized git server in ${GIT_REMOTE}`);
 }
 
-function checkoutRepo() {
+async function checkoutRepo() {
     if (fs.existsSync(DUMMY_DIR)) {
         Log.warn(`Found existing directory at ${DUMMY_DIR}, deleting it to simulate a fresh checkout...`);
         fs.rmSync(DUMMY_DIR, {recursive: true});
     }
     fs.mkdirSync(DUMMY_DIR);
     process.chdir(DUMMY_DIR);
-    exec('git init');
-    exec(`git remote add origin ${GIT_REMOTE}`);
-    exec('git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +refs/heads/main:refs/remotes/origin/main');
-    exec('git checkout --progress --force -B main refs/remotes/origin/main');
+    await exec`git init`;
+    await exec`git remote add origin ${GIT_REMOTE}`;
+    await exec`git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +refs/heads/main:refs/remotes/origin/main`;
+    await exec`git checkout --progress --force -B main refs/remotes/origin/main`;
     Log.success('Checked out repo at $DUMMY_DIR!');
 }
 
-function bumpVersion(level: SemverLevel, isRemote = false) {
+async function bumpVersion(level: SemverLevel, isRemote = false) {
     Log.info('Bumping version...');
-    setupGitAsOSBotify();
-    exec('git switch main');
+    await setupGitAsOSBotify();
+    await exec`git switch main`;
     const nextVersion = VersionUpdater.incrementVersion(getVersion(), level);
-    exec(`npm --no-git-tag-version version ${nextVersion}`);
-    exec('git add package.json');
-    exec(`git commit -m "Update version to ${nextVersion}"`);
+    await exec`npm --no-git-tag-version version ${nextVersion}`;
+    await exec`git add package.json`;
+    await exec`git commit -m "Update version to ${nextVersion}"`;
     if (!isRemote) {
-        exec('git push origin main');
+        await exec`git push origin main`;
     }
     Log.success(`Version bumped to ${nextVersion} on main`);
 }
 
-function updateStagingFromMain() {
+async function updateStagingFromMain() {
     Log.info('Recreating staging from main...');
-    exec('git switch main');
-    try {
-        execSync('git rev-parse --verify staging', {stdio: 'ignore'});
-        exec('git branch -D staging');
-    } catch (e) {}
-    exec('git switch -c staging');
-    exec('git push --force origin staging');
+    await exec`git switch main`;
+    if (await refExists('staging')) {
+        await exec`git branch -D staging`;
+    }
+    await exec`git switch -c staging`;
+    await exec`git push --force origin staging`;
     Log.success('Recreated staging from main!');
 }
 
-function updateProductionFromStaging() {
+async function updateProductionFromStaging() {
     Log.info('Recreating production from staging...');
 
-    try {
-        execSync('git rev-parse --verify staging', {stdio: 'ignore'});
-    } catch (e) {
-        exec('git fetch origin staging --depth=1');
+    if (!(await refExists('staging'))) {
+        await exec`git fetch origin staging --depth=1`;
     }
 
-    exec('git switch staging');
+    await exec`git switch staging`;
 
-    try {
-        execSync('git rev-parse --verify production', {stdio: 'ignore'});
-        exec('git branch -D production');
-    } catch (e) {}
+    if (await refExists('production')) {
+        await exec`git branch -D production`;
+    }
 
-    exec('git switch -c production');
-    exec(`git tag ${getVersion()}`);
-    exec('git push --force --tags origin production');
+    await exec`git switch -c production`;
+    await exec`git tag ${getVersion()}`;
+    await exec`git push --force --tags origin production`;
     Log.success('Recreated production from staging!');
 }
 
-function createBasicPR(num: number) {
+async function createBasicPR(num: number) {
     const branchName = `pr-${num}`;
     const content = `Changes from PR #${num}`;
     const filePath = path.resolve(process.cwd(), `PR${num}.txt`);
 
     Log.info(`Creating PR #${num}`);
-    checkoutRepo();
-    setupGitAsHuman();
-    exec('git pull');
-    exec(`git switch -c ${branchName}`);
+    await checkoutRepo();
+    await setupGitAsHuman();
+    await exec`git pull`;
+    await exec`git switch -c ${branchName}`;
     fs.appendFileSync(filePath, content);
-    exec(`git add ${filePath}`);
-    exec(`git commit -m "${content}"`);
+    await exec`git add ${filePath}`;
+    await exec`git commit -m ${content}`;
     Log.success(`Created PR #${num} in branch ${branchName}`);
 }
 
-function mergePR(num: number) {
+async function mergePR(num: number) {
     const branchName = `pr-${num}`;
 
     Log.info(`Merging PR #${num} to main`);
-    exec('git switch main');
-    exec(`git merge ${branchName} --no-ff -m "Merge pull request #${num} from Expensify/${branchName}"`);
-    exec('git push origin main');
-    exec(`git branch -d ${branchName}`);
+    await exec`git switch main`;
+    await exec`git merge ${branchName} --no-ff -m "Merge pull request #${num} from Expensify/${branchName}"`;
+    await exec`git push origin main`;
+    await exec`git branch -d ${branchName}`;
     Log.success(`Merged PR #${num} to main`);
 }
 
-function cherryPickPRToStaging(num: number, resolveVersionBumpConflicts: () => void = () => {}, resolveMergeCommitConflicts: () => void = () => {}) {
+async function cherryPickPRToStaging(num: number, resolveVersionBumpConflicts: () => Promise<void> = async () => {}, resolveMergeCommitConflicts: () => Promise<void> = async () => {}) {
     Log.info(`Cherry-picking PR ${num} to staging...`);
-    const prMergeCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
-    bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.BUILD);
-    const versionBumpCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
-    checkoutRepo();
-    setupGitAsOSBotify();
+    const prMergeCommit = (await $`git rev-parse HEAD`.text()).trim();
+    await bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.BUILD);
+    const versionBumpCommit = (await $`git rev-parse HEAD`.text()).trim();
+    await checkoutRepo();
+    await setupGitAsOSBotify();
 
     mockGetInput.mockReturnValue(VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
     const previousPatchVersion = getPreviousVersion();
 
     // --shallow-exclude is used to speed up the fetch
-    exec(`git fetch origin main staging --no-tags --shallow-exclude="${previousPatchVersion}"`);
+    await exec`git fetch origin main staging --no-tags --shallow-exclude=${previousPatchVersion}`;
 
-    exec('git switch staging');
-    exec('git switch -c cherry-pick-staging');
-
-    try {
-        exec(`git cherry-pick -x --mainline 1 ${versionBumpCommit}`);
-    } catch (e) {
-        resolveVersionBumpConflicts();
-    }
-
-    setupGitAsHuman();
+    await exec`git switch staging`;
+    await exec`git switch -c cherry-pick-staging`;
 
     try {
-        exec(`git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs ${prMergeCommit}`);
+        await exec`git cherry-pick -x --mainline 1 ${versionBumpCommit}`;
     } catch (e) {
-        resolveMergeCommitConflicts();
+        await resolveVersionBumpConflicts();
     }
 
-    setupGitAsOSBotify();
-    exec('git switch staging');
-    exec(`git merge cherry-pick-staging --no-ff -m "Merge pull request #${num + 1} from Expensify/cherry-pick-staging"`);
-    exec('git branch -d cherry-pick-staging');
-    exec('git push origin staging');
+    await setupGitAsHuman();
+
+    try {
+        await exec`git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs ${prMergeCommit}`;
+    } catch (e) {
+        await resolveMergeCommitConflicts();
+    }
+
+    await setupGitAsOSBotify();
+    await exec`git switch staging`;
+    await exec`git merge cherry-pick-staging --no-ff -m "Merge pull request #${num + 1} from Expensify/cherry-pick-staging"`;
+    await exec`git branch -d cherry-pick-staging`;
+    await exec`git push origin staging`;
     Log.info(`Merged PR #${num + 1} into staging`);
-    tagStaging();
+    await tagStaging();
     Log.success(`Successfully cherry-picked PR #${num} to staging!`);
 }
 
-function cherryPickPRToProduction(num: number, resolveVersionBumpConflicts: () => void = () => {}, resolveMergeCommitConflicts: () => void = () => {}) {
+async function cherryPickPRToProduction(num: number, resolveVersionBumpConflicts: () => Promise<void> = async () => {}, resolveMergeCommitConflicts: () => Promise<void> = async () => {}) {
     Log.info(`Cherry-picking PR ${num} to production...`);
-    const prMergeCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
-    bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
-    let versionBumpCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
-    checkoutRepo();
-    setupGitAsOSBotify();
+    const prMergeCommit = (await $`git rev-parse HEAD`.text()).trim();
+    await bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
+    let versionBumpCommit = (await $`git rev-parse HEAD`.text()).trim();
+    await checkoutRepo();
+    await setupGitAsOSBotify();
 
     mockGetInput.mockReturnValue(VersionUpdater.SEMANTIC_VERSION_LEVELS.MINOR);
     const previousPatchVersion = getPreviousVersion();
-    exec(`git fetch origin main production --no-tags --shallow-exclude="${previousPatchVersion}"`);
+    await exec`git fetch origin main production --no-tags --shallow-exclude=${previousPatchVersion}`;
 
-    exec('git switch production');
-    exec('git switch -c cherry-pick-production');
-
-    try {
-        exec(`git cherry-pick -x --mainline 1 -Xtheirs ${versionBumpCommit}`);
-    } catch (e) {
-        resolveVersionBumpConflicts();
-    }
-
-    setupGitAsHuman();
+    await exec`git switch production`;
+    await exec`git switch -c cherry-pick-production`;
 
     try {
-        exec(`git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs ${prMergeCommit}`);
+        await exec`git cherry-pick -x --mainline 1 -Xtheirs ${versionBumpCommit}`;
     } catch (e) {
-        resolveMergeCommitConflicts();
+        await resolveVersionBumpConflicts();
     }
 
-    setupGitAsOSBotify();
-    exec('git switch production');
-    exec(`git merge cherry-pick-production --no-ff -m "Merge pull request #${num + 1} from Expensify/cherry-pick-production"`);
-    exec('git branch -d cherry-pick-production');
-    exec('git push origin production');
+    await setupGitAsHuman();
+
+    try {
+        await exec`git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs ${prMergeCommit}`;
+    } catch (e) {
+        await resolveMergeCommitConflicts();
+    }
+
+    await setupGitAsOSBotify();
+    await exec`git switch production`;
+    await exec`git merge cherry-pick-production --no-ff -m "Merge pull request #${num + 1} from Expensify/cherry-pick-production"`;
+    await exec`git branch -d cherry-pick-production`;
+    await exec`git push origin production`;
     Log.info(`Merged PR #${num + 1} into production`);
-    tagProduction();
+    await tagProduction();
 
-    checkoutRepo();
-    bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.BUILD);
-    versionBumpCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
-    exec(`git fetch origin staging --depth=1`);
-    exec(`git switch staging`);
-    exec(`git cherry-pick -x --mainline 1 -Xtheirs ${versionBumpCommit}`);
-    exec('git push origin staging');
-    tagStaging();
+    await checkoutRepo();
+    await bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.BUILD);
+    versionBumpCommit = (await $`git rev-parse HEAD`.text()).trim();
+    await exec`git fetch origin staging --depth=1`;
+    await exec`git switch staging`;
+    await exec`git cherry-pick -x --mainline 1 -Xtheirs ${versionBumpCommit}`;
+    await exec`git push origin staging`;
+    await tagStaging();
     Log.success(`Pushed to staging after CP to production`);
 
     Log.success(`Successfully cherry-picked PR #${num} to production!`);
 }
 
-function tagStaging() {
+async function tagStaging() {
     Log.info('Tagging new version from the staging branch...');
-    checkoutRepo();
-    setupGitAsOSBotify();
-    try {
-        execSync('git rev-parse --verify staging', {stdio: 'ignore'});
-    } catch (e) {
-        exec('git fetch origin staging --depth=1');
+    await checkoutRepo();
+    await setupGitAsOSBotify();
+    if (!(await refExists('staging'))) {
+        await exec`git fetch origin staging --depth=1`;
     }
-    exec('git switch staging');
-    exec(`git tag ${getVersion()}-staging`);
-    exec('git push --tags');
+    await exec`git switch staging`;
+    await exec`git tag ${getVersion()}-staging`;
+    await exec`git push --tags`;
     Log.success(`Created new tag ${getVersion()}`);
 }
 
-function tagProduction() {
+async function tagProduction() {
     Log.info('Tagging new version from the production branch...');
     Log.info(`Version is: ${getVersion()}`);
-    checkoutRepo();
-    setupGitAsOSBotify();
-    try {
-        execSync('git rev-parse --verify production', {stdio: 'ignore'});
-    } catch (e) {
-        exec('git fetch origin production --depth=1');
+    await checkoutRepo();
+    await setupGitAsOSBotify();
+    if (!(await refExists('production'))) {
+        await exec`git fetch origin production --depth=1`;
     }
-    exec('git switch production');
-    exec(`git tag ${getVersion()}`);
-    exec('git push --tags');
+    await exec`git switch production`;
+    await exec`git tag ${getVersion()}`;
+    await exec`git push --tags`;
     Log.success(`Created new tag ${getVersion()}`);
 }
 
-function deployStaging() {
+async function deployStaging() {
     Log.info('Deploying staging...');
-    checkoutRepo();
-    bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.BUILD);
-    updateStagingFromMain();
-    tagStaging();
+    await checkoutRepo();
+    await bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.BUILD);
+    await updateStagingFromMain();
+    await tagStaging();
     Log.success(`Deployed ${getVersion()} to staging!`);
 }
 
-function deployProduction() {
+async function deployProduction() {
     Log.info('Checklist closed, deploying production and staging...');
 
     Log.info('Deploying production...');
-    updateProductionFromStaging();
+    await updateProductionFromStaging();
     Log.success(`Deployed v${getVersion()} to production!`);
 
     Log.info('Deploying staging...');
-    bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
-    updateStagingFromMain();
-    tagStaging();
+    await bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
+    await updateStagingFromMain();
+    await tagStaging();
     Log.success(`Deployed v${getVersion()} to staging!`);
 }
 
 async function assertPRsMergedBetween(from: string, to: string, expected: number[]) {
-    checkoutRepo();
+    await checkoutRepo();
     const PRs = await GitUtils.getPullRequestsDeployedBetween(from, to, CONST.APP_REPO);
     expect(PRs).toStrictEqual(expected);
     Log.success(`Verified PRs merged between ${from} and ${to} are [${expected.join(',')}]`);
@@ -485,12 +488,12 @@ setDefaultTimeout(30000);
 
 let startingDir: string;
 describe.serial('CIGitLogic', () => {
-    beforeAll(() => {
+    beforeAll(async () => {
         Log.info('Starting setup');
         startingDir = process.cwd();
-        initGitServer();
+        await initGitServer();
         initGithubAPIMocking();
-        checkoutRepo();
+        await checkoutRepo();
         Log.success('Setup complete!');
     });
 
@@ -502,26 +505,26 @@ describe.serial('CIGitLogic', () => {
     });
 
     test('Merge a pull request while the checklist is unlocked', async () => {
-        createBasicPR(1);
-        mergePR(1);
-        deployStaging();
+        await createBasicPR(1);
+        await mergePR(1);
+        await deployStaging();
 
         // Verify output for checklist and deploy comment
         await assertPRsMergedBetween('2.0.0-0', '2.0.0-1-staging', [1]);
     });
 
     test("Merge a pull request with the checklist locked, but don't CP it", async () => {
-        createBasicPR(2);
-        mergePR(2);
+        await createBasicPR(2);
+        await mergePR(2);
 
         // Verify output for checklist and deploy comment, and make sure PR #2 is not on staging
         await assertPRsMergedBetween('2.0.0-0', '2.0.0-1-staging', [1]);
     });
 
     test('Merge a pull request with the checklist locked and CP it to staging', async () => {
-        createBasicPR(3);
-        mergePR(3);
-        cherryPickPRToStaging(3);
+        await createBasicPR(3);
+        await mergePR(3);
+        await cherryPickPRToStaging(3);
 
         // Verify output for checklist
         await assertPRsMergedBetween('2.0.0-0', '2.0.0-2-staging', [1, 3]);
@@ -531,9 +534,9 @@ describe.serial('CIGitLogic', () => {
     });
 
     test('Merge a pull request with the checklist locked and CP it to production', async () => {
-        createBasicPR(5);
-        mergePR(5);
-        cherryPickPRToProduction(5);
+        await createBasicPR(5);
+        await mergePR(5);
+        await cherryPickPRToProduction(5);
 
         // Verify output for checklist
         await assertPRsMergedBetween('2.0.0-0', '2.0.1-1-staging', [1, 3]);
@@ -543,7 +546,7 @@ describe.serial('CIGitLogic', () => {
     });
 
     test('Close the checklist, deploy production and staging', async () => {
-        deployProduction();
+        await deployProduction();
 
         // Verify output for release body and production deploy comments
         await assertPRsMergedBetween('2.0.0-0', '2.0.1-1', [1, 3]);
@@ -553,9 +556,9 @@ describe.serial('CIGitLogic', () => {
     });
 
     test('Merging another pull request when the checklist is unlocked', async () => {
-        createBasicPR(6);
-        mergePR(6);
-        deployStaging();
+        await createBasicPR(6);
+        await mergePR(6);
+        await deployStaging();
 
         // Verify output for checklist
         await assertPRsMergedBetween('2.0.0-2-staging', '2.0.2-1-staging', [2, 5, 6]);
@@ -566,16 +569,16 @@ describe.serial('CIGitLogic', () => {
 
     test('Deploying a PR, then CPing a revert, then adding the same code back again before the next production deploy results in the correct code on staging and production', async () => {
         Log.info('Creating myFile.txt in PR #7');
-        setupGitAsHuman();
-        exec('git switch main');
-        exec('git switch -c pr-7');
+        await setupGitAsHuman();
+        await exec`git switch main`;
+        await exec`git switch -c pr-7`;
         const initialFileContent = 'Changes from PR #7';
         fs.appendFileSync('myFile.txt', 'Changes from PR #7');
-        exec('git add myFile.txt');
-        exec('git commit -m "Add myFile.txt in PR #7"');
+        await exec`git add myFile.txt`;
+        await exec`git commit -m "Add myFile.txt in PR #7"`;
 
-        mergePR(7);
-        deployStaging();
+        await mergePR(7);
+        await deployStaging();
 
         // Verify output for checklist
         await assertPRsMergedBetween('2.0.0-2-staging', '2.0.2-2-staging', [2, 5, 6, 7]);
@@ -584,19 +587,19 @@ describe.serial('CIGitLogic', () => {
         await assertPRsMergedBetween('2.0.2-1-staging', '2.0.2-2-staging', [7]);
 
         Log.info('Appending and prepending content to myFile.txt in PR #8');
-        setupGitAsHuman();
-        exec('git switch main');
-        exec('git switch -c pr-8');
+        await setupGitAsHuman();
+        await exec`git switch main`;
+        await exec`git switch -c pr-8`;
         const newFileContent = `
 Prepended content
 ${initialFileContent}
 Appended content
 `;
         fs.writeFileSync('myFile.txt', newFileContent, {encoding: 'utf-8'});
-        exec('git add myFile.txt');
-        exec('git commit -m "Append and prepend content in myFile.txt"');
-        mergePR(8);
-        deployStaging();
+        await exec`git add myFile.txt`;
+        await exec`git commit -m "Append and prepend content in myFile.txt"`;
+        await mergePR(8);
+        await deployStaging();
 
         // Verify output for checklist
         await assertPRsMergedBetween('2.0.0-2-staging', '2.0.2-3-staging', [2, 5, 6, 7, 8]);
@@ -605,38 +608,38 @@ Appended content
         await assertPRsMergedBetween('2.0.2-2-staging', '2.0.2-3-staging', [8]);
 
         Log.info('Making an unrelated change in PR #9');
-        setupGitAsHuman();
-        exec('git switch main');
-        exec('git switch -c pr-9');
+        await setupGitAsHuman();
+        await exec`git switch main`;
+        await exec`git switch -c pr-9`;
         fs.appendFileSync('anotherFile.txt', 'some content');
-        exec('git add anotherFile.txt');
-        exec('git commit -m "Create another file"');
-        mergePR(9);
+        await exec`git add anotherFile.txt`;
+        await exec`git commit -m "Create another file"`;
+        await mergePR(9);
 
         Log.info('Reverting the append + prepend on main in PR #10');
-        setupGitAsHuman();
-        exec('git switch main');
-        exec('git switch -c pr-10');
+        await setupGitAsHuman();
+        await exec`git switch main`;
+        await exec`git switch -c pr-10`;
         fs.writeFileSync('myFile.txt', initialFileContent);
-        exec('git add myFile.txt');
-        exec('git commit -m "Revert append and prepend"');
-        mergePR(10);
-        cherryPickPRToStaging(10);
+        await exec`git add myFile.txt`;
+        await exec`git commit -m "Revert append and prepend"`;
+        await mergePR(10);
+        await cherryPickPRToStaging(10);
 
         Log.info('Verifying that the revert is present on staging, but the unrelated change is not');
         expect(fs.readFileSync('myFile.txt', {encoding: 'utf8'})).toBe(initialFileContent);
         expect(fs.existsSync('anotherFile.txt')).toBe(false);
 
         Log.info('Repeating previously reverted append + prepend on main in PR #10');
-        setupGitAsHuman();
-        exec('git switch main');
-        exec('git switch -c pr-11');
+        await setupGitAsHuman();
+        await exec`git switch main`;
+        await exec`git switch -c pr-11`;
         fs.writeFileSync('myFile.txt', newFileContent, {encoding: 'utf-8'});
-        exec('git add myFile.txt');
-        exec('git commit -m "Append and prepend content in myFile.txt"');
+        await exec`git add myFile.txt`;
+        await exec`git commit -m "Append and prepend content in myFile.txt"`;
 
-        mergePR(11);
-        deployProduction();
+        await mergePR(11);
+        await deployProduction();
 
         // Verify production release list
         await assertPRsMergedBetween('2.0.1-1', '2.0.2-4', [2, 5, 6, 7, 8, 10]);
@@ -646,11 +649,11 @@ Appended content
     });
 
     test('Force-pushing to a branch after rebasing older commits', async () => {
-        createBasicPR(12);
-        exec('git push origin pr-12');
-        createBasicPR(13);
-        mergePR(13);
-        deployStaging();
+        await createBasicPR(12);
+        await exec`git push origin pr-12`;
+        await createBasicPR(13);
+        await mergePR(13);
+        await deployStaging();
 
         // Verify PRs for checklist
         await assertPRsMergedBetween('2.0.2-4-staging', '2.0.3-1-staging', [9, 11, 13]);
@@ -658,15 +661,15 @@ Appended content
         // Verify PRs for deploy comments
         await assertPRsMergedBetween('2.0.3-0-staging', '2.0.3-1-staging', [13]);
 
-        checkoutRepo();
-        setupGitAsHuman();
-        exec('git fetch origin pr-12');
-        exec('git switch pr-12');
-        exec('git rebase main -Xours');
-        exec('git push --force origin pr-12');
-        mergePR(12);
+        await checkoutRepo();
+        await setupGitAsHuman();
+        await exec`git fetch origin pr-12`;
+        await exec`git switch pr-12`;
+        await exec`git rebase main -Xours`;
+        await exec`git push --force origin pr-12`;
+        await mergePR(12);
 
-        deployProduction();
+        await deployProduction();
 
         // Verify PRs for deploy comments / release
         await assertPRsMergedBetween('2.0.2-4-staging', '2.0.3-1-staging', [9, 11, 13]);
@@ -677,50 +680,50 @@ Appended content
 
     test('Manual version bump', async () => {
         Log.info('Creating manual version bump in PR #14');
-        checkoutRepo();
-        setupGitAsHuman();
-        exec('git pull');
-        exec('git switch -c "pr-14"');
+        await checkoutRepo();
+        await setupGitAsHuman();
+        await exec`git pull`;
+        await exec`git switch -c pr-14`;
         for (let i = 0; i < 3; i++) {
-            exec(`npm --no-git-tag-version version ${VersionUpdater.incrementVersion(getVersion(), VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR)}`);
+            await exec`npm --no-git-tag-version version ${VersionUpdater.incrementVersion(getVersion(), VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR)}`;
         }
-        exec('git add package.json');
-        exec(`git commit -m "Manually bump version to ${getVersion()} in PR #14"`);
+        await exec`git add package.json`;
+        await exec`git commit -m "Manually bump version to ${getVersion()} in PR #14"`;
         Log.success('Created manual version bump in PR #13 in branch pr-14');
 
-        mergePR(14);
+        await mergePR(14);
         Log.info('Deploying staging...');
-        checkoutRepo();
-        updateStagingFromMain();
-        tagStaging();
+        await checkoutRepo();
+        await updateStagingFromMain();
+        await tagStaging();
         Log.success(`Deployed v${getVersion()} to staging!`);
 
         // Verify PRs for deploy comments / release and new checklist
         await assertPRsMergedBetween('2.0.4-0-staging', '5.0.0-0-staging', [14]);
 
         Log.info('Creating manual version bump in PR #15');
-        checkoutRepo();
-        setupGitAsHuman();
-        exec('git pull');
-        exec('git switch -c "pr-15"');
+        await checkoutRepo();
+        await setupGitAsHuman();
+        await exec`git pull`;
+        await exec`git switch -c pr-15`;
         for (let i = 0; i < 3; i++) {
-            exec(`npm --no-git-tag-version version ${VersionUpdater.incrementVersion(getVersion(), VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR)}`);
+            await exec`npm --no-git-tag-version version ${VersionUpdater.incrementVersion(getVersion(), VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR)}`;
         }
-        exec('git add package.json');
-        exec(`git commit -m "Manually bump version to ${getVersion()} in PR #15"`);
+        await exec`git add package.json`;
+        await exec`git commit -m "Manually bump version to ${getVersion()} in PR #15"`;
         Log.success('Created manual version bump in PR #15 in branch pr-15');
 
         const packageJSONBefore = fs.readFileSync('package.json', {encoding: 'utf-8'});
-        mergePR(15);
-        cherryPickPRToStaging(
+        await mergePR(15);
+        await cherryPickPRToStaging(
             15,
-            () => {
+            async () => {
                 fs.writeFileSync('package.json', packageJSONBefore);
-                exec('git add package.json');
-                exec('git cherry-pick --no-edit --continue');
+                await exec`git add package.json`;
+                await exec`git cherry-pick --no-edit --continue`;
             },
-            () => {
-                exec('git commit --no-edit --allow-empty');
+            async () => {
+                await exec`git commit --no-edit --allow-empty`;
             },
         );
 

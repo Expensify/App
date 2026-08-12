@@ -700,6 +700,18 @@ const config = defineConfig([
     },
 
     {
+        // CIGitLogic is excluded from the root tsconfig because it needs @types/bun, so type-aware rules have to
+        // be pointed at the project that does own it. See tests/tooling/README.md.
+        files: ['tests/tooling/CIGitLogic.test.ts'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'tests/tooling/tsconfig.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
         files: ['tests/tooling/**/*.ts'],
         rules: {
             // bun-types declares `expect(...).resolves`/`.rejects` matchers as returning `void` even though Bun's

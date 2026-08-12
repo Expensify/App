@@ -82,3 +82,11 @@ The rest of bun-types is deliberately left out: its global JSX declarations are 
 types, and `generateTranslations.test.ts` reaches `src/` through the script it covers. One consequence is that
 `@types/jest`'s globals are visible here too, so a missing `bun:test` import can type-check but still fail at
 runtime — import every helper you use.
+
+`CIGitLogic.test.ts` is the exception. It uses Bun's `$` shell, which is a runtime API rather than a module
+declaration, so it needs the full `@types/bun`. Those types redeclare globals the app already owns — a `jest`
+namespace that shadows `@types/jest`'s generic signatures, and a `fetch` carrying `preconnect` — and adding them
+to the root project produces ~1,100 errors across `tests/unit`. So that one file is excluded from the root
+project and type-checked by `tests/tooling/tsconfig.json`, which mirrors what `server/tsconfig.json` does. A new
+test needing Bun runtime APIs should be added to that project's `files`; one that only needs `bun:test` should
+not, so it keeps seeing the app's types.

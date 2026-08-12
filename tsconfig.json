@@ -48,5 +48,7 @@
         "**/*.nitro/*.ts",
         "**/*.nitro/*.tsx"
     ],
-    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*", ".claude/worktrees/**"]
+    // CIGitLogic uses Bun's `$` shell, so it needs @types/bun, whose globals conflict with this project's.
+    // It is type-checked by tests/tooling/tsconfig.json instead — see the comment there.
+    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*", ".claude/worktrees/**", "tests/tooling/CIGitLogic.test.ts"]
 }
