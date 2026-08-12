@@ -7,6 +7,10 @@ on:
         description: Also inspect the OldDot (Mobile-Expensify) node_modules disk
         type: boolean
         default: false
+      raw_key:
+        description: 'Exact sticky disk key to inspect (e.g. Expensify/App-Linux-X64-node-modules-0bf21fdb...). Overrides the computed keys.'
+        type: string
+        default: ''
   push:
     paths:
       - '.github/workflows/inspectStickyDisk.yml'
@@ -17,6 +21,9 @@ on:
 jobs:
   inspect:
     runs-on: blacksmith-2vcpu-ubuntu-2404
+    env:
+      # On push there are no inputs, so fall back to the hardcoded key under investigation
+      RAW_KEY: ${{ inputs.raw_key || 'Expensify/App-Linux-X64-node-modules-ebc680713b61d9a80ed52a0d3e4dc41b4c7d5393baa5db8b3929c01bbfb9675f' }}
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
@@ -27,7 +34,15 @@ jobs:
       - name: Remove E/App version from package-lock.json
         run: jq 'del(.version, .packages[""].version)' package-lock.json > normalized-package-lock.json
 
+      - name: Mount sticky disk by raw key
+        if: env.RAW_KEY != ''
+        uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
+        with:
+          key: ${{ env.RAW_KEY }}
+          path: raw-disk
+
       - name: Mount NewDot node_modules sticky disk
+        if: env.RAW_KEY == ''
         uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
         with:
           key: ${{ format('{0}-{1}-{2}-node-modules-{3}', github.repository, runner.os, runner.arch, inputs.hybrid == true && hashFiles('normalized-package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**') || hashFiles('normalized-package-lock.json', 'patches/**')) }}
@@ -41,6 +56,7 @@ jobs:
           path: Mobile-Expensify/node_modules
 
       - name: Mount npm cache sticky disk
+        if: env.RAW_KEY == ''
         uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
         with:
           key: ${{ format('{0}-{1}-{2}-npm', github.repository, runner.os, runner.arch) }}
@@ -49,13 +65,14 @@ jobs:
       - name: Inspect disks
         shell: bash
         run: |
+          shopt -s nullglob dotglob
           inspect() {
             local label="$1" path="$2"
             echo "::group::$label ($path)"
             if [[ ! -d "$path" ]]; then
               echo "not mounted / does not exist"
               echo "::endgroup::"
-              return
+              return 0
             fi
             echo "=== df: real allocated blocks (what Blacksmith bills) ==="
             df -h "$path" || true
@@ -64,10 +81,21 @@ jobs:
             du -sh "$path" 2>/dev/null || true
             echo
             echo "=== top-25 heaviest entries ==="
-            du -sh "$path"/* "$path"/.[!.]* 2>/dev/null | sort -rh | head -25
+            local entries=("$path"/*)
+            if (( ${#entries[@]} )); then
+              du -sh "${entries[@]}" 2>/dev/null | sort -rh | head -25 || true
+            else
+              echo "(empty)"
+            fi
             echo "::endgroup::"
           }
 
+          if [[ -d raw-disk ]]; then
+            inspect "Raw disk ($RAW_KEY)" raw-disk
+            for sub in raw-disk/*/; do
+              inspect "Raw disk: ${sub}" "${sub%/}"
+            done
+          fi
           inspect "NewDot node_modules" node_modules
           inspect "NewDot node_modules/.cache" node_modules/.cache
           inspect "npm cache" ~/.npm
