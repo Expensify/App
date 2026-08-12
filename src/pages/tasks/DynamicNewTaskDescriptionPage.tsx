@@ -16,7 +16,6 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getCommentLength} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 
 import variables from '@styles/variables';
@@ -56,10 +55,7 @@ function DynamicNewTaskDescriptionPage() {
     };
 
     if (isLoadingOnyxValue(taskMetadata)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'DynamicNewTaskDescriptionPage',
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

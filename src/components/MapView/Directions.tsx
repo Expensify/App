@@ -1,0 +1,56 @@
+import type {DirectionsProps} from './MapViewTypes';
+
+import AlternateDirections from './AlternateDirections';
+import Direction from './Direction';
+import DistanceSymbol from './DistanceSymbol';
+import useDistanceUnit from './useDistanceUnit';
+import utils from './utils';
+
+function Directions({directionCoordinates, alternateDirection, setIsAlternateDirectionSelected, distanceInMeters, unit, waypoints}: DirectionsProps) {
+    // Held here rather than in each DistanceSymbol so that toggling one label switches the unit for every label on the map.
+    const {distanceUnit, toggleDistanceUnit} = useDistanceUnit(unit);
+
+    if (!directionCoordinates) {
+        return null;
+    }
+
+    const alternateDirectionCoordinates = alternateDirection?.coordinates;
+    const hasAlternateDirection = !!alternateDirection && !!alternateDirectionCoordinates?.length;
+    const isAlternateDirectionSelected = !!alternateDirection?.isSelected;
+
+    return (
+        <>
+            {hasAlternateDirection ? (
+                <>
+                    <AlternateDirections
+                        directionCoordinates={directionCoordinates}
+                        alternateDirection={alternateDirection}
+                        setIsAlternateDirectionSelected={setIsAlternateDirectionSelected}
+                    />
+                    <DistanceSymbol
+                        distanceInMeters={alternateDirection.distanceInMeters}
+                        distanceUnit={distanceUnit}
+                        toggleDistanceUnit={toggleDistanceUnit}
+                        directionCoordinates={utils.convertSegmentedRouteToSingleSegmentRoute(alternateDirectionCoordinates)}
+                        waypoints={waypoints}
+                        isSelected={isAlternateDirectionSelected}
+                        selectDirection={() => setIsAlternateDirectionSelected?.(true)}
+                    />
+                </>
+            ) : (
+                <Direction coordinates={directionCoordinates} />
+            )}
+            <DistanceSymbol
+                distanceInMeters={distanceInMeters}
+                distanceUnit={distanceUnit}
+                toggleDistanceUnit={toggleDistanceUnit}
+                directionCoordinates={utils.convertSegmentedRouteToSingleSegmentRoute(directionCoordinates)}
+                waypoints={waypoints}
+                isSelected={!isAlternateDirectionSelected}
+                selectDirection={() => setIsAlternateDirectionSelected?.(false)}
+            />
+        </>
+    );
+}
+
+export default Directions;

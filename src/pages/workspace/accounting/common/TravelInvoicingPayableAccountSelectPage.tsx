@@ -26,6 +26,7 @@ type TravelInvoicingPayableAccountSelectPageProps = {
     connectionName: ConnectionName;
     emptyStateTitle: TranslationPaths;
     emptyStateSubtitle: TranslationPaths;
+    emptyStateSubtitleAlreadyTranslated?: string;
     accessVariants?: AccessVariant[];
     pendingAction?: OnyxCommon.PendingAction | null;
     errors?: OnyxCommon.Errors | ReceiptErrors | null;
@@ -42,6 +43,7 @@ function TravelInvoicingPayableAccountSelectPage({
     connectionName,
     emptyStateTitle,
     emptyStateSubtitle,
+    emptyStateSubtitleAlreadyTranslated,
     accessVariants = [CONST.POLICY.ACCESS_VARIANTS.ADMIN],
     pendingAction,
     errors,
@@ -59,7 +61,7 @@ function TravelInvoicingPayableAccountSelectPage({
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
             title={translate(emptyStateTitle)}
-            subtitle={translate(emptyStateSubtitle)}
+            subtitle={emptyStateSubtitleAlreadyTranslated ?? translate(emptyStateSubtitle)}
             containerStyle={styles.pb10}
         />
     );

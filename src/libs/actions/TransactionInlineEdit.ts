@@ -45,7 +45,6 @@ import type {
     ReportAction,
     ReportActions,
     ReportNameValuePairs,
-    ReportNextStepDeprecated,
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
@@ -189,7 +188,6 @@ type GetIouParamsInput = {
     reportPolicyTags: OnyxEntry<PolicyTagLists>;
     policyRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
-    parentReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
     distanceOriginalPolicy?: OnyxEntry<Policy>;
@@ -224,7 +222,6 @@ function getIouParamsForTransaction({
     reportPolicyTags,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
-    parentReportNextStep,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
     personalDetailsList,
@@ -277,6 +274,7 @@ function getIouParamsForTransaction({
             iouReportAction: resolvedParentReportAction,
             transaction,
             transactionViolations: transactionViolations ?? undefined,
+            personalDetails: personalDetailsList,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
         });
@@ -290,7 +288,6 @@ function getIouParamsForTransaction({
         policy,
         policyForTrackExpense,
         policyCategories,
-        parentReportNextStep,
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserEmail,
         isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas),
