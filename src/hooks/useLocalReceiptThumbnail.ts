@@ -1,8 +1,4 @@
-import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
-
 import {generateThumbnail} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
-
-import CONST from '@src/CONST';
 
 import {useEffect, useRef, useState, useTransition} from 'react';
 
