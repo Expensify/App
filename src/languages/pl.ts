@@ -5918,7 +5918,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             settlementFrequency: 'Częstotliwość rozliczeń',
             settlementFrequencyDescription: 'Wybierz, jak często będziesz spłacać saldo swojej Karty Expensify.',
             settlementFrequencyInfo: 'Jeśli chcesz przejść na miesięczne rozliczenie, musisz podłączyć swoje konto bankowe przez Plaid i mieć dodatnią historię salda z ostatnich 90 dni.',
-            monthlySettlementDate: (date) => `Rozliczenie ${date} każdego miesiąca.`,
+            monthlySettlementDate: (date) => `Karty Expensify są rozliczane ${date} każdego miesiąca.`,
             applyCashbackToBill: 'Zastosuj zwrot gotówki do mojego rachunku Expensify',
             applyCashbackToBillDescription: 'Zwrot gotówki z Karty Expensify zostanie wykorzystany do opłacenia Twojego rachunku Expensify.',
             frequency: {

@@ -6069,7 +6069,7 @@ const translations = {
             settlementFrequency: 'Settlement frequency',
             settlementFrequencyDescription: 'Choose how often you’ll pay your Expensify Card balance.',
             settlementFrequencyInfo: 'If you’d like to switch to monthly settlement, you’ll need to connect your bank account via Plaid and have a positive 90-day balance history.',
-            monthlySettlementDate: (date: string) => `Settles on the ${date} of each month.`,
+            monthlySettlementDate: (date: string) => `Expensify cards will settle on the ${date} of each month.`,
             applyCashbackToBill: 'Apply cash back to my Expensify bill',
             applyCashbackToBillDescription: 'Cash back from the Expensify Card will be used towards payment for your Expensify bill.',
             frequency: {

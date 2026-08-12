@@ -5940,7 +5940,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             settlementFrequency: 'Uitbetalingsfrequentie',
             settlementFrequencyDescription: 'Kies hoe vaak je het saldo van je Expensify Kaart betaalt.',
             settlementFrequencyInfo: 'Als je wilt overschakelen naar maandelijkse afrekening, moet je je bankrekening koppelen via Plaid en een positieve saldohistorie van 90 dagen hebben.',
-            monthlySettlementDate: (date) => `Wordt op de ${date} van elke maand afgerekend.`,
+            monthlySettlementDate: (date) => `Expensify-kaarten worden op de ${date} van elke maand afgerekend.`,
             applyCashbackToBill: 'Cashback toepassen op mijn Expensify-factuur',
             applyCashbackToBillDescription: 'De cashback van de Expensify Kaart wordt gebruikt voor het betalen van je Expensify-factuur.',
             frequency: {
