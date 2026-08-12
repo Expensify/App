@@ -61,6 +61,7 @@ import {
     getRenamedCardFeedMessage,
     getRequireCompanyCardsEnabledMessage,
     getUnassignedCompanyCardMessage,
+    getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
 } from '@libs/ReportActionsUtils';
@@ -5875,6 +5876,32 @@ describe('OptionsListUtils', () => {
             });
             expect(lastMessage).toBe(getRequireCompanyCardsEnabledMessage(translateLocal, action));
         });
+        it('UPDATE_AUTO_HARVESTING action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {value: true},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_EMAIL,
+            });
+            expect(lastMessage).toBe(getUpdatedAutoHarvestingMessage(translateLocal, action));
+        });
         it('ADD_CARD_FEED action', async () => {
             const report: Report = createRandomReport(0, undefined);
             const action: ReportAction = {
@@ -6823,8 +6850,7 @@ describe('OptionsListUtils', () => {
             const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined, translateLocal);
 
             // Then it should return the display name from reportAction.person
-            // Note: formatPhoneNumberPhoneUtils replaces spaces with non-breaking spaces
-            expect(result).toBe('Unknown User'.replaceAll(' ', '\u00A0'));
+            expect(result).toBe('Unknown User');
         });
 
         it('should return "You" when the last actor is the current user', async () => {
