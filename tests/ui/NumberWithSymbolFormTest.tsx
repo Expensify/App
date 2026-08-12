@@ -16,6 +16,7 @@ import type * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockIsFocused = jest.fn(() => true);
@@ -47,6 +48,7 @@ jest.mock('@hooks/useIsInLandscapeMode', () => ({
 }));
 
 const INPUT_TEST_ID = 'number-with-symbol-form-input';
+const getFlipLabel = () => translateLocal('iou.flip');
 
 function renderForm(props: Partial<NumberWithSymbolFormProps> = {}) {
     return render(
@@ -173,7 +175,7 @@ describe('NumberWithSymbolForm', () => {
             renderForm({displayAsTextInput: true, value: '10', currency: 'USD'});
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText('Flip')).toBeNull();
+            expect(screen.queryByText(getFlipLabel())).toBeNull();
             expect(screen.queryByText('USD')).toBeNull();
         });
 
@@ -324,14 +326,14 @@ describe('NumberWithSymbolForm', () => {
                 renderForm({...flipProps, allowNegativeInput: false, value: '5'});
                 await waitForBatchedUpdatesWithAct();
 
-                expect(screen.queryByText('Flip')).toBeNull();
+                expect(screen.queryByText(getFlipLabel())).toBeNull();
 
                 screen.unmount();
 
                 renderForm({...flipProps, value: '5'});
                 await waitForBatchedUpdatesWithAct();
 
-                expect(screen.getByText('Flip')).toBeTruthy();
+                expect(screen.getByText(getFlipLabel())).toBeTruthy();
             });
 
             it('toggles the minus sign on the value and calls onInputChange, without calling toggleNegative', async () => {
@@ -340,7 +342,7 @@ describe('NumberWithSymbolForm', () => {
                 renderForm({...flipProps, value: '5', onInputChange, toggleNegative, allowFlippingAmount: true});
                 await waitForBatchedUpdatesWithAct();
 
-                fireEvent.press(screen.getByText('Flip'));
+                fireEvent.press(screen.getByText(getFlipLabel()));
                 await waitForBatchedUpdatesWithAct();
 
                 expect(onInputChange).toHaveBeenLastCalledWith('-5');
@@ -348,7 +350,7 @@ describe('NumberWithSymbolForm', () => {
                 // The text-input path never delegates to the caller-supplied toggleNegative
                 expect(toggleNegative).not.toHaveBeenCalled();
 
-                fireEvent.press(screen.getByText('Flip'));
+                fireEvent.press(screen.getByText(getFlipLabel()));
                 await waitForBatchedUpdatesWithAct();
 
                 expect(onInputChange).toHaveBeenLastCalledWith('5');
@@ -361,7 +363,7 @@ describe('NumberWithSymbolForm', () => {
                 renderForm({...flipProps, value: '', onInputChange});
                 await waitForBatchedUpdatesWithAct();
 
-                fireEvent.press(screen.getByText('Flip'));
+                fireEvent.press(screen.getByText(getFlipLabel()));
                 await waitForBatchedUpdatesWithAct();
 
                 expect(onInputChange).toHaveBeenLastCalledWith('-');
@@ -379,7 +381,7 @@ describe('NumberWithSymbolForm', () => {
                 renderForm({...flipProps, value: '', onInputChange});
                 await waitForBatchedUpdatesWithAct();
 
-                fireEvent.press(screen.getByText('Flip'));
+                fireEvent.press(screen.getByText(getFlipLabel()));
                 await waitForBatchedUpdatesWithAct();
 
                 expect(getTextInput().props.selection).toEqual({start: 1, end: 1});
@@ -396,7 +398,7 @@ describe('NumberWithSymbolForm', () => {
                 renderForm({...flipProps, value: '5', onInputChange});
                 await waitForBatchedUpdatesWithAct();
 
-                fireEvent.press(screen.getByText('Flip'));
+                fireEvent.press(screen.getByText(getFlipLabel()));
                 await waitForBatchedUpdatesWithAct();
 
                 expect(onInputChange).toHaveBeenLastCalledWith('-5');
@@ -511,12 +513,12 @@ describe('NumberWithSymbolForm', () => {
             const currencyButton = screen.getByLabelText('Select a currency, USD');
             expect(currencyButton.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
             // Flip is labeled on both the icon and the button; none should report disabled.
-            for (const node of screen.getAllByLabelText('Flip')) {
+            for (const node of screen.getAllByLabelText(getFlipLabel())) {
                 expect(node.props.accessibilityState?.disabled ?? false).toBe(false);
             }
 
             fireEvent.press(currencyButton);
-            fireEvent.press(screen.getByText('Flip'));
+            fireEvent.press(screen.getByText(getFlipLabel()));
             await waitForBatchedUpdatesWithAct();
 
             expect(onSymbolButtonPress).toHaveBeenCalledTimes(1);
@@ -530,14 +532,14 @@ describe('NumberWithSymbolForm', () => {
                 renderForm({value: '10', toggleNegative, onInputChange});
                 await waitForBatchedUpdatesWithAct();
 
-                expect(screen.queryByText('Flip')).toBeNull();
+                expect(screen.queryByText(getFlipLabel())).toBeNull();
 
                 screen.unmount();
 
                 renderForm({value: '10', allowFlippingAmount: true, toggleNegative, onInputChange});
                 await waitForBatchedUpdatesWithAct();
 
-                fireEvent.press(screen.getByText('Flip'));
+                fireEvent.press(screen.getByText(getFlipLabel()));
                 await waitForBatchedUpdatesWithAct();
 
                 expect(toggleNegative).toHaveBeenCalledTimes(1);
@@ -639,10 +641,10 @@ describe('NumberWithSymbolForm', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('USD')).toBeTruthy();
-            expect(screen.getByText('Flip')).toBeTruthy();
+            expect(screen.getByText(getFlipLabel())).toBeTruthy();
 
             fireEvent.press(screen.getByText('USD'));
-            fireEvent.press(screen.getByText('Flip'));
+            fireEvent.press(screen.getByText(getFlipLabel()));
             await waitForBatchedUpdatesWithAct();
 
             expect(onSymbolButtonPress).toHaveBeenCalledTimes(1);
@@ -666,12 +668,12 @@ describe('NumberWithSymbolForm', () => {
             const currencyButton = screen.getByLabelText('Select a currency, USD');
             expect(currencyButton.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
             // Flip is labeled on both the icon and the button; none should report disabled.
-            for (const node of screen.getAllByLabelText('Flip')) {
+            for (const node of screen.getAllByLabelText(getFlipLabel())) {
                 expect(node.props.accessibilityState?.disabled ?? false).toBe(false);
             }
 
             fireEvent.press(currencyButton);
-            fireEvent.press(screen.getByText('Flip'));
+            fireEvent.press(screen.getByText(getFlipLabel()));
             await waitForBatchedUpdatesWithAct();
 
             expect(onSymbolButtonPress).toHaveBeenCalledTimes(1);
@@ -952,7 +954,7 @@ describe('NumberWithSymbolForm', () => {
             renderForm({displayAsTextInput: true, value: '12', decimals: 2, shouldShowFlipButton: true, allowNegativeInput: true});
             await waitForBatchedUpdatesWithAct();
 
-            fireEvent.press(screen.getByText('Flip'));
+            fireEvent.press(screen.getByText(getFlipLabel()));
             await waitForBatchedUpdatesWithAct();
 
             // The caret was at the end of "12" and the added sign shifted it by one

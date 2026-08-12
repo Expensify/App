@@ -9,6 +9,7 @@ import type * as NativeNavigation from '@react-navigation/native';
 
 import React from 'react';
 
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/DeviceCapabilities', () => ({
@@ -57,7 +58,7 @@ describe('NumberWithSymbolForm on desktop', () => {
         const currencyButton = screen.getByText('USD');
         expect(currencyButton).toBeTruthy();
         expect(screen.queryByTestId('button_1')).toBeNull();
-        expect(screen.queryByText('Flip')).toBeNull();
+        expect(screen.queryByText(translateLocal('iou.flip'))).toBeNull();
 
         fireEvent.press(currencyButton);
         expect(onSymbolButtonPress).toHaveBeenCalledTimes(1);
