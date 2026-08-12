@@ -5,6 +5,7 @@ import {
     getActivePoliciesWithExpenseChat,
     getOwnedPaidPolicies,
     getPolicyIDFromDomainName,
+    getPolicyRole,
     // eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
     isPaidGroupPolicy,
     isPendingDeletePolicy,
@@ -20,6 +21,7 @@ import type {Policy, PolicyReportField} from '@src/types/onyx';
 import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import escapeRegExp from 'lodash/escapeRegExp';
 
@@ -128,7 +130,7 @@ const createWorkspaceListPoliciesSelector =
                 id: policy.id,
                 name: policy.name,
                 type: policy.type,
-                role: policy.role,
+                role: (getPolicyRole(policy, currentUserLogin) ?? policy.role) as ValueOf<typeof CONST.POLICY.ROLE>,
                 ownerAccountID: policy.ownerAccountID,
                 avatarURL: policy.avatarURL,
                 pendingAction: policy.pendingAction,
