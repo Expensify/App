@@ -11,10 +11,12 @@ import HttpUtils from './HttpUtils';
 import Log from './Log';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
-import {endSpan, startSpan} from './telemetry/activeSpans';
-import trackAppStartupResponseRender from './telemetry/trackAppStartupResponseRender';
+import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
+import trackStartupDataRender from './telemetry/trackStartupDataRender';
 
 let middlewares: Middleware[] = [];
+
+let responseApplyAttempt = 0;
 
 function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response<TKey> | void> {
     const finalParameters = enhanceParameters(request.command, request?.data ?? {});
@@ -28,13 +30,17 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
 
     // The splash-based startup spans measure nothing for flows that never show a splash (magic code, copilot, supportal).
     const shouldMeasureResponseApply = APP_STARTUP_NETWORK_REQUEST.has(request.command);
+    // Reauthentication re-enters this function for the same request, so the span id has to be per-attempt or the retry cancels the attempt before it.
+    const attempt = shouldMeasureResponseApply ? (responseApplyAttempt += 1) : 0;
+    const applySpanId = `${CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY}_${attempt}`;
     if (shouldMeasureResponseApply) {
         result = result.then((response) => {
-            startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_RESPONSE_APPLY, {
-                name: CONST.TELEMETRY.SPAN_APP_STARTUP_RESPONSE_APPLY,
-                op: CONST.TELEMETRY.SPAN_APP_STARTUP_RESPONSE_APPLY,
+            startSpan(applySpanId, {
+                name: CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY,
+                op: CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY,
+                parentSpan: getSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.ROOT),
                 forceTransaction: true,
-                attributes: {[CONST.TELEMETRY.ATTRIBUTE_COMMAND]: request.command},
+                attributes: {[CONST.TELEMETRY.ATTRIBUTE_COMMAND]: request.command, [CONST.TELEMETRY.ATTRIBUTE_ATTEMPT]: attempt},
             });
             return response;
         });
@@ -46,8 +52,8 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
 
     if (shouldMeasureResponseApply) {
         result = result.finally(() => {
-            endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_RESPONSE_APPLY);
-            trackAppStartupResponseRender(request.command);
+            endSpan(applySpanId);
+            trackStartupDataRender(request.command, attempt);
         });
     }
 

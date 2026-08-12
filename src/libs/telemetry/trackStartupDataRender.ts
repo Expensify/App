@@ -10,13 +10,14 @@ const REQUIRED_HEALTHY_FRAMES = 2;
 
 const MAX_WAIT_MS = 10_000;
 
-/** Onyx resolves once subscribers are notified, before React renders, so ManualAppStartupResponseApply cannot see this cascade. */
-function trackAppStartupResponseRender(command: string): void {
-    const span = startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_RESPONSE_RENDER, {
-        name: CONST.TELEMETRY.SPAN_APP_STARTUP_RESPONSE_RENDER,
-        op: CONST.TELEMETRY.SPAN_APP_STARTUP_RESPONSE_RENDER,
+/** Onyx resolves once subscribers are notified, before React renders, so StartupData.Apply cannot see this cascade. */
+function trackStartupDataRender(command: string, attempt: number): void {
+    const spanId = `${CONST.TELEMETRY.SPAN_STARTUP_DATA.RENDER}_${attempt}`;
+    const span = startSpan(spanId, {
+        name: CONST.TELEMETRY.SPAN_STARTUP_DATA.RENDER,
+        op: CONST.TELEMETRY.SPAN_STARTUP_DATA.RENDER,
         forceTransaction: true,
-        attributes: {[CONST.TELEMETRY.ATTRIBUTE_COMMAND]: command},
+        attributes: {[CONST.TELEMETRY.ATTRIBUTE_COMMAND]: command, [CONST.TELEMETRY.ATTRIBUTE_ATTEMPT]: attempt},
     });
 
     if (!span) {
@@ -41,7 +42,7 @@ function trackAppStartupResponseRender(command: string): void {
             return;
         }
 
-        endSpanWithAttributes(CONST.TELEMETRY.SPAN_APP_STARTUP_RESPONSE_RENDER, {
+        endSpanWithAttributes(spanId, {
             [CONST.TELEMETRY.ATTRIBUTE_LONGEST_FRAME_MS]: Math.round(longestFrameMs),
             [CONST.TELEMETRY.ATTRIBUTE_TIMED_OUT]: hasTimedOut,
         });
@@ -50,4 +51,4 @@ function trackAppStartupResponseRender(command: string): void {
     requestAnimationFrame(onFrame);
 }
 
-export default trackAppStartupResponseRender;
+export default trackStartupDataRender;

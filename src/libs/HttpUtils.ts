@@ -21,7 +21,7 @@ import {setLoadTestParameters} from './Network/LoadTestState';
 import preparePrefetchRequest from './Prefetch/preparePrefetchRequest';
 import registerPrefetchOnAppStart from './Prefetch/registerPrefetchOnAppStart';
 import prepareRequestPayload from './prepareRequestPayload';
-import {endSpan, startSpan} from './telemetry/activeSpans';
+import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
 
 let shouldFailAllRequests = false;
@@ -69,13 +69,18 @@ const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREA
  */
 const APICommandRegex = /\/api\/([^&?]+)\??.*/;
 
-function startStartupNetworkPhaseSpan(spanId: string, command: string, contentLength?: string) {
-    startSpan(spanId, {
-        name: spanId,
-        op: spanId,
+/** Reauthentication (407) and throttle backoff both re-send the same command, so each attempt needs its own span id or the retry cancels the attempt before it. */
+let startupRequestAttempt = 0;
+
+function startStartupNetworkPhaseSpan(spanName: string, attempt: number, command: string, contentLength?: string) {
+    startSpan(`${spanName}_${attempt}`, {
+        name: spanName,
+        op: spanName,
+        parentSpan: getSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.ROOT),
         forceTransaction: true,
         attributes: {
             [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: command,
+            [CONST.TELEMETRY.ATTRIBUTE_ATTEMPT]: attempt,
             [CONST.TELEMETRY.ATTRIBUTE_CONTENT_LENGTH]: contentLength,
         },
     });
@@ -114,15 +119,18 @@ function processHTTPRequest<TKey extends OnyxKey>(
 
     // Mirrors the "Waiting" / "Content Download" split Chrome shows for this request.
     const isStartupRequest = !!command && APP_STARTUP_NETWORK_REQUEST.has(command);
-    if (isStartupRequest) {
-        startStartupNetworkPhaseSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_REQUEST_WAIT, command);
+    const attempt = isStartupRequest ? (startupRequestAttempt += 1) : 0;
+    const waitSpanId = `${CONST.TELEMETRY.SPAN_STARTUP_DATA.WAIT}_${attempt}`;
+    const downloadSpanId = `${CONST.TELEMETRY.SPAN_STARTUP_DATA.DOWNLOAD}_${attempt}`;
+    if (isStartupRequest && command) {
+        startStartupNetworkPhaseSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.WAIT, attempt, command);
     }
 
     return fetch(url, fetchParams)
         .then((response) => {
-            if (isStartupRequest) {
-                endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_REQUEST_WAIT);
-                startStartupNetworkPhaseSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_RESPONSE_DOWNLOAD, command, response.headers?.get('content-length') ?? undefined);
+            if (isStartupRequest && command) {
+                endSpan(waitSpanId);
+                startStartupNetworkPhaseSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.DOWNLOAD, attempt, command, response.headers?.get('content-length') ?? undefined);
             }
             if (response.headers) {
                 setLoadTestParameters(response.headers.get('X-Load-Test'));
@@ -181,7 +189,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
             if (!isStartupRequest) {
                 return parsedResponse;
             }
-            return parsedResponse.finally(() => endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_RESPONSE_DOWNLOAD));
+            return parsedResponse.finally(() => endSpan(downloadSpanId));
         })
         .then((response) => {
             // Some retried requests will result in a "Unique Constraints Violation" error from the server, which just means the record already exists
