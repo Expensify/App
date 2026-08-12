@@ -125,7 +125,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
                         delete excludedTransactions[key];
                     }
                 }
-                // A row select-all-matching covered without an entry of its own never appears in the diff above, so the caller names it.
+                // The diff above cannot see a row leave the selection when it was never in it, so the caller names those.
                 for (const [key, transaction] of Object.entries(options?.deselectedWithoutEntry ?? {})) {
                     if (!Object.hasOwn(selectedTransactions, key)) {
                         excludedTransactions[key] = transaction;

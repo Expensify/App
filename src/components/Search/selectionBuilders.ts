@@ -324,7 +324,7 @@ type RowCheckedParams = {
     /** The group the row is rendered under, whose exclusion covers the row as well */
     parentGroupKey: string | undefined;
 
-    /** The positive selection */
+    /** The rows with a selection entry of their own */
     selectedTransactions: SelectedTransactions;
 
     /** Rows taken back out of a wider selection */

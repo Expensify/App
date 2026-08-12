@@ -698,6 +698,30 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.areAllMatchingItemsSelected).toBe(true);
     });
 
+    it('keeps the remaining children selected when the data refreshes after a group is written out', async () => {
+        const {result, rerender} = renderSelection();
+        const [firstChild] = loadedChildren;
+
+        // Given a group selected while collapsed, its children since published, and one of them unchecked
+        await act(async () => {
+            result.current.toggle(categoryGroup, []);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+
+        // When a data push re-runs the reconcile
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        // Then the child that is still selected survives it
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+    });
+
     it('gives back a child a range no longer covers, under select-all-matching', async () => {
         const {result} = renderSelection();
         const [firstChild, secondChild] = loadedChildren;
@@ -722,6 +746,34 @@ describe('Lazily loaded group selection', () => {
         // Then the row that fell out of the range is recorded as excluded, the same as unchecking it by hand
         expect(result.current.excludedTransactions['2']).toBeDefined();
         expect(result.current.selectedTransactions['2']).toBeUndefined();
+    });
+
+    it('records what a narrowing dropped, so keeping select-all-matching on cannot silently re-include it', async () => {
+        const {result} = renderSelection();
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given a range across both children, with every matching item selected
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a shift+click narrows that range back to the first child
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the flag stays on, which is correct only because the dropped row is recorded as excluded
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+        expect(result.current.excludedTransactions['2']).toBeDefined();
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
     });
 
     it('clears the page exclusions when select-all-on-this-page covers them again', async () => {

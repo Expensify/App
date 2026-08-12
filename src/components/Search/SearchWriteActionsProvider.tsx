@@ -168,6 +168,7 @@ function useReconcileSelectionWithData({
         }
         const newTransactionList: SelectedTransactions = {};
         const liveSelectionEntries = new Map<string, SelectedTransactionInfo>();
+        const presentGroupKeys = new Set<string>();
         if (areItemsGrouped) {
             for (const transactionGroup of filteredData) {
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
@@ -175,6 +176,9 @@ function useReconcileSelectionWithData({
                 }
 
                 const reportKey = transactionGroup.keyForList;
+                if (reportKey) {
+                    presentGroupKeys.add(reportKey);
+                }
                 if (shouldReconcileExcludedTransactions && reportKey && transactionGroup.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                     const [, groupSelection] = mapEmptyReportToSelectedEntry(transactionGroup);
                     liveSelectionEntries.set(reportKey, groupSelection);
@@ -295,6 +299,17 @@ function useReconcileSelectionWithData({
                 if (!isExcluded) {
                     newTransactionList[listKey] = liveSelectionEntry;
                 }
+            }
+        }
+
+        // Kept while the parent group is still here, the same rule the exclusions below follow, since a lazy group's children never reach `filteredData`.
+        if (areItemsGrouped) {
+            for (const [key, selectedTransaction] of Object.entries(selectedTransactions)) {
+                const parentGroupKey = selectedTransaction.groupKey;
+                if (!parentGroupKey || Object.hasOwn(newTransactionList, key) || Object.hasOwn(excludedTransactions, key) || !presentGroupKeys.has(parentGroupKey)) {
+                    continue;
+                }
+                newTransactionList[key] = liveSelectionEntries.get(key) ?? selectedTransaction;
             }
         }
 
@@ -531,7 +546,7 @@ function SearchWriteActionsProvider({
         return spelledOut;
     };
 
-    // A row checked by select-all-matching alone has no entry to remove, so deselecting it is only expressible as an exclusion.
+    // A row checked by select-all-matching alone has no entry to remove, so deselecting it can only be recorded as an exclusion.
     const buildExclusionForCheckedRowWithoutEntry = (row: SearchData[number]): SelectedTransactions => {
         if (!isTransactionListItemType(row) || !row.keyForList) {
             return {};
@@ -547,7 +562,7 @@ function SearchWriteActionsProvider({
     };
 
     const applyShiftRangeBatch = (batch: ShiftRangeBatch<SearchData[number]>) => {
-        // Same rule as a plain click: a range gives back rows it can only express as exclusions.
+        // Same rule as a plain click, for the rows a range gives back.
         let rangeExclusions: SelectedTransactions = {};
         for (const row of batch.toDeselect) {
             rangeExclusions = {...rangeExclusions, ...buildExclusionForCheckedRowWithoutEntry(row)};

@@ -245,8 +245,7 @@ type SearchSelectionActionsValue = {
      * `shouldPreserveAllMatchingSelection` keeps that mode active for row toggles and records removed rows as exclusions.
      * `shouldClearAllMatchingSelectionWhenEmpty` exits that mode when no selected rows or additional results remain.
      * `reconciledExcludedTransactions` refreshes or prunes exclusions when the underlying search data changes.
-     * `deselectedWithoutEntry` covers rows the caller deselected that select-all-matching had selected without an entry
-     * of their own, which the previous/next diff cannot see leave the selection.
+     * `deselectedWithoutEntry` names rows the caller deselected that had no entry of their own, which the diff cannot see leave.
      */
     applySelection: (
         updater: (previousSelectedTransactions: SelectedTransactions) => SelectedTransactions,
