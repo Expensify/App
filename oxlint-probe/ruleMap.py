@@ -3,6 +3,7 @@
 Imported by:
     oxlint-probe/compareFullRepo.py   -- finding-by-finding parity on the whole repo
     oxlint-probe/listAllRules.py      -- inventory of every rule either tool enables
+    oxlint-probe/rule-tester/compareRuleTester.py -- replays the upstream RuleTester cases on both tools
 
 Nothing here runs a linter; it only reads configs and static catalogues.
 """
