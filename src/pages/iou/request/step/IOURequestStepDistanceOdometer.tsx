@@ -639,6 +639,7 @@ function IOURequestStepDistanceOdometer({
                 which strands these buttons in the middle of the page.
             */}
             <View
+                testID="odometerContentContainer"
                 style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5, !!keyboardPaddingBottom && {paddingBottom: keyboardPaddingBottom}]}
             >
                 <View>
