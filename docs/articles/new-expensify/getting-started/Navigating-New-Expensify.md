@@ -202,8 +202,8 @@ You can move to a top-level destination without using the navigation tabs by typ
 You can also use keyboard shortcuts on web to jump directly to specific items:
 
 - Press **⌘+Shift+G** (Mac) or **Ctrl+Shift+G** (Windows/Linux), then enter a report ID to open that report.
-- Press **⌘+Shift+P** (Mac) or **Ctrl+Shift+P** (Windows/Linux), then enter a report ID to jump directly to the workspace that report belongs to.
-- 
+- Press **⌘+Shift+P** (Mac) or **Ctrl+Shift+P** (Windows/Linux), from a report, to jump directly to the workspace that the report belongs to.
+
 ---
 
 # FAQ
