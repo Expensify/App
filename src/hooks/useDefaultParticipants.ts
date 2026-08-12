@@ -46,7 +46,8 @@ type UseDefaultParticipantsResult = {
  *
  * First it derives participants from the source report (workspace-chat entry point). When there are none and the
  * expense is started from the global "Create" (FAB) entry point, it falls back to the default expense policy chat
- * (or the selfDM report when auto-reporting is off), mirroring the resolution the confirmation step performs.
+ * (or the selfDM report when auto-reporting is off, and always for a track expense), mirroring the resolution the
+ * confirmation step performs.
  *
  * Shared by `useResetIOUType` (to seed the freshly-rebuilt transaction so the confirmation's auto-assign effect
  * short-circuits) and `IOURequestStepConfirmation` (to compute the participants it auto-assigns) so both stay in sync.
@@ -81,8 +82,11 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
             return [];
         }
 
-        const globalCreateIOUType = iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.CREATE : iouType;
-        const canUseDefaultPolicy = shouldUseDefaultExpensePolicy(globalCreateIOUType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, accountID);
+        if (iouType === CONST.IOU.TYPE.TRACK) {
+            return getMoneyRequestParticipantsFromReport(selfDMReport, accountID).filter((participant) => participant.selected);
+        }
+
+        const canUseDefaultPolicy = shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, accountID);
         if (!canUseDefaultPolicy) {
             return [];
         }

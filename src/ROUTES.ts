@@ -280,6 +280,7 @@ const DYNAMIC_ROUTES = {
         path: 'expense-report',
         entryScreens: [
             SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.MONEY_REQUEST.CREATE,
             SCREENS.SHARE.SUBMIT_DETAILS,
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
@@ -305,6 +306,8 @@ const DYNAMIC_ROUTES = {
         path: 'expense-tag',
         entryScreens: [
             SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
+            SCREENS.MONEY_REQUEST.CREATE,
             SCREENS.SHARE.SUBMIT_DETAILS,
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
@@ -323,7 +326,8 @@ const DYNAMIC_ROUTES = {
     },
     MONEY_REQUEST_STEP_DESTINATION_EDIT: {
         path: 'per-diem-destination-edit',
-        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION],
+        // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
+        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION, SCREENS.MONEY_REQUEST.CREATE],
     },
     MONEY_REQUEST_STEP_TIME: {
         path: 'per-diem-time',
@@ -331,7 +335,8 @@ const DYNAMIC_ROUTES = {
     },
     MONEY_REQUEST_STEP_TIME_EDIT: {
         path: 'per-diem-time-edit',
-        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION],
+        // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
+        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION, SCREENS.MONEY_REQUEST.CREATE],
     },
     PROFILE: {
         path: 'a/:accountID',

@@ -547,17 +547,6 @@ function pickReportForPolicy(...reports: Array<OnyxEntry<Report>>): OnyxEntry<Re
     return reports.find((report) => reportHasRealPolicy(report)) ?? reports.find((report) => !!report);
 }
 
-/**
- * The policyID of the workspace the user picked for an expense that is still being created, read from the
- * transaction's participants. It takes precedence over the report a page derives its policy from, because the route
- * report can be left pointing at a workspace the expense is no longer going to: selecting a report from another
- * workspace rewrites the confirmation route's `reportID` to that workspace's chat, and moving the expense again
- * (e.g. "Create report", which only updates the transaction) never rewrites it back. The confirmation page reads the
- * participants, so its fields would otherwise disagree with the pages they open. See #98230.
- *
- * Only applies while the expense is being created. An existing expense is authoritative about the report - and
- * therefore the policy - it lives on, while its `participants` can still hold the workspace it was created with.
- */
 function getSelectedWorkspacePolicyID(transaction: OnyxEntry<Transaction>, action: IOUAction): string | undefined {
     if (action === CONST.IOU.ACTION.EDIT) {
         return undefined;
