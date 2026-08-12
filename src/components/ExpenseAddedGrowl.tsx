@@ -19,6 +19,7 @@ import type {Dispatch, SetStateAction} from 'react';
 import {useEffect, useRef, useState} from 'react';
 
 import GrowlNotificationContent from './GrowlNotification/GrowlNotificationContent';
+import {usePersonalDetails} from './OnyxListItemProvider';
 
 type ActiveGrowl = {
     /** ID of the transaction the growl was raised for */
@@ -75,6 +76,7 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
 
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -152,6 +154,7 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
                 iouReport,
                 iouReportAction: iouAction,
                 transaction,
+                personalDetails,
             });
             threadReportID = optimisticThread?.reportID;
         }
