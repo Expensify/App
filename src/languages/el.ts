@@ -199,7 +199,6 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: 'σε',
         genericErrorMessage: 'Ουπς... κάτι πήγε στραβά και το αίτημά σας δεν μπόρεσε να ολοκληρωθεί. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
         percentage: 'Ποσοστό',
-        progressBarLabel: 'Πρόοδος αρχικής ρύθμισης',
         converted: 'Μετατράπηκε',
         off: 'Ανενεργό',
         error: {
@@ -296,7 +295,6 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: 'Χρεώσιμη',
         nonBillable: 'Μη χρεώσιμο',
         tag: 'Ετικέτα',
-        violations: 'Παραβάσεις',
         receipt: 'Απόδειξη',
         verified: 'Επαληθευμένο',
         replace: 'Αντικατάσταση',
@@ -320,7 +318,6 @@ const translations: TranslationDeepObject<typeof en> = {
         automatic: 'Αυτόματο',
         showing: 'Εμφανίζονται',
         of: 'του',
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} από ${total}`,
         default: 'Προεπιλογή',
         update: 'Ενημέρωση',
         member: 'Μέλος',
@@ -1137,7 +1134,10 @@ const translations: TranslationDeepObject<typeof en> = {
             }),
             today: 'Σήμερα',
         },
-        insightsSection: {chartUnavailable: 'Το γράφημα δεν είναι διαθέσιμο', notEnoughData: 'Δεν έχουμε ακόμη αρκετά δεδομένα για να συμπληρώσουμε αυτό το γράφημα'},
+        insightsSection: {
+            chartUnavailable: 'Το γράφημα δεν είναι διαθέσιμο',
+            notEnoughData: 'Δεν έχουμε ακόμη αρκετά δεδομένα για να συμπληρώσουμε αυτό το γράφημα',
+        },
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -1206,6 +1206,7 @@ const translations: TranslationDeepObject<typeof en> = {
         importSpreadsheetLibraryError: 'Αποτυχία φόρτωσης της μονάδας υπολογιστικού φύλλου. Παρακαλούμε ελέγξτε τη σύνδεσή σας στο διαδίκτυο και δοκιμάστε ξανά.',
         importSpreadsheet: 'Εισαγωγή υπολογιστικού φύλλου',
         importWorkflows: 'Εισαγωγή ροών εργασίας',
+        downloadWorkflows: 'Λήψη ροών εργασίας',
         downloadCSV: 'Λήψη CSV',
         importMemberConfirmation: () => ({
             one: `Παρακαλούμε επιβεβαιώστε τα παρακάτω στοιχεία για το νέο μέλος του χώρου εργασίας που θα προστεθεί ως μέρος αυτής της αποστολής. Τα υπάρχοντα μέλη δεν θα λάβουν καμία ενημέρωση ρόλου ή μήνυμα πρόσκλησης.`,
@@ -1957,14 +1958,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                requiredDepositCurrency?: string,
             ) => {
+                const account = requiredDepositCurrency ? `τραπεζικό λογαριασμό σε ${requiredDepositCurrency}` : 'τραπεζικό λογαριασμό';
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμένουμε από <strong>εσάς</strong> να προσθέσετε έναν τραπεζικό λογαριασμό.`;
+                        return `Αναμένουμε από <strong>εσάς</strong> να προσθέσετε έναν ${account}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για να προσθέσει ο/η <strong>${actor}</strong> έναν τραπεζικό λογαριασμό.`;
+                        return `Αναμονή για να προσθέσει ο/η <strong>${actor}</strong> έναν ${account}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για να προσθέσει ένας διαχειριστής έναν τραπεζικό λογαριασμό.`;
+                        return `Αναμονή για να προσθέσει ένας διαχειριστής έναν ${account}.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
@@ -2656,6 +2659,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnection: 'Παρακαλούμε διορθώστε αυτήν τη σύνδεση',
             fixConnectionIn: (companyCardsRoute: string) => `Παρακαλούμε διορθώστε αυτήν τη σύνδεση στις <a href="${companyCardsRoute}">εταιρικές κάρτες</a>`,
             askAdminToFixConnection: 'Παρακαλούμε ζητήστε από έναν διαχειριστή να διορθώσει αυτήν τη σύνδεση',
+            reconnectBank: 'Η σύνδεσή σας με την τράπεζα χρειάζεται επαναπιστοποίηση',
         },
         bankAccountStatus: {
             active: 'Ενεργό',
@@ -2820,10 +2824,6 @@ ${amount} για ${merchant} - ${date}`,
             lastDayOfMonth: 'Τελευταία ημέρα του μήνα',
             lastBusinessDayOfMonth: 'Τελευταία εργάσιμη ημέρα του μήνα',
             ordinals: {
-                one: 'στ',
-                two: '2η',
-                few: 'ημ.',
-                other: 'ημ.',
                 '1': 'Πρώτο',
                 '2': 'Δεύτερο',
                 '3': 'Τρίτο',
@@ -4285,6 +4285,9 @@ ${amount} για ${merchant} - ${date}`,
         proofOf: 'Απόδειξη προσωπικής διεύθυνσης',
         enterOneEmail: (companyName: string) => `Εισαγάγετε το email ενός διευθυντή στην ${companyName}`,
         regulationRequiresOneMoreDirector: 'Η νομοθεσία απαιτεί τουλάχιστον έναν ακόμη διευθυντή ως υπογράφοντα.',
+        bothSignersMustBeOnIllionReport:
+            'Και οι δύο υπογράφοντες πρέπει να αναφέρονται ως διευθυντές στην αναφορά illion της εταιρείας. Δεν μπορούν να είναι οποιοιδήποτε δύο άτομα στην επιχείρηση.',
+        signerMustBeOnIllionReport: 'Ο διευθυντής που προσθέτετε ως υπογράφοντα πρέπει να αναγράφεται στην αναφορά illion της εταιρείας.',
         hangTight: 'Μισό λεπτό...',
         enterTwoEmails: (companyName: string) => `Εισαγάγετε τα email δύο διευθυντών στην ${companyName}`,
         sendReminder: 'Αποστολή υπενθύμισης',
@@ -4295,11 +4298,11 @@ ${amount} για ${merchant} - ${date}`,
         proofOfDirectorsDescription: 'Παραδείγματα: εταιρικό προφίλ Oncorp ή καταχώριση επιχείρησης.',
         codiceFiscale: 'Κωδικός Φορολογικού Μητρώου',
         codiceFiscaleDescription: 'Codice Fiscale για υπογράφοντες, εξουσιοδοτημένους χρήστες και πραγματικούς δικαιούχους.',
-        PDSandFSG: 'Έγγραφα γνωστοποίησης PDS + FSG',
+        PDSandFSG: 'Έγγραφα γνωστοποίησης PDS, FSG και TMD',
         PDSandFSGDescription: Str.dedent(`
-            Η συνεργασία μας με την Corpay χρησιμοποιεί σύνδεση API ώστε να αξιοποιήσει το εκτεταμένο δίκτυο διεθνών τραπεζικών συνεργατών της για να υποστηρίξει τις Παγκόσμιες Αποζημιώσεις στην Expensify. Σύμφωνα με την αυστραλιανή νομοθεσία, σας παρέχουμε τον Οδηγό Χρηματοοικονομικών Υπηρεσιών (Financial Services Guide, FSG) και τη Δήλωση Αποκάλυψης Προϊόντος (Product Disclosure Statement, PDS) της Corpay.
+            Η συνεργασία μας με την Corpay χρησιμοποιεί σύνδεση API για να αξιοποιήσει το εκτεταμένο δίκτυο διεθνών τραπεζικών συνεργατών της, ώστε να υποστηρίξει τις παγκόσμιες επιστροφές χρημάτων στο Expensify. Σύμφωνα με τους κανονισμούς της Αυστραλίας, σάς παρέχουμε τον Οδηγό Χρηματοοικονομικών Υπηρεσιών (FSG), το Έγγραφο Γνωστοποίησης Προϊόντος (PDS) και τον Καθορισμό Στόχου Αγοράς (TMD) της Corpay.
 
-            Παρακαλούμε διαβάστε προσεκτικά τα έγγραφα FSG και PDS, καθώς περιέχουν πλήρεις λεπτομέρειες και σημαντικές πληροφορίες για τα προϊόντα και τις υπηρεσίες που προσφέρει η Corpay. Διατηρήστε αυτά τα έγγραφα για μελλοντική αναφορά.
+            Παρακαλούμε διαβάστε προσεκτικά τα έγγραφα FSG, PDS και TMD, καθώς περιέχουν πλήρεις λεπτομέρειες και σημαντικές πληροφορίες σχετικά με τα προϊόντα και τις υπηρεσίες που προσφέρει η Corpay. Κρατήστε αυτά τα έγγραφα για μελλοντική αναφορά.
         `),
         pleaseUpload: 'Παρακαλούμε ανεβάστε επιπλέον έγγραφα παρακάτω, ώστε να μας βοηθήσετε να επαληθεύσουμε την ταυτότητά σας ως διευθυντή της επιχείρησης.',
         enterSignerInfo: 'Εισαγάγετε τα στοιχεία υπογράφοντα',
@@ -4311,6 +4314,9 @@ ${amount} για ${merchant} - ${date}`,
         },
     },
     agreementsStep: {
+        bankStatement: 'Απόσπασμα κίνησης λογαριασμού',
+        bankStatementDescription:
+            'Παρακαλούμε προσκομίστε ένα πρόσφατο αντίγραφο κίνησης τραπεζικού λογαριασμού, εκδοθέν μέσα στους τελευταίους τρεις μήνες, για τον επαγγελματικό τραπεζικό λογαριασμό που συνδέετε.',
         agreements: 'Συμφωνίες',
         pleaseConfirm: 'Παρακαλούμε επιβεβαιώστε τις παρακάτω συμφωνίες',
         regulationRequiresUs: 'Οι κανονισμοί απαιτούν να επαληθεύουμε την ταυτότητα κάθε ατόμου που κατέχει πάνω από 25% της επιχείρησης.',
@@ -4319,7 +4325,7 @@ ${amount} για ${merchant} - ${date}`,
         iAcceptTheTermsAndConditions: `Αποδέχομαι τους <a href="https://www.corpay.com/cross-border/terms">όρους και τις προϋποθέσεις</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'Αποδέχομαι τους όρους και τις προϋποθέσεις.',
         accept: 'Αποδοχή και προσθήκη τραπεζικού λογαριασμού',
-        iConsentToThePrivacyNotice: 'Συναινώ στην <a href="https://payments.corpay.com/compliance">ειδοποίηση απορρήτου</a>.',
+        iConsentToThePrivacyNotice: 'Συναινώ με την <a href="https://www.corpay.com/privacy-policy">ειδοποίηση απορρήτου</a>.',
         iConsentToThePrivacyNoticeAccessibility: 'Συναινώ στην ειδοποίηση απορρήτου.',
         error: {
             authorized: 'Πρέπει να είστε υπεύθυνος αξιωματούχος με εξουσιοδότηση να διαχειρίζεστε τον επαγγελματικό τραπεζικό λογαριασμό',
@@ -5872,6 +5878,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             subsidiarySelectDescription: 'Επιλέξτε τη θυγατρική στο DualEntry από την οποία θέλετε να εισαγάγετε δεδομένα.',
             noCompaniesFound: 'Δεν βρέθηκαν εταιρείες',
             noCompaniesFoundDescription: 'Παρακαλούμε προσθέστε μια εταιρεία στο DualEntry και συγχρονίστε ξανά τη σύνδεση',
+            accountTypesDescription: 'Οι λογαριασμοί DualEntry θα εισαχθούν ως κατηγορίες.',
+            enableNewAccountsTitle: 'Ενεργοποίηση νέων εισαγόμενων λογαριασμών',
+            enableNewAccountsDescription: 'Οι νέοι λογαριασμοί DualEntry θα είναι διαθέσιμοι ως κατηγορίες.',
+            classificationsImport: 'Όλες οι κατηγοριοποιήσεις DualEntry εισάγονται ως ετικέτες',
+            importDescription: 'Επιλέξτε ποιες ρυθμίσεις κωδικοποίησης θέλετε να εισαγάγετε από το DualEntry.',
         },
         type: {
             free: 'Δωρεάν',
@@ -6380,7 +6391,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 cardFeedAllowDeletingTransaction: 'Να επιτρέπεται η διαγραφή συναλλαγών',
                 removeCardFeed: 'Αφαίρεση ροής κάρτας',
                 removeCardFeedTitle: (feedName: string) => `Κατάργηση ροής ${feedName}`,
-                removeCardFeedDescription: 'Είστε βέβαιοι ότι θέλετε να καταργήσετε αυτήν την τροφοδοσία καρτών; Αυτό θα αποδεσμεύσει όλες τις κάρτες.',
+                removeCardFeedDescription:
+                    'Είστε βέβαιοι ότι θέλετε να καταργήσετε αυτήν τη ροή καρτών; Αυτό θα αποδεσμεύσει όλες τις κάρτες και θα διαγράψει τις μη υποβληθείσες συναλλαγές.',
                 error: {
                     feedNameRequired: 'Απαιτείται όνομα ροής κάρτας',
                     statementCloseDateRequired: 'Επιλέξτε μια ημερομηνία κλεισίματος της κατάστασης.',
@@ -6635,6 +6647,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 one: '1 ετικέτα',
                 other: (count: number) => `${count} ετικέτες`,
             }),
+            showTagGLCodes: 'Εμφάνιση κωδικών Γ.Λ. κατά την επιλογή ετικέτας',
         },
         taxes: {
             subtitle: 'Προσθέστε ονόματα φόρων, συντελεστές και ορίστε προεπιλογές.',
@@ -6865,6 +6878,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 chooseLimitType: 'Επιλέξτε τύπο ορίου',
                 smartLimit: 'Έξυπνο όριο',
                 smartLimitDescription: 'Ξοδέψτε έως ένα συγκεκριμένο ποσό πριν απαιτείται έγκριση',
+                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
+                    `<muted-text-label>Ξοδέψτε έως ένα συγκεκριμένο ποσό πριν απαιτείται έγκριση. <a href="${workspaceWorkflowsLink}">Ενεργοποιήστε τις εγκρίσεις</a> για να επιλέξετε αυτήν την επιλογή.</muted-text-label>`,
                 monthly: 'Μηνιαίως',
                 monthlyDescription: 'Το όριο ανανεώνεται μηνιαία',
                 fixedAmount: 'Σταθερό ποσό',
@@ -8033,6 +8048,8 @@ ${reportName}`,
                 importColumnUpdatedCategory: 'Ενημερωμένη κατηγορία',
                 importColumnUpdatedTag: 'Ενημερωμένη ετικέτα',
                 importColumnUpdatedDescription: 'Ενημερωμένη περιγραφή',
+                vendorUnavailable: 'Ο προμηθευτής δεν είναι διαθέσιμος',
+                supplierUnavailable: 'Ο προμηθευτής δεν είναι διαθέσιμος',
             },
             newRule: {
                 title: 'Νέος κανόνας',
@@ -8829,7 +8846,7 @@ ${reportName}`,
         updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) =>
             `άλλαξε τον προεπιλεγμένο τύπο ονόματος προσαρμοσμένης αναφοράς σε «${newDefaultTitle}» (προηγουμένως «${oldDefaultTitle}»)`,
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `ανέλαβε την κυριότητα του ${policyName} από τον/την ${oldOwnerName} (${oldOwnerEmail})`,
-        updatedAutoHarvesting: (enabled: boolean) => `προγραμματισμένη υποβολή ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`,
+        updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} υποβολές`,
         updatedIndividualBudgetNotification: (
             budgetAmount: string,
             budgetFrequency: string,
@@ -9045,6 +9062,9 @@ ${reportName}`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `αντιγράφηκαν οι ρυθμίσεις ταξιδιού από το <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             currency: (sourcePolicyName: string, sourcePolicyURL: string) => `αντιγράφηκε το νόμισμα από την πολιτική <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
+        updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
+            return `άλλαξε τους συμμετέχοντες της κατηγορίας «${categoryName}» σε ${newValue ? 'υποχρεωτικό' : 'μη υποχρεωτικό'} (προηγουμένως ${newValue ? 'μη υποχρεωτικό' : 'υποχρεωτικό'})`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Το μέλος δεν βρέθηκε.',
@@ -9129,7 +9149,6 @@ ${reportName}`,
             topSpenders: 'Κορυφαίοι δαπανώντες',
             topCategories: 'Κορυφαίες κατηγορίες',
             topMerchants: 'Κορυφαίοι έμποροι',
-            violationsBySubmitter: 'Παραβάσεις από τον αποστολέα',
         },
         resultsAreLimited: 'Τα αποτελέσματα αναζήτησης είναι περιορισμένα.',
         viewResults: 'Προβολή αποτελεσμάτων',
@@ -9386,7 +9405,6 @@ ${reportName}`,
         exportedTo: 'Εξήχθη σε',
         exportAll: {
             selectAllMatchingItems: 'Επιλέξτε όλα τα στοιχεία που ταιριάζουν',
-            allMatchingItemsSelected: 'Έχουν επιλεγεί όλα τα στοιχεία που ταιριάζουν',
             selectAllOnThisPage: 'Επιλέξτε όλα σε αυτή τη σελίδα',
         },
         errors: {
@@ -9784,7 +9802,16 @@ ${reportName}`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Αρχικό: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Αφαιρέθηκαν ${distance} διαδρομές εκτός έδρας (${unit})`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `Αφαιρέθηκε ${distance} μίλι μετακίνησης`,
+                    other: `Αφαιρέθηκαν ${distance} μίλια μετακίνησης`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `Αφαιρέθηκε ${distance} χιλιόμετρο μετακίνησης`,
+                    other: `Καταργήθηκαν ${distance} χιλιόμετρα μετακίνησης`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `Αφαιρέθηκαν ${distance} διαδρομές μετακίνησης ${unit} βάσει του ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ρυθμίσεις απόστασης χώρου εργασίας</a>` : 'ρυθμίσεις απόστασης χώρου εργασίας'}.`,
         },
@@ -10092,53 +10119,6 @@ ${reportName}`,
         companyCardRequired: 'Απαιτούνται αγορές με εταιρική κάρτα',
         noRoute: 'Παρακαλούμε επιλέξτε μια έγκυρη διεύθυνση',
         cannotMergeDuplicates: 'Μπορείτε να συγχωνεύετε έξοδα μόνο σε πρόχειρες ή εκκρεμείς αναφορές. Ανακαλέστε την και δοκιμάστε ξανά.',
-        shortName: {
-            allTagLevelsRequired: 'Απαιτούνται όλες οι ετικέτες',
-            autoReportedRejectedExpense: 'Η δαπάνη απορρίφθηκε',
-            billableExpense: 'Χρεώσιμο μη έγκυρο πλέον',
-            cashExpenseWithNoReceipt: 'Απαιτείται απόδειξη',
-            categoryOutOfPolicy: 'Η κατηγορία δεν είναι πλέον έγκυρη',
-            companyCardRequired: 'Απαιτείται εταιρική κάρτα',
-            conversionSurcharge: 'Εφαρμόστηκε προσαύξηση μετατροπής',
-            customUnitOutOfPolicy: 'Μη έγκυρη χρέωση για τον χώρο εργασίας',
-            customUnitRateOutOfDateRange: 'Χρέωση εκτός έγκυρων ημερομηνιών',
-            duplicatedTransaction: 'Πιθανό διπλότυπο',
-            fieldRequired: 'Απαιτείται πεδίο αναφοράς',
-            futureDate: 'Δεν επιτρέπεται μελλοντική ημερομηνία',
-            hold: 'Δαπάνη σε αναμονή',
-            inactiveVendor: 'Ο προμηθευτής δεν είναι πλέον έγκυρος',
-            increasedDistance: 'Η απόσταση υπερβαίνει τη διαδρομή',
-            invoiceMarkup: 'Το τιμολόγιο επισημάνθηκε',
-            itemizedReceiptRequired: 'Απαιτείται αναλυτική απόδειξη',
-            maxAge: 'Η δαπάνη είναι πολύ παλιά',
-            missingAttendees: 'Υποχρεωτικοί συμμετέχοντες',
-            missingCategory: 'Λείπει κατηγορία',
-            missingComment: 'Απαιτείται περιγραφή',
-            missingTag: 'Ελλιπής ετικέτα',
-            modifiedAmount: 'Το ποσό τροποποιήθηκε',
-            modifiedDate: 'Ημερομηνία τροποποίησης',
-            noRoute: 'Δεν υπάρχει έγκυρη διαδρομή',
-            nonExpensiworksExpense: 'Δαπάνη εκτός Expensiworks',
-            overAutoApprovalLimit: 'Πέρα από το όριο αυτόματης έγκρισης',
-            overCategoryLimit: 'Πάνω από το όριο κατηγορίας',
-            overLimit: 'Πέρα από το όριο',
-            overTripLimit: 'Υπέρβαση ορίου ταξιδιού',
-            perDayLimit: 'Υπέρβαση ημερήσιου ορίου',
-            prohibitedExpense: 'Απαγορευμένη δαπάνη',
-            receiptGeneratedWithAI: 'Πιθανή απόδειξη που δημιουργήθηκε με τεχνητή νοημοσύνη',
-            receiptNotSmartScanned: 'Η απόδειξη προστέθηκε χειροκίνητα',
-            receiptRequired: 'Απαιτείται απόδειξη',
-            rter: 'Αναμονή αντιστοίχισης κάρτας',
-            smartscanFailed: 'Η σάρωση της απόδειξης απέτυχε',
-            someTagLevelsRequired: 'Απαιτείται ετικέτα',
-            tagOutOfPolicy: 'Η ετικέτα δεν είναι πλέον έγκυρη',
-            overLimitAttendee: 'Πέρα από το όριο ατόμων',
-            customRules: 'Παράβαση προσαρμοσμένου κανόνα',
-            taxAmountChanged: 'Το ποσό φόρου τροποποιήθηκε',
-            taxOutOfPolicy: 'Ο φορολογικός συντελεστής δεν είναι πλέον έγκυρος',
-            taxRateChanged: 'Ο φορολογικός συντελεστής τροποποιήθηκε',
-            taxRequired: 'Λείπει ο φορολογικός συντελεστής',
-        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `Απαιτείται το πεδίο ${fieldName}`,
@@ -10667,6 +10647,7 @@ ${reportName}`,
         currentView: 'Τρέχουσα προβολή',
         reportLevelExport: 'Όλα τα δεδομένα - σε επίπεδο αναφοράς',
         expenseLevelExport: 'Όλα τα δεδομένα - επίπεδο δαπάνης',
+        multipleTaxExport: 'Καναδική εξαγωγή πολλαπλών φόρων',
         exportInProgress: 'Εξαγωγή σε εξέλιξη',
         conciergeWillSend: 'Ο Concierge θα σας στείλει το αρχείο σύντομα.',
         downloadStatementPDF: 'Λήψη κατάστασης',

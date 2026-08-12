@@ -40,10 +40,17 @@ import {
     buildOptimisticEmptyReport,
     buildOptimisticExpenseReport,
     buildOptimisticGroupChatReport,
+    buildOptimisticHoldReportAction,
+    buildOptimisticHoldReportActionComment,
     buildOptimisticInvoiceReport,
     buildOptimisticIOUReportAction,
     buildOptimisticMoneyRequestEntities,
+    buildOptimisticRejectReportAction,
+    buildOptimisticRejectReportActionComment,
+    buildOptimisticReportLevelRejectAction,
+    buildOptimisticReportLevelRejectCommentAction,
     buildOptimisticReportPreview,
+    buildOptimisticUnHoldReportAction,
     buildOptimisticWorkspaceChats,
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
@@ -341,6 +348,7 @@ const computeReportName = (
     conciergeReportID?: string,
 ) =>
     computeReportNameOriginal({
+        dateFnsLocale: undefined,
         report,
         reports,
         policies,
@@ -1284,7 +1292,7 @@ describe('ReportUtils', () => {
         it('should use the passed translate to name the workspace when the policy name cannot be resolved', () => {
             // Given a report whose policy is unavailable and that carries no stored policy name
             const report = {...LHNTestUtils.getFakeReport(), policyID: 'nonExistentPolicyID1'};
-            // And a custom translate that returns a sentinel for the unavailable-workspace key
+            // And a custom translate that returns a placeholder value for the unavailable-workspace key
             const customTranslate: LocalizedTranslate = () => 'CUSTOM_UNAVAILABLE_WS';
 
             // When the workspace icon is built with that translate
@@ -1309,7 +1317,7 @@ describe('ReportUtils', () => {
             // Given an available policy and a report pointing at it
             const availablePolicy = LHNTestUtils.getFakePolicy('wsIconAvailableID', 'Available WS');
             const report = {...LHNTestUtils.getFakeReport(), policyID: availablePolicy.id};
-            // And a custom translate that would surface a sentinel if the fallback were used
+            // And a custom translate that would surface a placeholder if the fallback were used
             const customTranslate: LocalizedTranslate = () => 'CUSTOM_UNAVAILABLE_WS';
 
             // When the workspace icon is built with the available policy
@@ -4801,6 +4809,7 @@ describe('ReportUtils', () => {
 
         it('should disable thread on split expense actions', () => {
             const reportAction = buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
                 amount: 50000,
                 currency: CONST.CURRENCY.USD,
@@ -5162,6 +5171,7 @@ describe('ReportUtils', () => {
             const reportPreviewReportActionID = '8';
             const expenseReport = buildOptimisticExpenseReport({
                 chatReportID: chatReport.reportID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 policyID: '123',
                 payeeAccountID: currentUserAccountID,
                 total: 122,
@@ -5176,8 +5186,17 @@ describe('ReportUtils', () => {
                     reportID: expenseReport.reportID,
                 },
             });
-            const reportPreview = buildOptimisticReportPreview(chatReport, expenseReport, '', expenseTransaction, expenseReport.reportID, reportPreviewReportActionID);
+            const reportPreview = buildOptimisticReportPreview(
+                chatReport,
+                expenseReport,
+                getCurrencyDecimalsLocal,
+                '',
+                expenseTransaction,
+                expenseReport.reportID,
+                reportPreviewReportActionID,
+            );
             const expenseCreatedAction = buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: 'create',
                 amount: 100,
                 currency: 'USD',
@@ -5218,7 +5237,7 @@ describe('ReportUtils', () => {
                 canUnholdRequest: false,
             });
 
-            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false, currentUserEmail, currentUserAccountID, undefined, false, []);
+            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID, false, currentUserEmail, currentUserAccountID, undefined, false, undefined, []);
             await waitForBatchedUpdates();
 
             const expenseReportUpdated = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -5283,6 +5302,7 @@ describe('ReportUtils', () => {
                 },
             });
             const expenseCreatedAction = buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 100,
                 currency: 'USD',
@@ -5319,6 +5339,7 @@ describe('ReportUtils', () => {
                 },
             });
             const expenseCreatedAction = buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 100,
                 currency: 'USD',
@@ -5350,6 +5371,7 @@ describe('ReportUtils', () => {
                 },
             });
             const expenseCreatedAction = buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 100,
                 currency: 'USD',
@@ -5427,6 +5449,7 @@ describe('ReportUtils', () => {
                 policyID,
             });
             const reportAction = buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 123,
                 currency: 'USD',
@@ -5456,7 +5479,7 @@ describe('ReportUtils', () => {
             const unholdRequestSpy = jest.spyOn(HoldUtils, 'unholdRequest').mockImplementation(() => undefined);
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false);
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false, undefined);
 
             // Then unholdRequest should be called with the correct parameters and navigation should not be called
             expect(unholdRequestSpy).toHaveBeenCalledWith(
@@ -5468,6 +5491,7 @@ describe('ReportUtils', () => {
                 currentUserAccountID,
                 undefined,
                 false,
+                undefined,
             );
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
@@ -5485,6 +5509,7 @@ describe('ReportUtils', () => {
             });
 
             const reportAction = buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 123,
                 currency: 'USD',
@@ -5510,7 +5535,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false);
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false, undefined);
 
             // Then navigation should be called with the correct parameters
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -5532,6 +5557,7 @@ describe('ReportUtils', () => {
             });
 
             const reportAction = buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 100,
                 currency: 'USD',
@@ -5547,6 +5573,7 @@ describe('ReportUtils', () => {
 
         it('should return undefined when no matching transaction exists', () => {
             const reportAction = buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 100,
                 currency: 'USD',
@@ -7225,7 +7252,15 @@ describe('ReportUtils', () => {
         });
 
         it('should return true when the report has outstanding violations', async () => {
-            const expenseReport = buildOptimisticExpenseReport({chatReportID: '212', policyID: '123', payeeAccountID: 100, total: 122, currency: 'USD', betas: [CONST.BETAS.ALL]});
+            const expenseReport = buildOptimisticExpenseReport({
+                chatReportID: '212',
+                policyID: '123',
+                payeeAccountID: 100,
+                total: 122,
+                currency: 'USD',
+                betas: [CONST.BETAS.ALL],
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -7234,6 +7269,7 @@ describe('ReportUtils', () => {
                 },
             });
             const expenseCreatedAction1 = buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: 'create',
                 amount: 100,
                 currency: 'USD',
@@ -7244,6 +7280,7 @@ describe('ReportUtils', () => {
                 iouReportID: expenseReport.reportID,
             });
             const expenseCreatedAction2 = buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: 'create',
                 amount: 100,
                 currency: 'USD',
@@ -7551,7 +7588,15 @@ describe('ReportUtils', () => {
         });
 
         it('should return false when the report is the single transaction thread', async () => {
-            const expenseReport = buildOptimisticExpenseReport({chatReportID: '212', policyID: '123', payeeAccountID: 100, total: 122, currency: 'USD', betas: [CONST.BETAS.ALL]});
+            const expenseReport = buildOptimisticExpenseReport({
+                chatReportID: '212',
+                policyID: '123',
+                payeeAccountID: 100,
+                total: 122,
+                currency: 'USD',
+                betas: [CONST.BETAS.ALL],
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -7560,6 +7605,7 @@ describe('ReportUtils', () => {
                 },
             });
             const expenseCreatedAction = buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: 'create',
                 amount: 100,
                 currency: 'USD',
@@ -8166,7 +8212,15 @@ describe('ReportUtils', () => {
 
         it('should not return HAS_IOU_VIOLATIONS for a settled (reimbursed) expense request with violations', async () => {
             const expenseReport: Report = {
-                ...buildOptimisticExpenseReport({chatReportID: '212', policyID: '123', payeeAccountID: 100, total: 122, currency: 'USD', betas: [CONST.BETAS.ALL]}),
+                ...buildOptimisticExpenseReport({
+                    chatReportID: '212',
+                    policyID: '123',
+                    payeeAccountID: 100,
+                    total: 122,
+                    currency: 'USD',
+                    betas: [CONST.BETAS.ALL],
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                }),
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
             };
             const expenseTransaction = buildOptimisticTransaction({
@@ -8177,6 +8231,7 @@ describe('ReportUtils', () => {
                 },
             });
             const expenseCreatedAction1 = buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: 'create',
                 amount: 100,
                 currency: 'USD',
@@ -8186,6 +8241,7 @@ describe('ReportUtils', () => {
                 iouReportID: expenseReport.reportID,
             });
             const expenseCreatedAction2 = buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: 'create',
                 amount: 100,
                 currency: 'USD',
@@ -8547,6 +8603,7 @@ describe('ReportUtils', () => {
     describe('buildOptimisticIOUReportAction', () => {
         it('should set the action reportID to the provided iouReportID when tracking a personal expense', () => {
             const iouAction = buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: 'track',
                 amount: 1200,
                 currency: 'INR',
@@ -10092,8 +10149,8 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            const reportNameValuePairs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: {private_isArchived: '2024-01-01 00:00:00.000'}};
-            expect(isReportOutstanding(report, policy.id, reportNameValuePairs)).toBe(false);
+            const reportNameValuePair = {private_isArchived: '2024-01-01 00:00:00.000'};
+            expect(isReportOutstanding(report, policy.id, reportNameValuePair)).toBe(false);
         });
     });
 
@@ -11580,8 +11637,8 @@ describe('ReportUtils', () => {
         });
 
         it('should push a missingCategory violation for an Uncategorized expense when categories are enabled', () => {
-            // A new expense is seeded with the 'Uncategorized' sentinel, not an empty category. Enabling categories must
-            // treat that sentinel as missing so the violation is written immediately.
+            // A new expense is seeded with the 'Uncategorized' placeholder, not an empty category. Enabling categories must
+            // treat that placeholder as missing so the violation is written immediately.
             const fakePolicyCategories = createRandomPolicyCategories(3);
             const fakeCategoryName = Object.keys(fakePolicyCategories).at(0) ?? '';
 
@@ -12842,7 +12899,7 @@ describe('ReportUtils', () => {
                 managerID: 2,
             };
 
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal);
 
             expect(reportPreviewAction.childOwnerAccountID).toBe(iouReport.ownerAccountID);
             expect(reportPreviewAction.childManagerAccountID).toBe(iouReport.managerID);
@@ -12864,10 +12921,11 @@ describe('ReportUtils', () => {
                 managerID: 2,
             };
 
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal);
             const updatedPreviewAction = updateReportPreview(
                 iouReport,
                 reportPreviewAction,
+                getCurrencyDecimalsLocal,
                 false,
                 '',
                 createMock<Transaction>({
@@ -12929,6 +12987,7 @@ describe('ReportUtils', () => {
         };
 
         const createFormulaContext = (reportParam: Report, policyParam: Policy, reportTransactions: Record<string, Transaction> = {}): FormulaContext => ({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             report: reportParam,
             policy: policyParam,
             allTransactions: reportTransactions,
@@ -14569,7 +14628,15 @@ describe('ReportUtils', () => {
 
             const total = 100;
             const currency = CONST.CURRENCY.USD;
-            const expenseReport = buildOptimisticExpenseReport({chatReportID, policyID: undefined, payeeAccountID: 1, total, currency, betas: [CONST.BETAS.ALL]});
+            const expenseReport = buildOptimisticExpenseReport({
+                chatReportID,
+                policyID: undefined,
+                payeeAccountID: 1,
+                total,
+                currency,
+                betas: [CONST.BETAS.ALL],
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
             expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayString(-total, currency)}`);
         });
 
@@ -14596,7 +14663,15 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReportID}`, reportDraft);
             const total = 100;
             const currency = CONST.CURRENCY.USD;
-            const expenseReport = buildOptimisticExpenseReport({chatReportID, policyID, payeeAccountID: 1, total, currency, betas: [CONST.BETAS.ALL]});
+            const expenseReport = buildOptimisticExpenseReport({
+                chatReportID,
+                policyID,
+                payeeAccountID: 1,
+                total,
+                currency,
+                betas: [CONST.BETAS.ALL],
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
 
             // Then the report name should be "New Report" instead of the default name
             expect(expenseReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
@@ -14625,7 +14700,15 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReportID}`, reportDraft);
             const total = 100;
             const currency = CONST.CURRENCY.USD;
-            const expenseReport = buildOptimisticExpenseReport({chatReportID, policyID, payeeAccountID: 1, total, currency, betas: [CONST.BETAS.ALL]});
+            const expenseReport = buildOptimisticExpenseReport({
+                chatReportID,
+                policyID,
+                payeeAccountID: 1,
+                total,
+                currency,
+                betas: [CONST.BETAS.ALL],
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
 
             // Then the report name should be the default expense report name
             expect(expenseReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
@@ -16019,7 +16102,15 @@ describe('ReportUtils', () => {
         const mockReceiverName = 'John Doe';
         const mockTotal = 100;
         const mockCurrency = 'USD';
-        const optimisticInvoiceReport = buildOptimisticInvoiceReport(mockChatReportID, mockPolicyID, mockReceiverAccountID, mockReceiverName, mockTotal, mockCurrency);
+        const optimisticInvoiceReport = buildOptimisticInvoiceReport(
+            mockChatReportID,
+            mockPolicyID,
+            mockReceiverAccountID,
+            mockReceiverName,
+            mockTotal,
+            mockCurrency,
+            getCurrencyDecimalsLocal,
+        );
 
         expect(optimisticInvoiceReport.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
         expect(optimisticInvoiceReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
@@ -18361,7 +18452,17 @@ describe('ReportUtils', () => {
             const timeOfCreation = DateUtils.getDBTime();
 
             // Then the report name should be "New Report"
-            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, currentUserEmail, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
+            const optimisticReport = buildOptimisticEmptyReport(
+                reportID,
+                accountID,
+                currentUserEmail,
+                parentReport,
+                parentReportActionID,
+                policyWithEmptyFieldList,
+                timeOfCreation,
+                betas,
+                getCurrencyDecimalsLocal,
+            );
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
 
@@ -18390,7 +18491,17 @@ describe('ReportUtils', () => {
             const timeOfCreation = DateUtils.getDBTime();
 
             // Then the report name should be "New Report"
-            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, currentUserEmail, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
+            const optimisticReport = buildOptimisticEmptyReport(
+                reportID,
+                accountID,
+                currentUserEmail,
+                parentReport,
+                parentReportActionID,
+                policyWithEmptyFieldList,
+                timeOfCreation,
+                betas,
+                getCurrencyDecimalsLocal,
+            );
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
     });
@@ -20200,13 +20311,13 @@ describe('ReportUtils', () => {
     describe('buildOptimisticApprovedReportAction', () => {
         it('should set actorAccountID to the provided currentUserAccountID', () => {
             const customAccountID = 99;
-            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', customAccountID, undefined);
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', customAccountID, undefined, getCurrencyDecimalsLocal);
 
             expect(action.actorAccountID).toBe(customAccountID);
         });
 
         it('should set actionName to APPROVED', () => {
-            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID, undefined);
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID, undefined, getCurrencyDecimalsLocal);
 
             expect(action.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.APPROVED);
         });
@@ -20215,19 +20326,19 @@ describe('ReportUtils', () => {
             const amount = 1200;
             const currency = 'EUR';
             const expenseReportID = 'report42';
-            const action = buildOptimisticApprovedReportAction(amount, currency, expenseReportID, currentUserAccountID, undefined);
+            const action = buildOptimisticApprovedReportAction(amount, currency, expenseReportID, currentUserAccountID, undefined, getCurrencyDecimalsLocal);
 
             expect(getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>)).toMatchObject({amount, currency, expenseReportID});
         });
 
         it('should set pendingAction to ADD', () => {
-            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID, undefined);
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID, undefined, getCurrencyDecimalsLocal);
 
             expect(action.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
         });
 
         it('should generate a non-empty reportActionID', () => {
-            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID, undefined);
+            const action = buildOptimisticApprovedReportAction(500, 'USD', 'expenseReport1', currentUserAccountID, undefined, getCurrencyDecimalsLocal);
 
             expect(action.reportActionID).toBeTruthy();
         });
@@ -20490,6 +20601,34 @@ describe('ReportUtils', () => {
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
         });
+
+        it('should fall back to the stored action message when the destination policy is not available locally', () => {
+            const storedHtml = 'moved this report to the <a href="https://new.expensify.com">Test Workspace</a> workspace';
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: storedHtml,
+                        text: 'moved this report to the Test Workspace workspace',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                    },
+                ],
+                originalMessage: {
+                    // A policy ID that is intentionally not present in Onyx, mirroring a non-member user.
+                    toPolicyID: '99999999',
+                    newParentReportID: '11111',
+                    movedReportID: '22222',
+                },
+            });
+
+            const report = LHNTestUtils.getFakeReport();
+            const result = getMovedActionMessage(translateLocal, action, report);
+            expect(result).toBe(storedHtml);
+        });
     });
     describe('getReportActionWithSmartscanError', () => {
         const chatReportID = '100';
@@ -20544,7 +20683,7 @@ describe('ReportUtils', () => {
         };
 
         // REPORT_PREVIEW action that sits in the chat report and links to the expense report
-        const reportPreviewAction = buildOptimisticReportPreview(chatReport, expenseReport, '', transaction);
+        const reportPreviewAction = buildOptimisticReportPreview(chatReport, expenseReport, getCurrencyDecimalsLocal, '', transaction);
 
         beforeAll(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
@@ -20758,6 +20897,7 @@ describe('ReportUtils', () => {
         const buildIOUAction = (overrides?: Partial<ReportAction>) =>
             createMock<ReportAction>({
                 ...buildOptimisticIOUReportAction({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     type: 'create',
                     amount: 100,
                     currency: 'USD',
@@ -20773,6 +20913,7 @@ describe('ReportUtils', () => {
         const buildExpenseReport = () =>
             buildOptimisticExpenseReport({
                 chatReportID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 policyID: '123',
                 payeeAccountID: actorAccountID,
                 total: 100,
@@ -20844,6 +20985,7 @@ describe('ReportUtils', () => {
             const chatReport: Report = {reportID: '8001'};
             const expenseReport = buildOptimisticExpenseReport({
                 chatReportID: chatReport.reportID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 policyID: '123',
                 payeeAccountID: currentUserAccountID,
                 total: 200,
@@ -20853,6 +20995,7 @@ describe('ReportUtils', () => {
             const otherActorAccountID = 99;
 
             const [, , iouAction, transactionThread] = buildOptimisticMoneyRequestEntities({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 iouReport: expenseReport,
                 type: 'create',
                 amount: 200,
@@ -20879,6 +21022,7 @@ describe('ReportUtils', () => {
             const chatReport: Report = {reportID: '8002'};
             const expenseReport = buildOptimisticExpenseReport({
                 chatReportID: chatReport.reportID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 policyID: '123',
                 payeeAccountID: currentUserAccountID,
                 total: 50,
@@ -20887,6 +21031,7 @@ describe('ReportUtils', () => {
             });
 
             const [, , , transactionThread, createdActionForThread] = buildOptimisticMoneyRequestEntities({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 iouReport: expenseReport,
                 type: 'create',
                 amount: 50,
@@ -21324,6 +21469,7 @@ describe('ReportUtils', () => {
         const buildExpenseReportForAutoReimbursement = () =>
             buildOptimisticExpenseReport({
                 chatReportID: '1',
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 policyID: '1',
                 payeeAccountID: 100,
                 total: 100,
@@ -21358,6 +21504,7 @@ describe('ReportUtils', () => {
         it('returns true when report is an expense report and policy type is a group type', () => {
             const expenseReport = buildOptimisticExpenseReport({
                 chatReportID: '1',
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 policyID: '1',
                 payeeAccountID: 100,
                 total: 100,
@@ -21372,6 +21519,7 @@ describe('ReportUtils', () => {
         it('returns false when report is an expense report but policy type is not a group type', () => {
             const expenseReport = buildOptimisticExpenseReport({
                 chatReportID: '1',
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 policyID: '1',
                 payeeAccountID: 100,
                 total: 100,
@@ -21881,6 +22029,45 @@ describe('areAllRequestsBeingSmartScanned', () => {
         const transactions = [buildScanningTransaction(1), scannedReceipt];
 
         expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(false);
+    });
+});
+
+describe('hold/unhold/reject optimistic builders set delegateAccountID', () => {
+    const DELEGATE_ACCOUNT_ID = 424242;
+
+    it('buildOptimisticHoldReportAction sets the passed delegateAccountID', () => {
+        expect(buildOptimisticHoldReportAction(DELEGATE_ACCOUNT_ID).delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        expect(buildOptimisticHoldReportAction(undefined).delegateAccountID).toBeUndefined();
+    });
+
+    it('buildOptimisticHoldReportActionComment sets the passed delegateAccountID', () => {
+        expect(buildOptimisticHoldReportActionComment('hold reason', DELEGATE_ACCOUNT_ID).delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        expect(buildOptimisticHoldReportActionComment('hold reason', undefined).delegateAccountID).toBeUndefined();
+    });
+
+    it('buildOptimisticUnHoldReportAction sets the passed delegateAccountID', () => {
+        expect(buildOptimisticUnHoldReportAction(DELEGATE_ACCOUNT_ID).delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        expect(buildOptimisticUnHoldReportAction(undefined).delegateAccountID).toBeUndefined();
+    });
+
+    it('buildOptimisticRejectReportAction sets the passed delegateAccountID', () => {
+        expect(buildOptimisticRejectReportAction(DELEGATE_ACCOUNT_ID).delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        expect(buildOptimisticRejectReportAction(undefined).delegateAccountID).toBeUndefined();
+    });
+
+    it('buildOptimisticRejectReportActionComment sets the passed delegateAccountID', () => {
+        expect(buildOptimisticRejectReportActionComment('reject reason', DELEGATE_ACCOUNT_ID).delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        expect(buildOptimisticRejectReportActionComment('reject reason', undefined).delegateAccountID).toBeUndefined();
+    });
+
+    it('buildOptimisticReportLevelRejectAction sets the passed delegateAccountID', () => {
+        expect(buildOptimisticReportLevelRejectAction(true, currentUserAccountID, 'Test User', undefined, DELEGATE_ACCOUNT_ID).delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        expect(buildOptimisticReportLevelRejectAction(true, currentUserAccountID, 'Test User', undefined, undefined).delegateAccountID).toBeUndefined();
+    });
+
+    it('buildOptimisticReportLevelRejectCommentAction sets the passed delegateAccountID', () => {
+        expect(buildOptimisticReportLevelRejectCommentAction('reject reason', currentUserAccountID, 'Test User', undefined, DELEGATE_ACCOUNT_ID).delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        expect(buildOptimisticReportLevelRejectCommentAction('reject reason', currentUserAccountID, 'Test User', undefined, undefined).delegateAccountID).toBeUndefined();
     });
 });
 

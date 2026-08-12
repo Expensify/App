@@ -57,6 +57,7 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import * as ApiUtils from '@libs/ApiUtils';
 import * as Browser from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+import {getCurrencyDecimals as getCurrencyDecimalsUtil} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as Environment from '@libs/Environment/Environment';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
@@ -367,8 +368,7 @@ type OpenReportActionParams = {
     currentUserLogin?: string;
 
     /** The current user's account ID */
-    // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66412
-    currentUserAccountID?: number;
+    currentUserAccountID: number;
 
     /** Whether the user has seen the self tour */
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
@@ -458,6 +458,7 @@ type MergeReportsProps = {
     isTrackIntentUser: boolean | undefined;
     personalPolicyOutputCurrency: string | undefined;
     selfDMReportActions: OnyxEntry<ReportActions>;
+    delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
@@ -1730,6 +1731,8 @@ function openReport(params: OpenReportActionParams) {
             iouReportID: transactionParentReportID,
             // delegateAccountIDParam: will be threaded in PR 15; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
             delegateAccountIDParam: undefined,
+            // Non-React call path: pass the standalone util until this file's own threading PR.
+            getCurrencyDecimals: getCurrencyDecimalsUtil,
         });
 
         // Override actor fields to show the submitter instead of current user.
@@ -2284,9 +2287,8 @@ type CreateTransactionThreadReportParams = {
     /** The violations for the transaction, if any */
     transactionViolations?: TransactionViolations;
 
-    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
     /** The personal details of the participants */
-    personalDetails?: OnyxEntry<PersonalDetailsList>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** Whether the user has seen the self tour */
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
@@ -2353,14 +2355,13 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
     if (iouReportAction?.actorAccountID && iouReportAction.actorAccountID !== currentUserAccountID) {
         participantAccountIDsForDetails.push(iouReportAction.actorAccountID);
     }
-    const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDsForDetails, personalDetails ?? allPersonalDetails);
+    const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDsForDetails, personalDetails);
     const participants = buildParticipantInfoFromLogins(participantLogins);
     openReport({
         reportID: optimisticTransactionThreadReportID,
         introSelected,
         participants,
-        // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-        personalDetails: personalDetails ?? allPersonalDetails,
+        personalDetails,
         newReportObject: optimisticTransactionThread,
         parentReportActionID: iouReportAction?.reportActionID,
         transaction,
@@ -4175,7 +4176,7 @@ function buildNewReportOptimisticData({
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
-    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, login, parentReport, reportPreviewReportActionID, policy, timeOfCreation, betas);
+    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, login, parentReport, reportPreviewReportActionID, policy, timeOfCreation, betas, getCurrencyDecimals);
 
     if (reportName) {
         optimisticReportData.reportName = reportName;
@@ -6489,6 +6490,7 @@ type DeleteAppReportProps = {
     reportTransactions: Record<string, Transaction>;
     allTransactionViolations: OnyxCollection<TransactionViolations>;
     bankAccountList: OnyxEntry<BankAccountList>;
+    delegateAccountID: number | undefined;
     hash?: number;
 };
 
@@ -6609,6 +6611,7 @@ function deleteAppReport({
     reportTransactions,
     allTransactionViolations,
     bankAccountList,
+    delegateAccountID,
     hash,
 }: DeleteAppReportProps) {
     if (!report?.reportID) {
@@ -6777,7 +6780,7 @@ function deleteAppReport({
             );
 
             if (isOnHold(transaction)) {
-                const unHoldAction = buildOptimisticUnHoldReportAction();
+                const unHoldAction = buildOptimisticUnHoldReportAction(delegateAccountID);
                 optimisticData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
@@ -6981,6 +6984,7 @@ function moveIOUReportToPolicy(
     iouReport: OnyxEntry<Report>,
     policy: Policy,
     reportPreviewAction: OnyxEntry<ReportAction>,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     isFromSettlementButton?: boolean,
     reportTransactions: Transaction[] = [],
 ): {policyExpenseChatReportID?: string; useTemporaryOptimisticExpenseChatReportID: boolean} | undefined {
@@ -7008,6 +7012,7 @@ function moveIOUReportToPolicy(
         policyID,
         optimisticExpenseChatReportID,
         reportPreviewAction,
+        getCurrencyDecimals,
         reportTransactions,
     );
 
@@ -7034,6 +7039,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     currentUserAccountID: number,
     submitterLogin: string | undefined,
     doesSubmitterPersonalDetailExist: boolean,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     reportTransactions: Transaction[] = [],
 ): {policyExpenseChatReportID?: string} | undefined {
     if (!policy || !iouReport) {
@@ -7166,7 +7172,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
         failureData: convertedFailureData,
         movedExpenseReportAction,
         movedReportAction,
-    } = convertIOUReportToExpenseReport(iouReport, policy, policyID, optimisticPolicyExpenseChatReportID, reportPreviewAction, reportTransactions);
+    } = convertIOUReportToExpenseReport(iouReport, policy, policyID, optimisticPolicyExpenseChatReportID, reportPreviewAction, getCurrencyDecimals, reportTransactions);
 
     optimisticData.push(...convertedOptimisticData);
     successData.push(...convertedSuccessData);
@@ -7191,6 +7197,7 @@ function convertIOUReportToExpenseReport(
     policyID: string,
     optimisticPolicyExpenseChatReportID: string,
     reportPreviewAction: OnyxEntry<ReportAction>,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     reportTransactions: Transaction[] = [],
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
@@ -7223,7 +7230,7 @@ function convertIOUReportToExpenseReport(
     }
 
     // Compute optimistic report name if applicable
-    const computedName = computeOptimisticReportName(expenseReport, policy, policyID, transactionsRecord);
+    const computedName = computeOptimisticReportName(expenseReport, policy, policyID, transactionsRecord, getCurrencyDecimals);
     if (computedName !== null) {
         expenseReport.reportName = computedName;
     }
@@ -7458,6 +7465,7 @@ function buildOptimisticChangePolicyData({
     optimisticPolicyExpenseChatReport,
     reportPreviewAction,
     isTrackIntentUser,
+    getCurrencyDecimals,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7472,6 +7480,7 @@ function buildOptimisticChangePolicyData({
     optimisticPolicyExpenseChatReport?: Report;
     reportPreviewAction: OnyxEntry<ReportAction>;
     isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 }) {
     const optimisticData: Array<
         OnyxUpdate<
@@ -7703,7 +7712,7 @@ function buildOptimisticChangePolicyData({
     // and set it as a parent of the moved report
     const policyExpenseChat = optimisticPolicyExpenseChatReport ?? getPolicyExpenseChat(report.ownerAccountID, policy.id);
     // TODO: delegateAccountIDParam will be threaded in PR 15 (https://github.com/Expensify/App/issues/66425)
-    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report, '', null, undefined, undefined, undefined);
+    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report, getCurrencyDecimals, '', null, undefined, undefined, undefined);
 
     const newPolicyExpenseChatReportID = policyExpenseChat?.reportID;
 
@@ -7952,6 +7961,7 @@ function changeReportPolicy({
     isReportLastVisibleArchived = false,
     reportPreviewAction,
     isTrackIntentUser,
+    getCurrencyDecimals,
     reportTransactions,
 }: {
     report: Report;
@@ -7967,6 +7977,7 @@ function changeReportPolicy({
     isReportLastVisibleArchived?: boolean;
     reportPreviewAction: OnyxEntry<ReportAction>;
     isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     reportTransactions: Transaction[];
 }) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report) || shouldBlockChangeReportPolicyForCommuterExclusion(reportTransactions, policy)) {
@@ -7986,6 +7997,7 @@ function changeReportPolicy({
         isReportLastVisibleArchived,
         reportPreviewAction,
         isTrackIntentUser,
+        getCurrencyDecimals,
     });
 
     const params = {
@@ -8019,6 +8031,7 @@ function changeReportPolicyAndInviteSubmitter({
     reportActionsList,
     reportPreviewAction,
     isTrackIntentUser,
+    getCurrencyDecimals,
     reportTransactions,
 }: {
     report: Report;
@@ -8035,6 +8048,7 @@ function changeReportPolicyAndInviteSubmitter({
     reportActionsList: OnyxCollection<ReportActions>;
     reportPreviewAction: OnyxEntry<ReportAction>;
     isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     reportTransactions: Transaction[];
 }) {
     if (
@@ -8097,6 +8111,7 @@ function changeReportPolicyAndInviteSubmitter({
         optimisticPolicyExpenseChatReport: membersChats.reportCreationData[submitterLogin],
         reportPreviewAction,
         isTrackIntentUser,
+        getCurrencyDecimals,
     });
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];
@@ -8279,6 +8294,7 @@ function mergeReports({
     isTrackIntentUser,
     personalPolicyOutputCurrency,
     selfDMReportActions,
+    delegateAccountID,
     getCurrencyDecimals,
 }: MergeReportsProps) {
     const reports = allReportsParam ?? allReports;
@@ -8303,11 +8319,12 @@ function mergeReports({
         policyTagList: policyTagList ?? {},
         transactions: transactionsToMove,
         allTransactionViolation,
-        allReports: reports,
+        reports,
         skippedReportIDs: sourceReportIDs,
         isTrackIntentUser,
         personalPolicyOutputCurrency,
         selfDMReportActions,
+        delegateAccountID,
         getCurrencyDecimals,
     });
 

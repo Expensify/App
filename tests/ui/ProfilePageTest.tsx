@@ -230,7 +230,7 @@ describe('ProfilePage - agent account', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    async function setupUser(email: string) {
+    async function setupUser(email: string, isCustomAgent = false) {
         const accountID = 123;
         await TestHelper.signInWithTestUser(accountID, email);
 
@@ -241,6 +241,7 @@ describe('ProfilePage - agent account', () => {
                 displayName: email,
                 avatar: 'https://example.com/avatar.png',
                 avatarThumbnail: 'https://example.com/avatar.png',
+                isCustomAgent,
             } as PersonalDetails,
         };
 
@@ -253,7 +254,7 @@ describe('ProfilePage - agent account', () => {
     }
 
     it('shows contact methods and private section but hides pronouns and timezone for agent account', async () => {
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
         await waitForBatchedUpdatesWithAct();
@@ -311,7 +312,7 @@ describe('ProfilePage - agent account', () => {
 
     it('shows AI prompt section with prompt text for agent account', async () => {
         const accountID = 123;
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
@@ -341,7 +342,7 @@ describe('ProfilePage - agent account', () => {
 
     it('calls openProfilePage on mount for agent account', async () => {
         const mockOpenProfilePage = jest.mocked(AgentActions.openProfilePage);
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
         await waitForBatchedUpdatesWithAct();
@@ -362,7 +363,7 @@ describe('ProfilePage - agent account', () => {
     it('calls updateAgentPrompt when saving non-empty prompt', async () => {
         const accountID = 123;
         const mockUpdateAgentPrompt = jest.mocked(AgentActions.updateAgentPrompt);
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
@@ -385,7 +386,7 @@ describe('ProfilePage - agent account', () => {
 
     it('does not show loading state on save button for a pending prompt update that was not user-initiated', async () => {
         const accountID = 123;
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
@@ -404,7 +405,7 @@ describe('ProfilePage - agent account', () => {
 
     it('shows loading state on save button while a user-initiated prompt update is pending', async () => {
         const accountID = 123;
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
@@ -435,7 +436,7 @@ describe('ProfilePage - agent account', () => {
     it('allows re-saving an edited prompt while offline even when a previous save is still pending', async () => {
         const accountID = 123;
         const mockUpdateAgentPrompt = jest.mocked(AgentActions.updateAgentPrompt);
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
             // Simulate a first offline save that is queued but not yet replayed: pendingAction stays 'update',
@@ -460,7 +461,7 @@ describe('ProfilePage - agent account', () => {
 
     it('clears save loader when network drops mid-save', async () => {
         const accountID = 123;
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
@@ -502,7 +503,7 @@ describe('ProfilePage - agent account', () => {
     it('does not call updateAgentPrompt when saving blank prompt', async () => {
         const accountID = 123;
         const mockUpdateAgentPrompt = jest.mocked(AgentActions.updateAgentPrompt);
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {

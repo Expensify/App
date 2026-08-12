@@ -76,7 +76,7 @@ function IOURequestStepDistanceManual({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceManualProps) {
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
@@ -120,6 +120,7 @@ function IOURequestStepDistanceManual({
         selector: hasSeenTourSelector,
     });
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
@@ -216,6 +217,7 @@ function IOURequestStepDistanceManual({
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID: currentUserAccountIDParam});
 
     const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
+        dateFnsLocale,
         currentUserAccountID: currentUserAccountIDParam,
         report,
         policy,
@@ -287,6 +289,7 @@ function IOURequestStepDistanceManual({
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
         handleMoneyRequestStepDistanceNavigation({
+            getCurrencyDecimals,
             iouType,
             action,
             report,
@@ -322,6 +325,7 @@ function IOURequestStepDistanceManual({
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
+            conciergeChat,
             draftTransactionIDs,
             optimisticTransactionID,
             optimisticChatReportID,

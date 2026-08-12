@@ -17,6 +17,7 @@ import Section from '@components/Section';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
+import useIsAgentAccount from '@hooks/useIsAgentAccount';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -32,7 +33,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {useIsAgentAccount} from '@libs/SessionUtils';
 import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
 
 import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
@@ -108,7 +108,7 @@ function ProfilePage() {
     }> = [
         {
             description: translate('displayNamePage.headerTitle'),
-            title: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: currentUserPersonalDetails, translate})),
+            title: temporaryGetDisplayNameOrDefault({passedPersonalDetails: currentUserPersonalDetails, translate, formatPhoneNumber}),
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
             testID: 'display-name-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DISPLAY_NAME,
@@ -132,7 +132,7 @@ function ProfilePage() {
             testID: 'status-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.STATUS,
         },
-        ...(!isAgentAccount
+        ...(isAgentAccount === false
             ? [
                   {
                       description: translate('pronounsPage.pronouns'),
@@ -328,7 +328,7 @@ function ProfilePage() {
                                 </MenuItemGroup>
                             )}
                         </Section>
-                        {isAgentAccount && (
+                        {isAgentAccount === true && (
                             <AgentAIPromptSection
                                 accountID={accountID}
                                 parentScrollViewRef={scrollViewRef}

@@ -2,6 +2,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 
+import ActivePolicyProvider from './ActivePolicyProvider';
 import ComposeProviders from './ComposeProviders';
 import createOnyxContext from './createOnyxContext';
 
@@ -42,6 +43,7 @@ function OnyxListItemProvider(props: OnyxListItemProviderProps) {
                 CardListProvider,
                 WorkspaceCardListProvider,
                 OnboardingValuesProvider,
+                ActivePolicyProvider,
             ]}
         >
             {props.children}
