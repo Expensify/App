@@ -39,7 +39,7 @@ Build and install a bootstrapped Android release APK with the Mobile-Expensify G
 
 ```shell
 ./Mobile-Expensify/Android/gradlew -p Mobile-Expensify/Android assembleRelease
-adb -s emulator-5554 install -r Mobile-Expensify/Android/build/outputs/apk/release/Android-release.apk
+adb -s emulator-5554 install -r Mobile-Expensify/Android/build/outputs/apk/release/Expensify-release.apk
 ```
 
 ## Run the benchmark
