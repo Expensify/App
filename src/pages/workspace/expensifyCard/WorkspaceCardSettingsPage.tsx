@@ -37,7 +37,7 @@ type WorkspaceCardSettingsPageProps = PlatformStackScreenProps<SettingsNavigator
 
 function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
 
@@ -58,7 +58,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const bankAccountNumber = bankAccountList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumber ?? '';
     const monthlySettlementDateText =
         settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY && settings?.monthlySettlementDate
-            ? translate('workspace.expensifyCard.monthlySettlementDate', format(new Date(settings.monthlySettlementDate), CONST.DATE.ORDINAL_DAY_OF_MONTH))
+            ? translate('workspace.expensifyCard.monthlySettlementDate', format(new Date(settings.monthlySettlementDate), CONST.DATE.ORDINAL_DAY_OF_MONTH, {locale: dateFnsLocale}))
             : undefined;
 
     return (
