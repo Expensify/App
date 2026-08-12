@@ -953,6 +953,45 @@ describe('TagsOptionsListUtils', () => {
                 {isTagRequired: false, shouldShow: true},
             ]);
         });
+
+        it('should keep marking every level required for dependent multi-level tags when policy.requiresTag is true even if a level required is false', () => {
+            const policyWithRequiresTag = {...mockPolicy, requiresTag: true, hasMultipleTagLists: true};
+            const dependentMultiLevelTags: PolicyTagLists = {
+                tagList1: {
+                    name: 'Level A',
+                    required: false,
+                    tags: {tagA: {name: 'A', enabled: true, rules: {parentTagsFilter: ''}}},
+                    orderWeight: 0,
+                },
+                tagList2: {
+                    name: 'Level B',
+                    required: false,
+                    tags: {tagB: {name: 'B', enabled: true, rules: {parentTagsFilter: 'A'}}},
+                    orderWeight: 1,
+                },
+                tagList3: {
+                    name: 'Level C',
+                    required: false,
+                    tags: {tagC: {name: 'C', enabled: true, rules: {parentTagsFilter: 'A:B'}}},
+                    orderWeight: 2,
+                },
+            };
+
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: policyWithRequiresTag,
+                policyTags: dependentMultiLevelTags,
+                transaction: {...mockTransaction, tag: 'A:B:C'},
+            });
+
+            // Dependent tags block submission on every level once requiresTag is on, so the badge must
+            // stay "Required" on every level regardless of each level's own `required` flag.
+            expect(result).toEqual([
+                {isTagRequired: true, shouldShow: true},
+                {isTagRequired: true, shouldShow: true},
+                {isTagRequired: true, shouldShow: true},
+            ]);
+        });
     });
 
     describe('getEnabledTags', () => {
