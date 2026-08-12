@@ -39600,6 +39600,14 @@ async function run() {
         console.log('Edited event did not change the comment body, skipping the edit check.');
         return;
     }
+    // The edit check only grades how much a proposal changed, so a heavily reworded discussion comment
+    // that merely mentions the word "Proposal" would otherwise come back as a substantial edit and get
+    // the bot's banner prepended. Either side being a proposal is enough: an edit can add the template
+    // to a comment that lacked it, or strip it from one that had it.
+    if (isCommentEditedEvent(payload) && !(0, ProposalUtils_1.default)(payload.changes.body?.from) && !(0, ProposalUtils_1.default)(payload.comment?.body)) {
+        console.log('Edited comment is not a proposal, skipping the edit check.');
+        return;
+    }
     console.log('ProposalPolice™ Action triggered for comment:', payload.comment?.body);
     console.log('-> GitHub Action Type: ', payload.action?.toUpperCase());
     if (!isCommentCreatedEvent(payload) && !isCommentEditedEvent(payload)) {

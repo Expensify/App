@@ -163,6 +163,19 @@ describe('proposalPoliceComment', () => {
         expect(mockCreateComment).toHaveBeenCalledWith('App', 1, buildTemplateReminderMessage('contributor'));
     });
 
+    it('does not run the edit check on an edited comment that is not a proposal', async () => {
+        // The edit check only grades how much a proposal changed, so a reworded discussion comment that
+        // merely mentions "Proposal" must not reach the model and come back as a substantial edit.
+        const discussion = '## Proposal Feedback\n@someone your proposal looks good, but could you clarify the testing strategy?';
+        setPayload({action: 'edited', comment: makeComment({body: `${discussion} Rewritten entirely.`}), changes: {body: {from: discussion}}});
+
+        await run();
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.promptResponses).not.toHaveBeenCalled();
+        expect(mockUpdateComment).not.toHaveBeenCalled();
+    });
+
     it('does not run the edit check when the edit left the comment body unchanged', async () => {
         // Without a previous body there is nothing to compare against, and an empty original would
         // read as a full rewrite and get flagged as substantial.
