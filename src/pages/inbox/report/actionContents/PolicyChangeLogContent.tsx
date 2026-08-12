@@ -107,6 +107,7 @@ type ResolverFn = (
     action: OnyxTypes.ReportAction,
     policy: OnyxEntry<OnyxTypes.Policy>,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+    dateFnsLocale: LocaleContextProps['dateFnsLocale'],
 ) => PolicyChangeLogMessageResult;
 
 // Reusable resolvers for action types that share the same handler
@@ -147,8 +148,10 @@ const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX]: (translate, action) => getForeignCurrencyDefaultTaxUpdateMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT]: (translate, action) => getWorkspaceCustomUnitUpdatedMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_CUSTOM_UNIT_RATES]: (translate, action) => getWorkspaceCustomUnitRateImportedMessage(translate, action),
-    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE]: (translate, action) => getWorkspaceCustomUnitRateAddedMessage(translate, action),
-    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE]: (translate, action) => getWorkspaceCustomUnitRateUpdatedMessage(translate, action),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE]: (translate, action, policy, convertToDisplayString, dateFnsLocale) =>
+        getWorkspaceCustomUnitRateAddedMessage(translate, dateFnsLocale, action),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE]: (translate, action, policy, convertToDisplayString, dateFnsLocale) =>
+        getWorkspaceCustomUnitRateUpdatedMessage(translate, dateFnsLocale, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE]: (translate, action) => getWorkspaceCustomUnitRateDeletedMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_SUB_RATE]: (translate, action) => getWorkspaceCustomUnitSubRateUpdatedMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_SUB_RATE]: (translate, action) => getWorkspaceCustomUnitSubRateDeletedMessage(translate, action),
@@ -280,7 +283,7 @@ type PolicyChangeLogContentProps = {
 };
 
 function PolicyChangeLogContent({action, policyID}: PolicyChangeLogContentProps) {
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
@@ -289,7 +292,7 @@ function PolicyChangeLogContent({action, policyID}: PolicyChangeLogContentProps)
         return null;
     }
 
-    const message = resolver(translate, action, policy, convertToDisplayString);
+    const message = resolver(translate, action, policy, convertToDisplayString, dateFnsLocale);
 
     if (typeof message === 'object') {
         return (

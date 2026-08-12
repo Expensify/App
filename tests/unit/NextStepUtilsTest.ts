@@ -21,7 +21,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
-import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 Onyx.init({keys: ONYXKEYS});
@@ -52,6 +52,7 @@ describe('libs/NextStepUtils', () => {
         };
         const report = buildOptimisticExpenseReport({
             chatReportID: 'fake-chat-report-id-1',
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             policyID,
             payeeAccountID: 1,
             total: -500,
@@ -103,6 +104,7 @@ describe('libs/NextStepUtils', () => {
                     policy,
                     '2025-03-31 13:23:11',
                     [CONST.BETAS.ALL],
+                    getCurrencyDecimalsLocal,
                 );
 
                 const expectedResult: ReportNextStep = {
@@ -849,6 +851,7 @@ describe('libs/NextStepUtils', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-1',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
@@ -878,6 +881,7 @@ describe('libs/NextStepUtils', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-2',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
@@ -949,6 +953,7 @@ describe('libs/NextStepUtils', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-3',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
@@ -1002,6 +1007,7 @@ describe('libs/NextStepUtils', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-4',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
@@ -1075,7 +1081,7 @@ describe('libs/NextStepUtils', () => {
             };
 
             // A currentUserAccountID different from the actor renders the actor as an OTHER_USER, so its name appears in the message.
-            const message = buildNextStepMessage(nextStep, translateWithHiddenMarker, 999999, formatPhoneNumber);
+            const message = buildNextStepMessage(nextStep, translateWithHiddenMarker, undefined, 999999, formatPhoneNumber);
             expect(message).toBe('<next-step>Waiting for HiddenMarker to submit expenses.</next-step>');
         });
 
@@ -1097,7 +1103,7 @@ describe('libs/NextStepUtils', () => {
             };
             const formatPhoneNumberMock = jest.fn((phoneNumber: string) => `formatted:${phoneNumber}`);
 
-            const message = buildNextStepMessage(nextStep, translateWithActorName, 999999, formatPhoneNumberMock);
+            const message = buildNextStepMessage(nextStep, translateWithActorName, undefined, 999999, formatPhoneNumberMock);
 
             expect(formatPhoneNumberMock).toHaveBeenCalledWith(phoneActorLogin);
             expect(message).toBe(`<next-step>Waiting for formatted:${phoneActorLogin} to submit expenses.</next-step>`);
@@ -1153,6 +1159,7 @@ describe('libs/NextStepUtils', () => {
             ({
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-track-intent',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: currentUserAccountID,
                     total: -500,

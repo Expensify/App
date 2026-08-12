@@ -46,7 +46,7 @@ function WorkspacesListPage() {
     const tableRef = useRef<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>>(null);
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     useDocumentTitle(translate('common.workspaces'));
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
@@ -129,7 +129,7 @@ function WorkspacesListPage() {
                 ownerAccountID,
                 ownerLogin: ownerDetails ? ownerDetails.login : undefined,
                 ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
-                ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate}) : undefined,
+                ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate, formatPhoneNumber}) : undefined,
                 iconType: policy.nonMemberDetails.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                 icon: policy.nonMemberDetails.avatar ? policy.nonMemberDetails.avatar : undefined,
                 action: () => null,
@@ -158,7 +158,7 @@ function WorkspacesListPage() {
                 isDeleted: policy.isPendingDelete,
                 ownerLogin: ownerDetails ? ownerDetails.login : undefined,
                 ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
-                ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate}) : undefined,
+                ownerName: ownerDetails ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate, formatPhoneNumber}) : undefined,
                 iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                 icon: policy.avatarURL,
                 pendingAction: policy.pendingAction,

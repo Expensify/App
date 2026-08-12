@@ -10,9 +10,10 @@ import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Tas
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
-import {getAllPersonalDetailLogins, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getAllReportActions} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, isConciergeChatReport} from '@libs/ReportUtils';
+import {getAllPersonalDetailLogins} from '@libs/ShortMentionLogins';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import getSendMessageListWeight from '@libs/telemetry/getSendMessageListWeight';
 import getSendMessageSource from '@libs/telemetry/getSendMessageSource';
@@ -160,18 +161,25 @@ function useComposerSubmit(reportID: string) {
         const optimisticReportActionID = rand64();
         const isScrolledToBottom = scrollOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
         if (isScrolledToBottom) {
-            const spanID = `${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${optimisticReportActionID}`;
             const {reportActionCount, moneyRequestPreviewCount} = getSendMessageListWeight(getAllReportActions(reportID), reportID, canUserPerformWriteAction(report, isReportArchived));
-            startSpan(spanID, {
+            const attributes = {
+                [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
+                [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: draftMessageTrimmed.length,
+                [CONST.TELEMETRY.ATTRIBUTE_SEND_MESSAGE_SOURCE]: getSendMessageSource({report, conciergeReportID, isInSidePanel, routeName: route.name}),
+                [CONST.TELEMETRY.ATTRIBUTE_REPORT_ACTION_COUNT]: reportActionCount,
+                [CONST.TELEMETRY.ATTRIBUTE_MONEY_REQUEST_PREVIEW_COUNT]: moneyRequestPreviewCount,
+            };
+            startSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${optimisticReportActionID}`, {
                 name: 'send-message',
                 op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
-                attributes: {
-                    [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
-                    [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: draftMessageTrimmed.length,
-                    [CONST.TELEMETRY.ATTRIBUTE_SEND_MESSAGE_SOURCE]: getSendMessageSource({report, conciergeReportID, isInSidePanel, routeName: route.name}),
-                    [CONST.TELEMETRY.ATTRIBUTE_REPORT_ACTION_COUNT]: reportActionCount,
-                    [CONST.TELEMETRY.ATTRIBUTE_MONEY_REQUEST_PREVIEW_COUNT]: moneyRequestPreviewCount,
-                },
+                attributes,
+            });
+            // Dual-emit while validating the new anchor: same start, but ended at the message's onLayout
+            // (visibility) instead of the passive effect. Remove the effect-anchored span once compared.
+            startSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${optimisticReportActionID}`, {
+                name: 'send-message-visible',
+                op: CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE,
+                attributes,
             });
         }
         addComment({

@@ -64,7 +64,7 @@ describe('AccountManagerBanner', () => {
     it('renders the banner body using account.accountManagerAccountID (the OpenApp-populated field)', async () => {
         await Onyx.merge(ONYXKEYS.ACCOUNT, {
             accountManagerReportID: ACCOUNT_MANAGER_REPORT_ID,
-            accountManagerAccountID: String(ACCOUNT_MANAGER_ACCOUNT_ID),
+            accountManagerAccountID: ACCOUNT_MANAGER_ACCOUNT_ID,
         });
 
         renderBanner();
