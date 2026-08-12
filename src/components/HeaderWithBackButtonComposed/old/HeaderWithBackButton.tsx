@@ -35,6 +35,8 @@ import ROUTES from '@src/ROUTES';
 
 import {Keyboard, StyleSheet, View} from 'react-native';
 
+import HeaderPolicyAvatar from '../primitives/HeaderPolicyAvatar';
+
 function HeaderWithBackButton({
     icon,
     iconFill,
@@ -179,15 +181,7 @@ function HeaderWithBackButton({
                         fill={iconFill}
                     />
                 )}
-                {!!policyAvatar && (
-                    <Avatar
-                        containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
-                        source={policyAvatar?.source}
-                        name={policyAvatar?.name}
-                        avatarID={policyAvatar?.id}
-                        type={policyAvatar?.type}
-                    />
-                )}
+                {!!policyAvatar && <HeaderPolicyAvatar policyAvatar={policyAvatar} />}
                 {!!progressBarPercentage && (
                     <HeaderProgressBar
                         percentageProgress={progressBarPercentage}
