@@ -50,7 +50,7 @@ jest.mock('@libs/actions/Travel', () => {
     };
 });
 
-const mockShowConfirmModal = jest.fn();
+const mockShowConfirmModal = jest.fn<void, [{prompt?: string}]>();
 jest.mock('@hooks/useConfirmModal', () => jest.fn().mockImplementation(() => ({showConfirmModal: mockShowConfirmModal, closeModal: jest.fn()})));
 
 jest.mock('@libs/openTravelDotLink', () => ({
@@ -197,7 +197,8 @@ describe('BookTravelButton', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then they are told which default workspace is blocking them, and Expensify Travel is not opened
-            expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: expect.stringContaining(DEFAULT_POLICY_NAME)}));
+            expect(mockShowConfirmModal).toHaveBeenCalled();
+            expect(mockShowConfirmModal.mock.lastCall?.[0].prompt).toContain(DEFAULT_POLICY_NAME);
             expect(openTravelDotLink).not.toHaveBeenCalled();
         });
 
