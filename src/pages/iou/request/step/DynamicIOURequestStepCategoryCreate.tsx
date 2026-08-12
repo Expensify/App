@@ -178,10 +178,12 @@ function DynamicIOURequestStepCategoryCreate({
             setMoneyRequestCategory(transactionID, categoryName, policy, getCurrencyDecimals);
         }
 
-        // `action === CATEGORIZE` only ever occurs when categorizing a fresh tracked expense directly from a
-        // report (never from an existing Confirmation screen), so continue forward into Confirmation here.
+        // A categorize flow may already have an existing Confirmation screen in the stack (e.g. reached via
+        // the Participants step) or not (fresh tracked expense categorized directly from a report). goBack
+        // with the Confirmation route pops back to it when present, or replaces forward into it otherwise -
+        // either way avoiding a duplicated Confirmation entry.
         if (!isEditing && action === CONST.IOU.ACTION.CATEGORIZE) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? reportID));
             return;
         }
         Navigation.goBack(backPath);

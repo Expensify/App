@@ -11974,6 +11974,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
                 Navigation.navigate(
                     createDynamicRoute(
                         DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID: policyExpenseReportID}),
+                        ROUTES.REPORT_WITH_ID.getRoute(reportID),
                     ),
                 );
             } else {
@@ -12009,7 +12010,10 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         ]);
         if (policyExpenseReportID) {
             Navigation.navigate(
-                createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID: policyExpenseReportID})),
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID: policyExpenseReportID}),
+                    ROUTES.REPORT_WITH_ID.getRoute(reportID),
+                ),
             );
         } else {
             Log.warn('policyExpenseReportID is not valid during expense categorizing');
