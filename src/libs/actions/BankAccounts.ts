@@ -8,6 +8,7 @@ import type {
     BankAccountHandlePlaidErrorParams,
     ConnectBankAccountParams,
     DeletePaymentBankAccountParams,
+    LinkPlaidToBankAccountParams,
     EnableGlobalReimbursementsForUSDBankAccountParams,
     FinishCorpayBankAccountOnboardingParams,
     OpenReimbursementAccountPageParams,
@@ -478,6 +479,39 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
     };
 
     API.write(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, parameters, getVBBADataForOnyx());
+}
+
+/**
+ * Link (or re-link/fix) an existing verified Business Bank Account to Plaid.
+ */
+function linkPlaidToBankAccount(bankAccountID: number, publicToken: string, mask: string | undefined, policyID: string | undefined) {
+    const parameters: LinkPlaidToBankAccountParams = {bankAccountID, publicToken, mask, policyID};
+
+    const onyxData: OnyxData<typeof ONYXKEYS.LINK_PLAID_TO_BANK_ACCOUNT> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.LINK_PLAID_TO_BANK_ACCOUNT,
+                value: {bankAccountID, isLoading: true, isSuccess: false},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.LINK_PLAID_TO_BANK_ACCOUNT,
+                value: {isLoading: false, isSuccess: true},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.LINK_PLAID_TO_BANK_ACCOUNT,
+                value: {isLoading: false, isSuccess: false},
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.LINK_PLAID_TO_BANK_ACCOUNT, parameters, onyxData);
 }
 
 /**
@@ -1881,6 +1915,8 @@ export {
     openPlaidView,
     connectBankAccountManually,
     connectBankAccountWithPlaid,
+    clearPlaid,
+    linkPlaidToBankAccount,
     createCorpayBankAccount,
     deletePaymentBankAccount,
     handlePlaidError,
