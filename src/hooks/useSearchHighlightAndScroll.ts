@@ -115,16 +115,16 @@ function useSearchHighlightAndScroll({
             hasPendingSearchRef.current = false;
 
             // Transaction Onyx keys are `transactions_<id>` but search results yield bare IDs, so read the ID off the value.
-            const addedIDs: string[] = [];
-            const currentIDs: string[] = [];
+            const addedTransactionIDs: string[] = [];
+            const currentTransactionIDs: string[] = [];
             for (const [key, transaction] of Object.entries(transactions ?? {})) {
                 const transactionID = transaction?.transactionID;
                 if (!transactionID) {
                     continue;
                 }
-                currentIDs.push(transactionID);
+                currentTransactionIDs.push(transactionID);
                 if (!previousTransactionsIDsSet.has(key)) {
-                    addedIDs.push(transactionID);
+                    addedTransactionIDs.push(transactionID);
                 }
             }
 
@@ -133,12 +133,12 @@ function useSearchHighlightAndScroll({
                 currentSearchResultIDs = isChat ? extractReportActionIDsFromSearchResults(searchResultsData) : extractTransactionIDsFromSearchResults(searchResultsData);
             }
             const existingSearchResultIDsSet = new Set(currentSearchResultIDs);
-            const hasAGenuinelyNewID = (isChat ? reportActionsIDs : addedIDs).some((id) => !existingSearchResultIDsSet.has(id));
+            const hasAGenuinelyNewID = (isChat ? reportActionsIDs : addedTransactionIDs).some((id) => !existingSearchResultIDsSet.has(id));
 
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search
             if (!hasAGenuinelyNewID && currentSearchResultIDs.length > 0) {
-                const currentIDsSet = new Set(isChat ? reportActionsIDs : currentIDs);
+                const currentIDsSet = new Set(isChat ? reportActionsIDs : currentTransactionIDs);
                 const hasDeletedID = currentSearchResultIDs.some((id) => !currentIDsSet.has(id));
                 if (!hasDeletedID) {
                     return;
