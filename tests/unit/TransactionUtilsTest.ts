@@ -470,6 +470,7 @@ describe('TransactionUtils', () => {
                 },
             };
             const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
                 comment: {
                     customUnit: {
                         distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
@@ -510,6 +511,293 @@ describe('TransactionUtils', () => {
                 amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             });
+        });
+
+        it('recalculates amount/merchant on a rate change when waypoints are pending but the distance is known locally', () => {
+            // Given: a policy with two mileage rates
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rate1: {customUnitRateID: 'rate1', currency: CONST.CURRENCY.USD, rate: 1},
+                            rate2: {customUnitRateID: 'rate2', currency: CONST.CURRENCY.USD, rate: 2},
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            // And: a freshly created (not-yet-confirmed) waypoint expense — waypoints are pending on the server,
+            // but the route distance is already known locally (quantity).
+            const transaction = generateTransaction({
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+                pendingFields: {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            });
+
+            // When: changing the rate while waypoints are still pending
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {customUnitRateID: 'rate2'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            // Then: the amount/merchant are recalculated locally against the new rate (10 mi × rate2), not deferred to the server
+            expect(updatedTransaction.comment?.customUnit?.customUnitRateID).toBe('rate2');
+            expect(updatedTransaction.modifiedAmount).toBe(20);
+            expect(updatedTransaction.modifiedMerchant).toContain('mi');
+        });
+
+        it('defers amount/merchant recalculation on a rate change when waypoints are pending and no distance is known locally', () => {
+            // Given: a policy with two mileage rates
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rate1: {customUnitRateID: 'rate1', currency: CONST.CURRENCY.USD, rate: 1},
+                            rate2: {customUnitRateID: 'rate2', currency: CONST.CURRENCY.USD, rate: 2},
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            // And: waypoint addresses were just edited — the server is computing the route, so there is no
+            // local distance (no quantity, no routes) to recalculate from.
+            const transaction = generateTransaction({
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+                pendingFields: {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            });
+
+            // When: changing the rate while waypoints are still pending
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {customUnitRateID: 'rate2'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            // Then: the rate id updates, but amount/merchant recalculation is deferred to the server (no valid local mileage data)
+            expect(updatedTransaction.comment?.customUnit?.customUnitRateID).toBe('rate2');
+            expect(updatedTransaction.modifiedAmount).not.toBe(20);
+        });
+
+        it('defers amount/merchant recalculation on a rate change when the pending waypoint edit invalidated the amount', () => {
+            // Given: a policy with two mileage rates
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rate1: {customUnitRateID: 'rate1', currency: CONST.CURRENCY.USD, rate: 1},
+                            rate2: {customUnitRateID: 'rate2', currency: CONST.CURRENCY.USD, rate: 2},
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            // And: the waypoints of an existing distance expense were just edited, so the amount/merchant were
+            // zeroed out while the server computes the new route. The quantity/routes left over from the
+            // pre-edit route are stale and must not be used to recalculate.
+            const transaction = generateTransaction({
+                amount: CONST.IOU.DEFAULT_AMOUNT,
+                modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+                routes: {
+                    route0: {
+                        distance: 16093,
+                        geometry: {
+                            coordinates: [
+                                [0, 0],
+                                [1, 1],
+                            ],
+                            type: 'LineString',
+                        },
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+                pendingFields: {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            });
+
+            // When: changing the rate before the new route arrives
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {customUnitRateID: 'rate2'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            // Then: the rate id updates, but the stale distance is not turned into an amount/merchant
+            expect(updatedTransaction.comment?.customUnit?.customUnitRateID).toBe('rate2');
+            expect(updatedTransaction.modifiedAmount).toBe(CONST.IOU.DEFAULT_AMOUNT);
+        });
+
+        it('recalculates commuter exclusion data when distance is changed', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 3,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            default: {
+                                customUnitRateID: '1',
+                                currency: CONST.CURRENCY.USD,
+                                rate: 1,
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                        commuterExclusion: 3,
+                        reimbursableDistance: 7,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+            });
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {distance: 20},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(20);
+            expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBe(3);
+            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBe(17);
+            expect(updatedTransaction.modifiedAmount).toBe(17);
+            expect(updatedTransaction.modifiedMerchant).toContain('17');
+            expect(updatedTransaction.modifiedMerchant).not.toContain('20');
+        });
+
+        it('converts commuter exclusion data when the distance rate unit is changed', () => {
+            // Given a policy with a 3 mile fixed distance commuter exclusion and a kilometer rate
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 3,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            // getMileageRates keys its result by the rates map key, so it must match customUnitRateID
+                            ID1: {
+                                customUnitRateID: '1',
+                                currency: CONST.CURRENCY.EUR,
+                                rate: 10,
+                            },
+                            ID2: {
+                                customUnitRateID: '2',
+                                currency: CONST.CURRENCY.EUR,
+                                rate: 30,
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                        },
+                    },
+                },
+            };
+
+            // And a 10 mile expense whose reimbursable distance is 7 miles after the exclusion
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'ID1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                        commuterExclusion: 3,
+                        reimbursableDistance: 7,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+            });
+
+            // When the rate is changed
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {customUnitRateID: 'ID2'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            // Then the original distance and commuter exclusion are converted to kilometers
+            expect(updatedTransaction.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(16.09);
+            expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBeCloseTo(4.83);
+            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBeCloseTo(11.26);
+
+            // And the amount and merchant use the converted reimbursable distance at the kilometer rate
+            expect(updatedTransaction.modifiedAmount).toBe(338);
+            expect(updatedTransaction.modifiedMerchant).toBe('11.26 km @ EUR 0.30 / km');
         });
 
         it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
@@ -1024,12 +1312,12 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('Starbucks');
         });
 
-        it('should normalize the DEFAULT_MERCHANT ("Expense") sentinel to an empty string', () => {
+        it('should normalize the DEFAULT_MERCHANT ("Expense") placeholder value to an empty string', () => {
             const transaction = generateTransaction({merchant: CONST.TRANSACTION.DEFAULT_MERCHANT});
             expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('');
         });
 
-        it('should normalize the PARTIAL_TRANSACTION_MERCHANT ("(none)") sentinel to an empty string', () => {
+        it('should normalize the PARTIAL_TRANSACTION_MERCHANT ("(none)") placeholder value to an empty string', () => {
             const transaction = generateTransaction({merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT});
             expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('');
         });
@@ -2030,28 +2318,30 @@ describe('TransactionUtils', () => {
         });
     });
 
-    describe('shouldShowExpenseBreakdown', () => {
-        it('should return false when transactions array is undefined', () => {
-            expect(TransactionUtils.shouldShowExpenseBreakdown(undefined)).toBe(false);
+    describe('hasNonReimbursableTransactions', () => {
+        it('returns false when transactions array is undefined', () => {
+            expect(TransactionUtils.hasNonReimbursableTransactions(undefined)).toBe(false);
         });
 
-        it('should return false when transactions array is empty', () => {
-            expect(TransactionUtils.shouldShowExpenseBreakdown([])).toBe(false);
+        it('returns false when transactions array is empty', () => {
+            expect(TransactionUtils.hasNonReimbursableTransactions([])).toBe(false);
         });
 
-        it('should return false when all transactions are reimbursable', () => {
-            const transactions = [generateTransaction({reimbursable: true}), generateTransaction({reimbursable: true})];
-            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(false);
+        it('returns false when all transactions are reimbursable by default', () => {
+            const t1 = generateTransaction({reimbursable: undefined});
+            const t2 = generateTransaction({reimbursable: true});
+            expect(TransactionUtils.hasNonReimbursableTransactions([t1, t2])).toBe(false);
         });
 
-        it('should return true when all transactions are non-reimbursable', () => {
+        it('returns true when all transactions are non-reimbursable', () => {
             const transactions = [generateTransaction({reimbursable: false}), generateTransaction({reimbursable: false})];
-            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(true);
+            expect(TransactionUtils.hasNonReimbursableTransactions(transactions)).toBe(true);
         });
 
-        it('should return true when there are both reimbursable and non-reimbursable transactions', () => {
-            const transactions = [generateTransaction({reimbursable: true}), generateTransaction({reimbursable: false})];
-            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(true);
+        it('returns true when any transaction is non-reimbursable', () => {
+            const reimbursable = generateTransaction({reimbursable: true});
+            const nonReimbursable = generateTransaction({reimbursable: false});
+            expect(TransactionUtils.hasNonReimbursableTransactions([reimbursable, nonReimbursable])).toBe(true);
         });
     });
 

@@ -488,12 +488,12 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Anno precedente',
         nextYear: "L'anno prossimo",
         avatar: 'Avatar',
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} di ${total}`,
         editor: 'Editor',
         restrictions: 'Restrizioni',
         tryAgain: 'Riprova',
         tagGLCode: 'Tag codice GL',
         off: 'Disattivato',
+        commuter: 'pendolare',
         noResultsFoundSubtitle: 'Nessun risultato. Prova a modificare i filtri o la ricerca',
         unableToDisplayChart: 'Impossibile visualizzare il grafico',
         webGLNotSupported: 'Il tuo browser non supporta WebGL. Abilitalo oppure passa a un altro browser.',
@@ -545,6 +545,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentError: 'Errore allegato',
         errorWhileSelectingAttachment: 'Si è verificato un errore durante la selezione di un allegato. Riprova.',
         errorWhileSelectingCorruptedAttachment: 'Si è verificato un errore durante la selezione di un allegato danneggiato. Riprova con un altro file.',
+        errorWhileConvertingHeic: 'Non è stato possibile elaborare questa immagine. Riprova o carica la foto in un altro formato.',
         takePhoto: 'Scatta foto',
         chooseFromGallery: 'Scegli dalla galleria',
         chooseDocument: 'Scegli file',
@@ -934,6 +935,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Sensibile al tempo',
             addShippingAddress: {title: 'Ci serve il tuo indirizzo di spedizione', subtitle: 'Fornisci un indirizzo per ricevere la tua Carta Expensify.', cta: 'Aggiungi indirizzo'},
             addPaymentCard: {title: 'Aggiungi una carta di pagamento per continuare a usare Expensify', subtitle: 'Account > Abbonamento', cta: 'Aggiungi'},
+            addBankAccount: {title: 'Aggiungi un conto bancario per ricevere il rimborso'},
             activateCard: {title: 'Attiva la tua Carta Expensify', subtitle: 'Convalida la tua carta e inizia a spendere.', cta: 'Attiva'},
             reviewCardFraud: {
                 title: 'Esamina una possibile frode sulla tua Carta Expensify',
@@ -1088,6 +1090,7 @@ const translations: TranslationDeepObject<typeof en> = {
             emptyStateTitle: 'Nessuna spesa recente',
             emptyStateMessage: 'Creane una o trascina qui una ricevuta',
         },
+        insightsSection: {chartUnavailable: 'Grafico non disponibile', notEnoughData: 'Non abbiamo ancora abbastanza dati per compilare questo grafico'},
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -2201,6 +2204,18 @@ const translations: TranslationDeepObject<typeof en> = {
         signOut: 'Esci',
         restoreStashed: 'Ripristina accesso nascosto',
         signOutConfirmationText: 'Perderai tutte le modifiche offline se esci.',
+        saveReceiptsConfirmation: {
+            title: 'Salvare le tue ricevute?',
+            prompt: ({count}: {count: number}) =>
+                `${count === 1 ? "C'è ancora 1 ricevuta" : `Ci sono ancora ${count} ricevute`} in fase di caricamento. Se esci ora, ${count === 1 ? 'la salveremo' : 'le salveremo'} nelle tue foto così potrai ${count === 1 ? 'aggiungerla' : 'aggiungerle'} a una nuova spesa più tardi.`,
+            confirm: 'Salva ed esci',
+        },
+        saveReceiptsAndSignOutConfirmation: {
+            title: 'Salvare le tue ricevute?',
+            prompt: ({count}: {count: number}) =>
+                `${count === 1 ? "C'è ancora 1 ricevuta" : `Ci sono ancora ${count} ricevute`} in fase di caricamento. Se esci ora, ${count === 1 ? 'la salveremo' : 'le salveremo'} nelle tue foto così potrai ${count === 1 ? 'aggiungerla' : 'aggiungerle'} a una nuova spesa più tardi. Perderai tutte le altre modifiche offline.`,
+            confirm: 'Salva ed esci',
+        },
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Leggi i <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termini di servizio</a> e l’<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Informativa sulla privacy</a>.`,
         help: 'Aiuto',
@@ -2722,10 +2737,6 @@ ${amount} per ${merchant} - ${date}`,
             lastDayOfMonth: 'Ultimo giorno del mese',
             lastBusinessDayOfMonth: 'Ultimo giorno lavorativo del mese',
             ordinals: {
-                one: 'st',
-                two: 'nd',
-                few: 'rd',
-                other: 'gio',
                 '1': 'Primo',
                 '2': 'Secondo',
                 '3': 'Terzo',
@@ -4179,6 +4190,9 @@ ${amount} per ${merchant} - ${date}`,
         proofOf: 'Prova di indirizzo personale',
         enterOneEmail: (companyName: string) => `Inserisci l’email di un direttore di ${companyName}`,
         regulationRequiresOneMoreDirector: 'La normativa richiede almeno un altro direttore come firmatario.',
+        bothSignersMustBeOnIllionReport:
+            'Entrambi i firmatari devono essere indicati come amministratori nel report illion dell’azienda. Non possono essere due persone qualsiasi dell’azienda.',
+        signerMustBeOnIllionReport: "Il direttore che aggiungi come firmatario deve essere indicato nel report illion dell'azienda.",
         hangTight: 'Un attimo...',
         enterTwoEmails: (companyName: string) => `Inserisci le email di due direttori di ${companyName}`,
         sendReminder: 'Invia un promemoria',
@@ -4189,11 +4203,11 @@ ${amount} per ${merchant} - ${date}`,
         proofOfDirectorsDescription: 'Esempi: profilo aziendale Oncorp o registrazione dell’impresa.',
         codiceFiscale: 'Codice fiscale',
         codiceFiscaleDescription: 'Codice fiscale per firmatari, utenti autorizzati e titolari effettivi.',
-        PDSandFSG: 'Documentazione di informativa PDS + FSG',
+        PDSandFSG: 'Documentazione informativa PDS, FSG + TMD',
         PDSandFSGDescription: Str.dedent(`
-            La nostra partnership con Corpay utilizza una connessione API per sfruttare la loro vasta rete di partner bancari internazionali e alimentare i Rimborsi globali in Expensify. In conformità alla normativa australiana, ti forniamo la Financial Services Guide (FSG) e il Product Disclosure Statement (PDS) di Corpay.
+            La nostra partnership con Corpay utilizza una connessione API per sfruttare la loro vasta rete di partner bancari internazionali e alimentare i Rimborsi Globali in Expensify. In conformità con la normativa australiana, ti forniamo la Financial Services Guide (FSG), il Product Disclosure Statement (PDS) e il Target Market Determination (TMD) di Corpay.
 
-            Leggi attentamente i documenti FSG e PDS, poiché contengono tutti i dettagli e informazioni importanti sui prodotti e servizi offerti da Corpay. Conserva questi documenti per riferimenti futuri.
+            Leggi attentamente i documenti FSG, PDS e TMD, perché contengono tutti i dettagli e informazioni importanti sui prodotti e servizi offerti da Corpay. Conserva questi documenti per riferimento futuro.
         `),
         pleaseUpload: 'Carica ulteriore documentazione qui sotto per aiutarci a verificare la tua identità come amministratore dell’azienda.',
         enterSignerInfo: 'Inserisci le informazioni del firmatario',
@@ -4205,6 +4219,8 @@ ${amount} per ${merchant} - ${date}`,
         },
     },
     agreementsStep: {
+        bankStatement: 'Estratto conto bancario',
+        bankStatementDescription: 'Fornisci un estratto conto bancario recente, datato negli ultimi tre mesi, per il conto bancario aziendale che stai collegando.',
         agreements: 'Accordi',
         pleaseConfirm: 'Conferma gli accordi qui sotto',
         regulationRequiresUs: 'La normativa ci impone di verificare l’identità di ogni persona fisica che possiede più del 25% dell’attività.',
@@ -4213,7 +4229,7 @@ ${amount} per ${merchant} - ${date}`,
         iAcceptTheTermsAndConditions: `Accetto i <a href="https://www.corpay.com/cross-border/terms">termini e condizioni</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'Accetto i termini e le condizioni.',
         accept: 'Accetta e aggiungi conto bancario',
-        iConsentToThePrivacyNotice: 'Acconsento all’<a href="https://payments.corpay.com/compliance">informativa sulla privacy</a>.',
+        iConsentToThePrivacyNotice: 'Acconsento all’<a href="https://www.corpay.com/privacy-policy">informativa sulla privacy</a>.',
         iConsentToThePrivacyNoticeAccessibility: 'Acconsento all’informativa sulla privacy.',
         error: {
             authorized: 'Devi essere un responsabile con autorizzazione a operare sul conto bancario aziendale',
@@ -5631,7 +5647,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     },
                 },
             },
-            exportCompanyCard: {label: 'Esporta le spese della carta aziendale come', values: {[CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD]: {label: 'Carte di credito'}}},
+            exportNonReimbursable: {label: 'Esporta le spese della carta aziendale come', values: {[CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE]: {label: 'Carte di credito'}}},
             defaultCompanyCardVendor: {
                 label: 'Fornitore predefinito della carta aziendale',
                 description: 'Scegli un fornitore Rillet predefinito per le spese che non vengono abbinate automaticamente.',
@@ -5688,6 +5704,21 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     return `${customAccountsCount} carte con conti personalizzati`;
                 },
             },
+        },
+        dualEntry: {
+            dualEntrySetup: 'Configurazione DualEntry',
+            enterCredentials: 'Inserisci la tua chiave API DualEntry',
+            howToFindAPIKey:
+                '<strong>Trova la tua chiave API.</strong><ol><li>Accedi a DualEntry</li><li>Vai a [organization name] -> Impostazioni -> Accesso sviluppatore -> Chiavi API</li><li>Crea una chiave API</li><li>Incolla la chiave API qui sotto</li></ol>',
+            subsidiary: 'Consociata',
+            subsidiarySelectDescription: 'Scegli la consociata in DualEntry da cui vuoi importare i dati.',
+            noCompaniesFound: 'Nessuna azienda trovata',
+            noCompaniesFoundDescription: 'Aggiungi un’azienda in DualEntry e sincronizza di nuovo la connessione',
+            accountTypesDescription: 'I tuoi conti DualEntry verranno importati come categorie.',
+            enableNewAccountsTitle: 'Abilita i conti appena importati',
+            enableNewAccountsDescription: 'I nuovi conti DualEntry saranno disponibili come categorie.',
+            classificationsImport: 'Tutte le classificazioni DualEntry vengono importate come tag',
+            importDescription: 'Scegli quali configurazioni di codifica importare da DualEntry.',
         },
         type: {
             free: 'Gratis',
@@ -6435,6 +6466,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 one: '1 giorno',
                 other: (count: number) => `${count} tag`,
             }),
+            showTagGLCodes: 'Mostra i codici GL quando selezioni un tag',
         },
         taxes: {
             subtitle: 'Aggiungi nomi e aliquote delle imposte e imposta i valori predefiniti.',
@@ -6709,6 +6741,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             rillet: 'Rillet',
+            dualEntry: 'DualEntry',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6728,6 +6761,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         return 'Sage Intacct';
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
+                    case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+                        return 'DualEntry';
                     default: {
                         return '';
                     }
@@ -6937,6 +6972,12 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                             return 'Inizializzazione della connessione a Rillet';
                         case 'rilletSyncImportData':
                             return 'Caricamento dati';
+                        case 'dualEntrySyncTitle':
+                            return 'Sincronizzazione dei dati DualEntry';
+                        case 'dualEntrySyncConnection':
+                            return 'Inizializzazione della connessione a DualEntry';
+                        case 'dualEntrySyncImportData':
+                            return 'Caricamento dei dati';
                         default: {
                             return `Traduzione mancante per lo stato: ${stage}`;
                         }
@@ -7205,6 +7246,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La nostra integrazione con QuickBooks Desktop è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE]: {
+                title: 'Intuit Enterprise Suite',
+                description: `Collega Intuit Enterprise Suite a Expensify per sincronizzare automaticamente i dati contabili e ridurre le registrazioni manuali.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>La nostra integrazione con Intuit Enterprise Suite è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                 title: 'Certinia',
                 description: `Approfitta della sincronizzazione automatizzata e riduci le registrazioni manuali con l’integrazione Expensify + Certinia. Allinea dimensioni di codifica delle spese e sincronizzazione fiscale alla tua configurazione Certinia per una maggiore visibilità finanziaria.`,
@@ -7216,6 +7263,12 @@ ${reportName}`,
                 description: `Approfitta della sincronizzazione automatizzata e riduci le registrazioni manuali con l’integrazione Expensify + Rillet. Allinea dimensioni di codifica delle spese e sincronizzazione fiscale alla tua configurazione Rillet per una maggiore visibilità finanziaria.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La nostra integrazione con Rillet è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                title: 'DualEntry',
+                description: `Approfitta della sincronizzazione automatizzata e riduci le registrazioni manuali con l’integrazione Expensify + DualEntry. Allinea dimensioni di codifica delle spese e sincronizzazione fiscale alla tua configurazione DualEntry per una maggiore visibilità finanziaria.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>La nostra integrazione con DualEntry è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Approvazioni avanzate',
@@ -8573,20 +8626,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `ha aggiunto "${prohibitedExpense}" alle spese vietate`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `ha rimosso "${prohibitedExpense}" dalle spese vietate`,
         commuterExclusions: {
-            changedToFixedDistance: 'ha modificato l’esclusione dei tragitti casa-lavoro in una distanza fissa per rimborso',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'miglio' : 'miglia';
-                } else {
-                    unitLabel = isSingular ? 'chilometro' : 'chilometri';
-                }
-                return `imposta un'esclusione di distanza fissa di ${distance} ${unitLabel} per richiesta`;
-            },
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `ha modificato l’esclusione a distanza fissa a ${newDistance} ${unit} per richiesta (in precedenza ${oldDistance} ${unit})`,
-            disabled: 'esclusione delle tratte casa-lavoro per le tariffe a distanza disattivata',
+            changedToFixedDistance: 'ha modificato "escludi tragitti casa-lavoro" in "distanza fissa per richiesta"',
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `imposta un'esclusione fissa di distanza di ${formattedDistance} per richiesta`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `ha modificato l’esclusione a distanza fissa a ${formattedNewDistance} per richiesta (in precedenza ${formattedOldDistance})`,
+            disabled: 'esclusione tragitti casa-lavoro per tariffe chilometriche disattivata',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `ha cambiato il metodo di rimborso in "${newReimbursementChoice}" (in precedenza "${oldReimbursementChoice}")`,
@@ -8594,7 +8638,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) =>
             `ha modificato la formula del nome del report personalizzato in "${newDefaultTitle}" (in precedenza "${oldDefaultTitle}")`,
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `ha assunto la proprietà di ${policyName} da ${oldOwnerName} (${oldOwnerEmail})`,
-        updatedAutoHarvesting: (enabled: boolean) => `Invio pianificato ${enabled ? 'abilitato' : 'disabilitato'}`,
         updatedIndividualBudgetNotification: (
             budgetAmount: string,
             budgetFrequency: string,
@@ -8756,6 +8799,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `impostazioni fattura copiate da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `impostazioni di viaggio copiate da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
+        updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
+            return `ha modificato i partecipanti della categoria "${categoryName}" in ${newValue ? 'obbligatorio' : 'non obbligatorio'} (in precedenza ${newValue ? 'non obbligatorio' : 'obbligatorio'})`;
+        },
+        updatedAutoHarvesting: (enabled: boolean) => `invii ${enabled ? 'abilitato' : 'disattivato'}`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
@@ -9408,6 +9455,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             title: 'Attiva il Karma personale',
             description: 'Dona 1 $ a Expensify.org per ogni 500 $ che spendi ogni mese',
             stopDonationsPrompt: 'Sei sicuro di voler smettere di donare a Expensify.org?',
+            managePreferencesFromWeb: 'Manage your personal karma preferences from web',
         },
         getInTouch: 'Eccellente! Condividi le loro informazioni così possiamo metterci in contatto con loro.',
         introSchoolPrincipal: 'Introduzione al dirigente scolastico',
@@ -9453,6 +9501,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
         error: {
             selectSuggestedAddress: 'Seleziona un indirizzo suggerito o usa la posizione attuale',
+            mapOrGpsDistanceRequired: {
+                title: 'Distanza da mappa o GPS richiesta',
+                description: 'Questo spazio di lavoro richiede spese chilometriche basate su mappa o tracciate tramite GPS.',
+            },
         },
         odometer: {
             startReading: 'Inizia a leggere',
@@ -9468,6 +9520,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             cameraAccessRequired: 'Per scattare foto è necessario l’accesso alla fotocamera.',
             snapPhotoStart: "<muted-text-label>Scatta una foto del contachilometri all'<strong>inizio</strong> del viaggio.</muted-text-label>",
             snapPhotoEnd: '<muted-text-label>Scatta una foto del contachilometri alla <strong>fine</strong> del viaggio.</muted-text-label>',
+        },
+        commuterExclusion: {
+            original: ({formattedDistance}: {formattedDistance: string}) => `Originale: ${formattedDistance}`,
+            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `Rimossi ${distance} spostamenti pendolari in ${unit}`,
+            systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
+                `Rimossi ${distance} ${unit} per il pendolarismo in base a ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">impostazioni distanza spazio di lavoro</a>` : 'impostazioni distanza spazio di lavoro'}.`,
         },
     },
     gps: {
