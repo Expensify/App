@@ -21,19 +21,19 @@ Expensify offers recurring live webinars to help members and Workspace Admins le
 
 All sessions are recorded, and all registrants will be emailed a link to the recording after the session ends. Admins are encouraged to attend/watch all sessions.
 
- - **User Training** 55 minutes - Monday 10pm UTC **[Register here](https://events.zoom.us/ev/AvKtsFIUfb9B05mXu2v_fSIwn6y_gEEp7TANmOodWaryasKR9Swk~ArTaELYr4Bk6ycdARl-hRGTKXM8FAz3UFiwrKrIKEkiH9-Qig7rq43e3ag)**
+ - **New User Training** 55 minutes - Monday 10pm UTC **[Register here](https://events.zoom.us/ev/AvKtsFIUfb9B05mXu2v_fSIwn6y_gEEp7TANmOodWaryasKR9Swk~ArTaELYr4Bk6ycdARl-hRGTKXM8FAz3UFiwrKrIKEkiH9-Qig7rq43e3ag)**
  - **Workspace Administration Training** 1 hour 25 minutes - Tuesday 4pm UTC **[Register here](https://events.zoom.us/ev/Al8VkcxspHX6DHq7HjnTz_xPXIf4A5vFkO5G0ompKWWFBoRXsOfn~Ar-Fy0WyqkXoez6gGuwNS4WPK7yEx6xzllZWDg2IAa8mCjOqsY334z-zVA)**
  - **Company Card Administration Training** 1 hour 15 minutes - Wednesday 3pm UTC **[Register here](https://events.zoom.us/ev/Ag4j3goCMv0siKhbgGi4McVwAqk1chVThYs2fuCT9dEJdPpqXpd-~ArS8snwcrQb7qzXP98cqKy03fxHx8LpazRF34OogXsHy3YpL7LeC84R4sg)**
 
-To watch recordings on demand, see our **[webinar recording library](https://events.zoom.us/evj/AqgMubl35rddCUtmVb6JXinrKvIS3xkoyfTYWoDa6QMrb1_l5ih7%7EA1dLQvAML0MYNyUw-UnzDCKI_Sw)**.
+To watch recordings on demand, see our **[webinar recording library](https://events.zoom.us/evj/AqgMubl35rddCUtmVb6JXinrKvIS3xkoyfTYWoDa6QMrb1_l5ih7~A1dLQvAML0MYNyUw-UnzDCKI_Sw)**.
 
 ---
 
-## What you’ll learn in User Training
+## What you’ll learn in New User Training
 
 **Duration:** 55 minutes (45-minute walkthrough + 10-minute Q&A)
 
-User Training is designed for members who submit, review, or approve expenses.
+User Training is designed for new members who submit, review, or approve expenses.
 
 You’ll learn how to:
 
