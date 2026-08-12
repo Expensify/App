@@ -54,15 +54,15 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                     });
                 }, [isAgent]);
 
-                // Redirect on every focus (not just the initial false->true transition) so navigating back
+                // Redirect on every focus (not just the initial transition from false to true) so navigating back
                 // onto a guarded screen that the split navigator keeps mounted (e.g. a stale agents route
                 // left over from the owner session) bounces the agent to a page they can access instead of
                 // rendering a blank pane.
                 useFocusEffect(redirectAgentAway);
 
                 // useFocusEffect only fires while this screen is focused. When the session flips to an agent while
-                // this guarded screen is mounted but NOT focused — e.g. the owner taps "Copilot into account" from
-                // an unguarded RHP (the agent DM) sitting over this guarded central pane — useFocusEffect never runs,
+                // this guarded screen is mounted but NOT focused, for example the owner taps "Copilot into account" from
+                // an unguarded RHP (the agent DM) sitting over this guarded central pane, useFocusEffect never runs,
                 // so the pane renders null (blank background) until the RHP is closed. Drive the redirect off the
                 // isAgent transition here too so the background is corrected immediately. Skip when focused since
                 // useFocusEffect already covers that case.
