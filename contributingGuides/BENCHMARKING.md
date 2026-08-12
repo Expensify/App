@@ -56,24 +56,34 @@ nr benchmark-app-startup -- ios 20 --span ManualAppStartupNetworkRequest --wait-
 
 Use `--app-id` for a nonstandard Android application ID or iOS bundle identifier, and `--output` to select another CSV path. Runs where a configured metric does not end within the collection window are reported as `not observed` and are omitted from that metric's percentile calculations.
 
-### Compare two app binaries
+### Compare two installed apps
 
-Pass `--app-path-a` and `--app-path-b` to enable alternating comparison mode. The paths identify Android APKs or signed iOS `.app` bundles with the same application ID or bundle identifier. The script warms up each binary once, then installs and measures binary A followed by binary B for every run, keeping the two binaries interleaved on the same device instead of running all samples for one binary first.
+Pass `--app-id-a` and `--app-id-b` to enable alternating comparison mode. The two application IDs or bundle identifiers must identify different apps that are already installed on the device. The script warms up each app once, then measures app A followed by app B for every run, keeping the two apps interleaved on the same device without reinstalling either one.
 
 ```shell
 nr benchmark-app-startup -- android 20 \
-    --app-path-a /path/to/app-a.apk \
-    --app-path-b /path/to/app-b.apk \
+    --app-id-a com.example.app.a \
+    --app-id-b com.example.app.b \
     --device emulator-5554 \
     --span ManualAppStartup \
     --wait-time 30
 ```
 
-Use `--output-a` and `--output-b` to choose the per-binary CSV files. By default they are written as `<platform>-<span>-<mode>-a.csv` and `...-b.csv` under `.benchmarks`. Each file contains every selected span's samples for that binary, and the terminal prints a separate multi-span summary table for each binary. `--output` is reserved for single-binary mode.
+Use `--output-a` and `--output-b` to choose the per-app CSV files. By default they are written as `<platform>-<span>-<mode>-a.csv` and `...-b.csv` under `.benchmarks`. Each file contains every selected span's samples for that app, and the terminal prints a separate multi-span summary table for each app. `--output` is reserved for single-app mode.
 
-Comparison mode reinstalls the selected artifact before every warm-up and measured launch. In process mode this replaces the installed binary while preserving its app data; add `--cold` to uninstall/reinstall on iOS or reinstall, clear app data, and reset compiled package state on Android before each startup.
+Pass `--cold` together with `--app-path-a` and `--app-path-b` when you want each comparison app reinstalled before every warm-up and measured launch. The paths identify the corresponding Android APKs or signed iOS `.app` bundles. Cold comparison mode also clears app state using the platform-specific cold-start behavior; artifact paths are rejected in process mode.
 
-The script runs with Bun and also exports `benchmarkAppStartups` and `benchmarkStartups`. Other local tooling, such as the PGO workflow, can install an artifact and invoke the same benchmark implementation. The lower-level Android and iOS process tooling lives in `scripts/lib/nativeAppBenchmark.ts` so callers do not need to duplicate `adb` or `xcrun devicectl` behavior.
+```shell
+nr benchmark-app-startup -- ios 20 --cold \
+    --app-id-a com.example.app.a \
+    --app-id-b com.example.app.b \
+    --app-path-a /path/to/app-a.app \
+    --app-path-b /path/to/app-b.app \
+    --device "Developer's iPhone" \
+    --wait-time 30
+```
+
+The script runs with Bun and also exports `benchmarkAppStartups`, `benchmarkAppStartupsAlternating`, and `benchmarkStartups`. Other local tooling, such as the PGO workflow, can install an artifact and invoke the same benchmark implementation. The lower-level Android and iOS process tooling lives in `scripts/lib/nativeAppBenchmark.ts` so callers do not need to duplicate `adb` or `xcrun devicectl` behavior.
 
 For example, a PGO script can install each artifact and call `benchmarkAppStartups` with its platform, device, bundle identifier, output path, and span name. This keeps artifact building and installation in the PGO workflow while sharing all startup measurement and platform-device behavior.
 

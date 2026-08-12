@@ -46,8 +46,8 @@ type BenchmarkStartupsOptions = BenchmarkRunOptions & {
     appPath?: string;
 };
 type BenchmarkAlternatingStartupsOptions = BenchmarkRunOptions & {
-    appPathA: string;
-    appPathB: string;
+    appPathA?: string;
+    appPathB?: string;
     outputPathA: string;
     outputPathB: string;
 };
@@ -60,7 +60,8 @@ type BenchmarkAppStartupsOptions = BenchmarkStartupsOptions & {
 type BenchmarkAppStartupsAlternatingOptions = BenchmarkAlternatingStartupsOptions & {
     platform: PlatformName;
     rootDirectory: string;
-    appID: string;
+    appIDA: string;
+    appIDB: string;
     deviceIdentifier?: string;
 };
 type BenchmarkMetricResult = {
@@ -261,22 +262,30 @@ async function benchmarkStartups(adapter: NativeAppBenchmarkAdapter, options: Be
     return {metrics, outputPath: options.outputPath};
 }
 
-async function benchmarkAlternatingStartups(adapter: NativeAppBenchmarkAdapter, options: BenchmarkAlternatingStartupsOptions): Promise<BenchmarkAlternatingResult> {
+async function benchmarkAlternatingStartups(
+    adapters: {binaryA: NativeAppBenchmarkAdapter; binaryB: NativeAppBenchmarkAdapter},
+    options: BenchmarkAlternatingStartupsOptions,
+): Promise<BenchmarkAlternatingResult> {
+    const {binaryA: adapterA, binaryB: adapterB} = adapters;
+    if (options.mode === 'cold' && (!options.appPathA || !options.appPathB)) {
+        fail('Cold comparison mode requires app paths for both binaries.');
+    }
     console.log('=== Native app startup comparison ===');
     console.table([
         {
-            platform: adapter.name,
-            device: adapter.deviceIdentifier,
-            appID: adapter.appID,
+            platform: adapterA.name,
+            device: adapterA.deviceIdentifier,
+            appIDA: adapterA.appID,
+            appIDB: adapterB.appID,
             spans: options.spanNames.join(', '),
             mode: options.mode,
             measuredRunsPerBinary: options.runs,
             warmUpRunsPerBinary: 1,
             waitTimeSeconds: options.waitTimeSeconds,
             waitUntilSpan: options.waitUntilSpan ?? 'wait time',
-            binaryA: options.appPathA,
+            binaryA: options.appPathA ?? 'installed app',
             outputA: options.outputPathA,
-            binaryB: options.appPathB,
+            binaryB: options.appPathB ?? 'installed app',
             outputB: options.outputPathB,
         },
     ]);
@@ -286,23 +295,23 @@ async function benchmarkAlternatingStartups(adapter: NativeAppBenchmarkAdapter, 
         spanNames: options.spanNames,
         waitTimeSeconds: options.waitTimeSeconds,
         waitUntilSpan: options.waitUntilSpan,
-        installArtifact: true,
+        installArtifact: options.mode === 'cold',
     } as const;
-    console.log(`Running one unmeasured warm-up startup for binary A (${options.appPathA}).`);
-    await measureStartup(adapter, {...measurementOptions, appPath: options.appPathA});
-    console.log(`Running one unmeasured warm-up startup for binary B (${options.appPathB}).`);
-    await measureStartup(adapter, {...measurementOptions, appPath: options.appPathB});
+    console.log(`Running one unmeasured warm-up startup for binary A (${options.appPathA ?? 'installed app'}).`);
+    await measureStartup(adapterA, {...measurementOptions, appPath: options.appPathA});
+    console.log(`Running one unmeasured warm-up startup for binary B (${options.appPathB ?? 'installed app'}).`);
+    await measureStartup(adapterB, {...measurementOptions, appPath: options.appPathB});
 
     const samplesBySpanA = new Map(options.spanNames.map((spanName) => [spanName, [] as number[]]));
     const samplesBySpanB = new Map(options.spanNames.map((spanName) => [spanName, [] as number[]]));
     const csvRowsA = ['run,span,duration_ms'];
     const csvRowsB = ['run,span,duration_ms'];
     for (let runNumber = 1; runNumber <= options.runs; runNumber += 1) {
-        const eventsA = await measureStartup(adapter, {...measurementOptions, appPath: options.appPathA});
+        const eventsA = await measureStartup(adapterA, {...measurementOptions, appPath: options.appPathA});
         const runMetricsA = recordBenchmarkEvents(eventsA, options.spanNames, samplesBySpanA, csvRowsA, runNumber);
         console.log(`Binary A run ${runNumber}/${options.runs}: ${runMetricsA.join(', ')}`);
 
-        const eventsB = await measureStartup(adapter, {...measurementOptions, appPath: options.appPathB});
+        const eventsB = await measureStartup(adapterB, {...measurementOptions, appPath: options.appPathB});
         const runMetricsB = recordBenchmarkEvents(eventsB, options.spanNames, samplesBySpanB, csvRowsB, runNumber);
         console.log(`Binary B run ${runNumber}/${options.runs}: ${runMetricsB.join(', ')}`);
     }
@@ -326,8 +335,10 @@ async function benchmarkAppStartups(options: BenchmarkAppStartupsOptions): Promi
 }
 
 async function benchmarkAppStartupsAlternating(options: BenchmarkAppStartupsAlternatingOptions): Promise<BenchmarkAlternatingResult> {
-    const adapter = createNativeAppBenchmarkAdapter(options);
-    return benchmarkAlternatingStartups(adapter, options);
+    const {appIDA, appIDB, ...adapterOptions} = options;
+    const adapterA = createNativeAppBenchmarkAdapter({...adapterOptions, appID: appIDA});
+    const adapterB = createNativeAppBenchmarkAdapter({...adapterOptions, appID: appIDB});
+    return benchmarkAlternatingStartups({binaryA: adapterA, binaryB: adapterB}, options);
 }
 
 async function main(): Promise<void> {
@@ -368,16 +379,24 @@ async function main(): Promise<void> {
                 description: 'Application ID or bundle identifier',
                 required: false,
             },
+            'app-id-a': {
+                description: 'Application ID or bundle identifier for the first comparison app',
+                required: false,
+            },
+            'app-id-b': {
+                description: 'Application ID or bundle identifier for the second comparison app',
+                required: false,
+            },
             'app-path': {
                 description: 'Path to the app artifact; required with --cold on iOS',
                 required: false,
             },
             'app-path-a': {
-                description: 'Path to the first benchmark artifact; use with --app-path-b for alternating comparison mode',
+                description: 'Path to the first benchmark artifact; required with --cold comparison mode',
                 required: false,
             },
             'app-path-b': {
-                description: 'Path to the second benchmark artifact; use with --app-path-a for alternating comparison mode',
+                description: 'Path to the second benchmark artifact; required with --cold comparison mode',
                 required: false,
             },
             output: {
@@ -413,6 +432,8 @@ async function main(): Promise<void> {
     const mode: StartupMode = cli.flags.cold ? 'cold' : 'process';
     const defaultAppID = platform === 'android' ? 'org.me.mobiexpensifyg' : 'com.expensify.expensifylite';
     const appID = cli.namedArgs['app-id'] ?? defaultAppID;
+    const appIDA = cli.namedArgs['app-id-a'];
+    const appIDB = cli.namedArgs['app-id-b'];
     const appPath = cli.namedArgs['app-path'] ?? environmentString('IOS_APP_PATH');
     const appPathA = cli.namedArgs['app-path-a'];
     const appPathB = cli.namedArgs['app-path-b'];
@@ -420,15 +441,28 @@ async function main(): Promise<void> {
     const outputPathB = cli.namedArgs['output-b'];
     const metricLabel = cli.namedArgs.span?.replaceAll(/[^a-zA-Z0-9_-]/g, '-') ?? 'all-spans';
 
-    if ((appPathA === undefined) !== (appPathB === undefined)) {
-        fail('--app-path-a and --app-path-b must be supplied together for alternating comparison mode.');
-    }
-    if ((outputPathA !== undefined || outputPathB !== undefined) && appPathA === undefined) {
-        fail('--output-a and --output-b are only supported with --app-path-a and --app-path-b.');
-    }
-    if (appPathA !== undefined && appPathB !== undefined) {
+    const comparisonRequested = appIDA !== undefined || appIDB !== undefined || appPathA !== undefined || appPathB !== undefined;
+    if (comparisonRequested) {
+        if (!appIDA || !appIDB) {
+            fail('--app-id-a and --app-id-b must be supplied together for alternating comparison mode.');
+        }
+        if (appIDA === appIDB) {
+            fail('--app-id-a and --app-id-b must identify different installed apps.');
+        }
+        if (cli.namedArgs['app-id'] !== undefined) {
+            fail('--app-id cannot be combined with alternating comparison mode; use --app-id-a and --app-id-b.');
+        }
+        if ((appPathA === undefined) !== (appPathB === undefined)) {
+            fail('--app-path-a and --app-path-b must be supplied together.');
+        }
+        if (mode === 'cold' && (appPathA === undefined || appPathB === undefined)) {
+            fail('--app-path-a and --app-path-b are required with --cold comparison mode.');
+        }
+        if (mode !== 'cold' && (appPathA !== undefined || appPathB !== undefined)) {
+            fail('--app-path-a and --app-path-b are only supported with --cold comparison mode.');
+        }
         if (cli.namedArgs['app-path'] !== undefined) {
-            fail('--app-path cannot be combined with alternating comparison mode; use --app-path-a and --app-path-b.');
+            fail('--app-path cannot be combined with alternating comparison mode; use --app-path-a and --app-path-b with --cold.');
         }
         if (cli.namedArgs.output !== undefined) {
             fail('--output cannot be combined with alternating comparison mode; use --output-a and --output-b.');
@@ -437,18 +471,22 @@ async function main(): Promise<void> {
             platform,
             rootDirectory,
             deviceIdentifier: cli.namedArgs.device,
-            appID,
+            appIDA,
+            appIDB,
             mode,
             spanNames,
             runs,
             waitTimeSeconds,
             waitUntilSpan,
-            appPathA: resolve(appPathA),
-            appPathB: resolve(appPathB),
+            appPathA: appPathA ? resolve(appPathA) : undefined,
+            appPathB: appPathB ? resolve(appPathB) : undefined,
             outputPathA: resolve(outputPathA ?? join(rootDirectory, '.benchmarks', `${platform}-${metricLabel}-${mode}-a.csv`)),
             outputPathB: resolve(outputPathB ?? join(rootDirectory, '.benchmarks', `${platform}-${metricLabel}-${mode}-b.csv`)),
         });
         return;
+    }
+    if ((outputPathA !== undefined || outputPathB !== undefined) && appPathA === undefined) {
+        fail('--output-a and --output-b require --app-id-a and --app-id-b.');
     }
 
     const outputPath = resolve(cli.namedArgs.output ?? join(rootDirectory, '.benchmarks', `${platform}-${metricLabel}-${mode}.csv`));

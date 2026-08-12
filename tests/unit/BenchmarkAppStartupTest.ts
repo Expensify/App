@@ -155,14 +155,12 @@ describe('benchmarkAppStartup', () => {
         }
     });
 
-    it('alternates installed artifacts and writes independent results', async () => {
+    it('alternates installed apps and writes independent multi-span results without reinstalling', async () => {
         const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-comparison-test-'));
         const outputPathA = join(temporaryDirectory, 'binary-a.csv');
         const outputPathB = join(temporaryDirectory, 'binary-b.csv');
-        const prepareCalls: Array<['process' | 'cold', string?, boolean?]> = [];
-        const prepareStartup = jest.fn(async (...args: ['process' | 'cold', string?, boolean?]) => {
-            prepareCalls.push(args);
-        });
+        const prepareStartupA = jest.fn(async () => undefined);
+        const prepareStartupB = jest.fn(async () => undefined);
         const launchAndCollect = jest
             .fn()
             .mockResolvedValueOnce([])
@@ -187,28 +185,25 @@ describe('benchmarkAppStartup', () => {
 
         try {
             const result = await benchmarkAlternatingStartups(
-                {name: 'android', appID: 'org.me.mobiexpensifyg', deviceIdentifier: 'emulator-5554', prepareStartup, launchAndCollect},
+                {
+                    binaryA: {name: 'android', appID: 'com.example.app.a', deviceIdentifier: 'emulator-5554', prepareStartup: prepareStartupA, launchAndCollect},
+                    binaryB: {name: 'android', appID: 'com.example.app.b', deviceIdentifier: 'emulator-5554', prepareStartup: prepareStartupB, launchAndCollect},
+                },
                 {
                     mode: 'process',
                     spanNames: ['ManualAppStartup', 'ManualAppStartupNetworkRequest'],
                     runs: 2,
                     waitTimeSeconds: 30,
                     waitUntilSpan: 'ManualAppStartup',
-                    appPathA: '/tmp/binary-a.apk',
-                    appPathB: '/tmp/binary-b.apk',
                     outputPathA,
                     outputPathB,
                 },
             );
 
-            expect(prepareCalls.map(([, appPath, installArtifact]) => [appPath, installArtifact])).toEqual([
-                ['/tmp/binary-a.apk', true],
-                ['/tmp/binary-b.apk', true],
-                ['/tmp/binary-a.apk', true],
-                ['/tmp/binary-b.apk', true],
-                ['/tmp/binary-a.apk', true],
-                ['/tmp/binary-b.apk', true],
-            ]);
+            expect(prepareStartupA).toHaveBeenCalledTimes(3);
+            expect(prepareStartupA).toHaveBeenNthCalledWith(1, 'process', undefined);
+            expect(prepareStartupB).toHaveBeenCalledTimes(3);
+            expect(prepareStartupB).toHaveBeenNthCalledWith(1, 'process', undefined);
             const collectionOptions = {
                 spanNames: ['ManualAppStartup', 'ManualAppStartupNetworkRequest'],
                 waitTimeSeconds: 30,
@@ -227,6 +222,41 @@ describe('benchmarkAppStartup', () => {
                 'run,span,duration_ms\n1,ManualAppStartup,201\n1,ManualAppStartupNetworkRequest,21\n2,ManualAppStartup,202\n2,ManualAppStartupNetworkRequest,22\n',
             );
             expect(consoleTable).toHaveBeenCalledTimes(3);
+        } finally {
+            consoleTable.mockRestore();
+            rmSync(temporaryDirectory, {recursive: true, force: true});
+        }
+    });
+
+    it('passes comparison artifacts to both apps only for cold starts', async () => {
+        const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-benchmark-cold-comparison-test-'));
+        const prepareStartupA = jest.fn(async () => undefined);
+        const prepareStartupB = jest.fn(async () => undefined);
+        const launchAndCollect = jest.fn(async () => []);
+        const consoleTable = jest.spyOn(console, 'table').mockImplementation(() => undefined);
+
+        try {
+            await benchmarkAlternatingStartups(
+                {
+                    binaryA: {name: 'android', appID: 'com.example.app.a', deviceIdentifier: 'emulator-5554', prepareStartup: prepareStartupA, launchAndCollect},
+                    binaryB: {name: 'android', appID: 'com.example.app.b', deviceIdentifier: 'emulator-5554', prepareStartup: prepareStartupB, launchAndCollect},
+                },
+                {
+                    mode: 'cold',
+                    spanNames: ['ManualAppStartup'],
+                    runs: 1,
+                    waitTimeSeconds: 30,
+                    appPathA: '/tmp/binary-a.apk',
+                    appPathB: '/tmp/binary-b.apk',
+                    outputPathA: join(temporaryDirectory, 'binary-a.csv'),
+                    outputPathB: join(temporaryDirectory, 'binary-b.csv'),
+                },
+            );
+
+            expect(prepareStartupA).toHaveBeenCalledWith('cold', '/tmp/binary-a.apk', true);
+            expect(prepareStartupB).toHaveBeenCalledWith('cold', '/tmp/binary-b.apk', true);
+            expect(prepareStartupA).toHaveBeenCalledTimes(2);
+            expect(prepareStartupB).toHaveBeenCalledTimes(2);
         } finally {
             consoleTable.mockRestore();
             rmSync(temporaryDirectory, {recursive: true, force: true});
