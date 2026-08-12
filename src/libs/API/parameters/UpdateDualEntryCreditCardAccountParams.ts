@@ -5,7 +5,7 @@ type UpdateDualEntryCreditCardAccountParams = {
     policyID: string;
 
     /** DualEntry account used for company card expenses. */
-    accountID: DualEntryAccount['id'];
+    creditCardAccountID: DualEntryAccount['id'];
 };
 
 export default UpdateDualEntryCreditCardAccountParams;

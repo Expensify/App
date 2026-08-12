@@ -393,13 +393,13 @@ function updateDualEntryDefaultVendor(policyID: string, vendorID: DualEntryExpor
 
 function updateDualEntryCreditCardAccount(policyID: string, accountID: DualEntryExport['creditCardAccountID'], oldAccountID?: DualEntryExport['creditCardAccountID']) {
     const onyxData = prepareDualEntryExportOnyxData(policyID, CONST.DUALENTRY_CONFIG.CREDIT_CARD_ACCOUNT_ID, accountID, oldAccountID ?? null);
-    const parameters: UpdateDualEntryCreditCardAccountParams = {policyID, accountID};
+    const parameters: UpdateDualEntryCreditCardAccountParams = {policyID, creditCardAccountID: accountID};
     write(WRITE_COMMANDS.UPDATE_DUALENTRY_CREDIT_CARD_ACCOUNT, parameters, onyxData);
 }
 
 function updateDualEntryExpensifyCardAccount(policyID: string, accountID: DualEntryExport['expensifyCardAccountID'], oldAccountID?: DualEntryExport['expensifyCardAccountID']) {
     const onyxData = prepareDualEntryExportOnyxData(policyID, CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID, accountID, oldAccountID ?? null);
-    const parameters: UpdateDualEntryExpensifyCardAccountParams = {policyID, accountID};
+    const parameters: UpdateDualEntryExpensifyCardAccountParams = {policyID, creditCardAccountID: accountID};
     write(WRITE_COMMANDS.UPDATE_DUALENTRY_EXPENSIFY_CARD_ACCOUNT, parameters, onyxData);
 }
 

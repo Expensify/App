@@ -5,7 +5,7 @@ type UpdateDualEntryExpensifyCardAccountParams = {
     policyID: string;
 
     /** DualEntry account used for Expensify Card expenses. */
-    accountID: DualEntryAccount['id'];
+    creditCardAccountID: DualEntryAccount['id'];
 };
 
 export default UpdateDualEntryExpensifyCardAccountParams;
