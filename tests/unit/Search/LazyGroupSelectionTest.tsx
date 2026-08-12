@@ -491,6 +491,37 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['2']).toBeUndefined();
     });
 
+    it('never records a whole group as excluded when a range narrows under select-all-matching', async () => {
+        const {result} = renderSelection(TwoGroupWrapper);
+        const [firstChild, secondChild] = loadedChildren;
+
+        const [earlierFirstChild] = earlierChildren;
+
+        // Given a range that covers every row, and every matching item selected
+        await act(async () => {
+            result.current.registerGroupChildren(EARLIER_GROUP_KEY, earlierChildren);
+            result.current.registerGroupChildren(GROUP_KEY, loadedChildren);
+            result.current.toggle(earlierFirstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+
+        // When a shift+click shrinks that range so the last rows fall out of it
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then no group is written off as excluded, which would drop every one of its rows from a bulk action
+        expect(Object.keys(result.current.excludedTransactions)).not.toContain(GROUP_KEY);
+        expect(Object.keys(result.current.excludedTransactions)).not.toContain(EARLIER_GROUP_KEY);
+    });
+
     it('selects every child of a group that was not already selected once its children loaded', async () => {
         const {result} = renderSelection();
 

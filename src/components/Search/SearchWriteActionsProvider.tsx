@@ -416,6 +416,7 @@ function SearchWriteActionsProvider({
     const isFocused = useIsFocused();
     const {isProduction} = useEnvironment();
     const {isOffline} = useNetwork();
+    const {areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -484,7 +485,8 @@ function SearchWriteActionsProvider({
     // A group selected before its children loaded lives under the group key alone, so dropping one child needs the group written out first.
     const spellOutGroupSelection = (selection: SelectedTransactions, childKey: string): SelectedTransactions => {
         const groupKey = groupKeyByChildKey.get(childKey);
-        if (!groupKey || !selection[groupKey]?.isSelected) {
+        // Select-all-matching already covers the group, so writing it out would only record the whole group as excluded.
+        if (!groupKey || areAllMatchingItemsSelected || !selection[groupKey]?.isSelected) {
             return selection;
         }
         const groupChildren = childrenByGroupKey.get(groupKey) ?? [];
@@ -561,7 +563,13 @@ function SearchWriteActionsProvider({
                 }
                 return updated;
             },
-            {data: filteredData, totalSelectableItemsCount},
+            {
+                data: filteredData,
+                totalSelectableItemsCount,
+                // Matches the row and group toggles, so narrowing records exclusions rather than dropping every unloaded match.
+                shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
+                shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
+            },
         );
     };
 

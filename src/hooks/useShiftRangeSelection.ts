@@ -80,7 +80,7 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
         notifyAnchor: (item) => {
             const currentParams = paramsRef.current;
             const key = keyOf(currentParams, item);
-            // A row a range can't reach would leave an anchor the next shift+click has to re-resolve from the top, so the last reachable one is kept.
+            // Better to keep the last reachable anchor than store one that would send the next shift+click back to the top of the list.
             if (key == null || !canAnchor(currentParams, key)) {
                 return;
             }
