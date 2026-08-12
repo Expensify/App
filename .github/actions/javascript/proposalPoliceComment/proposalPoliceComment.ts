@@ -1,6 +1,7 @@
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
-import {getIsBotAuthor, getIsProposal} from '@github/libs/ProposalUtils';
+import isBotUser from '@github/libs/isBotUser';
+import getIsProposal from '@github/libs/ProposalUtils';
 
 import {buildDuplicateCheckInput, buildDuplicateCheckSeedItem, buildEditCheckInput, buildTemplateCheckInput} from '@prompts/proposalPolice/input';
 import {buildDuplicateCheckInstructions, buildEditCheckInstructions, buildTemplateCheckInstructions} from '@prompts/proposalPolice/instructions';
@@ -93,7 +94,7 @@ async function run() {
         const newProposalCreatedAt = new Date(payload.comment.created_at).getTime();
         const newProposalBody = payload.comment.body;
         const newProposalAuthor = payload.comment.user.login;
-        if (getIsBotAuthor(payload.comment.user)) {
+        if (isBotUser(payload.comment.user.login, payload.comment.user.type)) {
             console.log('New comment is from a bot. Skipping duplicate check.');
             return;
         }
@@ -111,12 +112,13 @@ async function run() {
             return;
         }
 
-        // Find (or create) the OpenAI Conversation that tracks this issue's proposals for duplicate detection
+        // Find any existing OpenAI Conversation that tracks this issue's proposals for duplicate detection
         let conversationID = findTrackedConversationID(commentsResponse);
+
         // Reusing a tracked Conversation implies it has at least one prior proposal in it (that's why it was created);
         // a freshly created one only has prior proposals if we seeded it with any.
         let hasPriorProposals = !!conversationID;
-        if (!conversationID) {
+        if (!hasPriorProposals) {
             console.log("No tracked Conversation found for this issue. Creating one and seeding it with the issue's prior proposals...");
             const seedItems = buildSeedItems(commentsResponse, newProposalCreatedAt);
             hasPriorProposals = seedItems.length > 0;

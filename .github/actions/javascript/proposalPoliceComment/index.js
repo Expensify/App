@@ -16136,6 +16136,8 @@ function isObject(obj) {
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "worklet"; // This function is used in react-native-live-markdown parser and it must be a worklet to run in UI thread (react-native-reanimated)
+"worklet"; // This function is used in react-native-live-markdown parser and it must be a worklet to run in UI thread (react-native-reanimated)
+"worklet"; // This function is used in react-native-live-markdown parser and it must be a worklet to run in UI thread (react-native-reanimated)
 "use strict";var __assign=this&&this.__assign||function(){__assign=Object.assign||function(t){for(var s,i=1,n=arguments.length;i<n;i++){s=arguments[i];for(var p in s)if(Object.prototype.hasOwnProperty.call(s,p))t[p]=s[p]}return t};return __assign.apply(this,arguments)};Object.defineProperty(exports, "__esModule", ({value:true}));var named_references_1=__nccwpck_require__(6068);var numeric_unicode_map_1=__nccwpck_require__(45439);var surrogate_pairs_1=__nccwpck_require__(1454);var allNamedReferences=__assign(__assign({},named_references_1.namedReferences),{all:named_references_1.namedReferences.html5});var encodeRegExps={specialChars:/[<>'"&]/g,nonAscii:/[<>'"&\u0080-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g,nonAsciiPrintable:/[<>'"&\x01-\x08\x11-\x15\x17-\x1F\x7f-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g,nonAsciiPrintableOnly:/[\x01-\x08\x11-\x15\x17-\x1F\x7f-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g,extensive:/[\x01-\x0c\x0e-\x1f\x21-\x2c\x2e-\x2f\x3a-\x40\x5b-\x60\x7b-\x7d\x7f-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g};var defaultEncodeOptions={mode:"specialChars",level:"all",numeric:"decimal"};function encode(text,_a){var _b=_a===void 0?defaultEncodeOptions:_a,_c=_b.mode,mode=_c===void 0?"specialChars":_c,_d=_b.numeric,numeric=_d===void 0?"decimal":_d,_e=_b.level,level=_e===void 0?"all":_e;if(!text){return""}var encodeRegExp=encodeRegExps[mode];var references=allNamedReferences[level].characters;var isHex=numeric==="hexadecimal";return text.replace(encodeRegExp,(function(input){var result=references[input];if(!result){var code=input.length>1?surrogate_pairs_1.getCodePoint(input,0):input.charCodeAt(0);result=(isHex?"&#x"+code.toString(16):"&#"+code)+";"}return result}))}exports.encode=encode;var defaultDecodeOptions={scope:"body",level:"all"};var strict=/&(?:#\d+|#[xX][\da-fA-F]+|[0-9a-zA-Z]+);/g;var attribute=/&(?:#\d+|#[xX][\da-fA-F]+|[0-9a-zA-Z]+)[;=]?/g;var baseDecodeRegExps={xml:{strict:strict,attribute:attribute,body:named_references_1.bodyRegExps.xml},html4:{strict:strict,attribute:attribute,body:named_references_1.bodyRegExps.html4},html5:{strict:strict,attribute:attribute,body:named_references_1.bodyRegExps.html5}};var decodeRegExps=__assign(__assign({},baseDecodeRegExps),{all:baseDecodeRegExps.html5});var fromCharCode=String.fromCharCode;var outOfBoundsChar=fromCharCode(65533);var defaultDecodeEntityOptions={level:"all"};function getDecodedEntity(entity,references,isAttribute,isStrict){var decodeResult=entity;var decodeEntityLastChar=entity[entity.length-1];if(isAttribute&&decodeEntityLastChar==="="){decodeResult=entity}else if(isStrict&&decodeEntityLastChar!==";"){decodeResult=entity}else{var decodeResultByReference=references[entity];if(decodeResultByReference){decodeResult=decodeResultByReference}else if(entity[0]==="&"&&entity[1]==="#"){var decodeSecondChar=entity[2];var decodeCode=decodeSecondChar=="x"||decodeSecondChar=="X"?parseInt(entity.substr(3),16):parseInt(entity.substr(2));decodeResult=decodeCode>=1114111?outOfBoundsChar:decodeCode>65535?surrogate_pairs_1.fromCodePoint(decodeCode):fromCharCode(numeric_unicode_map_1.numericUnicodeMap[decodeCode]||decodeCode)}}return decodeResult}function decodeEntity(entity,_a){var _b=(_a===void 0?defaultDecodeEntityOptions:_a).level,level=_b===void 0?"all":_b;if(!entity){return""}return getDecodedEntity(entity,allNamedReferences[level].entities,false,false)}exports.decodeEntity=decodeEntity;function decode(text,_a){var _b=_a===void 0?defaultDecodeOptions:_a,_c=_b.level,level=_c===void 0?"all":_c,_d=_b.scope,scope=_d===void 0?level==="xml"?"strict":"body":_d;if(!text){return""}var decodeRegExp=decodeRegExps[level][scope];var references=allNamedReferences[level].entities;var isAttribute=scope==="attribute";var isStrict=scope==="strict";return text.replace(decodeRegExp,(function(entity){return getDecodedEntity(entity,references,isAttribute,isStrict)}))}exports.decode=decode;
 //# sourceMappingURL=./index.js.map
 
@@ -39537,7 +39539,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PROPOSAL_POLICE_MODEL = void 0;
 const CONST_1 = __importDefault(__nccwpck_require__(29873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(19296));
-const ProposalUtils_1 = __nccwpck_require__(79816);
+const isBotUser_1 = __importDefault(__nccwpck_require__(37887));
+const ProposalUtils_1 = __importDefault(__nccwpck_require__(79816));
 const input_1 = __nccwpck_require__(46166);
 const instructions_1 = __nccwpck_require__(87405);
 const messages_1 = __nccwpck_require__(13913);
@@ -39604,7 +39607,7 @@ async function run() {
         const newProposalCreatedAt = new Date(payload.comment.created_at).getTime();
         const newProposalBody = payload.comment.body;
         const newProposalAuthor = payload.comment.user.login;
-        if ((0, ProposalUtils_1.getIsBotAuthor)(payload.comment.user)) {
+        if ((0, isBotUser_1.default)(payload.comment.user.login, payload.comment.user.type)) {
             console.log('New comment is from a bot. Skipping duplicate check.');
             return;
         }
@@ -39614,17 +39617,17 @@ async function run() {
         core.startGroup('Comments Response');
         console.log('commentsResponse', commentsResponse);
         core.endGroup();
-        const isNewCommentAProposal = (0, ProposalUtils_1.getIsProposal)(newProposalBody);
+        const isNewCommentAProposal = (0, ProposalUtils_1.default)(newProposalBody);
         if (!isNewCommentAProposal) {
             console.log('New comment is not a proposal. Skipping duplicate check.');
             return;
         }
-        // Find (or create) the OpenAI Conversation that tracks this issue's proposals for duplicate detection
+        // Find any existing OpenAI Conversation that tracks this issue's proposals for duplicate detection
         let conversationID = (0, ProposalPoliceConversation_1.findTrackedConversationID)(commentsResponse);
         // Reusing a tracked Conversation implies it has at least one prior proposal in it (that's why it was created);
         // a freshly created one only has prior proposals if we seeded it with any.
         let hasPriorProposals = !!conversationID;
-        if (!conversationID) {
+        if (!hasPriorProposals) {
             console.log("No tracked Conversation found for this issue. Creating one and seeding it with the issue's prior proposals...");
             const seedItems = (0, ProposalPoliceConversation_1.buildSeedItems)(commentsResponse, newProposalCreatedAt);
             hasPriorProposals = seedItems.length > 0;
@@ -39656,7 +39659,7 @@ async function run() {
             if (parsedDuplicateCheckResponse?.action === CONST_1.default.ACTION_HIDE_DUPLICATE && similarityPercentage >= 90) {
                 console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
                 // Sanity-check the model's reported duplicateCommentId against the real comment list before trusting it for the notice link
-                const originalProposal = commentsResponse.find((comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentId && comment.id !== commentID && (0, ProposalUtils_1.getIsProposal)(comment.body));
+                const originalProposal = commentsResponse.find((comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentId && comment.id !== commentID && (0, ProposalUtils_1.default)(comment.body));
                 const duplicateCheckWithdrawMessage = (0, messages_1.getDuplicateCheckWithdrawMessage)();
                 const duplicateCheckNoticeMessage = (0, messages_1.getDuplicateCheckNoticeMessage)(newProposalAuthor, originalProposal?.html_url);
                 // If a duplicate proposal is detected, update the comment to withdraw it
@@ -39771,13 +39774,6 @@ const CONST = {
     },
     STATE: {
         OPEN: 'open',
-    },
-    COMMENT: {
-        TYPE_BOT: 'Bot',
-        NAME_MELVIN_BOT: 'melvin-bot[bot]',
-        NAME_MELVIN_USER: 'MelvinBot',
-        NAME_CODEX: 'chatgpt-codex-connector',
-        NAME_GITHUB_ACTIONS: 'github-actions',
     },
     ACTIONS: {
         CREATED: 'created',
@@ -40282,8 +40278,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getIsProposal = getIsProposal;
-exports.getIsBotAuthor = getIsBotAuthor;
 const CONST_1 = __importDefault(__nccwpck_require__(29873));
 /**
  * Checks if a comment body matches the criteria for a Proposal.
@@ -40295,18 +40289,29 @@ function getIsProposal(body) {
     const lowerCaseBody = body.toLowerCase();
     return body.includes(CONST_1.default.PROPOSAL_KEYWORD) && lowerCaseBody.includes(CONST_1.default.PROPOSAL_HEADER_A) && lowerCaseBody.includes(CONST_1.default.PROPOSAL_HEADER_B);
 }
-/**
- * Determines if a comment author is a known bot or a bot-type account.
- */
-function getIsBotAuthor(user) {
-    if (!user) {
-        return false;
+exports["default"] = getIsProposal;
+
+
+/***/ }),
+
+/***/ 37887:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+// Note: if you are updating this set, please update it in PHP as well: https://github.com/Expensify/Web-Expensify/blob/d5d74f1ba73deed0379ff5b9f57376213a8b02bf/lib/Github/Utils.php#L51
+const KNOWN_BOT_USERS = new Set(['CLABotify', 'MelvinBot', 'OSBotify', 'botify', 'exfy-zapier']);
+function isBotUser(login, actorType) {
+    if (actorType === 'Bot') {
+        return true;
     }
-    const knownBotLogins = [CONST_1.default.COMMENT.NAME_MELVIN_BOT, CONST_1.default.COMMENT.NAME_MELVIN_USER, CONST_1.default.COMMENT.NAME_CODEX, CONST_1.default.COMMENT.NAME_GITHUB_ACTIONS];
-    const isKnownBotLogin = knownBotLogins.includes(user.login ?? '');
-    const isBotType = user.type === CONST_1.default.COMMENT.TYPE_BOT;
-    return isKnownBotLogin || isBotType;
+    if (login.endsWith('[bot]')) {
+        return true;
+    }
+    return KNOWN_BOT_USERS.has(login);
 }
+exports["default"] = isBotUser;
 
 
 /***/ }),
@@ -41044,17 +41049,21 @@ exports["default"] = OpenAIUtils;
 /***/ }),
 
 /***/ 84905:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.MAX_ITEMS_PER_CONVERSATION_REQUEST = exports.CONVERSATION_MARKER_REGEX = void 0;
 exports.buildTrackingCommentBody = buildTrackingCommentBody;
 exports.findTrackedConversationID = findTrackedConversationID;
 exports.buildSeedItems = buildSeedItems;
 exports.chunkArray = chunkArray;
-const ProposalUtils_1 = __nccwpck_require__(79816);
+const isBotUser_1 = __importDefault(__nccwpck_require__(37887));
+const ProposalUtils_1 = __importDefault(__nccwpck_require__(79816));
 const input_1 = __nccwpck_require__(46166);
 /**
  * Matches the hidden marker ProposalPolice stashes in its tracking comment on an issue, capturing the OpenAI Conversation ID.
@@ -41080,7 +41089,7 @@ function buildTrackingCommentBody(conversationID) {
  */
 function findTrackedConversationID(comments) {
     for (const comment of comments) {
-        if (!(0, ProposalUtils_1.getIsBotAuthor)(comment.user)) {
+        if (!comment.user || !(0, isBotUser_1.default)(comment.user.login ?? '', comment.user.type ?? '')) {
             continue;
         }
         const match = comment.body?.match(CONVERSATION_MARKER_REGEX);
@@ -41096,7 +41105,7 @@ function findTrackedConversationID(comments) {
  */
 function buildSeedItems(comments, beforeCreatedAt) {
     return comments
-        .filter((comment) => (0, ProposalUtils_1.getIsProposal)(comment.body) && !(0, ProposalUtils_1.getIsBotAuthor)(comment.user) && new Date(comment.created_at).getTime() < beforeCreatedAt)
+        .filter((comment) => (0, ProposalUtils_1.default)(comment.body) && !(comment.user && (0, isBotUser_1.default)(comment.user.login ?? '', comment.user.type ?? '')) && new Date(comment.created_at).getTime() < beforeCreatedAt)
         .map((comment) => (0, input_1.buildDuplicateCheckSeedItem)(comment.body ?? '', comment.id));
 }
 /**

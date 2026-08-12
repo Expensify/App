@@ -11633,13 +11633,6 @@ const CONST = {
     STATE: {
         OPEN: 'open',
     },
-    COMMENT: {
-        TYPE_BOT: 'Bot',
-        NAME_MELVIN_BOT: 'melvin-bot[bot]',
-        NAME_MELVIN_USER: 'MelvinBot',
-        NAME_CODEX: 'chatgpt-codex-connector',
-        NAME_GITHUB_ACTIONS: 'github-actions',
-    },
     ACTIONS: {
         CREATED: 'created',
         EDITED: 'edited',

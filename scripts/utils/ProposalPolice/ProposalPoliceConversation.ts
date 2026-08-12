@@ -1,4 +1,5 @@
-import {getIsBotAuthor, getIsProposal} from '@github/libs/ProposalUtils';
+import isBotUser from '@github/libs/isBotUser';
+import getIsProposal from '@github/libs/ProposalUtils';
 
 import {buildDuplicateCheckSeedItem} from '@prompts/proposalPolice/input';
 
@@ -41,7 +42,7 @@ function buildTrackingCommentBody(conversationID: string): string {
  */
 function findTrackedConversationID(comments: ProposalComment[]): string | undefined {
     for (const comment of comments) {
-        if (!getIsBotAuthor(comment.user)) {
+        if (!comment.user || !isBotUser(comment.user.login ?? '', comment.user.type ?? '')) {
             continue;
         }
         const match = comment.body?.match(CONVERSATION_MARKER_REGEX);
@@ -58,7 +59,10 @@ function findTrackedConversationID(comments: ProposalComment[]): string | undefi
  */
 function buildSeedItems(comments: ProposalComment[], beforeCreatedAt: number): ResponseInputItem[] {
     return comments
-        .filter((comment) => getIsProposal(comment.body) && !getIsBotAuthor(comment.user) && new Date(comment.created_at).getTime() < beforeCreatedAt)
+        .filter(
+            (comment) =>
+                getIsProposal(comment.body) && !(comment.user && isBotUser(comment.user.login ?? '', comment.user.type ?? '')) && new Date(comment.created_at).getTime() < beforeCreatedAt,
+        )
         .map((comment) => buildDuplicateCheckSeedItem(comment.body ?? '', comment.id));
 }
 
