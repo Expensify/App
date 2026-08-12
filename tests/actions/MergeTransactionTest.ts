@@ -1198,6 +1198,7 @@ describe('mergeTransactionRequest', () => {
                 betas: undefined,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,
+                currentUserAccountID: TEST_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -1388,6 +1389,7 @@ describe('mergeTransactionRequest', () => {
                 betas: undefined,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,
+                currentUserAccountID: TEST_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 

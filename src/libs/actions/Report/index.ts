@@ -368,8 +368,7 @@ type OpenReportActionParams = {
     currentUserLogin?: string;
 
     /** The current user's account ID */
-    // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66412
-    currentUserAccountID?: number;
+    currentUserAccountID: number;
 
     /** Whether the user has seen the self tour */
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
