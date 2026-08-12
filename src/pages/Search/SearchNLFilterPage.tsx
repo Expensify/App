@@ -1,3 +1,6 @@
+/**
+ * Full-screen page (narrow layout / RHP) wrapping the "Describe your search" natural-language filter input.
+ */
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchNLFilterContent from '@components/Search/FilterComponents/AdvancedFilters/SearchNLFilterContent';
