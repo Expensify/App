@@ -29,31 +29,28 @@ describe('buildShiftRangeItems', () => {
         expect(result).toEqual([groupA, childA1, childA2, groupB, childB1]);
     });
 
-    it('falls back to group.transactions when the registry has no entry for that group', () => {
-        const childX = makeChild(1, 'x');
-        const childY = makeChild(2, 'y');
-        const group = makeGroup('groupA', [childX, childY]);
+    it('skips the rows a closed group still carries, since a range must not reach what is off screen', () => {
+        // A group that was open earlier keeps its children in `transactions`, because the sub-snapshot stays cached
+        const group = makeGroup('groupA', [makeChild(1, 'x'), makeChild(2, 'y')]);
         const filteredData: SearchData = [group];
 
         const result = buildShiftRangeItems(filteredData, {}, true);
 
-        expect(result).toEqual([group, childX, childY]);
+        expect(result).toEqual([group]);
     });
 
-    it('resolves each group independently, mixing registry children and group.transactions, preserving order', () => {
-        // Empty transactions, so this one resolves from the registry
-        const groupA = makeGroup('groupA');
-        const ownChild = makeChild(1, 'own2');
-        // Not in the registry, so this one resolves from its own transactions
-        const groupB = makeGroup('groupB', [ownChild]);
+    it('resolves each group independently, so an open group contributes its rows and a closed one contributes none', () => {
+        const openGroup = makeGroup('groupA');
+        // Closed, but still carrying the rows it loaded when it was open
+        const closedGroup = makeGroup('groupB', [makeChild(1, 'own2')]);
         const regChild1 = makeChild(2, 'reg1a');
         const regChild2 = makeChild(3, 'reg1b');
-        const filteredData: SearchData = [groupA, groupB];
+        const filteredData: SearchData = [openGroup, closedGroup];
         const groupChildrenByKey = {groupA: [regChild1, regChild2]};
 
         const result = buildShiftRangeItems(filteredData, groupChildrenByKey, true);
 
-        expect(result).toEqual([groupA, regChild1, regChild2, groupB, ownChild]);
+        expect(result).toEqual([openGroup, regChild1, regChild2, closedGroup]);
     });
 
     it('does not flatten when groups are the selectable unit (groupsAreHeaders=false, e.g. expense-report views): rows pass through unchanged', () => {
@@ -90,21 +87,21 @@ describe('isGroupSelected', () => {
 });
 
 describe('buildGroupChildrenIndex', () => {
-    it('indexes each child against the group it is rendered under', () => {
-        const groupA = makeGroup('groupA');
-        const ownChild = makeChild(1, 'own1');
-        const groupB = makeGroup('groupB', [ownChild]);
+    it('indexes each child against the group it is rendered under, and indexes nothing for a closed group', () => {
+        const openGroup = makeGroup('groupA');
+        // Closed, but still carrying the rows it loaded when it was open
+        const closedGroup = makeGroup('groupB', [makeChild(1, 'own1')]);
         const regChild1 = makeChild(2, 'reg1');
         const regChild2 = makeChild(3, 'reg2');
-        const filteredData: SearchData = [groupA, groupB];
+        const filteredData: SearchData = [openGroup, closedGroup];
 
         const {childrenByGroupKey, groupKeyByChildKey} = buildGroupChildrenIndex(filteredData, {groupA: [regChild1, regChild2]}, true);
 
         expect(childrenByGroupKey.get('groupA')).toEqual([regChild1, regChild2]);
-        expect(childrenByGroupKey.get('groupB')).toEqual([ownChild]);
+        expect(childrenByGroupKey.get('groupB')).toEqual([]);
         expect(groupKeyByChildKey.get('reg1')).toBe('groupA');
         expect(groupKeyByChildKey.get('reg2')).toBe('groupA');
-        expect(groupKeyByChildKey.get('own1')).toBe('groupB');
+        expect(groupKeyByChildKey.has('own1')).toBe(false);
     });
 
     it('indexes the same children the range spans, so the two cannot disagree about who owns a row', () => {

@@ -317,14 +317,14 @@ function isGroupSelected(selection: SelectedTransactions, groupKey: string | und
     return children.some((child) => !!selection[child.keyForList]?.isSelected);
 }
 
-/** The single rule for which children belong to a group: the lazily registered ones, else the group's own. */
+/** A group's children are the ones it registered while open. `group.transactions` is not a fallback: a closed group still carries its loaded rows. */
 function resolveGroupChildren(group: TransactionGroupListItemType, groupChildrenByKey: Record<string, TransactionListItemType[]>): TransactionListItemType[] {
-    return groupChildrenByKey[group.keyForList] ?? group.transactions ?? [];
+    return groupChildrenByKey[group.keyForList] ?? [];
 }
 
 /**
  * Flattened source (each group header followed by its children, in visual order) that shift-range ranges over. Flattens only in
- * group-by views, where children come from `groupChildrenByKey`, falling back to `group.transactions`. Expense-report and flat views pass through.
+ * group-by views, and only over the children an open group registered. Expense-report and flat views pass through.
  */
 function buildShiftRangeItems(sortedData: SearchListItem[], groupChildrenByKey: Record<string, TransactionListItemType[]>, groupsAreHeaders: boolean): SearchListItem[] {
     if (!groupsAreHeaders || !isGroupedItemArray(sortedData)) {
