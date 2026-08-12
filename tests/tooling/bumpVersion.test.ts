@@ -1,8 +1,16 @@
-import fs from 'fs';
-import {vol} from 'memfs';
+import {beforeEach, describe, expect, mock, test} from 'bun:test';
+import {fs as memfsFs, vol} from 'memfs';
 import path from 'path';
 
-import {generateAndroidVersionCode, updateAndroid} from '../../scripts/bumpVersion';
+// Must run before `bumpVersion` (which imports `fs` and `fs/promises` internally) is imported below: mock.module
+// patches the shared module registry entry, and existing import bindings are live, but only if the patch happens
+// before those bindings are first read. `bun test --isolate` gives each test file its own registry, so this does
+// not leak into the other files in tests/tooling.
+await mock.module('fs', () => ({...memfsFs, default: memfsFs}));
+await mock.module('fs/promises', () => ({...memfsFs.promises, default: memfsFs.promises}));
+
+// Must be imported after the mock.module() calls above so it picks up the mocked filesystem.
+const {generateAndroidVersionCode, updateAndroid} = await import('../../scripts/bumpVersion');
 
 const BUILD_GRADLE_PATH = path.resolve(__dirname, '../../android/app/build.gradle');
 const ANDROID_MANIFEST_PATH = path.resolve(__dirname, '../../Mobile-Expensify/Android/AndroidManifest.xml');
@@ -22,9 +30,6 @@ const mockAndroidManifest = `
       android:versionCode="1000001479" android:versionName="1.0.1-47"
       xmlns:tools="http://schemas.android.com/tools">
 </manifest>`;
-
-jest.mock('fs');
-jest.mock('fs/promises');
 
 beforeEach(() => {
     // Clear the mocked filesystem
@@ -108,9 +113,9 @@ describe('BumpVersion', () => {
             ],
         ])('updateAndroid("%s")', async (versionName, expectedBuildGradle, expectedAndroidManifest) => {
             await updateAndroid(versionName);
-            const buildGradle = fs.readFileSync(BUILD_GRADLE_PATH, {encoding: 'utf8'});
+            const buildGradle = memfsFs.readFileSync(BUILD_GRADLE_PATH, {encoding: 'utf8'});
             expect(buildGradle).toBe(expectedBuildGradle);
-            const androidManifest = fs.readFileSync(ANDROID_MANIFEST_PATH, {encoding: 'utf8'});
+            const androidManifest = memfsFs.readFileSync(ANDROID_MANIFEST_PATH, {encoding: 'utf8'});
             expect(androidManifest).toBe(expectedAndroidManifest);
         });
     });

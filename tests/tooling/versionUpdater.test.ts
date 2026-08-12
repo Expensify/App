@@ -1,3 +1,5 @@
+import {describe, expect, it, test} from 'bun:test';
+
 import * as versionUpdater from '../../.github/libs/versionUpdater';
 
 const VERSION = '2.3.9-80';

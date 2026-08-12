@@ -24,16 +24,36 @@ let listForRepoSpy: Mock<ListForRepoMethod>;
 let internalOctokit: InternalOctokit;
 
 /**
- * Bun's fake timers only expose a synchronous `jest.advanceTimersByTime`. The code under test schedules each
- * backoff timer inside a `catch` block, i.e. several microtasks after the call under test starts, so yield until
- * that timer exists before firing it, then yield again to let the continuation run.
+ * Runs `operation` with fake timers so its retry backoff resolves instantly. Bun only exposes a synchronous
+ * `jest.advanceTimersByTime`, and the code under test schedules each backoff timer from a `catch` block - i.e. only
+ * once the preceding rejection has been awaited - so alternate between yielding to the microtask queue and pushing
+ * the clock forward until the operation settles.
  */
-async function advanceTimersByTimeAsync(ms: number) {
-    for (let i = 0; jest.getTimerCount() === 0 && i < 100; i++) {
-        await Promise.resolve();
-    }
-    jest.advanceTimersByTime(ms);
-    await Promise.resolve();
+function runWithFakeTimers<T>(operation: () => Promise<T>): Promise<T> {
+    jest.useFakeTimers();
+    let isSettled = false;
+    const pending = operation().finally(() => {
+        isSettled = true;
+    });
+
+    // The caller decides whether a rejection is expected; swallow it here only so driving the clock below doesn't
+    // trip Bun's unhandled-rejection reporting in the meantime.
+    pending.catch(() => {});
+
+    return (async () => {
+        try {
+            for (let i = 0; !isSettled && i < 1000; i++) {
+                await Promise.resolve();
+                jest.advanceTimersByTime(1000);
+            }
+            if (!isSettled) {
+                throw new Error('Operation did not settle after advancing fake timers; is it waiting on something other than a timer?');
+            }
+            return await pending;
+        } finally {
+            jest.useRealTimers();
+        }
+    })();
 }
 
 beforeAll(() => {
@@ -265,17 +285,10 @@ describe('DeployChecklistUtils', () => {
                     createListForRepoResponse([createMock<OctokitIssueItem>({number: 88, url: 'https://api.github.com/repos/o/i/issues/88', title: 't', labels: [], body: ''})]),
                 );
 
-            jest.useFakeTimers();
-            try {
-                const pending = getDeployChecklist();
-                await advanceTimersByTimeAsync(2000);
-                const data = await pending;
+            const data = await runWithFakeTimers(() => getDeployChecklist());
 
-                expect(data.number).toBe(88);
-                expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
-            } finally {
-                jest.useRealTimers();
-            }
+            expect(data.number).toBe(88);
+            expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
         });
 
         test('re-throws after all retry attempts fail', async () => {
@@ -284,18 +297,9 @@ describe('DeployChecklistUtils', () => {
             });
             mockListIssues.mockRejectedValue(err503);
 
-            jest.useFakeTimers();
-            try {
-                const pending = getDeployChecklist();
-                const assertion = expect(pending).rejects.toThrow(RequestError);
-                await advanceTimersByTimeAsync(2000);
-                await advanceTimersByTimeAsync(5000);
-                await assertion;
+            await expect(runWithFakeTimers(() => getDeployChecklist())).rejects.toThrow(RequestError);
 
-                expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(3);
-            } finally {
-                jest.useRealTimers();
-            }
+            expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(3);
         });
 
         test('does not retry on empty result; falls through to state:all cross-check', async () => {
@@ -326,17 +330,10 @@ describe('DeployChecklistUtils', () => {
                     createListForRepoResponse([createMock<OctokitIssueItem>({number: 77, url: 'https://api.github.com/repos/o/i/issues/77', title: 't', labels: [], body: ''})]),
                 );
 
-            jest.useFakeTimers();
-            try {
-                const pending = getDeployChecklist();
-                await advanceTimersByTimeAsync(2000);
-                const data = await pending;
+            const data = await runWithFakeTimers(() => getDeployChecklist());
 
-                expect(data.number).toBe(77);
-                expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
-            } finally {
-                jest.useRealTimers();
-            }
+            expect(data.number).toBe(77);
+            expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
         });
 
         test('state:all reports a non-first open issue → fails closed with that number', async () => {

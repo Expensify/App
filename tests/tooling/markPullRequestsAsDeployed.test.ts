@@ -1,10 +1,9 @@
 import * as core from '@actions/core';
-import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest, mock} from 'bun:test';
+import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest} from 'bun:test';
 
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 
 /* eslint-disable @typescript-eslint/naming-convention */
-import * as ActionUtils from '../../.github/libs/ActionUtils';
 import CONST from '../../.github/libs/CONST';
 import GithubUtils from '../../.github/libs/GithubUtils';
 import GitUtils from '../../.github/libs/GitUtils';
@@ -44,24 +43,7 @@ const mockCreateComment = jest.fn();
 const mockListTags = jest.fn();
 const mockGetCommit = jest.fn();
 
-const mockGetJSONInput = jest.fn().mockImplementation((name: string, defaultValue: string) => {
-    try {
-        const input = mockGetInput(name) as string;
-        return JSON.parse(input) as unknown;
-    } catch (err) {
-        return defaultValue;
-    }
-});
-
-// Must run before `markPullRequestsAsDeployed` (which imports `ActionUtils` internally) is imported below:
-// mock.module patches the shared module registry entry, and existing named-import bindings to it are live, but
-// only if the patch happens before those bindings are first read.
-await mock.module('../../.github/libs/ActionUtils', () => ({
-    ...ActionUtils,
-    getJSONInput: mockGetJSONInput,
-}));
-
-// Must also be set before `markPullRequestsAsDeployed` is imported below: it computes `workflowURL` from these env
+// Must be set before `markPullRequestsAsDeployed` is imported below: it computes `workflowURL` from these env
 // vars in a top-level (module-load-time) constant, not at runtime.
 process.env.GITHUB_SERVER_URL = 'https://github.com';
 process.env.GITHUB_RUN_ID = '1234';
@@ -131,12 +113,14 @@ const defaultTags = [
     {name: '42.42.42-41', commit: {sha: 'hash'}},
 ];
 
-function mockGetInputDefaultImplementation(key: string): boolean | string {
+// `core.getInput` always returns a string, so this returns strings too: the action's inputs go through the real
+// ActionUtils.getJSONInput, which JSON.parses whatever it gets back.
+function mockGetInputDefaultImplementation(key: string): string {
     switch (key) {
         case 'PR_LIST':
             return JSON.stringify(Object.keys(PRList));
         case 'IS_PRODUCTION_DEPLOY':
-            return false;
+            return 'false';
         case 'DEPLOY_VERSION':
             return version;
         case 'IOS':
@@ -144,6 +128,7 @@ function mockGetInputDefaultImplementation(key: string): boolean | string {
         case 'WEB':
             return 'success';
         case 'DATE':
+        case 'MOBILE_EXPENSIFY_PR_LIST':
         case 'NOTE':
         case 'ANDROID_SENTRY_URL':
         case 'IOS_SENTRY_URL':
@@ -209,7 +194,7 @@ platform | result
     it('comments on pull requests correctly for a standard production deploy', async () => {
         mockGetInput.mockImplementation((key: string) => {
             if (key === 'IS_PRODUCTION_DEPLOY') {
-                return true;
+                return 'true';
             }
             return mockGetInputDefaultImplementation(key);
         });

@@ -1,17 +1,21 @@
-import Git from '@scripts/utils/Git';
+import type {Mock} from 'bun:test';
 
-/**
- * @jest-environment node
- */
-import {execSync} from 'child_process';
+import {afterEach, beforeEach, describe, expect, it, jest, mock} from 'bun:test';
+import * as childProcess from 'child_process';
 import {Str} from 'expensify-common';
 import fs from 'fs';
 
 import createMock from '../utils/createMock';
 
-// Mock execSync to control git diff output
-jest.mock('child_process');
-const mockExecSync = jest.mocked(execSync);
+// Mock execSync to control git diff output. Bun has no equivalent of `jest.mock(path)`'s automock, and
+// `child_process`'s named exports are read-only live bindings, so replace the whole module. This must run before
+// `Git` (which imports execSync internally) is imported below, and `bun test --isolate` keeps the replacement from
+// leaking into the other files in tests/tooling.
+const mockExecSync = jest.fn<typeof childProcess.execSync>();
+await mock.module('child_process', () => ({...childProcess, execSync: mockExecSync}));
+
+// Must be imported after the mock.module() call above so it picks up the mock.
+const {default: Git} = await import('@scripts/utils/Git');
 
 // Test constants for untracked files tests
 const MOCK_COMPONENT_CONTENT = 'const Component = () => null;\n';
@@ -1223,8 +1227,8 @@ describe('Git', () => {
     });
 
     describe('diff with shouldIncludeUntrackedFiles', () => {
-        let mockExistsSync: jest.SpyInstance;
-        let mockReadFileSync: jest.SpyInstance;
+        let mockExistsSync: Mock<typeof fs.existsSync>;
+        let mockReadFileSync: Mock<typeof fs.readFileSync>;
 
         beforeEach(() => {
             jest.clearAllMocks();
