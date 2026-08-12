@@ -1909,9 +1909,10 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
     let firstApprovalTime = Infinity;
     let firstApprovalAction: OnyxTypes.ReportAction | undefined;
 
-    // The payer is the actor on the latest payment action.
-    let lastReimbursedTime = -Infinity;
-    let lastReimbursedAction: OnyxTypes.ReportAction | undefined;
+    // The payer is the actor on the latest payment action. Payment actions are collected first because
+    // whether the owner's ones count depends on a receipt confirmation that may appear later in the scan.
+    const paymentActions: OnyxTypes.ReportAction[] = [];
+    let ownerConfirmedReceipt = false;
     let lastPaymentCanceledTime = -Infinity;
 
     for (const action of Object.values(actions)) {
@@ -1943,19 +1944,13 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
             action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED ||
             action.actionName === CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION
         ) {
-            // A payment action from the report owner is a receipt confirmation, not a payment, matching the backend
-            if (isReportPaid && action.actorAccountID !== reportOwnerAccountID) {
-                const currentTime = new Date(action.created).getTime();
-                // Ties on created are broken by the higher reportActionID (numeric-string compare), matching the backend ORDER BY
-                const previousActionID = lastReimbursedAction?.reportActionID;
-                const currentActionID = action.reportActionID;
-                const hasHigherActionID =
-                    !!previousActionID && (currentActionID.length === previousActionID.length ? currentActionID > previousActionID : currentActionID.length > previousActionID.length);
-                if (currentTime > lastReimbursedTime || (currentTime === lastReimbursedTime && hasHigherActionID)) {
-                    lastReimbursedTime = currentTime;
-                    lastReimbursedAction = action;
-                }
+            if (isReportPaid) {
+                paymentActions.push(action);
             }
+        }
+
+        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REDEEMED && action.actorAccountID === reportOwnerAccountID) {
+            ownerConfirmedReceipt = true;
         }
 
         if (
@@ -1987,6 +1982,26 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
 
     if (firstApprovalAction) {
         ctx.firstApprovedActionByReportID.set(reportID, firstApprovalAction);
+    }
+
+    // A payment action from an owner who also confirmed receipt (MARKEDREDEEMED) is a receipt
+    // confirmation, not a payment, matching the backend
+    let lastReimbursedTime = -Infinity;
+    let lastReimbursedAction: OnyxTypes.ReportAction | undefined;
+    for (const action of paymentActions) {
+        if (ownerConfirmedReceipt && action.actorAccountID === reportOwnerAccountID) {
+            continue;
+        }
+        const currentTime = new Date(action.created).getTime();
+        // Ties on created are broken by the higher reportActionID (numeric-string compare), matching the backend ORDER BY
+        const previousActionID = lastReimbursedAction?.reportActionID;
+        const currentActionID = action.reportActionID;
+        const hasHigherActionID =
+            !!previousActionID && (currentActionID.length === previousActionID.length ? currentActionID > previousActionID : currentActionID.length > previousActionID.length);
+        if (currentTime > lastReimbursedTime || (currentTime === lastReimbursedTime && hasHigherActionID)) {
+            lastReimbursedTime = currentTime;
+            lastReimbursedAction = action;
+        }
     }
 
     // A payment sharing the same timestamp as a cancellation counts as canceled, matching the backend
