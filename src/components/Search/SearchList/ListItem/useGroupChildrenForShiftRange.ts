@@ -69,7 +69,6 @@ function useGroupChildrenForShiftRange({
     cardFeeds,
     conciergeReportID,
 }: UseGroupChildrenForShiftRangeArgs): {
-    rangeChildren: TransactionListItemType[];
     transactions: TransactionListItemType[];
     isGroupSelected: boolean;
 } {
@@ -113,7 +112,7 @@ function useGroupChildrenForShiftRange({
               selectionGroupKey: groupKey,
           }));
 
-    return {rangeChildren, transactions, isGroupSelected};
+    return {transactions, isGroupSelected};
 }
 
 export default useGroupChildrenForShiftRange;

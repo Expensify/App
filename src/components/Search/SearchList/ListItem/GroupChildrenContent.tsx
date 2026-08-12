@@ -47,7 +47,7 @@ function GroupChildrenContent({
     const snapshotData = transactionsSnapshot?.data;
 
     // Uses groupKeyForList: this split container's own keyForList is prefixed.
-    const {rangeChildren, transactions} = useGroupChildrenForShiftRange({
+    const {transactions} = useGroupChildrenForShiftRange({
         groupKey: groupItem.groupKeyForList,
         isExpanded,
         shouldUnregisterOnUnmount: false,
@@ -59,7 +59,7 @@ function GroupChildrenContent({
         conciergeReportID,
     });
 
-    const isEmpty = rangeChildren.length === 0;
+    const isEmpty = transactions.length === 0;
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
 
     const refreshTransactions = () => {

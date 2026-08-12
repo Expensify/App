@@ -602,24 +602,23 @@ function SearchWriteActionsProvider({
         isHeaderItem: isShiftRangeHeaderItem,
     });
 
-    // Every other gesture drops the pending key, so a seed arriving this late can never overwrite a session started in between.
-    const seedPendingGroup = () => {
-        const groupKey = pendingSeedGroupKeyRef.current;
-        pendingSeedGroupKeyRef.current = undefined;
-        const groupChildren = groupKey ? (childrenByGroupKey.get(groupKey) ?? []) : [];
-        if (!groupKey || groupChildren.length === 0 || !isGroupSelected(getSelectedTransactions(), groupKey, groupChildren)) {
-            return;
-        }
+    const seedGroup = (groupKey: string, groupChildren: TransactionListItemType[]) =>
         rangeApi.seedRangeFromSelection(new Set(groupChildren.map((child) => child.keyForList).filter(Boolean)));
-    };
 
     const toggle: SearchRowSelectionActionsValue['toggle'] = (item, itemTransactions, shiftKey) => {
         if (isReportActionListItemType(item) || isTaskListItemType(item)) {
             return;
         }
 
-        if (shiftKey) {
-            seedPendingGroup();
+        // Held only until the very next gesture, so a seed arriving this late can never overwrite a session started in between.
+        const pendingSeedGroupKey = pendingSeedGroupKeyRef.current;
+        pendingSeedGroupKeyRef.current = undefined;
+
+        if (shiftKey && pendingSeedGroupKey) {
+            const pendingChildren = childrenByGroupKey.get(pendingSeedGroupKey) ?? [];
+            if (pendingChildren.length > 0 && isGroupSelected(getSelectedTransactions(), pendingSeedGroupKey, pendingChildren)) {
+                seedGroup(pendingSeedGroupKey, pendingChildren);
+            }
         }
 
         // The hook rejects headers as range targets, so shift+click on one falls through to the group toggle.
@@ -633,13 +632,12 @@ function SearchWriteActionsProvider({
         if (isShiftRangeHeaderItem(item) && isTransactionGroupListItemType(item)) {
             // A header click selects a whole block, so seed it and a later shift+click can narrow it (like Select All).
             const groupWasSelected = isGroupSelected(getSelectedTransactions(), item.keyForList, groupTransactions);
-            pendingSeedGroupKeyRef.current = undefined;
             if (groupWasSelected) {
                 // Deselecting paints no block, so reset instead of leaving a stale span to collapse.
                 rangeApi.clearAnchor();
             } else if (groupTransactions.length > 0) {
                 // Seed just this block: seeding the whole selection would span unrelated rows and deselect them.
-                rangeApi.seedRangeFromSelection(new Set(groupTransactions.map((child) => child.keyForList).filter(Boolean)));
+                seedGroup(item.keyForList, groupTransactions);
             } else {
                 // Nothing to seed yet, so hold the block for the next shift+click.
                 rangeApi.clearAnchor();
@@ -648,7 +646,6 @@ function SearchWriteActionsProvider({
         } else if (!isShiftRangeHeaderItem(item)) {
             // Seed the anchor so a later shift+click continues from here. The hook ignores rows a range can't reach.
             rangeApi.notifyAnchor(item);
-            pendingSeedGroupKeyRef.current = undefined;
         }
 
         if (isTransactionListItemType(item)) {
