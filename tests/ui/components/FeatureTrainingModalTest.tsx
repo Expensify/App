@@ -63,9 +63,7 @@ describe('FeatureTrainingModal', () => {
                         <FeatureTrainingModal>
                             <FeatureTraining.Illustration videoURL={CONST.FEATURE_TRAINING['track-expenses'].VIDEO_URL} />
                             <FeatureTraining.Body>
-                                <FeatureTraining.ButtonRow>
-                                    <FeatureTraining.ConfirmButton>{CONFIRM_TEXT}</FeatureTraining.ConfirmButton>
-                                </FeatureTraining.ButtonRow>
+                                <FeatureTraining.ConfirmButton>{CONFIRM_TEXT}</FeatureTraining.ConfirmButton>
                             </FeatureTraining.Body>
                         </FeatureTrainingModal>
                     </ComposeProviders>,
@@ -81,9 +79,7 @@ describe('FeatureTrainingModal', () => {
                     <FeatureTrainingModal>
                         <FeatureTraining.Illustration image={illustrations.HoldExpense} />
                         <FeatureTraining.Body>
-                            <FeatureTraining.ButtonRow>
-                                <FeatureTraining.ConfirmButton>{CONFIRM_TEXT}</FeatureTraining.ConfirmButton>
-                            </FeatureTraining.ButtonRow>
+                            <FeatureTraining.ConfirmButton>{CONFIRM_TEXT}</FeatureTraining.ConfirmButton>
                         </FeatureTraining.Body>
                     </FeatureTrainingModal>
                 );
@@ -98,9 +94,7 @@ describe('FeatureTrainingModal', () => {
                     <FeatureTrainingModal>
                         <FeatureTraining.Illustration />
                         <FeatureTraining.Body>
-                            <FeatureTraining.ButtonRow>
-                                <FeatureTraining.ConfirmButton>{CONFIRM_TEXT}</FeatureTraining.ConfirmButton>
-                            </FeatureTraining.ButtonRow>
+                            <FeatureTraining.ConfirmButton>{CONFIRM_TEXT}</FeatureTraining.ConfirmButton>
                         </FeatureTraining.Body>
                     </FeatureTrainingModal>,
                 ),
