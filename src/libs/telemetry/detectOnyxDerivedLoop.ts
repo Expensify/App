@@ -1,6 +1,5 @@
-/**
- * Rate tripwire that detects runaway Onyx derived-value recompute loops and reports each offending derived key once per session.
- */
+// Detects runaway Onyx derived value recompute loops and reports each offending derived key once per session.
+
 import Log from '@libs/Log';
 
 import type {OnyxKey} from '@src/ONYXKEYS';
@@ -11,13 +10,13 @@ import Onyx from 'react-native-onyx';
 
 const WINDOW_MS = 10_000;
 
-// Hand-tuned flat rate of about 5/s. Make it per-key if one config needs a looser bound.
+// 50 recomputes inside the 10s window, so about 5 per second. The same threshold applies to every derived key.
 const RECOMPUTE_THRESHOLD = 50;
 
 /** A single recompute of a derived key: when it happened and which dependency keys triggered it. */
 type RecomputeEntry = {
     /** Timestamp of the recompute, in ms. */
-    at: number;
+    timestamp: number;
 
     /** Dependency keys whose change triggered this recompute. */
     triggeredKeys: Set<OnyxKey>;
@@ -28,7 +27,7 @@ type KeyState = {
     /** Recomputes within the last `WINDOW_MS`, oldest first. */
     window: RecomputeEntry[];
 
-    /** Whether this key already reported a loop. Latched so each key reports at most once per session. */
+    /** Whether this key already reported a loop. Once true, the key stops reporting for the rest of the session. */
     hasReported: boolean;
 };
 
@@ -49,7 +48,7 @@ Onyx.connectWithoutView({
 
 /**
  * Reports a runaway recompute rate for one derived key, once per key per app load, with a per-dependency breakdown.
- * Not a span: spans are dropped while backgrounded, which is when a loop is most likely to spin unnoticed.
+ * This is not reported as a span, because spans are dropped while the app is backgrounded and a loop can still run there.
  */
 function detectOnyxDerivedLoop(derivedKey: OnyxKey, triggeredKeys: Set<OnyxKey>) {
     // OpenApp hydrates dependencies in bursts, so dense recomputes are expected until its data has landed.
@@ -68,8 +67,8 @@ function detectOnyxDerivedLoop(derivedKey: OnyxKey, triggeredKeys: Set<OnyxKey>)
     }
 
     const now = Date.now();
-    state.window.push({at: now, triggeredKeys});
-    while (state.window.length > 0 && (state.window.at(0)?.at ?? now) <= now - WINDOW_MS) {
+    state.window.push({timestamp: now, triggeredKeys});
+    while (state.window.length > 0 && (state.window.at(0)?.timestamp ?? now) <= now - WINDOW_MS) {
         state.window.shift();
     }
 
@@ -92,13 +91,13 @@ function detectOnyxDerivedLoop(derivedKey: OnyxKey, triggeredKeys: Set<OnyxKey>)
         extra: {derivedKey, recomputeCount: state.window.length, windowMs: WINDOW_MS, dependencyCounts},
         fingerprint: ['onyx-derived-loop', derivedKey],
     });
-    // Mirrored to VictoriaLogs. alert, not info, because it flushes immediately.
+    // Log.alert instead of Log.info because it is sent to the server immediately.
     Log.alert(message, {derivedKey, recomputeCount: state.window.length, windowMs: WINDOW_MS, dependencyCounts}, false);
 
     state.window.length = 0;
 }
 
-/** Test-only: clears the latches and windows. */
+/** Test-only: clears all tracked state so each test starts fresh. */
 function resetOnyxDerivedLoopDetection() {
     statesByDerivedKey.clear();
 }
