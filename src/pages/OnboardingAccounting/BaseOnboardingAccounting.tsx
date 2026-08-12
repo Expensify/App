@@ -308,6 +308,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         label={translate('onboarding.accounting.otherAccountingSoftware')}
                         value={userReportedIntegrationName}
                         onChangeText={setUserReportedIntegrationName}
+                        autoFocus
                     />
                 )}
             </ScrollView>

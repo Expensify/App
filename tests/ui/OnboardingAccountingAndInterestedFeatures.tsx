@@ -149,7 +149,7 @@ describe('Onboarding interested features and accounting pages', () => {
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
     });
 
-    it('keeps Other half-width, reveals its input without auto-focusing, and completes with a trimmed integration name', async () => {
+    it('keeps Other half-width, auto-focuses its input, and completes with a trimmed integration name', async () => {
         const scrollToEndSpy = jest.spyOn(ScrollView.prototype, 'scrollToEnd');
         const renderResult = renderAccountingPage();
 
@@ -160,7 +160,7 @@ describe('Onboarding interested features and accounting pages', () => {
         fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
         const otherAccountingSoftwareLabel = TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware');
         const otherAccountingSoftwareInput = screen.getByLabelText(otherAccountingSoftwareLabel);
-        expect(otherAccountingSoftwareInput.props.autoFocus).toBeFalsy();
+        expect(otherAccountingSoftwareInput.props.autoFocus).toBe(true);
         expect(renderResult.UNSAFE_getByType(TextInput).props.forceActiveLabel).toBeFalsy();
         const accountingScrollView = renderResult.UNSAFE_getByType(ScrollView);
         fireEvent(accountingScrollView, 'onContentSizeChange', 0, 0);
