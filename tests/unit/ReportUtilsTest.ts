@@ -18120,6 +18120,7 @@ describe('ReportUtils', () => {
                             upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
                             shouldSubmitExpense: true,
                         }),
+                        ROUTES.REPORT_WITH_ID.getRoute('1'),
                     ),
                 );
             });
@@ -18175,6 +18176,7 @@ describe('ReportUtils', () => {
                             upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
                             shouldSubmitExpense: true,
                         }),
+                        ROUTES.REPORT_WITH_ID.getRoute('1'),
                     ),
                 );
             });
