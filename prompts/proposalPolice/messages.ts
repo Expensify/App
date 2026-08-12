@@ -19,9 +19,8 @@ function buildSubstantiveEditMessage(updatedTimestamp: string): string {
     return `${SUBSTANTIVE_EDIT_MESSAGE_PREFIX} This proposal was **edited** at ${updatedTimestamp}.`;
 }
 
-function buildDuplicateCheckNoticeMessage(proposalAuthor: string | undefined, originalProposalURL?: string): string {
-    const existingProposalWithURL = originalProposalURL ? `[existing proposal](${originalProposalURL})` : 'existing proposal';
-    return `⚠️ @${proposalAuthor} Your proposal is a duplicate of an already ${existingProposalWithURL} and has been automatically withdrawn to prevent spam. Please review the existing proposals before submitting a new one.`;
+function buildDuplicateCheckNoticeMessage(proposalAuthor: string | undefined, originalProposalURL: string): string {
+    return `⚠️ @${proposalAuthor} Your proposal is a duplicate of an already [existing proposal](${originalProposalURL}) and has been automatically withdrawn to prevent spam. Please review the existing proposals before submitting a new one.`;
 }
 
 export {DUPLICATE_CHECK_WITHDRAW_MESSAGE, SUBSTANTIVE_EDIT_MESSAGE_PREFIX, buildTemplateReminderMessage, buildSubstantiveEditMessage, buildDuplicateCheckNoticeMessage};

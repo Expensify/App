@@ -185,14 +185,20 @@ async function run() {
             core.endGroup();
 
             const similarityPercentage = parsedDuplicateCheckResponse?.similarity ?? 0;
-            if (similarityPercentage >= DUPLICATE_SIMILARITY_THRESHOLD) {
-                console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
 
-                // Sanity-check the model's reported duplicateCommentID against the real comment list before trusting it for the notice link
-                const originalProposal = commentsResponse.find(
-                    (comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentID && comment.id !== commentID && isProposal(comment.body),
+            // The reported match must still be a live proposal on this issue. The model can name a comment
+            // that has since been withdrawn or edited into a different solution, and it can invent an ID
+            // outright. Withdrawing on one of those would destroy a contributor's legitimate work, so an
+            // unresolvable match is treated as "not a duplicate" rather than trusted.
+            const originalProposal = commentsResponse.find(
+                (comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentID && comment.id !== commentID && isProposal(comment.body),
+            );
+            if (similarityPercentage >= DUPLICATE_SIMILARITY_THRESHOLD && !originalProposal) {
+                console.log(
+                    `Reported duplicate of comment ${parsedDuplicateCheckResponse?.duplicateCommentID} scored ${similarityPercentage}% but is no longer a live proposal, so keeping this one.`,
                 );
-                const duplicateCheckNoticeMessage = buildDuplicateCheckNoticeMessage(newProposalAuthor, originalProposal?.html_url);
+            } else if (similarityPercentage >= DUPLICATE_SIMILARITY_THRESHOLD && originalProposal) {
+                console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
 
                 // If a duplicate proposal is detected, update the comment to withdraw it
                 console.log('ProposalPolice™ withdrawing duplicated proposal...');
@@ -205,7 +211,16 @@ async function run() {
 
                 // Post a comment to notify the user about the withdrawn duplicated proposal
                 console.log('ProposalPolice™ notifying contributor of withdrawn proposal...');
-                await GithubUtils.createComment(CONST.APP_REPO, issueNumber, duplicateCheckNoticeMessage);
+                await GithubUtils.createComment(CONST.APP_REPO, issueNumber, buildDuplicateCheckNoticeMessage(newProposalAuthor, originalProposal.html_url));
+
+                // The duplicate-check call already appended this proposal to the Conversation. Leaving it
+                // there would let a later proposal match this withdrawn copy instead of the still-live
+                // original, and the guard above would then wave that later proposal through.
+                const withdrawnItemID = findConversationItemIDForComment(await openAI.listConversationItems(conversationID), commentID);
+                if (withdrawnItemID) {
+                    await openAI.deleteConversationItem(conversationID, withdrawnItemID);
+                }
+
                 console.log('DUPLICATE PROPOSAL DETECTION Check Completed, returning early.');
                 return;
             }

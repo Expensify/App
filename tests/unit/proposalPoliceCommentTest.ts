@@ -276,6 +276,61 @@ describe('proposalPoliceComment', () => {
         expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(1);
     });
 
+    it('does not withdraw when the reported duplicate is no longer a live proposal', async () => {
+        // Comment 42 was itself withdrawn earlier, so its body is the withdrawal notice rather than a
+        // proposal. Trusting the model's ID here would destroy a proposal that nothing live duplicates.
+        mockComments([
+            makeComment({id: 42, body: DUPLICATE_CHECK_WITHDRAW_MESSAGE, created_at: '2025-12-31T00:00:00Z'}),
+            makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'}),
+        ]);
+        setPayload({action: 'created', comment: makeComment({id: 99})});
+        MockedOpenAIUtils.prototype.promptResponses
+            .mockResolvedValueOnce({text: duplicateCheckResult({similarity: 99, duplicateCommentID: 42}), responseID: 'resp_dup'})
+            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl'});
+
+        await run();
+
+        expect(mockUpdateComment).not.toHaveBeenCalled();
+        expect(mockCreateComment).not.toHaveBeenCalled();
+        // Falls through to the template check rather than returning early as a duplicate
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not withdraw when the model invents a duplicate comment ID', async () => {
+        mockComments([
+            makeComment({id: 42, created_at: '2025-12-31T00:00:00Z'}),
+            makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'}),
+        ]);
+        setPayload({action: 'created', comment: makeComment({id: 99})});
+        MockedOpenAIUtils.prototype.promptResponses
+            .mockResolvedValueOnce({text: duplicateCheckResult({similarity: 99, duplicateCommentID: 123456}), responseID: 'resp_dup'})
+            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl'});
+
+        await run();
+
+        expect(mockUpdateComment).not.toHaveBeenCalled();
+    });
+
+    it('drops a withdrawn proposal from the Conversation so it cannot shadow the live original', async () => {
+        mockComments([
+            makeComment({id: 42, created_at: '2025-12-31T00:00:00Z'}),
+            makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'}),
+        ]);
+        setPayload({action: 'created', comment: makeComment({id: 99})});
+        MockedOpenAIUtils.prototype.listConversationItems.mockResolvedValue([conversationMessage('item_42', 42), conversationMessage('item_99', 99)]);
+        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: duplicateCheckResult({similarity: 95, duplicateCommentID: 42}), responseID: 'resp_dup'});
+
+        await run();
+
+        expect(mockUpdateComment).toHaveBeenCalledWith(expect.objectContaining({comment_id: 99, body: DUPLICATE_CHECK_WITHDRAW_MESSAGE}));
+        // The withdrawn proposal is removed; the one it duplicated stays
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.deleteConversationItem).toHaveBeenCalledWith('conv_existing', 'item_99');
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.deleteConversationItem).toHaveBeenCalledTimes(1);
+    });
+
     it('does not withdraw a proposal scoring just below the similarity threshold', async () => {
         // Uses an already-tracked Conversation so the only comment activity under test is (or isn't) the withdrawal.
         mockComments([makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'})]);
@@ -378,7 +433,10 @@ describe('proposalPoliceComment', () => {
         // Second proposal on the same issue: the tracking comment now exists, so the Conversation is reused
         // and the duplicate-check call runs (proving the first proposal wasn't silently lost).
         jest.clearAllMocks();
-        mockComments([makeComment({id: 1, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_new -->'})]);
+        mockComments([
+            makeComment({id: 1, created_at: '2026-01-01T00:00:00Z'}),
+            makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_new -->'}),
+        ]);
         setPayload({action: 'created', comment: makeComment({id: 2, created_at: '2026-01-02T00:00:00Z'})});
         MockedOpenAIUtils.prototype.promptResponses
             .mockResolvedValueOnce({text: duplicateCheckResult({similarity: 96, duplicateCommentID: 1}), responseID: 'resp_dup_2'})
