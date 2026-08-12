@@ -144,7 +144,7 @@ describe('FileUtils', () => {
         let mockImageBitmap: ImageBitmap;
         let mockToBlob: jest.SpiedFunction<HTMLCanvasElement['toBlob']>;
         let mockCreateElement: jest.SpiedFunction<Document['createElement']>;
-        let mockCreateObjectURL: jest.SpiedFunction<typeof URL.createObjectURL>;
+        let restoreCreateObjectURL: () => void;
         const mockCreateImageBitmap: typeof globalThis.createImageBitmap = () => Promise.resolve(mockImageBitmap);
 
         beforeEach(() => {
@@ -159,16 +159,25 @@ describe('FileUtils', () => {
                 close: mockCloseImageBitmap,
             });
 
+            if (typeof globalThis.URL.createObjectURL === 'function') {
+                const mockCreateObjectURL = jest.spyOn(globalThis.URL, 'createObjectURL').mockReturnValue('blob:mock-url');
+                restoreCreateObjectURL = () => mockCreateObjectURL.mockRestore();
+            } else {
+                globalThis.URL.createObjectURL = jest.fn<ReturnType<typeof URL.createObjectURL>, Parameters<typeof URL.createObjectURL>>().mockReturnValue('blob:mock-url');
+                restoreCreateObjectURL = () => {
+                    Reflect.deleteProperty(globalThis.URL, 'createObjectURL');
+                };
+            }
+
             mockToBlob = jest.spyOn(mockCanvas, 'toBlob');
             mockCreateElement = jest.spyOn(document, 'createElement').mockReturnValue(mockCanvas);
-            mockCreateObjectURL = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
             globalThis.createImageBitmap = mockCreateImageBitmap;
         });
 
         afterEach(() => {
             mockToBlob.mockRestore();
             mockCreateElement.mockRestore();
-            mockCreateObjectURL.mockRestore();
+            restoreCreateObjectURL();
             Reflect.deleteProperty(globalThis, 'createImageBitmap');
         });
 
