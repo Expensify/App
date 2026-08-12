@@ -18038,6 +18038,7 @@ describe('ReportUtils', () => {
                             transactionID: transaction.transactionID,
                             reportID: policyExpenseReport.reportID,
                         }),
+                        ROUTES.REPORT_WITH_ID.getRoute('1'),
                     ),
                 );
             });
@@ -18091,6 +18092,7 @@ describe('ReportUtils', () => {
                             transactionID: transaction.transactionID,
                             reportID: policyExpenseReport.reportID,
                         }),
+                        ROUTES.REPORT_WITH_ID.getRoute('2'),
                     ),
                 );
             });
@@ -18286,6 +18288,7 @@ describe('ReportUtils', () => {
                             transactionID: transaction.transactionID,
                             reportID: policyExpenseReport.reportID,
                         }),
+                        ROUTES.REPORT_WITH_ID.getRoute('1'),
                     ),
                 );
             });
@@ -18377,6 +18380,7 @@ describe('ReportUtils', () => {
                             transactionID: transaction.transactionID,
                             reportID: policyExpenseReport.reportID,
                         }),
+                        ROUTES.REPORT_WITH_ID.getRoute('1'),
                     ),
                 );
             });
