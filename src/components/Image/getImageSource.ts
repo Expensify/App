@@ -11,7 +11,7 @@ type GetImageSourceParams = {
     isAuthTokenRequired: boolean;
     isOffline: boolean;
 
-    /** Whether a background token refresh is possible, so blanking the image can actually lead somewhere */
+    /** Whether the auth token can still be refreshed in the background */
     canReauthenticateSilently: boolean;
 };
 
