@@ -12,6 +12,8 @@ const resultCache = new WeakMap<Message, boolean>();
 
 // Second-level cache keyed by the HTML itself: Onyx merges produce fresh Message objects for unchanged
 // content (which misses the WeakMap), and the parse result is a pure function of the HTML.
+// LRU by Map insertion order: a hit re-inserts its key so it sorts last, and eviction below drops the
+// first (least-recently-used) key, so the cache never loses every entry at once the way clear() would.
 const PARSE_RESULT_CACHE_MAX_ENTRIES = 2000;
 const parseResultCache = new Map<string, boolean>();
 
@@ -33,6 +35,8 @@ function computeIsReportMessageAttachment(html: string, text: string, translatio
 
     const cachedParseResult = parseResultCache.get(html);
     if (cachedParseResult !== undefined) {
+        parseResultCache.delete(html);
+        parseResultCache.set(html, cachedParseResult);
         return cachedParseResult;
     }
 
@@ -77,7 +81,10 @@ function computeIsReportMessageAttachment(html: string, text: string, translatio
 
     const result = hasAttachment && !hasOtherContent;
     if (parseResultCache.size >= PARSE_RESULT_CACHE_MAX_ENTRIES) {
-        parseResultCache.clear();
+        const oldestKey = parseResultCache.keys().next().value;
+        if (oldestKey !== undefined) {
+            parseResultCache.delete(oldestKey);
+        }
     }
     parseResultCache.set(html, result);
     return result;

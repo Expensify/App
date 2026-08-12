@@ -111,6 +111,18 @@ const EMPTY_RANK_MAP: ReadonlyMap<string, number> = new Map();
 const INITIAL_MAX_RECENT_REPORTS = 100;
 const RECENT_REPORTS_BATCH_SIZE = 500;
 
+// Shared with SearchRouterOptionsWarmer, which pre-builds the same option list while the app is idle.
+// createFilteredOptionList keys its cache on these values, so keeping them in one place stops the two
+// call sites from drifting apart and silently building an entry the other one never reads.
+// deferContactsUntilSearch is true because the empty-query state renders only recent searches and
+// recent reports (no standalone contacts), so contacts can wait until the user types a query.
+const SEARCH_ROUTER_OPTIONS_CONFIG = {
+    enabled: true,
+    deferContactsUntilSearch: true,
+    maxRecentReports: INITIAL_MAX_RECENT_REPORTS,
+    batchSize: RECENT_REPORTS_BATCH_SIZE,
+} as const;
+
 // A DM's keyForList changes from the accountID to the reportID once its report loads from search, which would move the
 // row between sections. To keep it stable, key DMs and personal details by accountID instead. We can't do this for every
 // account-backed option though: task/expense reports also carry an accountID, and keying them by it would let them
@@ -222,13 +234,8 @@ function SearchAutocompleteList({
         loadAll: loadAllRecentReports,
         hasMore: hasMoreRecentReports,
     } = useFilteredOptions({
-        enabled: true,
+        ...SEARCH_ROUTER_OPTIONS_CONFIG,
         isSearching: !!autocompleteQueryValue.trim(),
-        // The empty-query state renders only recent searches and recent reports (no standalone contacts),
-        // so contacts can be deferred until the user types a query.
-        deferContactsUntilSearch: true,
-        maxRecentReports: INITIAL_MAX_RECENT_REPORTS,
-        batchSize: RECENT_REPORTS_BATCH_SIZE,
     });
 
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
@@ -722,5 +729,5 @@ function SearchAutocompleteList({
 SearchAutocompleteList.displayName = 'SearchAutocompleteList';
 
 export default React.memo(SearchAutocompleteList);
-export {SearchRouterItem, INITIAL_MAX_RECENT_REPORTS, RECENT_REPORTS_BATCH_SIZE};
+export {SearchRouterItem, SEARCH_ROUTER_OPTIONS_CONFIG};
 export type {GetAdditionalSectionsCallback, SearchAutocompleteListProps};

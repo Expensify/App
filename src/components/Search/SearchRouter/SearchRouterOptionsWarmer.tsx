@@ -1,4 +1,4 @@
-import {INITIAL_MAX_RECENT_REPORTS, RECENT_REPORTS_BATCH_SIZE} from '@components/Search/SearchAutocompleteList';
+import {SEARCH_ROUTER_OPTIONS_CONFIG} from '@components/Search/SearchAutocompleteList';
 
 import useFilteredOptions from '@hooks/useFilteredOptions';
 
@@ -12,17 +12,14 @@ type SearchRouterOptionsWarmerProps = {
 /**
  * Computes the SearchRouter's empty-query option list ahead of time so the first open of the
  * session hits the module-level cache in `createFilteredOptionList` instead of building it on
- * the critical path. The config must stay identical to the `useFilteredOptions` call in
- * SearchAutocompleteList — the cache is keyed by it (and by the input references, which these
- * hooks resolve from the same Onyx sources).
+ * the critical path. Reuses SEARCH_ROUTER_OPTIONS_CONFIG from SearchAutocompleteList (plus
+ * `isSearching: false` for the empty-query state) so the cache key cannot drift between the two
+ * call sites — the cache is keyed by it, and by the identity of the Onyx data these hooks read.
  */
 function SearchRouterOptionsWarmer({onDone}: SearchRouterOptionsWarmerProps) {
     const {options} = useFilteredOptions({
-        enabled: true,
+        ...SEARCH_ROUTER_OPTIONS_CONFIG,
         isSearching: false,
-        deferContactsUntilSearch: true,
-        maxRecentReports: INITIAL_MAX_RECENT_REPORTS,
-        batchSize: RECENT_REPORTS_BATCH_SIZE,
     });
 
     useEffect(() => {
