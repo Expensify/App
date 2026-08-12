@@ -130,6 +130,30 @@ describe('NumberWithSymbolForm', () => {
             expect(screen.getByDisplayValue('5')).toBeTruthy();
         });
 
+        it('strips decimals when the decimals prop changes to a lower precision', async () => {
+            const onInputChange = jest.fn();
+            const {rerender} = renderForm({displayAsTextInput: true, value: '1.5', decimals: 2, onInputChange});
+            await waitForBatchedUpdatesWithAct();
+
+            rerender(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                    <NumberWithSymbolForm
+                        symbol="$"
+                        label={INPUT_LABEL}
+                        displayAsTextInput
+                        value="1.5"
+                        decimals={0}
+                        onInputChange={onInputChange}
+                    />
+                </ComposeProviders>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByDisplayValue('1')).toBeTruthy();
+            expect(onInputChange).toHaveBeenCalledWith('1');
+        });
+
         it('does not render a ScrollView or the portrait/landscape layout wrappers', async () => {
             renderForm({displayAsTextInput: true, value: '10'});
             await waitForBatchedUpdatesWithAct();
