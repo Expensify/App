@@ -49,19 +49,19 @@ function useMoneyRequestParticipantsPolicyTags({
     formatPhoneNumber,
     dateFnsLocale,
 }: UseMoneyRequestParticipantsPolicyTagsParams): UseMoneyRequestParticipantsPolicyTagsResult {
-    const participants = getMoneyRequestParticipantOptions(
+    const participants = getMoneyRequestParticipantOptions({
         currentUserAccountID,
         report,
         policy,
         personalDetails,
         conciergeReportID,
-        isArchived,
+        privateIsArchived: isArchived,
         reportAttributesDerived,
         reportDraft,
         translate,
         formatPhoneNumber,
         dateFnsLocale,
-    );
+    });
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
     return {participants, participantsPolicyTags};
