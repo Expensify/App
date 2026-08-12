@@ -55,7 +55,7 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy, canWriteCompa
 
     const rightComponent = useMemo(() => {
         const shouldDisplayActionInSeparateLine = shouldUseNarrowLayout && !isInLandscapeMode;
-        const smallScreenStyle = shouldDisplayActionInSeparateLine ? [styles.flex0, styles.w100, styles.maxWidth100Percentage, styles.justifyContentCenter] : [];
+        const smallScreenStyle = shouldDisplayActionInSeparateLine ? [styles.flex0, styles.mnw100, styles.maxWidth100Percentage, styles.justifyContentCenter] : [];
         return (
             <View
                 key={shouldDisplayActionInSeparateLine ? 'separate-line' : 'inline'}
