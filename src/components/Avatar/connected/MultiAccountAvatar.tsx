@@ -1,17 +1,15 @@
 import HorizontalAvatars from '@components/Avatar/layouts/HorizontalAvatars';
 import type {HorizontalStackingOptions} from '@components/Avatar/layouts/HorizontalAvatars';
 import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useLocalize from '@hooks/useLocalize';
 
 import {sortIconsByName} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
-import type {InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import lodashSortBy from 'lodash/sortBy';
@@ -52,7 +50,7 @@ type MultiAccountAvatarProps = {
 };
 
 /** Applies the requested ordering. `undefined` leaves the icons in the order the account IDs were passed. */
-function sortIcons(icons: Icon[], sortBy: SortBy | undefined, personalDetails: OnyxEntry<PersonalDetailsList>, localeCompare: ReturnType<typeof useLocalize>['localeCompare']) {
+function sortIcons(icons: Icon[], sortBy: SortBy | undefined, localeCompare: ReturnType<typeof useLocalize>['localeCompare']) {
     if (!sortBy) {
         return icons;
     }
@@ -61,7 +59,8 @@ function sortIcons(icons: Icon[], sortBy: SortBy | undefined, personalDetails: O
 
     let sortedIcons = icons;
     if (sortKeys.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME)) {
-        sortedIcons = sortIconsByName(icons, personalDetails, localeCompare);
+        // Icons built by `useAccountIcons` carry their own `displayName`, so no personal-details lookup is needed here
+        sortedIcons = sortIconsByName(icons, undefined, localeCompare);
     } else if (sortKeys.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.ID)) {
         sortedIcons = lodashSortBy(icons, (icon) => icon.id);
     }
@@ -83,7 +82,6 @@ function MultiAccountAvatar({
     fallbackDisplayName,
     isInReportAction = false,
 }: MultiAccountAvatarProps) {
-    const personalDetails = usePersonalDetails();
     const {localeCompare} = useLocalize();
 
     const filteredAccountIDs = accountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
@@ -108,7 +106,7 @@ function MultiAccountAvatar({
         <HorizontalAvatars
             {...horizontalOptions}
             size={size}
-            icons={sortIcons(icons, sortBy, personalDetails, localeCompare)}
+            icons={sortIcons(icons, sortBy, localeCompare)}
             isInReportAction={isInReportAction}
             fallbackDisplayName={fallbackDisplayName}
         />
