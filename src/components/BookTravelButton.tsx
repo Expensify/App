@@ -15,7 +15,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
-import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {getActivePolicies, getAdminsPrivateEmailDomains, hasAcceptedTravelTerms, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {getSearchParamFromPath} from '@libs/Url';
 
 import colors from '@styles/theme/colors';
@@ -72,6 +72,8 @@ function BookTravelButton({
     const primaryLogin = account?.primaryLogin ?? '';
 
     const policy = usePolicy(activePolicyID);
+    const [defaultPolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const defaultPolicy = usePolicy(defaultPolicyID);
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
@@ -131,8 +133,8 @@ function BookTravelButton({
         }
 
         const isPolicyProvisioned = isWorkspaceProvisionedForTravel(policy?.travelSettings);
-        const hasAcceptedTravelTerms = policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
-        const willUseEnablementStepper = !hasAcceptedTravelTerms && (isPolicyProvisioned || isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED));
+        const hasPolicyAcceptedTravelTerms = hasAcceptedTravelTerms(policy, travelSettings);
+        const willUseEnablementStepper = !hasPolicyAcceptedTravelTerms && (isPolicyProvisioned || isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED));
 
         // The enablement stepper collects a missing legal name as one of its own steps, so this pre-check (and its
         // resume-after-filling behavior) only still applies to the outcomes that never reach the stepper: opening
@@ -159,7 +161,24 @@ function BookTravelButton({
             return;
         }
 
-        if (hasAcceptedTravelTerms) {
+        if (hasPolicyAcceptedTravelTerms) {
+            // A traveler is provisioned in Expensify Travel against their default workspace, so booking from any other
+            // workspace opens a session they have no travel profile for. Ask them to switch defaults first.
+            if (defaultPolicy && !hasAcceptedTravelTerms(defaultPolicy, travelSettings)) {
+                showConfirmModal({
+                    title: translate('travel.defaultWorkspaceTravelDisabled.title'),
+                    titleStyles: styles.textHeadlineH1,
+                    titleContainerStyles: styles.mb2,
+                    prompt: translate('travel.defaultWorkspaceTravelDisabled.message', {workspaceName: defaultPolicy.name}),
+                    promptStyles: styles.mb2,
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                    image: illustrations.RocketDude,
+                    imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
+                });
+                return;
+            }
+
             openTravelDotLink(policy?.id);
             return;
         }
