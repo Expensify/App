@@ -3,6 +3,10 @@ import {render, screen} from '@testing-library/react-native';
 import Text from '@components/Text';
 
 import type {TextVariant} from '@styles/typography';
+import {textVariants} from '@styles/typography';
+import variables from '@styles/variables';
+
+import React from 'react';
 
 // The jest preset reports fontScale 2, which pushes every getValueUsingPixelRatio value to its max.
 jest.mock('react-native/Libraries/Utilities/PixelRatio', () => ({
@@ -14,10 +18,6 @@ jest.mock('react-native/Libraries/Utilities/PixelRatio', () => ({
         roundToNearestPixel: (layoutSize: number) => layoutSize,
     },
 }));
-import {textVariants} from '@styles/typography';
-import variables from '@styles/variables';
-
-import React from 'react';
 
 // fontSize/lineHeight of every Product/* text style in the Figma library (Brand Guidelines & Product UI).
 const FIGMA_PRODUCT_SCALE: Record<TextVariant, [number, number]> = {
@@ -39,12 +39,8 @@ const FIGMA_PRODUCT_SCALE: Record<TextVariant, [number, number]> = {
 
 describe('textVariants', () => {
     it('covers the Figma Product type scale 1:1 with matching sizes and line heights', () => {
-        expect(Object.keys(textVariants).sort()).toEqual(Object.keys(FIGMA_PRODUCT_SCALE).sort());
-
-        Object.entries(FIGMA_PRODUCT_SCALE).forEach(([variant, [fontSize, lineHeight]]) => {
-            const style = textVariants[variant as TextVariant];
-            expect({variant, fontSize: style.fontSize, lineHeight: style.lineHeight}).toEqual({variant, fontSize, lineHeight});
-        });
+        const codeScale = Object.fromEntries(Object.entries(textVariants).map(([variant, style]) => [variant, [style.fontSize, style.lineHeight]]));
+        expect(codeScale).toEqual(FIGMA_PRODUCT_SCALE);
     });
 });
 
