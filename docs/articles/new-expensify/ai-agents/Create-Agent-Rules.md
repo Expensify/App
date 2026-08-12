@@ -1,7 +1,7 @@
 ---
 title: Create Agent Rules
 description: Create AI-powered workspace rules using natural-language instructions to automate report reviews, routing, approvals, and other actions.
-keywords: [agent rules, RuleBot, AI rules, automated approvals, report routing, workspace automation, approval automation, edit agent rule, agent rule history, admins room audit trail]
+keywords: [agent rules, RuleBot, AI rules, automated approvals, report routing, workspace automation, approval automation, edit agent rule, agent rule history, admins room audit trail, suggested rule, pre-written rule, rule template]
 internalScope: Audience is Workspace Admins. Covers creating, managing, and understanding Agent Rules and how RuleBot enforces them. Does not cover Agent management, personal AI features, or Concierge AI.
 ---
 
@@ -15,12 +15,9 @@ When you create your first Agent rule, Expensify automatically creates RuleBot, 
 
 ## Who can use Agent rules
 
-Agent Rules are currently available through an open beta program. If you'd like to try Agent rules and provide feedback, contact Concierge to request access.
-
 To create an Agent rule: 
 
  - You must be a Workspace Admin.
- - The workspace must have access to the Agent Rules beta.
  - **Rules** must be enabled for the workspace.
 
 ---
@@ -29,9 +26,14 @@ To create an Agent rule:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Your Workspace]**
 2. Click **Rules**.
-3. In the **Agent rules** section, click **Add AI rule**.
-4. Enter a natural-language description of the behavior you want.
-5. Click **Save**.
+3. In the **Agent rules** section, click **Add agent rule**. The **Suggested** tab opens with a list of recommended rules.
+4. Do one of the following:
+   - Select a suggested rule, then click **Next** to open it in the **Edit** tab. Use **Find a rule** to search the suggestions.
+   - Open the **Edit** tab to write your own rule from scratch.
+5. On the **Edit** tab, review or edit the natural-language description of the behavior you want.
+6. Click **Save**.
+
+For a list of the available suggested rules, see [Use Suggested Agent Rules](/articles/new-expensify/ai-agents/Use-Suggested-Agent-Rules).
 
 ---
 

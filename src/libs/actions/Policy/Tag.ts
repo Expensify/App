@@ -14,6 +14,7 @@ import type {
     SetPolicyTagListsRequired,
     SetPolicyTagsEnabled,
     SetPolicyTagsRequired,
+    SetPolicyShowTagGLCodesParams,
     UpdatePolicyTagGLCodeParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -1136,6 +1137,66 @@ function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
     API.write(WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, onyxData);
 }
 
+function setPolicyShowTagGLCodes(policyID: string | undefined, showTagGLCodes: boolean, currentShowTagGLCodes: boolean | undefined) {
+    if (!policyID) {
+        return;
+    }
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    showTagGLCodes,
+                    errorFields: {
+                        showTagGLCodes: null,
+                    },
+                    pendingFields: {
+                        showTagGLCodes: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    errorFields: {
+                        showTagGLCodes: null,
+                    },
+                    pendingFields: {
+                        showTagGLCodes: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    showTagGLCodes: currentShowTagGLCodes,
+                    errorFields: {
+                        showTagGLCodes: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
+                    },
+                    pendingFields: {
+                        showTagGLCodes: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyShowTagGLCodesParams = {
+        policyID,
+        enabled: showTagGLCodes,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_SHOW_TAG_GL_CODES, parameters, onyxData);
+}
+
 function setPolicyTagsRequired(policyData: PolicyData, requiresTag: boolean, tagListIndex: number) {
     const policyTag = PolicyUtils.getTagLists(policyData.tags)?.at(tagListIndex);
     if (!policyTag?.name) {
@@ -1385,6 +1446,7 @@ function downloadMultiLevelTagsCSV(policyID: string, onDownloadFailed: () => voi
 export {
     buildOptimisticPolicyRecentlyUsedTags,
     setPolicyRequiresTag,
+    setPolicyShowTagGLCodes,
     setPolicyTagsRequired,
     createPolicyTag,
     clearPolicyTagErrors,

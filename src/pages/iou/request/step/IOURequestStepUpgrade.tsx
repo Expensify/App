@@ -12,6 +12,7 @@ import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsRepo
 import useCreateNewReport from '@hooks/useCreateNewReport';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
@@ -64,6 +65,7 @@ function IOURequestStepUpgrade({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const personalDetails = usePersonalDetails();
     const activePolicy = useActivePolicy();
     const personalPolicy = usePersonalPolicy();
@@ -165,6 +167,7 @@ function IOURequestStepUpgrade({
                 isTrackIntentUser,
                 // Expenses move to the upgraded workspace (newPolicy), whose currency drives any distance calculation, so the personal-policy currency is never read here.
                 personalPolicyOutputCurrency: undefined,
+                delegateAccountID,
                 getCurrencyDecimals,
             });
 
@@ -272,6 +275,7 @@ function IOURequestStepUpgrade({
         reports,
         selfDMReportActions,
         isTrackIntentUser,
+        delegateAccountID,
         getCurrencyDecimals,
     ]);
 

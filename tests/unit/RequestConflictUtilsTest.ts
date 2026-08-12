@@ -5,6 +5,7 @@ import {
     resolveDuplicationConflictAction,
     resolveEditCommentWithNewAddCommentRequest,
     resolveEnableFeatureConflicts,
+    resolveOpenAppDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
     resolveReconnectDuplicationConflictAction,
 } from '@libs/actions/RequestConflictUtils';
@@ -232,15 +233,16 @@ describe('RequestConflictUtils', () => {
         });
     });
 
+    const openApp = (): AnyRequest => ({command: WRITE_COMMANDS.OPEN_APP});
+    const fullReconnect = (): AnyRequest => ({command: WRITE_COMMANDS.RECONNECT_APP});
+    const drop = {conflictAction: {type: 'noAction'}};
+    const push = {conflictAction: {type: 'push'}};
+
     describe('resolveReconnectDuplicationConflictAction', () => {
-        const openApp = (): AnyRequest => ({command: WRITE_COMMANDS.OPEN_APP});
-        const fullReconnect = (): AnyRequest => ({command: WRITE_COMMANDS.RECONNECT_APP});
         const incrementalReconnect = (updateIDFrom: number): AnyRequest => ({command: WRITE_COMMANDS.RECONNECT_APP, data: {updateIDFrom}});
 
         // Redundant incoming reconnect is dropped (noAction); a wider one is pushed. A wider one also
         // deletes a narrower request that is only queued (redundant now), but can't delete an in-flight one.
-        const drop = {conflictAction: {type: 'noAction'}};
-        const push = {conflictAction: {type: 'push'}};
         const replaceQueued = {conflictAction: {type: 'delete', indices: [0], pushNewRequest: true}};
         it.each([
             ['full', 'full', drop, drop, fullReconnect(), fullReconnect()],
@@ -258,9 +260,9 @@ describe('RequestConflictUtils', () => {
         });
 
         // OpenApp only ever appears on the live side here (it covers an incoming reconnect because it
-        // re-fetches everything). An incoming OpenApp does not use this resolver: it dedupes through the
-        // generic resolveDuplicationConflictAction, covered by the resolveDuplicationConflictAction tests
-        // above and end-to-end by "OpenApp should replace same requests" in tests/actions/SessionTest.ts.
+        // re-fetches everything). An incoming OpenApp does not use this resolver: it goes through
+        // resolveOpenAppDuplicationConflictAction, covered below and end-to-end by "OpenApp should replace
+        // same requests" in tests/actions/SessionTest.ts.
         it('pushes when no reconnect-family request is live', () => {
             expect(resolveReconnectDuplicationConflictAction([], null, fullReconnect())).toEqual({conflictAction: {type: 'push'}});
         });
@@ -271,6 +273,21 @@ describe('RequestConflictUtils', () => {
             expect(resolveReconnectDuplicationConflictAction(persistedRequests, null, fullReconnect())).toEqual({conflictAction: {type: 'push'}});
             // A queued full reconnect alongside unrelated commands still covers an incoming incremental one.
             expect(resolveReconnectDuplicationConflictAction([...persistedRequests, fullReconnect()], null, incrementalReconnect(500))).toEqual({conflictAction: {type: 'noAction'}});
+        });
+    });
+
+    describe('resolveOpenAppDuplicationConflictAction', () => {
+        const replaceQueued = (index: number) => ({conflictAction: {type: 'replace', index}});
+        it.each([
+            ['an OpenApp is in flight', [], openApp(), true, drop],
+            ['an OpenApp is in flight and the caller opted out', [], openApp(), false, push],
+            ['an OpenApp is both in flight and queued', [openApp()], openApp(), true, drop],
+            ['only a reconnect is in flight', [], fullReconnect(), true, push],
+            ['nothing is live', [], null, true, push],
+            ['an OpenApp is queued behind unrelated commands', [{command: 'AddComment'}, openApp()], null, true, replaceQueued(1)],
+            ['an OpenApp is queued and the caller opted out', [openApp()], null, false, replaceQueued(0)],
+        ])('%s', (_case, persistedRequests: AnyRequest[], ongoingRequest: AnyRequest | null, shouldDedupeWithInFlight: boolean, expected) => {
+            expect(resolveOpenAppDuplicationConflictAction(persistedRequests, ongoingRequest, shouldDedupeWithInFlight)).toEqual(expected);
         });
     });
 });

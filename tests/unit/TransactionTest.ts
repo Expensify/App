@@ -39,7 +39,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'getCurrencyDecimals'
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
@@ -66,7 +66,7 @@ function isChangeTransactionsReportParams(value: unknown): value is ChangeTransa
 }
 
 type ReportMergeUpdate = Extract<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>, {onyxMethod: typeof Onyx.METHOD.MERGE}>;
-type DefinedReportMergeUpdate = Omit<ReportMergeUpdate, 'value'> & {value: NonNullable<ReportMergeUpdate['value']>};
+type ReportObjectMergeUpdate = Omit<ReportMergeUpdate, 'value'> & {value: Record<string, unknown>};
 type ReportStateMergeValue = Required<Pick<NonNullable<ReportMergeUpdate['value']>, 'stateNum' | 'statusNum'>>;
 type ReportStateMergeUpdate = Omit<ReportMergeUpdate, 'value'> & {value: ReportStateMergeValue};
 type ReportStateNum = ValueOf<typeof CONST.REPORT.STATE_NUM>;
@@ -80,7 +80,7 @@ function isReportStatusNum(value: unknown): value is ReportStatusNum {
     return typeof value === 'number' && Object.values(CONST.REPORT.STATUS_NUM).some((statusNum) => statusNum === value);
 }
 
-function isReportMergeUpdate(value: unknown, reportKey: ReportMergeUpdate['key']): value is DefinedReportMergeUpdate {
+function isReportMergeUpdate(value: unknown, reportKey: ReportMergeUpdate['key']): value is ReportObjectMergeUpdate {
     return isRecord(value) && value.key === reportKey && value.onyxMethod === Onyx.METHOD.MERGE && isRecord(value.value);
 }
 
@@ -97,6 +97,7 @@ function changeTransactionsReport({allTransactions, transactionIDs, transactionV
         allTransactionViolation: transactionViolations,
         personalPolicyOutputCurrency,
         selfDMReportActions: undefined,
+        delegateAccountID: undefined,
         getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
         ...rest,
     });
@@ -192,6 +193,7 @@ describe('Transaction', () => {
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
+    /* eslint-disable rulesdir/no-multiple-api-calls -- Each it callback independently spies on API.write once; the rule's ancestor token scan combines otherwise independent tests. */
     describe('changeTransactionsReport', () => {
         let reports: OnyxCollection<Report>;
 
@@ -354,7 +356,6 @@ describe('Transaction', () => {
         });
 
         it('correctly handles reportNextStep parameter when moving transactions to unreported report', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spy on API.write to verify this transaction action's API interaction.
             const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
@@ -550,7 +551,6 @@ describe('Transaction', () => {
         });
 
         it('correctly handles undefined reportNextStep parameter', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spy on API.write to verify this transaction action's API interaction.
             const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
@@ -594,7 +594,6 @@ describe('Transaction', () => {
         });
 
         it('updates the source submitted report next step and reopens it when it becomes empty', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spy on API.write to verify this transaction action's API interaction.
             const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
             const buildOptimisticNextStepSpy = jest.spyOn(NextStepUtils, 'buildOptimisticNextStep');
 
@@ -663,7 +662,6 @@ describe('Transaction', () => {
         });
 
         it('correctly handles ASAP submit beta enabled when moving transactions', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spy on API.write to verify this transaction action's API interaction.
             const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
@@ -706,7 +704,6 @@ describe('Transaction', () => {
         });
 
         it('correctly handles different account IDs and emails when moving transactions', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spy on API.write to verify this transaction action's API interaction.
             const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
@@ -1424,7 +1421,6 @@ describe('Transaction', () => {
         });
 
         it('should not call API.write when the transaction is already on the target report', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spy on API.write to verify this transaction action's API interaction.
             const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
@@ -2089,6 +2085,7 @@ describe('Transaction', () => {
             expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe(validRateID);
         });
     });
+    /* eslint-enable rulesdir/no-multiple-api-calls */
 
     describe('getAllNonDeletedTransactions', () => {
         it('returns the transaction when it has a pending delete action and is offline', () => {
