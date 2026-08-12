@@ -32,15 +32,16 @@ function addSkipTimeTagToURL(url: string, seconds: number) {
 }
 
 /**
- * Builds the playable video source URL, preserving local/blob URLs and attaching
- * auth + skip-time tags for remote attachments.
+ * Builds the playable video source URL. Remote attachments get an auth token.
+ * All URLs get the skip-time tag when supported.
  */
 function buildVideoSourceURL(url: string, encryptedAuthToken: string) {
-    if (url.includes('blob:') || url.includes('file:///')) {
+    if (!url) {
         return url;
     }
 
-    return addSkipTimeTagToURL(addEncryptedAuthTokenToURL(url, encryptedAuthToken), VIDEO_SKIP_TIME_SECONDS);
+    const sourceWithAuth = url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url, encryptedAuthToken);
+    return addSkipTimeTagToURL(sourceWithAuth, VIDEO_SKIP_TIME_SECONDS);
 }
 
 export {convertSecondsToTime, buildVideoSourceURL};

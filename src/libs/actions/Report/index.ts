@@ -938,6 +938,7 @@ function addActions({
             lastActionCreated,
         });
         attachmentAction = attachment.reportAction;
+        console.log('caching attachment', attachmentAction);
         cacheAttachment({attachmentID, uri: file.uri ?? '', mimeType: file.type});
     }
 
@@ -1152,6 +1153,7 @@ function addActions({
         DateUtils.setTimezoneUpdated();
     }
 
+    console.log('writing command', commandName, parameters);
     API.write(commandName, parameters, {
         optimisticData,
         successData,
