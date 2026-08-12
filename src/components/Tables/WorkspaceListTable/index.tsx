@@ -115,7 +115,8 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
     };
 
     const isTableItemInSearch: IsItemInSearchCallback<WorkspaceRowData> = (item, searchValue) => {
-        return item.title.toLowerCase().includes(searchValue.toLowerCase());
+        const displayTitle = item.isArchived ? `${item.title} (${translate('workspace.common.archived')})` : item.title;
+        return displayTitle.toLowerCase().includes(searchValue.toLowerCase());
     };
 
     const renderTableItem = ({item, index}: ListRenderItemInfo<WorkspaceRowData>) => {
