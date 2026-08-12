@@ -95,7 +95,7 @@ export default function AgentsTable({ref, agents, canSelectAgents, selectedKeys,
     );
 
     if (!areAgentsLoaded) {
-        return <Table.LoadingState context="AgentsTable" />;
+        return <Table.LoadingState />;
     }
 
     return (

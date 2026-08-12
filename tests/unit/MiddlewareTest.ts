@@ -1,10 +1,12 @@
+import {READ_COMMANDS} from '@libs/API/types';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
 
+import CONST from '@src/CONST';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import HttpUtils from '@src/libs/HttpUtils';
-import handleUnusedOptimisticID from '@src/libs/Middleware/HandleUnusedOptimisticID';
 // This import is needed to initialize the Onyx connections that call replaceOptimisticReportWithActualReport
 import '@src/libs/actions/replaceOptimisticReportWithActualReport';
+import handleUnusedOptimisticID from '@src/libs/Middleware/HandleUnusedOptimisticID';
 import * as Network from '@src/libs/Network';
 import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
@@ -17,6 +19,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
@@ -82,6 +85,37 @@ describe('Middleware', () => {
             // Then the response should not be undefined — the caller may need the raw response for side effects
             expect(result).toBeDefined();
             expect(result?.jsonCode).toBe(200);
+        });
+
+        test.each([
+            ['the client watermark is behind the response', 1],
+            ['the client has no watermark yet', undefined],
+        ])('applies a sign-in response on arrival when %s', async (_case, clientLastUpdateID) => {
+            if (clientLastUpdateID) {
+                await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, clientLastUpdateID);
+            }
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
+            await waitForBatchedUpdates();
+
+            Request.addMiddleware(SaveResponseInOnyx);
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({jsonCode: 200, lastUpdateID: 501, previousUpdateID: 500});
+
+            await Request.processWithMiddleware({
+                command: READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN,
+                data: {apiRequestType: CONST.API_REQUEST_TYPE.READ},
+                finallyData: [
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+                        value: false,
+                    },
+                ],
+            });
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN)).toBe(false);
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_FROM_SERVER)).toBeUndefined();
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(clientLastUpdateID);
         });
     });
 
