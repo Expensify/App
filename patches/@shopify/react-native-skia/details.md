@@ -96,3 +96,4 @@
 
 - Upstream PR/issue: https://github.com/Shopify/react-native-skia/pull/3855 — the same fix, merged upstream on 2026-05-26. Drop this patch once the Skia dependency is bumped to >= 2.6.9.
 - E/App issue: https://github.com/Expensify/App/issues/98331, https://github.com/Expensify/App/issues/95905
+- PR introducing patch: https://github.com/Expensify/App/pull/98437
