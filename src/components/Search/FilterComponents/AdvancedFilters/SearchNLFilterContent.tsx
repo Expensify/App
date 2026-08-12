@@ -53,18 +53,23 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle}
         setErrorMessage('');
         const queryPolicyID = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID).value?.at(0);
         const policyID = queryPolicyID ?? activePolicyID;
-        parseExpenseFilters(trimmedQuery, policyID).then((result) => {
-            setIsLoading(false);
-            if (!result) {
-                return;
-            }
-            if (result.success) {
-                const searchQuery = new URL(result.searchURL).searchParams.get('q') ?? '';
-                onSuccess(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
-            } else {
-                setErrorMessage(result.message);
-            }
-        });
+        parseExpenseFilters(trimmedQuery, policyID)
+            .then((result) => {
+                setIsLoading(false);
+                if (!result) {
+                    return;
+                }
+                if (result.success) {
+                    const searchQuery = new URL(result.searchURL).searchParams.get('q') ?? '';
+                    onSuccess(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
+                } else {
+                    setErrorMessage(result.message);
+                }
+            })
+            .catch(() => {
+                setIsLoading(false);
+                setErrorMessage(translate('common.genericErrorMessage'));
+            });
     };
 
     return (
