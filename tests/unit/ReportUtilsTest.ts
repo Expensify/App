@@ -20169,17 +20169,13 @@ describe('ReportUtils', () => {
             expect(result).toBe('Custom Action Name');
         });
 
-        it('should use Onyx-connected conciergeReportID when explicit parameter is undefined', async () => {
+        it('should return Concierge display name when conciergeReportID is passed explicitly', () => {
             const conciergeReport: Report = {
                 reportID: conciergeReportID,
                 type: CONST.REPORT.TYPE.CHAT,
             };
-            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, conciergeReport);
-            await waitForBatchedUpdates();
-
             const action = {...createRandomReportAction(4)};
-            const result = getChatListItemReportName(action, conciergeReport, undefined, undefined, [], translateLocal, undefined);
+            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, undefined);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
