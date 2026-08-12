@@ -62,8 +62,13 @@ Bun's `jest` object is close to Jest's but not identical. The gaps that come up 
 Because `mock.module()` is hoisting-sensitive, files that use it import the module under test with a top-level
 `await import(...)` placed after the mock.
 
-## Shared helpers
+## Type-checking
 
-Anything these files import from `tests/utils/` gets pulled into `tests/tooling/tsconfig.json` as well as the
-root config, so it is type-checked once with `@types/jest` and once with `@types/bun`. Only import helpers from
-there that use neither runner's globals — `createMock` is the one in use today.
+These files are type-checked by the root `tsconfig.json` along with everything else, so they see the app's real
+types. `bun:test` resolves because that config pulls in `node_modules/bun-types/test.d.ts` — the one file in
+bun-types that declares the module — through `files` rather than `include`, since `exclude` covers node_modules.
+
+The rest of bun-types is deliberately left out: its global JSX declarations are incompatible with the app's React
+types, and `generateTranslations.test.ts` reaches `src/` through the script it covers. One consequence is that
+`@types/jest`'s globals are visible here too, so a missing `bun:test` import can type-check but still fail at
+runtime — import every helper you use.

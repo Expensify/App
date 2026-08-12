@@ -700,15 +700,7 @@ const config = defineConfig([
     },
 
     {
-        // Excluded from the root tsconfig.json because they need @types/bun, which conflicts with the @types/jest
-        // used everywhere else.
         files: ['tests/tooling/**/*.ts'],
-        languageOptions: {
-            parserOptions: {
-                project: path.resolve(projectRoot, 'tests/tooling/tsconfig.json'),
-                projectService: false,
-            },
-        },
         rules: {
             // bun-types declares `expect(...).resolves`/`.rejects` matchers as returning `void` even though Bun's
             // own docs recommend (and its runtime requires) awaiting them, so this rule reports every correct use
