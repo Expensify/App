@@ -14,7 +14,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
-import {getCurrencyDecimalsLocal} from '../../utils/TestHelper';
+import {getCurrencyDecimalsLocal, formatPhoneNumber} from '../../utils/TestHelper';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
@@ -359,6 +359,7 @@ describe('handleActionButtonPress', () => {
             currentUserAccountID: 1206,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         expect(goToItem).not.toHaveBeenCalled();
     });
@@ -385,6 +386,7 @@ describe('handleActionButtonPress', () => {
             currentUserAccountID: 1206,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
 
         expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -411,6 +413,7 @@ describe('handleActionButtonPress', () => {
             currentUserAccountID: 1206,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });

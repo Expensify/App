@@ -288,7 +288,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         });
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
     const {isSelected} = useRowSelection(reportItem.keyForList);
@@ -334,6 +334,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             delegateAccountID,
             isTrackIntentUser,
             conciergeChat,
+            formatPhoneNumber,
         });
     };
     return !isLargeScreenWidth ? (

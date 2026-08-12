@@ -198,6 +198,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            formatPhoneNumber,
         });
         if (skipAnimation) {
             clearSelectedTransactions(true);

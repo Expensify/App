@@ -1045,6 +1045,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
                 shouldPlaySuccessSound: false,
                 isTrackIntentUser,
+                formatPhoneNumber,
             });
 
             if (!wouldNavigateToUpgrade && !wouldNavigateToRestricted) {

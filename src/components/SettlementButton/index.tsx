@@ -115,7 +115,7 @@ function SettlementButton({
 }: SettlementButtonProps) {
     const icons = useMemoizedLazyExpensifyIcons(['CheckCircle', 'ThumbsUp', 'Bank', 'Cash', 'Wallet', 'Building', 'User']);
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
@@ -524,6 +524,7 @@ function SettlementButton({
                     delegateEmail,
                     delegateAccountID,
                     isTrackIntentUser,
+                    formatPhoneNumber,
                 });
             }
             return;

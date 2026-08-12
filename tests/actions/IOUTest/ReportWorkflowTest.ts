@@ -2444,6 +2444,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
+                formatPhoneNumber,
             });
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
@@ -2487,6 +2488,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
+                formatPhoneNumber,
             });
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
@@ -3209,6 +3211,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             delegateEmail: undefined,
             delegateAccountID: undefined,
             ownerLogin: undefined,
+            formatPhoneNumber,
         });
 
         beforeEach(() => {
@@ -3398,6 +3401,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -3452,6 +3456,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -3505,6 +3510,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -3633,6 +3639,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -3666,6 +3673,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -3697,6 +3705,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -3758,6 +3767,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -3819,6 +3829,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         ownerLogin: undefined,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -3952,6 +3963,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 

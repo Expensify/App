@@ -215,7 +215,7 @@ describe('actions/Transaction', () => {
 
             await waitForBatchedUpdates();
 
-            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL], false, getCurrencyDecimalsLocal);
+            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL], false, getCurrencyDecimalsLocal, formatPhoneNumber);
             // Create a tracked expense
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
@@ -256,6 +256,7 @@ describe('actions/Transaction', () => {
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                formatPhoneNumber,
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,

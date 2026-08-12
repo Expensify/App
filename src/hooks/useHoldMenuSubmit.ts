@@ -104,6 +104,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 delegateEmail,
                 delegateAccountID,
                 isTrackIntentUser,
+                formatPhoneNumber,
             });
         } else if (currentChatReport && paymentType) {
             payMoneyRequest({

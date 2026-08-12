@@ -4,6 +4,7 @@ import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsCon
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -25,6 +26,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
+    const {formatPhoneNumber} = useLocalize();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {openHoldMenu} = useMoneyReportHeaderModals();
@@ -76,6 +78,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
                 delegateEmail,
                 delegateAccountID,
                 isTrackIntentUser,
+                formatPhoneNumber,
             });
         }
     };

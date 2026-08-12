@@ -3175,7 +3175,6 @@ describe('actions/IOU', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
-                formatPhoneNumber,
             };
         };
 

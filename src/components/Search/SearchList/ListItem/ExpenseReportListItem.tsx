@@ -110,7 +110,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const areAllReportTransactionsSelected =
         transactionsWithoutPendingDelete.length > 0 && transactionsWithoutPendingDelete.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
     const isSelected = liveRowSelected || areAllReportTransactionsSelected;
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
@@ -305,6 +305,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             delegateAccountID,
             isTrackIntentUser,
             conciergeChat,
+            formatPhoneNumber,
         });
     }, [
         currentSearchHash,
