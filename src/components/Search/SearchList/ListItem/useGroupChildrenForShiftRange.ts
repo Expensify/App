@@ -92,10 +92,14 @@ function useGroupChildrenForShiftRange({
     // A group selected before its children were fetched is stored under the group key, since no transaction IDs were known yet.
     const isGroupSelected = !!selectedTransactions[groupKey]?.isSelected;
 
-    // Stamp the live selection onto each row for the checkbox. Expense-report rows already carry it.
+    // Stamp the live selection onto each row for the checkbox, plus the parent key a row needs to see its group's exclusion. Expense-report rows carry both already.
     const transactions: TransactionListItemType[] = isExpenseReportType
         ? rangeChildren
-        : rangeChildren.map((transactionItem) => ({...transactionItem, isSelected: isGroupSelected || selectedTransactionIDsSet.has(transactionItem.transactionID)}));
+        : rangeChildren.map((transactionItem) => ({
+              ...transactionItem,
+              isSelected: isGroupSelected || selectedTransactionIDsSet.has(transactionItem.transactionID),
+              selectionGroupKey: groupKey,
+          }));
 
     return {rangeChildren, transactions, isGroupSelected};
 }

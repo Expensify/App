@@ -2,12 +2,14 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import {useSearchRowSelectionActions, useSearchSelectionActions, useSearchSelectionContext, useSearchShiftRangeChildren} from '@components/Search/SearchContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import SearchWriteActionsProvider from '@components/Search/SearchWriteActionsProvider';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchResults} from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
 
@@ -98,6 +100,45 @@ function TwoGroupWrapper({children}: {children: React.ReactNode}) {
     );
 }
 
+const FLAT_TRANSACTION_ID = 'flat-1';
+
+const makeFlatExpense = (amount: number) =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only fields read by selection builders are required
+    ({
+        transactionID: FLAT_TRANSACTION_ID,
+        keyForList: FLAT_TRANSACTION_ID,
+        currency: 'USD',
+        amount,
+        groupAmount: amount,
+        reportID: '11',
+        report: {reportID: '11'},
+        action: CONST.SEARCH.ACTION_TYPES.VIEW,
+    }) as unknown as TransactionListItemType;
+
+function makeFlatSearchResults(expense: TransactionListItemType | undefined): SearchResults {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only fields read by the selection reconciliation are required
+    return {
+        data: expense ? {[`${ONYXKEYS.COLLECTION.TRANSACTION}${FLAT_TRANSACTION_ID}`]: expense} : {},
+        search: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            hash: 1,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            offset: 0,
+            hasMoreResults: true,
+            hasResults: true,
+            isLoading: false,
+            count: expense ? 2 : 1,
+            total: expense ? 13000 : 10000,
+            currency: 'USD',
+        },
+    } as unknown as SearchResults;
+}
+
+let flatExpense = makeFlatExpense(-3000);
+let flatFilteredData: TransactionListItemType[] = [flatExpense];
+let flatSearchResults = makeFlatSearchResults(flatExpense);
+
 function Wrapper({children}: {children: React.ReactNode}) {
     return (
         <SearchContextProvider>
@@ -119,6 +160,27 @@ function Wrapper({children}: {children: React.ReactNode}) {
     );
 }
 
+function FlatWrapper({children}: {children: React.ReactNode}) {
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={flatFilteredData}
+                renderedData={flatFilteredData}
+                totalSelectableItemsCount={flatFilteredData.length}
+                searchResults={flatSearchResults}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                areItemsGrouped={false}
+                isExpenseReportType={false}
+                isSearchResultsEmpty={flatFilteredData.length === 0}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
+
 const renderSelection = (wrapper: React.ComponentType<{children: React.ReactNode}> = Wrapper) =>
     renderHook(
         () => ({
@@ -130,10 +192,35 @@ const renderSelection = (wrapper: React.ComponentType<{children: React.ReactNode
         {wrapper},
     );
 
+const renderFlatSelection = () =>
+    renderHook(
+        () => ({
+            ...useSearchSelectionContext(),
+            ...useSearchSelectionActions(),
+            ...useSearchRowSelectionActions(),
+        }),
+        {wrapper: FlatWrapper},
+    );
+
+async function excludeFlatExpense(result: ReturnType<typeof renderFlatSelection>['result']) {
+    await act(async () => {
+        result.current.toggleAll();
+        result.current.selectAllMatchingItems(true);
+        await waitForBatchedUpdatesWithAct();
+    });
+    await act(async () => {
+        result.current.toggle(flatExpense);
+        await waitForBatchedUpdatesWithAct();
+    });
+}
+
 describe('Lazily loaded group selection', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));
 
     beforeEach(async () => {
+        flatExpense = makeFlatExpense(-3000);
+        flatFilteredData = [flatExpense];
+        flatSearchResults = makeFlatSearchResults(flatExpense);
         await act(async () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
@@ -364,5 +451,34 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
         expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
         expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+    });
+
+    it('refreshes an excluded expense when its live row changes', async () => {
+        const {result, rerender} = renderFlatSelection();
+        await excludeFlatExpense(result);
+        expect(result.current.excludedTransactions[FLAT_TRANSACTION_ID]?.groupAmount).toBe(-3000);
+
+        flatExpense = makeFlatExpense(-5000);
+        flatFilteredData = [flatExpense];
+        flatSearchResults = makeFlatSearchResults(flatExpense);
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(result.current.excludedTransactions[FLAT_TRANSACTION_ID]?.groupAmount).toBe(-5000);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('prunes an excluded expense after it leaves the settled search results', async () => {
+        const {result, rerender} = renderFlatSelection();
+        await excludeFlatExpense(result);
+        expect(result.current.excludedTransactions[FLAT_TRANSACTION_ID]).toBeDefined();
+
+        flatFilteredData = [];
+        flatSearchResults = makeFlatSearchResults(undefined);
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(result.current.excludedTransactions).toEqual({});
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
     });
 });

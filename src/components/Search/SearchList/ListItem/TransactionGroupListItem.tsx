@@ -206,7 +206,7 @@ function TransactionGroupListItemImpl({
 
     const StyleUtils = useStyleUtils();
     const {isSelected: liveRowSelected} = useRowSelection(item?.keyForList);
-    const isItemSelected = isSelectAllChecked || liveRowSelected;
+    const isItemSelected = isSelectAllChecked || (liveRowSelected && (isExpenseReportType || transactionsWithoutPendingDelete.length === 0));
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
@@ -284,7 +284,8 @@ function TransactionGroupListItemImpl({
     };
 
     const onPress = (event?: ModifiedMouseEvent) => {
-        if (isExpenseReportType || transactions.length === 0) {
+        const isEmptyGroupWithoutTransactionsQuery = transactions.length === 0 && !groupItem.transactionsQueryJSON;
+        if (isExpenseReportType || isEmptyGroupWithoutTransactionsQuery) {
             onSelectRow(item, transactionPreviewData, event);
         }
         if (!isExpenseReportType) {

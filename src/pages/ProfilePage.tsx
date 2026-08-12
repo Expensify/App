@@ -128,9 +128,13 @@ function ProfilePage({route}: ProfilePageProps) {
         }
     }
 
-    const displayName = formatPhoneNumber(
-        temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, shouldAddCurrentUserPostfix: isCurrentUser, youAfterTranslation: translate('common.you').toLowerCase(), translate}),
-    );
+    const displayName = temporaryGetDisplayNameOrDefault({
+        passedPersonalDetails: details,
+        shouldAddCurrentUserPostfix: isCurrentUser,
+        youAfterTranslation: translate('common.you').toLowerCase(),
+        translate,
+        formatPhoneNumber,
+    });
 
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
