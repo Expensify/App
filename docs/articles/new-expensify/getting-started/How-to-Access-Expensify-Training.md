@@ -70,7 +70,7 @@ Company Card Admin Training is designed for Workspace Admins and Card Admins usi
 You’ll learn how to:
 
  - Understand how cards are connected and assigned
- - Know how to set statement date, map MCC codes to categories and map cards to export accounts
+ - Know how to set the statement date and map cards to export accounts
  - Use the card table to quickly view imported card transactions
  - Understand the data import timeline
  - Understand how to use the built-in reports to reconcile company cards
