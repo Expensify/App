@@ -37,7 +37,15 @@ import type {SearchData, SearchRowSelectionActionsValue, SearchShiftRangeChildre
 import {useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchRowSelectionActionsContext, SearchShiftRangeChildrenContext} from './SearchContextDefinitions';
 import {useSyncSelectedReports} from './SearchSelectionProvider';
-import {buildGroupChildrenIndex, buildShiftRangeItems, isGroupSelected, mapEmptyReportToSelectedEntry, mapTransactionItemToSelectedEntry, prepareTransactionsList} from './selectionBuilders';
+import {
+    buildGroupChildrenIndex,
+    buildShiftRangeItems,
+    isGroupSelected,
+    isRowChecked,
+    mapEmptyReportToSelectedEntry,
+    mapTransactionItemToSelectedEntry,
+    prepareTransactionsList,
+} from './selectionBuilders';
 
 const NO_OPEN_GROUPS: ReadonlySet<string> = new Set();
 
@@ -418,7 +426,7 @@ function SearchWriteActionsProvider({
     const isFocused = useIsFocused();
     const {isProduction} = useEnvironment();
     const {isOffline} = useNetwork();
-    const {areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {areAllMatchingItemsSelected, excludedTransactions = getEmptyObject<SelectedTransactions>()} = useSearchSelectionContext();
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -523,7 +531,27 @@ function SearchWriteActionsProvider({
         return spelledOut;
     };
 
+    // A row checked by select-all-matching alone has no entry to remove, so deselecting it is only expressible as an exclusion.
+    const buildExclusionForCheckedRowWithoutEntry = (row: SearchData[number]): SelectedTransactions => {
+        if (!isTransactionListItemType(row) || !row.keyForList) {
+            return {};
+        }
+        const selectedTransactions = getSelectedTransactions();
+        const parentGroupKey = groupKeyByChildKey.get(row.keyForList);
+        const isChecked = isRowChecked({rowKey: row.keyForList, parentGroupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected});
+        if (!isChecked || selectedTransactions[row.keyForList]) {
+            return {};
+        }
+        const [key, info] = buildSelectedEntry(row);
+        return {[key]: parentGroupKey ? {...info, groupKey: parentGroupKey} : info};
+    };
+
     const applyShiftRangeBatch = (batch: ShiftRangeBatch<SearchData[number]>) => {
+        // Same rule as a plain click: a range gives back rows it can only express as exclusions.
+        let rangeExclusions: SelectedTransactions = {};
+        for (const row of batch.toDeselect) {
+            rangeExclusions = {...rangeExclusions, ...buildExclusionForCheckedRowWithoutEntry(row)};
+        }
         applySelection(
             (selectedTransactions) => {
                 let updated: SelectedTransactions = {...selectedTransactions};
@@ -584,6 +612,7 @@ function SearchWriteActionsProvider({
                 // Matches the row and group toggles, so narrowing records exclusions rather than dropping every unloaded match.
                 shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
                 shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
+                deselectedWithoutEntry: rangeExclusions,
             },
         );
     };
@@ -673,6 +702,15 @@ function SearchWriteActionsProvider({
 
         if (isTransactionListItemType(item)) {
             if (!item.keyForList || isTransactionPendingDelete(item)) {
+                return;
+            }
+            const clickExclusion = buildExclusionForCheckedRowWithoutEntry(item);
+            if (!isEmptyObject(clickExclusion)) {
+                applySelection((selectedTransactions) => selectedTransactions, {
+                    totalSelectableItemsCount,
+                    shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    deselectedWithoutEntry: clickExclusion,
+                });
                 return;
             }
             applySelection(
@@ -823,7 +861,13 @@ function SearchWriteActionsProvider({
                 }
                 return Object.fromEntries(entries);
             },
-            {data: filteredData, totalSelectableItemsCount},
+            {
+                data: filteredData,
+                totalSelectableItemsCount,
+                // Selecting the page explicitly covers rows that were excluded, so the exclusions have to go with it.
+                shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
+                shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
+            },
         );
     };
 

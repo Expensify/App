@@ -7,7 +7,7 @@ import type {SearchData, SearchSelectionActionsValue, SearchSelectionContextValu
 
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchSelectionActionsContext, SearchSelectionContext} from './SearchContextDefinitions';
-import {deriveSelectedReports} from './selectionBuilders';
+import {deriveSelectedReports, isRowChecked} from './selectionBuilders';
 
 type SearchSelectionProviderProps = {
     children: React.ReactNode;
@@ -94,7 +94,12 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         setSelectionState((prevState) => {
             const selectedTransactions = updater(prevState.selectedTransactions);
             const reconciledExcludedTransactions = options?.reconciledExcludedTransactions;
-            if (selectedTransactions === prevState.selectedTransactions && (!reconciledExcludedTransactions || reconciledExcludedTransactions === prevState.excludedTransactions)) {
+            const hasDeselectedWithoutEntry = !isEmptyObject(options?.deselectedWithoutEntry ?? {});
+            if (
+                selectedTransactions === prevState.selectedTransactions &&
+                !hasDeselectedWithoutEntry &&
+                (!reconciledExcludedTransactions || reconciledExcludedTransactions === prevState.excludedTransactions)
+            ) {
                 return prevState;
             }
 
@@ -118,6 +123,12 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
                 for (const key of Object.keys(selectedTransactions)) {
                     if (!Object.hasOwn(prevState.selectedTransactions, key) && Object.hasOwn(excludedTransactions, key)) {
                         delete excludedTransactions[key];
+                    }
+                }
+                // A row select-all-matching covered without an entry of its own never appears in the diff above, so the caller names it.
+                for (const [key, transaction] of Object.entries(options?.deselectedWithoutEntry ?? {})) {
+                    if (!Object.hasOwn(selectedTransactions, key)) {
+                        excludedTransactions[key] = transaction;
                     }
                 }
             } else if (!areAllMatchingItemsSelected) {
@@ -299,8 +310,7 @@ function useRowSelection(keyForList: string | undefined, parentGroupKey?: string
     if (!keyForList) {
         return {isSelected: false};
     }
-    const isExcluded = Object.hasOwn(excludedTransactions, keyForList) || (!!parentGroupKey && Object.hasOwn(excludedTransactions, parentGroupKey));
-    return {isSelected: (areAllMatchingItemsSelected && !isExcluded) || !!selectedTransactions[keyForList]?.isSelected};
+    return {isSelected: isRowChecked({rowKey: keyForList, parentGroupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected})};
 }
 
 /** Aggregate count of currently-selected transactions, for the selection top bar. */

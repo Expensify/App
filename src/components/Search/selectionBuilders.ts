@@ -317,6 +317,29 @@ function isGroupSelected(selection: SelectedTransactions, groupKey: string | und
     return children.some((child) => !!selection[child.keyForList]?.isSelected);
 }
 
+type RowCheckedParams = {
+    /** The row's own selection key */
+    rowKey: string;
+
+    /** The group the row is rendered under, whose exclusion covers the row as well */
+    parentGroupKey: string | undefined;
+
+    /** The positive selection */
+    selectedTransactions: SelectedTransactions;
+
+    /** Rows taken back out of a wider selection */
+    excludedTransactions: SelectedTransactions;
+
+    /** Whether every matching item is selected, which checks rows that have no entry of their own */
+    areAllMatchingItemsSelected: boolean;
+};
+
+/** Whether a row's checkbox reads as checked, which is what a click has to toggle and what a range has to give back. */
+function isRowChecked({rowKey, parentGroupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: RowCheckedParams): boolean {
+    const isExcluded = Object.hasOwn(excludedTransactions, rowKey) || (!!parentGroupKey && Object.hasOwn(excludedTransactions, parentGroupKey));
+    return (areAllMatchingItemsSelected && !isExcluded) || !!selectedTransactions[rowKey]?.isSelected;
+}
+
 /** A group contributes rows only while it is open. `group.transactions` is not a fallback: a closed group still carries its loaded rows. */
 function resolveGroupChildren(
     group: TransactionGroupListItemType,
@@ -390,4 +413,13 @@ function buildGroupChildrenIndex(
     return {childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey};
 }
 
-export {mapTransactionItemToSelectedEntry, mapEmptyReportToSelectedEntry, prepareTransactionsList, deriveSelectedReports, buildShiftRangeItems, buildGroupChildrenIndex, isGroupSelected};
+export {
+    mapTransactionItemToSelectedEntry,
+    mapEmptyReportToSelectedEntry,
+    prepareTransactionsList,
+    deriveSelectedReports,
+    buildShiftRangeItems,
+    buildGroupChildrenIndex,
+    isGroupSelected,
+    isRowChecked,
+};

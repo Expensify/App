@@ -671,6 +671,77 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['report-3']).toBeUndefined();
     });
 
+    it('unchecks a child of a group selected before its children loaded, under select-all-matching', async () => {
+        const {result} = renderSelection();
+        const [firstChild] = loadedChildren;
+
+        // Given a group selected while collapsed, then every matching item selected, then its children loaded
+        await act(async () => {
+            result.current.toggle(categoryGroup, []);
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When one child, which renders checked through select-all-matching alone, is clicked once
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then that one click unchecks it, rather than adding an entry and leaving the checkbox where it was
+        expect(result.current.excludedTransactions['1']).toBeDefined();
+        expect(result.current.selectedTransactions['1']).toBeUndefined();
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('gives back a child a range no longer covers, under select-all-matching', async () => {
+        const {result} = renderSelection();
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given a group selected while collapsed, every matching item selected, and its children since published
+        await act(async () => {
+            result.current.toggle(categoryGroup, []);
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When one shift+click narrows the block onto the first child, so the second falls out having never had an entry
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the row that fell out of the range is recorded as excluded, the same as unchecking it by hand
+        expect(result.current.excludedTransactions['2']).toBeDefined();
+        expect(result.current.selectedTransactions['2']).toBeUndefined();
+    });
+
+    it('clears the page exclusions when select-all-on-this-page covers them again', async () => {
+        const {result} = renderFlatSelection();
+
+        // Given every matching item selected, then the only loaded row unchecked, which records it as excluded
+        await excludeFlatExpense(result);
+        expect(result.current.excludedTransactions[FLAT_TRANSACTION_ID]).toBeDefined();
+
+        // When the page is selected again from the header checkbox
+        await act(async () => {
+            result.current.toggleAll();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the row is not both selected and excluded, which would have a bulk action skip the row the user just checked
+        expect(result.current.selectedTransactions[FLAT_TRANSACTION_ID]?.isSelected).toBe(true);
+        expect(result.current.excludedTransactions[FLAT_TRANSACTION_ID]).toBeUndefined();
+    });
+
     it('still ranges a group reopened before its rows were published again', async () => {
         const {result} = renderSelection();
         const [firstChild, secondChild] = loadedChildren;
