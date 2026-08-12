@@ -18,11 +18,12 @@ import type {ReportActions, Transaction} from '@src/types/onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
-import {convertToDisplayString} from '../utils/TestHelper';
+import {convertToDisplayString, getCurrencyDecimalsLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const basicProps = {
-    iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD'),
+    dateFnsLocale: undefined,
+    iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD', getCurrencyDecimalsLocal),
     iouReportOwnerLogin: undefined,
     policy: undefined,
     transaction: buildOptimisticTransaction({
@@ -38,6 +39,7 @@ const basicProps = {
     }),
     translate: jest.fn().mockImplementation((key: string) => key),
     action: buildOptimisticIOUReportAction({
+        getCurrencyDecimals: getCurrencyDecimalsLocal,
         type: 'create',
         amount: 100,
         currency: 'USD',
