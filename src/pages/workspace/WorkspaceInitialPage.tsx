@@ -119,13 +119,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
-    const wasRendered = useRef(false);
+    const policyIDWithClosedRHPRef = useRef<string | undefined>(undefined);
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const policyID = policy?.id;
+    const routePolicyID = route.params?.policyID;
+
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${routePolicyID}`);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData(policyID);
     const {shouldShowRbrForWorkspaceAccountID} = useCardFeedErrors();
@@ -232,17 +234,18 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
     // While the policy is being fetched (e.g., right after joinAccessiblePolicy), the role is not yet populated,
     // so checkIfShouldShowPolicy returns false. Suppress NotFound during this loading window.
-    const computedShouldShowNotFoundPage = isWorkspacesTabFocused && !shouldShowPolicy && !policy?.isLoading && (!isPendingDelete || prevIsPendingDelete);
+    const computedShouldShowNotFoundPage = !!routePolicyID && isWorkspacesTabFocused && !shouldShowPolicy && !policy?.isLoading && (!isPendingDelete || prevIsPendingDelete);
     // Latch to true: once the not-found state is detected, keep showing it so the normal
     // workspace content doesn't flash during the exit animation when navigation state
     // changes (e.g., isWorkspacesTabFocused becomes false after StackActions.pop()).
     const prevShouldShowNotFoundPage = usePrevious(computedShouldShowNotFoundPage);
-    const shouldShowNotFoundPage = computedShouldShowNotFoundPage || !!prevShouldShowNotFoundPage;
+    const prevRoutePolicyID = usePrevious(routePolicyID);
+    const shouldShowNotFoundPage = computedShouldShowNotFoundPage || (prevRoutePolicyID === routePolicyID && !!prevShouldShowNotFoundPage);
     const fetchPolicyData = () => {
-        if (policyDraft?.id || !isFocused) {
+        if (policyDraft?.id || !isFocused || !routePolicyID) {
             return;
         }
-        openPolicyInitialPage(route.params.policyID);
+        openPolicyInitialPage(routePolicyID);
     };
     useNetwork({onReconnect: fetchPolicyData});
     useFocusEffect(
@@ -502,17 +505,17 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     // Close RHP if we land on a route that no longer exists in the menu
     const canAccessRoute = activeRoute && (workspaceMenuItems.some((item) => item.screenName === activeRoute) || activeRoute === SCREENS.WORKSPACE.INITIAL);
     useEffect(() => {
-        if (!shouldShowNotFoundPage && canAccessRoute) {
+        if (!routePolicyID || (!shouldShowNotFoundPage && canAccessRoute)) {
             return;
         }
-        if (wasRendered.current) {
+        if (policyIDWithClosedRHPRef.current === routePolicyID) {
             return;
         }
-        wasRendered.current = true;
+        policyIDWithClosedRHPRef.current = routePolicyID;
         Navigation.isNavigationReady().then(() => {
             Navigation.closeRHPFlow();
         });
-    }, [canAccessRoute, shouldShowNotFoundPage]);
+    }, [canAccessRoute, routePolicyID, shouldShowNotFoundPage]);
 
     // When this page is revealed from under the RHP during workspace creation (#90985), the RHP
     // slide-out is held until the page has painted. Signal readiness from the first non-empty layout
@@ -597,3 +600,4 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 }
 
 export default withPolicyAndFullscreenLoading(WorkspaceInitialPage);
+export {WorkspaceInitialPage};
