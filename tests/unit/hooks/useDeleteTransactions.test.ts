@@ -17,7 +17,7 @@ import Onyx from 'react-native-onyx';
 
 import {createSelfDM} from '../../utils/collections/reports';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+import {getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -80,6 +80,7 @@ describe('useDeleteTransactions', () => {
                 participants: [{accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}],
                 transactionID,
                 isPersonalTrackingExpense: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             }),
             reportID: selfDMReport.reportID,
         };

@@ -401,6 +401,7 @@ describe('actions/Transaction', () => {
                     participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
                     transactionID: movedTransaction.transactionID,
                     isPersonalTrackingExpense: true,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 }),
                 reportID: selfDMReport.reportID,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -432,7 +433,7 @@ describe('actions/Transaction', () => {
                 allTransactions,
                 policyTagList: {},
                 transactionViolations: {},
-                allReports,
+                reports: allReports,
                 selfDMReportActions: {[trackedExpenseAction.reportActionID]: trackedExpenseAction},
                 isTrackIntentUser: false,
             });
