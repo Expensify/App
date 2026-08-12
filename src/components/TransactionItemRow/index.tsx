@@ -37,6 +37,7 @@ const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
 function TransactionItemRow({
     transactionItem,
     report,
+    chatReport,
     policy,
     policyCategories,
     policyTagLists,
@@ -79,6 +80,7 @@ function TransactionItemRow({
     isAttendeesEnabledForMovingPolicy,
     isActionColumnWide: isActionColumnWideProp,
     shouldRemoveTotalColumnFlex,
+    shouldUseFullHeightEditableCellHoverTarget = false,
     onEditDate,
     onEditMerchant,
     onEditDescription,
@@ -185,6 +187,7 @@ function TransactionItemRow({
     const wideForwardedProps = {
         transactionItem,
         report,
+        chatReport,
         policy,
         policyCategories,
         policyTagLists,
@@ -222,6 +225,7 @@ function TransactionItemRow({
         nonPersonalAndWorkspaceCards,
         isActionColumnWide: isActionColumnWideProp,
         shouldRemoveTotalColumnFlex,
+        shouldUseFullHeightEditableCellHoverTarget,
         onEditDate,
         onEditMerchant,
         onEditDescription,

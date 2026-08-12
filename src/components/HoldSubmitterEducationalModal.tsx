@@ -19,9 +19,12 @@ type HoldSubmitterEducationalModalProps = {
 
     /** Method to trigger when pressing confirm button */
     onConfirm: () => void;
+
+    /** Whether the expense is from a DM (direct message) report */
+    isDM?: boolean;
 };
 
-function HoldSubmitterEducationalModal({onClose, onConfirm}: HoldSubmitterEducationalModalProps) {
+function HoldSubmitterEducationalModal({onClose, onConfirm, isDM}: HoldSubmitterEducationalModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['HoldExpense']);
@@ -44,9 +47,9 @@ function HoldSubmitterEducationalModal({onClose, onConfirm}: HoldSubmitterEducat
                 outerContainerStyle={styles.p0}
             />
             <FeatureTraining.Body innerStyle={styles.mb5}>
-                <FeatureTraining.Title>{translate('iou.holdEducationalTitle')}</FeatureTraining.Title>
+                <FeatureTraining.Title>{translate(isDM ? 'iou.whatIsHoldExplainDM' : 'iou.whatIsHoldExplain')}</FeatureTraining.Title>
                 <FeatureTraining.Description>{translate('iou.whatIsHoldExplain')}</FeatureTraining.Description>
-                <HoldMenuSectionList />
+                <HoldMenuSectionList isDM={isDM} />
                 <FeatureTraining.ButtonRow>
                     <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
                 </FeatureTraining.ButtonRow>

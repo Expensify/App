@@ -39,6 +39,13 @@ type OnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps e
         },
         context: DerivedValueContext<Key, Deps>,
     ) => OnyxDerivedValuesMapping[Key];
+
+    /**
+     * Optional hook to reset any module-level state the config keeps across computes (e.g. `previous*`
+     * baselines/maps). The engine calls it when Onyx is cleared, so the next
+     * compute starts from scratch instead of diffing rehydrated data against pre-clear state.
+     */
+    onReset?: () => void;
 };
 
 export type {OnyxDerivedValueConfig, DerivedValueContext};

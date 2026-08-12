@@ -2,10 +2,11 @@ import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalState
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
@@ -39,14 +40,11 @@ type StateSelectorProps = {
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
 
-    /** object to get route details from */
-    stateSelectorRoute?: typeof ROUTES.SETTINGS_ADDRESS_STATE | typeof ROUTES.MONEY_REQUEST_STATE_SELECTOR;
-
     /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 };
 
-function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, stateSelectorRoute = ROUTES.SETTINGS_ADDRESS_STATE, ref}: StateSelectorProps) {
+function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, ref}: StateSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {state: stateFromUrl} = useGeographicalStateAndCountryFromRoute();
@@ -95,9 +93,8 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={errorText}
             onPress={() => {
-                const activeRoute = Navigation.getActiveRoute();
                 didOpenStateSelector.current = true;
-                Navigation.navigate(stateSelectorRoute.getRoute(stateCode, activeRoute, label));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADDRESS_STATE.getRoute(stateCode, label)));
             }}
             wrapperStyle={wrapperStyle}
         />
