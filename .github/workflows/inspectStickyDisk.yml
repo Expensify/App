@@ -10,6 +10,9 @@ on:
   push:
     paths:
       - '.github/workflows/inspectStickyDisk.yml'
+  pull_request:
+    paths:
+      - '.github/workflows/inspectStickyDisk.yml'
 
 jobs:
   inspect:
