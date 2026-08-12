@@ -1,42 +1,44 @@
-import {afterAll, afterEach, beforeEach, describe, expect, it, jest, mock} from 'bun:test';
-import type {Mock} from 'bun:test';
-
+import generateTranslations, {GENERATED_FILE_PREFIX} from '@scripts/generateTranslations';
 import Git from '@scripts/utils/Git';
 import DummyTranslator from '@scripts/utils/Translator/DummyTranslator';
 import Translator from '@scripts/utils/Translator/Translator';
 
+/**
+ * @jest-environment node
+ */
 import {Str} from 'expensify-common';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-let processExitSpy: Mock<typeof process.exit>;
-let consoleErrorSpy: Mock<typeof console.error>;
+let processExitSpy: jest.SpyInstance;
+let consoleErrorSpy: jest.SpyInstance;
 
-/**
- * Swaps the `en` strings the script reads as its source of truth. Re-mocking per call rather than reading a mutable
- * variable through a getter: `generateTranslations` imports `en` as a default binding, which Bun resolves once at
- * link time, so only a fresh mock.module() updates it.
- *
- * The first call has to happen before `generateTranslations` is imported below, because mock.module patches the
- * shared module registry entry and existing bindings only pick that up if the patch lands first. `bun test
- * --isolate` keeps the replacement from reaching the other files in tests/tooling.
- */
-async function setMockEn(strings: unknown) {
-    await mock.module('@src/languages/en', () => ({default: strings}));
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+let mockEn: any = jest.requireActual('@src/languages/en');
+jest.mock('@src/languages/en', () => ({
+    __esModule: true,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    get default() {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return mockEn;
+    },
+}));
+jest.mock('openai');
+jest.mock('@scripts/utils/Git');
 
-await setMockEn((await import('@src/languages/en')).default);
+// Mock Git methods
+const mockIsValidRef = jest.fn();
+const mockDiff = jest.fn();
+const mockShow = jest.fn();
 
-// Must be imported after the mock.module() call above so it reads the mocked `en`.
-const {default: generateTranslations, GENERATED_FILE_PREFIX} = await import('@scripts/generateTranslations');
-
-// `Git` is a class of static methods, so the three the script calls can be spied on directly. Its remaining
-// methods are left real: the script never reaches them under --dry-run, and stubbing them would only hide it if
-// that changed.
-const mockIsValidRef = jest.spyOn(Git, 'isValidRef');
-const mockDiff = jest.spyOn(Git, 'diff');
-const mockShow = jest.spyOn(Git, 'show');
+// Apply mocks to Git using jest.spyOn (ignore type errors for now)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+jest.spyOn(Git as any, 'isValidRef').mockImplementation(mockIsValidRef);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+jest.spyOn(Git as any, 'diff').mockImplementation(mockDiff);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+jest.spyOn(Git as any, 'show').mockImplementation(mockShow);
 
 let tempDir: string;
 let LANGUAGES_DIR: string;
@@ -596,7 +598,6 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
-                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([17]), // Line with newKey
                         removedLines: new Set(),
@@ -640,7 +641,7 @@ describe('generateTranslations', () => {
                     network: 'Network error',
                 },
             };
-            await setMockEn(strings);
+            mockEn = strings;
 
             fs.writeFileSync(
                 EN_PATH,
@@ -716,7 +717,7 @@ describe('generateTranslations', () => {
                 },
             };
 
-            await setMockEn(strings);
+            mockEn = strings;
 
             fs.writeFileSync(
                 EN_PATH,
@@ -786,7 +787,7 @@ describe('generateTranslations', () => {
                     save: 'Save',
                 },
             };
-            await setMockEn(strings);
+            mockEn = strings;
 
             fs.writeFileSync(
                 EN_PATH,
@@ -842,7 +843,7 @@ describe('generateTranslations', () => {
                     save: 'Save',
                 },
             };
-            await setMockEn(strings);
+            mockEn = strings;
 
             fs.writeFileSync(
                 EN_PATH,
@@ -894,7 +895,7 @@ describe('generateTranslations', () => {
                     generic: 'An error occurred',
                 },
             };
-            await setMockEn(strings);
+            mockEn = strings;
 
             fs.writeFileSync(
                 EN_PATH,
@@ -960,7 +961,7 @@ describe('generateTranslations', () => {
                 },
                 simpleTemplate: (name: string) => `Welcome ${name} to our app`,
             };
-            await setMockEn(strings);
+            mockEn = strings;
 
             // Create English source file
             fs.writeFileSync(
@@ -1090,7 +1091,6 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
-                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([10]), // Line with newKey
                         removedLines: new Set(),
@@ -1191,7 +1191,6 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
-                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([2, 3, 4]), // Lines in the complex template
                         removedLines: new Set(),
@@ -1274,7 +1273,6 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
-                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([6]), // Line with updated value
                         removedLines: new Set([7, 9, 10, 11, 12]), // Lines where sections were removed
@@ -1368,7 +1366,6 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
-                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([6, 7, 8, 9, 10, 11, 12]), // Lines with the new manualTest section
                         removedLines: new Set(),
@@ -1454,7 +1451,6 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
-                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([8]), // Line with the new property
                         removedLines: new Set(),
@@ -1526,7 +1522,6 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
-                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set(),
                         removedLines: new Set(),
@@ -1577,7 +1572,7 @@ describe('generateTranslations', () => {
                     },
                 },
             };
-            await setMockEn(strings);
+            mockEn = strings;
 
             fs.writeFileSync(
                 EN_PATH,
@@ -1645,7 +1640,7 @@ describe('generateTranslations', () => {
                     },
                 },
             };
-            await setMockEn(strings);
+            mockEn = strings;
 
             fs.writeFileSync(
                 EN_PATH,
@@ -1731,7 +1726,6 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
-                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([3]), // Only the context comment line
                         removedLines: new Set(),
@@ -1811,7 +1805,6 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
-                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([3]), // New context comment
                         removedLines: new Set([3]), // Old context comment on same line in old version
@@ -1854,13 +1847,13 @@ describe('generateTranslations', () => {
         });
 
         it('detects modifications when a context annotation is removed with --compare-ref', async () => {
-            // Point the script at this test's strings
+            // Update mockEn to match the test data
             const strings = {
                 unchanged: 'This stays the same',
                 pin: 'Pin',
                 alsoUnchanged: 'Also unchanged',
             };
-            await setMockEn(strings);
+            mockEn = strings;
 
             // Create English source without context annotation
             fs.writeFileSync(
@@ -1899,7 +1892,6 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
-                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set(),
                         removedLines: new Set([3]), // Context comment removed
@@ -1982,7 +1974,6 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
-                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([3]), // Regular comment line
                         removedLines: new Set(),
@@ -2058,7 +2049,6 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
-                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([3]), // Modified comment
                         removedLines: new Set([3]), // Old comment
@@ -2239,7 +2229,6 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
-                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([1, 2, 5, 6]), // Import, empty, dedent middle/end
                         removedLines: new Set([2]), // Old line 2: prop1: 'First property',
@@ -2270,7 +2259,7 @@ describe('generateTranslations', () => {
     });
 
     describe('error summary', () => {
-        let consoleLogSpy: Mock<typeof console.log>;
+        let consoleLogSpy: jest.SpyInstance;
 
         beforeEach(() => {
             consoleLogSpy = jest.spyOn(console, 'log');

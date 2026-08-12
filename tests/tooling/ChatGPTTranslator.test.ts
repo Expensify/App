@@ -3,7 +3,7 @@ import {beforeEach, describe, expect, it, jest} from 'bun:test';
 import OpenAIUtils from '@scripts/utils/OpenAIUtils';
 import ChatGPTTranslator from '@scripts/utils/Translator/ChatGPTTranslator';
 
-import type Locale from '@src/types/onyx/Locale';
+import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 
 // Only `promptResponses` needs stubbing: the OpenAIUtils constructor just stores the key and builds a client, so
 // there is nothing to gain from replacing the whole module (which Bun has no automock for anyway).
@@ -18,7 +18,7 @@ function mockResponse(text: string, responseID = 'resp_test_123') {
 
 describe('ChatGPTTranslator.performTranslation', () => {
     const apiKey = 'test-api-key';
-    const targetLang: Locale = 'it';
+    const targetLang: TranslationTargetLocale = 'it';
     const maxRetries = 8;
     // eslint-disable-next-line no-template-curly-in-string
     const original = 'Hello ${name}!';

@@ -11,7 +11,7 @@ Tests for the code that builds, deploys and lints this repo — `.github/actions
 npm run test:tooling
 
 # One file — pass the flags yourself, the npm script can't forward a path
-TZ=utc bun test --isolate --preload ./scripts/stubReactNative.js --preload ./tests/tooling/setup.ts ./tests/tooling/GithubUtils.test.ts
+TZ=utc bun test --isolate --preload ./tests/tooling/setup.ts ./tests/tooling/GithubUtils.test.ts
 
 # One test, by name
 npm run test:tooling -- -t 'getPullRequestNumberFromURL'
@@ -23,14 +23,8 @@ TEST_VERBOSE=true npm run test:tooling
 The leading `./` on a file path is required: without it Bun treats the argument as a name filter and finds
 nothing, because `bunfig.toml` points bare `bun test` at `server/`.
 
-Neither flag is optional:
-
-- `--isolate` — several files replace `fs`, `child_process` or a shared lib with `mock.module()`, and Bun shares
-  one module registry across files unless each gets its own.
-- `--preload ./scripts/stubReactNative.js` — `generateTranslations.test.ts` reaches `src/languages/en`, which
-  pulls in `react-native`, whose Flow syntax Bun can't parse. `bunfig.toml`'s top-level `preload` does not apply
-  to `bun test`, so it has to be passed here. It's the same stub `bun scripts/generateTranslations.ts` itself runs
-  with.
+`--isolate` is not optional. Several files replace `fs`, `child_process` or a shared lib with `mock.module()`,
+and Bun shares one module registry across files unless each gets its own.
 
 ## Why bun:test and not Jest
 
@@ -41,6 +35,17 @@ CommonJS interop, so keeping these tests on Jest would mean maintaining hand-bui
 That is also the rule for where a new test belongs: **if its import graph reaches `@actions/*` or `@octokit/*`,
 it goes here.** Everything else — including scripts that only use `scripts/utils/*` — can stay in `tests/unit/`
 under Jest.
+
+There is one hard constraint on top of that rule: **nothing here may pull `src/` into its type graph.** This
+directory type-checks with `@types/bun`, whose ambient JSX declarations conflict with the app's React and
+react-native types, so a file that reaches `src/CONST` or `src/types/onyx` drags ~3,000 app files into this
+project and produces thousands of spurious errors. Import the narrowest module that has what you need —
+`@src/CONST/LOCALES` is self-contained, `@src/types/onyx/Locale` re-exports the whole `@src/CONST` barrel.
+
+That constraint is why `tests/unit/generateTranslationsTest.ts` is still on Jest even though the script it covers
+reaches `@actions/*`: the script itself imports `src/languages/en`, so its type graph can't be narrowed from the
+test side. It needs the pure logic extracted, or its own type-check strategy, before it can move — and it has to
+move before `@actions/*` goes ESM-only.
 
 ## Differences from the Jest tests
 
