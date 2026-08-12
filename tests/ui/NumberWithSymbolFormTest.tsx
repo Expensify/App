@@ -36,14 +36,14 @@ jest.mock('@hooks/useIsInLandscapeMode', () => ({
     default: () => mockIsInLandscapeMode(),
 }));
 
-const INPUT_LABEL = 'Amount';
+const INPUT_TEST_ID = 'number-with-symbol-form-input';
 
 function renderForm(props: Partial<NumberWithSymbolFormProps> = {}) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <NumberWithSymbolForm
                 symbol="$"
-                label={INPUT_LABEL}
+                testID={INPUT_TEST_ID}
                 {...props}
             />
         </ComposeProviders>,
@@ -55,7 +55,7 @@ function queryAllById(id: string) {
 }
 
 function getTextInput() {
-    return screen.getByLabelText(INPUT_LABEL);
+    return screen.getByTestId(INPUT_TEST_ID);
 }
 
 describe('NumberWithSymbolForm', () => {
@@ -102,7 +102,7 @@ describe('NumberWithSymbolForm', () => {
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                     <NumberWithSymbolForm
                         symbol="$"
-                        label={INPUT_LABEL}
+                        testID={INPUT_TEST_ID}
                         displayAsTextInput
                         value=""
                     />
@@ -123,7 +123,7 @@ describe('NumberWithSymbolForm', () => {
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                     <NumberWithSymbolForm
                         symbol="$"
-                        label={INPUT_LABEL}
+                        testID={INPUT_TEST_ID}
                         displayAsTextInput
                         value="10"
                     />
@@ -144,7 +144,7 @@ describe('NumberWithSymbolForm', () => {
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                     <NumberWithSymbolForm
                         symbol="$"
-                        label={INPUT_LABEL}
+                        testID={INPUT_TEST_ID}
                         displayAsTextInput
                         value="1.5"
                         decimals={0}
@@ -462,7 +462,7 @@ describe('NumberWithSymbolForm', () => {
                 renderForm({value: '10', decimals: 2, allowFlippingAmount: true, toggleNegative, onInputChange});
                 await waitForBatchedUpdatesWithAct();
 
-                fireEvent.changeText(screen.getByLabelText(INPUT_LABEL), '-10');
+                fireEvent.changeText(getTextInput(), '-10');
                 await waitForBatchedUpdatesWithAct();
 
                 expect(toggleNegative).toHaveBeenCalledTimes(1);
@@ -760,7 +760,7 @@ describe('NumberWithSymbolForm', () => {
                 await waitForBatchedUpdatesWithAct();
             });
 
-            expect(screen.getByLabelText(INPUT_LABEL).props.selection).toEqual({start: 4, end: 4});
+            expect(getTextInput().props.selection).toEqual({start: 4, end: 4});
         });
 
         it('clearSelection collapses the selection onto its end', async () => {
@@ -768,17 +768,17 @@ describe('NumberWithSymbolForm', () => {
             renderForm({value: '1234', decimals: 2, numberFormRef});
             await waitForBatchedUpdatesWithAct();
 
-            fireEvent(screen.getByLabelText(INPUT_LABEL), 'selectionChange', {nativeEvent: {selection: {start: 1, end: 3}}});
+            fireEvent(getTextInput(), 'selectionChange', {nativeEvent: {selection: {start: 1, end: 3}}});
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByLabelText(INPUT_LABEL).props.selection).toEqual({start: 1, end: 3});
+            expect(getTextInput().props.selection).toEqual({start: 1, end: 3});
 
             await act(async () => {
                 numberFormRef.current?.clearSelection();
                 await waitForBatchedUpdatesWithAct();
             });
 
-            expect(screen.getByLabelText(INPUT_LABEL).props.selection).toEqual({start: 3, end: 3});
+            expect(getTextInput().props.selection).toEqual({start: 3, end: 3});
         });
     });
 
@@ -798,7 +798,7 @@ describe('NumberWithSymbolForm', () => {
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                     <NumberWithSymbolForm
                         symbol="$"
-                        label={INPUT_LABEL}
+                        testID={INPUT_TEST_ID}
                         value="1234"
                     />
                 </ComposeProviders>,
@@ -812,10 +812,10 @@ describe('NumberWithSymbolForm', () => {
             renderForm({value: '12', decimals: 2});
             await waitForBatchedUpdatesWithAct();
 
-            fireEvent(screen.getByLabelText(INPUT_LABEL), 'selectionChange', {nativeEvent: {selection: {start: 10, end: 10}}});
+            fireEvent(getTextInput(), 'selectionChange', {nativeEvent: {selection: {start: 10, end: 10}}});
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByLabelText(INPUT_LABEL).props.selection).toEqual({start: 2, end: 2});
+            expect(getTextInput().props.selection).toEqual({start: 2, end: 2});
         });
 
         it('ignores the selection change once after a manual update (shouldIgnoreSelectionWhenUpdatedManually)', async () => {
@@ -847,18 +847,18 @@ describe('NumberWithSymbolForm', () => {
             renderForm({value: '1234', decimals: 2});
             await waitForBatchedUpdatesWithAct();
 
-            fireEvent(screen.getByLabelText(INPUT_LABEL), 'selectionChange', {nativeEvent: {selection: {start: 2, end: 2}}});
+            fireEvent(getTextInput(), 'selectionChange', {nativeEvent: {selection: {start: 2, end: 2}}});
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByLabelText(INPUT_LABEL).props.selection).toEqual({start: 2, end: 2});
+            expect(getTextInput().props.selection).toEqual({start: 2, end: 2});
 
             fireEvent(screen.getByTestId('button_<'), 'longPress');
             await waitForBatchedUpdatesWithAct();
 
-            fireEvent(screen.getByLabelText(INPUT_LABEL), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
+            fireEvent(getTextInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByLabelText(INPUT_LABEL).props.selection).toEqual({start: 2, end: 2});
+            expect(getTextInput().props.selection).toEqual({start: 2, end: 2});
         });
     });
 
@@ -868,7 +868,7 @@ describe('NumberWithSymbolForm', () => {
             renderForm({value: '12', decimals: 2, maxLength: 2, onInputChange});
             await waitForBatchedUpdatesWithAct();
 
-            fireEvent.changeText(screen.getByLabelText(INPUT_LABEL), '123');
+            fireEvent.changeText(getTextInput(), '123');
             await waitForBatchedUpdatesWithAct();
 
             expect(onInputChange).not.toHaveBeenCalled();
@@ -880,7 +880,7 @@ describe('NumberWithSymbolForm', () => {
             renderForm({value: '1', decimals: 2, maxLength: 2, onInputChange});
             await waitForBatchedUpdatesWithAct();
 
-            fireEvent.changeText(screen.getByLabelText(INPUT_LABEL), '12');
+            fireEvent.changeText(getTextInput(), '12');
             await waitForBatchedUpdatesWithAct();
 
             expect(onInputChange).toHaveBeenCalledWith('12');
@@ -891,12 +891,12 @@ describe('NumberWithSymbolForm', () => {
             renderForm({value: '1', decimals: 1, onInputChange});
             await waitForBatchedUpdatesWithAct();
 
-            fireEvent.changeText(screen.getByLabelText(INPUT_LABEL), '1.55');
+            fireEvent.changeText(getTextInput(), '1.55');
             await waitForBatchedUpdatesWithAct();
 
             expect(onInputChange).not.toHaveBeenCalled();
 
-            fireEvent.changeText(screen.getByLabelText(INPUT_LABEL), '1.5');
+            fireEvent.changeText(getTextInput(), '1.5');
             await waitForBatchedUpdatesWithAct();
 
             expect(onInputChange).toHaveBeenCalledWith('1.5');
@@ -908,7 +908,7 @@ describe('NumberWithSymbolForm', () => {
             renderForm({value: '1', decimals: 2, allowNegativeInput: true, toggleNegative, onInputChange});
             await waitForBatchedUpdatesWithAct();
 
-            fireEvent.changeText(screen.getByLabelText(INPUT_LABEL), '-15');
+            fireEvent.changeText(getTextInput(), '-15');
             await waitForBatchedUpdatesWithAct();
 
             expect(onInputChange).toHaveBeenCalledWith('-15');
@@ -920,7 +920,7 @@ describe('NumberWithSymbolForm', () => {
             renderForm({value: '1', decimals: 2, toggleNegative, onInputChange});
             await waitForBatchedUpdatesWithAct();
 
-            fireEvent.changeText(screen.getByLabelText(INPUT_LABEL), '-15');
+            fireEvent.changeText(getTextInput(), '-15');
             await waitForBatchedUpdatesWithAct();
 
             // Neither flipping nor direct negative input is allowed, so the value is rejected outright
@@ -935,7 +935,7 @@ describe('NumberWithSymbolForm', () => {
             renderForm({value: '', decimals: 2, isNegative: true, clearNegative});
             await waitForBatchedUpdatesWithAct();
 
-            fireEvent(screen.getByLabelText(INPUT_LABEL), 'keyPress', {nativeEvent: {key: 'Backspace'}});
+            fireEvent(getTextInput(), 'keyPress', {nativeEvent: {key: 'Backspace'}});
             await waitForBatchedUpdatesWithAct();
 
             expect(clearNegative).toHaveBeenCalledTimes(1);
@@ -946,7 +946,7 @@ describe('NumberWithSymbolForm', () => {
             renderForm({value: '', decimals: 2, clearNegative});
             await waitForBatchedUpdatesWithAct();
 
-            fireEvent(screen.getByLabelText(INPUT_LABEL), 'keyPress', {nativeEvent: {key: 'Backspace'}});
+            fireEvent(getTextInput(), 'keyPress', {nativeEvent: {key: 'Backspace'}});
             await waitForBatchedUpdatesWithAct();
 
             expect(clearNegative).not.toHaveBeenCalled();
@@ -957,7 +957,7 @@ describe('NumberWithSymbolForm', () => {
             renderForm({value: '', decimals: 2, isNegative: true, clearNegative});
             await waitForBatchedUpdatesWithAct();
 
-            fireEvent(screen.getByLabelText(INPUT_LABEL), 'keyPress', {nativeEvent: {key: '1'}});
+            fireEvent(getTextInput(), 'keyPress', {nativeEvent: {key: '1'}});
             await waitForBatchedUpdatesWithAct();
 
             expect(clearNegative).not.toHaveBeenCalled();

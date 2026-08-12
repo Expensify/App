@@ -24,7 +24,7 @@ jest.mock('@react-navigation/native', () => ({
     useRoute: jest.fn(() => ({key: '', name: '', params: {}})),
 }));
 
-const INPUT_LABEL = 'Amount';
+const INPUT_TEST_ID = 'number-with-symbol-form-input';
 
 describe('NumberWithSymbolForm on desktop', () => {
     it('renders the currency button in the desktop layout and does not show touch-only controls', async () => {
@@ -34,7 +34,7 @@ describe('NumberWithSymbolForm on desktop', () => {
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                 <NumberWithSymbolForm
                     symbol="$"
-                    label={INPUT_LABEL}
+                    testID={INPUT_TEST_ID}
                     value="10"
                     currency="USD"
                     onSymbolButtonPress={onSymbolButtonPress}
@@ -61,7 +61,7 @@ describe('NumberWithSymbolForm on desktop', () => {
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                 <NumberWithSymbolForm
                     symbol="$"
-                    label={INPUT_LABEL}
+                    testID={INPUT_TEST_ID}
                     value="12"
                     displayAsTextInput
                 />
@@ -70,7 +70,7 @@ describe('NumberWithSymbolForm on desktop', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        const textInput = screen.getByLabelText(INPUT_LABEL);
+        const textInput = screen.getByTestId(INPUT_TEST_ID);
         fireEvent.changeText(textInput, '13');
         await waitForBatchedUpdatesWithAct();
 
