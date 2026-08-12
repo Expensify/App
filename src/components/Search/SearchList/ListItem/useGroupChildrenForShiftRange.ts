@@ -31,7 +31,6 @@ type UseGroupChildrenForShiftRangeArgs = {
     conciergeReportID: GetSectionsArgs['conciergeReportID'];
 };
 
-/** The transaction rows of a group's lazily-loaded snapshot, empty until it has loaded. */
 function getSnapshotTransactionRows(snapshotData: GetSectionsArgs['data'] | undefined, args: Omit<GetSectionsArgs, 'data'>): TransactionListItemType[] {
     if (!snapshotData) {
         return [];
@@ -92,7 +91,7 @@ function useGroupChildrenForShiftRange({
     // A group selected before its children were fetched is stored under the group key, since no transaction IDs were known yet.
     const isGroupSelected = !!selectedTransactions[groupKey]?.isSelected;
 
-    // Stamp the live selection onto each row for the checkbox, plus the parent key a row needs to see its group's exclusion. Expense-report rows carry both already.
+    // Stamp the live selection and the parent key onto each row, which is how a row checks whether its group was excluded. Expense-report rows carry both already.
     const transactions: TransactionListItemType[] = isExpenseReportType
         ? rangeChildren
         : rangeChildren.map((transactionItem) => ({

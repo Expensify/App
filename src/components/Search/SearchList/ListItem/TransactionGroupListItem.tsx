@@ -144,7 +144,6 @@ function TransactionGroupListItemImpl({
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    // The inline path renders the children itself, so it registers them too.
     const {transactions, isGroupSelected} = useGroupChildrenForShiftRange({
         groupKey: groupItem.keyForList,
         isExpanded,
@@ -301,7 +300,7 @@ function TransactionGroupListItemImpl({
         onLongPressRow?.(transaction as ListItem);
     };
 
-    // Forward shiftKey so Shift+click on an expanded child applies the range. Group headers never send it because they ignore Shift.
+    // Group headers never send shiftKey, so only an expanded child row can start a range from here.
     const handleSelectionButtonPress = (val: ListItem, _itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => {
         onSelectionButtonPress?.(val, isExpenseReportType ? undefined : transactions, shiftKey);
     };

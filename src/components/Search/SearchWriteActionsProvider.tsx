@@ -572,7 +572,7 @@ function SearchWriteActionsProvider({
         return !!(item.keyForList && selected[item.keyForList]?.isSelected);
     };
 
-    // A group selected before its children loaded is stored under the group key alone, so its children have no entry of their own.
+    // A child of a group selected before its children loaded has no entry of its own.
     const isRowSelectedViaGroup = (item: SearchData[number]) => {
         if (!item.keyForList) {
             return false;

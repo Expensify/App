@@ -559,7 +559,6 @@ function MoneyRequestReportTransactionList({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [resolvedTransactions, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldGroupTransactions]);
 
-    // The order rows actually appear in: sorting and grouping both reorder the incoming transactions.
     const visualOrderTransactions = useMemo(
         () => (shouldGroupTransactions && groupedTransactions.length > 0 ? groupedTransactions.flatMap((group) => group.transactions) : resolvedTransactions),
         [groupedTransactions, resolvedTransactions, shouldGroupTransactions],
@@ -646,7 +645,6 @@ function MoneyRequestReportTransactionList({
     }, [groupedTransactions, selectedTransactionIDs]);
 
     const toggleGroupSelection = useCallback(
-        // Group headers ignore Shift, so they always toggle the whole group.
         (groupKey: string) => {
             const group = groupedTransactions.find((g) => g.groupKey === groupKey);
             if (!group) {
