@@ -2,6 +2,7 @@ import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
@@ -110,7 +111,8 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {disableMultiScan} = useMultiScanActions();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -126,6 +128,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         reportAttributesDerived,
         reportDraft,
         translate,
+        dateFnsLocale,
     );
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
@@ -236,6 +239,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             submitWithDismissFirst({
                 executeWrite: (overrides) => {
                     startSplitBill({
+                        getCurrencyDecimals,
                         ...splitBaseParams,
                         shouldHandleNavigation: overrides.shouldHandleNavigation,
                         shouldDeferForSearch: false,
@@ -277,6 +281,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         });
 
         const baseParams = {
+            getCurrencyDecimals,
             transactions,
             iouType,
             report,
@@ -305,6 +310,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             isTrackIntentUser,
             delegateAccountID,
+            formatPhoneNumber,
         };
 
         const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;
@@ -406,7 +412,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         submitWithGpsCheck(validReceiptFiles);
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
+    const {validateFiles, PDFValidationComponent} = useFilesValidation((files: FileObject[]) => {
         processReceipts(files, getPickerCaptureSource());
     });
 
@@ -422,7 +428,6 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                 onMultiScanSubmit={submitMultiScan}
                 shouldAcceptMultipleFiles
             />
-            {ErrorModal}
             <GpsPermissionGate
                 startLocationPermissionFlow={startLocationPermissionFlow}
                 receiptFiles={receiptFiles}

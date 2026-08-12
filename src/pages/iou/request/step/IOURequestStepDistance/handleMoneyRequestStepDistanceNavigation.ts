@@ -2,15 +2,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {buildParticipantsPolicyTags} from '@libs/actions/IOU';
-import {
-    getMoneyRequestParticipantOptions,
-    setCustomUnitRateID,
-    setMoneyRequestDistance,
-    setMoneyRequestMerchant,
-    setMoneyRequestParticipantsFromReport,
-    setMoneyRequestPendingFields,
-} from '@libs/actions/IOU/MoneyRequest';
+import {setCustomUnitRateID, setMoneyRequestDistance, setMoneyRequestMerchant, setMoneyRequestParticipantsFromReport, setMoneyRequestPendingFields} from '@libs/actions/IOU/MoneyRequest';
 import {createDistanceRequest, resetSplitShares} from '@libs/actions/IOU/Split';
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -22,9 +14,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getValidWaypoints} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getValidWaypoints, hasAppliedCommuterExclusion} from '@libs/TransactionUtils';
 
 import {setTransactionReport} from '@userActions/Transaction';
 
@@ -40,6 +33,7 @@ import type {
     IntroSelected,
     LastSelectedDistanceRates,
     OdometerDraft,
+    ParticipantsPolicyTags,
     PersonalDetailsList,
     Policy,
     PolicyTagLists,
@@ -49,7 +43,6 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
-import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
@@ -64,7 +57,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     transactionID: string;
     policyForMovingExpenses?: OnyxEntry<Policy>;
     transaction?: Transaction;
-    reportAttributesDerived?: Record<string, ReportAttributes>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     waypoints?: WaypointCollection;
     manualDistance?: number;
@@ -102,16 +94,17 @@ type MoneyRequestStepDistanceNavigationParams = {
     amountOwed: OnyxEntry<number>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
-    conciergeReportID: string | undefined;
     optimisticTransactionID: string;
     optimisticChatReportID: string | undefined;
-    reportDraft: OnyxEntry<Report> | undefined;
     action: IOUAction;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     policyTagList: PolicyTagLists;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    participants: Array<Participant | OptionData>;
+    participantsPolicyTags: ParticipantsPolicyTags;
 };
 
 /** Amount + merchant for a manual-distance submit; pending placeholders otherwise (waypoint/GPS distance is computed server-side). */
@@ -165,7 +158,6 @@ function handleMoneyRequestStepDistanceNavigation({
     transaction,
     reportID,
     transactionID,
-    reportAttributesDerived,
     personalDetails,
     waypoints,
     manualDistance,
@@ -204,16 +196,17 @@ function handleMoneyRequestStepDistanceNavigation({
     amountOwed,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
-    conciergeReportID,
     optimisticTransactionID,
     optimisticChatReportID,
-    reportDraft,
     action,
     isTrackIntentUser,
     delegateAccountID,
     policyTagList,
     formatPhoneNumber,
     getCurrencySymbol,
+    getCurrencyDecimals,
+    participants,
+    participantsPolicyTags,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -239,18 +232,6 @@ function handleMoneyRequestStepDistanceNavigation({
     // to the confirm step.
     // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
     if (report?.reportID && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
-        const participants = getMoneyRequestParticipantOptions(
-            currentUserAccountID,
-            report,
-            policy,
-            personalDetails,
-            conciergeReportID,
-            isArchivedExpenseReport,
-            reportAttributesDerived,
-            reportDraft,
-            translate,
-        );
-
         setDistanceRequestData?.(participants);
         if (shouldSkipConfirmation) {
             cancelSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
@@ -287,6 +268,7 @@ function handleMoneyRequestStepDistanceNavigation({
             const distanceDefaultTaxCode = getDefaultTaxCode(policy, transaction);
             const distanceTaxCode = resolveCurrentTaxCode(policy, (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '');
             const distanceTaxAmount = transaction?.taxAmount ?? 0;
+            const shouldIncludeCommuterExclusionOverrides = hasAppliedCommuterExclusion(transaction);
 
             if (isCreatingTrackExpense && participant) {
                 submitWithDismissFirst({
@@ -347,6 +329,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             currentUserLocalCurrency,
                             delegateAccountID,
                             reportActionsList: undefined,
+                            getCurrencyDecimals,
                         });
                         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                             report,
@@ -384,6 +367,8 @@ function handleMoneyRequestStepDistanceNavigation({
                         existingTransaction: transaction,
                         transactionParams: {
                             amount,
+                            ...(shouldIncludeCommuterExclusionOverrides && typeof transaction?.modifiedAmount === 'number' && {modifiedAmount: transaction.modifiedAmount}),
+                            ...(shouldIncludeCommuterExclusionOverrides && transaction?.modifiedMerchant && {modifiedMerchant: transaction.modifiedMerchant}),
                             distance,
                             modifiedDistance: gpsModifiedDistance,
                             comment: '',
@@ -423,9 +408,8 @@ function handleMoneyRequestStepDistanceNavigation({
                         isTrackIntentUser,
                         delegateAccountID,
                         formatPhoneNumber,
-                        // buildParticipantsPolicyTags is deprecated but still needed here until this call site is migrated to useOnyx (https://github.com/Expensify/App/issues/72721)
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        participantsPolicyTags: buildParticipantsPolicyTags(participants),
+                        getCurrencyDecimals,
+                        participantsPolicyTags,
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,

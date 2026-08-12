@@ -41,6 +41,7 @@ import {
     getSubmitToEmail,
     getTagApproverRule,
     getTagGLCode,
+    getGLCodeFromPolicyTag,
     getTagList,
     getTagListByOrderWeight,
     getUberConnectionErrorDirectlyFromPolicy,
@@ -62,6 +63,7 @@ import {
     isPerDiemEnabled,
     isPolicyMemberWithoutPendingDelete,
     isSubmitterApproveBlockedOnSubmitWorkspace,
+    isTaxCodeCustomized,
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
     shouldShowPolicy,
@@ -1445,6 +1447,21 @@ describe('PolicyUtils', () => {
             expect(getTagGLCode(tagListsWithNumberGLCode, 'Engineering')).toBe('1234');
         });
     });
+
+    describe('getGLCodeFromPolicyTag', () => {
+        it('returns empty string when tag is undefined', () => {
+            expect(getGLCodeFromPolicyTag(undefined)).toBe('');
+        });
+
+        it('returns empty string when tag has no GL code', () => {
+            expect(getGLCodeFromPolicyTag({})).toBe('');
+        });
+
+        it('returns stripped GL code from tag', () => {
+            expect(getGLCodeFromPolicyTag({'GL Code': '"1234"'})).toBe('1234');
+        });
+    });
+
     describe('sortWorkspacesBySelected', () => {
         it('should order workspaces with selected workspace first', () => {
             const workspace1 = {policyID: '1', name: 'Workspace 1'};
@@ -2663,6 +2680,36 @@ describe('PolicyUtils', () => {
         });
     });
 
+    describe('isTaxCodeCustomized', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            taxRates: {
+                taxes: {
+                    id_vat: {name: 'VAT', value: '20'},
+                    id_gst: {name: 'GST', value: '10', previousTaxCode: 'id_gst_prev'},
+                    id_sales: {name: 'Sales Tax', value: '8', previousTaxCode: ''},
+                },
+                name: '',
+                defaultExternalID: '',
+                defaultValue: '',
+                foreignTaxDefault: '',
+            },
+        };
+
+        it('returns false when there is no policy, tax code, or tax rate', () => {
+            expect(isTaxCodeCustomized(undefined, policy)).toEqual(false);
+            expect(isTaxCodeCustomized('', policy)).toEqual(false);
+            expect(isTaxCodeCustomized('id_vat', undefined)).toEqual(false);
+            expect(isTaxCodeCustomized('id_INVALID', policy)).toEqual(false);
+        });
+
+        it('returns true only when the tax rate has a non-empty `previousTaxCode` value', () => {
+            expect(isTaxCodeCustomized('id_vat', policy)).toEqual(false);
+            expect(isTaxCodeCustomized('id_gst', policy)).toEqual(true);
+            expect(isTaxCodeCustomized('id_sales', policy)).toEqual(false);
+        });
+    });
+
     describe('canSendInvoiceFromWorkspace', () => {
         it('returns true when areInvoicesEnabled is true', () => {
             const policy = createMock<Policy>({areInvoicesEnabled: true});
@@ -3510,7 +3557,7 @@ describe('PolicyUtils', () => {
                 }),
             });
 
-        // Sentinel for "Xero connected but Integration-Server has not yet synced suppliers"
+        // Placeholder for "Xero connected but Integration-Server has not yet synced suppliers"
         // (i.e. `data.contacts` is undefined on the connection). Distinct from the populated
         // default so callers can opt into the unsynced state without colliding with the
         // default-parameter mechanic, which would otherwise replace an explicit `undefined`
