@@ -875,8 +875,9 @@ function duplicateExpenseTransaction({
         getCurrencyDecimals,
     };
 
-    // If no workspace is provided the expense should be unreported
-    if (!targetPolicy) {
+    // A duplicate mirrors the source, so an unreported source stays unreported even when a workspace is available
+    const isSourceUnreported = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    if (!targetPolicy || isSourceUnreported) {
         const trackExpenseParams: CreateTrackExpenseParams = {
             ...params,
             participantParams: {
