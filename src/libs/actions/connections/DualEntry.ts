@@ -442,7 +442,7 @@ function updateDualEntryExpensifyCardAccount(
     const onyxData = prepareDualEntryExportOnyxData(policyID, CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID, expensifyCardAccountID, oldExpensifyCardAccountID ?? null);
     const parameters: UpdateDualEntryExpensifyCardAccountParams = {
         policyID,
-        expensifyCardAccountID,
+        creditCardAccountID: expensifyCardAccountID,
     };
     write(WRITE_COMMANDS.UPDATE_DUALENTRY_EXPENSIFY_CARD_ACCOUNT, parameters, onyxData);
 }
