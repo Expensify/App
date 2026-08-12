@@ -42,17 +42,18 @@ on:
 jobs:
   createNewVersion:
     runs-on: blacksmith-6vcpu-macos-latest
+    timeout-minutes: 30
+    concurrency:
+      # Version bumps push to main in both E/App and Mobile-Expensify, so only one may run at a time.
+      # Pending bumps queue in FIFO order rather than cancelling each other: a dropped bump would leave
+      # E/App and Mobile-Expensify on different versions.
+      # The group is a literal because ${{ github.workflow }} resolves to the *calling* workflow here.
+      group: createNewVersion
+      cancel-in-progress: false
+      queue: max
     outputs:
       NEW_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
     steps:
-      # v3.2.4
-      - name: Run turnstyle
-        uses: softprops/turnstyle@4415445a6780f85c074f0e4334cf8e65bae3ad45
-        with:
-          poll-interval-seconds: 10
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
       - name: Check out
         # Upstream checkout on macOS - Blacksmith's git-mirror cache can't work there (see workflows/README.md)
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
