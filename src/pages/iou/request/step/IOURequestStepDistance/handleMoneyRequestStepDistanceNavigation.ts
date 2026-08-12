@@ -16,7 +16,7 @@ import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getValidWaypoints, hasAppliedCommuterExclusion} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getSelectedRouteDistance, getValidWaypoints, hasAppliedCommuterExclusion} from '@libs/TransactionUtils';
 
 import {setTransactionReport} from '@userActions/Transaction';
 
@@ -101,6 +101,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     policyTagList: PolicyTagLists;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     participants: Array<Participant | OptionData>;
     participantsPolicyTags: ParticipantsPolicyTags;
 };
@@ -202,6 +203,7 @@ function handleMoneyRequestStepDistanceNavigation({
     policyTagList,
     formatPhoneNumber,
     getCurrencySymbol,
+    getCurrencyDecimals,
     participants,
     participantsPolicyTags,
 }: MoneyRequestStepDistanceNavigationParams): void {
@@ -209,6 +211,7 @@ function handleMoneyRequestStepDistanceNavigation({
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
     const distanceRequestType = getDistanceRequestType(transaction);
+    const selectedRouteDistance = getSelectedRouteDistance(transaction);
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
         resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
@@ -304,6 +307,7 @@ function handleMoneyRequestStepDistanceNavigation({
                                 attendees: transaction?.comment?.attendees,
                                 gpsCoordinates,
                                 distanceRequestType,
+                                selectedRouteDistance,
                                 odometerStart,
                                 odometerEnd,
                                 taxCode: distanceTaxCode,
@@ -326,6 +330,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             currentUserLocalCurrency,
                             delegateAccountID,
                             reportActionsList: undefined,
+                            getCurrencyDecimals,
                         });
                         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                             report,
@@ -385,6 +390,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             attendees: transaction?.comment?.attendees,
                             gpsCoordinates,
                             distanceRequestType,
+                            selectedRouteDistance,
                             odometerStart,
                             odometerEnd,
                             taxCode: distanceTaxCode,
@@ -404,6 +410,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         isTrackIntentUser,
                         delegateAccountID,
                         formatPhoneNumber,
+                        getCurrencyDecimals,
                         participantsPolicyTags,
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {

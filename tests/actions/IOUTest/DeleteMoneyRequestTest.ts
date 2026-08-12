@@ -1,4 +1,4 @@
-import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
+import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import {updateMoneyRequestAmountAndCurrency} from '@libs/actions/IOU/UpdateMoneyRequest';
@@ -34,7 +34,7 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import PusherHelper from '../../utils/PusherHelper';
-import {getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -183,6 +183,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
@@ -195,6 +196,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -434,6 +436,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
@@ -446,6 +449,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -543,6 +547,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -650,6 +655,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -783,6 +789,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -929,6 +936,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
             await waitForBatchedUpdates();
@@ -1129,6 +1137,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                         comment: comment2,
                     },
                     shouldGenerateTransactionThreadReport: true,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     isASAPSubmitBetaEnabled: false,
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
@@ -1141,6 +1150,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
             }
 
@@ -1214,6 +1224,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
@@ -1226,6 +1237,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -1252,6 +1264,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -1388,6 +1401,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                         comment: comment2,
                     },
                     shouldGenerateTransactionThreadReport: true,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     isASAPSubmitBetaEnabled: false,
                     transactionViolations: {},
                     currentUserAccountIDParam: 123,
@@ -1400,6 +1414,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
             }
 
@@ -1436,6 +1451,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -2190,6 +2206,50 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             expect(afterSecond?.reportName).toBe(ORIGINAL_TITLE);
             mockFetch?.resume?.();
+        });
+    });
+
+    describe('getCleanUpTransactionThreadReportOnyxData', () => {
+        it('uses transactionThreadReportActionsParam for the failureData rollback when provided', () => {
+            const transactionThreadID = 'thread-1';
+            const passedInReportActions: ReportActions = {action1: createRandomReportAction(1)};
+
+            const result = getCleanUpTransactionThreadReportOnyxData({
+                transactionThreadID,
+                shouldDeleteTransactionThread: true,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionThreadReportActionsParam: passedInReportActions,
+            });
+
+            const failureReportActionsEntry = result.failureData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`);
+            expect(failureReportActionsEntry?.value).toEqual(passedInReportActions);
+        });
+
+        it('falls back to the cached report actions when transactionThreadReportActionsParam is not provided', async () => {
+            const transactionThreadID = 'thread-2';
+            const cachedReportActions: ReportActions = {action1: createRandomReportAction(2)};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`, cachedReportActions);
+            await waitForBatchedUpdates();
+
+            const result = getCleanUpTransactionThreadReportOnyxData({
+                transactionThreadID,
+                shouldDeleteTransactionThread: true,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+            });
+
+            const failureReportActionsEntry = result.failureData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`);
+            expect(failureReportActionsEntry?.value).toEqual(cachedReportActions);
+        });
+
+        it('does not push transaction-thread report/report-action data when shouldDeleteTransactionThread is false', () => {
+            const result = getCleanUpTransactionThreadReportOnyxData({
+                shouldDeleteTransactionThread: false,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionThreadReportActionsParam: {action1: createRandomReportAction(3)},
+            });
+
+            expect(result.optimisticData.some((entry) => entry.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))).toBe(false);
+            expect(result.failureData.some((entry) => entry.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))).toBe(false);
         });
     });
 });

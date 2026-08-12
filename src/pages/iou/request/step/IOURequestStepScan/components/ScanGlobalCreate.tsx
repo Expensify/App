@@ -106,7 +106,7 @@ function ScanGlobalCreateInner({reportID, transactionID, transaction}: ScanGloba
         navigateGlobalCreate(ids, isMultiScanEnabled);
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
+    const {validateFiles, PDFValidationComponent} = useFilesValidation((files: FileObject[]) => {
         processReceipts(files, getPickerCaptureSource());
     });
 
@@ -128,7 +128,6 @@ function ScanGlobalCreateInner({reportID, transactionID, transaction}: ScanGloba
                 onMultiScanSubmit={submitMultiScan}
                 shouldAcceptMultipleFiles
             />
-            {ErrorModal}
         </>
     );
 }

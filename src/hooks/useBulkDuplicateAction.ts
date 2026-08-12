@@ -15,6 +15,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDelegateAccountID from './useDelegateAccountID';
@@ -40,7 +41,8 @@ type UseBulkDuplicateActionParams = {
 function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allReports, searchData, onAfterDuplicate}: UseBulkDuplicateActionParams) {
     const {accountID, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const {isBetaEnabled} = usePermissions();
@@ -76,6 +78,8 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
 
     const handleDuplicate = () => {
         bulkDuplicateExpenses({
+            dateFnsLocale,
+            getCurrencyDecimals,
             transactionIDs: selectedTransactionsKeys,
             allTransactions: allTransactions ?? {},
             sourcePolicyIDMap,
