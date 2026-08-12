@@ -197,7 +197,10 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
             filters={filterConfig}
             isItemInFilter={isItemInFilter}
         >
-            <Table.FilterBar label={translate('workspace.common.findWorkspace')} />
+            <Table.FilterBar
+                label={translate('workspace.common.findWorkspace')}
+                shouldShowClearFiltersButton
+            />
             <Table.NoResultsState />
             <Table.EmptyState
                 titleStyles={styles.pt2}

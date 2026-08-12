@@ -1,4 +1,5 @@
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
+import SearchFiltersClearButton from '@components/Search/SearchPageHeader/SearchFiltersClearButton';
 import {useTableContext} from '@components/Table/TableContext';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,9 +17,12 @@ import TableSearchBar from './TableSearchBar';
 type TableFilterBarProps = PropsWithChildren<{
     /** Label and accessibility label for the search input. */
     label: string;
+
+    /** Whether to show a "Clear" button that resets all active filters. */
+    shouldShowClearFiltersButton?: boolean;
 }>;
 
-export default function TableFilterBar({label, children}: TableFilterBarProps) {
+export default function TableFilterBar({label, shouldShowClearFiltersButton, children}: TableFilterBarProps) {
     const styles = useThemeStyles();
     const {filterConfig, tableMethods, activeFilters, columns, narrowLayoutSortColumn, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
 
@@ -44,8 +48,14 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
             };
         });
 
+    const clearAllFilters = () => {
+        for (const filter of appliedFilters) {
+            tableMethods.updateFilter({key: filter.key, value: []});
+        }
+    };
+
     const ActiveFilterChipsComponent = !!appliedFilters.length && (
-        <View style={[styles.flexRow, styles.gap2, styles.flexWrap]}>
+        <View style={[styles.flexRow, styles.gap2, styles.flexWrap, styles.alignItemsCenter]}>
             {appliedFilters.map((filter) => (
                 <DropdownButton
                     key={filter.key}
@@ -56,6 +66,7 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
                     onClosePress={filter.onClosePress}
                 />
             ))}
+            {shouldShowClearFiltersButton && <SearchFiltersClearButton onPress={clearAllFilters} />}
         </View>
     );
 
