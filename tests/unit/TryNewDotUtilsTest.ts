@@ -75,6 +75,7 @@ describe('TryNewDotUtils', () => {
         const tryNewDot: Parameters<typeof isOldAppRedirectBlocked>[0] = {
             classicRedirect: {
                 dismissed: false,
+                completedHybridAppOnboarding: false,
                 // @ts-expect-error - NVP data is serialized with a string timestamp.
                 timestamp: subDays(new Date(), 31).toISOString(),
             },
@@ -87,6 +88,7 @@ describe('TryNewDotUtils', () => {
         const tryNewDot: Parameters<typeof isOldAppRedirectBlocked>[0] = {
             classicRedirect: {
                 dismissed: false,
+                completedHybridAppOnboarding: false,
                 // @ts-expect-error - NVP data is serialized with a string timestamp.
                 timestamp: subDays(new Date(), 5).toISOString(),
             },
@@ -99,6 +101,7 @@ describe('TryNewDotUtils', () => {
         const tryNewDot: Parameters<typeof hasBeenInNewDot30Days>[0] = {
             classicRedirect: {
                 dismissed: false,
+                completedHybridAppOnboarding: false,
                 // @ts-expect-error - NVP data is serialized with a string timestamp.
                 timestamp: subDays(new Date(), 31).toISOString(),
             },
@@ -111,6 +114,7 @@ describe('TryNewDotUtils', () => {
         const tryNewDot: Parameters<typeof hasBeenInNewDot30Days>[0] = {
             classicRedirect: {
                 dismissed: false,
+                completedHybridAppOnboarding: false,
                 // @ts-expect-error - NVP data is serialized with a string timestamp.
                 timestamp: subDays(new Date(), 10).toISOString(),
             },
@@ -123,6 +127,7 @@ describe('TryNewDotUtils', () => {
         const tryNewDot: Parameters<typeof hasBeenInNewDot30Days>[0] = {
             classicRedirect: {
                 dismissed: true,
+                completedHybridAppOnboarding: false,
                 // @ts-expect-error - NVP data is serialized with a string timestamp.
                 timestamp: subDays(new Date(), 60).toISOString(),
             },

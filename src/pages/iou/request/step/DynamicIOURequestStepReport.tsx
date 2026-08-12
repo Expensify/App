@@ -19,7 +19,13 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getPersonalDetailsForAccountID, getReportOrDraftReport, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
-import {isPerDiemRequest, isTimeRequest as isTimeRequestUtil, isUnreportedManagedCardTransaction as isUnreportedManagedCardTransactionUtil} from '@libs/TransactionUtils';
+import {
+    isManualDistanceRequest as isManualDistanceRequestUtil,
+    isOdometerDistanceRequest as isOdometerDistanceRequestUtil,
+    isPerDiemRequest,
+    isTimeRequest as isTimeRequestUtil,
+    isUnreportedManagedCardTransaction as isUnreportedManagedCardTransactionUtil,
+} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -222,6 +228,8 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
             backTo={backPath}
             selectReport={selectReport}
             transactionIDs={transaction ? [transaction.transactionID] : []}
+            isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
+            isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
             selectedReportID={selectedReportID}
             selectedPolicyID={selectedPolicyID}
             transactionPolicyID={targetExpensePolicyID}
