@@ -56,7 +56,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const {cardID} = route.params;
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
-    const {translate, getLocalDateFromDatetime} = useLocalize();
+    const {translate, formatPhoneNumber, getLocalDateFromDatetime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
@@ -80,7 +80,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     // Personal cards always belong to the current user, so fall back to the current user's personal details
     // if the personal details list doesn't yet have an entry for the card's accountID.
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID] ?? (isUserPersonalCard ? currentUserPersonalDetails : undefined);
-    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardholder, translate});
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardholder, translate, formatPhoneNumber});
     const reimbursableSetting = card?.reimbursable ?? true;
     const isCSVImportedPersonalCard = !!(isUserPersonalCard && card && (card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)));
 

@@ -953,6 +953,7 @@ type UpdateMoneyRequestDistanceParams = {
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     distance?: number;
     routes?: Routes;
+    selectedRouteKey?: string;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -981,6 +982,7 @@ function updateMoneyRequestDistance({
     recentWaypoints = [],
     distance,
     routes = undefined,
+    selectedRouteKey,
     policy,
     policyTagList,
     policyCategories,
@@ -1007,6 +1009,7 @@ function updateMoneyRequestDistance({
         // and report preview before the server response restores it.
         ...(routes !== undefined && {routes}),
         ...(distance && {distance}),
+        ...(selectedRouteKey !== undefined && {selectedRouteKey}),
         ...(odometerStart !== undefined && {odometerStart}),
         ...(odometerEnd !== undefined && {odometerEnd}),
     };
@@ -1054,6 +1057,10 @@ function updateMoneyRequestDistance({
     if (odometerEnd !== undefined) {
         params.odometerEnd = odometerEnd;
     }
+    const selectedRouteDistance = selectedRouteKey ? transaction?.routes?.[selectedRouteKey]?.distance : undefined;
+    if (selectedRouteDistance) {
+        params.selectedRouteDistance = selectedRouteDistance;
+    }
 
     if (!distance) {
         const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
@@ -1079,6 +1086,9 @@ function updateMoneyRequestDistance({
             acc[key] = transactionBackup.modifiedWaypoints?.[key] ? {...transactionBackup.modifiedWaypoints?.[key]} : null;
             return acc;
         }, {});
+        // A route switch alone leaves the routes untouched, so keep them instead of forcing a re-fetch that would
+        // briefly blank the map.
+        const shouldClearRoutes = routes !== undefined || haveWaypointAddressesChanged(transactionBackup?.comment?.waypoints, waypoints);
         onyxData?.failureData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
@@ -1086,11 +1096,14 @@ function updateMoneyRequestDistance({
                 comment: {
                     waypoints: onyxWaypoints,
                     customUnit: {
-                        quantity: transactionBackup?.comment?.customUnit?.quantity,
+                        quantity: transactionBackup?.comment?.customUnit?.quantity ?? null,
+                        routeDistanceMeters: transactionBackup?.comment?.customUnit?.routeDistanceMeters ?? null,
                     },
+                    // When the routes are cleared below, restore the backed up selection instead of keeping a key that points at a route that no longer exists
+                    selectedRouteKey: transactionBackup?.comment?.selectedRouteKey ?? null,
                 },
                 modifiedWaypoints: onyxModifiedWaypoints,
-                routes: null,
+                ...(shouldClearRoutes && {routes: null}),
             },
         });
     }
@@ -1585,7 +1598,8 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     // delivers the new `receipt.source`, keeping `ReportActionItemImage` on `ConfirmedRoute` so the
     // stale receipt URL doesn't briefly render. It also drives the Distance row's offline-feedback
     // strikethrough for pure distance edits.
-    const shouldFlagMerchantPending = 'waypoints' in transactionChanges || 'distance' in transactionChanges || 'customUnitRateID' in transactionChanges;
+    const shouldFlagMerchantPending =
+        'waypoints' in transactionChanges || 'distance' in transactionChanges || 'customUnitRateID' in transactionChanges || 'selectedRouteKey' in transactionChanges;
     if (shouldFlagMerchantPending) {
         pendingFields.merchant = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
     }
@@ -1978,6 +1992,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     const hasModifiedDate = 'date' in transactionChanges;
     const hasModifiedDistance = 'distance' in transactionChanges;
     const hasModifiedAttendees = 'attendees' in transactionChanges;
+    const hasModifiedSelectedRouteKey = 'selectedRouteKey' in transactionChanges;
 
     const isInvoice = isInvoiceReportReportUtils(iouReport);
     if (
@@ -1993,6 +2008,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             hasModifiedMerchant ||
             hasModifiedDistanceRate ||
             hasModifiedDistance ||
+            hasModifiedSelectedRouteKey ||
             hasModifiedDate ||
             hasModifiedCurrency ||
             hasModifiedAmount ||
@@ -2021,7 +2037,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         if (hasPendingWaypoints) {
             optimisticViolations = optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.NO_ROUTE);
         }
-        if (hasModifiedDistanceRate || hasModifiedDistance || hasPendingWaypoints) {
+        if (hasModifiedDistanceRate || hasModifiedDistance || hasModifiedSelectedRouteKey || hasPendingWaypoints) {
             // Clear stale distance-related violations while the server reprocesses.
             // The server will re-evaluate and re-add any that legitimately apply.
             optimisticViolations = optimisticViolations.filter(

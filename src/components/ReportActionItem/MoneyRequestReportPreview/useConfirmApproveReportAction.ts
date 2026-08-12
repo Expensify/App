@@ -4,6 +4,7 @@
  */
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -24,6 +25,7 @@ import {useReportPreviewActions, useReportPreviewActionState} from './MoneyReque
 
 function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useReportPreviewActionButtonData>, transactions: Transaction[], hasViolations: boolean) {
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -41,6 +43,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
             onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.APPROVE, undefined, shouldShowPayButton);
         } else {
             approveMoneyRequest({
+                getCurrencyDecimals,
                 expenseReport: iouReport,
                 expenseReportPolicy: policy,
                 currentUserAccountIDParam: currentUserDetails.accountID,

@@ -42,7 +42,7 @@ type SearchPageFooterProps = {
     isTotalLoading: boolean;
 
     /** Function to call when the footer currency changes */
-    onCurrencyChange: (currency: string | undefined) => void;
+    onCurrencyChange: (currency: string) => void;
 };
 
 function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoading, onCurrencyChange}: SearchPageFooterProps) {
@@ -69,11 +69,12 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
             return;
         }
 
+        // Reset (no item) selects the default explicitly so figures loaded in another currency get converted to it.
         const nextCurrency = item?.value ?? defaultCurrency;
         if (!nextCurrency) {
             return;
         }
-        onCurrencyChange(nextCurrency === defaultCurrency ? undefined : nextCurrency);
+        onCurrencyChange(nextCurrency);
     };
 
     const renderCurrencyPopup: FilterPopupButtonProps['PopoverComponent'] = ({closeOverlay, isExpanded}) => (
