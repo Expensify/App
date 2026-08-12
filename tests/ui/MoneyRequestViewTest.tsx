@@ -8,12 +8,15 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
+import type {PartialDeep} from 'type-fest';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -97,24 +100,22 @@ const expenseReportID = 'expense_mrv_123';
 const parentReportActionID = 'parent_action_mrv';
 const transactionID = 'txn_mrv_test';
 
-const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: Record<string, unknown>) =>
+const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: PartialDeep<Policy>) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
             <MoneyRequestView
                 transactionThreadReport={threadReport}
                 parentReportID={expenseReportID}
-                expensePolicy={
-                    {
-                        id: policyID,
-                        type: CONST.POLICY.TYPE.TEAM,
-                        role: CONST.POLICY.ROLE.ADMIN,
-                        name: 'Test Policy',
-                        owner: currentUserEmail,
-                        outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
-                        ...policy,
-                    } as never
-                }
+                expensePolicy={createMock<Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    name: 'Test Policy',
+                    owner: currentUserEmail,
+                    outputCurrency: CONST.CURRENCY.USD,
+                    isPolicyExpenseChatEnabled: true,
+                    ...policy,
+                })}
                 shouldShowAnimatedBackground={false}
             />
         </ComposeProviders>,
