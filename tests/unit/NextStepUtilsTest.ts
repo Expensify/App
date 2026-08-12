@@ -1106,7 +1106,7 @@ describe('libs/NextStepUtils', () => {
                 return translateLocal(path, ...parameters);
             };
 
-            const message = buildNextStepMessage(nextStep, translateWithDepositCurrency, currentUserAccountID, formatPhoneNumber);
+            const message = buildNextStepMessage(nextStep, translateWithDepositCurrency, undefined, currentUserAccountID, formatPhoneNumber);
             expect(message).toBe(`<next-step>Waiting for <strong>you</strong> to add a ${expectedAccount}.</next-step>`);
         });
 
