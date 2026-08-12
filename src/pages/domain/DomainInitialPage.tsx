@@ -57,7 +57,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     const domainMenuItems = getDomainMenuItems({
         domainAccountID,
         domainErrors,
-        icons: {User: icons.User, UserShield: icons.UserShield, Users: icons.Users, UserLock: icons.UserLock},
+        icons,
     }).map((item) => ({
         ...item,
         action: singleExecution(waitForNavigate(() => Navigation.navigate(item.route))),
