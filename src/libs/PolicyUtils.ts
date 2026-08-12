@@ -2432,21 +2432,25 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
- * Vendor matching feature gate. Returns true when the workspace has the `vendorMatching` beta
- * enabled AND a supported accounting integration is connected with a non-reimbursable export type
- * that scopes the vendor field. Mirrors the per-integration `hasVendorFeature` checks on the PHP
- * side so the App and backend agree on which workspaces see the field.
+ * Vendor matching feature gate. Returns true when a supported accounting integration is connected
+ * with a non-reimbursable export type that scopes the vendor field. Mirrors the per-integration
+ * `hasVendorFeature` checks on the PHP side so the App and backend agree on which workspaces see
+ * the field.
  *
- * Supported integrations:
- *   - QBO with non-reimbursable export = Credit Card or Debit Card (R1)
- *   - Sage Intacct with non-reimbursable export = Credit Card Charge (R2)
- *   - Xero (R4) — no export-destination enum; connection present is sufficient
+ * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
+ * `isVendorMatchingBetaEnabled` is consulted on the Intacct and Xero branches but not on QBO:
+ *   - QBO with non-reimbursable export = Credit Card or Debit Card (R1) — GA, no beta required
+ *   - Sage Intacct with non-reimbursable export = Credit Card Charge (R2) — beta required
+ *   - Xero (R3) — no export-destination enum, connection present is sufficient — beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
-    if (!isVendorMatchingBetaEnabled || !policy) {
+    if (!policy) {
         return false;
     }
-    return isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy);
+    if (isQBOVendorMatchingActive(policy)) {
+        return true;
+    }
+    return isVendorMatchingBetaEnabled && (isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy));
 }
 
 /**
