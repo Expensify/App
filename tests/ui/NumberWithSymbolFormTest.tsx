@@ -19,13 +19,15 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+const mockIsFocused = jest.fn(() => true);
+
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
     useNavigation: jest.fn(() => ({
         navigate: jest.fn(),
         addListener: jest.fn(() => jest.fn()),
     })),
-    useIsFocused: jest.fn(() => true),
+    useIsFocused: () => mockIsFocused(),
     useRoute: jest.fn(() => ({key: '', name: '', params: {}})),
 }));
 
@@ -65,6 +67,7 @@ describe('NumberWithSymbolForm', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockIsInLandscapeMode.mockReturnValue(false);
+        mockIsFocused.mockReturnValue(true);
     });
 
     afterEach(async () => {
@@ -832,6 +835,31 @@ describe('NumberWithSymbolForm', () => {
     });
 
     describe('selection handling', () => {
+        it('clears the selection when focus returns after leaving the screen', async () => {
+            mockIsFocused.mockReturnValue(false);
+            const {rerender} = renderForm({value: '1234'});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent(getTextInput(), 'selectionChange', {nativeEvent: {selection: {start: 1, end: 3}}});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(getTextInput().props.selection).toEqual({start: 1, end: 3});
+
+            mockIsFocused.mockReturnValue(true);
+            rerender(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                    <NumberWithSymbolForm
+                        symbol="$"
+                        label={INPUT_LABEL}
+                        value="1234"
+                    />
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(getTextInput().props.selection).toEqual({start: 3, end: 3});
+        });
+
         it('clamps the selection to the length of the current number', async () => {
             renderForm({value: '12', decimals: 2});
             await waitForBatchedUpdatesWithAct();
