@@ -37,12 +37,16 @@ jobs:
 
   seedHybrid:
     name: Seed hybrid node_modules
+    # Mobile-Expensify is private, so the submodule checkout needs OS_BOTIFY_TOKEN. Fork pull
+    # requests don't get secrets, and their hybrid builds are skipped anyway (see verifyHybridApp).
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
         with:
           submodules: true
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Setup Node (seed)
         uses: ./.github/actions/composite/setupNode
