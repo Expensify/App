@@ -10,7 +10,7 @@ function setup() {
     const addGroupToRange = jest.fn();
     const removeGroupFromRange = jest.fn();
     const wrapper = ({children}: {children: React.ReactNode}) => (
-        <SearchShiftRangeChildrenContext value={{registerGroupChildren, addGroupToRange, removeGroupFromRange}}>{children}</SearchShiftRangeChildrenContext>
+        <SearchShiftRangeChildrenContext value={{registerGroupChildren, addGroupToRange, removeGroupFromRange, registryGeneration: 1}}>{children}</SearchShiftRangeChildrenContext>
     );
     return {addGroupToRange, removeGroupFromRange, wrapper};
 }

@@ -107,6 +107,37 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
         expect(Object.keys(result.current.state.excludedTransactions)).toEqual(['tx_1']);
     });
 
+    it('records a deselection the updater could not express, since the row had no entry to remove', () => {
+        const {result} = renderSelection();
+        seedAllMatchingSelection(result);
+
+        act(() => {
+            result.current.actions.applySelection((selectedTransactions) => selectedTransactions, {
+                shouldPreserveAllMatchingSelection: true,
+                deselectedWithoutEntry: buildSelected('tx_3'),
+            });
+        });
+
+        expect(Object.keys(result.current.state.excludedTransactions)).toEqual(['tx_3']);
+    });
+
+    it('leaves the state untouched when a named deselection has nowhere to be recorded', () => {
+        const {result} = renderSelection();
+        act(() => {
+            result.current.actions.setSelectedTransactions(buildSelected('tx_1', 'tx_2'));
+        });
+        const exclusionsBefore = result.current.state.excludedTransactions;
+
+        // Without an all-matching selection to preserve there is nowhere to record it, so the press must not cost every row a render
+        act(() => {
+            result.current.actions.applySelection((selectedTransactions) => selectedTransactions, {
+                deselectedWithoutEntry: buildSelected('tx_3'),
+            });
+        });
+
+        expect(result.current.state.excludedTransactions).toBe(exclusionsBefore);
+    });
+
     it('keeps a semantic selection when every loaded row is excluded and more results exist', () => {
         const {result} = renderSelection();
         seedAllMatchingSelection(result);

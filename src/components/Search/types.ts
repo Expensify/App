@@ -297,6 +297,8 @@ type SearchShiftRangeChildrenActions = {
     addGroupToRange: (groupKey: string) => void;
     /** Take a group back out of ranges. Its children stay cached, so reopening it does not wait for them to be published again. */
     removeGroupFromRange: (groupKey: string) => void;
+    /** Changes when the registry is dropped for a new search. Publishers key off it, so a group left open across the change republishes. */
+    registryGeneration: number | undefined;
 };
 
 /** Composed value of all three Search state contexts. Kept as a union for callers that need the full bag shape (e.g. test fixtures, action `searchContext` payloads). */

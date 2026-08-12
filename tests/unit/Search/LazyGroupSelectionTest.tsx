@@ -491,6 +491,35 @@ describe('Lazily loaded group selection', () => {
 
         // Then the group stays selected as a whole, rather than silently dropping the three rows that never arrived
         expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
+        // And the click leaves no entry of its own behind, which would count the row twice and still not uncheck it
+        expect(result.current.selectedTransactions[firstChild.keyForList]).toBeUndefined();
+        expect(Object.keys(result.current.selectedTransactions)).toEqual([GROUP_KEY]);
+    });
+
+    it('does not drop a row a range no longer covers while its group is still paging in', async () => {
+        const {result} = renderSelection(PartiallyLoadedWrapper);
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given a group of five selected while collapsed, of which only two rows have loaded so far
+        await act(async () => {
+            result.current.toggle(partiallyLoadedGroup, []);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a range is drawn across the loaded rows and then pulled back onto the first
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the row that fell out keeps its entry, because the group still covers it and it still reads as checked
+        expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions[secondChild.keyForList]?.isSelected).toBe(true);
     });
 
     it('anchors in the group just selected, not at a row selected earlier in another group', async () => {
@@ -667,6 +696,9 @@ describe('Lazily loaded group selection', () => {
         // Then both reports are selected through their child transactions, which is where a report row keeps its selection
         expect(result.current.selectedTransactions['6']?.isSelected).toBe(true);
         expect(result.current.selectedTransactions['7']?.isSelected).toBe(true);
+        // And each row records the report it came in with, the same way clicking the report row records it
+        expect(result.current.selectedTransactions['7']?.groupKey).toBe(secondReport.keyForList);
+        expect(result.current.selectedTransactions['7']?.isSelectedViaGroup).toBe(true);
     });
 
     it('gives back the reports a range no longer covers in an expense-report view', async () => {
@@ -749,7 +781,7 @@ describe('Lazily loaded group selection', () => {
 
     it('gives back a child a range no longer covers, under select-all-matching', async () => {
         const {result} = renderSelection();
-        const [firstChild, secondChild] = loadedChildren;
+        const [firstChild] = loadedChildren;
 
         // Given a group selected while collapsed, every matching item selected, and its children since published
         await act(async () => {
@@ -844,7 +876,7 @@ describe('Lazily loaded group selection', () => {
     it('drops a group’s published rows when the search changes, so a range cannot reach the previous results', async () => {
         groupedSearchResults = {...makeFlatSearchResults(undefined), search: {...makeFlatSearchResults(undefined).search, hash: 1}};
         const {result, rerender} = renderSelection(SearchChangeWrapper);
-        const [firstChild, secondChild] = loadedChildren;
+        const [, secondChild] = loadedChildren;
 
         // Given a group open with its rows published under one search
         await act(async () => {

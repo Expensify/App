@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import type {SearchData, SearchSelectionActionsValue, SearchSelectionContextValue, SelectedReports, SelectedTransactions} from './types';
 
@@ -47,14 +47,15 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     }, [currentSearchHash]);
 
     // Read through this ref so selectionActionsValue stays stable and actions-only consumers don't re-render on every selection change.
+    // Refreshed during the commit, so a click handler reading it decides the same way the reducer will.
     const selectedTransactionsRef = useRef(selectionState.selectedTransactions);
-    useEffect(() => {
+    useLayoutEffect(() => {
         selectedTransactionsRef.current = selectionState.selectedTransactions;
     }, [selectionState.selectedTransactions]);
 
     // The same for the exclusions, which are rebuilt on every commit, so reading them in render would re-render every row on each press.
     const excludedTransactionsRef = useRef(selectionState.excludedTransactions);
-    useEffect(() => {
+    useLayoutEffect(() => {
         excludedTransactionsRef.current = selectionState.excludedTransactions;
     }, [selectionState.excludedTransactions]);
 
@@ -100,7 +101,10 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         setSelectionState((prevState) => {
             const selectedTransactions = updater(prevState.selectedTransactions);
             const reconciledExcludedTransactions = options?.reconciledExcludedTransactions;
-            const hasDeselectedWithoutEntry = !isEmptyObject(options?.deselectedWithoutEntry ?? {});
+            const shouldClearAllMatchingSelection = options?.shouldClearAllMatchingSelectionWhenEmpty && isEmptyObject(selectedTransactions);
+            // A deselection can only be recorded as an exclusion while an all-matching selection is being preserved.
+            const shouldRecordExclusions = prevState.areAllMatchingItemsSelected && !!options?.shouldPreserveAllMatchingSelection && !shouldClearAllMatchingSelection;
+            const hasDeselectedWithoutEntry = shouldRecordExclusions && !isEmptyObject(options?.deselectedWithoutEntry ?? {});
             if (
                 selectedTransactions === prevState.selectedTransactions &&
                 !hasDeselectedWithoutEntry &&
@@ -114,11 +118,10 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
                 totalSelectableItemsCount && totalSelectableItemsCount !== Object.keys(selectedTransactions).length ? false : prevState.areAllMatchingItemsSelected;
             let excludedTransactions = reconciledExcludedTransactions ?? prevState.excludedTransactions;
 
-            const shouldClearAllMatchingSelection = options?.shouldClearAllMatchingSelectionWhenEmpty && isEmptyObject(selectedTransactions);
             if (shouldClearAllMatchingSelection) {
                 areAllMatchingItemsSelected = false;
             }
-            if (prevState.areAllMatchingItemsSelected && options?.shouldPreserveAllMatchingSelection && !shouldClearAllMatchingSelection) {
+            if (shouldRecordExclusions) {
                 areAllMatchingItemsSelected = true;
                 excludedTransactions = {...prevState.excludedTransactions};
                 for (const [key, transaction] of Object.entries(prevState.selectedTransactions)) {

@@ -14,10 +14,14 @@ function setup() {
     const registerGroupChildren = jest.fn();
     const addGroupToRange = jest.fn();
     const removeGroupFromRange = jest.fn();
+    let registryGeneration: number | undefined = 1;
+    const dropRegistry = () => {
+        registryGeneration = (registryGeneration ?? 0) + 1;
+    };
     const wrapper = ({children}: {children: React.ReactNode}) => (
-        <SearchShiftRangeChildrenContext value={{registerGroupChildren, addGroupToRange, removeGroupFromRange}}>{children}</SearchShiftRangeChildrenContext>
+        <SearchShiftRangeChildrenContext value={{registerGroupChildren, addGroupToRange, removeGroupFromRange, registryGeneration}}>{children}</SearchShiftRangeChildrenContext>
     );
-    return {registerGroupChildren, addGroupToRange, removeGroupFromRange, wrapper};
+    return {registerGroupChildren, addGroupToRange, removeGroupFromRange, dropRegistry, wrapper};
 }
 
 describe('useRegisterGroupChildrenForShiftRange', () => {
@@ -52,6 +56,17 @@ describe('useRegisterGroupChildrenForShiftRange', () => {
         const {rerender} = renderHook(({groupKey}) => useRegisterGroupChildrenForShiftRange(groupKey, CHILDREN, true), {wrapper, initialProps: {groupKey: 'group-1'}});
         rerender({groupKey: 'group-2'});
         expect(registerGroupChildren).toHaveBeenLastCalledWith('group-2', CHILDREN);
+    });
+
+    it('republishes when the registry is dropped for a new search, even though the children never changed', () => {
+        const {registerGroupChildren, dropRegistry, wrapper} = setup();
+        const {rerender} = renderHook(() => useRegisterGroupChildrenForShiftRange('group-1', CHILDREN, true), {wrapper});
+        registerGroupChildren.mockClear();
+        rerender({});
+        expect(registerGroupChildren).not.toHaveBeenCalled();
+        dropRegistry();
+        rerender({});
+        expect(registerGroupChildren).toHaveBeenCalledWith('group-1', CHILDREN);
     });
 
     it('leaves the published children in place when the row unmounts, since the group may still be open', () => {

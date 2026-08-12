@@ -82,6 +82,7 @@ const defaultSearchShiftRangeChildrenActions: SearchShiftRangeChildrenActions = 
     registerGroupChildren: () => {},
     addGroupToRange: () => {},
     removeGroupFromRange: () => {},
+    registryGeneration: undefined,
 };
 
 const SearchQueryContext = React.createContext<SearchQueryContextValue>(defaultSearchQueryContext);

@@ -246,6 +246,9 @@ function ExpenseGroupedSearchView({
                     userBillingGracePeriodEnds={userBillingGracePeriodEnds}
                     ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                     visibleColumns={visibleColumns}
+                    bankAccountList={bankAccountList}
+                    cardFeeds={cardFeeds}
+                    conciergeReportID={conciergeReportID}
                 />
             );
         }

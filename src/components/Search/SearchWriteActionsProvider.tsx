@@ -465,7 +465,7 @@ function SearchWriteActionsProvider({
     const pendingSeedGroupKeyRef = useRef<string | undefined>(undefined);
 
     // Built once (by construction, not by React Compiler) so the register effect can't loop.
-    const [shiftRangeChildrenActions] = useState<SearchShiftRangeChildrenActions>(() => ({
+    const [shiftRangeChildrenMethods] = useState<Omit<SearchShiftRangeChildrenActions, 'registryGeneration'>>(() => ({
         // Compared by value: an equal array must not re-register and re-render every row, but changed rows must replace the stale copy.
         registerGroupChildren: (groupKey, groupChildren) =>
             setGroupChildrenByKey((prev) => {
@@ -495,6 +495,9 @@ function SearchWriteActionsProvider({
                 return next;
             }),
     }));
+
+    // Only the container changes when the registry is dropped; the methods keep their identity, so openness subscribers stay put.
+    const shiftRangeChildrenActions: SearchShiftRangeChildrenActions = {...shiftRangeChildrenMethods, registryGeneration: registryHash};
 
     const searchResultsData = searchResults?.data;
     const currentUserEmail = email ?? '';
@@ -536,17 +539,17 @@ function SearchWriteActionsProvider({
     const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
 
     // A group selected before its children loaded lives under the group key alone, so dropping one child needs the group written out first.
-    const spellOutGroupSelection = (selection: SelectedTransactions, childKey: string): SelectedTransactions => {
+    // `canDropChild` is false while only part of the group is registered: writing it out then would silently drop the rows that never arrived.
+    const spellOutGroupSelection = (selection: SelectedTransactions, childKey: string): {selection: SelectedTransactions; canDropChild: boolean} => {
         const groupKey = groupKeyByChildKey.get(childKey);
         // Select-all-matching already covers the group, so writing it out would only record the whole group as excluded.
         if (!groupKey || areAllMatchingItemsSelected || !selection[groupKey]?.isSelected) {
-            return selection;
+            return {selection, canDropChild: true};
         }
         const groupChildren = childrenByGroupKey.get(groupKey) ?? [];
         const totalCount = childCountByGroupKey.get(groupKey);
-        // Only the loaded page is registered, so writing the group out while rows are still paging in would drop the ones that never arrived.
         if (totalCount !== undefined && groupChildren.length < totalCount) {
-            return selection;
+            return {selection, canDropChild: false};
         }
         const spelledOut: SelectedTransactions = {...selection};
         delete spelledOut[groupKey];
@@ -558,7 +561,7 @@ function SearchWriteActionsProvider({
             // No `isSelectedViaGroup`: the caller is about to drop one of these, so the group stops being a whole-group selection.
             spelledOut[key] = {...info, groupKey};
         }
-        return spelledOut;
+        return {selection: spelledOut, canDropChild: true};
     };
 
     // A row checked by select-all-matching alone has no entry to remove, so deselecting it can only be recorded as an exclusion.
@@ -573,7 +576,8 @@ function SearchWriteActionsProvider({
         const selectedTransactions = getSelectedTransactions();
         const parentGroupKey = groupKeyByChildKey.get(row.keyForList);
         const isChecked = isRowChecked({rowKey: row.keyForList, parentGroupKey, selectedTransactions, excludedTransactions: getExcludedTransactions(), areAllMatchingItemsSelected});
-        if (!isChecked || selectedTransactions[row.keyForList]) {
+        // An entry of its own is removed by the ordinary diff, so only rows checked purely by the wider selection need naming.
+        if (!isChecked || selectedTransactions[row.keyForList]?.isSelected) {
             return {};
         }
         const [key, info] = buildSelectedEntry(row);
@@ -589,19 +593,24 @@ function SearchWriteActionsProvider({
         applySelection(
             (selectedTransactions) => {
                 let updated: SelectedTransactions = {...selectedTransactions};
-                const addTransaction = (tx: TransactionListItemType) => {
+                // `blockGroupKey` is set only when a whole group row joins the range, which is what makes its children narrowable later.
+                const addTransaction = (tx: TransactionListItemType, blockGroupKey: string | undefined) => {
                     if (!tx.keyForList || isTransactionPendingDelete(tx)) {
                         return;
                     }
-                    updated = spellOutGroupSelection(updated, tx.keyForList);
+                    updated = spellOutGroupSelection(updated, tx.keyForList).selection;
                     const [key, info] = buildSelectedEntry(tx);
-                    const parentGroupKey = groupKeyByChildKey.get(tx.keyForList);
-                    updated[key] = parentGroupKey ? {...info, groupKey: parentGroupKey} : info;
+                    const parentGroupKey = blockGroupKey ?? groupKeyByChildKey.get(tx.keyForList);
+                    updated[key] = parentGroupKey ? {...info, groupKey: parentGroupKey, isSelectedViaGroup: !!blockGroupKey} : info;
                 };
                 const removeRow = (row: SearchData[number]) => {
                     if (isTransactionListItemType(row) || (isTransactionReportGroupListItemType(row) && row.transactions.length === 0)) {
                         if (row.keyForList) {
-                            updated = spellOutGroupSelection(updated, row.keyForList);
+                            const {selection, canDropChild} = spellOutGroupSelection(updated, row.keyForList);
+                            if (!canDropChild) {
+                                return;
+                            }
+                            updated = selection;
                             delete updated[row.keyForList];
                         }
                         return;
@@ -620,7 +629,7 @@ function SearchWriteActionsProvider({
                 };
                 const addRow = (row: SearchData[number]) => {
                     if (isTransactionListItemType(row)) {
-                        addTransaction(row);
+                        addTransaction(row, undefined);
                     } else if (isTransactionReportGroupListItemType(row) && row.transactions.length === 0) {
                         if (row.keyForList && row.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                             const [key, info] = mapEmptyReportToSelectedEntry(row);
@@ -628,7 +637,7 @@ function SearchWriteActionsProvider({
                         }
                     } else if (isTransactionGroupListItemType(row)) {
                         for (const child of row.transactions ?? []) {
-                            addTransaction(child);
+                            addTransaction(child, row.keyForList);
                         }
                     }
                 };
@@ -688,8 +697,7 @@ function SearchWriteActionsProvider({
         isHeaderItem: isShiftRangeHeaderItem,
     });
 
-    const seedGroup = (groupKey: string, groupChildren: TransactionListItemType[]) =>
-        rangeApi.seedRangeFromSelection(new Set(groupChildren.map((child) => child.keyForList).filter(Boolean)));
+    const seedGroup = (groupChildren: TransactionListItemType[]) => rangeApi.seedRangeFromSelection(new Set(groupChildren.map((child) => child.keyForList).filter(Boolean)));
 
     const toggle: SearchRowSelectionActionsValue['toggle'] = (item, itemTransactions, shiftKey) => {
         if (isReportActionListItemType(item) || isTaskListItemType(item)) {
@@ -703,7 +711,7 @@ function SearchWriteActionsProvider({
         if (shiftKey && pendingSeedGroupKey) {
             const pendingChildren = childrenByGroupKey.get(pendingSeedGroupKey) ?? [];
             if (pendingChildren.length > 0 && isGroupSelected(getSelectedTransactions(), pendingSeedGroupKey, pendingChildren)) {
-                seedGroup(pendingSeedGroupKey, pendingChildren);
+                seedGroup(pendingChildren);
             }
         }
 
@@ -723,7 +731,7 @@ function SearchWriteActionsProvider({
                 rangeApi.clearAnchor();
             } else if (groupTransactions.length > 0) {
                 // Seed just this block: seeding the whole selection would span unrelated rows and deselect them.
-                seedGroup(item.keyForList, groupTransactions);
+                seedGroup(groupTransactions);
             } else {
                 // Nothing to seed yet, so hold the block for the next shift+click.
                 rangeApi.clearAnchor();
@@ -751,7 +759,11 @@ function SearchWriteActionsProvider({
             applySelection(
                 (selectedTransactions) => {
                     const {itemTransaction, originalItemTransaction, parentReport: itemParentReport} = resolveTransactionRefs(item);
-                    const baseSelection = spellOutGroupSelection(selectedTransactions, item.keyForList);
+                    const {selection: baseSelection, canDropChild} = spellOutGroupSelection(selectedTransactions, item.keyForList);
+                    // The row is checked by a group whose rows are still paging in, so there is no way to record dropping it yet.
+                    if (!canDropChild) {
+                        return selectedTransactions;
+                    }
                     const updatedTransactions = prepareTransactionsList({
                         item,
                         itemTransaction,

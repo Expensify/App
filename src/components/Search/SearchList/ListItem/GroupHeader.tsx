@@ -26,7 +26,7 @@ import {isDeletedTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {NativeSyntheticEvent} from 'react-native';
@@ -38,7 +38,7 @@ import {View} from 'react-native';
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import Animated from 'react-native-reanimated';
 
-import type {GroupHeaderItemType, SearchListActionProps, SearchListItem, TransactionListItemType} from './types';
+import type {GroupChildrenContentProps, GroupHeaderItemType, SearchListActionProps, SearchListItem, TransactionListItemType} from './types';
 
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
@@ -48,6 +48,7 @@ import MonthListItemHeader from './MonthListItemHeader';
 import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TagListItemHeader from './TagListItemHeader';
+import useGroupChildRows from './useGroupChildRows';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -70,6 +71,9 @@ type GroupHeaderProps = SearchListActionProps & {
     isLastItem: boolean;
     originalKey: string;
     visibleColumns?: SearchCustomColumnIds[];
+    bankAccountList: GroupChildrenContentProps['bankAccountList'];
+    cardFeeds: GroupChildrenContentProps['cardFeeds'];
+    conciergeReportID: GroupChildrenContentProps['conciergeReportID'];
 };
 
 function GroupHeader({
@@ -94,6 +98,9 @@ function GroupHeader({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     visibleColumns,
+    bankAccountList,
+    cardFeeds,
+    conciergeReportID,
 }: GroupHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -177,31 +184,16 @@ function GroupHeader({
     const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
-    const effectiveTransactions = useMemo((): TransactionListItemType[] => {
-        if (isExpenseReportType || groupItem.transactions.length > 0) {
-            return groupItem.transactions;
-        }
-        if (!snapshotData) {
-            return [];
-        }
-        const items: TransactionListItemType[] = [];
-        for (const key of Object.keys(snapshotData)) {
-            if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
-                continue;
-            }
-            const transaction = snapshotData[key as keyof typeof snapshotData] as Transaction;
-            if (!transaction?.transactionID) {
-                continue;
-            }
-            const report = snapshotData[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-            items.push({
-                ...transaction,
-                keyForList: transaction.transactionID,
-                report,
-            } as TransactionListItemType);
-        }
-        return items;
-    }, [isExpenseReportType, groupItem.transactions, snapshotData]);
+    // Built the same way the expanded rows are, so a group's action flags don't depend on which gesture selected it.
+    const snapshotTransactions = useGroupChildRows({
+        isExpenseReportType,
+        groupTransactions: groupItem.transactions,
+        snapshotData,
+        bankAccountList,
+        cardFeeds,
+        conciergeReportID,
+    });
+    const effectiveTransactions = isExpenseReportType || groupItem.transactions.length > 0 ? groupItem.transactions : snapshotTransactions;
 
     const {isSelectAllChecked, isIndeterminate} = useMemo(() => {
         const selectedTransactionIDsSet = new Set(Object.keys(selectedTransactions));
