@@ -16,7 +16,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {close as closeModal} from '@userActions/Modal';
 import Tab from '@userActions/Tab';
@@ -27,7 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type {ShareTempFile} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Alert, AppState, View} from 'react-native';
 
 import getFileSize from './getFileSize';
@@ -48,7 +47,7 @@ function showErrorAlert(title: string, message: string) {
 function ShareRootPage() {
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
 
-    const {validateFiles, ErrorModal} = useFilesValidation(addValidatedShareFile);
+    const {validateFiles} = useFilesValidation(addValidatedShareFile);
     const isTextShared = currentAttachment?.mimeType === 'txt';
 
     const validateFileIfNecessary = useCallback(
@@ -181,14 +180,6 @@ function ShareRootPage() {
         closeModal();
     }, []);
 
-    const reasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
-        () => ({
-            context: 'ShareRootPage',
-            isFileReady,
-        }),
-        [isFileReady],
-    );
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -212,10 +203,9 @@ function ShareRootPage() {
                         {isFileScannable && <TopTab.Screen name={CONST.TAB.SHARE.SUBMIT}>{() => <SubmitTab />}</TopTab.Screen>}
                     </OnyxTabNavigator>
                 ) : (
-                    <TabNavigatorSkeleton reasonAttributes={reasonAttributes} />
+                    <TabNavigatorSkeleton />
                 )}
             </View>
-            {ErrorModal}
         </ScreenWrapper>
     );
 }

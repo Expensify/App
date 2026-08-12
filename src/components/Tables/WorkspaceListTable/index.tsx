@@ -31,7 +31,7 @@ type WorkspaceTableColumnKey = 'workspaces' | 'owner' | 'type' | 'actions';
 
 type WorkspaceRowData = TableData & {
     title: string;
-    icon: AvatarSource;
+    icon?: AvatarSource;
     isDefault: boolean;
     isDeleted: boolean;
     isJoinRequestPending: boolean;

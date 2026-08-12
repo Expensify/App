@@ -172,10 +172,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, step
         >
             {shouldRedirect ? (
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={{context: 'BusinessInfo', shouldRedirect}}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             ) : (
                 <CurrentPage

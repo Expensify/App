@@ -23,6 +23,7 @@ jest.mock('@libs/ReportUtils', () => ({
         actionTargetReportActionID: undefined,
     })),
     generateIsEmptyReport: jest.fn(() => false),
+    getPendingDeleteMemberAccountIDs: jest.fn(() => []),
     hasVisibleReportFieldViolations: jest.fn(() => false),
     isArchivedReport: jest.fn(() => false),
     isValidReport: jest.fn(() => true),
@@ -654,7 +655,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             [`${ONYXKEYS.COLLECTION.REPORT}chat1`]: chatReport,
         };
 
-        // Seed both entries with sentinel names; the mocked computeReportName returns 'Test Report' on any recompute.
+        // Seed both entries with placeholder names; the mocked computeReportName returns 'Test Report' on any recompute.
         const existingValue: ReportAttributesDerivedValue = {
             reports: {
                 expense1: {reportName: 'Old expense name', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
