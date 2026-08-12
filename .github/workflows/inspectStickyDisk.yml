@@ -103,6 +103,19 @@ jobs:
             inspect "OldDot node_modules" Mobile-Expensify/node_modules
           fi
 
+      - name: Clean build artifacts and trim raw disk
+        if: env.RAW_KEY != ''
+        shell: bash
+        run: |
+          echo "=== before cleanup ==="
+          df -h raw-disk
+          find raw-disk -type d -name '.cxx' -prune -exec rm -rf {} + 2>/dev/null || true
+          find raw-disk -type d -path '*/android/build' -prune -exec rm -rf {} + 2>/dev/null || true
+          find raw-disk -type d -path '*/android/.gradle' -prune -exec rm -rf {} + 2>/dev/null || true
+          echo "=== after cleanup ==="
+          df -h raw-disk
+          sudo fstrim -v raw-disk || echo "::warning::fstrim failed (discard may be unsupported)"
+
       - name: Summary
         shell: bash
         run: |
