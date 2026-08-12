@@ -7692,6 +7692,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 expenseDefaultsSubtitle: 'Felder aktualisieren, ohne dass die einreichende Person etwas tun muss',
                 ifAnyExpenseMatches: 'Wenn eine Ausgabe übereinstimmt:',
                 thenApplyFollowingDefaults: 'Wenden Sie dann die folgenden Standardwerte an:',
+                vendorUnavailable: 'Anbieter nicht verfügbar',
+                supplierUnavailable: 'Lieferant nicht verfügbar',
             },
             categoryRules: {
                 title: 'Kategorienregeln',

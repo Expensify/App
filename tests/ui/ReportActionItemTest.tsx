@@ -1574,6 +1574,15 @@ describe('ReportActionItem', () => {
 
     describe('System notification actions', () => {
         it('MOVED action renders moved message', async () => {
+            // Seed the destination policy locally so the message is computed live (the member scenario).
+            // Without a local policy, getMovedActionMessage falls back to the stored action HTML.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {
+                    id: 'policy1',
+                    name: 'Test Workspace',
+                });
+            });
+
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MOVED, {
                 toPolicyID: 'policy1',
                 newParentReportID: 'report2',

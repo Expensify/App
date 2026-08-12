@@ -7720,6 +7720,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 expenseDefaultsSubtitle: 'Mettre à jour les champs sans que le déclarant ne fasse quoi que ce soit',
                 ifAnyExpenseMatches: 'Si une dépense correspond :',
                 thenApplyFollowingDefaults: 'Appliquez ensuite les valeurs par défaut suivantes :',
+                vendorUnavailable: 'Fournisseur indisponible',
+                supplierUnavailable: 'Fournisseur indisponible',
             },
             categoryRules: {
                 title: 'Règles de catégorie',
