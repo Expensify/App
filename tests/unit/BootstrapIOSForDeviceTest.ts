@@ -8,7 +8,7 @@ import {
     resolveDevelopmentTeam,
     targetBundleIdentifier,
     validateSuffix,
-} from '../../scripts/bootstrapIOSForDevice';
+} from '../../scripts/bootstrapForDevice';
 
 const configuration = (identifier: string, name: string, bundleIdentifier: string) => `
 \t\t${identifier} /* ${name} */ = {

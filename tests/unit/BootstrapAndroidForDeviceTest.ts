@@ -9,7 +9,7 @@ import {
     patchAndroidShortcutPackage,
     patchGoogleServicesConfig,
     validateAndroidApplicationID,
-} from '../../scripts/bootstrapIOSForDevice';
+} from '../../scripts/bootstrapForDevice';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 const registeredClient = (packageName: string, appID: string) => ({

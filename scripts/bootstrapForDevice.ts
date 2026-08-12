@@ -492,7 +492,7 @@ async function main(): Promise<void> {
 }
 
 const scriptPath = process.argv.at(1);
-if (scriptPath?.endsWith('bootstrapIOSForDevice.ts')) {
+if (scriptPath?.endsWith('bootstrapForDevice.ts')) {
     main().catch((error: unknown) => {
         console.error(error instanceof Error ? error.message : error);
         process.exitCode = 1;
