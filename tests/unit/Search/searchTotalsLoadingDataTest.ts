@@ -13,8 +13,8 @@ jest.mock('@libs/API', () => ({
     read: jest.fn(),
 }));
 
-function getQueryJSON() {
-    const queryJSON = buildSearchQueryJSON('');
+function getQueryJSON(query = '') {
+    const queryJSON = buildSearchQueryJSON(query);
     if (!queryJSON) {
         throw new Error('Query JSON should be defined for test setup');
     }
@@ -39,6 +39,11 @@ type SearchRequestData = {
     }>;
 };
 
+type SearchResponse = {
+    onyxData: Array<{value: {search: {offset: number; hasMoreResults: boolean}; data: Record<string, unknown>}}>;
+    jsonCode: number;
+};
+
 type SearchRequestParams = {
     hash: number;
     jsonQuery: string;
@@ -49,7 +54,8 @@ function getMakeRequestWithSideEffectsMock() {
         mock: {
             calls: Array<[unknown, SearchRequestParams, SearchRequestData?]>;
         };
-        mockResolvedValue: (value: {onyxData: Array<{value: {search: {offset: number; hasMoreResults: boolean}; data: Record<string, unknown>}}>; jsonCode: number}) => void;
+        mockResolvedValue: (value: SearchResponse) => void;
+        mockImplementationOnce: (implementation: () => Promise<SearchResponse>) => void;
         mockReturnValue: (value: Promise<unknown>) => void;
     };
 }
@@ -151,39 +157,127 @@ describe('search loading totals handling', () => {
         expect(loadingSearchData?.currency).toBeUndefined();
     });
 
-    describe('in-flight request deduping', () => {
-        // Both calls run before any microtask, so the first request is still registered as in flight when the
-        // second one is made.
-        function searchTwiceConcurrently(firstShouldCalculateTotals: boolean, secondShouldCalculateTotals: boolean) {
-            const queryJSON = getQueryJSON();
-            const params = {queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false};
+    it('queues a totals request when the same non-totals search is already in flight', async () => {
+        const queryJSON = getQueryJSON('type:expense');
+        const response: SearchResponse = {
+            onyxData: [{value: {search: {offset: 50, hasMoreResults: true}, data: {}}}],
+            jsonCode: CONST.JSON_CODE.SUCCESS,
+        };
+        let resolveFirstRequest: (value: SearchResponse) => void = () => {};
+        const firstRequestPromise = new Promise<SearchResponse>((resolve) => {
+            resolveFirstRequest = resolve;
+        });
+        const makeRequestWithSideEffectsMock = getMakeRequestWithSideEffectsMock();
+        makeRequestWithSideEffectsMock.mockImplementationOnce(() => firstRequestPromise);
 
-            return Promise.all([search({...params, shouldCalculateTotals: firstShouldCalculateTotals}), search({...params, shouldCalculateTotals: secondShouldCalculateTotals})]);
-        }
-
-        it('drops a request that duplicates an in-flight one for the same page', async () => {
-            await searchTwiceConcurrently(false, false);
-
-            expect(makeRequestWithSideEffects).toHaveBeenCalledTimes(1);
+        const firstSearch = search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 50,
+            shouldCalculateTotals: false,
+            isLoading: false,
+        });
+        search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 50,
+            shouldCalculateTotals: true,
+            isLoading: false,
+        });
+        search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 50,
+            shouldCalculateTotals: true,
+            isLoading: false,
         });
 
-        it('does not drop a totals request that overlaps an in-flight request which did not ask for totals', async () => {
-            await searchTwiceConcurrently(false, true);
+        await Promise.resolve();
+        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(1);
 
-            expect(makeRequestWithSideEffects).toHaveBeenCalledTimes(2);
+        resolveFirstRequest(response);
+        await firstSearch;
+        await Promise.resolve();
+
+        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(2);
+        const [, queuedRequestParameters] = makeRequestWithSideEffectsMock.mock.calls.at(-1) ?? [];
+        const queuedQuery: unknown = JSON.parse(queuedRequestParameters?.jsonQuery ?? '{}');
+        expect(queuedQuery).toEqual(expect.objectContaining({shouldCalculateTotals: true}));
+    });
+
+    it('keeps the original expense-report deduplication when a totals request collides with an in-flight request', async () => {
+        const queryJSON = getQueryJSON('type:expense-report');
+        const response: SearchResponse = {
+            onyxData: [{value: {search: {offset: 50, hasMoreResults: true}, data: {}}}],
+            jsonCode: CONST.JSON_CODE.SUCCESS,
+        };
+        let resolveFirstRequest: (value: SearchResponse) => void = () => {};
+        const firstRequestPromise = new Promise<SearchResponse>((resolve) => {
+            resolveFirstRequest = resolve;
+        });
+        const makeRequestWithSideEffectsMock = getMakeRequestWithSideEffectsMock();
+        makeRequestWithSideEffectsMock.mockImplementationOnce(() => firstRequestPromise);
+
+        const firstSearch = search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS,
+            offset: 50,
+            shouldCalculateTotals: false,
+            isLoading: false,
+        });
+        search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS,
+            offset: 50,
+            shouldCalculateTotals: true,
+            isLoading: false,
         });
 
-        it('drops a non-totals request while a totals request for the same page is in flight', async () => {
-            await searchTwiceConcurrently(true, false);
+        await Promise.resolve();
+        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(1);
 
-            expect(makeRequestWithSideEffects).toHaveBeenCalledTimes(1);
+        resolveFirstRequest(response);
+        await firstSearch;
+        await Promise.resolve();
+
+        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(1);
+    });
+
+    it('does not queue another request when the in-flight search already calculates totals', async () => {
+        const queryJSON = getQueryJSON();
+        const response: SearchResponse = {
+            onyxData: [{value: {search: {offset: 50, hasMoreResults: true}, data: {}}}],
+            jsonCode: CONST.JSON_CODE.SUCCESS,
+        };
+        let resolveFirstRequest: (value: SearchResponse) => void = () => {};
+        const firstRequestPromise = new Promise<SearchResponse>((resolve) => {
+            resolveFirstRequest = resolve;
+        });
+        const makeRequestWithSideEffectsMock = getMakeRequestWithSideEffectsMock();
+        makeRequestWithSideEffectsMock.mockImplementationOnce(() => firstRequestPromise);
+
+        const firstSearch = search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 50,
+            shouldCalculateTotals: true,
+            isLoading: false,
+        });
+        search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 50,
+            shouldCalculateTotals: true,
+            isLoading: false,
         });
 
-        it('drops a totals request that duplicates an in-flight totals request', async () => {
-            await searchTwiceConcurrently(true, true);
+        await Promise.resolve();
+        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(1);
 
-            expect(makeRequestWithSideEffects).toHaveBeenCalledTimes(1);
-        });
+        resolveFirstRequest(response);
+        await firstSearch;
+
+        expect(makeRequestWithSideEffectsMock.mock.calls).toHaveLength(1);
     });
 
     it('dedupes concurrent search requests by hash and offset', async () => {

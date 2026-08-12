@@ -1,5 +1,6 @@
-import {act, render} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -8,7 +9,7 @@ import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 
 import DistanceRequestStartPage from '@pages/iou/request/DistanceRequestStartPage';
 
-import type {IOURequestType} from '@src/CONST';
+import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -33,7 +34,14 @@ jest.mock('@rnmapbox/maps', () => ({
 }));
 
 jest.mock('react-native-tab-view', () => ({
-    TabView: 'TabView',
+    TabView: ({navigationState}: {navigationState: {routes: Array<{name: string}>}}) => {
+        const React2 = jest.requireActual<typeof React>('react');
+        return React2.createElement(
+            React2.Fragment,
+            null,
+            navigationState.routes.map((route) => React2.createElement('TabRoute', {key: route.name, testID: `tab-${route.name}`})),
+        );
+    },
     SceneMap: jest.fn(),
     TabBar: 'TabBar',
 }));
@@ -43,6 +51,8 @@ jest.mock('react-native-vision-camera', () => ({
 }));
 
 const REPORT_ID = '1';
+const ACCOUNT_ID = 1;
+const ACCOUNT_LOGIN = 'test@user.com';
 const PERSONAL_POLICY_ID = 'personalPolicy1';
 
 type DistanceCreateScreenProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE>;
@@ -68,26 +78,28 @@ async function setUpOnyx({selectedTab, lastDistanceExpenseType}: {selectedTab?: 
     });
 }
 
-async function renderPage(defaultSelectedTab: SelectedTabRequest) {
+async function renderPage(defaultSelectedTab: SelectedTabRequest, iouType: IOUType = CONST.IOU.TYPE.TRACK) {
     render(
         <OnyxListItemProvider>
-            <LocaleContextProvider>
-                <NavigationContainer>
-                    <DistanceRequestStartPage
-                        route={createMock<DistanceCreateScreenProps['route']>({
-                            params: {
-                                iouType: CONST.IOU.TYPE.TRACK,
-                                reportID: REPORT_ID,
-                                transactionID: '',
-                            },
-                        })}
-                        report={undefined}
-                        reportDraft={undefined}
-                        navigation={createMock<DistanceCreateScreenProps['navigation']>({})}
-                        defaultSelectedTab={defaultSelectedTab}
-                    />
-                </NavigationContainer>
-            </LocaleContextProvider>
+            <CurrentUserPersonalDetailsProvider>
+                <LocaleContextProvider>
+                    <NavigationContainer>
+                        <DistanceRequestStartPage
+                            route={createMock<DistanceCreateScreenProps['route']>({
+                                params: {
+                                    iouType,
+                                    reportID: REPORT_ID,
+                                    transactionID: '',
+                                },
+                            })}
+                            report={undefined}
+                            reportDraft={undefined}
+                            navigation={createMock<DistanceCreateScreenProps['navigation']>({})}
+                            defaultSelectedTab={defaultSelectedTab}
+                        />
+                    </NavigationContainer>
+                </LocaleContextProvider>
+            </CurrentUserPersonalDetailsProvider>
         </OnyxListItemProvider>,
     );
 
@@ -173,5 +185,65 @@ describe('DistanceRequestStartPage', () => {
 
         // Then the draft falls back to the map type
         await expect(getDraftRequestType()).resolves.toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+    });
+
+    it('keeps manual distance available for a self-DM expense with a personal policy when every workspace has commuter exclusions', async () => {
+        await setUpOnyx({selectedTab: CONST.TAB_REQUEST.DISTANCE_MANUAL});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            reportID: REPORT_ID,
+            policyID: PERSONAL_POLICY_ID,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+        });
+        await Onyx.set(
+            `${ONYXKEYS.COLLECTION.POLICY}workspacePolicy`,
+            createMock<Policy>({
+                id: 'workspacePolicy',
+                type: CONST.POLICY.TYPE.TEAM,
+                name: 'Workspace',
+                role: CONST.POLICY.ROLE.USER,
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 1,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+            }),
+        );
+
+        await renderPage(CONST.TAB_REQUEST.DISTANCE_MANUAL);
+
+        expect(screen.getByTestId(`tab-${CONST.TAB_REQUEST.DISTANCE_MANUAL}`)).toBeOnTheScreen();
+        expect(screen.getByTestId(`tab-${CONST.TAB_REQUEST.DISTANCE_ODOMETER}`)).toBeOnTheScreen();
+    });
+
+    it('hides manual and odometer distance when the only workspace is the auto-report target', async () => {
+        await setUpOnyx({selectedTab: CONST.TAB_REQUEST.DISTANCE_MAP});
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: ACCOUNT_LOGIN});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}workspaceReport`, {
+            reportID: 'workspaceReport',
+            policyID: 'workspacePolicy',
+            ownerAccountID: ACCOUNT_ID,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        });
+        await Onyx.set(
+            `${ONYXKEYS.COLLECTION.POLICY}workspacePolicy`,
+            createMock<Policy>({
+                id: 'workspacePolicy',
+                type: CONST.POLICY.TYPE.TEAM,
+                name: 'Workspace',
+                role: CONST.POLICY.ROLE.USER,
+                isPolicyExpenseChatEnabled: true,
+                autoReporting: true,
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 1,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+            }),
+        );
+
+        await renderPage(CONST.TAB_REQUEST.DISTANCE_MAP, CONST.IOU.TYPE.CREATE);
+
+        expect(screen.queryByTestId(`tab-${CONST.TAB_REQUEST.DISTANCE_MANUAL}`)).not.toBeOnTheScreen();
+        expect(screen.queryByTestId(`tab-${CONST.TAB_REQUEST.DISTANCE_ODOMETER}`)).not.toBeOnTheScreen();
     });
 });
