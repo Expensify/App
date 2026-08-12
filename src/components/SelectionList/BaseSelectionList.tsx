@@ -497,7 +497,6 @@ function BaseSelectionListImpl({
                     shouldUseUserSkeletonView={shouldUseUserSkeletonView}
                     shouldShowListEmptyContent={shouldShowListEmptyContent}
                     listEmptyContent={listEmptyContent}
-                    context="BaseSelectionList"
                 />
             ) : (
                 <>

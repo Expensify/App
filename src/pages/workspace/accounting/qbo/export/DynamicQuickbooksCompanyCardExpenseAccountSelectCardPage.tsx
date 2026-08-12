@@ -115,7 +115,7 @@ function DynamicQuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: With
             onBackButtonPress={goBack}
             listFooterContent={
                 !canUseVendorBill ? (
-                    <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pv3]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription', {integrationName})}</Text>
+                    <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pv3]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription', integrationName)}</Text>
                 ) : undefined
             }
             errors={getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION)}

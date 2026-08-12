@@ -30,7 +30,6 @@ import type {AddExistingExpensesParamList} from '@libs/Navigation/types';
 import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {createUnreportedExpenses, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
 
@@ -89,17 +88,6 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
     const [allOpenReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: openExpenseReportIDsSelector});
     const [openReportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {selector: openExpenseReportIDsSelector});
     const isInLandscapeMode = useIsInLandscapeMode();
-    const initialSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'AddExistingExpense.InitialSkeleton',
-        isLoadingUnreportedTransactions,
-    };
-
-    const paginationSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'AddExistingExpense.PaginationSkeleton',
-        isLoadingUnreportedTransactions,
-        hasMoreUnreportedTransactionsResults,
-        isOffline,
-    };
 
     const getEligibleTransactions = useCallback(
         (transactions: OnyxCollection<Transaction>) => {
@@ -360,12 +348,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
 
     const listFooterContent = useMemo(() => {
         if (shouldShowUnreportedTransactionsSkeletons) {
-            return (
-                <UnreportedExpensesSkeleton
-                    fixedNumberOfItems={3}
-                    reasonAttributes={paginationSkeletonReasonAttributes}
-                />
-            );
+            return <UnreportedExpensesSkeleton fixedNumberOfItems={3} />;
         }
         if (headerMessage) {
             return (
@@ -375,7 +358,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
             );
         }
         return undefined;
-    }, [shouldShowUnreportedTransactionsSkeletons, headerMessage, paginationSkeletonReasonAttributes, styles.ph5, styles.pt3, styles.textLabel, styles.colorMuted]);
+    }, [shouldShowUnreportedTransactionsSkeletons, headerMessage, styles.ph5, styles.pt3, styles.textLabel, styles.colorMuted]);
 
     const hasSearchTerm = debouncedSearchValue.trim().length > 0;
     const isShowingEmptyState = !hasSearchTerm && transactions.length === 0;
@@ -394,7 +377,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                     title={translate('iou.addExistingExpense')}
                     onBackButtonPress={Navigation.goBack}
                 />
-                <UnreportedExpensesSkeleton reasonAttributes={initialSkeletonReasonAttributes} />
+                <UnreportedExpensesSkeleton />
             </ScreenWrapper>
         );
     }
