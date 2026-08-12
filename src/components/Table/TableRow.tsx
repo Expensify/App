@@ -1,10 +1,10 @@
 import Checkbox from '@components/Checkbox';
+import {useCopyableTextRowPress} from '@components/CopyableText/selection';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import {useCopyableTextRowPress} from '@components/TextWithTooltip/selection';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';

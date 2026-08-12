@@ -1,11 +1,11 @@
 import {getButtonRole} from '@components/Button/utils';
+import {useCopyableTextRowPress} from '@components/CopyableText/selection';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import UserInfoAndActionButtonRow from '@components/Search/SearchList/ListItem/UserInfoAndActionButtonRow';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
-import {useCopyableTextRowPress} from '@components/TextWithTooltip/selection';
 import TransactionItemRow from '@components/TransactionItemRow';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';

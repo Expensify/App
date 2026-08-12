@@ -1,6 +1,6 @@
 import Avatar from '@components/Avatar';
+import {COPYABLE_TEXT_DATA_SET} from '@components/CopyableText/selection';
 import Text from '@components/Text';
-import {COPYABLE_TEXT_DATA_SET} from '@components/TextWithTooltip/selection';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 

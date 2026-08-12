@@ -1,4 +1,5 @@
 import Checkbox from '@components/Checkbox';
+import {COPYABLE_TEXT_DATA_SET} from '@components/CopyableText/selection';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
@@ -13,7 +14,6 @@ import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import type {SearchColumnType} from '@components/Search/types';
 import Text from '@components/Text';
-import {COPYABLE_TEXT_DATA_SET} from '@components/TextWithTooltip/selection';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';

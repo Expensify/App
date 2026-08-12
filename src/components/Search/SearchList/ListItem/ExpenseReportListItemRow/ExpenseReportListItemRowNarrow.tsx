@@ -1,7 +1,7 @@
 import Checkbox from '@components/Checkbox';
+import {COPYABLE_TEXT_DATA_SET} from '@components/CopyableText/selection';
 import getExpenseReportRowDisplayValues from '@components/Search/SearchList/ListItem/getExpenseReportRowDisplayValues';
 import Text from '@components/Text';
-import {COPYABLE_TEXT_DATA_SET} from '@components/TextWithTooltip/selection';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';

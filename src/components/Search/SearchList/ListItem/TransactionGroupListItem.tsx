@@ -1,12 +1,12 @@
 import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import {getButtonRole} from '@components/Button/utils';
+import {isMouseDownOnCopyableText, shouldSuppressCopyableTextPressOnMouseDown, useCopyableTextRowPress} from '@components/CopyableText/selection';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchResultsContext, useSearchSelectionContext} from '@components/Search/SearchContext';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
-import {isMouseDownOnCopyableText, shouldSuppressCopyableTextPressOnMouseDown, useCopyableTextRowPress} from '@components/TextWithTooltip/selection';
 
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';

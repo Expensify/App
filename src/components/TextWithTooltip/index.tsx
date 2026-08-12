@@ -1,11 +1,10 @@
+import {COPYABLE_TEXT_DATA_SET} from '@components/CopyableText/selection';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 
 import React, {useState} from 'react';
 
 import type TextWithTooltipProps from './types';
-
-import {COPYABLE_TEXT_DATA_SET} from './selection';
 
 type LayoutChangeEvent = {
     target: HTMLElement;

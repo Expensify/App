@@ -1,10 +1,10 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import {COPYABLE_TEXT_DATA_SET} from '@components/CopyableText/selection';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
-import {COPYABLE_TEXT_DATA_SET} from '@components/TextWithTooltip/selection';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';

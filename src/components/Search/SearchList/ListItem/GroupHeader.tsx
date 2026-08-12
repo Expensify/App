@@ -1,4 +1,5 @@
 import {getButtonRole} from '@components/Button/utils';
+import {isMouseDownOnCopyableText, shouldSuppressCopyableTextPressOnMouseDown, useCopyableTextRowPress} from '@components/CopyableText/selection';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -6,7 +7,6 @@ import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
-import {isMouseDownOnCopyableText, shouldSuppressCopyableTextPressOnMouseDown, useCopyableTextRowPress} from '@components/TextWithTooltip/selection';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';

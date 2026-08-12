@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
+import {useCopyableTextRowPress} from '@components/CopyableText/selection';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -7,7 +8,6 @@ import ScrollView from '@components/ScrollView';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import {useCopyableTextRowPress} from '@components/TextWithTooltip/selection';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 

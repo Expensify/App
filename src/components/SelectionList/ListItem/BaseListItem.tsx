@@ -1,4 +1,5 @@
 import {getButtonRole} from '@components/Button/utils';
+import {useCopyableTextRowPress} from '@components/CopyableText/selection';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -6,7 +7,6 @@ import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWi
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import {getItemRole} from '@components/SelectionList/utils/getItemRole';
 import {getSelectableState} from '@components/SelectionList/utils/getSelectableState';
-import {useCopyableTextRowPress} from '@components/TextWithTooltip/selection';
 
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';

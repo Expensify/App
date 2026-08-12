@@ -1,4 +1,4 @@
-import {COPYABLE_TEXT_SELECTOR} from '@components/TextWithTooltip/selection';
+import {COPYABLE_TEXT_SELECTOR} from '@components/CopyableText/selection';
 
 import CONST from '@src/CONST';
 
