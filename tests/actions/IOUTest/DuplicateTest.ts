@@ -3,7 +3,7 @@ import type {RenderAPI} from '@testing-library/react-native';
 
 import {bulkDuplicateExpenses, bulkDuplicateReports, duplicateExpenseTransaction, duplicateReport, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import type {BulkDuplicateReportsParams, DuplicateReportParams} from '@libs/actions/IOU/Duplicate';
-import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
@@ -284,6 +284,82 @@ describe('actions/Duplicate', () => {
             );
         });
 
+        it('threads allReportActionsList into the transaction-thread cleanup instead of relying on the deprecated report-actions cache', async () => {
+            // Given: A duplicate whose transaction thread already has report actions cached in Onyx
+            const reportID = 'report456';
+            const mainTransactionID = 'main456';
+            const duplicate1ID = 'dup999';
+            const childReportID = 'child456';
+
+            const mainTransaction = createMockTransaction(mainTransactionID, reportID);
+            const duplicateTransaction1 = createMockTransaction(duplicate1ID, reportID, 100);
+            const expenseReport = createMockReport(reportID, 200);
+            const mainViolations = createMockViolations();
+            const duplicate1Violations = createMockViolations();
+
+            const iouAction1 = createMockIouAction(duplicate1ID, 'action789', childReportID);
+
+            // The value already cached via the deprecated Onyx.connect-backed report actions accessor —
+            // deliberately different from what's passed via allReportActionsList below.
+            const cachedChildReportActions = {staleComment: createMock<ReportAction>({reportActionID: 'staleComment', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicate1Violations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {action789: iouAction1});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`, cachedChildReportActions);
+            await waitForBatchedUpdates();
+
+            // The value explicitly passed in for the child report's actions, distinct from the cached one above.
+            const passedInChildReportActions = {freshComment: createMock<ReportAction>({reportActionID: 'freshComment', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})};
+
+            // When: Call mergeDuplicates, passing allReportActionsList with a DIFFERENT value for the child report
+            mergeDuplicates({
+                transactionID: mainTransactionID,
+                transactionIDList: [duplicate1ID],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 200,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                taxCode: '',
+                receiptID: 123,
+                reportID,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
+                },
+                allReportActionsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {action789: iouAction1},
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`]: passedInChildReportActions,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Then: The rollback data for the transaction thread restores the PASSED-IN actions, not the stale
+            // cached ones — proving getCleanUpTransactionThreadReportOnyxData used the explicit allReportActionsList slice.
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MERGE_DUPLICATES,
+                expect.anything(),
+                expect.objectContaining({
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
+                            value: passedInChildReportActions,
+                        }),
+                    ]),
+                }),
+            );
+        });
+
         it('should handle empty duplicate transaction list', async () => {
             // Given: Set up test data with only main transaction
             const reportID = 'report123';
@@ -483,6 +559,7 @@ describe('actions/Duplicate', () => {
                 betas: undefined,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction1?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             openReport({
                 hasReportActions: true,
@@ -493,6 +570,7 @@ describe('actions/Duplicate', () => {
                 betas: undefined,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction2?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -603,7 +681,7 @@ describe('actions/Duplicate', () => {
             await waitForBatchedUpdates();
 
             // Then we expect the reportPreview to update with new childVisibleActionCount
-            previewAction = getReportPreviewAction(chatReport?.reportID, expenseReport?.reportID) ?? undefined;
+            previewAction = getReportPreviewReportAction(chatReport?.reportID, expenseReport?.reportID) ?? undefined;
             expect(previewAction).toBeTruthy();
             expect(previewAction?.childVisibleActionCount).toEqual(0);
             expect(previewAction?.childCommenterCount).toEqual(0);

@@ -98,11 +98,13 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
+const CURRENT_USER_ACCOUNT_ID = 1;
 const options = createFilteredOptionList(personalDetails, reports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
     dateFnsLocale: undefined,
     conciergeReportID: undefined,
     isSearching: true,
     formatPhoneNumber,
+    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
 });
 
 const ValidOptionsConfig = {
@@ -315,6 +317,7 @@ describe('OptionsListUtils', () => {
             // Inputs are referentially identical across measured runs, so clear the cache to measure the build path.
             clearFilteredOptionListCache();
             return createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 maxRecentReports: 500,
@@ -328,6 +331,7 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
             createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 maxRecentReports: 500,
@@ -340,6 +344,7 @@ describe('OptionsListUtils', () => {
     test('[OptionsListUtils] getSearchOptions with isSearching is true', async () => {
         await waitForBatchedUpdates();
         const optionLists = createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             dateFnsLocale: undefined,
             conciergeReportID: undefined,
             maxRecentReports: 500,

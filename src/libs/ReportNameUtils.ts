@@ -89,6 +89,7 @@ import {
     getTravelUpdateMessage,
     getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
+    getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     getUpdatedProhibitedExpensesMessage,
@@ -481,18 +482,31 @@ function getMoneyRequestReportName({
     return payerPaidAmountMessage;
 }
 
-function computeReportNameBasedOnReportAction(
-    translate: LocalizedTranslate,
-    dateFnsLocale: DateFnsLocale | undefined,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    parentReportAction: ReportAction | undefined,
-    report: Report | undefined,
-    reportPolicy: Policy | undefined,
-    parentReport: Report | undefined,
-    personalDetailsList: OnyxEntry<PersonalDetailsList>,
-    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
-    isTrackIntentUser: boolean | undefined,
-): string | undefined {
+function computeReportNameBasedOnReportAction({
+    translate,
+    dateFnsLocale,
+    formatPhoneNumber,
+    parentReportAction,
+    report,
+    reportPolicy,
+    parentReport,
+    personalDetailsList,
+    reportAttributes,
+    isTrackIntentUser,
+    currentUserAccountID,
+}: {
+    translate: LocalizedTranslate;
+    dateFnsLocale: DateFnsLocale | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    parentReportAction: ReportAction | undefined;
+    report: Report | undefined;
+    reportPolicy: Policy | undefined;
+    parentReport: Report | undefined;
+    personalDetailsList: OnyxEntry<PersonalDetailsList>;
+    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined;
+    isTrackIntentUser: boolean | undefined;
+    currentUserAccountID: number;
+}): string | undefined {
     if (!parentReportAction) {
         return undefined;
     }
@@ -556,7 +570,7 @@ function computeReportNameBasedOnReportAction(
             iouAction = getReportAction(parentReport?.parentReportID, parentReport?.parentReportActionID);
         }
         const missingFields = getOriginalMessage(parentReportAction)?.missingFields;
-        return translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields});
+        return translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction, currentUserAccountID), missingFields});
     }
 
     if (isReimbursementDeQueuedOrCanceledAction(parentReportAction)) {
@@ -601,6 +615,9 @@ function computeReportNameBasedOnReportAction(
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY) {
         return getWorkspaceFrequencyUpdateMessage(translate, parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING) {
+        return getUpdatedAutoHarvestingMessage(translate, parentReportAction);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD) {
         return getWorkspaceReportFieldAddMessage(translate, parentReportAction);
@@ -852,7 +869,7 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isCardIssuedAction(parentReportAction)) {
-        return getCardIssuedMessage({reportAction: parentReportAction, translate});
+        return getCardIssuedMessage({reportAction: parentReportAction, translate, currentUserAccountID});
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED)) {
         return getAddedCardFeedMessage(translate, parentReportAction);
@@ -1032,7 +1049,7 @@ function computeReportName({
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const parentReportAction = isThread(report) ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report.parentReportActionID] : undefined;
 
-    const parentReportActionBasedName = computeReportNameBasedOnReportAction(
+    const parentReportActionBasedName = computeReportNameBasedOnReportAction({
         translate,
         dateFnsLocale,
         formatPhoneNumber,
@@ -1043,7 +1060,8 @@ function computeReportName({
         personalDetailsList,
         reportAttributes,
         isTrackIntentUser,
-    );
+        currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+    });
 
     if (parentReportActionBasedName) {
         return parentReportActionBasedName;

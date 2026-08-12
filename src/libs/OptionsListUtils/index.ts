@@ -75,6 +75,7 @@ import {
     getTravelUpdateMessage,
     getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
+    getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     getUpdateRoomDescriptionMessage,
@@ -967,6 +968,9 @@ function getLastMessageTextForReport({
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED)) {
         lastMessageTextFromReport = getRequireCompanyCardsEnabledMessage(translate, lastReportAction);
     }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING)) {
+        lastMessageTextFromReport = getUpdatedAutoHarvestingMessage(translate, lastReportAction);
+    }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT)) {
         // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
         lastMessageTextFromReport = getAutoReimbursementMessage(translate, lastReportAction, convertToDisplayStringUtil);
@@ -1609,7 +1613,9 @@ function processReport(
         isTrackIntentUser,
         sortedActions,
         formatPhoneNumber,
+        currentUserAccountID,
     }: {
+        currentUserAccountID: number;
         reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
         policyTags?: OnyxEntry<PolicyTagLists>;
         visibleReportActionsData?: VisibleReportActionsDerivedValue;
@@ -1655,6 +1661,7 @@ function processReport(
                 isTrackIntentUser,
                 sortedActions,
                 formatPhoneNumber,
+                currentUserAccountID,
             }),
         },
     };
@@ -1758,18 +1765,19 @@ function clearFilteredOptionListCache() {
 registerSessionCleanupCallback(() => filteredOptionListCache.clear());
 
 type CreateFilteredOptionListOptions = {
+    currentUserAccountID: number;
     dateFnsLocale: DateFnsLocale | undefined;
     conciergeReportID: string | undefined;
     maxRecentReports?: number;
     includeP2P?: boolean;
     isSearching?: boolean;
-    deferContactsUntilSearch?: boolean;
     /**
      * When true, personal details (contacts) are only built while searching (`isSearching`).
      * For screens whose idle/empty state shows no standalone contacts (e.g. the SearchRouter),
      * this skips building an option for every contact on open. Screens that show contacts at
      * empty state (contact pickers) must leave this false.
      */
+    deferContactsUntilSearch?: boolean;
     locale?: Locale;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
@@ -1787,7 +1795,7 @@ function createFilteredOptionList(
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>,
 ): OptionList {
-    const {conciergeReportID, maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale, formatPhoneNumber} = options;
+    const {currentUserAccountID, conciergeReportID, maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale, formatPhoneNumber} = options;
 
     // Contacts are expensive to build on large accounts (one option per personal detail). When a screen
     // opts into deferral and is not actively searching, skip building them entirely; the empty state
@@ -1818,6 +1826,7 @@ function createFilteredOptionList(
         // The RAM_ONLY_SORTED_REPORT_ACTIONS derived value produces a new object on every recompute,
         // so its reference signals that the underlying report actions changed.
         sortedActions,
+        currentUserAccountID,
     ];
     const cachedEntry = shouldUseCache ? filteredOptionListCache.get(cacheEntryKey) : undefined;
     if (cachedEntry && cacheInputs.every((value, index) => value === cachedEntry.inputs.at(index))) {
@@ -1878,6 +1887,7 @@ function createFilteredOptionList(
             isTrackIntentUser,
             sortedActions,
             formatPhoneNumber,
+            currentUserAccountID,
         });
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;
@@ -1924,6 +1934,7 @@ function createFilteredOptionList(
                       policyTags: reportPolicyTags,
                       visibleReportActionsData,
                       formatPhoneNumber,
+                      currentUserAccountID,
                   }),
               };
           })
@@ -3267,13 +3278,6 @@ function getNoneOption(searchValue: string, isSelected: boolean, translate: Loca
 }
 
 /**
- * Helper method to check whether an option can show tooltip or not
- */
-function shouldOptionShowTooltip(option: SearchOptionData): boolean {
-    return !option.private_isArchived;
-}
-
-/**
  * Handles the logic for displaying selected participants from the search term
  */
 // We'll refactor this function to have less parameters in the future (https://github.com/Expensify/App/issues/66415)
@@ -3735,7 +3739,6 @@ export {
     orderPersonalDetailsOptions,
     orderWorkspaceOptions,
     recentReportComparator,
-    shouldOptionShowTooltip,
     shouldShowLastActorDisplayName,
     shouldUseBoldText,
     sortAlphabetically,

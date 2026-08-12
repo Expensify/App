@@ -61,6 +61,7 @@ import {
     getRenamedCardFeedMessage,
     getRequireCompanyCardsEnabledMessage,
     getUnassignedCompanyCardMessage,
+    getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
 } from '@libs/ReportActionsUtils';
@@ -828,6 +829,7 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
 
         OPTIONS = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             dateFnsLocale: undefined,
             conciergeReportID: undefined,
             isSearching: true,
@@ -839,7 +841,7 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
         );
         OPTIONS_WITH_CHRONOS = createFilteredOptionList(
             PERSONAL_DETAILS_WITH_CHRONOS,
@@ -847,7 +849,7 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHRONOS,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
         );
         OPTIONS_WITH_RECEIPTS = createFilteredOptionList(
             PERSONAL_DETAILS_WITH_RECEIPTS,
@@ -855,7 +857,7 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_RECEIPTS,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
         );
         OPTIONS_WITH_WORKSPACE_ROOM = createFilteredOptionList(
             PERSONAL_DETAILS,
@@ -863,7 +865,7 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_WORKSPACE_ROOM,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
         );
     });
 
@@ -934,7 +936,7 @@ describe('OptionsListUtils', () => {
                 createMockReportAttributesDerived(memberWorkspaceChat, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID),
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 allPolicies,
-                {dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
             );
 
             // When we call getSearchOptions
@@ -2552,6 +2554,7 @@ describe('OptionsListUtils', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`]: !!reportNameValuePairs.private_isArchived,
             };
             const OPTIONS_WITH_ARCHIVED = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, archivedMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
@@ -2588,6 +2591,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'barryallen';
             // Given a set of options created from PERSONAL_DETAILS_WITH_PERIODS
             const OPTIONS_WITH_PERIODS = createFilteredOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
@@ -2697,7 +2701,7 @@ describe('OptionsListUtils', () => {
                 MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHAT_ROOM,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
-                {dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
             );
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
@@ -3103,6 +3107,7 @@ describe('OptionsListUtils', () => {
             };
 
             const OPTIONS_WITH_GROUP_CHAT = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_GROUP_CHAT, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
@@ -3159,6 +3164,7 @@ describe('OptionsListUtils', () => {
             };
 
             const OPTIONS_WITH_GROUP_CHAT = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_GROUP_CHAT, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
@@ -3215,6 +3221,7 @@ describe('OptionsListUtils', () => {
             };
 
             const OPTIONS_WITH_GROUP_CHAT = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_GROUP_CHAT, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
@@ -3271,6 +3278,7 @@ describe('OptionsListUtils', () => {
             };
 
             const OPTIONS_WITH_GROUP_CHAT = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_GROUP_CHAT, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
@@ -3327,7 +3335,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
-                {dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
             );
 
             // When we call getSearchOptions with all betas
@@ -3783,6 +3791,7 @@ describe('OptionsListUtils', () => {
                 .then(() => {
                     // Given a set of options with periods
                     const OPTIONS_WITH_PERIODS = createFilteredOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         dateFnsLocale: undefined,
                         conciergeReportID: undefined,
                         isSearching: true,
@@ -3859,6 +3868,7 @@ describe('OptionsListUtils', () => {
         it('should order self dm always on top if the search matches with the self dm login', () => {
             const searchTerm = 'tonystark@expensify.com';
             const OPTIONS_WITH_SELF_DM = createFilteredOptionList(PERSONAL_DETAILS, REPORTS_WITH_SELF_DM, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
@@ -3935,6 +3945,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
             // When we call createFilteredOptionList and extract the reports
             const reports = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
@@ -3950,6 +3961,7 @@ describe('OptionsListUtils', () => {
 
             // When we call createFilteredOptionList again
             const newReports = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
@@ -4038,6 +4050,7 @@ describe('OptionsListUtils', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`]: !!reportNameValuePairs.private_isArchived,
             };
             const reports = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, archivedMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
@@ -4061,6 +4074,7 @@ describe('OptionsListUtils', () => {
 
             // When we call createFilteredOptionList with this privateIsArchivedMap
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, privateIsArchivedMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
@@ -4079,6 +4093,7 @@ describe('OptionsListUtils', () => {
 
             // When we call createFilteredOptionList with an empty privateIsArchivedMap
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, emptyMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
@@ -4100,6 +4115,7 @@ describe('OptionsListUtils', () => {
 
             // When we call createFilteredOptionList with this privateIsArchivedMap
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, privateIsArchivedMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
@@ -4124,6 +4140,7 @@ describe('OptionsListUtils', () => {
 
             // When we call createFilteredOptionList with this privateIsArchivedMap
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, privateIsArchivedMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 formatPhoneNumber,
@@ -4146,7 +4163,12 @@ describe('OptionsListUtils', () => {
             const emptyMap: PrivateIsArchivedMap = {};
 
             // When we call createFilteredOptionList with an empty privateIsArchivedMap
-            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, emptyMap, undefined, {dateFnsLocale: undefined, conciergeReportID: undefined, formatPhoneNumber});
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, emptyMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                formatPhoneNumber,
+            });
 
             // Then reports NOT in Onyx (like report 3, 5) should not have private_isArchived set
             // Note: Report 10 gets private_isArchived from Onyx (set in beforeAll)
@@ -4168,6 +4190,7 @@ describe('OptionsListUtils', () => {
 
             // When we call createFilteredOptionList with this privateIsArchivedMap
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, privateIsArchivedMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 formatPhoneNumber,
@@ -4199,6 +4222,7 @@ describe('OptionsListUtils', () => {
 
             // When we call createFilteredOptionList with a maxRecentReports limit that includes all reports
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, privateIsArchivedMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 maxRecentReports: 20,
@@ -6047,6 +6071,33 @@ describe('OptionsListUtils', () => {
                 formatPhoneNumber,
             });
             expect(lastMessage).toBe(getRequireCompanyCardsEnabledMessage(translateLocal, action));
+        });
+        it('UPDATE_AUTO_HARVESTING action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {value: true},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_EMAIL,
+                formatPhoneNumber,
+            });
+            expect(lastMessage).toBe(getUpdatedAutoHarvestingMessage(translateLocal, action));
         });
         it('ADD_CARD_FEED action', async () => {
             const report: Report = createRandomReport(0, undefined);
@@ -9981,6 +10032,7 @@ describe('OptionsListUtils', () => {
             const reports = [createChatReport('101', '2022-01-01 00:00:00'), createChatReport('102', '2024-01-01 00:00:00'), createChatReport('103', '2023-01-01 00:00:00')];
 
             const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 maxRecentReports: 2,
@@ -9995,6 +10047,7 @@ describe('OptionsListUtils', () => {
             const reports = [createChatReport('101', '2024-01-01 00:00:00'), createChatReport('102', '2020-01-01 00:00:00', CONST.REPORT.CHAT_TYPE.SELF_DM)];
 
             const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 maxRecentReports: 1,
@@ -10012,6 +10065,7 @@ describe('OptionsListUtils', () => {
             };
 
             const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, privateIsArchivedMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 maxRecentReports: 1,
@@ -10026,6 +10080,7 @@ describe('OptionsListUtils', () => {
             const reports = [createChatReport('101', '2022-01-01 00:00:00'), createChatReport('102', '2024-01-01 00:00:00'), createChatReport('103', '2023-01-01 00:00:00')];
 
             const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 maxRecentReports: 1,
@@ -10041,6 +10096,7 @@ describe('OptionsListUtils', () => {
             const reports = [createChatReport('101', '2024-01-01 00:00:00')];
 
             const result = createFilteredOptionList({}, reportsToCollection(reports), undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 maxRecentReports: 0,
@@ -10052,6 +10108,7 @@ describe('OptionsListUtils', () => {
         });
         it('should return report options limited by maxRecentReports', () => {
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 maxRecentReports: 5,
@@ -10109,6 +10166,7 @@ describe('OptionsListUtils', () => {
             ] satisfies Report[];
 
             const result = createFilteredOptionList({}, Object.fromEntries(reportsWithDates.map((report) => [report.reportID, report])), undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 maxRecentReports: 3,
                 includeP2P: false,
@@ -10121,6 +10179,7 @@ describe('OptionsListUtils', () => {
 
         it('should include personal details when includeP2P is true', () => {
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 includeP2P: true,
@@ -10134,6 +10193,7 @@ describe('OptionsListUtils', () => {
 
         it('should exclude personal details when includeP2P is false', () => {
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 includeP2P: false,
@@ -10145,14 +10205,24 @@ describe('OptionsListUtils', () => {
         });
 
         it('should handle empty reports collection', () => {
-            const result = createFilteredOptionList(PERSONAL_DETAILS, {}, undefined, {}, undefined, {dateFnsLocale: undefined, conciergeReportID: undefined, formatPhoneNumber});
+            const result = createFilteredOptionList(PERSONAL_DETAILS, {}, undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                formatPhoneNumber,
+            });
 
             expect(result).toBeDefined();
             expect(result.reports.length).toBe(0);
         });
 
         it('should handle undefined reports collection', () => {
-            const result = createFilteredOptionList(PERSONAL_DETAILS, undefined, undefined, {}, undefined, {dateFnsLocale: undefined, conciergeReportID: undefined, formatPhoneNumber});
+            const result = createFilteredOptionList(PERSONAL_DETAILS, undefined, undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                formatPhoneNumber,
+            });
 
             expect(result).toBeDefined();
             expect(result.reports.length).toBe(0);
@@ -10183,6 +10253,7 @@ describe('OptionsListUtils', () => {
             };
 
             const result = createFilteredOptionList(PERSONAL_DETAILS, reportsCollection, undefined, privateIsArchivedMap, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 maxRecentReports: 10,
@@ -10194,6 +10265,7 @@ describe('OptionsListUtils', () => {
 
         it('should handle isSearching filtering', () => {
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
@@ -10211,7 +10283,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {},
                 {},
-                {dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true, maxRecentReports: 2, formatPhoneNumber},
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, conciergeReportID: undefined, isSearching: true, maxRecentReports: 2, formatPhoneNumber},
             );
 
             expect(result).toBeDefined();
@@ -10219,7 +10291,12 @@ describe('OptionsListUtils', () => {
         });
 
         it('should return both reports and personal details', () => {
-            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {dateFnsLocale: undefined, conciergeReportID: undefined, formatPhoneNumber});
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                formatPhoneNumber,
+            });
 
             expect(result).toBeDefined();
             expect(result).toHaveProperty('reports');
@@ -10230,6 +10307,7 @@ describe('OptionsListUtils', () => {
         // so contacts must not be built until the user starts searching.
         it('should not build personal details when deferContactsUntilSearch is true and not searching', () => {
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 deferContactsUntilSearch: true,
@@ -10242,6 +10320,7 @@ describe('OptionsListUtils', () => {
 
         it('should build personal details when deferContactsUntilSearch is true and searching', () => {
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, {}, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 deferContactsUntilSearch: true,
@@ -10254,6 +10333,7 @@ describe('OptionsListUtils', () => {
 
         it('should keep top-level fields of returned options mutable while the cached entry stays pristine', () => {
             const first = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 formatPhoneNumber,
@@ -10265,6 +10345,7 @@ describe('OptionsListUtils', () => {
             }
 
             const second = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 formatPhoneNumber,
@@ -10281,11 +10362,13 @@ describe('OptionsListUtils', () => {
         // invalidate the cache instead of serving options built with the previous value.
         it('should recompute cached options when only conciergeReportID changes', () => {
             const first = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 formatPhoneNumber,
             });
             const second = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: '1',
                 formatPhoneNumber,
@@ -10299,6 +10382,7 @@ describe('OptionsListUtils', () => {
         // cache throws instead of silently corrupting the results returned to every other screen.
         it('should throw when a nested object shared with the cache is mutated', () => {
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 formatPhoneNumber,
@@ -10313,6 +10397,7 @@ describe('OptionsListUtils', () => {
         // still writes to them in place, so the dev freeze must leave them untouched (see deepFreeze).
         it('should not freeze the Onyx snapshot objects referenced by cached options', () => {
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 formatPhoneNumber,
@@ -10375,6 +10460,7 @@ describe('OptionsListUtils', () => {
     describe('policy parameter passing', () => {
         it('createFilteredOptionList should accept policiesCollection parameter', () => {
             const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 formatPhoneNumber,

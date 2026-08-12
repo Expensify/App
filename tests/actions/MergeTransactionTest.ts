@@ -1,4 +1,4 @@
-import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {areTransactionsEligibleForMerge, getTransactionsForMerging, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {addComment, openReport} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -74,6 +74,7 @@ type CrossReportMergeToSourceReportFixtures = {
     mergeTransactionID: string;
     sourceExpenseReport: Report;
     targetReport: Report;
+    sourceIOUAction: ReportAction;
     sourceIOUActionID: string;
     targetIOUActionID: string;
     targetTransactionThreadID: string;
@@ -175,6 +176,7 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
         mergeTransactionID,
         sourceExpenseReport,
         targetReport,
+        sourceIOUAction,
         sourceIOUActionID,
         targetIOUActionID,
         targetTransactionThreadID,
@@ -184,7 +186,7 @@ async function setupCrossReportMergeToSourceReportFixtures(): Promise<CrossRepor
 }
 
 function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSourceReportFixtures) {
-    const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetReport} = fixtures;
+    const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetReport, sourceIOUAction} = fixtures;
 
     mergeTransactionRequest({
         iouReportOwnerLogin: undefined,
@@ -206,6 +208,8 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         selfDMReportActions: undefined,
         delegateAccountID: undefined,
         isTrackIntentUser: false,
+        sourceTransactionThreadReportActions: undefined,
+        sourceIOUAction,
         getCurrencyDecimals: getCurrencyDecimalsLocal,
     });
 }
@@ -324,6 +328,8 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            sourceTransactionThreadReportActions: undefined,
+            sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
@@ -443,6 +449,8 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            sourceTransactionThreadReportActions: undefined,
+            sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
@@ -547,6 +555,8 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            sourceTransactionThreadReportActions: undefined,
+            sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
@@ -713,6 +723,8 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            sourceTransactionThreadReportActions: undefined,
+            sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
@@ -820,6 +832,8 @@ describe('mergeTransactionRequest', () => {
             selfDMReport: undefined,
             selfDMReportActions: undefined,
             isTrackIntentUser: false,
+            sourceTransactionThreadReportActions: undefined,
+            sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
         });
 
@@ -1052,6 +1066,8 @@ describe('mergeTransactionRequest', () => {
                 selfDMReport: undefined,
                 selfDMReportActions: undefined,
                 isTrackIntentUser: false,
+                sourceTransactionThreadReportActions: undefined,
+                sourceIOUAction: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
@@ -1182,6 +1198,7 @@ describe('mergeTransactionRequest', () => {
                 betas: undefined,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,
+                currentUserAccountID: TEST_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -1255,13 +1272,15 @@ describe('mergeTransactionRequest', () => {
                 selfDMReport: undefined,
                 selfDMReportActions: undefined,
                 isTrackIntentUser: false,
+                sourceTransactionThreadReportActions: undefined,
+                sourceIOUAction,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             await waitForBatchedUpdates();
 
             // Then we expect the reportPreview to update with new childVisibleActionCount
-            previewAction = getReportPreviewAction(chatReport.reportID, sourceReport.reportID) as OnyxEntry<ReportAction>;
+            previewAction = getReportPreviewReportAction(chatReport.reportID, sourceReport.reportID) as OnyxEntry<ReportAction>;
             expect(previewAction).toBeTruthy();
             expect(previewAction?.childVisibleActionCount).toEqual(0);
             expect(previewAction?.childCommenterCount).toEqual(0);
@@ -1283,7 +1302,7 @@ describe('mergeTransactionRequest', () => {
             await waitForBatchedUpdates();
 
             // Then we expect the reportPreview to update with new childVisibleActionCount
-            previewAction = getReportPreviewAction(chatReport.reportID, sourceReport.reportID) as OnyxEntry<ReportAction>;
+            previewAction = getReportPreviewReportAction(chatReport.reportID, sourceReport.reportID) as OnyxEntry<ReportAction>;
             expect(previewAction).toBeTruthy();
             expect(previewAction?.childVisibleActionCount).toEqual(0);
             expect(previewAction?.childCommenterCount).toEqual(0);
@@ -1370,6 +1389,7 @@ describe('mergeTransactionRequest', () => {
                 betas: undefined,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,
+                currentUserAccountID: TEST_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -1407,6 +1427,8 @@ describe('mergeTransactionRequest', () => {
                 selfDMReport,
                 selfDMReportActions: undefined,
                 isTrackIntentUser: false,
+                sourceTransactionThreadReportActions: undefined,
+                sourceIOUAction: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 

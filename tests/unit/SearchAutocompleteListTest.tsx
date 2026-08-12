@@ -169,7 +169,9 @@ const mockedReports = getMockedReports(10);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(10);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
+const CURRENT_USER_ACCOUNT_ID = 1;
 const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
     dateFnsLocale: undefined,
     conciergeReportID: undefined,
     isSearching: true,

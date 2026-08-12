@@ -12988,6 +12988,7 @@ describe('ReportUtils', () => {
         };
 
         const createFormulaContext = (reportParam: Report, policyParam: Policy, reportTransactions: Record<string, Transaction> = {}): FormulaContext => ({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             report: reportParam,
             policy: policyParam,
             allTransactions: reportTransactions,
@@ -18452,7 +18453,17 @@ describe('ReportUtils', () => {
             const timeOfCreation = DateUtils.getDBTime();
 
             // Then the report name should be "New Report"
-            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, currentUserEmail, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
+            const optimisticReport = buildOptimisticEmptyReport(
+                reportID,
+                accountID,
+                currentUserEmail,
+                parentReport,
+                parentReportActionID,
+                policyWithEmptyFieldList,
+                timeOfCreation,
+                betas,
+                getCurrencyDecimalsLocal,
+            );
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
 
@@ -18481,7 +18492,17 @@ describe('ReportUtils', () => {
             const timeOfCreation = DateUtils.getDBTime();
 
             // Then the report name should be "New Report"
-            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, currentUserEmail, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
+            const optimisticReport = buildOptimisticEmptyReport(
+                reportID,
+                accountID,
+                currentUserEmail,
+                parentReport,
+                parentReportActionID,
+                policyWithEmptyFieldList,
+                timeOfCreation,
+                betas,
+                getCurrencyDecimalsLocal,
+            );
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
     });
@@ -20580,6 +20601,34 @@ describe('ReportUtils', () => {
             const result = getMovedActionMessage(translateLocal, action, report);
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
+        });
+
+        it('should fall back to the stored action message when the destination policy is not available locally', () => {
+            const storedHtml = 'moved this report to the <a href="https://new.expensify.com">Test Workspace</a> workspace';
+            const action = createMock<ReportAction>({
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: storedHtml,
+                        text: 'moved this report to the Test Workspace workspace',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                    },
+                ],
+                originalMessage: {
+                    // A policy ID that is intentionally not present in Onyx, mirroring a non-member user.
+                    toPolicyID: '99999999',
+                    newParentReportID: '11111',
+                    movedReportID: '22222',
+                },
+            });
+
+            const report = LHNTestUtils.getFakeReport();
+            const result = getMovedActionMessage(translateLocal, action, report);
+            expect(result).toBe(storedHtml);
         });
     });
     describe('getReportActionWithSmartscanError', () => {
