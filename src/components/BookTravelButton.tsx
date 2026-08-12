@@ -162,14 +162,13 @@ function BookTravelButton({
         }
 
         if (hasPolicyAcceptedTravelTerms) {
-            // A traveler is provisioned in Expensify Travel against their default workspace, so booking from any other
-            // workspace opens a session they have no travel profile for. Ask them to switch defaults first.
+            // A traveler is provisioned against their default workspace, so booking from any other workspace opens a session they have no travel profile for.
             if (defaultPolicy && !hasAcceptedTravelTerms(defaultPolicy, travelSettings)) {
                 showConfirmModal({
                     title: translate('travel.defaultWorkspaceTravelDisabled.title'),
                     titleStyles: styles.textHeadlineH1,
                     titleContainerStyles: styles.mb2,
-                    prompt: translate('travel.defaultWorkspaceTravelDisabled.message', {workspaceName: defaultPolicy.name}),
+                    prompt: translate('travel.defaultWorkspaceTravelDisabled.message'),
                     promptStyles: styles.mb2,
                     confirmText: translate('common.buttonConfirm'),
                     shouldShowCancelButton: false,

@@ -81,7 +81,6 @@ const provisionedPolicy: Policy = {
     },
 };
 
-// The same workspace after an admin accepted the travel terms, so it is ready to book with
 const travelEnabledPolicy: Policy = {
     ...provisionedPolicy,
     travelSettings: {
@@ -91,7 +90,6 @@ const travelEnabledPolicy: Policy = {
     },
 };
 
-// A paid group workspace that was never set up for travel
 const workspaceWithoutTravel: Policy = {
     ...createRandomPolicy(456, CONST.POLICY.TYPE.CORPORATE),
     id: DEFAULT_POLICY_ID,
@@ -187,47 +185,38 @@ describe('BookTravelButton', () => {
         };
 
         it('asks the user to switch defaults instead of opening a travel session they have no profile for', async () => {
-            // Given a travel-enabled workspace and a default workspace that does not have travel
             await seedWorkspaces(travelEnabledPolicy, DEFAULT_POLICY_ID);
             renderBookTravelButton();
             await waitForBatchedUpdatesWithAct();
 
-            // When the user presses the book travel button
             fireEvent.press(screen.getByText('Book a trip'));
             await waitForBatchedUpdatesWithAct();
 
-            // Then they are told which default workspace is blocking them, and Expensify Travel is not opened
             expect(mockShowConfirmModal).toHaveBeenCalled();
-            expect(mockShowConfirmModal.mock.lastCall?.[0].prompt).toContain(DEFAULT_POLICY_NAME);
+            expect(mockShowConfirmModal.mock.lastCall?.[0].prompt).toContain('default workspace');
             expect(openTravelDotLink).not.toHaveBeenCalled();
         });
 
         it('opens Expensify Travel when the travel-enabled workspace is the default one', async () => {
-            // Given a travel-enabled workspace that is also the default workspace
             await seedWorkspaces(travelEnabledPolicy, POLICY_ID);
             renderBookTravelButton();
             await waitForBatchedUpdatesWithAct();
 
-            // When the user presses the book travel button
             fireEvent.press(screen.getByText('Book a trip'));
             await waitForBatchedUpdatesWithAct();
 
-            // Then travel opens as usual
             expect(openTravelDotLink).toHaveBeenCalledWith(POLICY_ID);
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
 
         it('still lets an admin enable travel on a workspace while their default workspace has no travel', async () => {
-            // Given a provisioned workspace that has not accepted the terms yet, and a default workspace without travel
             await seedWorkspaces(provisionedPolicy, DEFAULT_POLICY_ID);
             renderBookTravelButton();
             await waitForBatchedUpdatesWithAct();
 
-            // When the admin presses the book travel button
             fireEvent.press(screen.getByText('Book a trip'));
             await waitForBatchedUpdatesWithAct();
 
-            // Then the enablement stepper is untouched by the default workspace check
             expect(Navigation.navigate).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
@@ -245,7 +234,6 @@ describe('BookTravelButton', () => {
             renderBookTravelButton();
             await waitForBatchedUpdatesWithAct();
 
-            // When the user presses the book travel button
             fireEvent.press(screen.getByText('Book a trip'));
             await waitForBatchedUpdatesWithAct();
 

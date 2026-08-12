@@ -4535,8 +4535,7 @@ const translations = {
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Travel is not enabled',
-            message: ({workspaceName}: {workspaceName: string}) =>
-                `Your current default workspace is ${workspaceName} which does not have travel enabled. Please change your default workspace to book!`,
+            message: 'To book, please enable travel on your default workspace or switch your default workspace to one that is travel-enabled.',
         },
         verifyCompany: {
             title: "We're reviewing your request...",

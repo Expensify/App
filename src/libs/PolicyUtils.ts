@@ -2912,10 +2912,7 @@ function isWorkspaceProvisionedForTravel(travelSettings?: WorkspaceTravelSetting
     return !!(travelSettings?.spotnanaCompanyID ?? travelSettings?.associatedTravelDomainAccountID);
 }
 
-/**
- * Whether travel is enabled on a workspace, meaning it can be used to book a trip. An admin accepting the terms enables
- * it for the whole workspace, so the account-level acceptance only counts once the workspace itself is provisioned.
- */
+/** Whether travel is enabled on a workspace, meaning it can be used to book a trip. */
 function hasAcceptedTravelTerms(policy: OnyxEntry<Policy>, accountTravelSettings: TravelSettings | undefined): boolean {
     return !!(policy?.travelSettings?.hasAcceptedTerms ?? (accountTravelSettings?.hasAcceptedTerms && isWorkspaceProvisionedForTravel(policy?.travelSettings)));
 }
