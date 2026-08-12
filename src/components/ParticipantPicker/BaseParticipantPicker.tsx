@@ -22,6 +22,7 @@ function BaseParticipantPicker({
     onParticipantsAdded,
     onFinish,
     onClose,
+    shouldBlockParticipantSelection,
 }: ParticipantPickerProps) {
     const {translate} = useLocalize();
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
@@ -43,6 +44,7 @@ function BaseParticipantPicker({
             onCloseParticipantPicker={onClose}
             initiallySelectedReportID={selectedParticipant?.reportID}
             shouldMoveSelectedToTop
+            shouldBlockParticipantSelection={shouldBlockParticipantSelection}
         />
     );
 
