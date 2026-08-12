@@ -163,6 +163,18 @@ describe('proposalPoliceComment', () => {
         expect(mockCreateComment).toHaveBeenCalledWith('App', 1, buildTemplateReminderMessage('contributor'));
     });
 
+    it('does not run the edit check when the edit left the comment body unchanged', async () => {
+        // Without a previous body there is nothing to compare against, and an empty original would
+        // read as a full rewrite and get flagged as substantial.
+        setPayload({action: 'edited', comment: makeComment(), changes: {}});
+
+        await run();
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.promptResponses).not.toHaveBeenCalled();
+        expect(mockUpdateComment).not.toHaveBeenCalled();
+    });
+
     it('edits the comment when a proposal edit is classified as substantial', async () => {
         const editedComment = makeComment({body: `${VALID_PROPOSAL_BODY}\nedited`});
         setPayload({action: 'edited', comment: editedComment, changes: {body: {from: VALID_PROPOSAL_BODY}}});

@@ -39596,6 +39596,12 @@ async function run() {
         console.log('Comment was already edited by proposal-police once.\n', payload.comment?.body);
         return;
     }
+    // GitHub only sends the previous body when the edit actually changed it. Without it there is no
+    // edit to classify, and an empty original would read as a full rewrite and be flagged as substantial.
+    if (isCommentEditedEvent(payload) && !payload.changes.body?.from) {
+        console.log('Edited event did not change the comment body, skipping the edit check.');
+        return;
+    }
     console.log('ProposalPolice™ Action triggered for comment:', payload.comment?.body);
     console.log('-> GitHub Action Type: ', payload.action?.toUpperCase());
     if (!isCommentCreatedEvent(payload) && !isCommentEditedEvent(payload)) {
@@ -40414,7 +40420,7 @@ const expensify_common_1 = __nccwpck_require__(64851);
 exports["default"] = expensify_common_1.Str.dedent(`
     DUPLICATE PROPOSAL DETECTION:
 
-    Compare the new proposal against every prior proposal already in this conversation (each was posted as its own message tagged with a comment_id attribute). Consider ONLY the ROOT CAUSE and SOLUTION sections.
+    Compare the new proposal against every prior proposal already in this conversation (each was posted as its own message tagged with a comment_id attribute). Ignore every section except ROOT CAUSE and SOLUTION.
 
     SCORING: Weight the SOLUTION section at least 80% and the ROOT CAUSE section at most 20%. Two proposals are similar only to the extent they propose the same technical change:
     - Same mechanism or approach, even if worded differently → very high similarity.

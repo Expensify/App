@@ -85,6 +85,13 @@ async function run() {
         return;
     }
 
+    // GitHub only sends the previous body when the edit actually changed it. Without it there is no
+    // edit to classify, and an empty original would read as a full rewrite and be flagged as substantial.
+    if (isCommentEditedEvent(payload) && !payload.changes.body?.from) {
+        console.log('Edited event did not change the comment body, skipping the edit check.');
+        return;
+    }
+
     console.log('ProposalPolice™ Action triggered for comment:', payload.comment?.body);
     console.log('-> GitHub Action Type: ', payload.action?.toUpperCase());
 

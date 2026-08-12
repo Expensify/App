@@ -6,7 +6,7 @@ import {Str} from 'expensify-common';
 export default Str.dedent(`
     DUPLICATE PROPOSAL DETECTION:
 
-    Compare the new proposal against every prior proposal already in this conversation (each was posted as its own message tagged with a comment_id attribute). Consider ONLY the ROOT CAUSE and SOLUTION sections.
+    Compare the new proposal against every prior proposal already in this conversation (each was posted as its own message tagged with a comment_id attribute). Ignore every section except ROOT CAUSE and SOLUTION.
 
     SCORING: Weight the SOLUTION section at least 80% and the ROOT CAUSE section at most 20%. Two proposals are similar only to the extent they propose the same technical change:
     - Same mechanism or approach, even if worded differently → very high similarity.
