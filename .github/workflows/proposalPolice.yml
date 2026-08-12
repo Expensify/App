@@ -8,6 +8,7 @@ concurrency:
   # OpenAI Conversation for duplicate-check, splitting an issue's duplicate-detection history in two.
   group: proposal-police-${{ github.event.issue.number }}
   cancel-in-progress: false
+  queue: max
 
 jobs:
   proposal-police-workflow:
