@@ -235,7 +235,6 @@ function IOURequestStartPage({
         manualTabContent = (
             <IOURequestStepAmountWithTransactionOnly
                 shouldKeepUserInput
-                // Embedded here, so the transaction-loading indicator should not trap the user (the header/tab bar stay visible).
                 shouldHideHeader
                 route={route}
                 navigation={navigation}
@@ -374,7 +373,6 @@ function IOURequestStartPage({
                                     route={route}
                                     navigation={navigation}
                                     shouldKeepUserInput
-                                    // Embedded here, so the transaction-loading indicator should not trap the user (the header stays visible).
                                     shouldHideHeader
                                     report={report}
                                     reportDraft={reportDraft}
