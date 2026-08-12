@@ -64,7 +64,7 @@ import {
     isSelfDM,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, isDefaultExpensesQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, getFilterFromQuery, isDefaultExpensesQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getSearchColumnTranslationKey, getSelectedGroupFilterEntry, getValidGroupBy, isGroupEntry, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -572,6 +572,27 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         ],
         [selectedTransactions],
     );
+
+    // A bulk selection can span several workspaces, so the Canadian Multiple Tax Export template is only offered when every selected item belongs to a workspace that outputs in CAD.
+    // Reports and transactions are both checked because a selection can mix whole reports with individual transactions from other reports, and the export request covers all of them.
+    const doAllSelectedItemsBelongToCADPolicies = useMemo(() => {
+        if (areAllMatchingItemsSelected) {
+            const policyIDFilter = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
+            if (!policyIDFilter.value?.length || policyIDFilter.isNegated) {
+                return false;
+            }
+
+            return policyIDFilter.value.every((policyID) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.outputCurrency === CONST.CURRENCY.CAD);
+        }
+
+        const selectedItems = [...selectedReports, ...Object.values(selectedTransactions)];
+        if (selectedItems.length === 0) {
+            return false;
+        }
+
+        return selectedItems.every((item) => !!item.policyID && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]?.outputCurrency === CONST.CURRENCY.CAD);
+    }, [areAllMatchingItemsSelected, queryJSON, selectedReports, selectedTransactions, policies]);
+
     const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, selectedReports, selectedTransactions, selectedBulkCurrency);
 
@@ -1132,6 +1153,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     reportTransactions: validTransactions,
                     allTransactionViolations,
                     bankAccountList,
+                    delegateAccountID,
                     hash,
                 });
             }
@@ -1181,6 +1203,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     reportTransactions: validTransactions,
                     allTransactionViolations: transactionsViolations,
                     bankAccountList,
+                    delegateAccountID,
                 });
             }
         }
@@ -1206,6 +1229,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         deleteTransactionsFromHook,
         duplicateTransactions,
         duplicateTransactionViolations,
+        delegateAccountID,
     ]);
 
     const onBulkPaySelected = useCallback(
@@ -1685,6 +1709,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 policy,
                 includeReportLevelExport,
                 !isGroupedSearch,
+                doAllSelectedItemsBelongToCADPolicies,
             );
             const shouldHideTemplateExports = isExpenseType && areAllMatchingItemsSelected && Object.keys(excludedTransactions).length > 0;
             const availableCustomTemplates = shouldHideTemplateExports
@@ -2253,6 +2278,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             accountID,
                             transactionViolations,
                             isTrackIntentUser,
+                            delegateAccountID,
                         );
                     }
                     clearSelectedTransactions();
@@ -2503,6 +2529,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         personalPolicy?.outputCurrency,
         restrictedActionPolicyID,
         doSelectedItemsBelongToSubmitPolicy,
+        doAllSelectedItemsBelongToCADPolicies,
         openSearchReportSubmitToPopover,
         deleteTransactionsFromHook,
         duplicateTransactionViolations,
@@ -2515,6 +2542,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         allReportsShouldMarkAsDone,
         noReportsShouldMarkAsDone,
         queryJSON?.groupBy,
+        delegateAccountID,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {

@@ -3491,7 +3491,7 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
                 return translate('workflowsPage.frequencies.lastBusinessDayOfMonth');
             }
             if (typeof autoReportingOffset === 'number') {
-                return toLocaleOrdinal(IntlStore.getCurrentLocale(), autoReportingOffset, false);
+                return toLocaleOrdinal(IntlStore.getCurrentLocale(), autoReportingOffset);
             }
             return '';
         };
@@ -4974,7 +4974,6 @@ export {
     isHoldAction,
     isWhisperAction,
     isSubmittedAction,
-    isSubmittedAndClosedAction,
     isDynamicExternalWorkflowSubmitAction,
     isMarkAsClosedAction,
     isForwardedAction,

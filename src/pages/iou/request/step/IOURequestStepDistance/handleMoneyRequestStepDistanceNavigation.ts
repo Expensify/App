@@ -16,7 +16,7 @@ import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getValidWaypoints, hasAppliedCommuterExclusion} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getSelectedRouteDistance, getValidWaypoints, hasAppliedCommuterExclusion} from '@libs/TransactionUtils';
 
 import {setTransactionReport} from '@userActions/Transaction';
 
@@ -213,6 +213,7 @@ function handleMoneyRequestStepDistanceNavigation({
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
     const distanceRequestType = getDistanceRequestType(transaction);
+    const selectedRouteDistance = getSelectedRouteDistance(transaction);
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
         resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
@@ -308,6 +309,7 @@ function handleMoneyRequestStepDistanceNavigation({
                                 attendees: transaction?.comment?.attendees,
                                 gpsCoordinates,
                                 distanceRequestType,
+                                selectedRouteDistance,
                                 odometerStart,
                                 odometerEnd,
                                 taxCode: distanceTaxCode,
@@ -389,6 +391,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             attendees: transaction?.comment?.attendees,
                             gpsCoordinates,
                             distanceRequestType,
+                            selectedRouteDistance,
                             odometerStart,
                             odometerEnd,
                             taxCode: distanceTaxCode,

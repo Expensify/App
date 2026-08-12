@@ -539,7 +539,17 @@ describe('IOURequestStepDistance - manual tab follows the recalculated route dis
     const initialRouteMeters = DistanceRequestUtils.convertToDistanceInMeters(100, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
     const distanceTransactionWithRoute = (): Transaction => ({
         ...createDistanceTransaction(),
-        routes: {route0: {distance: initialRouteMeters, geometry: {coordinates: [[0, 0] as const, [1, 1] as const]}}},
+        routes: {
+            route0: {
+                distance: initialRouteMeters,
+                geometry: {
+                    coordinates: [
+                        [0, 0],
+                        [1, 1],
+                    ],
+                },
+            },
+        },
     });
     // `getAllByLabelText` matches both the field label <Text> and the underlying <TextInput>; pick the input.
     const distanceInput = () => screen.getAllByLabelText(/common\.distance/).find((element) => 'value' in element.props)!;
@@ -629,7 +639,7 @@ describe('IOURequestStepDistance - manual tab follows the recalculated route dis
     });
 });
 
-describe('IOURequestStepDistance - re-saving a waypoint resets a manual distance override (GH #90105)', () => {
+describe('IOURequestStepDistance - re-saving a waypoint with a manual distance override (GH #90105)', () => {
     const {updateMoneyRequestDistance} = jest.requireMock<{updateMoneyRequestDistance: jest.Mock}>('@libs/actions/IOU/UpdateMoneyRequest');
     const routeMeters = DistanceRequestUtils.convertToDistanceInMeters(100, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
     // Seed the full distance transaction, then set just the route + the (possibly cleared) manual quantity.
@@ -668,7 +678,7 @@ describe('IOURequestStepDistance - re-saving a waypoint resets a manual distance
         await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
     });
 
-    it('sends an update with the route distance when a manual override was cleared by saveWaypoint', async () => {
+    it('sends the route selection when a manual override was cleared by saveWaypoint', async () => {
         await act(async () => {
             // Saved state had a manual override (200 mi); current state is post-`saveWaypoint` (quantity cleared, route re-fetched to its real value).
             await seedDistanceTransaction(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${TRANSACTION_ID}`, 200);
@@ -681,7 +691,24 @@ describe('IOURequestStepDistance - re-saving a waypoint resets a manual distance
         // The Map-tab Save button is the first "common.save" → submitWaypoints
         fireEvent.press(screen.getAllByText('common.save').at(0)!);
 
-        expect(updateMoneyRequestDistance).toHaveBeenCalledWith(expect.objectContaining({distance: expect.any(Number)}));
+        expect(updateMoneyRequestDistance).toHaveBeenCalledWith(expect.objectContaining({selectedRouteKey: 'route0'}));
+        expect(updateMoneyRequestDistance).not.toHaveBeenCalledWith(expect.objectContaining({distance: expect.anything()}));
+    });
+
+    it('sends the route selection when the manual override is still in place and no waypoint was touched', async () => {
+        await act(async () => {
+            // The user never entered the waypoint editor, so the 200 mi override is still on the current transaction.
+            await seedDistanceTransaction(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${TRANSACTION_ID}`, 200);
+            await seedDistanceTransaction(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, 200);
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getAllByText('common.save').at(0)!);
+
+        expect(updateMoneyRequestDistance).toHaveBeenCalledWith(expect.objectContaining({selectedRouteKey: 'route0'}));
+        expect(updateMoneyRequestDistance).not.toHaveBeenCalledWith(expect.objectContaining({distance: expect.anything()}));
     });
 
     it('does not send an update when the waypoints and distance are unchanged', async () => {
@@ -696,5 +723,193 @@ describe('IOURequestStepDistance - re-saving a waypoint resets a manual distance
         fireEvent.press(screen.getAllByText('common.save').at(0)!);
 
         expect(updateMoneyRequestDistance).not.toHaveBeenCalled();
+    });
+});
+
+describe('IOURequestStepDistance - editing the waypoints of an expense with an alternate route selected', () => {
+    const {updateMoneyRequestDistance} = jest.requireMock<{updateMoneyRequestDistance: jest.Mock}>('@libs/actions/IOU/UpdateMoneyRequest');
+    const miles = (value: number) => DistanceRequestUtils.convertToDistanceInMeters(value, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+    const geometry = (coordinates: Array<[number, number]>) => ({coordinates});
+    const inMiles = (meters: number) => roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(meters, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES));
+    const savedRoutes = {
+        route0: {distance: miles(100), geometry: geometry([[0, 0]])},
+        route1: {distance: miles(120), geometry: geometry([[0, 1]])},
+    };
+    // The saved state: original waypoints, the routes they produced, and the given route selected. The BE only echoes
+    // the selection as `routeDistanceMeters`, so that is what the saved selection has to be recovered from.
+    const seedBackup = async (selectedRouteKey: 'route0' | 'route1' = 'route0', manualQuantity?: number) => {
+        const key = `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${TRANSACTION_ID}` as const;
+        await Onyx.merge(key, createDistanceTransaction());
+        await Onyx.merge(key, {
+            comment: {
+                customUnit: {
+                    // A manual override replaces the displayed quantity; `routeDistanceMeters` still records the route it overrides.
+                    quantity: manualQuantity ?? inMiles(savedRoutes[selectedRouteKey].distance),
+                    routeDistanceMeters: savedRoutes[selectedRouteKey].distance,
+                },
+            },
+            routes: savedRoutes,
+        });
+    };
+    // The state after editing a waypoint and then reverting it to the original address: same waypoints, the routes
+    // re-fetched for them (identical distances), and `customUnit.quantity`/`routeDistanceMeters` cleared for good by
+    // `saveWaypoint`. `selectedRouteKey` is the route the user (re-)picked on the re-fetched routes.
+    const seedRevertedToOriginal = async (selectedRouteKey: 'route0' | 'route1') => {
+        const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}` as const;
+        await Onyx.merge(key, createDistanceTransaction());
+        await Onyx.merge(key, {
+            comment: {
+                customUnit: {quantity: null, routeDistanceMeters: null},
+                ...(selectedRouteKey === 'route0' ? {} : {selectedRouteKey}),
+            },
+            routes: savedRoutes,
+        });
+    };
+    // The post-edit state: a changed waypoint, the re-fetched routes, and the given route picked on them.
+    const seedCurrent = async (selectedRouteKey: 'route0' | 'route1') => {
+        const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}` as const;
+        const routes = {
+            route0: {distance: miles(80), geometry: geometry([[1, 0]])},
+            route1: {distance: miles(90), geometry: geometry([[1, 1]])},
+        };
+        await Onyx.merge(key, createDistanceTransaction());
+        await Onyx.merge(key, {
+            comment: {
+                waypoints: {waypoint1: {address: '789 New Ave', lat: 41.5, lng: -73.5, keyForList: 'stop_waypoint'}},
+                // `saveWaypoint` clears both, then the route fetch fills the quantity back in from the selected route
+                customUnit: {
+                    quantity: roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(routes[selectedRouteKey].distance, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)),
+                    routeDistanceMeters: null,
+                },
+                ...(selectedRouteKey === 'route0' ? {} : {selectedRouteKey}),
+            },
+            routes,
+        });
+    };
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createTestReport());
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, null);
+        await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+    });
+
+    it('sends the picked route instead of a manual distance override', async () => {
+        await act(async () => {
+            await seedBackup();
+            await seedCurrent('route1');
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getAllByText('common.save').at(0)!);
+
+        // `selectedRouteKey` is what makes `updateMoneyRequestDistance` send `selectedRouteDistance`; a `distance` on top
+        // of it would be stored as a manual override of the route distance.
+        expect(updateMoneyRequestDistance).toHaveBeenCalledWith(expect.objectContaining({selectedRouteKey: 'route1'}));
+        expect(updateMoneyRequestDistance).not.toHaveBeenCalledWith(expect.objectContaining({distance: expect.anything()}));
+    });
+
+    it('sends the re-fetched routes and no route selection when the primary route is selected', async () => {
+        await act(async () => {
+            await seedBackup();
+            await seedCurrent('route0');
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getAllByText('common.save').at(0)!);
+
+        expect(updateMoneyRequestDistance).toHaveBeenCalledWith(expect.objectContaining({routes: expect.objectContaining({route0: expect.objectContaining({distance: miles(80)})})}));
+        expect(updateMoneyRequestDistance).not.toHaveBeenCalledWith(expect.objectContaining({distance: expect.anything()}));
+        expect(updateMoneyRequestDistance).not.toHaveBeenCalledWith(expect.objectContaining({selectedRouteKey: expect.anything()}));
+    });
+
+    it('does not send an update when the waypoints are reverted to the original ones and the same alternate route is picked', async () => {
+        await act(async () => {
+            await seedBackup('route1');
+            await seedRevertedToOriginal('route1');
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getAllByText('common.save').at(0)!);
+
+        expect(updateMoneyRequestDistance).not.toHaveBeenCalled();
+    });
+
+    it('does not send an update when the waypoints are reverted to the original ones and the primary route stays selected', async () => {
+        await act(async () => {
+            await seedBackup('route0');
+            await seedRevertedToOriginal('route0');
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getAllByText('common.save').at(0)!);
+
+        expect(updateMoneyRequestDistance).not.toHaveBeenCalled();
+    });
+
+    it('sends an update when the waypoints are reverted to the original ones but a different route is picked', async () => {
+        await act(async () => {
+            await seedBackup('route0');
+            await seedRevertedToOriginal('route1');
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getAllByText('common.save').at(0)!);
+
+        expect(updateMoneyRequestDistance).toHaveBeenCalledWith(expect.objectContaining({selectedRouteKey: 'route1'}));
+    });
+
+    it('drops a manual override onto the selected alternate route rather than the primary one', async () => {
+        await act(async () => {
+            // 200 mi typed on top of route1 (120 mi), then nothing but the Map-tab Save.
+            await seedBackup('route1', 200);
+            await seedRevertedToOriginal('route1');
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getAllByText('common.save').at(0)!);
+
+        // Comparing the override against the primary route0 (100 mi) instead would read as "no override" and skip the
+        // save, leaving the 200 mi override on an expense the user has switched to a 120 mi route.
+        expect(updateMoneyRequestDistance).toHaveBeenCalledWith(expect.objectContaining({selectedRouteKey: 'route1'}));
+        expect(updateMoneyRequestDistance).not.toHaveBeenCalledWith(expect.objectContaining({distance: expect.anything()}));
+    });
+
+    it('keeps the selected alternate route when a manual distance is saved on a map-based expense', async () => {
+        await act(async () => {
+            await seedBackup('route1');
+            await seedRevertedToOriginal('route1');
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        // `getAllByLabelText` matches both the field label <Text> and the underlying <TextInput>; pick the input.
+        fireEvent.changeText(screen.getAllByLabelText(/common\.distance/).find((element) => 'value' in element.props)!, '150');
+        // The Manual-tab Save button is the second "common.save" → submitManualDistance
+        fireEvent.press(screen.getAllByText('common.save').at(1)!);
+
+        // The manual value has to travel with the route selection: without `selectedRouteKey` the BE would fall back
+        // to the primary route and silently drop the user's pick.
+        expect(updateMoneyRequestDistance).toHaveBeenCalledWith(expect.objectContaining({distance: 150, selectedRouteKey: 'route1'}));
     });
 });

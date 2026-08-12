@@ -2486,6 +2486,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         isFromGlobalCreate = false,
         gpsCoordinates,
         distanceRequestType,
+        selectedRouteDistance,
     } = transactionData;
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
@@ -2530,6 +2531,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             linkedTrackedExpenseReportAction,
             linkedTrackedExpenseReportID,
             customUnitRateID,
+            selectedRouteDistance,
         },
         quickAction,
         isSelfTourViewed,
@@ -2685,6 +2687,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
+                selectedRouteDistance,
             };
             const policyParams: TrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID,
@@ -2738,6 +2741,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
+                selectedRouteDistance,
             };
             const policyParams: TrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID,
@@ -2790,6 +2794,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
+                selectedRouteDistance,
             };
             const policyParams: TrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID,
@@ -2871,6 +2876,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 description: parsedComment,
                 gpsCoordinates,
                 distanceRequestType,
+                selectedRouteDistance,
                 isDistance:
                     isGPSDistanceRequest ||
                     isMapDistanceRequest(transaction) ||
