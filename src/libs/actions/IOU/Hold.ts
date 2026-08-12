@@ -1,3 +1,5 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {HoldMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -56,6 +58,7 @@ function putOnHold(
     currentUserAccountID: number,
     transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
     isTrackIntentUser: boolean | undefined,
+    delegateAccountID: number | undefined,
     ancestors: Ancestor[] = [],
 ) {
     const allTransactions = getAllTransactions();
@@ -63,8 +66,8 @@ function putOnHold(
 
     const currentTime = DateUtils.getDBTime();
     const reportID = initialReportID ?? generateReportID();
-    const createdReportAction = buildOptimisticHoldReportAction(currentTime);
-    const createdReportActionComment = buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
+    const createdReportAction = buildOptimisticHoldReportAction(delegateAccountID, currentTime);
+    const createdReportActionComment = buildOptimisticHoldReportActionComment(comment, delegateAccountID, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
     const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
     const updatedViolations = [...(transactionViolations ?? []), newViolation];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -347,12 +350,13 @@ function putTransactionsOnHold(
     currentUserAccountID: number,
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
     isTrackIntentUser: boolean | undefined,
+    delegateAccountID: number | undefined,
     ancestors: Ancestor[] = [],
 ) {
     for (const transactionID of transactionsID) {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-        putOnHold(transactionID, comment, childReportID, isOffline, currentUserLogin, currentUserAccountID, transactionViolations, isTrackIntentUser, ancestors);
+        putOnHold(transactionID, comment, childReportID, isOffline, currentUserLogin, currentUserAccountID, transactionViolations, isTrackIntentUser, delegateAccountID, ancestors);
     }
 }
 
@@ -368,11 +372,12 @@ function unholdRequest(
     currentUserAccountID: number,
     transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
     isTrackIntentUser: boolean | undefined,
+    delegateAccountID: number | undefined,
 ) {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
 
-    const createdReportAction = buildOptimisticUnHoldReportAction();
+    const createdReportAction = buildOptimisticUnHoldReportAction(delegateAccountID);
     const updatedTransactionViolations = transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
@@ -662,6 +667,7 @@ function getReportFromHoldRequestsOnyxData({
     betas,
     isApprovalFlow = false,
     delegateAccountID,
+    getCurrencyDecimals,
 }: {
     chatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -671,6 +677,7 @@ function getReportFromHoldRequestsOnyxData({
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isApprovalFlow?: boolean;
     delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 }): {
     optimisticHoldReportID: string;
     optimisticHoldActionID: string;
@@ -712,6 +719,7 @@ function getReportFromHoldRequestsOnyxData({
               betas,
               reportTransactions,
               createdTimestamp,
+              getCurrencyDecimals,
           })
         : buildOptimisticIOUReport(
               iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -719,6 +727,7 @@ function getReportFromHoldRequestsOnyxData({
               holdAmount,
               chatReport.reportID,
               iouReport?.currency ?? '',
+              getCurrencyDecimals,
               false,
               newParentReportActionID,
               undefined,
@@ -728,6 +737,7 @@ function getReportFromHoldRequestsOnyxData({
     const optimisticExpenseReportPreview = buildOptimisticReportPreview(
         chatReport,
         optimisticExpenseReport,
+        getCurrencyDecimals,
         '',
         firstHoldTransaction,
         optimisticExpenseReport.reportID,
