@@ -753,6 +753,8 @@ function getRequireFieldsRuleBackToRoute({policyID, isEditing, categoryName}: Re
         return ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, categoryName);
     }
 
+    // Create from Rules tab must stay on /new without ?categoryName=, otherwise goBack remounts
+    // and locks category. Category-scoped create locks the field so this picker is not opened.
     return ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID);
 }
 
@@ -939,6 +941,7 @@ function getRequireFieldsFieldCouplingTooltipKey(
 export {
     categoryHasAnyRequireFieldsRule,
     deleteRequireFieldsRule,
+    formatRequireFieldsRuleDescriptions,
     getActiveFieldRequirementsDirection,
     getEffectiveRequireFieldsRuleForm,
     getRequireFieldsDisplayedSetting,
@@ -946,7 +949,9 @@ export {
     getRequireFieldsFieldCouplingTooltipKey,
     getRequireFieldsFieldSettingUpdate,
     getRequireFieldsFormFromCategory,
+    getRequireFieldsPendingActionForCategory,
     getRequireFieldsRuleBackToRoute,
+    getRequireFieldsRuleDescriptionsForCategory,
     getRequireFieldsRuleKey,
     getRequireFieldsRuleValidationError,
     getRequireFieldsTableData,

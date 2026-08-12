@@ -148,10 +148,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     };
 
     const handleBackButtonPress = () => {
-        // Header back is plain wizard back-navigation, so it must NOT set isEditing. Setting it here would make the
-        // assignee step think the user came to edit the cardholder and route its own back to Confirmation, trapping the
-        // user in a Confirmation <-> Assignee loop. Editing the cardholder goes through editStep(ASSIGNEE), which is the
-        // one place that sets isEditing: true.
+        setAssignCardStepAndData({isEditing: true});
         Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(feed, cardID), ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
             compareParams: false,
         });
@@ -197,7 +194,6 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                         icon={cardholder?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
                         iconType={CONST.ICON_TYPE_AVATAR}
                         shouldShowRightIcon
-                        pressableTestID={CONST.ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID}
                         onPress={() => editStep(CONST.COMPANY_CARD.STEP.ASSIGNEE)}
                     />
                     <MenuItemWithTopDescription

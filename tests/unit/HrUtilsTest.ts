@@ -123,6 +123,7 @@ function stubTranslate<TPath extends TranslationPaths>(path: TPath, ...parameter
 function stubTranslate(path: TranslationPaths): string {
     return path;
 }
+const stubFormatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = (phoneNumber) => phoneNumber;
 
 function getRow(card: HRCardDescriptor | undefined, field: string) {
     return card?.configRows?.find((row) => row.field === field);
@@ -134,6 +135,7 @@ function makeGetHRCardsParams(overrides: Partial<GetHRCardsParams> = {}): GetHRC
         connectionSyncProgress: undefined,
         getLocalDateFromDatetime: stubGetLocalDateFromDatetime,
         translate: stubTranslate,
+        formatPhoneNumber: stubFormatPhoneNumber,
         policyID: POLICY_ID,
         gustoIcon: STUB_ICON,
         trinetIcon: STUB_ICON,

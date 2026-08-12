@@ -1,6 +1,6 @@
 import Avatar from '@components/Avatar';
-import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
@@ -30,15 +30,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
-import {
-    getAllCardsForWorkspace,
-    getCardFeedIcon,
-    getCardFeedWithDomainID,
-    getPlaidInstitutionIconUrl,
-    hasActiveExpensifyCardAssigned,
-    lastFourNumbersFromCardName,
-    maskCardNumber,
-} from '@libs/CardUtils';
+import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPersonalDetailByEmail, getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -139,7 +131,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const prevMember = usePrevious(member);
     const details = memberPersonalDetails ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
-    const displayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate}));
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
     const isSelectedMemberOwner = policy?.owner === details.login;
     const isSelectedMemberCurrentUser = accountID === currentUserAccountID;
     const isCurrentUserAdmin = policy?.employeeList?.[currentUserLogin]?.role === CONST.POLICY.ROLE.ADMIN;
@@ -148,14 +140,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
-    const policyOwnerDisplayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate})) ?? policy?.owner ?? '';
+    const policyOwnerDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: ownerDetails, translate, formatPhoneNumber}) ?? policy?.owner ?? '';
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const workspaceWorkflowsPageURL = `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}`;
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
     const reimburserEmail = getReimburserEmail(policy);
     const isReimburser = !!reimburserEmail && reimburserEmail === memberLogin;
-    const hasActiveExpensifyCard = hasActiveExpensifyCardAssigned(workspaceCards, accountID);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
@@ -189,11 +180,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     let confirmModalPrompt = translate('workspace.people.removeMembersWarningPrompt', displayName, policyOwnerDisplayName);
 
-    if (hasActiveExpensifyCard) {
-        confirmModalPrompt = translate('workspace.people.removeMemberPromptExpensifyCard', {
-            memberName: displayName,
-        });
-    } else if (isTechnicalContact) {
+    if (isTechnicalContact) {
         confirmModalPrompt = translate('workspace.people.removeMemberPromptTechContact', {
             memberName: displayName,
             workspaceOwner: policyOwnerDisplayName,
@@ -282,7 +269,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             showRuleBotGuardModal('remove', policyID);
             return;
         }
-        if (hasActiveExpensifyCard || isReimburser) {
+        if (isReimburser) {
             showConfirmModal({
                 shouldShowCancelButton: false,
                 success: true,
@@ -346,12 +333,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
                                 <Avatar
-                                    containerStyles={[styles.avatarXLarge, styles.mb4, styles.noOutline]}
-                                    imageStyles={[styles.avatarXLarge]}
+                                    containerStyles={[styles.mb4, styles.noOutline]}
                                     source={details.avatar}
                                     avatarID={accountID}
                                     type={CONST.ICON_TYPE_AVATAR}
-                                    size={CONST.AVATAR_SIZE.X_LARGE}
+                                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                     fallbackIcon={fallbackIcon}
                                 />
                             </OfflineWithFeedback>
@@ -374,12 +360,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 )
                             ) : (
                                 <Button
-                                    text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}
                                     onPress={isAccountLocked ? showLockedAccountModal : askForConfirmationToRemove}
                                     isDisabled={!canRemoveSelectedMember}
-                                    icon={icons.RemoveMembers}
                                     style={styles.mb5}
-                                />
+                                >
+                                    <Button.Icon src={icons.RemoveMembers} />
+                                    <Button.Text>{translate('workspace.people.removeWorkspaceMemberButtonTitle')}</Button.Text>
+                                </Button>
                             )}
                         </View>
                         <View style={styles.w100}>

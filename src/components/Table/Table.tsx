@@ -23,6 +23,7 @@ import useSearching from './middlewares/searching';
 import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
 import {shouldUseTableSemantics} from './tableAccessibility';
+import {doesBodyRenderWhenEmpty} from './TableBody';
 import TableContext from './TableContext';
 import TableSemanticContainer from './TableSemanticContainer';
 
@@ -294,6 +295,10 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     // web layout where semantics apply), so it has to be counted alongside the configured data columns.
     const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
 
+    // When empty, `TableBody` still renders (keeping its role="rowgroup") if an empty-state or header list slot is
+    // supplied, so the semantic wrapper must be preserved then to avoid orphaned table semantics.
+    const rendersBodyWhenEmpty = doesBodyRenderWhenEmpty(listProps);
+
     return (
         <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
             <TableSemanticContainer
@@ -301,6 +306,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 title={title}
                 rowCount={processedData.length}
                 columnCount={semanticColumnCount}
+                rendersBodyWhenEmpty={rendersBodyWhenEmpty}
             >
                 {children}
             </TableSemanticContainer>

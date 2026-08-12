@@ -18,7 +18,6 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
-import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import {formatPhoneNumber, translateLocal} from '../../utils/TestHelper';
@@ -780,6 +779,7 @@ describe('PersonalDetailsUtils', () => {
                 temporaryGetDisplayNameOrDefault({
                     passedPersonalDetails: {accountID: 1, displayName: 'Ada Lovelace', login: 'ada@example.com'},
                     translate,
+                    formatPhoneNumber,
                 }),
             ).toBe('Ada Lovelace');
         });
@@ -793,6 +793,7 @@ describe('PersonalDetailsUtils', () => {
                         login: 'user@example.com',
                     },
                     translate,
+                    formatPhoneNumber,
                 }),
             ).toBe('visible.name@example.com');
         });
@@ -807,8 +808,9 @@ describe('PersonalDetailsUtils', () => {
                         displayName: smsLogin,
                     },
                     translate,
+                    formatPhoneNumber,
                 }),
-            ).toBe(Str.removeSMSDomain(smsLogin));
+            ).toBe(formatPhoneNumber(smsLogin));
         });
 
         test('should append current-user postfix using localized "you"', () => {
@@ -817,6 +819,7 @@ describe('PersonalDetailsUtils', () => {
                     passedPersonalDetails: {accountID: 1, displayName: 'Sam', login: 'sam@example.com'},
                     shouldAddCurrentUserPostfix: true,
                     translate,
+                    formatPhoneNumber,
                 }),
             ).toBe('Sam (you)');
         });
@@ -828,6 +831,7 @@ describe('PersonalDetailsUtils', () => {
                     shouldAddCurrentUserPostfix: true,
                     youAfterTranslation: 'anotherYou',
                     translate,
+                    formatPhoneNumber,
                 }),
             ).toBe('Sam (anotherYou)');
         });
@@ -841,6 +845,7 @@ describe('PersonalDetailsUtils', () => {
                         login: CONST.EMAIL.CONCIERGE,
                     },
                     translate,
+                    formatPhoneNumber,
                 }),
             ).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
@@ -851,6 +856,7 @@ describe('PersonalDetailsUtils', () => {
                     passedPersonalDetails: {accountID: 1, login: 'only@example.com'},
                     defaultValue: 'Custom default',
                     translate,
+                    formatPhoneNumber,
                 }),
             ).toBe('Custom default');
         });
@@ -860,6 +866,7 @@ describe('PersonalDetailsUtils', () => {
                 temporaryGetDisplayNameOrDefault({
                     passedPersonalDetails: {accountID: 1, login: 'fallback@example.com'},
                     translate,
+                    formatPhoneNumber,
                 }),
             ).toBe('fallback@example.com');
         });
@@ -869,6 +876,7 @@ describe('PersonalDetailsUtils', () => {
                 temporaryGetDisplayNameOrDefault({
                     passedPersonalDetails: {accountID: 1},
                     translate,
+                    formatPhoneNumber,
                 }),
             ).toBe('Hidden');
         });
@@ -879,6 +887,7 @@ describe('PersonalDetailsUtils', () => {
                     passedPersonalDetails: {accountID: 1},
                     shouldFallbackToHidden: false,
                     translate,
+                    formatPhoneNumber,
                 }),
             ).toBe('');
         });

@@ -68,9 +68,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
     /**
      * Checks whether the user has a complete date selection.
      * A selection is complete when either ON is set (preset or specific date),
-     * or both AFTER and BEFORE are set. A single After or Before alone is
-     * incomplete — we don't silently fill in today's date for the missing value
-     * because that can produce invalid ranges the backend rejects.
+     * or both range boundaries are set.
      */
     const hasDateSelected = (valuesToValidate?: SearchDateValues): boolean => {
         const values = valuesToValidate ?? dateFilterBaseRef.current?.getDateValues();
@@ -83,13 +81,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
         }
 
         const {from: rangeStart, to: rangeEnd} = getSelectedRangeBoundaries(values);
-        if (rangeStart && rangeEnd) {
-            return true;
-        }
-
-        // Both after and before must be set for a complete range
-
-        return !!(values[CONST.SEARCH.DATE_MODIFIERS.AFTER] && values[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
+        return !!(rangeStart && rangeEnd);
     };
 
     /**
@@ -97,18 +89,9 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
      */
     const isDateRangeInvalid = (valuesToValidate?: SearchDateValues): boolean => {
         const values = valuesToValidate ?? dateFilterBaseRef.current?.getDateValues();
-        const dateAfter = values?.[CONST.SEARCH.DATE_MODIFIERS.AFTER];
-        const dateBefore = values?.[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
         const {from: rangeStart, to: rangeEnd} = getSelectedRangeBoundaries(values);
 
-        if (rangeStart && rangeEnd && rangeStart > rangeEnd) {
-            return true;
-        }
-
-        if (dateAfter && dateBefore && dateAfter > dateBefore) {
-            return true;
-        }
-        return false;
+        return !!(rangeStart && rangeEnd && rangeStart > rangeEnd);
     };
 
     /**
@@ -129,13 +112,11 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
     /**
      * Computes startDate and endDate in YYYY-MM-DD format from the current date selection.
      * Callers must validate via hasDateSelected() before calling — this function
-     * assumes the selection is complete (ON is set, or both AFTER and BEFORE are set).
+     * assumes the selection is complete (ON is set, or both range boundaries are set).
      */
     const getDateRange = (): {startDate: string; endDate: string} => {
         const values = dateFilterBaseRef.current?.getDateValues();
         const dateOn = values?.[CONST.SEARCH.DATE_MODIFIERS.ON];
-        const dateAfter = values?.[CONST.SEARCH.DATE_MODIFIERS.AFTER];
-        const dateBefore = values?.[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
         const {from: rangeStart, to: rangeEnd} = getSelectedRangeBoundaries(values);
 
         if (dateOn) {
@@ -149,13 +130,6 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
 
         if (rangeStart && rangeEnd) {
             return {startDate: rangeStart, endDate: rangeEnd};
-        }
-
-        if (dateAfter && dateBefore) {
-            return {
-                startDate: dateAfter,
-                endDate: dateBefore,
-            };
         }
 
         // Default: this month (only reached on initial mount before any interaction)
@@ -252,6 +226,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
                     style={styles.flex1}
                     defaultDateValues={defaultDateValues}
                     presets={presets}
+                    shouldShowCustomDate={false}
                     onSubmit={onSubmit}
                     onDateValuesChange={handleDateValuesChange}
                     onDateModifierChange={setIsDateModifierOpen}

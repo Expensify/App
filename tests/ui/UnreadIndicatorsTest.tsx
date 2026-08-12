@@ -230,6 +230,7 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
 
     await Promise.all([
         Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
+        Onyx.merge(ONYXKEYS.HAS_LOADED_APP, true),
         Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails),
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report),
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, reportActions),
@@ -643,7 +644,7 @@ describe('Unread Indicators', () => {
 
                     const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                     if (lastReportAction) {
-                        deleteReportComment(report, lastReportAction, undefined, [], undefined, undefined, '');
+                        deleteReportComment(report, lastReportAction, undefined, undefined, [], undefined, undefined, '');
                     }
                     return waitForBatchedUpdates();
                 })
@@ -699,7 +700,7 @@ describe('Unread Indicators', () => {
 
             await waitForBatchedUpdates();
 
-            deleteReportComment(report, firstNewReportAction, undefined, [], undefined, undefined, '');
+            deleteReportComment(report, firstNewReportAction, undefined, undefined, [], undefined, undefined, '');
 
             await waitForBatchedUpdates();
         }
@@ -787,6 +788,7 @@ describe('Unread Indicators', () => {
         const participant = {login: USER_A_EMAIL, accountID: USER_A_ACCOUNT_ID};
         trackExpense({
             conciergeChat: undefined,
+            getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
             report: selfDMReport,
             isDraftPolicy: true,
             action: CONST.IOU.ACTION.CREATE,

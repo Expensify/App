@@ -1,3 +1,4 @@
+import {isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 
@@ -7,6 +8,7 @@ import * as OnyxUpdateManager from '@userActions/OnyxUpdateManager';
 import type {OnyxUpdateManagerUtilsMock} from '@userActions/OnyxUpdateManager/utils/__mocks__';
 import type {ApplyUpdatesMock} from '@userActions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 
@@ -29,6 +31,14 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
 jest.mock('@src/libs/SearchUIUtils', () => ({
     getSuggestedSearches: jest.fn().mockReturnValue({}),
 }));
+
+// The native impl hardcodes leadership, so mock it to reach the follower branches.
+jest.mock('@libs/ActiveClientManager', () => ({
+    isClientTheLeader: jest.fn(() => true),
+    isReady: jest.fn(() => Promise.resolve()),
+    init: jest.fn(),
+}));
+const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
 
 const OnyxUpdates = jest.requireMock<OnyxUpdatesMock<never>>('@userActions/OnyxUpdates');
 const App = jest.requireMock<AppActionsMock>('@userActions/App');
@@ -634,6 +644,84 @@ describe('OnyxUpdateManager', () => {
         await OnyxUpdateManager.queryPromise;
         await waitForBatchedUpdates();
         expect(unpauseSpy).toHaveBeenCalledTimes(1);
+    });
+
+    // Driven through the real watchdog, so the import-time registration is covered too.
+    describe('pause watchdog escalation', () => {
+        beforeEach(() => {
+            // Keep setImmediate real so Onyx batching still works under fake timers.
+            jest.useFakeTimers({doNotFake: ['setImmediate', 'nextTick']});
+        });
+
+        afterEach(() => {
+            SequentialQueue.resetQueue();
+            mockedIsClientTheLeader.mockReturnValue(true);
+            jest.useRealTimers();
+        });
+
+        const letTheWatchdogFire = async () => {
+            SequentialQueue.pause();
+            await jest.advanceTimersByTimeAsync(CONST.NETWORK.MAX_PAUSE_WATCHDOG_TIME_MS);
+        };
+
+        it('should fire an out-of-queue incremental ReconnectApp from the last applied update ID', async () => {
+            await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 42);
+
+            await letTheWatchdogFire();
+
+            // Incremental, not full: the gap only needs closing from where the client stopped.
+            expect(App.reconnectAppWithSideEffects).toHaveBeenCalledTimes(1);
+            expect(App.reconnectAppWithSideEffects).toHaveBeenCalledWith(42);
+            expect(SequentialQueue.isPaused()).toBe(false);
+        });
+
+        it('should skip the escalation when the client has never received an update ID, instead of firing a full ReconnectApp', async () => {
+            await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 0);
+
+            // At 0 the escalation would call reconnectAppWithSideEffects(0), which omits updateIDFrom and so pulls the
+            // FULL app payload — applied outside the queue while WRITEs are still pending. handleMissingOnyxUpdates has
+            // a dedicated flow for this state; the watchdog must not race it.
+            await letTheWatchdogFire();
+
+            expect(App.reconnectAppWithSideEffects).not.toHaveBeenCalled();
+            expect(SequentialQueue.isPaused()).toBe(false);
+        });
+
+        it('should skip the escalation on a follower client, but still let the pause self-heal', async () => {
+            mockedIsClientTheLeader.mockReturnValue(false);
+
+            await letTheWatchdogFire();
+
+            // A follower escalating would duplicate the leader's request.
+            expect(App.reconnectAppWithSideEffects).not.toHaveBeenCalled();
+            expect(SequentialQueue.isPaused()).toBe(false);
+        });
+
+        it('should skip the escalation while a stalled gap fetch is still inside its back-off window', async () => {
+            // Latch the back-off half a window ago, so it is still open when the watchdog fires.
+            App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 200, onyxData: []};
+            const dateNowSpy = jest.spyOn(Date, 'now').mockImplementation(() => new Date().getTime() + CONST.NETWORK.STALLED_UPDATES_FETCH_BACKOFF_TIME_MS / 2);
+            OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+            await OnyxUpdateManager.queryPromise;
+            dateNowSpy.mockRestore();
+            expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+
+            await letTheWatchdogFire();
+
+            // A client thrashing on GetMissingOnyxMessages must not get another reconnect.
+            expect(App.reconnectAppWithSideEffects).not.toHaveBeenCalled();
+            expect(SequentialQueue.isPaused()).toBe(false);
+        });
+
+        it('should latch the back-off so the escalated reconnect is not immediately followed by a gap fetch', async () => {
+            await letTheWatchdogFire();
+            expect(App.reconnectAppWithSideEffects).toHaveBeenCalledTimes(1);
+
+            // Same client state, so it owns the window like the stalled-fetch escalation does.
+            OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+            await OnyxUpdateManager.queryPromise;
+            expect(App.getMissingOnyxUpdates).not.toHaveBeenCalled();
+        });
     });
 
     it('should apply deferred updates after fetching pending updates', () => {

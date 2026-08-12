@@ -82,11 +82,12 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributesDerived = useReportAttributes();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // Option building is locale-dependent, so a consumer that stays mounted through a language switch recomputes.
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale, dateFnsLocale} = useLocalize();
 
     // Sorted report actions from the RAM_ONLY_SORTED_REPORT_ACTIONS derived value; a new reference on
     // every recompute, so it doubles as the report-actions invalidation signal for the option-list cache.
@@ -106,13 +107,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
                       reportAttributesDerived,
                       privateIsArchivedMap,
                       allPolicies,
-                      {
-                          maxRecentReports: reportsLimit,
-                          includeP2P,
-                          isSearching,
-                          deferContactsUntilSearch,
-                          locale: preferredLocale,
-                      },
+                      {dateFnsLocale, conciergeReportID, maxRecentReports: reportsLimit, includeP2P, isSearching, deferContactsUntilSearch, locale: preferredLocale},
                       undefined,
                       undefined,
                       isTrackIntentUser,
@@ -126,6 +121,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
             reportAttributesDerived,
             privateIsArchivedMap,
             allPolicies,
+            conciergeReportID,
             reportsLimit,
             includeP2P,
             isSearching,
@@ -133,6 +129,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
             preferredLocale,
             isTrackIntentUser,
             sortedActions,
+            dateFnsLocale,
         ],
     );
 

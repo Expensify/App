@@ -10,7 +10,7 @@ import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -19,6 +19,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import currencyList from '../../unit/currencyList.json';
+import createRandomReportAction from '../../utils/collections/reportActions';
 import {createPolicyExpenseChat, createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
@@ -159,6 +160,7 @@ describe('actions/IOU', () => {
             // When createDraftTransactionAndNavigateToParticipantSelector is called with draftTransactionIDs
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: selfDMReport.reportID,
+                reportActions: undefined,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -192,6 +194,149 @@ describe('actions/IOU', () => {
             expect(updatedTransactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionToCategorize.transactionID}`]).toBeTruthy();
         });
 
+        it('should link the track-expense action found in the passed reportActions', async () => {
+            // Given a selfDM report with a tracked transaction and its money request action
+            const selfDMReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
+            const transaction: Transaction = {...createRandomTransaction(1), transactionID: 'tracked-transaction'};
+            const trackedExpenseAction: ReportAction = {
+                ...createRandomReportAction(101),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: selfDMReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When the draft is created with the report actions passed as a parameter
+            createDraftTransactionAndNavigateToParticipantSelector({
+                reportID: selfDMReport.reportID,
+                reportActions: {[trackedExpenseAction.reportActionID]: trackedExpenseAction},
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
+                reportActionID: '1',
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                draftTransactionIDs: [],
+                activePolicy: undefined,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                transaction,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
+                filteredPoliciesCount: 0,
+                firstPolicyID: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the draft should be linked to the money request action found in the passed reportActions
+            let drafts: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                callback: (val) => {
+                    drafts = val;
+                },
+            });
+            const draft = drafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`];
+            expect(draft?.linkedTrackedExpenseReportAction?.reportActionID).toBe(trackedExpenseAction.reportActionID);
+            expect(draft?.linkedTrackedExpenseReportID).toBe(selfDMReport.reportID);
+        });
+
+        it('should read the passed reportActions rather than the report actions stored in Onyx', async () => {
+            // Given a selfDM report with a tracked transaction, one matching action passed as a parameter and a different matching action stored in Onyx
+            const selfDMReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
+            const transaction: Transaction = {...createRandomTransaction(1), transactionID: 'tracked-transaction'};
+            const originalMessage = {
+                IOUReportID: selfDMReport.reportID,
+                IOUTransactionID: transaction.transactionID,
+                amount: transaction.amount,
+                currency: transaction.currency,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            };
+            const passedAction: ReportAction = {...createRandomReportAction(102), actionName: CONST.REPORT.ACTIONS.TYPE.IOU, originalMessage};
+            const onyxOnlyAction: ReportAction = {...createRandomReportAction(103), actionName: CONST.REPORT.ACTIONS.TYPE.IOU, originalMessage};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {[onyxOnlyAction.reportActionID]: onyxOnlyAction});
+
+            // When the draft is created with only the passed action
+            createDraftTransactionAndNavigateToParticipantSelector({
+                reportID: selfDMReport.reportID,
+                reportActions: {[passedAction.reportActionID]: passedAction},
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
+                reportActionID: '1',
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                draftTransactionIDs: [],
+                activePolicy: undefined,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                transaction,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
+                filteredPoliciesCount: 0,
+                firstPolicyID: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the draft should be linked to the passed action, proving the Onyx-stored actions are not read
+            let drafts: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                callback: (val) => {
+                    drafts = val;
+                },
+            });
+            const draft = drafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`];
+            expect(draft?.linkedTrackedExpenseReportAction?.reportActionID).toBe(passedAction.reportActionID);
+        });
+
+        it('should not link any track-expense action when reportActions is undefined', async () => {
+            // Given a selfDM report with a tracked transaction and no reportActions passed
+            const selfDMReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
+            const transaction: Transaction = {...createRandomTransaction(1), transactionID: 'tracked-transaction'};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When the draft is created without reportActions
+            createDraftTransactionAndNavigateToParticipantSelector({
+                reportID: selfDMReport.reportID,
+                reportActions: undefined,
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
+                reportActionID: '1',
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                draftTransactionIDs: [],
+                activePolicy: undefined,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                transaction,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserEmail: RORY_EMAIL,
+                currentUserLocalCurrency: '',
+                filteredPoliciesCount: 0,
+                firstPolicyID: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the draft should still be created, with no linked track-expense action
+            let drafts: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                callback: (val) => {
+                    drafts = val;
+                },
+            });
+            const draft = drafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`];
+            expect(draft).toBeTruthy();
+            expect(draft?.linkedTrackedExpenseReportAction).toBeFalsy();
+        });
+
         it('should create a draft transaction with correct data when categorizing', async () => {
             // Given a selfDM report and a transaction with specific data
             const selfDMReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
@@ -211,6 +356,7 @@ describe('actions/IOU', () => {
             // When createDraftTransactionAndNavigateToParticipantSelector is called with empty allTransactionDrafts
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: selfDMReport.reportID,
+                reportActions: undefined,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -252,6 +398,7 @@ describe('actions/IOU', () => {
             // When createDraftTransactionAndNavigateToParticipantSelector is called with undefined transaction
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: selfDMReport.reportID,
+                reportActions: undefined,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: 'some-report-action-id',
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -288,6 +435,7 @@ describe('actions/IOU', () => {
             // When createDraftTransactionAndNavigateToParticipantSelector is called with undefined reportID
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: undefined,
+                reportActions: undefined,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: 'some-report-action-id',
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -366,6 +514,7 @@ describe('actions/IOU', () => {
                 // When the expense is submitted to the employer, skipping the destination picker
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: selfDMReport.reportID,
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.SUBMIT,
                     reportActionID: '1',
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -402,6 +551,7 @@ describe('actions/IOU', () => {
                 // When the expense is submitted to the employer and there is no workspace to submit to
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: selfDMReport.reportID,
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.SUBMIT,
                     reportActionID: '1',
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -432,6 +582,7 @@ describe('actions/IOU', () => {
                 // When the expense is submitted to the employer and there is no workspace to submit to
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: selfDMReport.reportID,
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.SUBMIT,
                     reportActionID: '1',
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -461,6 +612,7 @@ describe('actions/IOU', () => {
                 // When the expense is submitted to the employer
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: selfDMReport.reportID,
+                    reportActions: undefined,
                     actionName: CONST.IOU.ACTION.SUBMIT,
                     reportActionID: '1',
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},

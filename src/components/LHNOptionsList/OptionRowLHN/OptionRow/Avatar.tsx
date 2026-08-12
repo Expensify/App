@@ -1,9 +1,14 @@
-import LHNAvatar from '@components/LHNOptionsList/LHNAvatar';
+import DiagonalAvatars from '@components/Avatar/layouts/DiagonalAvatars';
+import getAvatarLayout from '@components/Avatar/layouts/getAvatarLayout';
+import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
+import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
+import type {AvatarIcon} from '@components/Avatar/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {shouldOptionShowTooltip} from '@libs/OptionsListUtils';
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
 
@@ -29,10 +34,12 @@ type AvatarProps = {
 
 function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails();
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const singleAvatarContainerStyle = [styles.actionAvatar, styles.mr3];
+    const avatarSize = isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(optionItem?.parentReportAction);
 
@@ -41,7 +48,7 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
     // delegate's avatar as primary instead of the report owner's.
     const skipDelegate = optionItem?.type === CONST.REPORT.TYPE.INVOICE || (optionItem?.isTaskReport && !optionItem?.chatReportID);
 
-    let icons = optionItem?.icons ?? [];
+    let icons: AvatarIcon[] = optionItem?.icons ?? [];
     if (!skipDelegate && delegateAccountID && personalDetails && icons.length > 0) {
         const delegateDetails = personalDetails[delegateAccountID];
         if (delegateDetails) {
@@ -53,29 +60,51 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
                     source: delegateDetails.avatar ?? '',
                     name: delegateDetails.displayName ?? '',
                     id: delegateAccountID,
+                    copilot: {
+                        accountID: delegateAccountID,
+                        actedForAccountID: Number(firstDelegateIcon.id ?? CONST.DEFAULT_NUMBER_ID),
+                    },
                 };
             }
             icons = updatedIcons;
         }
     }
 
-    let delegateTooltipAccountID: number | undefined;
-    if (!skipDelegate && delegateAccountID && personalDetails?.[delegateAccountID] && optionItem?.icons?.length) {
-        delegateTooltipAccountID = Number(optionItem.icons.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID);
+    const avatarType = optionItem.shouldShowSubscript ? CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT : CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL;
+    const {layout, primaryIcon, secondaryIcon} = getAvatarLayout({icons, avatarType});
+
+    if (layout === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && primaryIcon && secondaryIcon) {
+        return (
+            <SubscriptAvatar
+                primaryAvatar={primaryIcon}
+                secondaryAvatar={secondaryIcon}
+                size={avatarSize}
+                subscriptAvatarBorderColor={avatarBackgroundColor}
+            />
+        );
+    }
+
+    if (layout === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL && primaryIcon && secondaryIcon) {
+        return (
+            <DiagonalAvatars
+                size={avatarSize}
+                // Only the two rendered icons are passed: a longer array makes DiagonalAvatars replace the secondary avatar with a "+N" overflow count.
+                icons={[primaryIcon, secondaryIcon]}
+                isInReportAction={false}
+                secondaryAvatarContainerStyle={StyleUtils.getBackgroundAndBorderStyle(avatarBackgroundColor)}
+            />
+        );
+    }
+
+    if (!primaryIcon) {
+        return null;
     }
 
     return (
-        <LHNAvatar
-            icons={icons}
-            shouldShowSubscript={!!optionItem.shouldShowSubscript}
-            size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-            subscriptAvatarBorderColor={avatarBackgroundColor}
-            useMidSubscriptSize={isInFocusMode}
-            secondaryAvatarBackgroundColor={avatarBackgroundColor}
-            singleAvatarContainerStyle={singleAvatarContainerStyle}
-            shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
-            delegateAccountID={skipDelegate ? undefined : delegateAccountID}
-            delegateTooltipAccountID={delegateTooltipAccountID}
+        <SingleAvatar
+            avatar={primaryIcon}
+            size={avatarSize}
+            containerStyles={singleAvatarContainerStyle}
         />
     );
 }
@@ -87,13 +116,17 @@ function Avatar({optionItem, viewMode, avatarBackgroundColor}: AvatarProps) {
     if (!optionItem.icons?.length || !optionItem.icons.at(0)) {
         return null;
     }
-    return (
+
+    const avatars = (
         <AvatarInner
             optionItem={optionItem}
             viewMode={viewMode}
             avatarBackgroundColor={avatarBackgroundColor}
         />
     );
+
+    // An archived room's participants can no longer be interacted with, so their details are not worth surfacing on hover.
+    return optionItem.private_isArchived ? <AvatarTooltipsProvider isEnabled={false}>{avatars}</AvatarTooltipsProvider> : avatars;
 }
 
 Avatar.displayName = 'OptionRow.Avatar';

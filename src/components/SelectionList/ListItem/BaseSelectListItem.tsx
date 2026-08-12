@@ -76,7 +76,7 @@ function BaseSelectListItem<TItem extends ListItem>({
                         text={fullTitle ?? ''}
                         style={[
                             styles.optionDisplayName,
-                            isFocusVisible ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                            styles.sidebarLinkText,
                             styles.sidebarLinkTextBold,
                             isMultilineSupported ? styles.preWrap : styles.pre,
                             item.alternateText ? styles.mb1 : null,
