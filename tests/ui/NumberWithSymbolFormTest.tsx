@@ -190,6 +190,43 @@ describe('NumberWithSymbolForm', () => {
             expect(screen.queryByText('$')).toBeNull();
         });
 
+        it('passes disabled to display-input trailing controls', async () => {
+            const onCurrencyButtonPress = jest.fn();
+            renderForm({displayAsTextInput: true, value: '10', currency: 'USD', shouldShowCurrencyButton: true, disabled: true, onCurrencyButtonPress});
+            await waitForBatchedUpdatesWithAct();
+
+            const currencyButton = screen.getByLabelText('Select a currency, USD');
+            expect(currencyButton.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
+
+            fireEvent.press(currencyButton);
+            expect(onCurrencyButtonPress).not.toHaveBeenCalled();
+        });
+
+        it('calls onSubmitEditing on the display-input path', async () => {
+            const onSubmitEditing = jest.fn();
+            renderForm({displayAsTextInput: true, value: '10', onSubmitEditing});
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent(getTextInput(), 'submitEditing');
+
+            expect(onSubmitEditing).toHaveBeenCalledTimes(1);
+        });
+
+        it('renders error text on the display-input path', async () => {
+            renderForm({displayAsTextInput: true, value: '10', errorText: 'Invalid amount'});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Invalid amount')).toBeTruthy();
+        });
+
+        it('supports a callback ref on the display-input path', async () => {
+            const ref = jest.fn();
+            renderForm({displayAsTextInput: true, value: '10', ref});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(ref).toHaveBeenCalledWith(expect.anything());
+        });
+
         it('assigns the text input instance to the separate `ref` prop', async () => {
             const ref = React.createRef<BaseTextInputRef>();
             renderForm({displayAsTextInput: true, value: '10', ref});
@@ -426,6 +463,14 @@ describe('NumberWithSymbolForm', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(ref.current).toBeTruthy();
+        });
+
+        it('supports a callback ref on the symbol-input path', async () => {
+            const ref = jest.fn();
+            renderForm({value: '10', ref});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(ref).toHaveBeenCalledWith(expect.anything());
         });
 
         describe('negation via the caller-supplied toggleNegative', () => {
