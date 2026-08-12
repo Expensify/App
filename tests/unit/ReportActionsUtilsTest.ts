@@ -4310,6 +4310,43 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe('renamed the Distance rate "Default Rate" to "Custom Rate"');
         });
 
+        it('should format the amount from raw oldRate/newRate/currency instead of the preformatted strings', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'rate',
+                    oldValue: 'AR$1.30',
+                    newValue: 'AR$1.40',
+                    oldRate: 130,
+                    newRate: 140,
+                    currency: 'ARS',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the rate of the Distance rate "Default Rate" to "ARS 1.40" (previously "ARS 1.30")');
+        });
+
+        it('should fall back to the preformatted strings when raw rate fields are missing', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'rate',
+                    oldValue: '$0.50',
+                    newValue: '$0.55',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the rate of the Distance rate "Default Rate" to "$0.55" (previously "$0.50")');
+        });
+
         it('should return the correct message when a start date is set on a rate without dates', () => {
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
                 reportActionID: '1',
