@@ -104,6 +104,9 @@ type Comment = {
     /** ID of the original transaction */
     originalTransactionID?: string;
 
+    /** ID of the root expense this one was intentionally copied from, so duplicate detection can skip the copies */
+    duplicatedFromTransactionID?: string;
+
     /** In split transactions this is a collection of participant split data */
     splits?: Split[];
 

@@ -1701,6 +1701,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         rate,
         unit,
         isFromGlobalCreate = false,
+        duplicatedFromTransactionID,
     } = transactionParams;
 
     const testDriveCommentReportActionID = isTestDrive ? NumberUtils.rand64() : undefined;
@@ -1922,6 +1923,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       }
                     : {}),
                 shouldDeferAutoSubmit,
+                duplicatedFromTransactionID,
             };
 
             deferredAPIWrite = () => {

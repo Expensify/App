@@ -217,6 +217,9 @@ type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'm
     attendees?: Attendee[];
     customUnit: TransactionCustomUnit;
     comment?: string;
+
+    /** ID of the root expense this one was intentionally copied from */
+    duplicatedFromTransactionID?: string;
 };
 
 type RecentlyUsedParams = {
@@ -501,6 +504,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             reimbursable,
             pendingFields: {subRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
             attendees,
+            duplicatedFromTransactionID: transactionParams.duplicatedFromTransactionID,
         },
     });
     iouReport.transactionCount = (iouReport.transactionCount ?? 0) + 1;
@@ -1012,7 +1016,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         dateFnsLocale,
         getCurrencyDecimals,
     } = submitPerDiemExpenseInformation;
-    const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
+    const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate, duplicatedFromTransactionID} = transactionParams;
 
     if (
         isEmptyObject(policyParams.policy) ||
@@ -1106,6 +1110,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         attendees: attendees ? JSON.stringify(attendees) : undefined,
         customUnitPolicyID,
         shouldDeferAutoSubmit,
+        duplicatedFromTransactionID,
     };
 
     if (shouldPlaySoundParam) {

@@ -630,6 +630,9 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
         merchant: transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? ''),
         modifiedAmount: undefined,
         originalTransactionID: undefined,
+
+        // Point at the root expense so a copy of a copy links back to the same one the backend already knows about
+        duplicatedFromTransactionID: transaction.comment?.duplicatedFromTransactionID ?? transaction.transactionID,
         odometerStart: transaction.comment?.odometerStart ?? undefined,
         odometerEnd: transaction.comment?.odometerEnd ?? undefined,
         receipt: undefined,
