@@ -75,7 +75,7 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
         const expectedStrippedPath = '/base';
 
         mockGetStateFromPath.mockImplementation((path) => {
-            if (path.length !== expectedStrippedPath.length || !path.startsWith(expectedStrippedPath)) {
+            if (String(path) !== expectedStrippedPath) {
                 throw new Error(`Unexpected path: ${path}`);
             }
             return basePathState;
@@ -100,7 +100,7 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
         const expectedStrippedPath = '/base/suffix-a';
 
         mockGetStateFromPath.mockImplementation((path) => {
-            if (path.length !== expectedStrippedPath.length || !path.startsWith(expectedStrippedPath)) {
+            if (String(path) !== expectedStrippedPath) {
                 throw new Error(`Unexpected path: ${path}`);
             }
             return basePathState;
@@ -126,7 +126,7 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
         const expectedStrippedPath = '/base/deep/suffix-a';
 
         mockGetStateFromPath.mockImplementation((path) => {
-            if (path.length !== expectedStrippedPath.length || !path.startsWith(expectedStrippedPath)) {
+            if (String(path) !== expectedStrippedPath) {
                 throw new Error(`Unexpected path: ${path}`);
             }
             return basePathState;
@@ -160,7 +160,7 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
         const expectedStrippedPath = '/base';
 
         mockGetStateFromPath.mockImplementation((path) => {
-            if (path.length !== expectedStrippedPath.length || !path.startsWith(expectedStrippedPath)) {
+            if (String(path) !== expectedStrippedPath) {
                 throw new Error(`Unexpected path: ${path}`);
             }
             return basePathState;
@@ -187,7 +187,7 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
         const expectedStrippedPath = '/invalid/base/suffix-a';
 
         mockGetStateFromPath.mockImplementation((path) => {
-            if (path.length !== expectedStrippedPath.length || !path.startsWith(expectedStrippedPath)) {
+            if (String(path) !== expectedStrippedPath) {
                 throw new Error(`Unexpected path: ${path}`);
             }
             return invalidRouteState;
@@ -240,7 +240,7 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
         const expectedStrippedPath = '/base';
 
         mockGetStateFromPath.mockImplementation((path) => {
-            if (path.length === expectedStrippedPath.length && path.startsWith(expectedStrippedPath)) {
+            if (String(path) === expectedStrippedPath) {
                 return basePathState;
             }
             return {routes: [{name: 'WrongScreen'}], index: 0};
