@@ -39,9 +39,7 @@ function MultiScanEducationalModal() {
                     <FeatureTraining.Title style={styles.mb2}>{translate('iou.scanMultipleReceipts')}</FeatureTraining.Title>
                     <FeatureTraining.Description>{translate('iou.scanMultipleReceiptsDescription')}</FeatureTraining.Description>
                 </FeatureTraining.BodyText>
-                <FeatureTraining.ButtonRow>
-                    <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
-                </FeatureTraining.ButtonRow>
+                <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
             </FeatureTraining.Body>
         </FeatureTrainingModal>
     );

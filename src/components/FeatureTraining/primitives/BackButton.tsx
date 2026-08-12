@@ -2,14 +2,19 @@ import Button from '@components/ButtonComposed';
 import {useFeatureTrainingActions, useFeatureTrainingState} from '@components/FeatureTraining/context';
 
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import React from 'react';
 
-function BackButton() {
-    const styles = useThemeStyles();
+type BackButtonProps = {
+    /** Style for the button, e.g. flex1 when sharing a ButtonRow */
+    style?: StyleProp<ViewStyle>;
+};
+
+function BackButton({style}: BackButtonProps) {
     const {translate} = useLocalize();
     const {isCarousel, currentPage} = useFeatureTrainingState();
     const {goBack} = useFeatureTrainingActions();
@@ -23,7 +28,7 @@ function BackButton() {
             size={CONST.BUTTON_SIZE.LARGE}
             onPress={goBack}
             sentryLabel={CONST.SENTRY_LABEL.FEATURE_TRAINING.BACK_BUTTON}
-            style={styles.flex1}
+            style={style}
         >
             <Button.Text>{translate('common.back')}</Button.Text>
         </Button>
@@ -33,3 +38,4 @@ function BackButton() {
 BackButton.displayName = 'FeatureTraining.BackButton';
 
 export default BackButton;
+export type {BackButtonProps};

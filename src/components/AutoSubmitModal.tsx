@@ -117,9 +117,7 @@ function AutoSubmitModal() {
                         ))}
                     </FeatureTraining.BodyText>
                     {shouldShowDismissOption && <FeatureTraining.DismissOption />}
-                    <FeatureTraining.ButtonRow>
-                        <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
-                    </FeatureTraining.ButtonRow>
+                    <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
                 </FeatureTraining.Body>
             </FeatureTraining>
         </CenteredModalLayout>

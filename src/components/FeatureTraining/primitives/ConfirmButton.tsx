@@ -1,17 +1,19 @@
 import {useFeatureTrainingActions, useFeatureTrainingState} from '@components/FeatureTraining/context';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 
-import useThemeStyles from '@hooks/useThemeStyles';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 
 type ConfirmButtonProps = {
     children: string;
     sentryLabel?: string;
+
+    /** Style for the button container, e.g. flex1 when sharing a ButtonRow */
+    style?: StyleProp<ViewStyle>;
 };
 
-function ConfirmButton({children, sentryLabel}: ConfirmButtonProps) {
-    const styles = useThemeStyles();
+function ConfirmButton({children, sentryLabel, style}: ConfirmButtonProps) {
     const {confirmSentryLabel, shouldShowLoadingImmediatelyOnPress, isCarousel, isLastPage} = useFeatureTrainingState();
     const {handleConfirm, advance} = useFeatureTrainingActions();
 
@@ -34,7 +36,7 @@ function ConfirmButton({children, sentryLabel}: ConfirmButtonProps) {
             enabledWhenOffline
             shouldShowLoadingImmediatelyOnPress={loading}
             sentryLabel={sentryLabel ?? confirmSentryLabel}
-            containerStyles={styles.flex1}
+            containerStyles={style}
         />
     );
 }

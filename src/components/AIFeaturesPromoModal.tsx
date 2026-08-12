@@ -78,8 +78,8 @@ function AIFeaturesPromoModal() {
                             <FeatureTraining.Description shouldRenderHTML>{translate('aiFeaturesPromoModal.spendAnalysis.description')}</FeatureTraining.Description>
                         </FeatureTraining.BodyText>
                         <FeatureTraining.ButtonRow>
-                            <FeatureTraining.BackButton />
-                            <FeatureTraining.ConfirmButton>{translate('common.next')}</FeatureTraining.ConfirmButton>
+                            <FeatureTraining.BackButton style={styles.flex1} />
+                            <FeatureTraining.ConfirmButton style={styles.flex1}>{translate('common.next')}</FeatureTraining.ConfirmButton>
                         </FeatureTraining.ButtonRow>
                     </FeatureTraining.Body>
                 </FeatureTraining.Page>
@@ -96,8 +96,10 @@ function AIFeaturesPromoModal() {
                             <FeatureTraining.Description shouldRenderHTML>{translate('aiFeaturesPromoModal.expenseAssistant.description')}</FeatureTraining.Description>
                         </FeatureTraining.BodyText>
                         <FeatureTraining.ButtonRow>
-                            <FeatureTraining.BackButton />
-                            <FeatureTraining.ConfirmButton>{canUseCustomAgent ? translate('common.next') : translate('aiFeaturesPromoModal.confirmText')}</FeatureTraining.ConfirmButton>
+                            <FeatureTraining.BackButton style={styles.flex1} />
+                            <FeatureTraining.ConfirmButton style={styles.flex1}>
+                                {canUseCustomAgent ? translate('common.next') : translate('aiFeaturesPromoModal.confirmText')}
+                            </FeatureTraining.ConfirmButton>
                         </FeatureTraining.ButtonRow>
                     </FeatureTraining.Body>
                 </FeatureTraining.Page>
@@ -115,8 +117,8 @@ function AIFeaturesPromoModal() {
                                 <FeatureTraining.Description shouldRenderHTML>{translate('aiFeaturesPromoModal.customAgents.description')}</FeatureTraining.Description>
                             </FeatureTraining.BodyText>
                             <FeatureTraining.ButtonRow>
-                                <FeatureTraining.BackButton />
-                                <FeatureTraining.ConfirmButton>{translate('aiFeaturesPromoModal.confirmText')}</FeatureTraining.ConfirmButton>
+                                <FeatureTraining.BackButton style={styles.flex1} />
+                                <FeatureTraining.ConfirmButton style={styles.flex1}>{translate('aiFeaturesPromoModal.confirmText')}</FeatureTraining.ConfirmButton>
                             </FeatureTraining.ButtonRow>
                         </FeatureTraining.Body>
                     </FeatureTraining.Page>

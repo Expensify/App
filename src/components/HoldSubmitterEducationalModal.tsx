@@ -52,9 +52,7 @@ function HoldSubmitterEducationalModal({onClose, onConfirm, isDM}: HoldSubmitter
                     <FeatureTraining.Description>{translate(isDM ? 'iou.whatIsHoldExplainDM' : 'iou.whatIsHoldExplain')}</FeatureTraining.Description>
                     <HoldMenuSectionList isDM={isDM} />
                 </FeatureTraining.BodyText>
-                <FeatureTraining.ButtonRow>
-                    <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
-                </FeatureTraining.ButtonRow>
+                <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
             </FeatureTraining.Body>
         </FeatureTrainingModal>
     );

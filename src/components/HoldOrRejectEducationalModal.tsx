@@ -95,9 +95,7 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
                         </View>
                     ))}
                 </FeatureTraining.BodyText>
-                <FeatureTraining.ButtonRow>
-                    <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
-                </FeatureTraining.ButtonRow>
+                <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
             </FeatureTraining.Body>
         </FeatureTrainingModal>
     );
