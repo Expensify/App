@@ -110,6 +110,8 @@ const cardActiveStates: number[] = [2, 3, 4, 7];
 
 const brokenConnectionScrapeStatuses: number[] = [200, 434, 531, 530, 500, 666];
 
+const reauthScrapeStatuses: number[] = [438, 532];
+
 // Hide not issued or not activated cards (states 2, 4) from card filter options in search, as no transactions can be made on cards in these states
 const cardHiddenFromSearchStates: number[] = [2, 4];
 
@@ -343,6 +345,7 @@ const CONST = {
         // Limit how long the shutter handler waits for thumbnail pre-generation before navigating
         // to the confirmation screen. Past this, we navigate and let the confirm-side hook
         // generate the thumbnail lazily (brief source swap is acceptable).
+        THUMBNAIL_NAV_TIMEOUT_MS: 150,
     },
 
     API_ATTACHMENT_VALIDATIONS: {
@@ -1629,6 +1632,7 @@ const CONST = {
                 HOLD_COMMENT: 'HOLDCOMMENT',
                 INTEGRATION_SYNC_FAILED: 'INTEGRATIONSYNCFAILED',
                 COMPANY_CARD_CONNECTION_BROKEN: 'COMPANYCARDCONNECTIONBROKEN',
+                COMMUTER_EXCLUSION: 'COMMUTEREXCLUSION',
                 PLAID_BALANCE_FAILURE: 'PLAIDBALANCEFAILURE',
                 IOU: 'IOU',
                 INTEGRATIONS_MESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
@@ -1955,10 +1959,12 @@ const CONST = {
             DOWNLOAD_CSV: 'downloadCSV',
             REPORT_LEVEL_EXPORT: 'report_level_export',
             EXPENSE_LEVEL_EXPORT: 'detailed_export',
+            MULTIPLE_TAX_EXPORT: 'multiple_tax_export',
         },
         EXPORT_OPTION_LABELS: {
             REPORT_LEVEL_EXPORT: 'All Data - Report Level Export',
             EXPENSE_LEVEL_EXPORT: 'All Data - Expense Level Export',
+            MULTIPLE_TAX_EXPORT: 'Canadian Multiple Tax Export',
             DEFAULT_CSV: 'Default CSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
@@ -2211,6 +2217,7 @@ const CONST = {
         SPAN_RECONNECT_SERVER_RESPONSE: 'ManualReconnectServerResponse',
         SPAN_GEOLOCATION_WAIT: 'ManualGeolocationWait',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
+        SPAN_SEND_MESSAGE_VISIBLE: 'ManualSendMessageVisible',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_ODOMETER_TO_CONFIRMATION: 'ManualOdometerToConfirmation',
         SPAN_ODOMETER_IMAGE_STITCH: 'ManualOdometerImageStitch',
@@ -2256,7 +2263,9 @@ const CONST = {
         ATTRIBUTE_ROUTE_FROM: 'route_from',
         ATTRIBUTE_ROUTE_TO: 'route_to',
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
+        ATTRIBUTE_FAILED: 'failed',
         ATTRIBUTE_IS_WARM: 'is_warm',
+        ATTRIBUTE_IS_STARTUP: 'is_startup',
         ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN: 'lazy_tab_fallback_shown',
         // Stamped on the navigate-to-inbox-tab span: wide-layout navigations mount the central report
         // pane in the same commit as the sidebar, so they measure a much bigger workload than narrow ones.
@@ -2441,6 +2450,8 @@ const CONST = {
     TRANSACTION: {
         RESULTS_PAGE_SIZE: 20,
         DEFAULT_MERCHANT: 'Expense',
+        DEFAULT_ROUTE_KEY: 'route0',
+        ALTERNATE_ROUTE_KEY: 'route1',
         UNKNOWN_MERCHANT: 'Unknown Merchant',
         PARTIAL_TRANSACTION_MERCHANT: '(none)',
         TYPE: {
@@ -3506,7 +3517,7 @@ const CONST = {
         EXPORTER: 'exporter',
         EXPORT_DATE: 'exportDate',
         REIMBURSABLE: 'reimbursable',
-        COMPANY_CARD: 'companyCard',
+        NON_REIMBURSABLE: 'nonReimbursable',
         DEFAULT_VENDORID: 'defaultVendorID',
         CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
@@ -3531,8 +3542,8 @@ const CONST = {
         VENDOR_BILL: 'VENDOR_BILL',
     },
 
-    RILLET_EXPORT_COMPANY_CARD: {
-        CREDIT_CARD: 'CREDIT_CARD',
+    RILLET_EXPORT_NON_REIMBURSABLE: {
+        CREDIT_CARD_CHARGE: 'CREDIT_CARD_CHARGE',
     },
 
     RILLET_EXPORT_DATE: {
@@ -3870,6 +3881,12 @@ const CONST = {
     PAYMENT_METHOD_ID_KEYS: {
         DEBIT_CARD: 'fundID',
         BANK_ACCOUNT: 'bankAccountID',
+    },
+
+    /** The payment method a payee still has to set up before a queued payment can settle */
+    MISSING_PAYMENT_METHODS: {
+        BANK_ACCOUNT: 'bankAccount',
+        WALLET: 'wallet',
     },
 
     IOU: {
@@ -4826,6 +4843,10 @@ const CONST = {
     },
     COMPANY_CARDS: {
         BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
+
+        // Scrape result codes where the connection is broken because the user needs to re-authenticate with their bank
+        REAUTH_SCRAPE_STATUSES: reauthScrapeStatuses,
+
         // After a card connection has been broken and unresolved for this many days, stop actively
         // prompting the user: the time-sensitive home task and the RBR are removed (the error itself is kept).
         BROKEN_CONNECTION_DISMISS_AFTER_DAYS: 90,
@@ -6988,11 +7009,6 @@ const CONST = {
                     reportView: true,
                 },
                 TAG: {column: this.TABLE_COLUMNS.TAG, search: true, reportView: true},
-                VIOLATIONS: {
-                    column: this.TABLE_COLUMNS.VIOLATIONS,
-                    search: false,
-                    reportView: false,
-                },
                 TAG_GL_CODE: {
                     column: this.TABLE_COLUMNS.TAG_GL_CODE,
                     search: true,
@@ -7308,7 +7324,6 @@ const CONST = {
             TO: 'to',
             CATEGORY: 'category',
             TAG: 'tag',
-            VIOLATIONS: 'violations',
             ORIGINAL_AMOUNT: 'originalamount',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
@@ -7542,7 +7557,6 @@ const CONST = {
                 [this.TABLE_COLUMNS.TO]: 'to',
                 [this.TABLE_COLUMNS.CATEGORY]: 'category',
                 [this.TABLE_COLUMNS.TAG]: 'tag',
-                [this.TABLE_COLUMNS.VIOLATIONS]: 'violations',
                 [this.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'purchase-amount',
                 [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
                 [this.TABLE_COLUMNS.BILLABLE]: 'billable',
@@ -7643,7 +7657,6 @@ const CONST = {
             TOP_CATEGORIES: 'topCategories',
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
-            VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
         },
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
@@ -8310,6 +8323,8 @@ const CONST = {
         GPS_TOOLTIP: 'gpsTooltip',
         HAS_FILTER_NEGATION: 'hasFilterNegation',
         MILEAGE_RATE_AUTO_UPDATED: 'mileageRateAutoUpdated',
+        REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleReceiptCouplingTooltip',
+        REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleItemizedReceiptCouplingTooltip',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
@@ -8560,6 +8575,7 @@ const CONST = {
             IMAGE: 'HTMLRenderer-Image',
             PRE: 'HTMLRenderer-Pre',
             VICTORY_CHART_EXPAND_BUTTON: 'HTMLRenderer-VictoryChartExpandButton',
+            TABLE_ROW: 'HTMLRenderer-TableRow',
         },
         RECEIPT: {
             IMAGE: 'Receipt-Image',
@@ -9442,6 +9458,14 @@ const CONST = {
         ROUTE_BORDER: 'route-border',
         WAYPOINTS_SOURCE: 'waypoints-source',
         WAYPOINTS: 'waypoints',
+    },
+
+    ALTERNATE_DIRECTIONS_MAP_VIEW_LAYERS: {
+        SOURCE: 'alternate-directions-route-source',
+        UNSELECTED_FILL: 'alternate-directions-unselected-route-fill',
+        UNSELECTED_BORDER: 'alternate-directions-unselected-route-border',
+        SELECTED_FILL: 'alternate-directions-selected-route-fill',
+        SELECTED_BORDER: 'alternate-directions-selected-route-border',
     },
 
     MAP_CURRENT_LOCATION_FILL_COLOR: '#0185FF',

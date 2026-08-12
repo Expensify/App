@@ -1096,6 +1096,10 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     defaultP2PRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     distanceUnit: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    commuterExclusion: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    commuterExclusionMethod: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    commuterExclusionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    reimbursableDistance: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     rateAutoUpdated: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerStart: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerEnd: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1175,6 +1179,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     splitsEndDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     withdrawalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isAmountSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    selectedRouteKey: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1228,6 +1233,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 odometerStartImage: 'object',
                 odometerEndImage: 'object',
                 tripID: 'string',
+                selectedRouteKey: 'string',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {

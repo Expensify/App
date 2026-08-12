@@ -1,9 +1,10 @@
 import Button from '@components/ButtonComposed';
-import ConfirmModal from '@components/ConfirmModal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ReceiptCropView from '@components/ReceiptCropView';
 import type {CropRect} from '@components/ReceiptCropView';
 
 import useAllTransactions from '@hooks/useAllTransactions';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -173,7 +174,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const isTrackExpenseActionValue = isTrackExpenseAction(parentReportAction);
     const iouType = useMemo(() => iouTypeParam ?? (isTrackExpenseActionValue ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseActionValue, iouTypeParam]);
 
-    const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const [pdfRotation, setPdfRotation] = useState<RotationDegrees>(0);
     const [isRotating, setIsRotating] = useState(false);
     const [isCropping, setIsCropping] = useState(false);
@@ -185,7 +186,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         if ((!!report && !!transaction) || isDraftTransaction) {
             return;
         }
-        openReport({reportID, introSelected, betas, hasReportActions});
+        openReport({reportID, introSelected, betas, hasReportActions, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID});
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -456,7 +457,25 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 menuItems.push({
                     icon: expensifyIcons.Trashcan,
                     text: isOdometerImage ? translate('distance.odometer.deleteOdometerPhoto') : translate('receipt.deleteReceipt'),
-                    onSelected: () => setIsDeleteReceiptConfirmModalVisible?.(true),
+                    onSelected: async () => {
+                        const result = await showConfirmModal({
+                            title: isOdometerImage ? translate('distance.odometer.deleteOdometerPhoto') : translate('receipt.deleteReceipt'),
+                            prompt: isOdometerImage ? translate('distance.odometer.deleteOdometerPhotoConfirmation') : translate('receipt.deleteConfirmation'),
+                            confirmText: translate('common.delete'),
+                            cancelText: translate('common.cancel'),
+                            danger: true,
+                        });
+
+                        if (result.action !== ModalActions.CONFIRM) {
+                            return;
+                        }
+
+                        if (isOdometerImage) {
+                            deleteOdometerImageAndClose();
+                        } else {
+                            deleteReceiptAndClose();
+                        }
+                    },
                     shouldCallAfterModalHide: true,
                     sentryLabel: CONST.SENTRY_LABEL.RECEIPT_MODAL.DELETE_RECEIPT,
                 });
@@ -475,30 +494,10 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             translate,
             expensifyIcons,
             onDownloadAttachment,
+            showConfirmModal,
+            deleteOdometerImageAndClose,
+            deleteReceiptAndClose,
         ],
-    );
-
-    const ExtraContent = useMemo(
-        () => (
-            <ConfirmModal
-                title={isOdometerImage ? translate('distance.odometer.deleteOdometerPhoto') : translate('receipt.deleteReceipt')}
-                isVisible={isDeleteReceiptConfirmModalVisible}
-                onConfirm={() => {
-                    if (isOdometerImage) {
-                        deleteOdometerImageAndClose();
-                    } else {
-                        deleteReceiptAndClose();
-                    }
-                    setIsDeleteReceiptConfirmModalVisible(false);
-                }}
-                onCancel={() => setIsDeleteReceiptConfirmModalVisible?.(false)}
-                prompt={isOdometerImage ? translate('distance.odometer.deleteOdometerPhotoConfirmation') : translate('receipt.deleteConfirmation')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
-        ),
-        [deleteReceiptAndClose, deleteOdometerImageAndClose, isDeleteReceiptConfirmModalVisible, isOdometerImage, translate],
     );
 
     const footerActionButtons = useMemo(() => {
@@ -686,7 +685,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         <AttachmentModalContainer
             navigation={navigation}
             contentProps={contentProps}
-            ExtraContent={ExtraContent}
         />
     );
 }
