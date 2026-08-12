@@ -80,6 +80,9 @@ type ConfirmationReceiptThumbnailProps = {
     /** Callback when the PDF requests a password */
     onPDFPassword?: () => void;
 
+    /** Callback when the PDF thumbnail finishes rendering, used to end the receipt-load span */
+    onPDFLoadSuccess?: () => void;
+
     /** Layout callback used in compact mode to capture container width */
     onCompactReceiptContainerLayout: (event: LayoutChangeEvent) => void;
 
@@ -108,6 +111,7 @@ function ConfirmationReceiptThumbnail({
     compactReceiptContainerStyle,
     onPDFLoadError,
     onPDFPassword,
+    onPDFLoadSuccess,
     onCompactReceiptContainerLayout,
     onReceiptLoad,
 }: ConfirmationReceiptThumbnailProps) {
@@ -150,6 +154,7 @@ function ConfirmationReceiptThumbnail({
                             style={styles.h100}
                             onLoadError={onPDFLoadError}
                             onPassword={onPDFPassword}
+                            onLoadSuccess={onPDFLoadSuccess}
                         />
                     </PressableWithoutFocus>
                 ) : (
