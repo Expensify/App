@@ -54,9 +54,10 @@ const selectEntry = (key: string): SelectedTransactions => {
 };
 
 const mockSelectedTransactions: {current: SelectedTransactions} = {current: {}};
+const mockExcludedTransactions: {current: SelectedTransactions} = {current: {}};
 jest.mock('@components/Search/SearchContext', () => ({
     ...jest.requireActual<Record<string, unknown>>('@components/Search/SearchContext'),
-    useSearchSelectionContext: () => ({selectedTransactions: mockSelectedTransactions.current}),
+    useSearchSelectionContext: () => ({selectedTransactions: mockSelectedTransactions.current, excludedTransactions: mockExcludedTransactions.current, areAllMatchingItemsSelected: false}),
 }));
 
 type HookArgs = Parameters<typeof useGroupChildrenForShiftRange>[0];
@@ -85,6 +86,7 @@ function renderGroupChildren(overrides: Partial<HookArgs> = {}) {
 describe('useGroupChildrenForShiftRange', () => {
     beforeEach(() => {
         mockSelectedTransactions.current = {};
+        mockExcludedTransactions.current = {};
         mockGetSections.mockClear();
     });
 
@@ -110,6 +112,14 @@ describe('useGroupChildrenForShiftRange', () => {
         const {result} = renderGroupChildren();
         expect(result.current.isGroupSelected).toBe(true);
         expect(result.current.transactions.every((row) => row.isSelected)).toBe(true);
+    });
+
+    it('unstamps a child that was excluded out of a group selected as a whole', () => {
+        const [, groupEntry] = mapEmptyReportToSelectedEntry(buildReportGroup(9, GROUP_KEY));
+        mockSelectedTransactions.current = {[GROUP_KEY]: {...groupEntry, isSelected: true}};
+        mockExcludedTransactions.current = selectEntry(FIRST_CHILD_KEY);
+        const {result} = renderGroupChildren();
+        expect(result.current.transactions.map((row) => row.isSelected)).toEqual([false, true]);
     });
 
     it('marks only the individually selected rows when the group itself is not selected', () => {

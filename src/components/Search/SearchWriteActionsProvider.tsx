@@ -175,8 +175,8 @@ function useReconcileSelectionWithData({
                 }
 
                 const reportKey = transactionGroup.keyForList;
-                // Only groups that carry no rows here. A group that does carry them has just been rebuilt from them, so anything missing is gone.
-                if (reportKey && transactionGroup.transactions.length === 0) {
+                // Only group-by groups that carry no rows, since anything missing from a group that does carry them is gone for real.
+                if (reportKey && !isExpenseReportType && transactionGroup.transactions.length === 0 && transactionGroup.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                     presentGroupKeys.add(reportKey);
                 }
                 if (shouldReconcileExcludedTransactions && reportKey && transactionGroup.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -467,7 +467,14 @@ function SearchWriteActionsProvider({
     // Built once (by construction, not by React Compiler) so the register effect can't loop.
     const [shiftRangeChildrenActions] = useState<SearchShiftRangeChildrenActions>(() => ({
         // Compared by value: an equal array must not re-register and re-render every row, but changed rows must replace the stale copy.
-        registerGroupChildren: (groupKey, groupChildren) => setGroupChildrenByKey((prev) => (deepEqual(prev[groupKey], groupChildren) ? prev : {...prev, [groupKey]: groupChildren})),
+        registerGroupChildren: (groupKey, groupChildren) =>
+            setGroupChildrenByKey((prev) => {
+                // A group with nothing to publish and nothing published before needs no entry, and writing one re-renders every row.
+                if (deepEqual(prev[groupKey], groupChildren) || (!(groupKey in prev) && groupChildren.length === 0)) {
+                    return prev;
+                }
+                return {...prev, [groupKey]: groupChildren};
+            }),
         addGroupToRange: (groupKey) =>
             setOpenGroupKeys((prev) => {
                 if (prev.has(groupKey)) {
@@ -559,7 +566,8 @@ function SearchWriteActionsProvider({
         if (!isTransactionListItemType(row) || !row.keyForList) {
             return {};
         }
-        if (isTransactionPendingDelete(row)) {
+        // Only select-all-matching can express a deselection as an exclusion. A group selected on its own is written out instead.
+        if (!areAllMatchingItemsSelected || isTransactionPendingDelete(row)) {
             return {};
         }
         const selectedTransactions = getSelectedTransactions();
@@ -734,7 +742,8 @@ function SearchWriteActionsProvider({
             if (!isEmptyObject(clickExclusion)) {
                 applySelection((selectedTransactions) => selectedTransactions, {
                     totalSelectableItemsCount,
-                    shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    shouldPreserveAllMatchingSelection: true,
+                    shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
                     deselectedWithoutEntry: clickExclusion,
                 });
                 return;

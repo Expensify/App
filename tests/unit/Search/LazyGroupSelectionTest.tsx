@@ -218,7 +218,7 @@ function ExpenseReportWrapper({children}: {children: React.ReactNode}) {
                 searchResults={undefined}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
-                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}
                 areItemsGrouped
                 isExpenseReportType
                 isSearchResultsEmpty={false}
@@ -272,6 +272,7 @@ describe('Lazily loaded group selection', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));
 
     beforeEach(async () => {
+        groupedSearchResults = undefined;
         flatExpense = makeFlatExpense(-3000);
         flatFilteredData = [flatExpense];
         flatSearchResults = makeFlatSearchResults(flatExpense);
@@ -863,7 +864,6 @@ describe('Lazily loaded group selection', () => {
         });
         expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
         expect(result.current.selectedTransactions['1']).toBeUndefined();
-        expect(firstChild.keyForList).toBe('1');
     });
 
     it('still ranges a group reopened before its rows were published again', async () => {

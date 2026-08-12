@@ -23,7 +23,7 @@ describe('useOpenGroupsForShiftRange', () => {
         expect(addGroupToRange).toHaveBeenCalledWith('group-2');
     });
 
-    it('closes the group that collapsed and reopens the rest', () => {
+    it('closes only the group that collapsed, leaving the ones that stayed open alone', () => {
         const {addGroupToRange, removeGroupFromRange, wrapper} = setup();
         const {rerender} = renderHook(({openGroupKeys}) => useOpenGroupsForShiftRange(openGroupKeys), {
             wrapper,
@@ -32,8 +32,21 @@ describe('useOpenGroupsForShiftRange', () => {
         addGroupToRange.mockClear();
         rerender({openGroupKeys: new Set(['group-2'])});
         expect(removeGroupFromRange).toHaveBeenCalledWith('group-1');
-        expect(addGroupToRange).toHaveBeenCalledWith('group-2');
-        expect(addGroupToRange).not.toHaveBeenCalledWith('group-1');
+        expect(removeGroupFromRange).not.toHaveBeenCalledWith('group-2');
+        expect(addGroupToRange).not.toHaveBeenCalled();
+    });
+
+    it('opens only the group that expanded, rather than churning the whole set', () => {
+        const {addGroupToRange, removeGroupFromRange, wrapper} = setup();
+        const {rerender} = renderHook(({openGroupKeys}) => useOpenGroupsForShiftRange(openGroupKeys), {
+            wrapper,
+            initialProps: {openGroupKeys: new Set(['group-1', 'group-2'])},
+        });
+        addGroupToRange.mockClear();
+        rerender({openGroupKeys: new Set(['group-1', 'group-2', 'group-3'])});
+        expect(addGroupToRange).toHaveBeenCalledTimes(1);
+        expect(addGroupToRange).toHaveBeenCalledWith('group-3');
+        expect(removeGroupFromRange).not.toHaveBeenCalled();
     });
 
     it('closes every open group when the view goes away, since the provider outlives it', () => {

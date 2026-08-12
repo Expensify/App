@@ -1,4 +1,6 @@
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
+import {isRowChecked} from '@components/Search/selectionBuilders';
+import type {SelectedTransactions} from '@components/Search/types';
 
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -8,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import {getSections, isTransactionListItemType} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {SearchListItem, TransactionListItemType} from './types';
 
@@ -60,7 +63,7 @@ function useGroupChildrenForShiftRange({groupKey, isExpenseReportType, groupTran
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {selectedTransactions} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
 
     // Selection-independent on purpose: folding isSelected in would churn the registered children on every selection change.
     const rangeChildren: TransactionListItemType[] = isExpenseReportType
@@ -92,7 +95,14 @@ function useGroupChildrenForShiftRange({groupKey, isExpenseReportType, groupTran
         ? rangeChildren
         : rangeChildren.map((transactionItem) => ({
               ...transactionItem,
-              isSelected: isGroupSelected || selectedTransactionIDsSet.has(transactionItem.transactionID),
+              isSelected:
+                  isRowChecked({
+                      rowKey: transactionItem.keyForList,
+                      parentGroupKey: groupKey,
+                      selectedTransactions,
+                      excludedTransactions,
+                      areAllMatchingItemsSelected,
+                  }) || selectedTransactionIDsSet.has(transactionItem.transactionID),
               selectionGroupKey: groupKey,
           }));
 

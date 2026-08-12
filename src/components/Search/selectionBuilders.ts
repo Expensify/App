@@ -338,8 +338,15 @@ type RowCheckedParams = {
 
 /** Whether a row's checkbox reads as checked, which is what a click has to toggle and what a range has to give back. */
 function isRowChecked({rowKey, parentGroupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: RowCheckedParams): boolean {
-    const isExcluded = Object.hasOwn(excludedTransactions, rowKey) || (!!parentGroupKey && Object.hasOwn(excludedTransactions, parentGroupKey));
-    return (areAllMatchingItemsSelected && !isExcluded) || !!selectedTransactions[rowKey]?.isSelected;
+    // An entry of its own wins, since a row picked individually is not covered by anything wider.
+    if (selectedTransactions[rowKey]?.isSelected) {
+        return true;
+    }
+    if (Object.hasOwn(excludedTransactions, rowKey) || (!!parentGroupKey && Object.hasOwn(excludedTransactions, parentGroupKey))) {
+        return false;
+    }
+    // Otherwise it is checked by whatever covers it: every matching item, or its group being selected as a whole.
+    return areAllMatchingItemsSelected || !!(parentGroupKey && selectedTransactions[parentGroupKey]?.isSelected);
 }
 
 /** A group contributes rows only while it is open. `group.transactions` is not a fallback: a closed group still carries its loaded rows. */
