@@ -1953,6 +1953,7 @@ function handleBulkPayItemSelected(params: {
     confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: BulkPaySelectionData) => void;
     setPendingPaymentAdditionalData?: (data: BulkPaySelectionData | undefined) => void;
     currentUserAccountID: number;
+    isOffline: boolean;
 }) {
     const {
         item,
@@ -1972,10 +1973,19 @@ function handleBulkPayItemSelected(params: {
         ownerBillingGracePeriodEnd,
         setPendingPaymentAdditionalData,
         currentUserAccountID,
+        isOffline,
     } = params;
     const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, businessBankAccountOptions, policy?.id);
     // Early return if item is not a valid payment method and not a policy-based payment option
     if (!isValidBulkPayOption(item) && !policyFromPaymentMethod) {
+        return;
+    }
+
+    // While offline, route every payment method straight to the offline modal via confirmPayment (onBulkPaySelected),
+    // before any branch below can navigate the user into a KYC / account-verification / add-bank-account / restricted-action flow.
+    if (isOffline) {
+        Log.info('[BulkPay] Blocking bulk pay: offline, deferring to the offline modal');
+        confirmPayment?.(paymentType as PaymentMethodType, item?.additionalData as BulkPaySelectionData | undefined);
         return;
     }
 

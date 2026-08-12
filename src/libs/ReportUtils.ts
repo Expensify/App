@@ -147,14 +147,7 @@ import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
 import {getBankAccountLastFourDigits} from './PaymentUtils';
 import Permissions from './Permissions';
-import {
-    getAccountIDsByLogins,
-    getAllPersonalDetailLogins,
-    getDisplayNameOrDefault,
-    getLoginByAccountID,
-    getPersonalDetailByEmail,
-    temporaryGetDisplayNameOrDefault,
-} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {
     canSendInvoiceFromWorkspace,
     getActivePolicies,
@@ -245,6 +238,7 @@ import {
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
 import {deprecatedGetReportName, getGroupChatName, getInvoicePayerName, getInvoiceReportName} from './ReportNameUtils';
+import {getAllPersonalDetailLogins} from './ShortMentionLogins';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {isTaskCompleted} from './TaskUtils';
 import {
@@ -546,12 +540,36 @@ type OptimisticSubmittedReportAction = Pick<
 
 type OptimisticHoldReportAction = Pick<
     ReportAction,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'isAttachmentOnly'
+    | 'originalMessage'
+    | 'message'
+    | 'person'
+    | 'reportActionID'
+    | 'shouldShow'
+    | 'created'
+    | 'pendingAction'
+    | 'delegateAccountID'
 >;
 
 type OptimisticRejectReportAction = Pick<
     ReportAction,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'isAttachmentOnly'
+    | 'originalMessage'
+    | 'message'
+    | 'person'
+    | 'reportActionID'
+    | 'shouldShow'
+    | 'created'
+    | 'pendingAction'
+    | 'delegateAccountID'
 >;
 
 type OptimisticReopenedReportAction = Pick<
@@ -5342,7 +5360,8 @@ function canEditFieldOfMoneyRequest({
             return canUnreportedBeMoved(transaction, allPolicies);
         }
 
-        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, reportNameValuePairs)) {
+        const moneyRequestReportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport.reportID}`];
+        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, moneyRequestReportNameValuePair)) {
             return false;
         }
 
@@ -5371,7 +5390,7 @@ function canEditFieldOfMoneyRequest({
         }
 
         // Check the cheaper condition first
-        if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, reportNameValuePairs)) {
+        if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, moneyRequestReportNameValuePair)) {
             return true;
         }
 
@@ -5504,6 +5523,7 @@ const changeMoneyRequestHoldStatus = (
     currentUserAccountID: number,
     transactionViolations: OnyxEntry<TransactionViolations>,
     isTrackIntentUser: boolean | undefined,
+    delegateAccountID: number | undefined,
 ): void => {
     if (!isMoneyRequestAction(reportAction)) {
         return;
@@ -5527,7 +5547,7 @@ const changeMoneyRequestHoldStatus = (
 
     if (isOnHold) {
         if (reportAction.childReportID) {
-            unholdRequest(transactionID, reportAction.childReportID, policy, isOffline, currentUserLogin, currentUserAccountID, transactionViolations, isTrackIntentUser);
+            unholdRequest(transactionID, reportAction.childReportID, policy, isOffline, currentUserLogin, currentUserAccountID, transactionViolations, isTrackIntentUser, delegateAccountID);
         } else {
             Log.warn('Missing reportAction.childReportID during money request unhold');
         }
@@ -8481,7 +8501,7 @@ function buildOptimisticRoomAvatarUpdatedReportAction(avatarURL: string): Optimi
  * Returns the necessary reportAction onyx data to indicate that the transaction has been put on hold optimistically
  * @param [created] - Action created time
  */
-function buildOptimisticHoldReportAction(created = DateUtils.getDBTime()): OptimisticHoldReportAction {
+function buildOptimisticHoldReportAction(delegateAccountID: number | undefined, created = DateUtils.getDBTime()): OptimisticHoldReportAction {
     return {
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
@@ -8505,6 +8525,7 @@ function buildOptimisticHoldReportAction(created = DateUtils.getDBTime()): Optim
         avatar: getCurrentUserAvatar(),
         created,
         shouldShow: true,
+        delegateAccountID,
     };
 }
 
@@ -8512,7 +8533,7 @@ function buildOptimisticHoldReportAction(created = DateUtils.getDBTime()): Optim
  * Returns the necessary reportAction onyx data to indicate that the transaction has been put on hold optimistically
  * @param [created] - Action created time
  */
-function buildOptimisticHoldReportActionComment(comment: string, created = DateUtils.getDBTime()): OptimisticHoldReportAction {
+function buildOptimisticHoldReportActionComment(comment: string, delegateAccountID: number | undefined, created = DateUtils.getDBTime()): OptimisticHoldReportAction {
     return {
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -8536,6 +8557,7 @@ function buildOptimisticHoldReportActionComment(comment: string, created = DateU
         avatar: getCurrentUserAvatar(),
         created,
         shouldShow: true,
+        delegateAccountID,
     };
 }
 
@@ -8543,7 +8565,7 @@ function buildOptimisticHoldReportActionComment(comment: string, created = DateU
  * Returns the necessary reportAction onyx data to indicate that the transaction has been removed from hold optimistically
  * @param [created] - Action created time
  */
-function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): OptimisticHoldReportAction {
+function buildOptimisticUnHoldReportAction(delegateAccountID: number | undefined, created = DateUtils.getDBTime()): OptimisticHoldReportAction {
     return {
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.UNHOLD,
@@ -8567,6 +8589,7 @@ function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): Opt
         avatar: getCurrentUserAvatar(),
         created,
         shouldShow: true,
+        delegateAccountID,
     };
 }
 
@@ -12058,7 +12081,7 @@ function isReportOutstanding(
     iouReport: OnyxInputOrEntry<Report>,
     policyID: string | undefined,
     // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reportNameValuePair?: OnyxInputOrEntry<ReportNameValuePairs>,
     allowSubmitted = true,
 ): boolean {
     if (
@@ -12072,8 +12095,8 @@ function isReportOutstanding(
     ) {
         return false;
     }
-    const reportNameValuePair = (reportNameValuePairs ?? allReportNameValuePair)?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
-    if (isArchivedReport(reportNameValuePair)) {
+    const resolvedReportNameValuePair = reportNameValuePair ?? allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
+    if (isArchivedReport(resolvedReportNameValuePair)) {
         return false;
     }
     const currentRoute = navigationRef.getCurrentRoute();
@@ -12106,7 +12129,7 @@ function getOutstandingReportsForUser(
     return Object.values(reports).filter(
         (report) =>
             report?.pendingFields?.preview !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-            isReportOutstanding(report, policyID, reportNameValuePairs, allowSubmitted) &&
+            isReportOutstanding(report, policyID, reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`], allowSubmitted) &&
             report?.ownerAccountID === reportOwnerAccountID,
     );
 }
@@ -13452,7 +13475,7 @@ function selectFilteredReportActions(
  * Returns the necessary reportAction onyx data to indicate that the transaction has been rejected optimistically
  * @param [created] - Action created time
  */
-function buildOptimisticRejectReportAction(created = DateUtils.getDBTime()): OptimisticRejectReportAction {
+function buildOptimisticRejectReportAction(delegateAccountID: number | undefined, created = DateUtils.getDBTime()): OptimisticRejectReportAction {
     return {
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD,
@@ -13476,6 +13499,7 @@ function buildOptimisticRejectReportAction(created = DateUtils.getDBTime()): Opt
         avatar: getCurrentUserAvatar(),
         created,
         shouldShow: true,
+        delegateAccountID,
     };
 }
 
@@ -13483,7 +13507,7 @@ function buildOptimisticRejectReportAction(created = DateUtils.getDBTime()): Opt
  * Returns the necessary reportAction onyx data to indicate that the transaction has been rejected optimistically
  * @param [created] - Action created time
  */
-function buildOptimisticRejectReportActionComment(comment: string, created = DateUtils.getDBTime()): OptimisticRejectReportAction {
+function buildOptimisticRejectReportActionComment(comment: string, delegateAccountID: number | undefined, created = DateUtils.getDBTime()): OptimisticRejectReportAction {
     return {
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -13507,6 +13531,7 @@ function buildOptimisticRejectReportActionComment(comment: string, created = Dat
         avatar: getCurrentUserAvatar(),
         created,
         shouldShow: true,
+        delegateAccountID,
     };
 }
 
@@ -13519,6 +13544,7 @@ function buildOptimisticReportLevelRejectAction(
     actorAccountID: number | undefined,
     currentUserDisplayName: string | undefined,
     currentUserAvatarSource: AvatarSource | undefined,
+    delegateAccountID: number | undefined,
     created = DateUtils.getDBTime(),
 ): OptimisticRejectReportAction {
     return {
@@ -13544,6 +13570,7 @@ function buildOptimisticReportLevelRejectAction(
         avatar: currentUserAvatarSource,
         created,
         shouldShow: true,
+        delegateAccountID,
     };
 }
 
@@ -13555,6 +13582,7 @@ function buildOptimisticReportLevelRejectCommentAction(
     actorAccountID: number | undefined,
     currentUserDisplayName: string | undefined,
     currentUserAvatarSource: AvatarSource | undefined,
+    delegateAccountID: number | undefined,
     created = DateUtils.getDBTime(),
 ): OptimisticRejectReportAction {
     return {
@@ -13580,6 +13608,7 @@ function buildOptimisticReportLevelRejectCommentAction(
         avatar: currentUserAvatarSource,
         created,
         shouldShow: true,
+        delegateAccountID,
     };
 }
 
