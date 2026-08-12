@@ -15,6 +15,7 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 
 import createMockPaymentMethod from '../utils/collections/paymentMethods';
 import createRandomPolicy from '../utils/collections/policies';
+import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -135,6 +136,7 @@ describe('PaymentUtils', () => {
 
         const baseParams: SelectPaymentTypeParams = {
             event: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             iouPaymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             triggerKYCFlow: mockTriggerKYCFlow,
             expenseReportPolicy: testPolicy,
@@ -145,7 +147,6 @@ describe('PaymentUtils', () => {
             hasViolations: false,
             isASAPSubmitBetaEnabled: false,
             iouReport: {reportID: '1'} as Report,
-            iouReportNextStep: undefined,
             betas: [],
             userBillingGracePeriodEnds: undefined,
             amountOwed: 0,
@@ -242,13 +243,13 @@ describe('PaymentUtils', () => {
             selectPaymentType(params);
 
             expect(approveMoneyRequest).toHaveBeenCalledWith({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
                 currentUserAccountIDParam: params.currentAccountID,
                 currentUserEmailParam: params.currentEmail,
                 hasViolations: params.hasViolations,
                 isASAPSubmitBetaEnabled: params.isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: params.iouReportNextStep,
                 betas: params.betas,
                 userBillingGracePeriodEnds: params.userBillingGracePeriodEnds,
                 amountOwed: 42,
@@ -272,13 +273,13 @@ describe('PaymentUtils', () => {
             selectPaymentType(params);
 
             expect(approveMoneyRequest).toHaveBeenCalledWith({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
                 currentUserAccountIDParam: params.currentAccountID,
                 currentUserEmailParam: params.currentEmail,
                 hasViolations: params.hasViolations,
                 isASAPSubmitBetaEnabled: params.isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: params.iouReportNextStep,
                 betas: params.betas,
                 userBillingGracePeriodEnds: params.userBillingGracePeriodEnds,
                 amountOwed: undefined,

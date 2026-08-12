@@ -57,6 +57,11 @@ type TagPickerProps = {
 
     /** Whether to add bottom safe area padding to the list (for edge-to-edge bottom-docked modals) */
     addBottomSafeAreaPadding?: boolean;
+    /**
+     * Optional override for whether to show GL codes. When omitted, TagPicker reads
+     * `showTagGLCodes && glCodes` from the policy in Onyx.
+     */
+    shouldShowGLCode?: boolean;
 };
 
 const getSelectedOptions = (selectedTag: string): SelectedTagOption[] => {
@@ -84,8 +89,13 @@ function TagPicker({
     onSubmit,
     additionalTagsToInclude,
     addBottomSafeAreaPadding = false,
+    shouldShowGLCode: shouldShowGLCodeProp,
 }: TagPickerProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [shouldShowGLCodeFromPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        selector: (policy) => !!policy?.showTagGLCodes && !!policy?.glCodes,
+    });
+    const shouldShowGLCode = shouldShowGLCodeProp ?? shouldShowGLCodeFromPolicy;
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -150,6 +160,7 @@ function TagPicker({
         recentlyUsedTags: policyRecentlyUsedTagsList,
         localeCompare,
         translate,
+        shouldShowGLCode,
     });
     const sections = shouldOrderListByTagName
         ? tagSections.map((option) => ({

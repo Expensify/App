@@ -118,10 +118,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                 <>
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb2]}>
                         <Text style={[styles.exportDownloadTitle, styles.flexShrink1]}>{translate('exportDownload.preparingTitle')}</Text>
-                        <ActivityIndicator
-                            size="small"
-                            reasonAttributes={{context: 'ExportDownloadStatusModal.preparing'}}
-                        />
+                        <ActivityIndicator size="small" />
                     </View>
                     <Text style={styles.mb5}>{translate('exportDownload.preparingBody')}</Text>
                     <Button

@@ -26,7 +26,6 @@ import {
 } from '@libs/PolicyUtils';
 import type {PolicyFeature, PolicyFeatureAccess} from '@libs/PolicyUtils';
 import {canCreateRequest} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -249,12 +248,7 @@ function AccessOrNotFoundWrapper({
     }, [isLoadingReportData, isPolicyNotAccessible]);
 
     if (shouldShowFullScreenLoadingIndicator) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'AccessOrNotFoundWrapper',
-            isLoadingReportData,
-            isPolicyEmpty: !Object.entries(policy ?? {}).length || !policy?.id,
-        };
-        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullscreenLoadingIndicator />;
     }
     if (shouldShowNotFoundPage) {
         return (

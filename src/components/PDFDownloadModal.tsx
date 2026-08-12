@@ -5,8 +5,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import CONST from '@src/CONST';
 
 import React, {useEffect, useRef} from 'react';
@@ -29,9 +27,6 @@ type PDFDownloadModalProps = {
 
     /** Downloads the generated PDF; called on auto-download and on the download button press */
     onDownloadPDF: () => void;
-
-    /** Telemetry context for the loading indicator's skeleton span */
-    loadingReasonContext: string;
 
     /** Whether pressing the download button also closes the modal */
     shouldCloseOnDownload?: boolean;
@@ -61,7 +56,6 @@ function PDFDownloadModal({
     hasFinishedPDFDownload,
     message,
     onDownloadPDF,
-    loadingReasonContext,
     shouldCloseOnDownload = false,
     shouldUseSuccessButton = false,
     isVisible,
@@ -91,10 +85,6 @@ function PDFDownloadModal({
         shouldAutoDownloadPDF.current = false;
     }, [hasFinishedPDFDownload, isVisible, onDownloadPDF]);
 
-    const pdfLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: loadingReasonContext,
-    };
-
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.flexRow, styles.m5]});
 
     return (
@@ -123,7 +113,6 @@ function PDFDownloadModal({
                                     size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
                                     color={theme.textSupporting}
                                     style={styles.ml3}
-                                    reasonAttributes={pdfLoadingReasonAttributes}
                                 />
                             </View>
                         )}

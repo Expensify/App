@@ -10,7 +10,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getUAForWebView from '@libs/getUAForWebView';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import PersonalCardsErrorConfirmation from '@pages/settings/Wallet/PersonalCards/PersonalCardsErrorConfirmation';
 import useGetNewPersonalCard from '@pages/settings/Wallet/PersonalCards/useGetNewPersonalCard';
@@ -45,17 +44,8 @@ function BankConnection() {
     const onImportPlaidAccounts = useImportPersonalPlaidAccounts();
     const newCard = useGetNewPersonalCard();
     const isNewCardError = !isEmptyObject(addNewCard?.errors);
-    const fullscreenReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'PersonalCardBankConnection',
-    };
-    const activityReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'PersonalCardBankConnection',
-        isConnectionCompleted,
-        isPlaid,
-        isNewCardError,
-    };
 
-    const renderLoading = () => <LoadingIndicator reasonAttributes={fullscreenReasonAttributes} />;
+    const renderLoading = () => <LoadingIndicator />;
 
     const handleBackButtonPress = () => {
         setAddNewPersonalCardStepAndData({step: CONST.PERSONAL_CARDS.STEP.SELECT_BANK});
@@ -119,7 +109,6 @@ function BankConnection() {
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}
-                        reasonAttributes={activityReasonAttributes}
                     />
                 )}
                 {isNewCardError && <PersonalCardsErrorConfirmation />}

@@ -83,6 +83,13 @@ If you want to run the app on an actual physical iOS device, please follow the i
 - To point the **Development Simulator** at your local VM, follow [these steps](https://stackoverflow.com/c/expensify/questions/7699).
 - You must configure the local dev email account; follow [these instructions](https://stackoverflowteams.com/c/expensify/questions/23537/23538#23538).
 
+## Prebuilt React Native Artifacts
+
+HybridApp iOS builds download a prebuilt `react-native` from GitHub Packages instead of compiling it,
+which requires an authenticated GitHub CLI. See [Prebuilt React Native Artifacts](PREBUILT_REACT_NATIVE_ARTIFACTS.md)
+for the setup and for how to compile from source instead. Standalone NewDot is not supported yet and
+always compiles `react-native` from source.
+
 ## Push Notifications Setup
 
 To receive mobile push notifications in the development build while hitting the Staging or Production API, you need to use the production airship config.
