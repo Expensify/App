@@ -2,6 +2,7 @@ import ConnectionStatusBadge from '@components/ConnectionStatusBadge';
 import ConnectionStatusMessage from '@components/ConnectionStatusMessage';
 import Hoverable from '@components/Hoverable';
 import getBankIcon from '@components/Icon/BankIcons';
+import type {BankName} from '@components/Icon/BankIconsUtils';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -40,11 +41,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import type {TupleToUnion} from 'type-fest';
+
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 
 import WorkflowsSectionCard from './WorkflowsSectionCard';
+
+type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 type WorkflowsPaymentsTabProps = {
     policyID: string;
@@ -141,7 +146,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const isBankAccountPendingDelete = bankAccountPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const bankIcon = getBankIcon({
-        bankName,
+        bankName: bankName as BankName,
         isCard: false,
         styles,
     });
@@ -323,7 +328,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                         showLockedAccountModal();
                                         return;
                                     }
-                                    if (!isCurrencySupportedForGlobalReimbursement(policy?.outputCurrency ?? '')) {
+                                    if (!isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType)) {
                                         if (!isPolicyAdmin(policy, currentUserLogin)) {
                                             showAddBankAccountPermissionModal();
                                             return;

@@ -1,12 +1,12 @@
 import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
-import type {BankNameKey} from '@src/types/onyx/Bank';
+import type {BankName, BankNameKey} from '@src/types/onyx/Bank';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type BankIconParams = {
     styles: ThemeStyles;
-    bankName?: string;
+    bankName?: BankName;
     isCard?: boolean;
     maxIconSize?: number;
 };
@@ -81,4 +81,4 @@ function getBankNameKey(bankName: string): BankNameKey {
 }
 
 export {getBankIconAsset, getBankNameKey};
-export type {BankIconParams};
+export type {BankName, BankIconParams};
