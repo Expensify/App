@@ -197,7 +197,6 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: '至',
         genericErrorMessage: '哎呀……出现问题，无法完成您的请求。请稍后重试。',
         percentage: '百分比',
-        progressBarLabel: '入门进度',
         converted: '已转换',
         error: {
             invalidAmount: '金额无效',
@@ -1822,14 +1821,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                requiredDepositCurrency?: string,
             ) => {
+                const account = requiredDepositCurrency ? `${requiredDepositCurrency} 银行账户` : '银行账户';
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你</strong>添加银行账户。`;
+                        return `正在等待<strong>你</strong>添加${account}。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 添加银行账户。`;
+                        return `正在等待 <strong>${actor}</strong> 添加${account}。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `正在等待管理员添加银行账户。`;
+                        return `正在等待管理员添加${account}。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
