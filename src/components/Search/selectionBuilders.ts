@@ -317,8 +317,15 @@ function isGroupSelected(selection: SelectedTransactions, groupKey: string | und
     return children.some((child) => !!selection[child.keyForList]?.isSelected);
 }
 
-/** A group's children are the ones it registered while open. `group.transactions` is not a fallback: a closed group still carries its loaded rows. */
-function resolveGroupChildren(group: TransactionGroupListItemType, groupChildrenByKey: Record<string, TransactionListItemType[]>): TransactionListItemType[] {
+/** A group contributes rows only while it is open. `group.transactions` is not a fallback: a closed group still carries its loaded rows. */
+function resolveGroupChildren(
+    group: TransactionGroupListItemType,
+    groupChildrenByKey: Record<string, TransactionListItemType[]>,
+    openGroupKeys: ReadonlySet<string>,
+): TransactionListItemType[] {
+    if (!openGroupKeys.has(group.keyForList)) {
+        return [];
+    }
     return groupChildrenByKey[group.keyForList] ?? [];
 }
 
@@ -326,11 +333,16 @@ function resolveGroupChildren(group: TransactionGroupListItemType, groupChildren
  * Flattened source (each group header followed by its children, in visual order) that shift-range ranges over. Flattens only in
  * group-by views, and only over the children an open group registered. Expense-report and flat views pass through.
  */
-function buildShiftRangeItems(sortedData: SearchListItem[], groupChildrenByKey: Record<string, TransactionListItemType[]>, groupsAreHeaders: boolean): SearchListItem[] {
+function buildShiftRangeItems(
+    sortedData: SearchListItem[],
+    groupChildrenByKey: Record<string, TransactionListItemType[]>,
+    openGroupKeys: ReadonlySet<string>,
+    groupsAreHeaders: boolean,
+): SearchListItem[] {
     if (!groupsAreHeaders || !isGroupedItemArray(sortedData)) {
         return sortedData;
     }
-    return sortedData.flatMap((group) => [group, ...resolveGroupChildren(group, groupChildrenByKey)]);
+    return sortedData.flatMap((group) => [group, ...resolveGroupChildren(group, groupChildrenByKey, openGroupKeys)]);
 }
 
 type GroupChildrenIndex = {
@@ -348,7 +360,12 @@ type GroupChildrenIndex = {
  * Parent/child lookups over the same rows `buildShiftRangeItems` flattens, so the range and the selection agree on who owns a row.
  * Empty outside group-by views, where the list holds no child rows to attribute to a parent.
  */
-function buildGroupChildrenIndex(sortedData: SearchListItem[], groupChildrenByKey: Record<string, TransactionListItemType[]>, groupsAreHeaders: boolean): GroupChildrenIndex {
+function buildGroupChildrenIndex(
+    sortedData: SearchListItem[],
+    groupChildrenByKey: Record<string, TransactionListItemType[]>,
+    openGroupKeys: ReadonlySet<string>,
+    groupsAreHeaders: boolean,
+): GroupChildrenIndex {
     const childrenByGroupKey = new Map<string, TransactionListItemType[]>();
     const groupKeyByChildKey = new Map<string, string>();
     const childCountByGroupKey = new Map<string, number>();
@@ -359,7 +376,7 @@ function buildGroupChildrenIndex(sortedData: SearchListItem[], groupChildrenByKe
         if (!group.keyForList) {
             continue;
         }
-        const children = resolveGroupChildren(group, groupChildrenByKey);
+        const children = resolveGroupChildren(group, groupChildrenByKey, openGroupKeys);
         childrenByGroupKey.set(group.keyForList, children);
         if ('count' in group && typeof group.count === 'number') {
             childCountByGroupKey.set(group.keyForList, group.count);

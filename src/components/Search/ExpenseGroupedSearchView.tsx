@@ -15,7 +15,7 @@ import type {Transaction} from '@src/types/onyx';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useImperativeHandle, useState} from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
@@ -24,12 +24,12 @@ import type {SearchQueryJSON, SelectedTransactions} from './types';
 import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
 import SelectionTopBar from './primitives/SelectionTopBar';
-import {useSearchShiftRangeChildren} from './SearchContext';
 import BaseSearchList from './SearchList/BaseSearchList';
 import GroupChildrenContainer from './SearchList/ListItem/GroupChildrenContainer';
 import GroupHeader from './SearchList/ListItem/GroupHeader';
 import TransactionGroupListItem from './SearchList/ListItem/TransactionGroupListItem';
 import {isGroupChildrenContainerItem, isGroupHeaderItem} from './SearchList/ListItem/types';
+import useOpenGroupsForShiftRange from './SearchList/ListItem/useOpenGroupsForShiftRange';
 import SearchListViewLayout from './SearchListViewLayout';
 
 type ExpenseGroupedSearchViewProps = CommonSearchViewProps & TransactionViewExtras;
@@ -41,6 +41,8 @@ const isRowDeleted = (item: SearchListItem) => item.pendingAction === CONST.RED_
 const isGroupRowExiting = (item: SearchListItem) => isRowDeleted(item) || (isTransactionGroupListItemType(item) && item.transactions.length > 0 && item.transactions.every(isRowDeleted));
 
 const isRowSelected = (key: string | undefined, selectedTransactions: SelectedTransactions) => !!(key && selectedTransactions[key]?.isSelected);
+
+const NO_OPEN_GROUPS: ReadonlySet<string> = new Set();
 
 /**
  * On wide web layouts each group is split into a sticky header row plus a children-container row, so the
@@ -135,42 +137,8 @@ function ExpenseGroupedSearchView({
             return next;
         });
 
-    // Pruning lives here because a sticky header can be collapsed while its children row is recycled out of the tree.
-    const {unregisterGroupChildren} = useSearchShiftRangeChildren();
-    const previouslyExpandedGroupsRef = useRef(expandedGroups);
-    useEffect(() => {
-        for (const key of previouslyExpandedGroupsRef.current) {
-            if (!expandedGroups.has(key)) {
-                unregisterGroupChildren(key);
-            }
-        }
-        previouslyExpandedGroupsRef.current = expandedGroups;
-    }, [expandedGroups, unregisterGroupChildren]);
-
-    // The provider outlives this view, so anything still registered when it unmounts (groupBy cleared, chart view) would linger.
-    useEffect(
-        () => () => {
-            for (const key of previouslyExpandedGroupsRef.current) {
-                unregisterGroupChildren(key);
-            }
-        },
-        [unregisterGroupChildren],
-    );
-
-    // Only leaving the split layout strands registrations, since those rows unmount without cleaning up.
-    const wasSplitRef = useRef(shouldSplit);
-    useEffect(() => {
-        if (wasSplitRef.current === shouldSplit) {
-            return;
-        }
-        wasSplitRef.current = shouldSplit;
-        if (shouldSplit) {
-            return;
-        }
-        for (const key of expandedGroups) {
-            unregisterGroupChildren(key);
-        }
-    }, [shouldSplit, expandedGroups, unregisterGroupChildren]);
+    // Only the split layout renders children as their own rows, so outside it no group contributes any to a range.
+    useOpenGroupsForShiftRange(shouldSplit ? expandedGroups : NO_OPEN_GROUPS);
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);

@@ -19,12 +19,6 @@ type UseGroupChildrenForShiftRangeArgs = {
     /** The group's original (un-prefixed) key, which children are registered under */
     groupKey: string;
 
-    /** Whether the group is open, which is what decides if its children join a range */
-    isExpanded: boolean;
-
-    /** Whether this component owns the group's expanded state, so the registration goes down with it */
-    shouldUnregisterOnUnmount: boolean;
-
     /** Whether this is the expense-report view, where the rows arrive ready to render */
     isExpenseReportType: boolean;
 
@@ -55,20 +49,10 @@ function getSnapshotTransactionRows(snapshotData: GetSectionsArgs['data'] | unde
 }
 
 /**
- * One source for a group's children across both grouped render paths: derives them, registers them for shift+click,
- * and returns the rows stamped with the live selection alongside the raw list.
+ * One source for a group's children across both grouped render paths: derives them, publishes them for shift+click,
+ * and returns them stamped with the live selection.
  */
-function useGroupChildrenForShiftRange({
-    groupKey,
-    isExpanded,
-    shouldUnregisterOnUnmount,
-    isExpenseReportType,
-    groupTransactions,
-    snapshotData,
-    bankAccountList,
-    cardFeeds,
-    conciergeReportID,
-}: UseGroupChildrenForShiftRangeArgs): {
+function useGroupChildrenForShiftRange({groupKey, isExpenseReportType, groupTransactions, snapshotData, bankAccountList, cardFeeds, conciergeReportID}: UseGroupChildrenForShiftRangeArgs): {
     transactions: TransactionListItemType[];
     isGroupSelected: boolean;
 } {
@@ -96,7 +80,7 @@ function useGroupChildrenForShiftRange({
               reportAttributesDerivedValue: undefined,
           });
 
-    useRegisterGroupChildrenForShiftRange(groupKey, rangeChildren, !isExpenseReportType && isExpanded, shouldUnregisterOnUnmount);
+    useRegisterGroupChildrenForShiftRange(groupKey, rangeChildren, !isExpenseReportType);
 
     const selectedTransactionIDsSet = new Set(Object.keys(selectedTransactions));
 

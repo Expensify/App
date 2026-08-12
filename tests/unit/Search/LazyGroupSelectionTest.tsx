@@ -16,7 +16,7 @@ import type * as ReactNavigation from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import {buildCategoryGroup, buildTransactionRow} from '../../utils/collections/searchListItems';
+import {buildCategoryGroup, buildReportGroup, buildTransactionRow} from '../../utils/collections/searchListItems';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => ({
@@ -181,6 +181,30 @@ function FlatWrapper({children}: {children: React.ReactNode}) {
     );
 }
 
+/** Expense-report views render report rows as the selectable unit, so a range spans reports rather than their children. */
+const reportGroups = [buildReportGroup(6, 'report-1', [buildChild(6, '6')]), buildReportGroup(7, 'report-2', [buildChild(7, '7')]), buildReportGroup(8, 'report-3', [])];
+
+function ExpenseReportWrapper({children}: {children: React.ReactNode}) {
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={reportGroups}
+                renderedData={reportGroups}
+                totalSelectableItemsCount={3}
+                searchResults={undefined}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                areItemsGrouped
+                isExpenseReportType
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
+
 const renderSelection = (wrapper: React.ComponentType<{children: React.ReactNode}> = Wrapper) =>
     renderHook(
         () => ({
@@ -201,6 +225,12 @@ const renderFlatSelection = () =>
         }),
         {wrapper: FlatWrapper},
     );
+
+/** What expanding a group does: publishes its loaded children and opens it to ranges. */
+function expandGroup(result: ReturnType<typeof renderSelection>['result'], groupKey: string, children: TransactionListItemType[]) {
+    result.current.registerGroupChildren(groupKey, children);
+    result.current.addGroupToRange(groupKey);
+}
 
 async function excludeFlatExpense(result: ReturnType<typeof renderFlatSelection>['result']) {
     await act(async () => {
@@ -267,7 +297,7 @@ describe('Lazily loaded group selection', () => {
 
         // Given a group whose children have loaded and been registered
         await act(async () => {
-            result.current.registerGroupChildren(GROUP_KEY, loadedChildren);
+            expandGroup(result, GROUP_KEY, loadedChildren);
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -297,7 +327,7 @@ describe('Lazily loaded group selection', () => {
         // Given a group selected while it was still collapsed, whose children have since loaded and been registered
         await act(async () => {
             result.current.toggle(categoryGroup, []);
-            result.current.registerGroupChildren(GROUP_KEY, loadedChildren);
+            expandGroup(result, GROUP_KEY, loadedChildren);
             await waitForBatchedUpdatesWithAct();
         });
         expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
@@ -321,7 +351,7 @@ describe('Lazily loaded group selection', () => {
         // Given a group selected while it was still collapsed, whose children have since loaded and been registered
         await act(async () => {
             result.current.toggle(categoryGroup, []);
-            result.current.registerGroupChildren(GROUP_KEY, loadedChildren);
+            expandGroup(result, GROUP_KEY, loadedChildren);
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -347,9 +377,9 @@ describe('Lazily loaded group selection', () => {
 
         // Given an expanded, unselected group above a group that was selected while it was still collapsed
         await act(async () => {
-            result.current.registerGroupChildren(EARLIER_GROUP_KEY, earlierChildren);
+            expandGroup(result, EARLIER_GROUP_KEY, earlierChildren);
             result.current.toggle(categoryGroup, []);
-            result.current.registerGroupChildren(GROUP_KEY, loadedChildren);
+            expandGroup(result, GROUP_KEY, loadedChildren);
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -373,7 +403,7 @@ describe('Lazily loaded group selection', () => {
         // Given a group selected while it was still collapsed, whose three children have since loaded and been registered
         await act(async () => {
             result.current.toggle(categoryGroup, []);
-            result.current.registerGroupChildren(GROUP_KEY, threeLoadedChildren);
+            expandGroup(result, GROUP_KEY, threeLoadedChildren);
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -401,7 +431,7 @@ describe('Lazily loaded group selection', () => {
         // Given a group selected while it was still collapsed, whose children have since loaded and been registered
         await act(async () => {
             result.current.toggle(categoryGroup, []);
-            result.current.registerGroupChildren(GROUP_KEY, loadedChildren);
+            expandGroup(result, GROUP_KEY, loadedChildren);
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -423,7 +453,7 @@ describe('Lazily loaded group selection', () => {
         // Given a group of five selected while collapsed, of which only two rows have loaded so far
         await act(async () => {
             result.current.toggle(partiallyLoadedGroup, []);
-            result.current.registerGroupChildren(GROUP_KEY, loadedChildren);
+            expandGroup(result, GROUP_KEY, loadedChildren);
             await waitForBatchedUpdatesWithAct();
         });
         expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
@@ -445,7 +475,7 @@ describe('Lazily loaded group selection', () => {
 
         // Given a child selected in the group above, then the lower group selected while it was still collapsed
         await act(async () => {
-            result.current.registerGroupChildren(EARLIER_GROUP_KEY, earlierChildren);
+            expandGroup(result, EARLIER_GROUP_KEY, earlierChildren);
             result.current.toggle(earlierFirstChild);
             result.current.toggle(categoryGroup, []);
             await waitForBatchedUpdatesWithAct();
@@ -453,7 +483,7 @@ describe('Lazily loaded group selection', () => {
 
         // When that group's children load and a shift+click lands on its second child
         await act(async () => {
-            result.current.registerGroupChildren(GROUP_KEY, loadedChildren);
+            expandGroup(result, GROUP_KEY, loadedChildren);
             await waitForBatchedUpdatesWithAct();
         });
         await act(async () => {
@@ -478,7 +508,7 @@ describe('Lazily loaded group selection', () => {
 
         // When the group is re-expanded and a shift+click collapses the range onto the first child
         await act(async () => {
-            result.current.registerGroupChildren(GROUP_KEY, loadedChildren);
+            expandGroup(result, GROUP_KEY, loadedChildren);
             await waitForBatchedUpdatesWithAct();
         });
         await act(async () => {
@@ -499,8 +529,8 @@ describe('Lazily loaded group selection', () => {
 
         // Given a range that covers every row, and every matching item selected
         await act(async () => {
-            result.current.registerGroupChildren(EARLIER_GROUP_KEY, earlierChildren);
-            result.current.registerGroupChildren(GROUP_KEY, loadedChildren);
+            expandGroup(result, EARLIER_GROUP_KEY, earlierChildren);
+            expandGroup(result, GROUP_KEY, loadedChildren);
             result.current.toggle(earlierFirstChild);
             await waitForBatchedUpdatesWithAct();
         });
@@ -564,5 +594,131 @@ describe('Lazily loaded group selection', () => {
 
         expect(result.current.excludedTransactions).toEqual({});
         expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('forgets a block held for the next shift+click once an ordinary click starts a session of its own', async () => {
+        const {result} = renderSelection(TwoGroupWrapper);
+        const [earlierFirstChild] = earlierChildren;
+        const [, secondChild] = loadedChildren;
+
+        // Given a group clicked while its children were still unknown, which holds the block for the next shift+click
+        await act(async () => {
+            result.current.toggle(categoryGroup, []);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            expandGroup(result, EARLIER_GROUP_KEY, earlierChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When an ordinary click lands elsewhere first, and only then a shift+click
+        await act(async () => {
+            result.current.toggle(earlierFirstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the range runs from the row just clicked, rather than the stale block resurrecting and collapsing onto it
+        expect(result.current.selectedTransactions['3']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['4']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+    });
+
+    it('selects every report a range covers in an expense-report view', async () => {
+        const {result} = renderSelection(ExpenseReportWrapper);
+        const [firstReport, secondReport] = reportGroups;
+
+        // Given the first report clicked, then a shift+click on the second
+        await act(async () => {
+            result.current.toggle(firstReport, firstReport.transactions);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(secondReport, secondReport.transactions, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then both reports are selected through their child transactions, which is where a report row keeps its selection
+        expect(result.current.selectedTransactions['6']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['7']?.isSelected).toBe(true);
+    });
+
+    it('gives back the reports a range no longer covers in an expense-report view', async () => {
+        const {result} = renderSelection(ExpenseReportWrapper);
+        const [firstReport, secondReport, emptyReport] = reportGroups;
+
+        // Given a range stretched across all three reports
+        await act(async () => {
+            result.current.toggle(firstReport, firstReport.transactions);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(emptyReport, emptyReport.transactions, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['7']?.isSelected).toBe(true);
+
+        // When a second shift+click pulls the range back to the second report
+        await act(async () => {
+            result.current.toggle(secondReport, secondReport.transactions, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the report that fell out of the range is given back, rather than staying selected behind the range
+        expect(result.current.selectedTransactions['6']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['7']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['report-3']).toBeUndefined();
+    });
+
+    it('still ranges a group reopened before its rows were published again', async () => {
+        const {result} = renderSelection();
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given a group whose children loaded, then collapsed and reopened without the row republishing them
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.removeGroupFromRange(GROUP_KEY);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.addGroupToRange(GROUP_KEY);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a range runs across its rows
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then they are still reachable, because closing a group drops only its openness and not the rows it had published
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+    });
+
+    it('selects a report with no expenses of its own when a range reaches it', async () => {
+        const {result} = renderSelection(ExpenseReportWrapper);
+        const [firstReport, , emptyReport] = reportGroups;
+
+        // When a range stretches from the first report onto one that carries no expenses
+        await act(async () => {
+            result.current.toggle(firstReport, firstReport.transactions);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(emptyReport, emptyReport.transactions, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then it is selected under its own key, which is the only key an empty report has
+        expect(result.current.selectedTransactions['report-3']?.isSelected).toBe(true);
     });
 });

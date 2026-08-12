@@ -4,119 +4,63 @@ import {SearchShiftRangeChildrenContext} from '@components/Search/SearchContextD
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import useRegisterGroupChildrenForShiftRange from '@components/Search/SearchList/ListItem/useRegisterGroupChildrenForShiftRange';
 
-import CONST from '@src/CONST';
-
 import React from 'react';
 
-import createRandomTransaction from '../../utils/collections/transaction';
+import {buildTransactionRow} from '../../utils/collections/searchListItems';
 
-function makeChild(index: number, key: string): TransactionListItemType {
-    return {
-        ...createRandomTransaction(index),
-        errors: undefined,
-        report: undefined,
-        policy: undefined,
-        reportAction: undefined,
-        holdReportAction: undefined,
-        from: {accountID: index},
-        to: {accountID: index},
-        formattedFrom: '',
-        formattedTo: '',
-        formattedTotal: 0,
-        formattedMerchant: '',
-        date: '',
-        shouldShowMerchant: false,
-        shouldShowYear: false,
-        shouldShowYearSubmitted: false,
-        shouldShowYearApproved: false,
-        shouldShowYearPosted: false,
-        shouldShowYearExported: false,
-        isAmountColumnWide: false,
-        isTaxAmountColumnWide: false,
-        keyForList: key,
-        transactionID: key,
-        allActions: [CONST.SEARCH.ACTION_TYPES.VIEW],
-        action: CONST.SEARCH.ACTION_TYPES.VIEW,
-        canPay: false,
-        canApprove: false,
-        canSubmit: false,
-        canChangeApprover: false,
-    };
-}
-
-const CHILDREN: TransactionListItemType[] = [makeChild(1, 'a'), makeChild(2, 'b')];
+const CHILDREN: TransactionListItemType[] = [buildTransactionRow(1, 'a'), buildTransactionRow(2, 'b')];
 
 function setup() {
     const registerGroupChildren = jest.fn();
-    const unregisterGroupChildren = jest.fn();
+    const addGroupToRange = jest.fn();
+    const removeGroupFromRange = jest.fn();
     const wrapper = ({children}: {children: React.ReactNode}) => (
-        <SearchShiftRangeChildrenContext value={{registerGroupChildren, unregisterGroupChildren}}>{children}</SearchShiftRangeChildrenContext>
+        <SearchShiftRangeChildrenContext value={{registerGroupChildren, addGroupToRange, removeGroupFromRange}}>{children}</SearchShiftRangeChildrenContext>
     );
-    return {registerGroupChildren, unregisterGroupChildren, wrapper};
+    return {registerGroupChildren, addGroupToRange, removeGroupFromRange, wrapper};
 }
 
 describe('useRegisterGroupChildrenForShiftRange', () => {
-    it('registers the children under the group key when it should register and there are children', () => {
-        const {registerGroupChildren, unregisterGroupChildren, wrapper} = setup();
-        renderHook(() => useRegisterGroupChildrenForShiftRange('group-1', CHILDREN, true, false), {wrapper});
-        expect(registerGroupChildren).toHaveBeenCalledWith('group-1', CHILDREN);
-        expect(unregisterGroupChildren).not.toHaveBeenCalled();
-    });
-
-    it('unregisters (never registers) when shouldRegister is false', () => {
-        const {registerGroupChildren, unregisterGroupChildren, wrapper} = setup();
-        renderHook(() => useRegisterGroupChildrenForShiftRange('group-1', CHILDREN, false, false), {wrapper});
-        expect(registerGroupChildren).not.toHaveBeenCalled();
-        expect(unregisterGroupChildren).toHaveBeenCalledWith('group-1');
-    });
-
-    it('unregisters (never registers) when there are no children', () => {
-        const {registerGroupChildren, unregisterGroupChildren, wrapper} = setup();
-        renderHook(() => useRegisterGroupChildrenForShiftRange('group-1', [], true, false), {wrapper});
-        expect(registerGroupChildren).not.toHaveBeenCalled();
-        expect(unregisterGroupChildren).toHaveBeenCalledWith('group-1');
-    });
-
-    it('re-registers a group that collapses and expands again before the collapse animation ends', () => {
-        const {registerGroupChildren, unregisterGroupChildren, wrapper} = setup();
-        const {rerender} = renderHook(({shouldRegister}) => useRegisterGroupChildrenForShiftRange('group-1', CHILDREN, shouldRegister, false), {
-            wrapper,
-            initialProps: {shouldRegister: true},
-        });
-        rerender({shouldRegister: false});
-        expect(unregisterGroupChildren).toHaveBeenCalledWith('group-1');
-        rerender({shouldRegister: true});
-        expect(registerGroupChildren).toHaveBeenLastCalledWith('group-1', CHILDREN);
-    });
-
-    it('keeps the registration on unmount when the expanded state lives above the row, so FlashList recycling cannot drop it', () => {
-        const {unregisterGroupChildren, wrapper} = setup();
-        const {unmount} = renderHook(() => useRegisterGroupChildrenForShiftRange('group-1', CHILDREN, true, false), {wrapper});
-        unmount();
-        expect(unregisterGroupChildren).not.toHaveBeenCalled();
-    });
-
-    it('drops the registration on unmount when the row owns the expanded state, since that state unmounts with it', () => {
-        const {unregisterGroupChildren, wrapper} = setup();
-        const {unmount} = renderHook(() => useRegisterGroupChildrenForShiftRange('group-1', CHILDREN, true, true), {wrapper});
-        expect(unregisterGroupChildren).not.toHaveBeenCalled();
-        unmount();
-        expect(unregisterGroupChildren).toHaveBeenCalledWith('group-1');
-    });
-
-    it('keeps the old group registered when the row is recycled to render another group', () => {
-        const {registerGroupChildren, unregisterGroupChildren, wrapper} = setup();
-        const {rerender} = renderHook(({groupKey}) => useRegisterGroupChildrenForShiftRange(groupKey, CHILDREN, true, false), {wrapper, initialProps: {groupKey: 'group-1'}});
-        rerender({groupKey: 'group-2'});
-        expect(registerGroupChildren).toHaveBeenLastCalledWith('group-2', CHILDREN);
-        expect(unregisterGroupChildren).not.toHaveBeenCalled();
-    });
-
-    it('re-registers when the children change', () => {
+    it('publishes the children under the group key', () => {
         const {registerGroupChildren, wrapper} = setup();
-        const {rerender} = renderHook(({children}) => useRegisterGroupChildrenForShiftRange('group-1', children, true, false), {wrapper, initialProps: {children: CHILDREN}});
-        const nextChildren: TransactionListItemType[] = [...CHILDREN, makeChild(3, 'c')];
+        renderHook(() => useRegisterGroupChildrenForShiftRange('group-1', CHILDREN, true), {wrapper});
+        expect(registerGroupChildren).toHaveBeenCalledWith('group-1', CHILDREN);
+    });
+
+    it('publishes nothing where the rows are already part of the list', () => {
+        const {registerGroupChildren, wrapper} = setup();
+        renderHook(() => useRegisterGroupChildrenForShiftRange('group-1', CHILDREN, false), {wrapper});
+        expect(registerGroupChildren).not.toHaveBeenCalled();
+    });
+
+    it('publishes an empty list, so children that go away are not left behind', () => {
+        const {registerGroupChildren, wrapper} = setup();
+        renderHook(() => useRegisterGroupChildrenForShiftRange('group-1', [], true), {wrapper});
+        expect(registerGroupChildren).toHaveBeenCalledWith('group-1', []);
+    });
+
+    it('republishes when the children change', () => {
+        const {registerGroupChildren, wrapper} = setup();
+        const {rerender} = renderHook(({children}) => useRegisterGroupChildrenForShiftRange('group-1', children, true), {wrapper, initialProps: {children: CHILDREN}});
+        const nextChildren: TransactionListItemType[] = [...CHILDREN, buildTransactionRow(3, 'c')];
         rerender({children: nextChildren});
         expect(registerGroupChildren).toHaveBeenLastCalledWith('group-1', nextChildren);
+    });
+
+    it('publishes under the new key when the row is recycled to render another group', () => {
+        const {registerGroupChildren, wrapper} = setup();
+        const {rerender} = renderHook(({groupKey}) => useRegisterGroupChildrenForShiftRange(groupKey, CHILDREN, true), {wrapper, initialProps: {groupKey: 'group-1'}});
+        rerender({groupKey: 'group-2'});
+        expect(registerGroupChildren).toHaveBeenLastCalledWith('group-2', CHILDREN);
+    });
+
+    it('leaves the published children in place when the row unmounts, since the group may still be open', () => {
+        const {registerGroupChildren, addGroupToRange, removeGroupFromRange, wrapper} = setup();
+        const {unmount} = renderHook(() => useRegisterGroupChildrenForShiftRange('group-1', CHILDREN, true), {wrapper});
+        registerGroupChildren.mockClear();
+        unmount();
+        expect(registerGroupChildren).not.toHaveBeenCalled();
+        expect(removeGroupFromRange).not.toHaveBeenCalled();
+        expect(addGroupToRange).not.toHaveBeenCalled();
     });
 });

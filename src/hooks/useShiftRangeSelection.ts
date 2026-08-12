@@ -1,6 +1,6 @@
 import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 
-import {useEffect, useRef, useState} from 'react';
+import {useLayoutEffect, useRef, useState} from 'react';
 
 type Params<TItem> = {
     /** The rendered rows, in the order they appear on screen */
@@ -52,9 +52,9 @@ const IDLE: SessionState = {kind: 'idle'};
 
 /** Shift+click range selection. Consumers notify on plain clicks / select-all so the hook can resolve an anchor for the next shift+click. */
 function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
-    // The api methods are built once but read the latest params through this ref, refreshed after every commit.
+    // The api methods are built once and read the latest params here, refreshed during the commit so a click in the same frame as a re-render sees the current rows.
     const paramsRef = useRef(params);
-    useEffect(() => {
+    useLayoutEffect(() => {
         paramsRef.current = params;
     });
 

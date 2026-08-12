@@ -39,6 +39,8 @@ import {SearchRowSelectionActionsContext, SearchShiftRangeChildrenContext} from 
 import {useSyncSelectedReports} from './SearchSelectionProvider';
 import {buildGroupChildrenIndex, buildShiftRangeItems, isGroupSelected, mapEmptyReportToSelectedEntry, mapTransactionItemToSelectedEntry, prepareTransactionsList} from './selectionBuilders';
 
+const NO_OPEN_GROUPS: ReadonlySet<string> = new Set();
+
 type SearchWriteActionsProviderProps = {
     /** The currently displayed (filtered, grouped) rows. Screen-derived; the provider cannot recompute it. */
     filteredData: SearchData;
@@ -426,19 +428,32 @@ function SearchWriteActionsProvider({
     // Group-by children load lazily, so the rows that render them publish them here.
     const [groupChildrenByKey, setGroupChildrenByKey] = useState<Record<string, TransactionListItemType[]>>({});
 
+    // Held apart from the children because a row can be recycled out of the list while its group stays open.
+    const [openGroupKeys, setOpenGroupKeys] = useState<ReadonlySet<string>>(NO_OPEN_GROUPS);
+
     const pendingSeedGroupKeyRef = useRef<string | undefined>(undefined);
 
     // Built once (by construction, not by React Compiler) so the register effect can't loop.
     const [shiftRangeChildrenActions] = useState<SearchShiftRangeChildrenActions>(() => ({
         // Compared by value: an equal array must not re-register and re-render every row, but changed rows must replace the stale copy.
         registerGroupChildren: (groupKey, groupChildren) => setGroupChildrenByKey((prev) => (deepEqual(prev[groupKey], groupChildren) ? prev : {...prev, [groupKey]: groupChildren})),
-        unregisterGroupChildren: (groupKey) =>
-            setGroupChildrenByKey((prev) => {
-                if (!(groupKey in prev)) {
+        addGroupToRange: (groupKey) =>
+            setOpenGroupKeys((prev) => {
+                if (prev.has(groupKey)) {
                     return prev;
                 }
-                const next = {...prev};
-                delete next[groupKey];
+                const next = new Set(prev);
+                next.add(groupKey);
+                return next;
+            }),
+        // Drops only openness, so reopening a group before its publisher re-renders still has its children.
+        removeGroupFromRange: (groupKey) =>
+            setOpenGroupKeys((prev) => {
+                if (!prev.has(groupKey)) {
+                    return prev;
+                }
+                const next = new Set(prev);
+                next.delete(groupKey);
                 return next;
             }),
     }));
@@ -477,9 +492,9 @@ function SearchWriteActionsProvider({
 
     // Expense-report rows are the selectable unit. Only group-by rows are headers whose children flatten in.
     const hasValidGroupBy = areItemsGrouped && !isExpenseReportType;
-    const flattenedShiftRangeItems = buildShiftRangeItems(renderedData, groupChildrenByKey, hasValidGroupBy);
+    const flattenedShiftRangeItems = buildShiftRangeItems(renderedData, groupChildrenByKey, openGroupKeys, hasValidGroupBy);
     // Built from the rows the range spans, so a row can't be ranged under one parent and stored under another.
-    const {childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey} = buildGroupChildrenIndex(renderedData, groupChildrenByKey, hasValidGroupBy);
+    const {childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey} = buildGroupChildrenIndex(renderedData, groupChildrenByKey, openGroupKeys, hasValidGroupBy);
     const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
 
     // A group selected before its children loaded lives under the group key alone, so dropping one child needs the group written out first.

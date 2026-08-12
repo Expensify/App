@@ -1,8 +1,10 @@
-import type {TransactionCategoryGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {TransactionCategoryGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import CONST from '@src/CONST';
 
+import createPersonalDetails from './personalDetails';
+import {createRandomReport} from './reports';
 import createRandomTransaction from './transaction';
 
 /** A fully-typed transaction row: Transaction fields from the shared factory plus the list-item fields. */
@@ -57,4 +59,27 @@ function buildCategoryGroup(key: string, transactions: TransactionListItemType[]
     };
 }
 
-export {buildTransactionRow, buildCategoryGroup};
+/** A fully-typed expense-report group, which is itself a selectable row. */
+function buildReportGroup(index: number, key: string, transactions: TransactionListItemType[] = []): TransactionReportGroupListItemType {
+    return {
+        ...createRandomReport(index),
+        reportID: key,
+        groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+        from: createPersonalDetails(index),
+        to: createPersonalDetails(index),
+        transactions,
+        keyForList: key,
+        shouldShowYear: false,
+        shouldShowYearSubmitted: false,
+        shouldShowYearApproved: false,
+        shouldShowYearExported: false,
+        action: CONST.SEARCH.ACTION_TYPES.VIEW,
+        allActions: [CONST.SEARCH.ACTION_TYPES.VIEW],
+        canPay: false,
+        canApprove: false,
+        canSubmit: false,
+        canChangeApprover: false,
+    };
+}
+
+export {buildTransactionRow, buildCategoryGroup, buildReportGroup};

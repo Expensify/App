@@ -287,10 +287,12 @@ type SearchRowSelectionActionsValue = {
 
 /** Lets lazily-loaded group-by children publish themselves to the shift-range source. */
 type SearchShiftRangeChildrenActions = {
-    /** Publish a group's rendered children, in visual order. */
+    /** Publish a group's rendered children, in visual order. Called by the row that loaded them. */
     registerGroupChildren: (groupKey: string, children: TransactionListItemType[]) => void;
-    /** Remove a group's children when it collapses, or when the row that owns its expanded state unmounts. */
-    unregisterGroupChildren: (groupKey: string) => void;
+    /** Let a range reach a group's children, for as long as it is open. Called by whoever owns the expanded state. */
+    addGroupToRange: (groupKey: string) => void;
+    /** Take a group back out of ranges. Its children stay cached, so reopening it does not wait for them to be published again. */
+    removeGroupFromRange: (groupKey: string) => void;
 };
 
 /** Composed value of all three Search state contexts. Kept as a union for callers that need the full bag shape (e.g. test fixtures, action `searchContext` payloads). */

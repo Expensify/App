@@ -3,11 +3,15 @@ import type {SearchData, SelectedTransactions} from '@components/Search/types';
 
 import {buildCategoryGroup as makeGroup, buildTransactionRow as makeChild} from '../../utils/collections/searchListItems';
 
+const openGroups = (...keys: string[]): ReadonlySet<string> => new Set(keys);
+
+const NO_OPEN_GROUPS = openGroups();
+
 describe('buildShiftRangeItems', () => {
     it('passes flat (non-grouped) data through unchanged', () => {
         const filteredData: SearchData = [makeChild(1, 't1'), makeChild(2, 't2')];
 
-        const result = buildShiftRangeItems(filteredData, {}, false);
+        const result = buildShiftRangeItems(filteredData, {}, NO_OPEN_GROUPS, false);
 
         expect(result).toBe(filteredData);
     });
@@ -24,7 +28,7 @@ describe('buildShiftRangeItems', () => {
             groupB: [childB1],
         };
 
-        const result = buildShiftRangeItems(filteredData, groupChildrenByKey, true);
+        const result = buildShiftRangeItems(filteredData, groupChildrenByKey, openGroups('groupA', 'groupB'), true);
 
         expect(result).toEqual([groupA, childA1, childA2, groupB, childB1]);
     });
@@ -34,7 +38,17 @@ describe('buildShiftRangeItems', () => {
         const group = makeGroup('groupA', [makeChild(1, 'x'), makeChild(2, 'y')]);
         const filteredData: SearchData = [group];
 
-        const result = buildShiftRangeItems(filteredData, {}, true);
+        const result = buildShiftRangeItems(filteredData, {}, NO_OPEN_GROUPS, true);
+
+        expect(result).toEqual([group]);
+    });
+
+    it('skips a closed group even while its children are still published, since openness is what decides', () => {
+        const group = makeGroup('groupA');
+        const filteredData: SearchData = [group];
+        const groupChildrenByKey = {groupA: [makeChild(1, 'a1'), makeChild(2, 'a2')]};
+
+        const result = buildShiftRangeItems(filteredData, groupChildrenByKey, NO_OPEN_GROUPS, true);
 
         expect(result).toEqual([group]);
     });
@@ -46,9 +60,9 @@ describe('buildShiftRangeItems', () => {
         const regChild1 = makeChild(2, 'reg1a');
         const regChild2 = makeChild(3, 'reg1b');
         const filteredData: SearchData = [openGroup, closedGroup];
-        const groupChildrenByKey = {groupA: [regChild1, regChild2]};
+        const groupChildrenByKey = {groupA: [regChild1, regChild2], groupB: [makeChild(4, 'reg2a')]};
 
-        const result = buildShiftRangeItems(filteredData, groupChildrenByKey, true);
+        const result = buildShiftRangeItems(filteredData, groupChildrenByKey, openGroups('groupA'), true);
 
         expect(result).toEqual([openGroup, regChild1, regChild2, closedGroup]);
     });
@@ -58,7 +72,7 @@ describe('buildShiftRangeItems', () => {
         const filteredData: SearchData = [groupA];
         const groupChildrenByKey = {groupA: [makeChild(1, 'a1')]};
 
-        const result = buildShiftRangeItems(filteredData, groupChildrenByKey, false);
+        const result = buildShiftRangeItems(filteredData, groupChildrenByKey, openGroups('groupA'), false);
 
         expect(result).toBe(filteredData);
     });
@@ -95,7 +109,7 @@ describe('buildGroupChildrenIndex', () => {
         const regChild2 = makeChild(3, 'reg2');
         const filteredData: SearchData = [openGroup, closedGroup];
 
-        const {childrenByGroupKey, groupKeyByChildKey} = buildGroupChildrenIndex(filteredData, {groupA: [regChild1, regChild2]}, true);
+        const {childrenByGroupKey, groupKeyByChildKey} = buildGroupChildrenIndex(filteredData, {groupA: [regChild1, regChild2]}, openGroups('groupA'), true);
 
         expect(childrenByGroupKey.get('groupA')).toEqual([regChild1, regChild2]);
         expect(childrenByGroupKey.get('groupB')).toEqual([]);
@@ -110,9 +124,9 @@ describe('buildGroupChildrenIndex', () => {
         const filteredData: SearchData = [group];
         const groupChildrenByKey = {groupA: [registered]};
 
-        const {groupKeyByChildKey} = buildGroupChildrenIndex(filteredData, groupChildrenByKey, true);
+        const {groupKeyByChildKey} = buildGroupChildrenIndex(filteredData, groupChildrenByKey, openGroups('groupA'), true);
 
-        expect(buildShiftRangeItems(filteredData, groupChildrenByKey, true)).toEqual([group, registered]);
+        expect(buildShiftRangeItems(filteredData, groupChildrenByKey, openGroups('groupA'), true)).toEqual([group, registered]);
         expect(groupKeyByChildKey.get('fresh')).toBe('groupA');
         expect(groupKeyByChildKey.has('stale')).toBe(false);
     });
@@ -121,7 +135,7 @@ describe('buildGroupChildrenIndex', () => {
         const groupA = makeGroup('groupA');
         const filteredData: SearchData = [groupA];
 
-        const {childrenByGroupKey, groupKeyByChildKey} = buildGroupChildrenIndex(filteredData, {groupA: [makeChild(1, 'a1')]}, false);
+        const {childrenByGroupKey, groupKeyByChildKey} = buildGroupChildrenIndex(filteredData, {groupA: [makeChild(1, 'a1')]}, openGroups('groupA'), false);
 
         expect(childrenByGroupKey.size).toBe(0);
         expect(groupKeyByChildKey.size).toBe(0);

@@ -79,7 +79,8 @@ const defaultRowSelectionActions: SearchRowSelectionActionsValue = {
 
 const defaultSearchShiftRangeChildrenActions: SearchShiftRangeChildrenActions = {
     registerGroupChildren: () => {},
-    unregisterGroupChildren: () => {},
+    addGroupToRange: () => {},
+    removeGroupFromRange: () => {},
 };
 
 const SearchQueryContext = React.createContext<SearchQueryContextValue>(defaultSearchQueryContext);

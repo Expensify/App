@@ -49,8 +49,6 @@ function GroupChildrenContent({
     // Uses groupKeyForList: this split container's own keyForList is prefixed.
     const {transactions} = useGroupChildrenForShiftRange({
         groupKey: groupItem.groupKeyForList,
-        isExpanded,
-        shouldUnregisterOnUnmount: false,
         isExpenseReportType,
         groupTransactions: groupItem.transactions,
         snapshotData,
