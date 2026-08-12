@@ -405,14 +405,19 @@ describe('BankAccountUtils', () => {
         });
 
         it.each([{lastNocCode: undefined}, {lastNocCode: ''}, {lastNocCode: 'R99'}])(
-            'returns undefined for VALIDATION_FAILED with unknown NOC bucket (lastNocCode: "$lastNocCode")',
+            'maps VALIDATION_FAILED with unknown NOC bucket (lastNocCode: "$lastNocCode") to the Concierge fallback status',
             ({lastNocCode}) => {
                 expect(
                     getBankAccountConnectionStatus({
                         state: CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED,
                         additionalData: {lastNocCode},
                     } as AccountData),
-                ).toBeUndefined();
+                ).toEqual({
+                    labelKey: 'walletPage.bankAccountStatus.pending',
+                    messageKey: 'walletPage.bankAccountStatus.validationFailedFallback',
+                    tone: 'danger',
+                    brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                });
             },
         );
     });
