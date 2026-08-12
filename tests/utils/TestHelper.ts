@@ -521,7 +521,7 @@ function localeCompare(a: string, b: string): number {
     return customCollator.compare(a, b);
 }
 
-export type {MockFetch, FormData};
+export type {MockFetch};
 export {
     anyArray,
     anyObject,

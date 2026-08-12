@@ -22,8 +22,8 @@ jest.mock('@libs/CurrentUserStore', () => ({
     getCurrentUserEmail: jest.fn(() => 'jane@example.com'),
 }));
 
-const mockReportActionsUtils = ReportActionsUtils as jest.Mocked<typeof ReportActionsUtils>;
-const mockReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
+const mockReportActionsUtils = jest.mocked(ReportActionsUtils);
+const mockReportUtils = jest.mocked(ReportUtils);
 
 describe('CustomFormula', () => {
     describe('parse()', () => {
@@ -265,7 +265,7 @@ describe('CustomFormula', () => {
             const contextWithMissingData: FormulaContext = {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: createMock<Report>({}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
             const result = compute('{report:total} {report:policyname}', contextWithMissingData);
             expect(result).toBe('{report:total} {report:policyname}'); // Empty data is replaced with definition
@@ -934,7 +934,7 @@ describe('CustomFormula', () => {
             const context: FormulaContext = {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: createMock<Report>({total: undefined}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
             const result = compute('{report:total}', context);
             expect(result).toBe('{report:total}');
@@ -945,7 +945,7 @@ describe('CustomFormula', () => {
             const context: FormulaContext = {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: createMock<Report>({reportID: '123'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
 
             const result = compute('{report:created}', context);
@@ -957,7 +957,7 @@ describe('CustomFormula', () => {
             const context: FormulaContext = {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: createMock<Report>({reportID: '123'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
             const today = new Date();
             const expected = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -970,7 +970,7 @@ describe('CustomFormula', () => {
             const context: FormulaContext = {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: createMock<Report>({reportID: '123'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
             const today = new Date();
             const expected = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -982,7 +982,7 @@ describe('CustomFormula', () => {
             const context: FormulaContext = {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: createMock<Report>({reportID: 'test-report-123'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
 
             compute('{report:startdate}', context);
@@ -993,7 +993,7 @@ describe('CustomFormula', () => {
             const context: FormulaContext = {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: createMock<Report>({reportID: 'test-report-456'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
 
             compute('{report:created}', context);
@@ -1026,7 +1026,7 @@ describe('CustomFormula', () => {
             const context: FormulaContext = {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: createMock<Report>({reportID: 'test-report-123'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
 
             const result = compute('{report:startdate}', context);
@@ -1089,7 +1089,7 @@ describe('CustomFormula', () => {
             const context: FormulaContext = {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: createMock<Report>({reportID: 'test-report-123'}),
-                policy: null as unknown as Policy,
+                policy: undefined,
             };
 
             const result = compute('{report:startdate}', context);
@@ -1108,7 +1108,7 @@ describe('CustomFormula', () => {
         const mockContextWithDate: FormulaContext = {
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             report: createMock<Report>({reportID: '123'}),
-            policy: null as unknown as Policy,
+            policy: undefined,
         };
 
         const setupMockDate = (date: string) => {
@@ -1368,7 +1368,7 @@ describe('CustomFormula', () => {
                 const contextWithPartialDetails: FormulaContext = {
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 111,
                         login: 'fallback@email.com',
@@ -1488,7 +1488,7 @@ describe('CustomFormula', () => {
                 const contextWithPartialManagerDetails: FormulaContext = {
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     managerPersonalDetails: createMock<PersonalDetails>({
                         accountID: 222,
                         login: 'manager@email.com',
@@ -1502,7 +1502,7 @@ describe('CustomFormula', () => {
                 const contextWithPartialManagerDetails: FormulaContext = {
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     managerPersonalDetails: createMock<PersonalDetails>({
                         accountID: 222,
                         login: 'manager@email.com',
@@ -1571,7 +1571,7 @@ describe('CustomFormula', () => {
                 const contextWithEmptyEmail: FormulaContext = {
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         login: '',
@@ -1585,7 +1585,7 @@ describe('CustomFormula', () => {
                 const contextWithEmptyEmail: FormulaContext = {
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         login: '',
@@ -1599,7 +1599,7 @@ describe('CustomFormula', () => {
                 const contextWithEmptyFirstName: FormulaContext = {
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         firstName: '',
@@ -1614,7 +1614,7 @@ describe('CustomFormula', () => {
                 const contextWithEmptyLastName: FormulaContext = {
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         lastName: '',
@@ -1629,7 +1629,7 @@ describe('CustomFormula', () => {
                 const contextWithEmptyDisplayName: FormulaContext = {
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         displayName: '',
@@ -1644,7 +1644,7 @@ describe('CustomFormula', () => {
                 const contextWithEmptyEmail: FormulaContext = {
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     report: createMock<Report>({reportID: '123'}),
-                    policy: null as unknown as Policy,
+                    policy: undefined,
                     submitterPersonalDetails: createMock<PersonalDetails>({
                         accountID: 123,
                         login: '',
