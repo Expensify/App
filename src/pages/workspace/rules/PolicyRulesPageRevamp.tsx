@@ -115,13 +115,12 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     }, [activeTab, policy]);
 
     useEffect(() => {
-        // The tab param is a one-shot entry hint; the selected tab lives in Onyx. Clear it so a refresh doesn't re-apply it.
+        // The tab param is an entry hint (deep link, post-upgrade bounce-back); the selected tab itself lives in Onyx.
         if (!requestedTab || !isRulesTab(requestedTab)) {
             return;
         }
 
         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, requestedTab);
-        Navigation.setParams({tab: undefined});
     }, [requestedTab]);
 
     const clearAllTableSelection = useCallback(() => {
@@ -278,6 +277,11 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         setSelectedRuleKeysByTab({});
         turnOffMobileSelectionMode();
         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, key);
+
+        // Drop the entry hint once the user picks their own tab, otherwise a refresh would re-apply it over that choice.
+        if (requestedTab) {
+            Navigation.setParams({tab: undefined});
+        }
     };
 
     const getHeaderContent = () => {
