@@ -35,6 +35,8 @@ import ROUTES from '@src/ROUTES';
 
 import {Keyboard, StyleSheet, View} from 'react-native';
 
+import HeaderPinButton from '../primitives/HeaderPinButton';
+
 function HeaderWithBackButton({
     icon,
     iconFill,
@@ -254,7 +256,7 @@ function HeaderWithBackButton({
                                 isLoading={isRotating}
                             />
                         )}
-                        {shouldShowPinButton && !!report && <PinButton report={report} />}
+                        {shouldShowPinButton && <HeaderPinButton report={report} />}
                     </View>
                     {threeDotMenuTooltipsSection}
                 </View>
