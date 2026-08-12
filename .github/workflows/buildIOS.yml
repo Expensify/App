@@ -50,7 +50,6 @@ jobs:
     name: Build iOS HybridApp
     runs-on: blacksmith-12vcpu-macos-latest
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
       PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
     outputs:
       IOS_VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
@@ -73,6 +72,10 @@ jobs:
           cd Mobile-Expensify
           git fetch origin ${{ inputs.mobile-expensify-ref }}
           git checkout ${{ inputs.mobile-expensify-ref }}
+
+      - name: Set up Xcode version
+        id: xcodeVersion
+        uses: ./.github/actions/composite/getXcodeVersion
 
       - name: Compute custom build identifier
         id: computeIdentifier
@@ -115,7 +118,7 @@ jobs:
         id: pods-cache
         with:
           path: Mobile-Expensify/iOS/Pods
-          key: ${{ runner.os }}-pods-cache-${{ hashFiles('Mobile-Expensify/iOS/Podfile.lock', 'firebase.json') }}
+          key: ${{ runner.os }}-pods-cache-${{ steps.xcodeVersion.outputs.version }}-${{ hashFiles('Mobile-Expensify/iOS/Podfile.lock', 'firebase.json') }}
 
       - name: Compare Podfile.lock and Manifest.lock
         id: compare-podfile-and-manifest

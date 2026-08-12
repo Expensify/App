@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -28,6 +28,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -117,23 +118,25 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                 >
                     {!shouldUseNarrowLayout && !isArchived && (
                         <Button
-                            success
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
-                            icon={headerIcons.Plus}
-                            text={translate('common.create')}
-                        />
+                        >
+                            <Button.Icon src={headerIcons.Plus} />
+                            <Button.Text>{translate('common.create')}</Button.Text>
+                        </Button>
                     )}
                 </HeaderWithBackButton>
 
                 {shouldUseNarrowLayout && !isArchived && (
                     <View style={[styles.ph5, styles.pb3]}>
                         <Button
-                            success
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
-                            icon={headerIcons.Plus}
-                            text={translate('common.create')}
                             style={styles.w100}
-                        />
+                        >
+                            <Button.Icon src={headerIcons.Plus} />
+                            <Button.Text>{translate('common.create')}</Button.Text>
+                        </Button>
                     </View>
                 )}
 

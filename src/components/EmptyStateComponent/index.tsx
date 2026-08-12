@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
@@ -86,15 +86,16 @@ function EmptyStateComponent({
                                     ) : (
                                         <Button
                                             key={buttonText}
-                                            success={success}
+                                            variant={success ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                                             onPress={buttonAction}
-                                            text={buttonText}
-                                            icon={icon}
                                             isDisabled={isDisabled}
                                             style={style}
                                             innerStyles={innerStyles}
                                             hoverStyles={hoverStyles}
-                                        />
+                                        >
+                                            {!!icon && <Button.Icon src={icon} />}
+                                            {!!buttonText && <Button.Text>{buttonText}</Button.Text>}
+                                        </Button>
                                     ),
                                 )}
                             </View>

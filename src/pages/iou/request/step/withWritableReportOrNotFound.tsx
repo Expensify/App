@@ -8,7 +8,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -58,8 +57,8 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT
-    | typeof SCREENS.MONEY_REQUEST.STEP_TIME
-    | typeof SCREENS.MONEY_REQUEST.STEP_TIME_EDIT
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME_EDIT
     | typeof SCREENS.MONEY_REQUEST.STEP_SUBRATE
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_EDIT_REPORT
     | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE
@@ -111,11 +110,7 @@ function WithWritableReportOrNotFoundImpl<TProps extends WithWritableReportOrNot
     }, []);
 
     if (isEditing && isLoadingApp) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'withWritableReportOrNotFound',
-            isLoadingApp,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     if (iouTypeParamIsInvalid || !canUserPerformWriteAction(report ?? {reportID: ''}, isReportArchived)) {
