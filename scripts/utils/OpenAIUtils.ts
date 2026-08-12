@@ -3,6 +3,7 @@ import sanitizeJSONStringValues from '@github/libs/sanitizeJSONStringValues';
 import retryWithBackoff from '@scripts/utils/retryWithBackoff';
 
 import type {Conversation} from 'openai/resources/conversations/conversations';
+import type {ConversationItem} from 'openai/resources/conversations/items';
 import type {ResponseCreateParamsNonStreaming, ResponseFormatTextJSONSchemaConfig, ResponseInputItem} from 'openai/resources/responses/responses';
 
 import OpenAI from 'openai';
@@ -83,6 +84,30 @@ class OpenAIUtils {
      */
     public async addConversationItems(conversationID: string, items: ResponseInputItem[]): Promise<void> {
         await retryWithBackoff(() => this.client.conversations.items.create(conversationID, {items}), {isRetryable: (err) => OpenAIUtils.isRetryableError(err)});
+    }
+
+    /**
+     * Every item in a Conversation, following pagination.
+     */
+    public async listConversationItems(conversationID: string): Promise<ConversationItem[]> {
+        return retryWithBackoff(
+            async () => {
+                const items: ConversationItem[] = [];
+                for await (const item of this.client.conversations.items.list(conversationID)) {
+                    items.push(item);
+                }
+                return items;
+            },
+            {isRetryable: (err) => OpenAIUtils.isRetryableError(err)},
+        );
+    }
+
+    /**
+     * Remove a single item from a Conversation.
+     */
+    public async deleteConversationItem(conversationID: string, itemID: string): Promise<void> {
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- matches OpenAI's API field name
+        await retryWithBackoff(() => this.client.conversations.items.delete(itemID, {conversation_id: conversationID}), {isRetryable: (err) => OpenAIUtils.isRetryableError(err)});
     }
 
     private static isRetryableError(error: unknown): boolean {

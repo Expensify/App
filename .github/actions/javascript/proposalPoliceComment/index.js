@@ -39738,6 +39738,25 @@ async function run() {
             comment_id: commentID,
             body: `${(0, messages_1.buildSubstantiveEditMessage)(formattedDate)}\n\n${payload.comment?.body}`,
         });
+        // The Conversation still holds this proposal as it read when first posted. Left alone, later
+        // duplicate checks compare against superseded text: a real duplicate of the new text is missed,
+        // and a proposal matching the old text gets withdrawn against something no longer being proposed.
+        // Only substantial edits land here, so minor rewording is deliberately left as-is.
+        const trackedConversationID = (0, ProposalPoliceConversation_1.findTrackedConversationID)(await GithubUtils_1.default.getAllCommentDetails(issueNumber));
+        if (!trackedConversationID) {
+            console.log('Issue has no tracked Conversation, so there is no recorded proposal to refresh.');
+            return;
+        }
+        const staleItemID = (0, ProposalPoliceConversation_1.findConversationItemIDForComment)(await openAI.listConversationItems(trackedConversationID), commentID);
+        if (!staleItemID) {
+            // Adding without removing would leave two versions of the same comment_id in the Conversation,
+            // which is worse for duplicate detection than the single stale copy we set out to replace.
+            console.log('Could not find this proposal in the Conversation, leaving it untouched.', commentID);
+            return;
+        }
+        console.log('Refreshing the recorded copy of this proposal for future duplicate checks.', commentID);
+        await openAI.deleteConversationItem(trackedConversationID, staleItemID);
+        await openAI.addConversationItems(trackedConversationID, [(0, input_1.buildDuplicateCheckSeedItem)(payload.comment?.body ?? '', commentID)]);
     }
 }
 // Consistent with every other action in .github/actions/javascript/*: only auto-invoke when this file is
@@ -40932,6 +40951,25 @@ class OpenAIUtils {
     async addConversationItems(conversationID, items) {
         await (0, retryWithBackoff_1.default)(() => this.client.conversations.items.create(conversationID, { items }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
     }
+    /**
+     * Every item in a Conversation, following pagination.
+     */
+    async listConversationItems(conversationID) {
+        return (0, retryWithBackoff_1.default)(async () => {
+            const items = [];
+            for await (const item of this.client.conversations.items.list(conversationID)) {
+                items.push(item);
+            }
+            return items;
+        }, { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
+    }
+    /**
+     * Remove a single item from a Conversation.
+     */
+    async deleteConversationItem(conversationID, itemID) {
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- matches OpenAI's API field name
+        await (0, retryWithBackoff_1.default)(() => this.client.conversations.items.delete(itemID, { conversation_id: conversationID }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
+    }
     static isRetryableError(error) {
         // Handle known/predictable API errors
         if (error instanceof openai_1.default.APIError) {
@@ -41002,6 +41040,7 @@ exports.MAX_ITEMS_PER_CONVERSATION_REQUEST = exports.CONVERSATION_MARKER_REGEX =
 exports.buildTrackingCommentBody = buildTrackingCommentBody;
 exports.findTrackedConversationID = findTrackedConversationID;
 exports.buildSeedItems = buildSeedItems;
+exports.findConversationItemIDForComment = findConversationItemIDForComment;
 exports.chunkArray = chunkArray;
 const isBotUser_1 = __importDefault(__nccwpck_require__(37887));
 const ProposalUtils_1 = __importDefault(__nccwpck_require__(79816));
@@ -41048,6 +41087,14 @@ function buildSeedItems(comments, beforeCreatedAt) {
     return comments
         .filter((comment) => (0, ProposalUtils_1.default)(comment.body) && !(comment.user && (0, isBotUser_1.default)(comment.user.login ?? '', comment.user.type ?? '')) && new Date(comment.created_at).getTime() < beforeCreatedAt)
         .map((comment) => (0, input_1.buildDuplicateCheckSeedItem)(comment.body ?? '', comment.id));
+}
+/**
+ * Find the Conversation item holding a given comment's proposal, so it can be replaced once that
+ * comment is edited. Items are matched on the comment_id attribute the seed items are tagged with.
+ */
+function findConversationItemIDForComment(items, commentID) {
+    const tag = `comment_id="${commentID}"`;
+    return items.find((item) => item.type === 'message' && item.content.some((part) => 'text' in part && part.text.includes(tag)))?.id;
 }
 /**
  * Split an array into chunks of at most `size` items.

@@ -3,6 +3,7 @@ import isProposal from '@github/libs/ProposalUtils';
 
 import {buildDuplicateCheckSeedItem} from '@prompts/proposalPolice/input';
 
+import type {ConversationItem} from 'openai/resources/conversations/items';
 import type {ResponseInputItem} from 'openai/resources/responses/responses';
 
 /**
@@ -67,6 +68,15 @@ function buildSeedItems(comments: ProposalComment[], beforeCreatedAt: number): R
 }
 
 /**
+ * Find the Conversation item holding a given comment's proposal, so it can be replaced once that
+ * comment is edited. Items are matched on the comment_id attribute the seed items are tagged with.
+ */
+function findConversationItemIDForComment(items: ConversationItem[], commentID: number): string | undefined {
+    const tag = `comment_id="${commentID}"`;
+    return items.find((item) => item.type === 'message' && item.content.some((part) => 'text' in part && part.text.includes(tag)))?.id;
+}
+
+/**
  * Split an array into chunks of at most `size` items.
  */
 function chunkArray<T>(items: T[], size: number): T[][] {
@@ -77,5 +87,5 @@ function chunkArray<T>(items: T[], size: number): T[][] {
     return chunks;
 }
 
-export {CONVERSATION_MARKER_REGEX, MAX_ITEMS_PER_CONVERSATION_REQUEST, buildTrackingCommentBody, findTrackedConversationID, buildSeedItems, chunkArray};
+export {CONVERSATION_MARKER_REGEX, MAX_ITEMS_PER_CONVERSATION_REQUEST, buildTrackingCommentBody, findTrackedConversationID, buildSeedItems, findConversationItemIDForComment, chunkArray};
 export type {ProposalComment};

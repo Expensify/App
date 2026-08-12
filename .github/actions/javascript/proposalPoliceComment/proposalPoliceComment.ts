@@ -23,7 +23,14 @@ import {
 import type {DuplicateCheckResponse, EditCheckResponse, TemplateCheckResponse} from '@prompts/proposalPolice/schema';
 
 import OpenAIUtils from '@scripts/utils/OpenAIUtils';
-import {buildSeedItems, buildTrackingCommentBody, chunkArray, findTrackedConversationID, MAX_ITEMS_PER_CONVERSATION_REQUEST} from '@scripts/utils/ProposalPolice/ProposalPoliceConversation';
+import {
+    buildSeedItems,
+    buildTrackingCommentBody,
+    chunkArray,
+    findConversationItemIDForComment,
+    findTrackedConversationID,
+    MAX_ITEMS_PER_CONVERSATION_REQUEST,
+} from '@scripts/utils/ProposalPolice/ProposalPoliceConversation';
 
 import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, IssueCommentEvent} from '@octokit/webhooks-types';
 
@@ -251,6 +258,26 @@ async function run() {
             comment_id: commentID,
             body: `${buildSubstantiveEditMessage(formattedDate)}\n\n${payload.comment?.body}`,
         });
+
+        // The Conversation still holds this proposal as it read when first posted. Left alone, later
+        // duplicate checks compare against superseded text: a real duplicate of the new text is missed,
+        // and a proposal matching the old text gets withdrawn against something no longer being proposed.
+        // Only substantial edits land here, so minor rewording is deliberately left as-is.
+        const trackedConversationID = findTrackedConversationID(await GithubUtils.getAllCommentDetails(issueNumber));
+        if (!trackedConversationID) {
+            console.log('Issue has no tracked Conversation, so there is no recorded proposal to refresh.');
+            return;
+        }
+        const staleItemID = findConversationItemIDForComment(await openAI.listConversationItems(trackedConversationID), commentID);
+        if (!staleItemID) {
+            // Adding without removing would leave two versions of the same comment_id in the Conversation,
+            // which is worse for duplicate detection than the single stale copy we set out to replace.
+            console.log('Could not find this proposal in the Conversation, leaving it untouched.', commentID);
+            return;
+        }
+        console.log('Refreshing the recorded copy of this proposal for future duplicate checks.', commentID);
+        await openAI.deleteConversationItem(trackedConversationID, staleItemID);
+        await openAI.addConversationItems(trackedConversationID, [buildDuplicateCheckSeedItem(payload.comment?.body ?? '', commentID)]);
     }
 }
 

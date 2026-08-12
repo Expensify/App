@@ -10,6 +10,8 @@ import {buildTemplateReminderMessage, DUPLICATE_CHECK_WITHDRAW_MESSAGE, SUBSTANT
 import OpenAIUtils from '@scripts/utils/OpenAIUtils';
 import type {ProposalComment} from '@scripts/utils/ProposalPolice/ProposalPoliceConversation';
 
+import type {ConversationItem} from 'openai/resources/conversations/items';
+
 import {context} from '@actions/github';
 
 const VALID_PROPOSAL_BODY = [
@@ -92,6 +94,20 @@ function duplicateCheckResult(overrides: Partial<{similarity: number; duplicateC
     return JSON.stringify({similarity: 0, duplicateCommentID: null, ...overrides});
 }
 
+/**
+ * A stored Conversation item holding the proposal from `commentID`, shaped like what the API returns
+ * when listing items (content split into parts) rather than the plain string used when writing them.
+ */
+function conversationMessage(itemID: string, commentID: number): ConversationItem {
+    return {
+        id: itemID,
+        type: 'message',
+        role: 'user',
+        status: 'completed',
+        content: [{type: 'input_text', text: `<proposal comment_id="${commentID}">\nsome proposal\n</proposal>`}],
+    };
+}
+
 const MockedOpenAIUtils = jest.mocked(OpenAIUtils);
 
 describe('proposalPoliceComment', () => {
@@ -102,6 +118,7 @@ describe('proposalPoliceComment', () => {
         process.env.INPUT_PROPOSAL_POLICE_API_KEY = 'test-api-key';
         mockGetAllCommentDetails.mockResolvedValue([]);
         MockedOpenAIUtils.prototype.createConversation.mockResolvedValue({id: 'conv_new', created_at: 0, metadata: null, object: 'conversation'});
+        MockedOpenAIUtils.prototype.listConversationItems.mockResolvedValue([]);
         // Bypass the real JSON-schema validators here; OpenAIUtilsTest already covers parseJSONResponse itself.
         MockedOpenAIUtils.prototype.parseJSONResponse.mockImplementation((text) => JSON.parse(text));
     });
@@ -198,13 +215,48 @@ describe('proposalPoliceComment', () => {
 
         await run();
 
-        // Duplicate-check never runs for edited events
-        expect(mockGetAllCommentDetails).not.toHaveBeenCalled();
+        // Only the edit check runs for edited events - never the duplicate check
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(1);
         // The flagged body is the bot's message followed by the comment it was applied to
         expect(mockUpdateComment).toHaveBeenCalledWith(
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- expect.stringContaining is typed as `any`
             expect.objectContaining({comment_id: 1, body: expect.stringContaining(SUBSTANTIVE_EDIT_MESSAGE_PREFIX)}),
         );
+    });
+
+    it('replaces the recorded proposal after a substantial edit so later duplicate checks see the new text', async () => {
+        const editedBody = `${VALID_PROPOSAL_BODY}\ncompletely different solution`;
+        mockComments([makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'})]);
+        setPayload({action: 'edited', comment: makeComment({id: 7, body: editedBody}), changes: {body: {from: VALID_PROPOSAL_BODY}}});
+        MockedOpenAIUtils.prototype.listConversationItems.mockResolvedValue([conversationMessage('item_7', 7), conversationMessage('item_9', 9)]);
+        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: JSON.stringify({action: 'ACTION_EDIT'}), responseID: 'resp_edit'});
+
+        await run();
+
+        // The stale copy is removed before the refreshed one is added, so the Conversation never holds two
+        // versions of the same comment
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.deleteConversationItem).toHaveBeenCalledWith('conv_existing', 'item_7');
+        const [, items] = MockedOpenAIUtils.prototype.addConversationItems.mock.calls.at(0) ?? [];
+        expect(items).toHaveLength(1);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- expect.stringContaining is typed as `any`
+        expect(items?.at(0)).toEqual(expect.objectContaining({content: expect.stringContaining('completely different solution')}));
+    });
+
+    it('leaves the Conversation untouched when the edited proposal is not recorded in it', async () => {
+        // Adding without a matching removal would leave two versions of the same comment_id behind
+        mockComments([makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'})]);
+        setPayload({action: 'edited', comment: makeComment({id: 7, body: `${VALID_PROPOSAL_BODY}\nedited`}), changes: {body: {from: VALID_PROPOSAL_BODY}}});
+        MockedOpenAIUtils.prototype.listConversationItems.mockResolvedValue([conversationMessage('item_9', 9)]);
+        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: JSON.stringify({action: 'ACTION_EDIT'}), responseID: 'resp_edit'});
+
+        await run();
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.deleteConversationItem).not.toHaveBeenCalled();
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.addConversationItems).not.toHaveBeenCalled();
     });
 
     it('withdraws and flags a duplicate proposal without ever running the template check', async () => {
