@@ -51,10 +51,11 @@ function AddVendorPage({route}: AddVendorPageProps) {
 
     // This picker can be deep-linked directly, and its gate below reads policy.connections (via
     // hasVendorFeature and getMatchingVendorByID), which is empty on a non-active workspace until a page
-    // requiring connections is opened. Prefetch it here unconditionally (it can't be narrowed by
-    // hasVendorFeature, which itself depends on the connection data — a chicken-and-egg) so the picker
-    // becomes available and resolves the selected vendor once connections hydrate. The hook self-guards
-    // on offline / accounting-disabled / already-fetched.
+    // requiring connections is opened. Prefetch it here unconditionally so the picker becomes available
+    // and resolves the selected vendor once connections hydrate. It can't be narrowed by
+    // hasVendorFeature, because that itself depends on the connection data being fetched. The hook
+    // already skips the fetch when the app is offline, when the workspace has no accounting
+    // connection, and when the data has already been fetched.
     const {isFetchNeeded, isLoadingFetchedFlag} = usePolicyConnectionsPrefetch(policy, true);
 
     const selectedVendorItem = getSelectedVendorItem(policy, form?.vendorID);

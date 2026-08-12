@@ -263,7 +263,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     // isMatchingVendorListLoaded), which is empty on a non-active workspace until a page
     // requiring connections is opened. Prefetch it here, gated on read-access. It can't be
     // narrowed to vendor-capable workspaces because that answer lives in the very data being
-    // fetched; the hook already self-guards on offline / accounting-disabled / already-fetched.
+    // fetched. The hook already skips the fetch when the app is offline, when the workspace has
+    // no accounting connection, and when the data has already been fetched.
     const canReadVendors = canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.VENDORS);
     usePolicyConnectionsPrefetch(policy, canReadVendors);
 

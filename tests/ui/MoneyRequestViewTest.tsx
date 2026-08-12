@@ -520,7 +520,7 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('shows the vendor row on QBO without the vendorMatching beta — QBO (R1) is generally available', async () => {
+    it('shows the vendor row on QBO without the vendorMatching beta because QBO (R1) is generally available', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
             parentReportID: expenseReportID,
@@ -551,7 +551,7 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('hides the vendor row on Xero without the vendorMatching beta — Xero (R3) is still pre-GA', async () => {
+    it('hides the vendor row on Xero without the vendorMatching beta because Xero (R3) is still pre-GA', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
             parentReportID: expenseReportID,

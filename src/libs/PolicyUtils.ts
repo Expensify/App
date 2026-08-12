@@ -2439,9 +2439,9 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
  *
  * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
  * `isVendorMatchingBetaEnabled` is consulted on the Intacct and Xero branches but not on QBO:
- *   - QBO with non-reimbursable export = Credit Card or Debit Card (R1) — GA, no beta required
- *   - Sage Intacct with non-reimbursable export = Credit Card Charge (R2) — beta required
- *   - Xero (R3) — no export-destination enum, connection present is sufficient — beta required
+ *   - QBO (R1) with non-reimbursable export = Credit Card or Debit Card. GA, so no beta required
+ *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. Beta required
+ *   - Xero (R3) has no export destination enum, so a present connection is enough. Beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!policy) {

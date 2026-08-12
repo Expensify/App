@@ -152,12 +152,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     // The Vendors toggle reads policy.connections (via hasVendorFeature), which is empty on a
     // non-active workspace until a connections-aware read runs. OpenPolicyMoreFeaturesPage doesn't
     // hydrate the detailed connection config, so prefetch it here to keep the toggle from showing
-    // off/non-navigable when the workspace actually supports vendors. It can't be narrowed to
-    // vendor-capable workspaces because that answer lives in the very data being fetched; the hook
-    // already self-guards on offline / accounting-disabled / already-fetched.
+    // off and non-navigable when the workspace actually supports vendors. It can't be narrowed to
+    // vendor-capable workspaces because that answer lives in the very data being fetched. The hook
+    // already skips the fetch when the app is offline, when the workspace has no accounting
+    // connection, and when the data has already been fetched.
     usePolicyConnectionsPrefetch(policy, true);
 
-    // Beta members see the row on any workspace so they can tell the feature exists; everyone else
+    // Beta members see the row on any workspace so they can tell the feature exists. Everyone else
     // only sees it once a connection actually scopes the vendor field, which post-GA means QBO.
     const shouldShowVendorsFeature = isVendorMatchingEnabled || hasVendorFeature(policy, isVendorMatchingEnabled);
 
