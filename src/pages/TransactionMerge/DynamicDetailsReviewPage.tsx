@@ -109,6 +109,11 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
                 return newErrors;
             });
 
+            // Selecting a report is what moves the merged expense to a workspace, so it decides which workspace's rules
+            // apply to it. Any other selection leaves it on the report already chosen.
+            const destinationReportID = field === 'reportID' ? transaction.reportID : mergeTransaction?.reportID;
+            const destinationPolicy = destinationReportID === sourceTransactionReport?.reportID ? sourceTransactionPolicy : targetTransactionPolicy;
+
             // Update both the field value and track which transaction was selected (persisted in Onyx)
             const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
             const updatedValues = getMergeFieldUpdatedValues({
@@ -119,6 +124,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
                 mergeTransaction,
                 searchReports: [targetTransactionReport, sourceTransactionReport],
                 policy: transaction.transactionID === targetTransaction?.transactionID ? targetTransactionPolicy : sourceTransactionPolicy,
+                destinationPolicy: destinationReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? undefined : destinationPolicy,
             });
 
             setMergeTransactionKey(transactionID, {
