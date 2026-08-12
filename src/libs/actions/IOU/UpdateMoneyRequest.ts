@@ -1796,6 +1796,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         transaction,
         isTransactionOnHold,
         policy,
+        getCurrencyDecimals,
         updatedReportAction?.actorAccountID,
         transactionChanges,
     );
