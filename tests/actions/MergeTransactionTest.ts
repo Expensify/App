@@ -2,6 +2,7 @@ import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {areTransactionsEligibleForMerge, getTransactionsForMerging, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {addComment, openReport} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getMergeFieldUpdatedValues} from '@libs/MergeTransactionUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildTransactionThread} from '@libs/ReportUtils';
@@ -1543,6 +1544,44 @@ describe('setMergeTransactionKey', () => {
             category: 'New Category', // Added
             description: 'New Description', // Added
         });
+    });
+
+    it('should not keep the commuter exclusion of a previously selected merchant when another one is selected', async () => {
+        // Given a merge of two distance expenses, where the merchant of the one on a workspace that excludes
+        // 1 commuter mile was selected first
+        const transactionID = 'merge-distance-transaction';
+        const selectMerchantOf = async (transaction: Transaction) => {
+            setMergeTransactionKey(
+                transactionID,
+                getMergeFieldUpdatedValues({
+                    transaction,
+                    field: 'merchant',
+                    fieldValue: transaction.merchant,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    mergeTransaction: await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`),
+                }),
+            );
+            await waitForBatchedUpdates();
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {targetTransactionID: transactionID});
+        await selectMerchantOf({
+            ...createRandomDistanceRequestTransaction(0),
+            comment: {customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, quantity: 4.49, commuterExclusion: 1, reimbursableDistance: 3.49}},
+        });
+
+        // When the merchant of the expense on the workspace with no commuter exclusion is selected instead
+        await selectMerchantOf({
+            ...createRandomDistanceRequestTransaction(1),
+            comment: {customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, quantity: 10.2}},
+        });
+
+        // Then only that expense's distance is left, rather than the first one's reimbursable distance, which the
+        // distance field displays in place of the full distance whenever an exclusion is present
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`);
+        expect(mergeTransaction?.customUnit?.quantity).toBe(10.2);
+        expect(mergeTransaction?.customUnit?.commuterExclusion).toBeUndefined();
+        expect(mergeTransaction?.customUnit?.reimbursableDistance).toBeUndefined();
     });
 });
 
