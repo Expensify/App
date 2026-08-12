@@ -81,6 +81,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const hasFeedsLoaded = !!allCardFeeds && Object.keys(allCardFeeds).length > 0;
 
+    const isPageFetchPending = !hasFeedsLoaded;
+
     useEffect(() => {
         if (isOffline || hasFeedsLoaded) {
             return;
@@ -137,6 +139,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     ref={companyCardsTableRef}
                     policyID={policyID}
                     isPolicyLoaded={isPolicyLoaded}
+                    isPageFetchPending={isPageFetchPending}
                     domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
                     companyCards={companyCards}
                     onAssignCard={assignCard}

@@ -14,12 +14,13 @@ const POLICY_ID = 'policy123';
 const mockClearTableSelection = jest.fn();
 const mockGoBack = jest.fn();
 const mockTurnOffMobileSelectionMode = jest.fn();
-const mockTableProps: {current?: {isSelectionModeEnabled: boolean; isPolicyLoaded: boolean}} = {};
+const mockTableProps: {current?: {isSelectionModeEnabled: boolean; isPolicyLoaded: boolean; isPageFetchPending: boolean}} = {};
 let mockFeedName = 'feed-a';
 let mockIsMobileSelectionModeEnabled = true;
 let mockShouldUseNarrowLayout = true;
 let mockIsOffline = false;
 let mockPolicy: {name: string; policyAccountID?: number; employeeList: Record<string, unknown>} | undefined = {name: 'Acme', policyAccountID: 123, employeeList: {}};
+let mockAllCardFeeds: Record<string, unknown> | undefined = {feed: {}};
 
 jest.mock('@components/DecisionModal', () => () => null);
 
@@ -30,12 +31,14 @@ jest.mock('@components/Tables/WorkspaceCompanyCardsTable', () => {
     const {View} = require('react-native');
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    const MockWorkspaceCompanyCardsTable = ReactMock.forwardRef(({isSelectionModeEnabled, isPolicyLoaded}: {isSelectionModeEnabled: boolean; isPolicyLoaded: boolean}, ref: unknown) => {
-        mockTableProps.current = {isSelectionModeEnabled, isPolicyLoaded};
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-        ReactMock.useImperativeHandle(ref, () => ({clearSelection: mockClearTableSelection}));
-        return <View testID="WorkspaceCompanyCardsTable" />;
-    });
+    const MockWorkspaceCompanyCardsTable = ReactMock.forwardRef(
+        ({isSelectionModeEnabled, isPolicyLoaded, isPageFetchPending}: {isSelectionModeEnabled: boolean; isPolicyLoaded: boolean; isPageFetchPending: boolean}, ref: unknown) => {
+            mockTableProps.current = {isSelectionModeEnabled, isPolicyLoaded, isPageFetchPending};
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+            ReactMock.useImperativeHandle(ref, () => ({clearSelection: mockClearTableSelection}));
+            return <View testID="WorkspaceCompanyCardsTable" />;
+        },
+    );
 
     return {
         __esModule: true,
@@ -52,7 +55,7 @@ jest.mock('@hooks/useAssignCard', () => ({
 jest.mock('@hooks/useCompanyCards', () => ({
     __esModule: true,
     default: () => ({
-        allCardFeeds: {feed: {}},
+        allCardFeeds: mockAllCardFeeds,
         feedName: mockFeedName,
         selectedFeed: undefined,
         bankName: undefined,
@@ -191,6 +194,7 @@ function resetMocks() {
     mockShouldUseNarrowLayout = true;
     mockIsOffline = false;
     mockPolicy = {name: 'Acme', policyAccountID: 123, employeeList: {}};
+    mockAllCardFeeds = {feed: {}};
 }
 
 describe('WorkspaceCompanyCardsPage selection mode', () => {
@@ -277,5 +281,23 @@ describe('WorkspaceCompanyCardsPage isPolicyLoaded', () => {
         render(getWorkspaceCompanyCardsPage());
 
         expect(mockTableProps.current?.isPolicyLoaded).toBe(false);
+    });
+});
+
+describe('WorkspaceCompanyCardsPage isPageFetchPending', () => {
+    beforeEach(resetMocks);
+
+    it('reports the page fetch as pending while no feeds are cached for the workspace', () => {
+        mockAllCardFeeds = undefined;
+
+        render(getWorkspaceCompanyCardsPage());
+
+        expect(mockTableProps.current?.isPageFetchPending).toBe(true);
+    });
+
+    it('reports the page fetch as settled once feeds are cached, since it is no longer re-fetched', () => {
+        render(getWorkspaceCompanyCardsPage());
+
+        expect(mockTableProps.current?.isPageFetchPending).toBe(false);
     });
 });

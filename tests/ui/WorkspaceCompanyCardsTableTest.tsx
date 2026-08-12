@@ -136,19 +136,21 @@ function buildCompanyCards({
 
 type RenderTableOverrides = {
     isPolicyLoaded?: boolean;
+    isPageFetchPending?: boolean;
     domainOrWorkspaceAccountID?: number;
 };
 
 function renderTable(
     companyCards: UseCompanyCardsResult,
     isSelectionModeEnabled = false,
-    {isPolicyLoaded = true, domainOrWorkspaceAccountID = DOMAIN_OR_WORKSPACE_ACCOUNT_ID}: RenderTableOverrides = {},
+    {isPolicyLoaded = true, isPageFetchPending = false, domainOrWorkspaceAccountID = DOMAIN_OR_WORKSPACE_ACCOUNT_ID}: RenderTableOverrides = {},
 ) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <WorkspaceCompanyCardsTable
                 policyID={POLICY_ID}
                 isPolicyLoaded={isPolicyLoaded}
+                isPageFetchPending={isPageFetchPending}
                 domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
                 companyCards={companyCards}
                 onAssignCard={jest.fn()}
@@ -221,6 +223,57 @@ describe('WorkspaceCompanyCardsTable loading suppression', () => {
 
         expect(screen.queryByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeNull();
         expect(screen.getByTestId('WorkspaceCompanyCardsTable')).toBeTruthy();
+    });
+});
+
+describe('WorkspaceCompanyCardsTable pending page fetch', () => {
+    beforeEach(async () => {
+        await Onyx.clear();
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+        await waitForBatchedUpdates();
+    });
+
+    it('shows the loading indicator while the page fetch is still awaited, so the empty feed state cannot flash', async () => {
+        renderTable(buildCompanyCards({workspaceCardFeedsStatus: {}}), false, {isPageFetchPending: true});
+
+        await waitForBatchedUpdates();
+
+        expect(screen.getByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeTruthy();
+        expect(screen.queryByTestId('WorkspaceCompanyCardPageEmptyState')).toBeNull();
+    });
+
+    it('shows the empty feed state once the page fetch has succeeded', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${DOMAIN_OR_WORKSPACE_ACCOUNT_ID}`, {
+            hasOnceLoadedPage: true,
+        });
+
+        renderTable(buildCompanyCards({workspaceCardFeedsStatus: {}}), false, {isPageFetchPending: true});
+
+        await waitForBatchedUpdates();
+
+        expect(screen.queryByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeNull();
+        expect(screen.getByTestId('WorkspaceCompanyCardPageEmptyState')).toBeTruthy();
+    });
+
+    it('shows the feeds load error instead of the loading indicator when the page fetch failed', async () => {
+        renderTable(
+            buildCompanyCards({
+                workspaceCardFeedsStatus: {
+                    [DOMAIN_OR_WORKSPACE_ACCOUNT_ID]: {
+                        errors: {
+                            [CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: TestHelper.translateLocal('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage'),
+                        },
+                    },
+                },
+            }),
+            false,
+            {isPageFetchPending: true},
+        );
+
+        await waitForBatchedUpdates();
+
+        expect(screen.queryByTestId('WorkspaceCompanyCardsTableLoadingIndicator')).toBeNull();
+        expect(screen.getByText(TestHelper.translateLocal('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedTitle'))).toBeTruthy();
     });
 });
 

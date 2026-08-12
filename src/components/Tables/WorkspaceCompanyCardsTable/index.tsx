@@ -56,6 +56,9 @@ type WorkspaceCompanyCardsTableProps = {
     /** Whether the policy is fully loaded, i.e. its account ID has resolved */
     isPolicyLoaded: boolean;
 
+    /** Whether the company cards page fetch is still expected to land, i.e. no feeds are cached for the workspace yet */
+    isPageFetchPending: boolean;
+
     /** Domain or workspace account ID */
     domainOrWorkspaceAccountID: number;
 
@@ -85,6 +88,7 @@ function WorkspaceCompanyCardsTable({
     ref,
     policyID,
     isPolicyLoaded,
+    isPageFetchPending,
     domainOrWorkspaceAccountID,
     companyCards,
     onAssignCard,
@@ -130,7 +134,6 @@ function WorkspaceCompanyCardsTable({
     const hasOnceLoadedSelectedFeed = !!bankName && !!companyCardsLoadingState?.feeds?.[bankName]?.hasOnceLoaded;
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
-    const areWorkspaceCardFeedsLoading = !!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading && !hasOnceLoadedPage;
 
     // Synthesize error locally since Onyx discards writes to collection keys with member ID '0'.
     const shouldShowWorkspaceFeedsLoadError = domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID && isPolicyLoaded && !isOffline;
@@ -159,6 +162,11 @@ function WorkspaceCompanyCardsTable({
 
     // If we already have fetched cards, then do not show a loading spinner (let the remaining updates refresh in the background), else show it
     const hasCards = (companyCardEntries ?? []).length > 0;
+
+    // The page fetch is kicked off from an effect, so its optimistic `isLoading` flag only lands after the first render.
+    // Treat the window before it as loading too, otherwise the empty feed state flashes before the loading indicator shows up.
+    const isPageFetchAwaited = isPageFetchPending && !hasFeedErrors;
+    const areWorkspaceCardFeedsLoading = (!!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading || isPageFetchAwaited) && !hasOnceLoadedPage;
 
     const isLoadingOnyxCardList = !hasCards && isLoadingOnyxValue(cardListMetadata);
     const isLoadingOnyxPersonalDetails = isLoadingOnyxValue(personalDetailsMetadata);
