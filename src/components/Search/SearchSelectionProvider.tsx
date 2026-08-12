@@ -52,6 +52,12 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         selectedTransactionsRef.current = selectionState.selectedTransactions;
     }, [selectionState.selectedTransactions]);
 
+    // The same for the exclusions, which are rebuilt on every commit, so reading them in render would re-render every row on each press.
+    const excludedTransactionsRef = useRef(selectionState.excludedTransactions);
+    useEffect(() => {
+        excludedTransactionsRef.current = selectionState.excludedTransactions;
+    }, [selectionState.excludedTransactions]);
+
     const setSelectedTransactions: SearchSelectionActionsValue['setSelectedTransactions'] = (transactionIDs, data) => {
         if (transactionIDs instanceof Array) {
             if (!transactionIDs.length && areTransactionsEmpty.current) {
@@ -265,6 +271,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         setSelectedTransactions,
         applySelection,
         getSelectedTransactions: () => selectedTransactionsRef.current,
+        getExcludedTransactions: () => excludedTransactionsRef.current,
         setSelectedReports,
         setCurrentSelectedTransactionReportID,
         clearSelectedTransactions,

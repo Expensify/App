@@ -260,6 +260,8 @@ type SearchSelectionActionsValue = {
     ) => void;
     /** Reads the current selection on demand without subscribing, so the shift-range hook can anchor from the live selection. */
     getSelectedTransactions: () => SelectedTransactions;
+    /** The same for the exclusions, which are rebuilt on every commit and would otherwise re-render every row on each press. */
+    getExcludedTransactions: () => SelectedTransactions;
     setSelectedReports: (reports: SelectedReports[]) => void;
     setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */

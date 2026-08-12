@@ -22,6 +22,7 @@ const noopSelectionActions: SearchSelectionActionsValue = {
     setCurrentSelectedTransactionReportID: () => {},
     setSelectedTransactions: () => {},
     getSelectedTransactions: () => ({}),
+    getExcludedTransactions: () => ({}),
     applySelection: () => {},
     setSelectedReports: () => {},
     removeTransaction: () => {},

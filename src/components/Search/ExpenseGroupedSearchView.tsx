@@ -31,6 +31,7 @@ import TransactionGroupListItem from './SearchList/ListItem/TransactionGroupList
 import {isGroupChildrenContainerItem, isGroupHeaderItem} from './SearchList/ListItem/types';
 import useOpenGroupsForShiftRange from './SearchList/ListItem/useOpenGroupsForShiftRange';
 import SearchListViewLayout from './SearchListViewLayout';
+import {NO_OPEN_GROUPS} from './selectionBuilders';
 
 type ExpenseGroupedSearchViewProps = CommonSearchViewProps & TransactionViewExtras;
 
@@ -41,8 +42,6 @@ const isRowDeleted = (item: SearchListItem) => item.pendingAction === CONST.RED_
 const isGroupRowExiting = (item: SearchListItem) => isRowDeleted(item) || (isTransactionGroupListItemType(item) && item.transactions.length > 0 && item.transactions.every(isRowDeleted));
 
 const isRowSelected = (key: string | undefined, selectedTransactions: SelectedTransactions) => !!(key && selectedTransactions[key]?.isSelected);
-
-const NO_OPEN_GROUPS: ReadonlySet<string> = new Set();
 
 /**
  * On wide web layouts each group is split into a sticky header row plus a children-container row, so the

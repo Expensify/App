@@ -317,6 +317,8 @@ function isGroupSelected(selection: SelectedTransactions, groupKey: string | und
     return children.some((child) => !!selection[child.keyForList]?.isSelected);
 }
 
+const NO_OPEN_GROUPS: ReadonlySet<string> = new Set();
+
 type RowCheckedParams = {
     /** The row's own selection key */
     rowKey: string;
@@ -422,4 +424,5 @@ export {
     buildGroupChildrenIndex,
     isGroupSelected,
     isRowChecked,
+    NO_OPEN_GROUPS,
 };

@@ -139,6 +139,30 @@ let flatExpense = makeFlatExpense(-3000);
 let flatFilteredData: TransactionListItemType[] = [flatExpense];
 let flatSearchResults = makeFlatSearchResults(flatExpense);
 
+let groupedSearchResults: SearchResults | undefined;
+
+/** The same group under a search that can change identity, for the rows a registry must not carry across searches. */
+function SearchChangeWrapper({children}: {children: React.ReactNode}) {
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={[categoryGroup]}
+                renderedData={[categoryGroup]}
+                totalSelectableItemsCount={2}
+                searchResults={groupedSearchResults}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                areItemsGrouped
+                isExpenseReportType={false}
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
+
 function Wrapper({children}: {children: React.ReactNode}) {
     return (
         <SearchContextProvider>
@@ -776,6 +800,28 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
     });
 
+    it('turns select-all-matching off when the header checkbox clears the selection', async () => {
+        const {result} = renderFlatSelection();
+
+        // Given every matching item selected
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+
+        // When the header checkbox is pressed again to clear everything
+        await act(async () => {
+            result.current.toggleAll();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then nothing is selected any more, rather than every unloaded match staying selected behind an empty page
+        expect(result.current.areAllMatchingItemsSelected).toBe(false);
+        expect(result.current.excludedTransactions).toEqual({});
+    });
+
     it('clears the page exclusions when select-all-on-this-page covers them again', async () => {
         const {result} = renderFlatSelection();
 
@@ -792,6 +838,32 @@ describe('Lazily loaded group selection', () => {
         // Then the row is not both selected and excluded, which would have a bulk action skip the row the user just checked
         expect(result.current.selectedTransactions[FLAT_TRANSACTION_ID]?.isSelected).toBe(true);
         expect(result.current.excludedTransactions[FLAT_TRANSACTION_ID]).toBeUndefined();
+    });
+
+    it('drops a group’s published rows when the search changes, so a range cannot reach the previous results', async () => {
+        groupedSearchResults = {...makeFlatSearchResults(undefined), search: {...makeFlatSearchResults(undefined).search, hash: 1}};
+        const {result, rerender} = renderSelection(SearchChangeWrapper);
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given a group open with its rows published under one search
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the search changes and the group has not published anything yet under the new one
+        groupedSearchResults = {...groupedSearchResults, search: {...groupedSearchResults.search, hash: 2}};
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        // Then a shift+click reaches only the row it landed on, rather than sweeping in rows that belonged to the previous search
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['1']).toBeUndefined();
+        expect(firstChild.keyForList).toBe('1');
     });
 
     it('still ranges a group reopened before its rows were published again', async () => {

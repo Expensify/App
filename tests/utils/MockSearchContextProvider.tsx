@@ -76,6 +76,7 @@ function splitActions(value: SearchActionsContextValue): {
         selection: {
             setSelectedTransactions: value.setSelectedTransactions,
             getSelectedTransactions: value.getSelectedTransactions ?? (() => ({})),
+            getExcludedTransactions: value.getExcludedTransactions ?? (() => ({})),
             applySelection: value.applySelection,
             setSelectedReports: value.setSelectedReports,
             setCurrentSelectedTransactionReportID: value.setCurrentSelectedTransactionReportID,

@@ -42,12 +42,11 @@ import {
     buildShiftRangeItems,
     isGroupSelected,
     isRowChecked,
+    NO_OPEN_GROUPS,
     mapEmptyReportToSelectedEntry,
     mapTransactionItemToSelectedEntry,
     prepareTransactionsList,
 } from './selectionBuilders';
-
-const NO_OPEN_GROUPS: ReadonlySet<string> = new Set();
 
 type SearchWriteActionsProviderProps = {
     /** The currently displayed (filtered, grouped) rows. Screen-derived; the provider cannot recompute it. */
@@ -176,7 +175,8 @@ function useReconcileSelectionWithData({
                 }
 
                 const reportKey = transactionGroup.keyForList;
-                if (reportKey) {
+                // Only groups that carry no rows here. A group that does carry them has just been rebuilt from them, so anything missing is gone.
+                if (reportKey && transactionGroup.transactions.length === 0) {
                     presentGroupKeys.add(reportKey);
                 }
                 if (shouldReconcileExcludedTransactions && reportKey && transactionGroup.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -441,18 +441,26 @@ function SearchWriteActionsProvider({
     const isFocused = useIsFocused();
     const {isProduction} = useEnvironment();
     const {isOffline} = useNetwork();
-    const {areAllMatchingItemsSelected, excludedTransactions = getEmptyObject<SelectedTransactions>()} = useSearchSelectionContext();
+    const {areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-    const {applySelection, getSelectedTransactions} = useSearchSelectionActions();
+    const {applySelection, getSelectedTransactions, getExcludedTransactions} = useSearchSelectionActions();
 
     // Group-by children load lazily, so the rows that render them publish them here.
     const [groupChildrenByKey, setGroupChildrenByKey] = useState<Record<string, TransactionListItemType[]>>({});
 
     // Held apart from the children because a row can be recycled out of the list while its group stays open.
     const [openGroupKeys, setOpenGroupKeys] = useState<ReadonlySet<string>>(NO_OPEN_GROUPS);
+
+    // The registry belongs to one search, so a group left open across a query change cannot range over the previous results.
+    const searchHash = searchResults?.search?.hash;
+    const [registryHash, setRegistryHash] = useState(searchHash);
+    if (registryHash !== searchHash) {
+        setRegistryHash(searchHash);
+        setGroupChildrenByKey(getEmptyObject<Record<string, TransactionListItemType[]>>());
+    }
 
     const pendingSeedGroupKeyRef = useRef<string | undefined>(undefined);
 
@@ -551,9 +559,12 @@ function SearchWriteActionsProvider({
         if (!isTransactionListItemType(row) || !row.keyForList) {
             return {};
         }
+        if (isTransactionPendingDelete(row)) {
+            return {};
+        }
         const selectedTransactions = getSelectedTransactions();
         const parentGroupKey = groupKeyByChildKey.get(row.keyForList);
-        const isChecked = isRowChecked({rowKey: row.keyForList, parentGroupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected});
+        const isChecked = isRowChecked({rowKey: row.keyForList, parentGroupKey, selectedTransactions, excludedTransactions: getExcludedTransactions(), areAllMatchingItemsSelected});
         if (!isChecked || selectedTransactions[row.keyForList]) {
             return {};
         }
@@ -563,9 +574,9 @@ function SearchWriteActionsProvider({
 
     const applyShiftRangeBatch = (batch: ShiftRangeBatch<SearchData[number]>) => {
         // Same rule as a plain click, for the rows a range gives back.
-        let rangeExclusions: SelectedTransactions = {};
+        const rangeExclusions: SelectedTransactions = {};
         for (const row of batch.toDeselect) {
-            rangeExclusions = {...rangeExclusions, ...buildExclusionForCheckedRowWithoutEntry(row)};
+            Object.assign(rangeExclusions, buildExclusionForCheckedRowWithoutEntry(row));
         }
         applySelection(
             (selectedTransactions) => {
@@ -831,7 +842,8 @@ function SearchWriteActionsProvider({
     const toggleAll: SearchRowSelectionActionsValue['toggleAll'] = () => {
         // Decide select-all vs clear before the updater so the range seed/clear (a ref write) stays out of the reducer.
         pendingSeedGroupKeyRef.current = undefined;
-        if (Object.keys(getSelectedTransactions()).length > 0) {
+        const isClearing = Object.keys(getSelectedTransactions()).length > 0;
+        if (isClearing) {
             rangeApi.clearAnchor();
         } else {
             rangeApi.seedFullRange();
@@ -879,8 +891,8 @@ function SearchWriteActionsProvider({
             {
                 data: filteredData,
                 totalSelectableItemsCount,
-                // Selecting the page explicitly covers rows that were excluded, so the exclusions have to go with it.
-                shouldPreserveAllMatchingSelection: type === CONST.SEARCH.DATA_TYPES.EXPENSE,
+                // Selecting the page covers rows that were excluded, so the exclusions go with it. Clearing must not preserve them.
+                shouldPreserveAllMatchingSelection: !isClearing && type === CONST.SEARCH.DATA_TYPES.EXPENSE,
                 shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
             },
         );
