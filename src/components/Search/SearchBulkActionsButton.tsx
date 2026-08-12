@@ -1,6 +1,7 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import ExpensifyCardStatementPDFDownloadModal from '@components/ExpensifyCardStatementPDFDownloadModal';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
 import KYCWall from '@components/KYCWall';
@@ -26,12 +27,13 @@ import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useContext, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
-import type {BulkPaySelectionData, SearchQueryJSON} from './types';
+import type {BulkPaySelectionData, SearchQueryJSON, SelectedTransactions} from './types';
 
 import BulkDuplicateHandler from './BulkDuplicateHandler';
 import BulkDuplicateReportHandler from './BulkDuplicateReportHandler';
@@ -48,7 +50,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     // We need isSmallScreenWidth (not just shouldUseNarrowLayout) because DecisionModal requires it for correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const kycWallRef = useContext(KYCWallContext);
     const {isAccountLocked} = useLockedAccountState();
@@ -56,6 +58,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const activeAdminPolicies = useSortedActiveAdminPolicies();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -72,6 +75,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         isOfflineModalVisible,
         isDownloadErrorModalVisible,
         isHoldEducationalModalVisible,
+        areAllTransactionsFromDMReports,
         rejectModalAction,
         emptyReportsCount,
         handleOfflineModalClose,
@@ -80,6 +84,12 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         setIsPdfModalVisible,
         pdfReportID,
         handlePdfModalHide,
+        isExpensifyCardStatementPDFModalVisible,
+        setIsExpensifyCardStatementPDFModalVisible,
+        expensifyCardStatementPDFParams,
+        handleExpensifyCardStatementPDFModalHide,
+        isExpensifyCardStatementMultiFeedAlertVisible,
+        handleExpensifyCardStatementMultiFeedAlertClose,
         exportDownloadStatusModal,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
@@ -99,38 +109,50 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const pendingPaymentAdditionalDataRef = useRef<BulkPaySelectionData | undefined>(undefined);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+    const isExpenseType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
     const isExpenseReportType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const popoverUseScrollView = shouldPopoverUseScrollView(headerButtonsOptions);
-    const selectedItemsCount = useMemo(() => {
-        if (!selectedTransactions) {
-            return 0;
-        }
-
-        if (isExpenseReportType) {
-            const reportIDs = new Set(
-                Object.values(selectedTransactions)
-                    .map((transaction) => transaction?.reportID)
-                    .filter((reportID): reportID is string => !!reportID),
-            );
-            return reportIDs.size;
-        }
-
-        return selectedTransactionsKeys.reduce((count, key) => {
-            if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
-                const group = searchData?.[key as keyof typeof searchData] as {count?: number} | undefined;
-                return count + (group?.count ?? 0);
+    const {selectedItemsCount, excludedItemsCount} = useMemo(() => {
+        const getItemsCount = (transactionsToCount: typeof selectedTransactions) => {
+            if (isExpenseReportType) {
+                const reportIDs = new Set(
+                    Object.values(transactionsToCount)
+                        .map((transaction) => transaction?.reportID)
+                        .filter((reportID): reportID is string => !!reportID),
+                );
+                return reportIDs.size;
             }
-            return count + 1;
-        }, 0);
-    }, [selectedTransactions, selectedTransactionsKeys, isExpenseReportType, searchData]);
+
+            return Object.keys(transactionsToCount).reduce((count, key) => {
+                if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
+                    const group = searchData?.[key as keyof typeof searchData] as {count?: number} | undefined;
+                    return count + (group?.count ?? 0);
+                }
+                return count + 1;
+            }, 0);
+        };
+
+        return {
+            selectedItemsCount: getItemsCount(selectedTransactions),
+            excludedItemsCount: getItemsCount(excludedTransactions),
+        };
+    }, [excludedTransactions, selectedTransactions, isExpenseReportType, searchData]);
 
     const allMatchingItemsCount = currentSearchResults?.search?.count;
+    let selectedAllMatchingItemsCount: number | undefined;
+    if (excludedItemsCount > 0) {
+        if (typeof allMatchingItemsCount === 'number') {
+            selectedAllMatchingItemsCount = Math.max(allMatchingItemsCount - excludedItemsCount, 0);
+        } else if (isExpenseType && isOffline) {
+            selectedAllMatchingItemsCount = selectedItemsCount;
+        }
+    }
     const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof allMatchingItemsCount !== 'number' && !isOffline && !!currentSearchResults?.search?.isLoading;
     let selectionButtonText: string;
     if (areAllMatchingItemsSelected) {
-        selectionButtonText =
-            typeof allMatchingItemsCount !== 'number' ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: allMatchingItemsCount});
+        const count = isExpenseType ? selectedAllMatchingItemsCount : allMatchingItemsCount;
+        selectionButtonText = typeof count !== 'number' ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count});
     } else {
         selectionButtonText = translate('workspace.common.selected', {count: selectedItemsCount});
     }
@@ -160,7 +182,9 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                 iouReport={selectedIOUReport}
                 addBankAccountRoute={
-                    isCurrentSelectedExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: currentSelectedPolicyID, backTo: Navigation.getActiveRoute()}) : undefined
+                    isCurrentSelectedExpenseReport
+                        ? () => ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: currentSelectedPolicyID, backTo: Navigation.getActiveRoute()})
+                        : undefined
                 }
                 onSuccessfulKYC={(paymentType) => {
                     confirmPayment?.(paymentType, pendingPaymentAdditionalDataRef.current);
@@ -187,6 +211,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         showLockedAccountModal,
                                         policy: currentPolicy,
                                         businessBankAccountOptions,
+                                        bankAccountList,
                                         activeAdminPolicies,
                                         isUserValidated,
                                         isDelegateAccessRestricted,
@@ -199,6 +224,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                             pendingPaymentAdditionalDataRef.current = data;
                                         },
                                         currentUserAccountID: currentUserPersonalDetails.accountID,
+                                        isOffline,
                                     })
                                 }
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -230,6 +256,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         showLockedAccountModal,
                                         policy: currentPolicy,
                                         businessBankAccountOptions,
+                                        bankAccountList,
                                         activeAdminPolicies,
                                         isUserValidated,
                                         isDelegateAccessRestricted,
@@ -242,6 +269,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                             pendingPaymentAdditionalDataRef.current = data;
                                         },
                                         currentUserAccountID: currentUserPersonalDetails.accountID,
+                                        isOffline,
                                     })
                                 }
                                 isSplitButton={false}
@@ -282,6 +310,23 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     onModalHide={handlePdfModalHide}
                 />
             )}
+            {!!expensifyCardStatementPDFParams && (
+                <ExpensifyCardStatementPDFDownloadModal
+                    statementParams={expensifyCardStatementPDFParams}
+                    isVisible={isExpensifyCardStatementPDFModalVisible}
+                    onClose={() => setIsExpensifyCardStatementPDFModalVisible(false)}
+                    onModalHide={handleExpensifyCardStatementPDFModalHide}
+                />
+            )}
+            <DecisionModal
+                title={translate('search.expensifyCardStatementPDF.title')}
+                prompt={translate('search.expensifyCardStatementPDF.oneFeedAtATime')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={handleExpensifyCardStatementMultiFeedAlertClose}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={isExpensifyCardStatementMultiFeedAlertVisible}
+                onClose={handleExpensifyCardStatementMultiFeedAlertClose}
+            />
             {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal
                     onClose={dismissRejectModalBasedOnAction}
@@ -292,6 +337,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 <HoldSubmitterEducationalModal
                     onClose={dismissModalAndUpdateUseHold}
                     onConfirm={dismissModalAndUpdateUseHold}
+                    isDM={areAllTransactionsFromDMReports}
                 />
             )}
             {exportDownloadStatusModal}

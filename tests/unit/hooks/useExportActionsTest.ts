@@ -12,7 +12,7 @@ const POLICY_ID = 'policy1';
 const EXPORT_NAME = 'Test Template';
 
 jest.mock('@libs/actions/Search', () => ({
-    getExportTemplates: jest.fn(() => []),
+    getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     queueExportSearchWithTemplate: jest.fn(() => 'mock-export-id'),
 }));
 

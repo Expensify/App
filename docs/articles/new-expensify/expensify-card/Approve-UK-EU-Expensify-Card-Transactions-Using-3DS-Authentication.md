@@ -65,7 +65,7 @@ You'll be prompted to enable biometric authentication the first time you approve
 
 To enable biometrics:
 
-1. Enter the verification code sent to your email (magic code).
+1. Enter the verification code sent to your email (security code).
 2. Follow the on-screen prompts.
 3. Confirm using:
    - Face ID

@@ -2,7 +2,7 @@ import CONST from '@src/CONST';
 import * as UserUtils from '@src/libs/UserUtils';
 import type {LoginList} from '@src/types/onyx';
 
-import {translateLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 
 describe('UserUtils', () => {
     describe('getContactMethodsOptions', () => {
@@ -65,10 +65,29 @@ describe('UserUtils', () => {
 
         describe.each(TEST_CASES)('$name', ({loginList, defaultEmail, expectedIndicators}) => {
             test('verifies indicator states', () => {
-                const options = UserUtils.getContactMethodsOptions(translateLocal, loginList, defaultEmail);
+                const options = UserUtils.getContactMethodsOptions(translateLocal, formatPhoneNumber, loginList, defaultEmail);
                 const indicators = options.map((o) => o?.indicator);
                 expect(indicators).toEqual(expectedIndicators);
             });
+        });
+
+        it('formats SMS contact method titles using the passed formatter', () => {
+            const phoneLogin = '+18172057554@expensify.sms';
+            const formatPhoneNumberMock = jest.fn(() => '(817) 205-7554');
+            const options = UserUtils.getContactMethodsOptions(
+                translateLocal,
+                formatPhoneNumberMock,
+                {
+                    [phoneLogin]: {
+                        partnerUserID: phoneLogin,
+                        validatedDate: '2024-01-01',
+                    },
+                },
+                phoneLogin,
+            );
+
+            expect(options.at(0)?.menuItemTitle).toBe('(817) 205-7554');
+            expect(formatPhoneNumberMock).toHaveBeenCalledWith(phoneLogin);
         });
     });
 

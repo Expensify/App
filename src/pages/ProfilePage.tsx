@@ -35,7 +35,6 @@ import {
     isHiddenForCurrentUser as isReportHiddenForCurrentUser,
     navigateToPrivateNotes,
 } from '@libs/ReportUtils';
-import {isAgentEmail} from '@libs/SessionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
 
@@ -129,9 +128,13 @@ function ProfilePage({route}: ProfilePageProps) {
         }
     }
 
-    const displayName = formatPhoneNumber(
-        temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, shouldAddCurrentUserPostfix: isCurrentUser, youAfterTranslation: translate('common.you').toLowerCase(), translate}),
-    );
+    const displayName = temporaryGetDisplayNameOrDefault({
+        passedPersonalDetails: details,
+        shouldAddCurrentUserPostfix: isCurrentUser,
+        youAfterTranslation: translate('common.you').toLowerCase(),
+        translate,
+        formatPhoneNumber,
+    });
 
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
@@ -141,7 +144,8 @@ function ProfilePage({route}: ProfilePageProps) {
 
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
-    const shouldShowLocalTime = !hasAutomatedExpensifyAccountIDs([accountID]) && !isAgentEmail(login) && !isEmptyObject(timezone) && isParticipantValidated;
+    const isCustomAgent = !!details?.isCustomAgent;
+    const shouldShowLocalTime = !hasAutomatedExpensifyAccountIDs([accountID]) && !isCustomAgent && !isEmptyObject(timezone) && isParticipantValidated;
     let pronouns = details?.pronouns ?? '';
     if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {
         const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
@@ -160,7 +164,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const hasStatus = !!statusEmojiCode;
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
-    const isOwnedAgent = !isCurrentUser && isAgentEmail(login) && !!agentPrompt;
+    const isOwnedAgent = !isCurrentUser && isCustomAgent && !!agentPrompt;
 
     const notificationPreferenceValue = getReportNotificationPreference(report);
 
@@ -179,11 +183,11 @@ function ProfilePage({route}: ProfilePageProps) {
     }, [accountID, loginParams, isConcierge]);
 
     useEffect(() => {
-        if (isCurrentUser || !isAgentEmail(login)) {
+        if (isCurrentUser || !isCustomAgent) {
             return;
         }
         openAgentsPage();
-    }, [isCurrentUser, login]);
+    }, [isCurrentUser, isCustomAgent]);
 
     const promotedActions: PromotedAction[] = [];
     if (report) {
@@ -227,12 +231,10 @@ function ProfilePage({route}: ProfilePageProps) {
                             >
                                 <OfflineWithFeedback pendingAction={details?.pendingFields?.avatar}>
                                     <Avatar
-                                        containerStyles={[styles.avatarXLarge]}
-                                        imageStyles={[styles.avatarXLarge]}
                                         source={details?.avatar}
                                         avatarID={accountID}
                                         type={CONST.ICON_TYPE_AVATAR}
-                                        size={CONST.AVATAR_SIZE.X_LARGE}
+                                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                         fallbackIcon={fallbackIcon}
                                     />
                                 </OfflineWithFeedback>
@@ -356,10 +358,7 @@ function ProfilePage({route}: ProfilePageProps) {
                     </ScrollView>
                     {!hasAvatar && isLoading && (
                         <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-                            <ActivityIndicator
-                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                reasonAttributes={{context: 'ProfilePage', isLoading}}
-                            />
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                         </View>
                     )}
                 </View>
