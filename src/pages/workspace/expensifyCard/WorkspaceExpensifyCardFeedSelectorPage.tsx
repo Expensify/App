@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
+import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -83,6 +84,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const policy = usePolicy(policyID);
     const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
     const getIssueCardFundID = () => {
         if (primaryFeeds.length === 0) {
@@ -200,14 +202,20 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     const primaryListData = primaryFeeds.map((entry) => toListItem(entry, false));
 
+    // Suppress the new-program (bank-account setup) branch on unsupported currencies: setting up a brand-new card program requires a USD/UK/EU workspace.
+    // Issuing a card on an existing feed (issueCardFundID !== undefined) is safe on any currency, so keep the button in that case.
+    const shouldShowIssueCardButton = issueCardFundID !== undefined || policy?.outputCurrency === CONST.CURRENCY.USD || isUkEuCurrencySupported;
+
     const issueNewCardAndOtherFeedsFooter = canWriteExpensifyCard ? (
         <View style={[styles.w100, styles.flexColumn]}>
-            <MenuItem
-                title={translate(issueCardFundID !== undefined ? 'workspace.expensifyCard.issueCard' : 'workspace.expensifyCard.issueNewCard')}
-                icon={expensifyIcons.Plus}
-                onPress={issueCardFundID !== undefined ? handleAddCardPress : handleSetUpNewProgramPress}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
-            />
+            {shouldShowIssueCardButton && (
+                <MenuItem
+                    title={translate(issueCardFundID !== undefined ? 'workspace.expensifyCard.issueCard' : 'workspace.expensifyCard.issueNewCard')}
+                    icon={expensifyIcons.Plus}
+                    onPress={issueCardFundID !== undefined ? handleAddCardPress : handleSetUpNewProgramPress}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
+                />
+            )}
             {otherFeeds.length > 0 && (
                 <>
                     <Text style={[styles.ph5, styles.mv2, styles.textLabelSupporting]}>{translate('workspace.companyCards.fromOtherWorkspaces')}</Text>
