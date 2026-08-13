@@ -29,10 +29,8 @@ type UseFollowActionBadgeTargetParams = {
 };
 
 /**
- * Once the current action-badge target is resolved (e.g. the user approves/pays/submits an older report preview), the badge target
- * advances to the next report preview that requires action. This hook follows it by scrolling down to the new target immediately, so
- * the scroll starts as soon as the action is taken (on click / optimistically) rather than waiting for the resolve animation to
- * finish.
+ * When the action-badge target is resolved (e.g. the user approves/pays/submits an older report preview), it advances to the next
+ * preview requiring action. This hook scrolls down to follow it immediately on action, rather than waiting for the resolve animation.
  */
 function useFollowActionBadgeTarget({
     isProduction,
@@ -43,9 +41,8 @@ function useFollowActionBadgeTarget({
     scrollToActionBadgeTarget,
 }: UseFollowActionBadgeTargetParams) {
     const prevActionTargetReportActionID = usePrevious(actionTargetReportActionID);
-    // Keep the latest scroll callback in a ref so a scroll scheduled on the next frame still targets the current badge index.
-    // The effect below only re-runs when the target id changes, so without this the scheduled callback would close over a stale
-    // target index if the list shifts (new message, pagination, resolved preview collapsing) before the frame runs.
+    // Keep the latest scroll callback in a ref so a scroll scheduled on the next frame targets the current badge index rather than a
+    // stale one, in case the list shifts (new message, pagination, resolved preview collapsing) before the frame runs.
     const scrollToActionBadgeTargetRef = useRef(scrollToActionBadgeTarget);
     useEffect(() => {
         scrollToActionBadgeTargetRef.current = scrollToActionBadgeTarget;
@@ -62,9 +59,8 @@ function useFollowActionBadgeTarget({
         if (Navigation.getTopmostReportId() !== reportID || !!Navigation.getReportRHPActiveRoute()) {
             return;
         }
-        // Scroll to the next target immediately (on the next frame) so the forward-scroll starts as soon as the user acts, rather
-        // than waiting for the submit/approve/pay resolve animation to finish. The resolved preview keeps playing its success
-        // animation in place while the list scrolls to the next actionable preview.
+        // Scroll to the next target on the next frame so the forward-scroll starts as soon as the user acts, rather than waiting for
+        // the resolve animation. The resolved preview keeps animating in place while the list scrolls.
         const animationFrameID = requestAnimationFrame(() => scrollToActionBadgeTargetRef.current());
         return () => cancelAnimationFrame(animationFrameID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
