@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {openExternalLink} from '@libs/actions/Link';
 import {clearImportedSpreadsheetMemberData, importPolicyMembers} from '@libs/actions/Policy/Member';
+import Tab from '@libs/actions/Tab';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -103,10 +104,15 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     // to the page the import was started from.
     const isWorkflowsImport = route.name === SCREENS.WORKSPACE.WORKFLOWS_IMPORTED_CONFIRMATION;
 
+    // Only reached once the import succeeded. Workflows returns to a tabbed page that reopens on the tab the user left,
+    // so point it at Approvals — otherwise the workflows just imported are hidden behind whichever tab that was.
     const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImporting(false);
         closeImportPage();
+        if (isWorkflowsImport) {
+            Tab.setSelectedTab(CONST.TAB.WORKFLOWS_TAB_TYPE, CONST.TAB.WORKFLOWS.APPROVALS);
+        }
         Navigation.goBack(isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
     };
 
