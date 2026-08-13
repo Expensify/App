@@ -20,9 +20,14 @@ describe('getUserSecurityGroup', () => {
         expect(getUserSecurityGroup(EMAIL, membership, sharedNVPCollection, legacyCollection)).toBe(newGroup);
     });
 
-    it('returns undefined for an object membership when the sharedNVP group is missing', () => {
+    it('falls back to the legacy group for an object membership when the sharedNVP group is missing', () => {
         const membership = {[DOMAIN]: {securityGroupID: GROUP_ID, ownerAccountID: OWNER_ACCOUNT_ID}};
-        expect(getUserSecurityGroup(EMAIL, membership, {}, legacyCollection)).toBeUndefined();
+        expect(getUserSecurityGroup(EMAIL, membership, {}, legacyCollection)).toBe(legacyGroup);
+    });
+
+    it('returns undefined when neither collection holds the group', () => {
+        const membership = {[DOMAIN]: {securityGroupID: GROUP_ID, ownerAccountID: OWNER_ACCOUNT_ID}};
+        expect(getUserSecurityGroup(EMAIL, membership, {}, {})).toBeUndefined();
     });
 
     it('returns the legacy group for a string membership', () => {
