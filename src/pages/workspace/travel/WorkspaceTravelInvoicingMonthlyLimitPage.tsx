@@ -9,10 +9,10 @@ import Text from '@components/Text';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {updateTravelInvoicingMonthlyLimit} from '@libs/actions/TravelInvoicing';
 import {getCardSettings} from '@libs/CardUtils';
@@ -36,8 +36,8 @@ function WorkspaceTravelInvoicingMonthlyLimitPage({route}: WorkspaceTravelInvoic
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const defaultFundID = useDefaultFundID(policyID);
+    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(defaultFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const currentLimit = travelSettings?.monthlySpendLimitPerUser ?? 0;
     const defaultValue = convertToFrontendAmountAsString(currentLimit, CONST.DEFAULT_CURRENCY_DECIMALS);
@@ -45,7 +45,7 @@ function WorkspaceTravelInvoicingMonthlyLimitPage({route}: WorkspaceTravelInvoic
     const {showConfirmModal} = useConfirmModal();
 
     const submitLimit = (newLimitInCents: number) => {
-        updateTravelInvoicingMonthlyLimit(workspaceAccountID, newLimitInCents, currentLimit);
+        updateTravelInvoicingMonthlyLimit(defaultFundID, newLimitInCents, currentLimit);
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
