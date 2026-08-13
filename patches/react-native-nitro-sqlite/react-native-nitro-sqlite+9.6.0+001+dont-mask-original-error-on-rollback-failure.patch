@@ -1,0 +1,30 @@
+diff --git a/node_modules/react-native-nitro-sqlite/cpp/sqliteExecuteBatch.cpp b/node_modules/react-native-nitro-sqlite/cpp/sqliteExecuteBatch.cpp
+index 4aca8b5..2ea8581 100644
+--- a/node_modules/react-native-nitro-sqlite/cpp/sqliteExecuteBatch.cpp
++++ b/node_modules/react-native-nitro-sqlite/cpp/sqliteExecuteBatch.cpp
+@@ -51,7 +51,11 @@ SQLiteOperationResult sqliteExecuteBatch(const std::string& dbName, const std::v
+         auto result = sqliteExecute(dbName, command.sql, command.params);
+         rowsAffected += result->getRowsAffected();
+       } catch (NitroSQLiteException& e) {
+-        sqliteExecuteLiteral(dbName, "ROLLBACK");
++        // A failed ROLLBACK (SQLite may have already rolled back on its own) must not mask the original error.
++        try {
++          sqliteExecuteLiteral(dbName, "ROLLBACK");
++        } catch (...) {
++        }
+         throw e;
+       }
+     }
+@@ -61,7 +65,11 @@ SQLiteOperationResult sqliteExecuteBatch(const std::string& dbName, const std::v
+         .commands = (int)commandCount,
+     };
+   } catch (NitroSQLiteException& e) {
+-    sqliteExecuteLiteral(dbName, "ROLLBACK");
++    // A failed ROLLBACK (SQLite may have already rolled back on its own) must not mask the original error.
++    try {
++      sqliteExecuteLiteral(dbName, "ROLLBACK");
++    } catch (...) {
++    }
+     throw e;
+   }
+ }

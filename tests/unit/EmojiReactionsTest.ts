@@ -61,7 +61,7 @@ describe('toggleEmojiReaction — mixed-format Onyx state', () => {
             },
         };
 
-        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A);
+        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A, undefined);
 
         expect(writeMock).toHaveBeenCalledTimes(1);
         const writeCall = writeMock.mock.calls.at(0);
@@ -83,7 +83,7 @@ describe('toggleEmojiReaction — mixed-format Onyx state', () => {
             },
         };
 
-        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A);
+        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A, undefined);
 
         expect(writeMock).toHaveBeenCalledTimes(1);
         const writeCall = writeMock.mock.calls.at(0);
@@ -105,7 +105,7 @@ describe('toggleEmojiReaction — mixed-format Onyx state', () => {
             },
         };
 
-        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A);
+        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A, undefined);
 
         expect(writeMock).toHaveBeenCalledTimes(1);
         expect(writeMock.mock.calls.at(0)?.at(0)).toBe(WRITE_COMMANDS.ADD_EMOJI_REACTION);
@@ -127,7 +127,7 @@ describe('toggleEmojiReaction — mixed-format Onyx state', () => {
             },
         };
 
-        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A);
+        toggleEmojiReaction(REPORT_ID, ACTION, THUMBSUP, existingReactions, SKIN_TONE, USER_A, undefined);
 
         expect(writeMock).toHaveBeenCalledTimes(1);
         const writeCall = writeMock.mock.calls.at(0);
