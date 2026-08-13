@@ -110,13 +110,13 @@ function canLinkPlaid(bankAccount: OnyxEntry<OnyxTypes.BankAccount>, onCardWaitl
     return false;
 }
 
-function getBankAccountConnectionStatus(accountData: AccountData | undefined, canLinkPlaid = false): BankAccountConnectionStatus | undefined {
+function getBankAccountConnectionStatus(accountData: AccountData | undefined, canBankAccountLinkPlaid = false): BankAccountConnectionStatus | undefined {
     if (!accountData) {
         return undefined;
     }
 
     const {state, type, additionalData: {country = CONST.COUNTRY.US} = {}} = accountData;
-    if (canLinkPlaid && country === CONST.COUNTRY.US && state === CONST.BANK_ACCOUNT.STATE.OPEN && type === CONST.BANK_ACCOUNT.TYPE.BUSINESS) {
+    if (canBankAccountLinkPlaid && country === CONST.COUNTRY.US && state === CONST.BANK_ACCOUNT.STATE.OPEN && type === CONST.BANK_ACCOUNT.TYPE.BUSINESS) {
         if (hasBrokenPlaidConnection(accountData)) {
             return {
                 requiresPlaidHandler: true,
