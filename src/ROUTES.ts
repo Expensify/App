@@ -310,12 +310,22 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
-            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
+            SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT,
         ],
         // `orderWeight` is stringified explicitly because the first tag list has index 0, which `getUrlWithParams` would drop as falsy.
         getRoute: (action: IOUAction, iouType: IOUType, orderWeight: number, transactionID: string, reportID?: string, reportActionID?: string) =>
             getUrlWithParams('expense-tag', {action, iouType, orderWeight: String(orderWeight), transactionID, reportID, reportActionID}),
         queryParams: ['action', 'iouType', 'orderWeight', 'transactionID', 'reportID', 'reportActionID'],
+    },
+    SPLIT_EXPENSE_EDIT: {
+        path: 'split-expense/edit/:reportID/:splitExpenseTransactionID?',
+        entryScreens: [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE, SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH],
+        getRoute: (reportID: string, splitExpenseTransactionID?: string) => {
+            if (!splitExpenseTransactionID) {
+                return `split-expense/edit/${reportID}` as const;
+            }
+            return `split-expense/edit/${reportID}/${splitExpenseTransactionID}` as const;
+        },
     },
     MONEY_REQUEST_STEP_DESTINATION: {
         path: 'per-diem-destination',
@@ -2210,16 +2220,6 @@ const ROUTES = {
             }
 
             return getUrlWithBackToParam(`create/split-expense/create-date-range/${reportID}/${transactionID}`, backTo);
-        },
-    },
-    SPLIT_EXPENSE_EDIT: {
-        route: 'edit/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID?',
-        getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
-            if (!reportID || !originalTransactionID) {
-                Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE_EDIT route`);
-            }
-
-            return getUrlWithBackToParam(`edit/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
         },
     },
     MONEY_REQUEST_HOLD_REASON: {

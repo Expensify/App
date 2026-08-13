@@ -11,6 +11,7 @@ import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useAllTransactions from '@hooks/useAllTransactions';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -33,7 +34,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SplitExpenseParamList} from '@libs/Navigation/types';
+import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {arePolicyRulesEnabled, getDistanceRateCustomUnitRate, getTagLists, hasAnyPaidPolicy, isGroupPolicyByType} from '@libs/PolicyUtils';
@@ -54,16 +55,17 @@ import {policyTypeSelector} from '@selectors/Policy';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
-type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
+type DynamicSplitExpenseEditPageProps = PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT>;
 
-function SplitExpenseEditPage({route}: SplitExpensePageProps) {
+function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
     const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
     const {currentSearchResults} = useSearchResultsContext();
 
-    const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
+    const {reportID, transactionID, splitExpenseTransactionID = ''} = route.params;
+    const backTo = useDynamicBackPath(DYNAMIC_ROUTES.SPLIT_EXPENSE_EDIT.path);
 
     const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const [originalTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitExpenseDraftTransaction?.comment?.originalTransactionID}`);
@@ -312,7 +314,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     ) : null;
 
     return (
-        <ScreenWrapper testID="SplitExpenseEditPage">
+        <ScreenWrapper testID="DynamicSplitExpenseEditPage">
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(splitExpenseDraftTransaction) || !isSplitAvailable}>
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
@@ -497,4 +499,4 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     );
 }
 
-export default SplitExpenseEditPage;
+export default DynamicSplitExpenseEditPage;
