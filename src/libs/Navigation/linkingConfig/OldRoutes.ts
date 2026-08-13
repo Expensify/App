@@ -1,12 +1,9 @@
 const oldRoutes: Record<string, string> = {
     /* eslint-disable @typescript-eslint/naming-convention */
-    // Per diem destination step migrated to dynamic routes (#83850). Dynamic suffixes are namespaced `per-diem-*` because
-    // dynamic route paths must be globally unique across DYNAMIC_ROUTES (react-navigation flattens them and a bare
-    // `destination` collides with Sage Intacct's existing `destination` suffix). Edit variant redirects to the
-    // confirmation-based suffix; the wizard variant to the start-based suffix. Query is not preserved (trailing wildcard
-    // would swallow it) - acceptable because callers no longer append `?backTo=`.
     '/*/*/destination/*/*/edit': '/$1/$2/confirmation/$3/$4/per-diem-destination-edit',
     '/*/*/destination/*/*': '/$1/$2/start/$3/$4/per-diem-destination',
+    '/*/*/time/*/*/edit': '/$1/$2/confirmation/$3/$4/per-diem-time-edit',
+    '/*/*/time/*/*': '/$1/$2/destination/$3/$4/per-diem-time',
     '/settings/*/category/*/edit': '/settings/$1/categories/category-settings/$2/category-edit',
     '/settings/*/category/*': '/settings/$1/categories/category-settings/$2',
     '/settings/*/tags/*/edit': '/settings/$1/tags/settings-tags-edit/$2',
@@ -91,6 +88,7 @@ const oldRoutes: Record<string, string> = {
     '/referral/*': '/home/referral/$1',
     '/a/*/avatar': '/avatar/$1',
     '/settings/profile/contact-methods/verify': '/settings/profile/contact-methods/verify-account',
+    '/settings/profile/contact-methods/new': '/settings/profile/contact-methods/new-contact-method',
     '/home-page': '/home',
     '/new/task/details': '/task-details',
     '/new/task/title': '/task-details/task-confirm/task-title',
@@ -143,9 +141,11 @@ const oldRoutes: Record<string, string> = {
     '/settings/wallet/enable-payments/terms*': '/settings/wallet/enable-payments/fees-and-terms/terms$1',
     '/missing-personal-details/*': '/settings/wallet/missing-personal-details/$1',
     '/workspaces/*/workflows/approvals/expenses-from': '/workspaces/$1/workflows/approvals/new/expenses-from',
+    '/*/*/category/new/*/*/*': '/r/$4/category/add-category?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
+    '/*/*/category/new/*/*': '/r/$4/category/add-category?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/category/*/*/*': '/r/$4/category?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
+    '/*/*/category/*/*': '/r/$4/category?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/report/*/edit*': '/r/$3/expense-report-edit?action=$1&iouType=$2&reportID=$3',
-    // Optional reportActionID segment must be matched by a more-specific pattern BEFORE the broad one,
-    // otherwise the broad pattern's trailing `*` swallows "<reportID>/<reportActionID>" together.
     '/*/*/report/*/*/*': '/r/$4/expense-report?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
     '/*/*/report/*/*': '/r/$4/expense-report?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/tag/*/*/*/*': '/r/$5/expense-tag?action=$1&iouType=$2&orderWeight=$3&transactionID=$4&reportID=$5&reportActionID=$6',
@@ -153,9 +153,6 @@ const oldRoutes: Record<string, string> = {
     '/*/*/taxRate/*/*': '/r/$4/taxRate?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/taxAmount/*/*': '/r/$4/taxAmount?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/attendees/*/*': '/r/$4/attendees?action=$1&iouType=$2&transactionID=$3&reportID=$4',
-    '/*/*/accountant/*/*': '/r/$4/accountant?action=$1&iouType=$2&transactionID=$3&reportID=$4',
-    '/*/*/upgrade/*/*/*': '/r/$4/money-request-upgrade?action=$1&iouType=$2&transactionID=$3&reportID=$4&upgradePath=$5',
-    '/*/*/upgrade/*/*': '/r/$4/money-request-upgrade?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 
