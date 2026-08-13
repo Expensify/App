@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import {useHeaderContext} from '@components/HeaderWithBackButtonComposed/context';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip';
@@ -19,17 +20,15 @@ type HeaderDownloadButtonProps = {
 
     /** Whether we should show a loading indicator replacing the download button. */
     isLoading?: boolean;
-
-    /** Optional fill color for the icon. */
-    iconFill?: string;
 };
 
-function HeaderDownloadButton({onPress = () => {}, isLoading = false, iconFill}: HeaderDownloadButtonProps) {
+function HeaderDownloadButton({onPress = () => {}, isLoading = false}: HeaderDownloadButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
+    const {iconFill} = useHeaderContext();
 
     if (isLoading) {
         return <ActivityIndicator style={[styles.touchableButtonImage]} />;

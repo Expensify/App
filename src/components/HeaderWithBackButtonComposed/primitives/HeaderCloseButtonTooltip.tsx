@@ -1,3 +1,4 @@
+import {useHeaderContext} from '@components/HeaderWithBackButtonComposed/context';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip';
@@ -14,18 +15,17 @@ import CONST from '@src/CONST';
 type HeaderCloseButtonTooltipProps = {
     /** Method to trigger when pressing the close button of the header. Defaults to `Navigation.dismissModal()`. */
     onPress?: () => void;
-    /** The fill color for the close icon. */
-    iconFill?: string;
 };
 
 /**
  * Close button. Renders what the legacy `shouldShowCloseButton` branch rendered — a tooltip-wrapped close icon button.
  */
-function HeaderCloseButtonTooltip({onPress = () => Navigation.dismissModal(), iconFill}: HeaderCloseButtonTooltipProps) {
+function HeaderCloseButtonTooltip({onPress = () => Navigation.dismissModal()}: HeaderCloseButtonTooltipProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
+    const {iconFill} = useHeaderContext();
 
     return (
         <Tooltip text={translate('common.close')}>

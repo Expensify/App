@@ -1,3 +1,4 @@
+import {useHeaderContext} from '@components/HeaderWithBackButtonComposed/context';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip';
@@ -22,19 +23,17 @@ type HeaderBackButtonProps = {
     /** Whether we should navigate to the report page when the route has a topMostReport. */
     shouldNavigateToTopMostReport?: boolean;
 
-    /** Optional fill color for the icon. */
-    iconFill?: string;
-
     /** Whether to skip focus of the back button after the RHP transition (screen reader). */
     shouldSkipFocusAfterTransition?: boolean;
 };
 
-function HeaderBackButton({onPress = () => Navigation.goBack(), shouldNavigateToTopMostReport = false, iconFill, shouldSkipFocusAfterTransition = false}: HeaderBackButtonProps) {
+function HeaderBackButton({onPress = () => Navigation.goBack(), shouldNavigateToTopMostReport = false, shouldSkipFocusAfterTransition = false}: HeaderBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
+    const {iconFill} = useHeaderContext();
 
     return (
         <Tooltip text={translate('common.back')}>

@@ -1,4 +1,5 @@
 import Header from '@components/Header';
+import {useHeaderContext} from '@components/HeaderWithBackButtonComposed/context';
 
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -7,8 +8,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {StepCounterParams} from '@src/languages/params';
 
 import type {ReactNode} from 'react';
-
-import React from 'react';
 
 type HeaderTitleProps = {
     /** Title of the header. */
@@ -28,14 +27,13 @@ type HeaderTitleProps = {
 
     /** Whether to skip focus of the first interactive element after the RHP transition (screen reader). */
     shouldSkipFocusAfterTransition?: boolean;
-
-    shouldUseHeadlineHeader: boolean;
 };
 
-function HeaderTitle({children, subtitle = '', titleColor, stepCounter, subTitleLink = '', shouldSkipFocusAfterTransition = false, shouldUseHeadlineHeader}: HeaderTitleProps) {
+function HeaderTitle({children, subtitle = '', titleColor, stepCounter, subTitleLink = '', shouldSkipFocusAfterTransition = false}: HeaderTitleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const {shouldUseHeadlineHeader} = useHeaderContext();
 
     return (
         <Header

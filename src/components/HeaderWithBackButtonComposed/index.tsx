@@ -101,7 +101,6 @@ function HeaderWithBackButton({
                         <HeaderBackButton
                             onPress={onBackButtonPress}
                             shouldNavigateToTopMostReport={shouldNavigateToTopMostReport}
-                            iconFill={iconFill}
                             shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
                         />
                     )}
@@ -111,7 +110,6 @@ function HeaderWithBackButton({
                             width={iconWidth}
                             height={iconHeight}
                             style={iconStyles}
-                            iconFill={iconFill}
                         />
                     )}
                     {!!policyAvatar && <HeaderPolicyAvatar policyAvatar={policyAvatar} />}
@@ -129,7 +127,6 @@ function HeaderWithBackButton({
                             titleColor={titleColor}
                             subTitleLink={subTitleLink}
                             shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
-                            shouldUseHeadlineHeader={shouldUseHeadlineHeader}
                         >
                             {title}
                         </HeaderTitle>
@@ -141,7 +138,6 @@ function HeaderWithBackButton({
                                 <HeaderDownloadButton
                                     onPress={onDownloadButtonPress}
                                     isLoading={isDownloading}
-                                    iconFill={iconFill}
                                 />
                             )}
                             {shouldShowRotateButton && (
@@ -171,12 +167,7 @@ function HeaderWithBackButton({
                                 shouldSetModalVisibility={shouldSetModalVisibility}
                             />
                         )}
-                        {shouldShowCloseButton && (
-                            <HeaderCloseButtonTooltip
-                                iconFill={iconFill}
-                                onPress={onCloseButtonPress}
-                            />
-                        )}
+                        {shouldShowCloseButton && <HeaderCloseButtonTooltip onPress={onCloseButtonPress} />}
                     </View>
                     {shouldDisplaySearchRouter && <HeaderSearchRouter />}
                     {shouldDisplayHelpButton && <HeaderHelpButton />}
