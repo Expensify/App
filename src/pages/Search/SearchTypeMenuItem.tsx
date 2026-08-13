@@ -8,6 +8,7 @@ import TooltipSense from '@components/Tooltip/TooltipSense';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getButtonState from '@libs/getButtonState';
@@ -49,6 +50,7 @@ const COLLAPSED_BADGE_EXIT_DURATION_MS = 90;
 function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: SearchTypeMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
     const labelAnimatedStyle = useSearchSidebarCollapseFadeStyle();
@@ -80,12 +82,15 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
             accessibilityState={{selected: focused}}
             role={CONST.ROLE.TAB}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM}
+            // A press keeps the hover/selected color and only dims via opacity, matching the Inbox LHN rows
             style={({hovered, pressed}) => [
                 styles.flexRow,
                 styles.sectionMenuItem(shouldUseNarrowLayout),
                 styles.searchTypeMenuItemPadding,
-                StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, false, false, true), true),
-                hovered && !focused && !pressed && styles.hoveredComponentBG,
+                StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || hovered, false, false, false, true), true),
+                focused ? StyleUtils.getBackgroundColorStyle(theme.navItemSelectedBG) : undefined,
+                hovered && !focused ? StyleUtils.getBackgroundColorStyle(theme.navItemHoverBG) : undefined,
+                pressed ? {opacity: variables.pressDimValue} : undefined,
             ]}
         >
             {({hovered, pressed}) => (

@@ -760,7 +760,7 @@ const staticStyles = (theme: ThemeColors) =>
          * Do not apply for the active/selected state, those already have their own styling.
          */
         navigationTabBarItemHovered: {
-            backgroundColor: theme.sidebarHover,
+            backgroundColor: theme.navItemHoverBG,
         },
 
         leftNavigationTabBarContainer: {
@@ -5075,7 +5075,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         sidebarStatusAvatarHovered: {
-            borderColor: theme.hoverComponentBG,
+            borderColor: theme.navItemHoverBG,
         },
 
         profilePageAvatar: {
@@ -6835,7 +6835,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             }
 
             return {
-                backgroundColor: hovered && !isFocused ? theme.highlightBG : (background as string),
+                backgroundColor: hovered && !isFocused ? theme.navItemHoverBG : (background as string),
             };
         },
 

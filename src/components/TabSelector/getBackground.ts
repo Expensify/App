@@ -11,15 +11,15 @@ function getBackgroundColor({routesLength, tabIndex, affectedTabs, theme, positi
             return position.interpolate({
                 inputRange,
                 outputRange: inputRange.map((i) => {
-                    return affectedTabs.includes(tabIndex) && i === tabIndex ? theme.border : theme.appBG;
+                    return affectedTabs.includes(tabIndex) && i === tabIndex ? theme.navItemSelectedBG : theme.appBG;
                 }),
             }) as unknown as Animated.AnimatedInterpolation<string>;
         }
 
-        return affectedTabs.includes(tabIndex) && isActive ? theme.border : theme.appBG;
+        return affectedTabs.includes(tabIndex) && isActive ? theme.navItemSelectedBG : theme.appBG;
     }
 
-    return theme.border;
+    return theme.navItemSelectedBG;
 }
 
 export default getBackgroundColor;

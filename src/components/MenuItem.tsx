@@ -893,10 +893,23 @@ function MenuItem({
                                         isCompact && styles.optionRowCompact,
                                         isCompactPopoverItem && (description ? styles.compactPopoverMenuItemBase : styles.compactPopoverMenuItem),
                                         !shouldRemoveBackground &&
-                                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
+                                            // Nav rows (role=tab) skip the pressed background so a press keeps the hover/selected color and only dims via opacity
+                                            StyleUtils.getButtonBackgroundColorStyle(
+                                                getButtonState(focused || isHovered, role === CONST.ROLE.TAB ? false : pressed, success, disabled, interactive),
+                                                true,
+                                            ),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
                                         isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
+                                        // Nav rows (role=tab) use the lighter product200/product300 hover/selected colors, held through a press
+                                        role === CONST.ROLE.TAB && focused && !shouldRemoveBackground && StyleUtils.getBackgroundColorStyle(theme.navItemSelectedBG),
+                                        role === CONST.ROLE.TAB &&
+                                            isHovered &&
+                                            interactive &&
+                                            !focused &&
+                                            !shouldRemoveBackground &&
+                                            !shouldRemoveHoverBackground &&
+                                            StyleUtils.getBackgroundColorStyle(theme.navItemHoverBG),
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}

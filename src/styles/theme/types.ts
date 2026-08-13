@@ -63,6 +63,10 @@ type ThemeColors = {
     componentBG: Color;
     hoverComponentBG: Color;
     activeComponentBG: Color;
+    /** Background color for a hovered left-hand-nav row or horizontal tab */
+    navItemHoverBG: Color;
+    /** Background color for a selected/active left-hand-nav row or horizontal tab */
+    navItemSelectedBG: Color;
     signInSidebar: Color;
     sidebar: Color;
     sidebarHover: Color;

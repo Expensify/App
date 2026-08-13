@@ -5,6 +5,9 @@ import lightTheme from './light';
 
 const lightContrastTheme = {
     ...lightTheme,
+    // Keep nav rows/tabs at the stronger prior values so their state stays legible under high contrast
+    navItemHoverBG: colors.productLight300,
+    navItemSelectedBG: colors.productLight400,
     border: colors.productLight500,
     icon: colors.productLight800,
     textSupporting: '#53645C',
