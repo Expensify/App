@@ -288,6 +288,7 @@ function IOURequestStepUpgrade({
         isTrackIntentUser,
         delegateAccountID,
         getCurrencyDecimals,
+        formatPhoneNumber,
     ]);
 
     const participant = transaction?.participants?.[0];

@@ -349,6 +349,7 @@ function AttachmentPickerWithMenuItems({
         icons,
         betas,
         draftTransactionIDs,
+        formatPhoneNumber,
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
