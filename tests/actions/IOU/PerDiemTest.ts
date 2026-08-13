@@ -29,6 +29,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyCategories from '../../utils/collections/policyCategory';
 import createRandomPolicyTags from '../../utils/collections/policyTags';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -321,10 +322,10 @@ describe('PerDiem', () => {
                     accountID: 123,
                     login: 'payee@example.com',
                 },
-            };
+            } satisfies RequestMoneyParticipantParams;
 
-            const parentChatReport = {} as OnyxEntry<Report>;
-            const participantParams = mockParticipantParams as unknown as RequestMoneyParticipantParams;
+            const parentChatReport = createMock<OnyxEntry<Report>>({});
+            const participantParams = mockParticipantParams;
 
             const earlyPolicyID = getPerDiemExpensePolicyID({
                 report: parentChatReport,
@@ -337,6 +338,7 @@ describe('PerDiem', () => {
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
+                dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -429,7 +431,7 @@ describe('PerDiem', () => {
             };
 
             // When: Call getPerDiemExpenseInformation
-            const parentChatReport = {} as OnyxEntry<Report>;
+            const parentChatReport = createMock<OnyxEntry<Report>>({});
 
             const earlyPolicyID = getPerDiemExpensePolicyID({
                 report: parentChatReport,
@@ -442,6 +444,7 @@ describe('PerDiem', () => {
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
+                dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -547,6 +550,7 @@ describe('PerDiem', () => {
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
+                dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 parentChatReport: undefined,
                 transactionParams: mockTransactionParams,
@@ -632,7 +636,7 @@ describe('PerDiem', () => {
                 role: CONST.REPORT.ROLE.MEMBER,
             };
 
-            const mockTransactionParams = {
+            const mockTransactionParams = createMock<PerDiemExpenseTransactionParams>({
                 comment: 'Conference per diem',
                 currency: 'USD',
                 created: '2024-01-20',
@@ -642,17 +646,17 @@ describe('PerDiem', () => {
                 billable: false,
                 attendees: [],
                 reimbursable: true,
-            };
+            });
 
-            const mockParticipantParams = {
+            const mockParticipantParams = createMock<RequestMoneyParticipantParams>({
                 payeeAccountID: 456,
                 payeeEmail: 'payee@example.com',
                 participant: mockParticipant,
-            };
+            });
 
             // When: Call getPerDiemExpenseInformation with existing chat report
-            const parentChatReport = existingChatReport as OnyxEntry<Report>;
-            const participantParams = mockParticipantParams as RequestMoneyParticipantParams;
+            const parentChatReport = createMock<OnyxEntry<Report>>(existingChatReport);
+            const participantParams = mockParticipantParams;
 
             const earlyPolicyID = getPerDiemExpensePolicyID({
                 report: parentChatReport,
@@ -665,9 +669,10 @@ describe('PerDiem', () => {
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
+                dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
-                transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
+                transactionParams: mockTransactionParams,
                 participantParams,
                 recentlyUsedParams: {},
                 policyTags,
@@ -733,7 +738,7 @@ describe('PerDiem', () => {
                 quantity: 1,
             };
 
-            const mockTransactionParams = {
+            const mockTransactionParams = createMock<PerDiemExpenseTransactionParams>({
                 comment: 'Policy per diem',
                 currency: 'USD',
                 created: '2024-01-25',
@@ -743,21 +748,21 @@ describe('PerDiem', () => {
                 billable: true,
                 attendees: [],
                 reimbursable: true,
-            };
+            });
 
-            const mockParticipantParams = {
+            const mockParticipantParams = createMock<RequestMoneyParticipantParams>({
                 payeeAccountID: 456,
                 payeeEmail: 'payee@example.com',
                 participant: mockParticipant,
-            };
+            });
 
             const mockPolicyParams = {
                 policy: createRandomPolicy(2),
             };
 
             // When: Call getPerDiemExpenseInformation for policy expense chat
-            const parentChatReport = {} as OnyxEntry<Report>;
-            const participantParams = mockParticipantParams as RequestMoneyParticipantParams;
+            const parentChatReport = createMock<OnyxEntry<Report>>({});
+            const participantParams = mockParticipantParams;
 
             const earlyPolicyID = getPerDiemExpensePolicyID({
                 report: parentChatReport,
@@ -770,9 +775,10 @@ describe('PerDiem', () => {
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
+                dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
-                transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
+                transactionParams: mockTransactionParams,
                 participantParams,
                 policyParams: mockPolicyParams,
                 recentlyUsedParams: {},
@@ -851,6 +857,7 @@ describe('PerDiem', () => {
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
+                dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -940,6 +947,7 @@ describe('PerDiem', () => {
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
+                dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -1022,7 +1030,7 @@ describe('PerDiem', () => {
             };
 
             // When calling getPerDiemExpenseInformation with personalDetails
-            const parentChatReport = {} as OnyxEntry<Report>;
+            const parentChatReport = createMock<OnyxEntry<Report>>({});
             const participantParams = {
                 payeeAccountID: RORY_ACCOUNT_ID,
                 payeeEmail: RORY_EMAIL,
@@ -1030,7 +1038,7 @@ describe('PerDiem', () => {
                     accountID: RORY_ACCOUNT_ID,
                     login: RORY_EMAIL,
                 },
-            } as unknown as RequestMoneyParticipantParams;
+            } satisfies RequestMoneyParticipantParams;
 
             const earlyPolicyID = getPerDiemExpensePolicyID({
                 report: parentChatReport,
@@ -1043,6 +1051,7 @@ describe('PerDiem', () => {
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
+                dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -1114,6 +1123,7 @@ describe('PerDiem', () => {
             const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
+                dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',

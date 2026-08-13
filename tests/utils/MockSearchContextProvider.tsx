@@ -50,6 +50,7 @@ function splitState(value: SearchStateContextValue): {
         },
         selection: {
             selectedTransactions: value.selectedTransactions,
+            excludedTransactions: value.excludedTransactions,
             selectedTransactionIDs: value.selectedTransactionIDs,
             selectedReports: value.selectedReports,
             currentSelectedTransactionReportID: value.currentSelectedTransactionReportID,

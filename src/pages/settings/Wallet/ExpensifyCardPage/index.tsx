@@ -121,7 +121,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardList?.[cardID]?.fundID}`);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {executeScenario} = useMultifactorAuthentication();
     const shouldDisplayCardDomain = !isTravelCard(cardList?.[cardID]) && (!cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual);
     const domain = cardList?.[cardID]?.domainName ?? '';
@@ -339,13 +339,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         }
                     >
                         <CardDetailsActionButton
-                            medium
-                            text={translate('workspace.common.viewTransactions')}
-                            icon={expensifyIcons.MoneySearch}
                             onPress={navigateToTransactions}
                             innerStyles={styles.ph2}
                             style={styles.w100}
-                        />
+                        >
+                            <CardDetailsActionButton.Icon src={expensifyIcons.MoneySearch} />
+                            <CardDetailsActionButton.Text>{translate('workspace.common.viewTransactions')}</CardDetailsActionButton.Text>
+                        </CardDetailsActionButton>
                     </FrozenCardHeader>
                 ) : (
                     <View style={[styles.flex1, styles.mb3, styles.mt8]}>
@@ -383,19 +383,21 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             <CardDetailsActionButtons style={styles.mb0}>
                                 {canManageCardFreeze && currentCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN && !isCardFrozen(currentCard) && (
                                     <CardDetailsActionButton
-                                        text={translate('cardPage.freezeCard')}
-                                        icon={expensifyIcons.FreezeCard}
                                         onPress={handleFreezePress}
                                         isDisabled={isOffline}
                                         style={styles.flexShrink0}
-                                    />
+                                    >
+                                        <CardDetailsActionButton.Icon src={expensifyIcons.FreezeCard} />
+                                        <CardDetailsActionButton.Text>{translate('cardPage.freezeCard')}</CardDetailsActionButton.Text>
+                                    </CardDetailsActionButton>
                                 )}
                                 <CardDetailsActionButton
-                                    text={translate('workspace.common.viewTransactions')}
-                                    icon={expensifyIcons.MoneySearch}
                                     onPress={navigateToTransactions}
                                     style={styles.flexShrink0}
-                                />
+                                >
+                                    <CardDetailsActionButton.Icon src={expensifyIcons.MoneySearch} />
+                                    <CardDetailsActionButton.Text>{translate('workspace.common.viewTransactions')}</CardDetailsActionButton.Text>
+                                </CardDetailsActionButton>
                             </CardDetailsActionButtons>
                         )}
                         {shouldShowChangePINRow && isCardPINBlocked && (
@@ -440,6 +442,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 currentCard?.nameValuePairs?.validFrom,
                                 currentCard?.nameValuePairs?.validThru,
                                 personalDetails?.[currentCard?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.timezone?.selected,
+                                dateFnsLocale,
                                 translate,
                             )}
                         />
@@ -504,6 +507,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                           card?.nameValuePairs?.validFrom,
                                                           card?.nameValuePairs?.validThru,
                                                           personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.timezone?.selected,
+                                                          dateFnsLocale,
                                                           translate,
                                                       )
                                             }

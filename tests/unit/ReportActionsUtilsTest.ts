@@ -50,6 +50,8 @@ import {
     getRenamedCardFeedMessage,
     getReportActionActorAccountID,
     getRequireCompanyCardsEnabledMessage,
+    getRequiresCategoryMessage,
+    getRequiresTagMessage,
     getSendMoneyFlowAction,
     getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
@@ -62,6 +64,7 @@ import {
     isIOUActionMatchingTransactionList,
     isNewerReportAction,
     shouldHideNewMarker,
+    wasActionTakenByCurrentUser,
 } from '../../src/libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -2199,6 +2202,7 @@ describe('ReportActionsUtils', () => {
                     policyID: testPolicyID,
                     expensifyCard: undefined,
                     translate: translateLocal,
+                    currentUserAccountID: 1,
                 });
 
                 expect(messageResult).toBe('issued <mention-user accountID="456"/> a virtual Expensify Card! The card can be used right away.');
@@ -2211,12 +2215,88 @@ describe('ReportActionsUtils', () => {
                     policyID: testPolicyID,
                     expensifyCard: activeExpensifyCard,
                     translate: translateLocal,
+                    currentUserAccountID: 1,
                 });
 
                 expect(messageResult).toBe(
                     `issued <mention-user accountID="456"/> a virtual Expensify Card! The <a href='https://dev.new.expensify.com:8082/settings/card/789'>card</a> can be used right away.`,
                 );
             });
+        });
+
+        describe('render company card assigned messages with currentUserAccountID', () => {
+            const mockCardAssignedAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
+                reportActionID: 'card-assigned-action-123',
+                actorAccountID: 123,
+                created: '2024-01-01',
+                message: [],
+                originalMessage: {
+                    assigneeAccountID: 456,
+                    cardID: 789,
+                },
+            } as ReportAction;
+
+            const mockCompanyCard: Card = {
+                cardID: 789,
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                availableSpend: 0,
+                domainName: '',
+                lastFourPAN: '',
+                lastUpdated: '2024-01-01',
+                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+            };
+
+            it('should render company card link when current user is assignee', () => {
+                const messageResult = getCardIssuedMessage({
+                    reportAction: mockCardAssignedAction,
+                    shouldRenderHTML: true,
+                    companyCard: mockCompanyCard,
+                    translate: translateLocal,
+                    currentUserAccountID: 456,
+                });
+
+                expect(messageResult).toContain(`<a href='https://dev.new.expensify.com:8082/settings/wallet'>`);
+            });
+
+            it('should render plain text company card when current user is not assignee', () => {
+                const messageResult = getCardIssuedMessage({
+                    reportAction: mockCardAssignedAction,
+                    shouldRenderHTML: true,
+                    companyCard: mockCompanyCard,
+                    translate: translateLocal,
+                    currentUserAccountID: 1,
+                });
+
+                expect(messageResult).not.toContain('<a href=');
+            });
+        });
+    });
+
+    describe('wasActionTakenByCurrentUser', () => {
+        const mockAction: ReportAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            reportActionID: '1',
+            actorAccountID: 42,
+            created: '2024-01-01',
+            message: [],
+        } as ReportAction;
+
+        it('returns true when currentUserAccountID matches actorAccountID', () => {
+            expect(wasActionTakenByCurrentUser(mockAction, 42)).toBe(true);
+        });
+
+        it('returns false when currentUserAccountID does not match actorAccountID', () => {
+            expect(wasActionTakenByCurrentUser(mockAction, 99)).toBe(false);
+        });
+
+        it('returns false for undefined reportAction', () => {
+            expect(wasActionTakenByCurrentUser(undefined, 42)).toBe(false);
+        });
+
+        it('returns false for null reportAction', () => {
+            expect(wasActionTakenByCurrentUser(null, 42)).toBe(false);
         });
     });
 
@@ -4272,7 +4352,7 @@ describe('ReportActionsUtils', () => {
                     newValue: true,
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('enabled the Distance rate "Default Rate"');
         });
 
@@ -4289,7 +4369,7 @@ describe('ReportActionsUtils', () => {
                     newValue: false,
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('disabled the Distance rate "Default Rate"');
         });
 
@@ -4306,7 +4386,7 @@ describe('ReportActionsUtils', () => {
                     newValue: 'Custom Rate',
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('renamed the Distance rate "Default Rate" to "Custom Rate"');
         });
 
@@ -4322,7 +4402,7 @@ describe('ReportActionsUtils', () => {
                     newStartDate: '2026-04-01',
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('updated the distance rate "Default Rate" to apply from April 1, 2026 (previously for all dates)');
         });
 
@@ -4341,7 +4421,7 @@ describe('ReportActionsUtils', () => {
                     oldEndDate: '2026-04-30',
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('updated the distance rate "Default Rate" to apply from April 1, 2026 - May 31, 2026 (previously March 1, 2026 - April 30, 2026)');
         });
 
@@ -4358,7 +4438,7 @@ describe('ReportActionsUtils', () => {
                     oldEndDate: '2026-04-30',
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('updated the distance rate "Default Rate" to apply until May 31, 2026 (previously until April 30, 2026)');
         });
 
@@ -4375,7 +4455,7 @@ describe('ReportActionsUtils', () => {
                     oldEndDate: '2026-04-30',
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('updated the distance rate "Default Rate" to apply for all dates (previously March 1, 2026 - April 30, 2026)');
         });
     });
@@ -4951,6 +5031,70 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getRequiresCategoryMessage', () => {
+        it('should return enabled message when the category requirement is enabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: true,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getRequiresCategoryMessage(translateLocal, action);
+            expect(result).toBe('enabled the expense categorization requirement');
+        });
+
+        it('should return disabled message when the category requirement is disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: false,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getRequiresCategoryMessage(translateLocal, action);
+            expect(result).toBe('disabled the expense categorization requirement');
+        });
+    });
+
+    describe('getRequiresTagMessage', () => {
+        it('should return enabled message when the tag requirement is enabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: true,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getRequiresTagMessage(translateLocal, action);
+            expect(result).toBe('enabled the expense tagging requirement');
+        });
+
+        it('should return disabled message when the tag requirement is disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: false,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getRequiresTagMessage(translateLocal, action);
+            expect(result).toBe('disabled the expense tagging requirement');
+        });
+    });
+
     describe('getReimbursedMessage', () => {
         const buildReimbursedAction = (originalMessage: Record<string, unknown>): ReportAction =>
             ({
@@ -4969,7 +5113,7 @@ describe('ReportActionsUtils', () => {
                 creditBankAccountLast4: '5678',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined, convertToDisplayString, 2);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString, 2);
 
             // Then the message shows the last 4 digits of the account that funded the payment
             const expected = `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '4321')}${translateLocal('iou.reimbursedWithACH', {
@@ -4987,7 +5131,7 @@ describe('ReportActionsUtils', () => {
                 creditBankAccountLast4: '5678',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined, convertToDisplayString, 2);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString, 2);
 
             expect(result).toBe(
                 `${translateLocal('iou.reimbursedThisReport')} ${translateLocal('iou.reimbursedFromBankAccount', '9999')}${translateLocal('iou.reimbursedWithACH', {
@@ -5007,7 +5151,7 @@ describe('ReportActionsUtils', () => {
                 creditedCurrency: 'USD',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString);
 
             // Then the message reports the credited amount instead of the report total and names both accounts
             expect(result).toBe(translateLocal('iou.reimbursedCrossBorder', {amount: '$80.50', debitBankAccount: '9999', creditBankAccount: '5678'}));
@@ -5022,7 +5166,7 @@ describe('ReportActionsUtils', () => {
                 creditedAmount: 8050,
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, undefined, undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString);
 
             // Then we describe the payment without an amount rather than guessing a currency
             expect(result).toBe(
@@ -5044,7 +5188,7 @@ describe('ReportActionsUtils', () => {
                 creditedCurrency: 'USD',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, action, 2, 'submitter@expensify.com', undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, 'submitter@expensify.com', undefined, convertToDisplayString);
 
             // Then the message announces the submitter taking the report off hold rather than the credited amount
             expect(result).toBe(
@@ -5065,11 +5209,20 @@ describe('ReportActionsUtils', () => {
             const ownerAccountID = 42;
             const submitterLogin = 'submitter@example.com';
 
-            const resultCurrentUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, ownerAccountID);
+            const resultCurrentUser = ReportActionsUtils.getReimbursedMessage(
+                translateLocal,
+                undefined,
+                action,
+                ownerAccountID,
+                submitterLogin,
+                undefined,
+                convertToDisplayString,
+                ownerAccountID,
+            );
             expect(resultCurrentUser).toContain('your');
             expect(resultCurrentUser).not.toContain(submitterLogin);
 
-            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
+            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
             expect(resultOtherUser).toContain(submitterLogin);
             expect(resultOtherUser).not.toContain('your');
         });
@@ -5084,10 +5237,19 @@ describe('ReportActionsUtils', () => {
             const ownerAccountID = 42;
             const submitterLogin = 'submitter@example.com';
 
-            const resultCurrentUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, ownerAccountID);
+            const resultCurrentUser = ReportActionsUtils.getReimbursedMessage(
+                translateLocal,
+                undefined,
+                action,
+                ownerAccountID,
+                submitterLogin,
+                undefined,
+                convertToDisplayString,
+                ownerAccountID,
+            );
             expect(resultCurrentUser).toContain('your');
 
-            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
+            const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
             expect(resultOtherUser).toContain(submitterLogin);
         });
     });
@@ -6310,6 +6472,62 @@ describe('ReportActionsUtils', () => {
 
         it('returns false for an undefined action', () => {
             expect(ReportActionsUtils.isPolicyCopyReportAction(undefined)).toBe(false);
+        });
+    });
+
+    describe('getWorkspaceCategoryUpdateMessage', () => {
+        function buildUpdateCategoryAction(originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY>['originalMessage']) {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
+                created: '',
+                originalMessage,
+            };
+            return action;
+        }
+
+        it('should return the correct message when required attendees are enabled for the first time', () => {
+            const action = buildUpdateCategoryAction({
+                categoryName: 'Advertising',
+                updatedField: 'areAttendeesRequired',
+                oldValue: '',
+                newValue: true,
+            });
+            const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
+            expect(actual).toBe('changed the "Advertising" category attendees to required (previously not required)');
+        });
+
+        it('should return the correct message when required attendees are disabled', () => {
+            const action = buildUpdateCategoryAction({
+                categoryName: 'Advertising',
+                updatedField: 'areAttendeesRequired',
+                oldValue: true,
+                newValue: false,
+            });
+            const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
+            expect(actual).toBe('changed the "Advertising" category attendees to not required (previously required)');
+        });
+
+        it('should return the correct message when a required description is enabled', () => {
+            const action = buildUpdateCategoryAction({
+                categoryName: 'Advertising',
+                updatedField: 'areCommentsRequired',
+                oldValue: false,
+                newValue: true,
+            });
+            const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
+            expect(actual).toBe('changed the "Advertising" category description to required (previously not required)');
+        });
+
+        it('should return the correct message when a required description is disabled', () => {
+            const action = buildUpdateCategoryAction({
+                categoryName: 'Advertising',
+                updatedField: 'areCommentsRequired',
+                oldValue: true,
+                newValue: false,
+            });
+            const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
+            expect(actual).toBe('changed the "Advertising" category description to not required (previously required)');
         });
     });
 });
