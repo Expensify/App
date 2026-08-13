@@ -131,30 +131,22 @@ function isRequiredTwoFactorSetupExceptionActive(): boolean {
 
 type DeepestFocusedScreenInput = NonNullable<Parameters<typeof getDeepestFocusedScreen>[0]>;
 
-function isDeepestFocusedScreenInput(value: unknown): value is DeepestFocusedScreenInput {
+function isObjectPayload(value: unknown): value is DeepestFocusedScreenInput {
     return typeof value === 'object' && value !== null;
 }
 
 function getActionPayloadScreenName(action: NavigationAction): string | undefined {
-    if (!isDeepestFocusedScreenInput(action.payload)) {
+    // NAVIGATE/PUSH payloads aren't full NavigationStates; getDeepestFocusedScreen accepts that shape.
+    // Use a type guard (not `as`) so we stay within this file's no-unsafe-type-assertion seatbelt.
+    if (!isObjectPayload(action.payload)) {
         return undefined;
     }
 
     return getDeepestFocusedScreen(action.payload)?.name;
 }
 
-function isTwoFactorSetupRouteName(screenName: string | undefined): boolean {
-    return isTwoFactorSetupScreen(screenName);
-}
-
-function isTargetTwoFactorSetupRoute(action: NavigationAction): boolean {
-    return isTwoFactorSetupRouteName(getActionPayloadScreenName(action));
-}
-
 function isCurrentlyOnTwoFactorSetupRoute(state: NavigationState): boolean {
-    const screenName = getDeepestFocusedScreen(state)?.name;
-
-    return isTwoFactorSetupRouteName(screenName);
+    return isTwoFactorSetupScreen(getDeepestFocusedScreen(state)?.name);
 }
 
 function shouldPreventReset(state: NavigationState, action: NavigationAction) {
@@ -166,7 +158,7 @@ function shouldPreventReset(state: NavigationState, action: NavigationAction) {
     const targetFocusedRoute = findFocusedRoute(action?.payload as NavigationState);
 
     // Allow required 2FA setup navigation even when the user is currently on onboarding.
-    if (isRequiredTwoFactorSetupExceptionActive() && isTargetTwoFactorSetupRoute(action)) {
+    if (isRequiredTwoFactorSetupExceptionActive() && isTwoFactorSetupScreen(getActionPayloadScreenName(action))) {
         return false;
     }
 
@@ -213,7 +205,7 @@ const OnboardingGuard: NavigationGuard = {
             return {type: 'BLOCK', reason: 'Cannot reset to non-onboarding screen while on onboarding'};
         }
 
-        if (isRequiredTwoFactorSetupExceptionActive() && (isTargetTwoFactorSetupRoute(action) || isCurrentlyOnTwoFactorSetupRoute(state))) {
+        if (isRequiredTwoFactorSetupExceptionActive() && (isTwoFactorSetupScreen(getActionPayloadScreenName(action)) || isCurrentlyOnTwoFactorSetupRoute(state))) {
             return {type: 'ALLOW'};
         }
 
