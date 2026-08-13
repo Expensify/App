@@ -27,12 +27,10 @@ type FirstAndLastName = {
 };
 
 let emailToPersonalDetailsCache: Record<string, PersonalDetails> = {};
-let allPersonalDetailLogins: string[] = [];
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
         const personalDetails = Object.values(val ?? {});
-        allPersonalDetailLogins = personalDetails.map((detail) => detail?.login ?? '');
         emailToPersonalDetailsCache = personalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
             if (detail?.login) {
                 const key = detail.login.toLowerCase();
@@ -117,6 +115,7 @@ function temporaryGetDisplayNameOrDefault({
     shouldAddCurrentUserPostfix = false,
     youAfterTranslation,
     translate,
+    formatPhoneNumber,
 }: {
     passedPersonalDetails?: Partial<PersonalDetails> | null;
     defaultValue?: string;
@@ -124,12 +123,13 @@ function temporaryGetDisplayNameOrDefault({
     shouldAddCurrentUserPostfix?: boolean;
     youAfterTranslation?: string;
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }): string {
     const temporaryHiddenTranslation = translate('common.hidden');
     const temporaryYouTranslation = translate('common.you').toLowerCase();
     let displayName = passedPersonalDetails?.displayName ?? '';
 
-    let login = passedPersonalDetails?.login ?? '';
+    const login = passedPersonalDetails?.login ?? '';
 
     // If the displayName starts with the merged account prefix, remove it.
     if (regexMergedAccount.test(displayName)) {
@@ -139,11 +139,8 @@ function temporaryGetDisplayNameOrDefault({
 
     // If the displayName is not set by the user, the backend sets the displayName same as the login so
     // we need to remove the sms domain from the displayName if it is an sms login.
-    if (Str.isSMSLogin(login)) {
-        if (displayName === login) {
-            displayName = Str.removeSMSDomain(displayName);
-        }
-        login = Str.removeSMSDomain(login);
+    if (Str.isSMSLogin(login) && displayName === login) {
+        displayName = formatPhoneNumber(displayName);
     }
 
     if (shouldAddCurrentUserPostfix && !!displayName) {
@@ -163,6 +160,9 @@ function temporaryGetDisplayNameOrDefault({
     }
 
     if (login) {
+        if (Str.isSMSLogin(login)) {
+            return formatPhoneNumber(login);
+        }
         return login;
     }
     return shouldFallbackToHidden ? temporaryHiddenTranslation : '';
@@ -229,10 +229,6 @@ function getPersonalDetailByEmail(email: string | undefined): PersonalDetails | 
         return undefined;
     }
     return emailToPersonalDetailsCache[email.toLowerCase()];
-}
-
-function getAllPersonalDetailLogins(): string[] {
-    return allPersonalDetailLogins;
 }
 
 /**
@@ -587,7 +583,6 @@ export {
     getParticipantsPersonalDetails,
     getPersonalDetailsListByIDs,
     getDisplayNameOrYou,
-    getAllPersonalDetailLogins,
     getPersonalDetailByEmail,
     getKnownAccountIDByLogin,
     getAccountIDsByLogins,

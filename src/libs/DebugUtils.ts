@@ -569,6 +569,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 actorAccountID: 'number',
                 eta: 'object',
                 iconFill: 'string',
+                requiredDepositCurrency: 'string',
             });
         case 'tripData':
             return validateObject<ObjectElement<Report, 'tripData'>>(value, {
@@ -1187,6 +1188,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     splitsEndDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     withdrawalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isAmountSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    selectedRouteKey: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1240,6 +1242,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 odometerStartImage: 'object',
                 odometerEndImage: 'object',
                 tripID: 'string',
+                selectedRouteKey: 'string',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
