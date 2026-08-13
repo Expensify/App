@@ -8,10 +8,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import useKeyboardState from '@hooks/useKeyboardState';
-
 import * as OdometerTransactionUtils from '@libs/actions/OdometerTransactionUtils';
-import getKeyboardHeight from '@libs/getKeyboardHeight';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import TabSwitchGuardContext from '@libs/Navigation/TabSwitchGuardContext';
 import type {RegisterTabSwitchGuard, TabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
@@ -25,10 +22,7 @@ import SCREENS from '@src/SCREENS';
 import type {OdometerDraft, Report, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {ViewStyle} from 'react-native';
-
 import React from 'react';
-import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createRandomTransaction from '../utils/collections/transaction';
@@ -36,8 +30,21 @@ import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const KEYBOARD_HEIGHT = 287;
 const BOTTOM_SAFE_AREA_INSET = 24;
+
+// `KeyboardAvoidingView`'s real native behavior isn't observable in Jest — `react-native-keyboard-controller/jest`
+// maps it to a plain `View` with no avoidance logic, so testing the actual padding needs a device. This mock instead
+// forwards `enabled`/`testID` onto a plain View, so the gating logic (create vs edit flow) still has coverage. Props
+// pass through rather than a hardcoded testID because `ScreenWrapper` (rendered by `StepScreenWrapper` in the edit
+// flow) has its own separate `KeyboardAvoidingView` usage that would otherwise collide on the same testID.
+jest.mock('@components/KeyboardAvoidingView', () => {
+    const ReactActual = jest.requireActual<typeof React>('react');
+    const {View: RNView} = jest.requireActual<typeof import('react-native')>('react-native');
+    return {
+        __esModule: true,
+        default: ({children, ...rest}: {children?: React.ReactNode} & Record<string, unknown>) => ReactActual.createElement(RNView, rest, children),
+    };
+});
 
 jest.mock('@rnmapbox/maps', () => ({default: jest.fn(), MarkerView: jest.fn(), setAccessToken: jest.fn()}));
 
@@ -74,11 +81,6 @@ jest.mock('@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStep
 jest.mock('@libs/actions/MapboxToken', () => ({init: jest.fn(), stop: jest.fn()}));
 jest.mock('@components/ProductTrainingContext', () => ({useProductTrainingContext: () => [false]}));
 jest.mock('@hooks/useShowNotFoundPageInIOUStep', () => () => false);
-// Defaults to "keyboard closed" so the suites that don't care about the keyboard are unaffected.
-jest.mock('@hooks/useKeyboardState', () => ({
-    __esModule: true,
-    default: jest.fn(() => ({isKeyboardShown: false, isKeyboardActive: false, keyboardHeight: 0, keyboardActiveHeight: 0, isKeyboardAnimatingRef: {current: false}})),
-}));
 jest.mock('@hooks/useSafeAreaInsets', () => ({__esModule: true, default: () => ({top: 0, right: 0, bottom: BOTTOM_SAFE_AREA_INSET, left: 0})}));
 jest.mock('@src/hooks/useResponsiveLayout');
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({__esModule: true, default: () => ({didScreenTransitionEnd: true})}));
@@ -166,23 +168,9 @@ function createDistanceEditRoute(): PlatformStackScreenProps<MoneyRequestNavigat
     return {...route, params};
 }
 
-const mockedUseKeyboardState = jest.mocked(useKeyboardState);
-
-function mockKeyboardState(isKeyboardActive: boolean) {
-    // `jest.clearAllMocks()` strips the factory's default implementation, so always set it explicitly.
-    mockedUseKeyboardState.mockReturnValue({
-        isKeyboardShown: isKeyboardActive,
-        isKeyboardActive,
-        keyboardHeight: isKeyboardActive ? KEYBOARD_HEIGHT : 0,
-        keyboardActiveHeight: isKeyboardActive ? KEYBOARD_HEIGHT : 0,
-        isKeyboardAnimatingRef: {current: false},
-    });
-}
-
-/** The container omits `paddingBottom` entirely when there is nothing to reserve, so treat that as 0. */
-function getContainerPaddingBottom(): ViewStyle['paddingBottom'] {
-    const style: ViewStyle = StyleSheet.flatten(screen.getByTestId('odometerContentContainer').props.style);
-    return style.paddingBottom ?? 0;
+/** `undefined` when the mocked KeyboardAvoidingView isn't rendered at all (e.g. `shouldShowWrapper` swapped it out). */
+function getKeyboardAvoidingViewEnabled(): boolean | undefined {
+    return screen.queryByTestId('odometerKeyboardAvoidingView')?.props.enabled as boolean | undefined;
 }
 
 function renderOdometerStep(route: PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE>['route']) {
@@ -302,14 +290,13 @@ describe('IOURequestStepDistanceOdometer - create-flow discard guard (no stored 
     });
 });
 
-describe('IOURequestStepDistanceOdometer - keyboard padding', () => {
+describe('IOURequestStepDistanceOdometer - keyboard avoidance', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
     });
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        mockKeyboardState(false);
         await Onyx.clear();
         await waitForBatchedUpdates();
         await signInWithTestUser(ACCOUNT_ID, 'test@user.com');
@@ -321,32 +308,23 @@ describe('IOURequestStepDistanceOdometer - keyboard padding', () => {
         await waitForBatchedUpdates();
     });
 
-    // The create flow has no ScreenWrapper of its own and the shared tab ScreenWrapper keeps keyboard avoidance off, so
-    // this padding is the only thing keeping the buttons clear of the keyboard.
-    it('reserves the keyboard height in the create flow while the keyboard is active', async () => {
-        mockKeyboardState(true);
+    // The create flow has no ScreenWrapper of its own and the shared tab ScreenWrapper keeps keyboard avoidance off,
+    // so this KeyboardAvoidingView is the only thing keeping the buttons clear of the keyboard.
+    it('enables keyboard avoidance in the create flow', async () => {
         const {unmount} = renderOdometerStep(createDistanceCreateRoute());
         await waitForBatchedUpdatesWithAct();
 
-        expect(getContainerPaddingBottom()).toBe(getKeyboardHeight(KEYBOARD_HEIGHT, BOTTOM_SAFE_AREA_INSET));
+        expect(getKeyboardAvoidingViewEnabled()).toBe(true);
         unmount();
     });
 
-    it('reserves nothing in the create flow while the keyboard is closed', async () => {
-        const {unmount} = renderOdometerStep(createDistanceCreateRoute());
-        await waitForBatchedUpdatesWithAct();
-
-        expect(getContainerPaddingBottom()).toBe(0);
-        unmount();
-    });
-
-    // The edit flow renders its own ScreenWrapper via StepScreenWrapper, which already avoids the keyboard.
-    it('reserves nothing in the edit flow even while the keyboard is active', async () => {
-        mockKeyboardState(true);
+    // The edit flow renders its own ScreenWrapper via StepScreenWrapper, which already avoids the keyboard, so this
+    // one must stay disabled to avoid double-avoidance.
+    it('disables keyboard avoidance in the edit flow', async () => {
         const {unmount} = renderOdometerStep(createDistanceEditRoute());
         await waitForBatchedUpdatesWithAct();
 
-        expect(getContainerPaddingBottom()).toBe(0);
+        expect(getKeyboardAvoidingViewEnabled()).toBe(false);
         unmount();
     });
 });
