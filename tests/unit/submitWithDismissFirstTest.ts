@@ -26,8 +26,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@libs/ReportUtils', () => ({
     getReportOrDraftReport: (id: string) => mockGetReportOrDraftReport(id) as unknown,
 }));
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    reserveDeferredWriteChannel: (...args: unknown[]) => mockReserveDeferredWriteChannel(...args) as unknown,
+jest.mock('@libs/submitWriteSession', () => ({
+    reserveWriteSession: (...args: unknown[]) => mockReserveDeferredWriteChannel(...args) as unknown,
 }));
 jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
     startTracking: (...args: unknown[]) => mockStartTracking(...args) as unknown,

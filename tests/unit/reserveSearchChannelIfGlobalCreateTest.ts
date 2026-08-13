@@ -1,10 +1,10 @@
-import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import reserveSearchChannelIfGlobalCreate from '@libs/Navigation/helpers/reserveSearchChannelIfGlobalCreate';
+import {reserveWriteSession} from '@libs/submitWriteSession';
 
 import CONST from '@src/CONST';
 
-jest.mock('@libs/deferredLayoutWrite', () => ({reserveDeferredWriteChannel: jest.fn()}));
+jest.mock('@libs/submitWriteSession', () => ({reserveWriteSession: jest.fn()}));
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 
 describe('reserveSearchChannelIfGlobalCreate', () => {
@@ -17,7 +17,7 @@ describe('reserveSearchChannelIfGlobalCreate', () => {
 
         reserveSearchChannelIfGlobalCreate(true);
 
-        expect(reserveDeferredWriteChannel).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        expect(reserveWriteSession).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
     });
 
     it('does not reserve when the submit is not from global create', () => {
@@ -25,7 +25,7 @@ describe('reserveSearchChannelIfGlobalCreate', () => {
 
         reserveSearchChannelIfGlobalCreate(false);
 
-        expect(reserveDeferredWriteChannel).not.toHaveBeenCalled();
+        expect(reserveWriteSession).not.toHaveBeenCalled();
     });
 
     it('does not reserve on the inbox', () => {
@@ -33,6 +33,6 @@ describe('reserveSearchChannelIfGlobalCreate', () => {
 
         reserveSearchChannelIfGlobalCreate(true);
 
-        expect(reserveDeferredWriteChannel).not.toHaveBeenCalled();
+        expect(reserveWriteSession).not.toHaveBeenCalled();
     });
 });

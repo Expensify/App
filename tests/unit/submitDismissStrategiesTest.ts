@@ -1,7 +1,7 @@
-import {flushDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {flushWriteSession} from '@libs/submitWriteSession';
 import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
 import {dismissOnly, dismissRHPToReport, dismissSuperWideRHP, dismissWideToNewSearchType, executeDismissModalStrategy} from '@pages/iou/request/step/confirmation/submitDismissStrategies';
@@ -17,8 +17,8 @@ const mockGetReportOrDraftReport = jest.fn();
 const mockIsMoneyRequestReport = jest.fn<boolean, [unknown]>();
 const mockIsSearchTopmostFullScreenRoute = jest.fn<boolean, []>();
 
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    flushDeferredWrite: jest.fn(),
+jest.mock('@libs/submitWriteSession', () => ({
+    flushWriteSession: jest.fn(),
 }));
 jest.mock('@libs/getIsNarrowLayout', () => () => mockGetIsNarrowLayout());
 jest.mock('@libs/Navigation/helpers/getTopmostReportParams', () => (state: unknown) => mockGetTopmostReportParams(state));
@@ -83,7 +83,7 @@ describe('submitDismissStrategies', () => {
             opts.afterTransition();
 
             expect(endSubmitFollowUpActionSpan).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
-            expect(flushDeferredWrite).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            expect(flushWriteSession).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             expect(runAfterDismiss).toHaveBeenCalled();
         });
     });
@@ -227,7 +227,7 @@ describe('submitDismissStrategies', () => {
             opts.afterTransition();
 
             expect(endSubmitFollowUpActionSpan).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, 'report-1');
-            expect(flushDeferredWrite).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            expect(flushWriteSession).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             expect(runAfterDismiss).toHaveBeenCalled();
         });
 
@@ -266,7 +266,7 @@ describe('submitDismissStrategies', () => {
             }
             opts.afterTransition();
 
-            expect(flushDeferredWrite).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            expect(flushWriteSession).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             expect(runAfterDismiss).toHaveBeenCalled();
         });
 

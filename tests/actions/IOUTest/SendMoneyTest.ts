@@ -55,14 +55,18 @@ jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
     startTracking: jest.fn(),
     addOptimization: jest.fn(),
 }));
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    registerDeferredWrite: (_key: string, callback: () => void) => callback(),
-    flushDeferredWrite: jest.fn(),
-    cancelDeferredWrite: jest.fn(),
-    hasDeferredWrite: () => false,
+jest.mock('@libs/submitWriteSession', () => ({
+    reserveWriteSession: jest.fn(),
+    flushWriteSession: jest.fn(),
+    cancelWriteSession: jest.fn(),
+    hasPendingWrite: () => false,
+    hasPendingWriteForReport: () => false,
     getOptimisticWatchKey: () => undefined,
-    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
-    reserveDeferredWriteChannel: jest.fn(),
+    scheduleWrite: (command: unknown, params: unknown, onyxData: unknown, options?: {onWriteStarted?: () => void}) => {
+        const {write} = jest.requireActual<typeof import('@libs/API')>('@libs/API');
+        write(command as never, params as never, onyxData as never);
+        options?.onWriteStarted?.();
+    },
     resetForTesting: jest.fn(),
 }));
 
