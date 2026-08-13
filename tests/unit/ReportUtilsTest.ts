@@ -667,6 +667,7 @@ describe('ReportUtils', () => {
                 createMock<OnyxEntry<Report>>({}),
                 passedCurrentUserEmail,
                 passedCurrentUserAccountID,
+                undefined,
             );
 
             expect(optimisticAssigneeAddComment).toBeDefined();
@@ -691,6 +692,7 @@ describe('ReportUtils', () => {
                 createMock<OnyxEntry<Report>>({}),
                 passedCurrentUserEmail,
                 passedCurrentUserAccountID,
+                undefined,
             );
 
             const reportAction = result.optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
@@ -701,7 +703,18 @@ describe('ReportUtils', () => {
         });
 
         it('does not create optimistic assignee comment when assigneeChatReportID equals parentReportID', () => {
-            const result = getTaskAssigneeChatOnyxData(1, 2, 'taskReportID', 'sameReportID', 'sameReportID', 'Task title', createMock<OnyxEntry<Report>>({}), 'email@user.com', 50);
+            const result = getTaskAssigneeChatOnyxData(
+                1,
+                2,
+                'taskReportID',
+                'sameReportID',
+                'sameReportID',
+                'Task title',
+                createMock<OnyxEntry<Report>>({}),
+                'email@user.com',
+                50,
+                undefined,
+            );
 
             expect(result.optimisticAssigneeAddComment).toBeUndefined();
         });
