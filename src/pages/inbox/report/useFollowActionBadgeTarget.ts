@@ -30,7 +30,7 @@ type UseFollowActionBadgeTargetParams = {
 
 /**
  * When the action-badge target is resolved (e.g. the user approves/pays/submits an older report preview), it advances to the next
- * preview requiring action. This hook scrolls down to follow it immediately on action, rather than waiting for the resolve animation.
+ * preview requiring action. This hook scrolls down to follow it immediately on action.
  */
 function useFollowActionBadgeTarget({
     isProduction,
@@ -59,8 +59,8 @@ function useFollowActionBadgeTarget({
         if (Navigation.getTopmostReportId() !== reportID || !!Navigation.getReportRHPActiveRoute()) {
             return;
         }
-        // Scroll to the next target on the next frame so the forward-scroll starts as soon as the user acts, rather than waiting for
-        // the resolve animation. The resolved preview keeps animating in place while the list scrolls.
+        // Scroll to the next target on the next frame so the forward-scroll starts as soon as the user acts. The resolved preview
+        // keeps animating in place while the list scrolls.
         const animationFrameID = requestAnimationFrame(() => scrollToActionBadgeTargetRef.current());
         return () => cancelAnimationFrame(animationFrameID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
