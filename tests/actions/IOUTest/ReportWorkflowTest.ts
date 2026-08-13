@@ -390,7 +390,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Hold one of the two expenses
-            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, []);
+            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, []);
             await waitForBatchedUpdates();
 
             // When submitting the report while offline (callers pass the live report, refreshed by the hold)
@@ -505,7 +505,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Hold the only expense on the report
-            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, []);
+            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, []);
             await waitForBatchedUpdates();
 
             // When submitting the report while offline (callers pass the live report, refreshed by the hold)
@@ -613,7 +613,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Hold one of the two expenses
-            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, []);
+            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, []);
             await waitForBatchedUpdates();
 
             // When submitting the report while offline (callers pass the live report, refreshed by the hold)
