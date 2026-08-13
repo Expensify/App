@@ -121,9 +121,6 @@ type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether an async action on this bank account is in flight (e.g. Plaid connect/fix) */
     isLoading?: boolean;
 
-    /** Whether the Plaid connect/fix flow just completed successfully for this bank account */
-    shouldShowLinkPlaidSuccess?: boolean;
-
     /** Any additional error message to show */
     errors?: OnyxCommon.Errors;
 }>;
