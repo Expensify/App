@@ -13,6 +13,14 @@ type BaseTextInputWithSymbolProps = {
     /** Function to call when amount in text input is changed */
     onChangeAmount?: (amount: string) => void;
 
+    /**
+     * Whether locale digits are converted and a leading zero is padded before `onChangeAmount` is called.
+     * Consumers that normalize the raw text themselves (NumberForm) must set this to `false` to avoid converting twice,
+     * which would swap the decimal and group separators back in locales where they are inverted.
+     * Only kept for the deprecated NumberWithSymbolForm, which relies on this component to normalize for it.
+     */
+    shouldNormalizeAmountOnChange?: boolean;
+
     /** Function to call when symbol button is pressed */
     onSymbolButtonPress?: () => void;
 

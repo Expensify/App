@@ -20,6 +20,7 @@ function BaseTextInputWithSymbol({
     symbolPosition = CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX,
     onSymbolButtonPress = () => {},
     onChangeAmount = () => {},
+    shouldNormalizeAmountOnChange = true,
     formattedAmount,
     placeholder,
     selection,
@@ -45,6 +46,10 @@ function BaseTextInputWithSymbol({
      * @param text - Changed text from user input
      */
     const setFormattedAmount = (text: string) => {
+        if (!shouldNormalizeAmountOnChange) {
+            onChangeAmount(text);
+            return;
+        }
         const newAmount = addLeadingZero(replaceAllDigits(text, fromLocaleDigit));
         onChangeAmount(newAmount);
     };
