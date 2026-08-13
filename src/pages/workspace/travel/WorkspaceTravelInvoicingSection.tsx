@@ -16,7 +16,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {
     clearTravelInvoicingErrors,
@@ -79,7 +78,6 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const defaultFundID = useDefaultFundID(policyID);
 
     const {showConfirmModal, closeModal} = useConfirmModal();
@@ -101,7 +99,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [domainMemberData] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [domainMemberData] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${defaultFundID}`);
 
     // Resolve travel-specific settings from the shared card settings key
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
@@ -199,7 +197,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
      * can reconcile their travel spend.
      */
     const handleViewOnSpend = () => {
-        const travelFeedID = getTravelInvoicingFeedID(workspaceAccountID);
+        const travelFeedID = getTravelInvoicingFeedID(defaultFundID);
         const query = buildQueryStringFromFilterFormValues({
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             feed: [travelFeedID],
@@ -213,7 +211,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
      */
     const handleConfirmPayBalance = () => {
         setIsPayBalanceModalVisible(false);
-        payTravelInvoicingSpend(workspaceAccountID, travelSpend);
+        payTravelInvoicingSpend(defaultFundID, travelSpend);
     };
 
     const continueToggleFlow = () => {
@@ -244,7 +242,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
         // Has settlement account - enable Travel Invoicing and navigate to settlement page to show verification state
         if (settlementAccount?.bankAccountID) {
-            configureTravelInvoicingForPolicy(policyID, workspaceAccountID, settlementAccount.bankAccountID);
+            configureTravelInvoicingForPolicy(policyID, defaultFundID, settlementAccount.bankAccountID);
         }
         Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID));
     };
@@ -304,7 +302,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
     const handleConfirmDisable = () => {
         setIsDisableConfirmModalVisible(false);
-        deactivateTravelInvoicing(policyID, workspaceAccountID);
+        deactivateTravelInvoicing(policyID, defaultFundID);
     };
 
     // Dismiss the "Update to USD" modal check if the currency changes to USD externally (e.g. from another device)
@@ -353,7 +351,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     <FormHelpMessageRowWithRetryButton
                         message={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.provisioningError')}
                         size={CONST.BUTTON_SIZE.SMALL}
-                        onRetry={() => retryTravelCardsProvisioning(policyID, workspaceAccountID, travelProvisioningErrors ?? {})}
+                        onRetry={() => retryTravelCardsProvisioning(policyID, defaultFundID, travelProvisioningErrors ?? {})}
                         variant={CONST.BUTTON_VARIANT.DANGER}
                         shouldAlignButtonToMessage
                     />
@@ -412,7 +410,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             <OfflineWithFeedback
                 errors={settlementAccountErrors}
                 pendingAction={settlementAccountPendingAction}
-                onClose={() => clearTravelInvoicingSettlementAccountErrors(workspaceAccountID, travelSettings?.previousPaymentBankAccountID ?? null)}
+                onClose={() => clearTravelInvoicingSettlementAccountErrors(defaultFundID, travelSettings?.previousPaymentBankAccountID ?? null)}
                 errorRowStyles={styles.mh2half}
                 errorRowTextStyles={styles.mr3}
             >
@@ -431,7 +429,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             <OfflineWithFeedback
                 errors={settlementFrequencyErrors}
                 pendingAction={cardSettings?.pendingFields?.monthlySettlementDate}
-                onClose={() => clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID, travelSettings?.previousMonthlySettlementDate)}
+                onClose={() => clearTravelInvoicingSettlementFrequencyErrors(defaultFundID, travelSettings?.previousMonthlySettlementDate)}
                 errorRowStyles={styles.mh2half}
                 errorRowTextStyles={styles.mr3}
             >
@@ -450,7 +448,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             <OfflineWithFeedback
                 errors={monthlyLimitErrors}
                 pendingAction={cardSettings?.pendingFields?.monthlySpendLimitPerUser}
-                onClose={() => clearTravelInvoicingMonthlyLimitErrors(workspaceAccountID)}
+                onClose={() => clearTravelInvoicingMonthlyLimitErrors(defaultFundID)}
                 errorRowStyles={styles.mh2half}
                 errorRowTextStyles={styles.mr3}
             >
@@ -484,7 +482,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     showLockIcon={!canWriteMoreFeatures || isOnWaitlist || hasOutstandingBalance}
                     pendingAction={togglePendingAction}
                     errors={toggleErrors}
-                    onCloseError={() => clearTravelInvoicingErrors(workspaceAccountID)}
+                    onCloseError={() => clearTravelInvoicingErrors(defaultFundID)}
                     subMenuItems={travelInvoicingSubMenuItems}
                 />
             </Section>
