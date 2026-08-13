@@ -71,7 +71,8 @@ describe('usePreferredPolicy', () => {
             email: 'user@example.com',
         });
 
-        await Onyx.set(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {'example.com': {securityGroupID, ownerAccountID}});
+        const domain = 'example.com';
+        await Onyx.set(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {[domain]: {securityGroupID, ownerAccountID}});
 
         const securityGroupKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP}${securityGroupID}_${ownerAccountID}` as const;
         await Onyx.set(securityGroupKey, {

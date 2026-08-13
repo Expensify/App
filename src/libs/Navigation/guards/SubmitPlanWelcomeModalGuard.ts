@@ -21,7 +21,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {findFocusedRoute} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {isSupportalSessionSelector} from '@selectors/Session';
-import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import type {GuardContext, GuardResult, NavigationGuard} from './types';

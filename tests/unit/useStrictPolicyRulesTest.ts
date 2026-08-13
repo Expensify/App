@@ -57,7 +57,7 @@ describe('useStrictPolicyRules', () => {
         expect(result.current.areStrictPolicyRulesEnabled).toBe(true);
     });
 
-    it('should return true when the security group is under the sharedNVP key and it has has enableStrictPolicyRules enabled', async () => {
+    it('should return true when the security group is under the sharedNVP key and it has enableStrictPolicyRules enabled', async () => {
         const securityGroupID = 'securityGroup123';
         const ownerAccountID = 42;
 
@@ -65,7 +65,8 @@ describe('useStrictPolicyRules', () => {
             email: 'user@example.com',
         });
 
-        await Onyx.set(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {'example.com': {securityGroupID, ownerAccountID}});
+        const domain = 'example.com';
+        await Onyx.set(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {[domain]: {securityGroupID, ownerAccountID}});
 
         const securityGroupKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP}${securityGroupID}_${ownerAccountID}` as const;
         await Onyx.set(securityGroupKey, {
