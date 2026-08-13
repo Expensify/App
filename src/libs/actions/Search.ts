@@ -23,6 +23,7 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
+import {flushAllDeferredWrites} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
@@ -1261,6 +1262,10 @@ function submitMoneyRequestOnSearch(
     managerEmail?: string,
     managerAccountID?: number,
 ) {
+    // This path issues its own SUBMIT_REPORT write below and never goes through `submitReport`,
+    // so it needs its own flush of any still-parked expense-creation writes. See the comment there.
+    flushAllDeferredWrites();
+
     const firstReport = (reportList.at(0) ?? {}) as Report;
     const firstPolicy = policy.at(0);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [

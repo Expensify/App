@@ -143,6 +143,19 @@ function flushDeferredWrite(key: string) {
 }
 
 /**
+ * Execute and clear every pending deferred write, regardless of channel.
+ */
+function flushAllDeferredWrites() {
+    if (channels.size === 0) {
+        return;
+    }
+    Log.info(`[DeferredLayoutWrite] Flushing ${channels.size} pending deferred write(s)`);
+    for (const key of [...channels.keys()]) {
+        flushDeferredWrite(key);
+    }
+}
+
+/**
  * Cancel a pending deferred write without executing the callback.
  * Clears the safety timeout. No-op if no channel is registered for the key.
  */
@@ -219,10 +232,8 @@ AppState.addEventListener('change', (nextState) => {
     if (nextState === 'active' || channels.size === 0) {
         return;
     }
-    Log.info(`[DeferredLayoutWrite] App going to "${nextState}" - flushing ${channels.size} pending deferred write(s)`);
-    for (const key of [...channels.keys()]) {
-        flushDeferredWrite(key);
-    }
+    Log.info(`[DeferredLayoutWrite] App going to "${nextState}"`);
+    flushAllDeferredWrites();
 });
 
 /**
@@ -287,6 +298,7 @@ export {
     registerDeferredWrite,
     reserveDeferredWriteChannel,
     flushDeferredWrite,
+    flushAllDeferredWrites,
     cancelDeferredWrite,
     hasDeferredWrite,
     hasDeferredWriteForReport,
