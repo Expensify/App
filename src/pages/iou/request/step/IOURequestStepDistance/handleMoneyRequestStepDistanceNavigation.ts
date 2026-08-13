@@ -93,6 +93,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     amountOwed: OnyxEntry<number>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
+    conciergeChat: OnyxEntry<Report>;
     optimisticTransactionID: string;
     optimisticChatReportID: string | undefined;
     action: IOUAction;
@@ -195,6 +196,7 @@ function handleMoneyRequestStepDistanceNavigation({
     amountOwed,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
+    conciergeChat,
     optimisticTransactionID,
     optimisticChatReportID,
     action,
@@ -317,8 +319,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             isASAPSubmitBetaEnabled,
                             currentUser: {accountID: currentUserAccountID, email: currentUserLogin ?? ''},
                             introSelected,
-                            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-                            conciergeChat: undefined,
+                            conciergeChat,
                             quickAction,
                             draftTransactionIDs,
                             recentWaypoints,
