@@ -576,9 +576,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     // A bulk selection can span several workspaces, so the Canadian Multiple Tax Export template is only offered when every selected item belongs to a workspace that outputs in CAD.
     // Reports and transactions are both checked because a selection can mix whole reports with individual transactions from other reports, and the export request covers all of them.
     const doAllSelectedItemsBelongToCADPolicies = useMemo(() => {
-        const policyIDFilter = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
-        const selectedItems = [...selectedReports, ...Object.values(selectedTransactions)];
         if (areAllMatchingItemsSelected) {
+            const policyIDFilter = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
             if (!policyIDFilter.value?.length || policyIDFilter.isNegated) {
                 return false;
             }
@@ -586,13 +585,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return policyIDFilter.value.every((policyID) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.outputCurrency === CONST.CURRENCY.CAD);
         }
 
+        const selectedItems = [...selectedReports, ...Object.values(selectedTransactions)];
         if (selectedItems.length === 0) {
             return false;
         }
 
         return selectedItems.every((item) => {
             // Expense rows never carry a policyID, so a selection built from them has none either. The report the row belongs
-            // to is what holds it, which is also how the neighbouring fields on those selection entries are derived.
+            // to is what holds it, which is also how the neighboring fields on those selection entries are derived.
             const policyID = item.policyID ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`]?.policyID;
             return !!policyID && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.outputCurrency === CONST.CURRENCY.CAD;
         });
