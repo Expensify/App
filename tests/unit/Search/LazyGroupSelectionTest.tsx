@@ -4,7 +4,7 @@ import {useSearchRowSelectionActions, useSearchSelectionActions, useSearchSelect
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import SearchWriteActionsProvider from '@components/Search/SearchWriteActionsProvider';
-import {mapEmptyReportToSelectedEntry} from '@components/Search/selectionBuilders';
+import {isRowChecked, mapEmptyReportToSelectedEntry} from '@components/Search/selectionBuilders';
 import type {SelectedTransactions} from '@components/Search/types';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -504,7 +504,7 @@ describe('Lazily loaded group selection', () => {
         expect(Object.keys(result.current.selectedTransactions)).toEqual([GROUP_KEY]);
     });
 
-    it('does not drop a row a range no longer covers while its group is still paging in', async () => {
+    it('leaves a range over a group that is still paging in exactly as it found it', async () => {
         const {result} = renderSelection(PartiallyLoadedWrapper);
         const [firstChild, secondChild] = loadedChildren;
 
@@ -525,9 +525,18 @@ describe('Lazily loaded group selection', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        // Then the row that fell out keeps its entry, because the group still covers it and it still reads as checked
-        expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
-        expect(result.current.selectedTransactions[secondChild.keyForList]?.isSelected).toBe(true);
+        // Then both rows still read as checked, since the group covers them, and neither gained an entry that would make a later narrowing impossible
+        const isChecked = (rowKey: string) =>
+            isRowChecked({
+                rowKey,
+                parentGroupKey: GROUP_KEY,
+                selectedTransactions: result.current.selectedTransactions,
+                excludedTransactions: result.current.excludedTransactions,
+                areAllMatchingItemsSelected: result.current.areAllMatchingItemsSelected,
+            });
+        expect(isChecked(firstChild.keyForList)).toBe(true);
+        expect(isChecked(secondChild.keyForList)).toBe(true);
+        expect(Object.keys(result.current.selectedTransactions)).toEqual([GROUP_KEY]);
     });
 
     it('anchors in the group just selected, not at a row selected earlier in another group', async () => {
@@ -843,6 +852,28 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions[firstChild.keyForList]).toBeUndefined();
     });
 
+    it('unchecks a group in one click when select-all-matching is what checked it', async () => {
+        const {result} = renderSelection();
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given every matching item selected from the menu, so the group reads checked without a single entry behind it
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the group's header checkbox is pressed once
+        await act(async () => {
+            result.current.toggle(categoryGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then its rows are recorded as excluded, rather than the click reading the group as unselected and selecting it again
+        expect(result.current.excludedTransactions[firstChild.keyForList]).toBeDefined();
+        expect(result.current.excludedTransactions[secondChild.keyForList]).toBeDefined();
+    });
+
     it('records what a narrowing dropped, so keeping select-all-matching on cannot silently re-include it', async () => {
         const {result} = renderSelection();
         const [firstChild, secondChild] = loadedChildren;
@@ -967,6 +998,34 @@ describe('Lazily loaded group selection', () => {
         // Then a shift+click starts fresh rather than continuing the previous search's span and collapsing the row that fell out of it
         await act(async () => {
             result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+    });
+
+    it('keeps a group’s published rows when its publisher has nothing to say yet', async () => {
+        const {result} = renderSelection();
+        const [firstChild, , thirdChild] = threeLoadedChildren;
+
+        // Given a group whose rows are published and open
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, threeLoadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the publisher re-renders before its snapshot has resolved, so it has nothing to publish
+        await act(async () => {
+            result.current.registerGroupChildren(GROUP_KEY, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then a range still spans the rows published before, rather than the group having been emptied out from under it
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(thirdChild, undefined, true);
             await waitForBatchedUpdatesWithAct();
         });
         expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);

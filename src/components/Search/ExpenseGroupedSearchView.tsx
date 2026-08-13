@@ -141,8 +141,6 @@ function ExpenseGroupedSearchView({
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const {
         isOffline,
@@ -247,8 +245,6 @@ function ExpenseGroupedSearchView({
                     ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                     visibleColumns={visibleColumns}
                     bankAccountList={bankAccountList}
-                    cardFeeds={cardFeeds}
-                    conciergeReportID={conciergeReportID}
                 />
             );
         }
@@ -272,8 +268,6 @@ function ExpenseGroupedSearchView({
                     isLastItem={index === lastVisibleIndex && !ListFooterComponent}
                     newTransactionID={containerNewTransactionID}
                     bankAccountList={bankAccountList}
-                    cardFeeds={cardFeeds}
-                    conciergeReportID={conciergeReportID}
                 />
             );
         }

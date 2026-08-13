@@ -469,8 +469,8 @@ function SearchWriteActionsProvider({
         // Compared by value: an equal array must not re-register and re-render every row, but changed rows must replace the stale copy.
         registerGroupChildren: (groupKey, groupChildren) =>
             setGroupChildrenByKey((prev) => {
-                // A group with nothing to publish and nothing published before needs no entry, and writing one re-renders every row.
-                if (deepEqual(prev[groupKey], groupChildren) || (!(groupKey in prev) && groupChildren.length === 0)) {
+                // A group whose snapshot has not resolved yet must not wipe the rows it published before.
+                if (groupChildren.length === 0 || deepEqual(prev[groupKey], groupChildren)) {
                     return prev;
                 }
                 return {...prev, [groupKey]: groupChildren};
@@ -567,6 +567,15 @@ function SearchWriteActionsProvider({
         return {selection: spelledOut, canDropChild: true};
     };
 
+    // Read through the refs, so asking whether a group is checked never re-renders this provider on a selection change.
+    const groupSelectionParams = (groupKey: string | undefined, groupChildren: TransactionListItemType[]) => ({
+        groupKey,
+        children: groupChildren,
+        selectedTransactions: getSelectedTransactions(),
+        excludedTransactions: getExcludedTransactions(),
+        areAllMatchingItemsSelected,
+    });
+
     // A row checked by select-all-matching alone has no entry to remove, so deselecting it can only be recorded as an exclusion.
     const buildExclusionForCheckedRowWithoutEntry = (row: SearchData[number]): SelectedTransactions => {
         if (!isTransactionListItemType(row) || !row.keyForList) {
@@ -601,7 +610,12 @@ function SearchWriteActionsProvider({
                     if (!tx.keyForList || isTransactionPendingDelete(tx)) {
                         return;
                     }
-                    updated = spellOutGroupSelection(updated, tx.keyForList).selection;
+                    const {selection, canDropChild} = spellOutGroupSelection(updated, tx.keyForList);
+                    // The group already covers this row and cannot be written out yet, so an entry of its own would only make a later narrowing impossible.
+                    if (!canDropChild) {
+                        return;
+                    }
+                    updated = selection;
                     const [key, info] = buildSelectedEntry(tx);
                     const parentGroupKey = blockGroupKey ?? groupKeyByChildKey.get(tx.keyForList);
                     updated[key] = parentGroupKey ? {...info, groupKey: parentGroupKey, isSelectedViaGroup: !!blockGroupKey} : info;
@@ -731,7 +745,7 @@ function SearchWriteActionsProvider({
 
         if (shiftKey && pendingSeedGroupKey) {
             const pendingChildren = childrenByGroupKey.get(pendingSeedGroupKey) ?? [];
-            if (pendingChildren.length > 0 && isGroupSelected(getSelectedTransactions(), pendingSeedGroupKey, pendingChildren)) {
+            if (pendingChildren.length > 0 && isGroupSelected(groupSelectionParams(pendingSeedGroupKey, pendingChildren))) {
                 seedGroup(pendingChildren);
             }
         }
@@ -746,7 +760,7 @@ function SearchWriteActionsProvider({
 
         if (isShiftRangeHeaderItem(item) && isTransactionGroupListItemType(item)) {
             // A header click selects a whole block, so seed it and a later shift+click can narrow it (like Select All).
-            const groupWasSelected = isGroupSelected(getSelectedTransactions(), item.keyForList, groupTransactions);
+            const groupWasSelected = isGroupSelected(groupSelectionParams(item.keyForList, groupTransactions));
             if (groupWasSelected) {
                 // Deselecting paints no block, so reset instead of leaving a stale span to collapse.
                 rangeApi.clearAnchor();
@@ -828,6 +842,14 @@ function SearchWriteActionsProvider({
             return;
         }
 
+        // Deselecting a group has to give back the rows a wider selection covers, the same way deselecting one of them by hand does.
+        const groupExclusions: SelectedTransactions = {};
+        if (isGroupSelected(groupSelectionParams(item.keyForList, groupTransactions))) {
+            for (const child of groupTransactions) {
+                Object.assign(groupExclusions, buildExclusionForCheckedRowWithoutEntry(child));
+            }
+        }
+
         applySelection(
             (selectedTransactions) => {
                 if (groupTransactions.length === 0 && item.keyForList) {
@@ -851,7 +873,7 @@ function SearchWriteActionsProvider({
                 // deselecting has to clear that entry too, otherwise the group stays selected with no way to deselect it.
                 const groupKey = item.keyForList;
 
-                if (isGroupSelected(selectedTransactions, groupKey, groupTransactions)) {
+                if (isGroupSelected({...groupSelectionParams(groupKey, groupTransactions), selectedTransactions})) {
                     const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
                     if (groupKey) {
                         delete reducedSelectedTransactions[groupKey];
@@ -878,6 +900,7 @@ function SearchWriteActionsProvider({
                 totalSelectableItemsCount,
                 shouldPreserveAllMatchingSelection: canRecordExclusions,
                 shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
+                deselectedWithoutEntry: groupExclusions,
             },
         );
     };

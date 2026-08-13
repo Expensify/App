@@ -309,12 +309,46 @@ function deriveSelectedReports(transactionIDs: SelectedTransactions, data: Searc
     return [];
 }
 
-/** A group is selected when its own key is, which is how a group selected before its children loaded is stored, or when any child is. */
-function isGroupSelected(selection: SelectedTransactions, groupKey: string | undefined, children: TransactionListItemType[]): boolean {
-    if (groupKey && selection[groupKey]?.isSelected) {
+type GroupSelectionParams = {
+    /** The group's own key, which is where a group selected before its children loaded is stored */
+    groupKey: string | undefined;
+
+    /** The group's loaded rows */
+    children: TransactionListItemType[];
+
+    /** The rows with a selection entry of their own */
+    selectedTransactions: SelectedTransactions;
+
+    /** Rows taken back out of a wider selection */
+    excludedTransactions: SelectedTransactions;
+
+    /** Whether every matching item is selected, which checks rows that have no entry of their own */
+    areAllMatchingItemsSelected: boolean;
+};
+
+/** Whether clicking a group's checkbox means "deselect": true once any row under it reads as checked, which is what the user is looking at. */
+function isGroupSelected({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): boolean {
+    if (groupKey && selectedTransactions[groupKey]?.isSelected) {
         return true;
     }
-    return children.some((child) => !!selection[child.keyForList]?.isSelected);
+    return children.some((child) => isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));
+}
+
+/** Whether a group's checkbox reads as fully checked. A group with no rows of its own answers for itself, since there is nothing else to ask. */
+function isGroupChecked({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): boolean {
+    const selectable = children.filter((child) => child.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    if (selectable.length === 0) {
+        return !!groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected});
+    }
+    return selectable.every((child) => isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));
+}
+
+/** How many of a group's rows read as checked, which is what tells a full selection from a partial one. */
+function countCheckedGroupChildren({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): number {
+    return children.reduce(
+        (count, child) => (isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}) ? count + 1 : count),
+        0,
+    );
 }
 
 const NO_OPEN_GROUPS: ReadonlySet<string> = new Set();
@@ -430,6 +464,8 @@ export {
     buildShiftRangeItems,
     buildGroupChildrenIndex,
     isGroupSelected,
+    isGroupChecked,
+    countCheckedGroupChildren,
     isRowChecked,
     NO_OPEN_GROUPS,
 };

@@ -1,4 +1,4 @@
-import {buildGroupChildrenIndex, buildShiftRangeItems, isGroupSelected, mapEmptyReportToSelectedEntry} from '@components/Search/selectionBuilders';
+import {buildGroupChildrenIndex, buildShiftRangeItems, isGroupChecked, isGroupSelected, mapEmptyReportToSelectedEntry} from '@components/Search/selectionBuilders';
 import type {SearchData, SelectedTransactions} from '@components/Search/types';
 
 import {buildCategoryGroup as makeGroup, buildTransactionRow as makeChild} from '../../utils/collections/searchListItems';
@@ -87,16 +87,39 @@ describe('isGroupSelected', () => {
         return Object.fromEntries(keys.map((key) => [key, entry]));
     }
 
+    const groupOf = (selectedTransactions: SelectedTransactions, overrides: Partial<Parameters<typeof isGroupSelected>[0]> = {}) => ({
+        groupKey: 'groupA',
+        children: [child],
+        selectedTransactions,
+        excludedTransactions: {},
+        areAllMatchingItemsSelected: false,
+        ...overrides,
+    });
+
     it('counts a group selected under its own key, which is how it is stored before its children load', () => {
-        expect(isGroupSelected(selectionOf('groupA'), 'groupA', [child])).toBe(true);
+        expect(isGroupSelected(groupOf(selectionOf('groupA')))).toBe(true);
     });
 
     it('counts a group with any child selected', () => {
-        expect(isGroupSelected(selectionOf('c1'), 'groupA', [child])).toBe(true);
+        expect(isGroupSelected(groupOf(selectionOf('c1')))).toBe(true);
     });
 
     it('does not count a group whose key and children are both unselected', () => {
-        expect(isGroupSelected(selectionOf('other'), 'groupA', [child])).toBe(false);
+        expect(isGroupSelected(groupOf(selectionOf('other')))).toBe(false);
+    });
+
+    it('counts a group whose rows are checked by select-all-matching alone, which is what the user is looking at', () => {
+        expect(isGroupSelected(groupOf({}, {areAllMatchingItemsSelected: true}))).toBe(true);
+        expect(isGroupChecked(groupOf({}, {areAllMatchingItemsSelected: true}))).toBe(true);
+    });
+
+    it('reads a group with no loaded rows from its own key, since there is nothing else to ask', () => {
+        expect(isGroupChecked(groupOf({}, {children: [], areAllMatchingItemsSelected: true}))).toBe(true);
+        expect(isGroupChecked(groupOf({}, {children: []}))).toBe(false);
+    });
+
+    it('does not read a group as fully checked while one of its rows is excluded', () => {
+        expect(isGroupChecked(groupOf(selectionOf('groupA'), {excludedTransactions: selectionOf('c1')}))).toBe(false);
     });
 });
 

@@ -32,8 +32,6 @@ function GroupChildrenContent({
     onUndelete,
     newTransactionID,
     bankAccountList,
-    cardFeeds,
-    conciergeReportID,
 }: GroupChildrenContentProps) {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isScreenFocused = useIsFocused();
@@ -53,8 +51,6 @@ function GroupChildrenContent({
         groupTransactions: groupItem.transactions,
         snapshotData,
         bankAccountList,
-        cardFeeds,
-        conciergeReportID,
     });
 
     const isEmpty = transactions.length === 0;

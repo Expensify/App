@@ -146,6 +146,16 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
                         excludedTransactions[key] = transaction;
                     }
                 }
+                // Under all-matching the exclusions are the whole story, so the selection has run out once they cover every selectable row.
+                if (
+                    options?.shouldClearAllMatchingSelectionWhenEmpty &&
+                    totalSelectableItemsCount !== undefined &&
+                    Object.keys(selectedTransactions).length + Object.keys(excludedTransactions).length >= totalSelectableItemsCount &&
+                    isEmptyObject(selectedTransactions)
+                ) {
+                    areAllMatchingItemsSelected = false;
+                    excludedTransactions = {};
+                }
             } else if (!areAllMatchingItemsSelected) {
                 excludedTransactions = {};
             }

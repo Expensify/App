@@ -68,8 +68,6 @@ const baseArgs: HookArgs = {
     groupTransactions: [],
     snapshotData,
     bankAccountList: undefined,
-    cardFeeds: undefined,
-    conciergeReportID: undefined,
 };
 
 function renderGroupChildren(overrides: Partial<HookArgs> = {}) {

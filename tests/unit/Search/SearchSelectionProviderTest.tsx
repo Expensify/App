@@ -159,6 +159,27 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
         expect(result.current.state.areAllMatchingItemsSelected).toBe(false);
     });
 
+    it('turns all-matching off once the exclusions cover every selectable row', () => {
+        const {result} = renderSelection();
+        seedAllMatchingSelection(result);
+        act(() => {
+            result.current.actions.setSelectedTransactions({});
+        });
+
+        // Unchecking rows one at a time never empties the map, so the exclusions are what say the selection has run out
+        act(() => {
+            result.current.actions.applySelection((selectedTransactions) => selectedTransactions, {
+                totalSelectableItemsCount: 2,
+                shouldPreserveAllMatchingSelection: true,
+                shouldClearAllMatchingSelectionWhenEmpty: true,
+                deselectedWithoutEntry: buildSelected('tx_1', 'tx_2'),
+            });
+        });
+
+        expect(result.current.state.areAllMatchingItemsSelected).toBe(false);
+        expect(result.current.state.excludedTransactions).toEqual({});
+    });
+
     it('leaves the state untouched when a named deselection has nowhere to be recorded', () => {
         const {result} = renderSelection();
         act(() => {

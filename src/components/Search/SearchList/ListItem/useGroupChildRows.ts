@@ -23,12 +23,6 @@ type UseGroupChildRowsArgs = {
 
     /** Needed to build the rows, and passed down rather than read again per group */
     bankAccountList: GetSectionsArgs['bankAccountList'];
-
-    /** Needed to build the rows, and passed down rather than read again per group */
-    cardFeeds: GetSectionsArgs['cardFeeds'];
-
-    /** Needed to build the rows, and passed down rather than read again per group */
-    conciergeReportID: GetSectionsArgs['conciergeReportID'];
 };
 
 function getSnapshotTransactionRows(snapshotData: GetSectionsArgs['data'] | undefined, args: Omit<GetSectionsArgs, 'data'>): TransactionListItemType[] {
@@ -42,7 +36,7 @@ function getSnapshotTransactionRows(snapshotData: GetSectionsArgs['data'] | unde
 }
 
 /** A group's child rows. Deriving them anywhere else gives thin rows, whose action flags are computed from data the snapshot alone doesn't carry. */
-function useGroupChildRows({isExpenseReportType, groupTransactions, snapshotData, bankAccountList, cardFeeds, conciergeReportID}: UseGroupChildRowsArgs): TransactionListItemType[] {
+function useGroupChildRows({isExpenseReportType, groupTransactions, snapshotData, bankAccountList}: UseGroupChildRowsArgs): TransactionListItemType[] {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const isActionLoadingSet = useActionLoadingReportIDs();
@@ -61,10 +55,9 @@ function useGroupChildRows({isExpenseReportType, groupTransactions, snapshotData
         formatPhoneNumber,
         bankAccountList,
         isActionLoadingSet,
-        cardFeeds,
-        conciergeReportID,
         convertToDisplayString,
         reportAttributesDerivedValue: undefined,
+        conciergeReportID: undefined,
     });
 }
 

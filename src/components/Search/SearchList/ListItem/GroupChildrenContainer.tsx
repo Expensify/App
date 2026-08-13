@@ -1,9 +1,13 @@
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
+import {isGroupChecked} from '@components/Search/selectionBuilders';
+import type {SelectedTransactions} from '@components/Search/types';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -32,16 +36,16 @@ function GroupChildrenContainer({
     isLastItem,
     newTransactionID,
     bankAccountList,
-    cardFeeds,
-    conciergeReportID,
 }: GroupChildrenContainerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {selectedTransactions} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, false, item.keyForList);
     const isContentVisible = isExpanded || isRendered;
 
-    const isSelected = !!item.isSelected || (item.transactions.length > 0 && item.transactions.every((transaction) => selectedTransactions[transaction.transactionID]?.isSelected));
+    // The same question the header above it asks, so the two halves of one group cannot paint differently.
+    const isSelected =
+        !!item.isSelected || isGroupChecked({groupKey: item.groupKeyForList, children: item.transactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected});
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
@@ -84,8 +88,6 @@ function GroupChildrenContainer({
                             onUndelete={onUndelete}
                             newTransactionID={newTransactionID}
                             bankAccountList={bankAccountList}
-                            cardFeeds={cardFeeds}
-                            conciergeReportID={conciergeReportID}
                         />
                     </Animated.View>
                 ) : null}

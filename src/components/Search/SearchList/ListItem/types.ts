@@ -10,7 +10,6 @@ import type CONST from '@src/CONST';
 import type {
     BankAccountList,
     BillingGraceEndPeriod,
-    CardFeeds,
     CardList,
     LastPaymentMethod,
     PersonalDetails,
@@ -561,8 +560,6 @@ type GroupChildrenContentProps = {
     onUndelete?: (transaction: Transaction) => void;
     newTransactionID?: string;
     bankAccountList?: OnyxEntry<BankAccountList>;
-    cardFeeds?: OnyxCollection<CardFeeds>;
-    conciergeReportID: string | undefined;
 };
 
 type UnreportedExpenseListItemType = Transaction & {

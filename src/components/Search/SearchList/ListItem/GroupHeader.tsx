@@ -4,7 +4,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
-import {isRowChecked} from '@components/Search/selectionBuilders';
+import {countCheckedGroupChildren, isGroupChecked} from '@components/Search/selectionBuilders';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy, SelectedTransactions} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
@@ -74,8 +74,6 @@ type GroupHeaderProps = SearchListActionProps & {
     originalKey: string;
     visibleColumns?: SearchCustomColumnIds[];
     bankAccountList: GroupChildrenContentProps['bankAccountList'];
-    cardFeeds: GroupChildrenContentProps['cardFeeds'];
-    conciergeReportID: GroupChildrenContentProps['conciergeReportID'];
 };
 
 function GroupHeader({
@@ -101,8 +99,6 @@ function GroupHeader({
     ownerBillingGracePeriodEnd,
     visibleColumns,
     bankAccountList,
-    cardFeeds,
-    conciergeReportID,
 }: GroupHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -192,22 +188,14 @@ function GroupHeader({
         groupTransactions: groupItem.transactions,
         snapshotData,
         bankAccountList,
-        cardFeeds,
-        conciergeReportID,
     });
 
-    // Counted with the predicate the child rows render from, so the header cannot show unchecked above a block of checked rows.
+    // Answered by the predicate the child rows render from, so the header cannot show unchecked above a block of checked rows.
     const {isSelectAllChecked, isIndeterminate} = useMemo(() => {
-        const filteredTransactions = effectiveTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const selectedCount = filteredTransactions.reduce(
-            (acc, transaction) =>
-                isRowChecked({rowKey: transaction.keyForList, parentGroupKey: originalKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}) ? acc + 1 : acc,
-            0,
-        );
-        const isEmptyReportSelected = effectiveTransactions.length === 0 && originalKey && selectedTransactions[originalKey]?.isSelected;
-        const allChecked = !!isEmptyReportSelected || (selectedCount === filteredTransactions.length && filteredTransactions.length > 0);
-        const indeterminate = selectedCount > 0 && selectedCount !== filteredTransactions.length;
-        return {isSelectAllChecked: allChecked, isIndeterminate: indeterminate};
+        const params = {groupKey: originalKey, children: effectiveTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected};
+        const selectableTransactions = effectiveTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const selectedCount = countCheckedGroupChildren({...params, children: selectableTransactions});
+        return {isSelectAllChecked: isGroupChecked(params), isIndeterminate: selectedCount > 0 && selectedCount !== selectableTransactions.length};
     }, [selectedTransactions, excludedTransactions, areAllMatchingItemsSelected, effectiveTransactions, originalKey]);
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;

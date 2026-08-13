@@ -142,8 +142,6 @@ function TransactionGroupListItemImpl({
 
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
     const [isExpanded, setIsExpanded] = useState(false);
-    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     // Expense-report rows are already part of the list, so only group-by views need this.
     useGroupOpenForShiftRange(groupItem.keyForList, isExpanded && !isExpenseReportType);
@@ -154,8 +152,6 @@ function TransactionGroupListItemImpl({
         groupTransactions: groupItem.transactions,
         snapshotData: transactionsSnapshot?.data,
         bankAccountList,
-        cardFeeds,
-        conciergeReportID,
     });
 
     const selectedItemsLength = transactions.reduce((acc, transaction) => (transaction.isSelected ? acc + 1 : acc), 0);
