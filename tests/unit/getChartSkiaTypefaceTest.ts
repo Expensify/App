@@ -1,23 +1,26 @@
-import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
+import type {ChartDefaultTypeface} from '@components/Charts/types/chartSkiaTypefaceTypes';
 import {CHART_SKIA_TYPEFACE_ASSETS} from '@components/Charts/utils/chartFontAssets';
 import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
 
 import FontUtils from '@styles/utils/FontUtils';
 
+import ObjectUtils from '@src/types/utils/ObjectUtils';
+
 import type {SkTypeface} from '@shopify/react-native-skia';
 
-const CHART_SKIA_TYPEFACE_KEYS = Object.keys(CHART_SKIA_TYPEFACE_ASSETS) as ChartSkiaTypefaceKey[];
+import createMock from '../utils/createMock';
+
+const CHART_SKIA_TYPEFACE_KEYS = ObjectUtils.typedKeys(CHART_SKIA_TYPEFACE_ASSETS);
 
 function makeTypefaces(): ChartDefaultTypeface {
-    return Object.fromEntries(CHART_SKIA_TYPEFACE_KEYS.map((key) => [key, {id: key} as unknown as SkTypeface])) as ChartDefaultTypeface;
+    return ObjectUtils.typedFromEntries(CHART_SKIA_TYPEFACE_KEYS.map((key) => [key, createMock<SkTypeface>({})] as const));
 }
 
 /** Simulates a typeface whose glyph coverage excludes every character in `unsupportedChars`. */
-function makeTypefaceWithGlyphCoverage(key: ChartSkiaTypefaceKey, unsupportedChars: string): SkTypeface {
-    return {
-        id: key,
+function makeTypefaceWithGlyphCoverage(unsupportedChars: string): SkTypeface {
+    return createMock<SkTypeface>({
         getGlyphIDs: (text: string) => [...text].map((char) => (unsupportedChars.includes(char) ? 0 : 1)),
-    } as unknown as SkTypeface;
+    });
 }
 
 describe('getChartSkiaTypeface', () => {
@@ -102,7 +105,7 @@ describe('getChartSkiaTypeface', () => {
     it('should keep the resolved typeface when it can render the given text', () => {
         const glyphAwareTypefaces = {
             ...typefaces,
-            EXP_NEW_KANSAS_MEDIUM: makeTypefaceWithGlyphCoverage('EXP_NEW_KANSAS_MEDIUM', '₫'),
+            EXP_NEW_KANSAS_MEDIUM: makeTypefaceWithGlyphCoverage('₫'),
         };
 
         const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: FontUtils.fontFamily.single.EXP_NEW_KANSAS_MEDIUM.fontFamily}, '$59');
@@ -112,8 +115,8 @@ describe('getChartSkiaTypeface', () => {
     it('should fall back to EXP_NEUE_BOLD when Expensify New Kansas cannot render the given text', () => {
         const glyphAwareTypefaces = {
             ...typefaces,
-            EXP_NEW_KANSAS_MEDIUM: makeTypefaceWithGlyphCoverage('EXP_NEW_KANSAS_MEDIUM', '₫'),
-            EXP_NEUE_BOLD: makeTypefaceWithGlyphCoverage('EXP_NEUE_BOLD', ''),
+            EXP_NEW_KANSAS_MEDIUM: makeTypefaceWithGlyphCoverage('₫'),
+            EXP_NEUE_BOLD: makeTypefaceWithGlyphCoverage(''),
         };
 
         const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: FontUtils.fontFamily.single.EXP_NEW_KANSAS_MEDIUM.fontFamily}, '₫59');
@@ -123,8 +126,8 @@ describe('getChartSkiaTypeface', () => {
     it('should fall back to EXP_NEUE_BOLD_ITALIC when italic Expensify New Kansas cannot render the given text', () => {
         const glyphAwareTypefaces = {
             ...typefaces,
-            EXP_NEW_KANSAS_MEDIUM_ITALIC: makeTypefaceWithGlyphCoverage('EXP_NEW_KANSAS_MEDIUM_ITALIC', '₫'),
-            EXP_NEUE_BOLD_ITALIC: makeTypefaceWithGlyphCoverage('EXP_NEUE_BOLD_ITALIC', ''),
+            EXP_NEW_KANSAS_MEDIUM_ITALIC: makeTypefaceWithGlyphCoverage('₫'),
+            EXP_NEUE_BOLD_ITALIC: makeTypefaceWithGlyphCoverage(''),
         };
 
         const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: FontUtils.fontFamily.single.EXP_NEW_KANSAS_MEDIUM.fontFamily, fontStyle: 'italic'}, '₫59');
@@ -134,7 +137,7 @@ describe('getChartSkiaTypeface', () => {
     it('should ignore newlines when checking glyph coverage', () => {
         const glyphAwareTypefaces = {
             ...typefaces,
-            EXP_NEW_KANSAS_MEDIUM: makeTypefaceWithGlyphCoverage('EXP_NEW_KANSAS_MEDIUM', '₫'),
+            EXP_NEW_KANSAS_MEDIUM: makeTypefaceWithGlyphCoverage('₫'),
         };
 
         const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: FontUtils.fontFamily.single.EXP_NEW_KANSAS_MEDIUM.fontFamily}, 'Total\n$59');
