@@ -587,7 +587,7 @@ function PaymentMethodList({
             };
             const existingBrickRoadIndicator = (paymentMethod as Partial<PaymentMethodItem>).brickRoadIndicator;
             const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData);
-            const canBankAccountLinkPlaid = 'accountData' in paymentMethod ? canLinkPlaid(paymentMethod as BankAccount, cardOnWaitlistPolicyIDs) : false;
+            const canBankAccountLinkPlaid = canLinkPlaid(paymentMethod, cardOnWaitlistPolicyIDs);
             const bankConnectionStatus =
                 shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(paymentMethod.accountData, canBankAccountLinkPlaid) : undefined;
             const paymentMethodPress = (e: GestureResponderEvent | KeyboardEvent | undefined) =>

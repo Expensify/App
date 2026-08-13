@@ -87,7 +87,7 @@ function hasBrokenPlaidConnection(accountData: AccountData | undefined): boolean
  * - Provisioned as the Expensify Card settlement account; or
  * - Linked policy is on Expensify Card waitlist (NVP_EXPENSIFY_ON_CARD_WAITLIST)
  */
-function canLinkPlaid(bankAccount: OnyxEntry<OnyxTypes.BankAccount>, onCardWaitlistPolicyIDs: string[] | undefined): boolean {
+function canLinkPlaid(bankAccount: {isExpensifyCardSettlementAccount?: boolean; accountData?: AccountData} | null | undefined, onCardWaitlistPolicyIDs: string[] | undefined): boolean {
     if (!bankAccount) {
         return false;
     }

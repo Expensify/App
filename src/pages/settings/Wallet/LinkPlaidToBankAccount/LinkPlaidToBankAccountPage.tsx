@@ -102,12 +102,17 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
     };
 
     const handlePlaidSuccess = ({publicToken, accounts}: {publicToken: string; accounts: PlaidLinkAccount[]}) => {
+        const account = accounts.at(0);
+        if (!account) {
+            return;
+        }
+
         if (accounts.length <= 1) {
-            submit(publicToken, accounts.at(0));
+            submit(publicToken, account);
             return;
         }
         setPendingSelection({publicToken, accounts});
-        setSelectedPlaidAccountID(accounts.at(0)?.id ?? '');
+        setSelectedPlaidAccountID(account.id);
     };
 
     if (isLoading || !plaidLinkToken) {
@@ -150,7 +155,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
         );
     }
 
-    if (!!latestErrorMessage) {
+    if (latestErrorMessage) {
         return (
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <ConfirmationPage

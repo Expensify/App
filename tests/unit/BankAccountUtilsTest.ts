@@ -19,7 +19,7 @@ import type {KYBVerificationResponses} from '@libs/BankAccountUtils';
 
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {Account, BankAccount, BankAccountList, Session} from '@src/types/onyx';
+import type {Account, BankAccountList, Session} from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
 
 import createMock from '../utils/createMock';
@@ -428,18 +428,15 @@ describe('BankAccountUtils', () => {
         });
 
         it('returns true when isExpensifyCardSettlementAccount is set', () => {
-            const bankAccount = {isExpensifyCardSettlementAccount: true, accountData: {}} as BankAccount;
-            expect(canLinkPlaid(bankAccount, undefined)).toBe(true);
+            expect(canLinkPlaid({isExpensifyCardSettlementAccount: true, accountData: {}}, undefined)).toBe(true);
         });
 
         it('returns true when any of the account policies is on the waitlist', () => {
-            const bankAccount = {accountData: {additionalData: {policyID: 'A'}, policyIDs: ['B']}} as BankAccount;
-            expect(canLinkPlaid(bankAccount, ['B'])).toBe(true);
+            expect(canLinkPlaid({accountData: {additionalData: {policyID: 'A'}, policyIDs: ['B']}}, ['B'])).toBe(true);
         });
 
         it('returns false when no policies match a waitlist entry and settlement flag is unset', () => {
-            const bankAccount = {accountData: {additionalData: {policyID: 'A'}, policyIDs: ['B']}} as BankAccount;
-            expect(canLinkPlaid(bankAccount, ['C'])).toBe(false);
+            expect(canLinkPlaid({accountData: {additionalData: {policyID: 'A'}, policyIDs: ['B']}}, ['C'])).toBe(false);
         });
     });
 
