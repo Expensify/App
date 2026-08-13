@@ -178,7 +178,15 @@ function usePersonalDetailSearchSelectorBase({
     initialSearchPhrase = '',
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {translate, formatPhoneNumber} = useLocalize();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {options: defaultOptions, currentOption, isLoading: isPersonalDetailsOptionsLoading} = usePersonalDetailOptions({enabled: shouldInitialize, includeLoginsOnly});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+
+    const [selectedAccountIDs, setSelectedAccountIDs] = useState<Set<string>>(initialSelected);
+    const [extraOptions, setExtraOptions] = useState<OptionData[]>(initialExtraOptions);
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(initialSearchPhrase);
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
 
     const optionsWithContacts = (() => {
         if (!contactOptions?.length || !shouldInitialize) {
@@ -189,14 +197,6 @@ function usePersonalDetailSearchSelectorBase({
         return (defaultOptions ?? []).concat(allowedContactOptions);
     })();
     const areOptionsInitialized = !isPersonalDetailsOptionsLoading;
-    const [selectedAccountIDs, setSelectedAccountIDs] = useState<Set<string>>(initialSelected);
-    const [extraOptions, setExtraOptions] = useState<OptionData[]>(initialExtraOptions);
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(initialSearchPhrase);
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const currentUserEmail = currentUserPersonalDetails.email ?? '';
-
     const transformedOptions: OptionData[] =
         optionsWithContacts?.map((option) => ({
             ...option,

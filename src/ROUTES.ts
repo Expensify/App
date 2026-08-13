@@ -1529,6 +1529,30 @@ const DYNAMIC_ROUTES = {
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined) => getUrlWithParams('taxAmount', {action, iouType, transactionID, reportID}),
         queryParams: ['action', 'iouType', 'transactionID', 'reportID'],
     },
+    MONEY_REQUEST_STEP_CATEGORY: {
+        path: 'category',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.MONEY_REQUEST.CREATE,
+            SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS,
+            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
+            SCREENS.REPORT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+        ],
+        getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string; reportID: string | undefined; reportActionID?: string}) => {
+            const {action, iouType, transactionID, reportID, reportActionID} = params;
+            return getUrlWithParams('category', {action, iouType, transactionID, reportID, reportActionID});
+        },
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'reportActionID'],
+    },
+    MONEY_REQUEST_STEP_CATEGORY_CREATE: {
+        path: 'add-category',
+        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY],
+    },
     MONEY_REQUEST_ATTENDEE: {
         path: 'attendees',
         entryScreens: [
@@ -2264,26 +2288,6 @@ const ROUTES = {
             }
 
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/amount/${transactionID}/${reportID}/${reportActionID ? `${reportActionID}/` : ''}${pageIndex}`, backTo);
-        },
-    },
-    MONEY_REQUEST_STEP_CATEGORY_CREATE: {
-        route: ':action/:iouType/category/new/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string, backTo = '') => {
-            if (!transactionID || !reportID) {
-                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_CATEGORY_CREATE route');
-            }
-
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/category/new/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
-        },
-    },
-    MONEY_REQUEST_STEP_CATEGORY: {
-        route: ':action/:iouType/category/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
-            if (!transactionID || !reportID) {
-                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_CATEGORY route');
-            }
-
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/category/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
     MONEY_REQUEST_ACCOUNTANT: {
@@ -3359,11 +3363,12 @@ const ROUTES = {
     },
     WORKSPACE_RULES: {
         route: 'workspaces/:policyID/rules',
-        getRoute: (policyID: string | undefined) => {
+        /** @param tab preselects a Rules tab. The page otherwise restores the last one used. */
+        getRoute: (policyID: string | undefined, tab?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_RULES route');
             }
-            return `workspaces/${policyID}/rules` as const;
+            return `workspaces/${policyID}/rules${tab ? `?tab=${tab}` : ''}` as const;
         },
     },
     WORKSPACE_DISTANCE_RATES: {

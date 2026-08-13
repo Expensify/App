@@ -2086,14 +2086,12 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
         reportActionID: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
-        reportActionID: string;
+        reportActionID?: string;
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.STEP_VENDOR]: {
         action: IOUAction;
@@ -2102,14 +2100,12 @@ type MoneyRequestNavigatorParamList = {
         reportActionID?: string;
         reportID: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY_CREATE]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
         reportActionID?: string;
-        // eslint-disable-next-line no-restricted-syntax -- backTo is needed to track where editing was initiated from (search/view or r/:reportID)
-        backTo?: Routes;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT]: {
         action: IOUAction;
@@ -2385,11 +2381,10 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         transactionID: string;
 
-        // These are not used in the screen, but are needed for the navigation
-        // for IOURequestStepDistanceMap component
+        // This is not used in the screen, but is needed for navigation in IOURequestStepDistanceMap.
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: never;
-        action: never;
+        action: IOUAction;
         pageIndex?: string;
         backToReport?: string;
         reportActionID?: string;
@@ -3025,6 +3020,9 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.RULES]: {
         policyID: string;
+
+        /** Preselects a Rules tab. The page otherwise restores the last one used. */
+        tab?: string;
     };
     [SCREENS.WORKSPACE.TIME_TRACKING]: {
         policyID: string;
