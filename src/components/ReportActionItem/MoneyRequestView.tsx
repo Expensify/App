@@ -937,22 +937,21 @@ function MoneyRequestView({
         });
     };
 
-    const distanceCopyValue = !canEditDistance ? distanceToDisplay : undefined;
-    const distanceRateCopyValue = !canEditDistanceRate ? rateToDisplay : undefined;
-    // Keep the visible amount copyable even when it is editable, so users do not need to open the amount step first.
+    const distanceCopyValue = distanceToDisplay || undefined;
+    const distanceRateCopyValue = rateToDisplay || undefined;
     const amountCopyValue = amountTitle || undefined;
     const descriptionHTML = updatedTransactionDescription ?? transactionDescription;
-    const descriptionCopyValue = !canEdit && descriptionHTML ? Parser.htmlToText(descriptionHTML) : undefined;
-    const merchantCopyValue = !canEditMerchant ? updatedMerchantTitle : undefined;
-    const dateCopyValue = !canEditDate ? transactionDate : undefined;
+    const descriptionCopyValue = descriptionHTML ? Parser.htmlToText(descriptionHTML) : undefined;
+    const merchantCopyValue = updatedMerchantTitle || undefined;
+    const dateCopyValue = actualTransactionDate || undefined;
     const categoryValue = updatedTransaction?.category ?? categoryForDisplay;
     const decodedCategoryName = getDecodedLeafCategoryName(categoryValue);
-    const categoryCopyValue = !canEdit ? decodedCategoryName : undefined;
+    const categoryCopyValue = decodedCategoryName || undefined;
     const cardCopyValue = cardProgramName;
     const taxRateValue = hasTaxValueChanged ? taxValue : (transaction?.taxName ?? taxRateTitle ?? fallbackTaxRateTitle ?? '');
-    const taxRateCopyValue = !canEditTaxFields ? taxRateValue : undefined;
+    const taxRateCopyValue = taxRateValue || undefined;
     const taxAmountTitle = formattedTaxAmount ? formattedTaxAmount.toString() : '';
-    const taxAmountCopyValue = !canEditTaxFields ? taxAmountTitle : undefined;
+    const taxAmountCopyValue = taxAmountTitle || undefined;
 
     const distanceRequestFields = (
         <>
@@ -1084,7 +1083,7 @@ function MoneyRequestView({
 
     // actualAttendees is already sorted by enrichAndSortAttendees above; pass without localeCompare to preserve that order while stripping the SMS domain.
     const getAttendeesTitle = Array.isArray(actualAttendees) ? getAttendeesListDisplayString(actualAttendees) : '';
-    const attendeesCopyValue = !canEdit ? getAttendeesTitle : undefined;
+    const attendeesCopyValue = getAttendeesTitle || undefined;
 
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
         const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
@@ -1108,7 +1107,7 @@ function MoneyRequestView({
             hasDependentTags,
             tagForDisplay,
         );
-        const tagCopyValue = !canEdit ? tagForDisplay : undefined;
+        const tagCopyValue = tagForDisplay || undefined;
 
         return (
             <OfflineWithFeedback
@@ -1152,7 +1151,7 @@ function MoneyRequestView({
     const parentReportDerivedName = parentReport?.reportID ? derivedReportNames?.[parentReport.reportID] : undefined;
     const reportNameToDisplay = isFromMergeTransaction ? (updatedTransaction?.reportName ?? translate('common.none')) : getReportName(parentReport, parentReportDerivedName);
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
-    const reportCopyValue = !canEditReport && reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
+    const reportCopyValue = reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
     const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction);
 
     // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
