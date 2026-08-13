@@ -59,18 +59,29 @@ jest.mock('@hooks/useOnyx', () => ({
     default: () => [undefined, {status: 'loaded'}],
 }));
 
+let mockResolvedSelfDMReport: {selfDMReport: Report | undefined; isLoading: boolean} = {selfDMReport: mockSelfDMReport, isLoading: false};
+
 jest.mock('@hooks/useSelfDMReport', () => ({
     __esModule: true,
     default: () => mockSelfDMReport,
+    useResolvedSelfDMReport: () => mockResolvedSelfDMReport,
 }));
 
 const globalCreateTransaction: Transaction = {...createRandomTransaction(1), isFromGlobalCreate: true};
 
+function renderDefaultParticipantsResult(iouType: IOUType, transaction: Transaction = globalCreateTransaction, isNewManualExpenseFlowEnabled = true) {
+    return renderHook(() => useDefaultParticipants({sourceReport: undefined, transaction, iouType, isNewManualExpenseFlowEnabled})).result.current;
+}
+
 function renderDefaultParticipants(iouType: IOUType, transaction: Transaction = globalCreateTransaction, isNewManualExpenseFlowEnabled = true) {
-    return renderHook(() => useDefaultParticipants({sourceReport: undefined, transaction, iouType, isNewManualExpenseFlowEnabled})).result.current.participants;
+    return renderDefaultParticipantsResult(iouType, transaction, isNewManualExpenseFlowEnabled).participants;
 }
 
 describe('useDefaultParticipants', () => {
+    beforeEach(() => {
+        mockResolvedSelfDMReport = {selfDMReport: mockSelfDMReport, isLoading: false};
+    });
+
     beforeAll(async () => {
         // `getPolicyExpenseChat` scans the report collection, so the default workspace chat has to exist in Onyx.
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
@@ -87,6 +98,17 @@ describe('useDefaultParticipants', () => {
         const participants = renderDefaultParticipants(CONST.IOU.TYPE.TRACK);
 
         expect(participants).toEqual([expect.objectContaining({reportID: mockSelfDMReport.reportID, isSelfDM: true, selected: true})]);
+    });
+
+    it('should not seed a track expense until the real self DM resolves', () => {
+        // `useSelfDMReport` would hand back an optimistic report with a randomly generated reportID here, which must
+        // never reach the transaction's participants. Report loading instead so callers wait.
+        mockResolvedSelfDMReport = {selfDMReport: undefined, isLoading: true};
+
+        const {participants, isLoading} = renderDefaultParticipantsResult(CONST.IOU.TYPE.TRACK);
+
+        expect(participants).toEqual([]);
+        expect(isLoading).toBe(true);
     });
 
     it('should not seed anything when the expense is not started from global create', () => {

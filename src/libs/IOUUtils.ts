@@ -547,6 +547,7 @@ function pickReportForPolicy(...reports: Array<OnyxEntry<Report>>): OnyxEntry<Re
     return reports.find((report) => reportHasRealPolicy(report)) ?? reports.find((report) => !!report);
 }
 
+/** The policyID of the workspace the user explicitly picked for this expense, taken from the transaction participants. */
 function getSelectedWorkspacePolicyID(transaction: OnyxEntry<Transaction>, action: IOUAction): string | undefined {
     if (action === CONST.IOU.ACTION.EDIT) {
         return undefined;

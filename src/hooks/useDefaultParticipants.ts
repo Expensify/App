@@ -18,7 +18,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useOnyx from './useOnyx';
 import usePersonalPolicy from './usePersonalPolicy';
-import useSelfDMReport from './useSelfDMReport';
+import {useResolvedSelfDMReport} from './useSelfDMReport';
 
 type UseDefaultParticipantsParams = {
     /** The report the expense is being created from. Participants are derived from this report when it has any. */
@@ -56,7 +56,7 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
-    const selfDMReport = useSelfDMReport();
+    const {selfDMReport, isLoading: isLoadingSelfDMReport} = useResolvedSelfDMReport();
     const [amountOwed, amountOwedResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [userBillingGracePeriodEnds, userBillingGracePeriodEndsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd, ownerBillingGracePeriodEndResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -65,7 +65,8 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
     const accountID = currentUserPersonalDetails.accountID;
 
     const isLoading =
-        isNewManualExpenseFlowEnabled && (!accountID || isLoadingOnyxValue(policyCollectionResult, amountOwedResult, userBillingGracePeriodEndsResult, ownerBillingGracePeriodEndResult));
+        isNewManualExpenseFlowEnabled &&
+        (!accountID || isLoadingSelfDMReport || isLoadingOnyxValue(policyCollectionResult, amountOwedResult, userBillingGracePeriodEndsResult, ownerBillingGracePeriodEndResult));
 
     const participants = useMemo(() => {
         if (!isNewManualExpenseFlowEnabled) {

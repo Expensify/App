@@ -3,6 +3,7 @@ import {buildOptimisticSelfDMReport, isSelfDM, isThread} from '@libs/ReportUtils
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -15,11 +16,17 @@ const selfDMReportIDSelector = (reports: OnyxCollection<Report>, cachedSelfDMRep
     return Object.values(reports ?? {}).find((report) => isSelfDM(report) && !isThread(report))?.reportID;
 };
 
+function useResolvedSelfDMReport(): {selfDMReport: Report | undefined; isLoading: boolean} {
+    const [cachedSelfDMReportID, cachedSelfDMReportIDResult] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [selfDMReportID, selfDMReportIDResult] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => selfDMReportIDSelector(reports, cachedSelfDMReportID)});
+    const [selfDMReport, selfDMReportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${cachedSelfDMReportID ?? selfDMReportID}`);
+    return {selfDMReport, isLoading: isLoadingOnyxValue(cachedSelfDMReportIDResult, selfDMReportIDResult, selfDMReportResult)};
+}
+
 function useSelfDMReport() {
-    const [cachedSelfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
-    const [selfDMReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => selfDMReportIDSelector(reports, cachedSelfDMReportID)});
-    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${cachedSelfDMReportID ?? selfDMReportID}`);
+    const {selfDMReport} = useResolvedSelfDMReport();
     return selfDMReport ?? buildOptimisticSelfDMReport(DateUtils.getDBTime());
 }
 
+export {useResolvedSelfDMReport};
 export default useSelfDMReport;

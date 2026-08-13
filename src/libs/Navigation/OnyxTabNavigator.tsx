@@ -71,6 +71,11 @@ type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = Child
 
     /** Whether tabs should have equal width */
     equalWidth?: boolean;
+
+    /** Whether a tab switch that gets bounced back to the tab it came from should be re-applied once (see #98240).
+     * Opt-in, because it makes a tab switch that another part of the app deliberately undoes stick instead.
+     */
+    shouldReapplyInterruptedTabPress?: boolean;
 };
 
 const TopTab = createMaterialTopTabNavigator<ParamListBase, string>();
@@ -113,6 +118,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     lazyLoadEnabled = false,
     onTabSelect,
     equalWidth = false,
+    shouldReapplyInterruptedTabPress = false,
     ...rest
 }: OnyxTabNavigatorProps<TTabName>) {
     const styles = useThemeStyles();
@@ -121,10 +127,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`);
 
-    const pressedTabRef = useRef<{from: string | undefined; to: string} | undefined>(undefined);
-    const hasReappliedPressRef = useRef(false);
-    const tabNavigationRef = useRef<NavigationProp<ParamListBase> | undefined>(undefined);
-    const [activeTabName, setActiveTabName] = useState<string | undefined>(undefined);
+    const pressedTabRef = useRef<{from: string | undefined; to: string; armedAt: number} | undefined>(undefined);
 
     const tabNames = getTabNames(children);
 
@@ -168,6 +171,28 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
         };
     };
 
+    // Records a tab switch that is about to be dispatched, so the `state` listener can re-apply it if it gets bounced back.
+    const armTabSwitch = (from: string | undefined, to: string | undefined) => {
+        if (!shouldReapplyInterruptedTabPress) {
+            return;
+        }
+        pressedTabRef.current = to && to !== from ? {from, to, armedAt: Date.now()} : undefined;
+    };
+
+    const reapplyTabSwitchIfInterrupted = (navigation: NavigationProp<ParamListBase>, newSelectedTab: string | undefined) => {
+        const pressedTab = pressedTabRef.current;
+        if (!pressedTab || !newSelectedTab) {
+            return;
+        }
+        const isSwitchInFlight = Date.now() - pressedTab.armedAt <= CONST.ANIMATED_TRANSITION;
+        if (!isSwitchInFlight || newSelectedTab !== pressedTab.to) {
+            pressedTabRef.current = undefined;
+        }
+        if (isSwitchInFlight && newSelectedTab === pressedTab.from) {
+            requestAnimationFrame(() => navigation.dispatch(TabActions.jumpTo(pressedTab.to)));
+        }
+    };
+
     const handleTabPress = (navigation: NavigationProp<ParamListBase>, event: EventArg<'tabPress', true, undefined>) => {
         if (isDiscardModalOpenRef.current) {
             event.preventDefault();
@@ -202,6 +227,8 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
                     Growl.error(translate('common.genericErrorMessage'));
                 })
                 .then(() => {
+                    // This jump replaces the press we prevented above, so it needs the same bounce-back protection.
+                    armTabSwitch(currentRouteName, targetRoute.name);
                     navigation.dispatch(TabActions.jumpTo(targetRoute.name));
                 });
         });
@@ -229,15 +256,6 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     // type-parameter references while outlining that callback.
     const persistSelectedTab = Tab.setSelectedTab as (tabID: string, tabName: string) => void;
     const notifyTabSelected = onTabSelected as (newTabName: string | undefined) => void;
-
-    useEffect(() => {
-        const pressedTab = pressedTabRef.current;
-        if (!pressedTab || hasReappliedPressRef.current || !activeTabName || activeTabName !== pressedTab.from) {
-            return;
-        }
-        hasReappliedPressRef.current = true;
-        tabNavigationRef.current?.dispatch(TabActions.jumpTo(pressedTab.to));
-    }, [activeTabName]);
 
     // If the selected tab changes, we need to update the focus trap container element of the active tab
     useEffect(() => {
@@ -275,8 +293,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
                                     isFirstMountRef.current = false;
                                 }
                                 const newSelectedTab = routeNames.at(index);
-                                tabNavigationRef.current = navigation;
-                                setActiveTabName(newSelectedTab);
+                                reapplyTabSwitchIfInterrupted(navigation, newSelectedTab);
                                 if (selectedTab === newSelectedTab) {
                                     return;
                                 }
@@ -298,9 +315,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
                                 const navState = navigation.getState();
                                 const pressedTabName = navState.routes.find((tabRoute) => tabRoute.key === e.target)?.name;
                                 const currentTabName = navState.routes.at(navState.index)?.name;
-                                tabNavigationRef.current = navigation;
-                                hasReappliedPressRef.current = false;
-                                pressedTabRef.current = pressedTabName && pressedTabName !== currentTabName ? {from: currentTabName, to: pressedTabName} : undefined;
+                                armTabSwitch(currentTabName, pressedTabName);
                             },
                         };
                     }}
