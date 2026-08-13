@@ -59,7 +59,7 @@ function UpdateRequiredView() {
                 )}
                 <View style={[styles.ph5, styles.alignItemsCenter, styles.mt5]}>
                     <View style={styles.updateRequiredViewTextContainer}>
-                        <View style={[styles.mb5]}>
+                        <View style={styles.mb5}>
                             <Text style={[styles.newKansasLarge, styles.textAlignCenter]}>{translate('updateRequiredView.pleaseRefresh')}</Text>
                         </View>
                     </View>
