@@ -3174,46 +3174,51 @@ function getAddExpenseDropdownOptions({
     currentUserAccountID,
 }: GetAddExpenseDropdownOptionsParams): Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> {
     // The iouReport being added to may belong to a different policy than the chat surrounding it is rendered in
-    // (e.g. a Teachers Unite expense report preview shown inside a non-Teachers-Unite chat), so derive the IOU
-    // type from the iouReport's own policy rather than from the surrounding `policy`.
-    const moneyRequestIOUType = getMoneyRequestIOUType(getReportOrDraftReport(iouReportID)?.policyID ?? policy?.id);
+    // (e.g. a Teachers Unite expense report preview shown inside a non-Teachers-Unite chat), so check the
+    // iouReport's own policy rather than the surrounding `policy`.
+    const isReportTeachersUnite = isTeachersUnitePolicyID(getReportOrDraftReport(iouReportID)?.policyID ?? policy?.id);
     return [
-        {
-            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
-            text: translate('iou.createExpense'),
-            icon: icons.Plus,
-            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
-            onSelected: () => {
-                if (!iouReportID) {
-                    return;
-                }
-                if (
-                    policy &&
-                    policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                    shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
-                ) {
-                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                    return;
-                }
-                startMoneyRequest(moneyRequestIOUType, iouReportID, draftTransactionIDs, undefined, false, iouRequestBackToReport);
-            },
-        },
-        {
-            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
-            text: translate('iou.trackDistance'),
-            icon: icons.Location,
-            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
-            onSelected: () => {
-                if (!iouReportID) {
-                    return;
-                }
-                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
-                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                    return;
-                }
-                startDistanceRequest(moneyRequestIOUType, iouReportID, draftTransactionIDs, lastDistanceExpenseType, false, iouRequestBackToReport);
-            },
-        },
+        // Teachers Unite doesn't support reimbursement, so "Create expense" and "Track distance" are hidden for those reports.
+        ...(isReportTeachersUnite
+            ? []
+            : [
+                  {
+                      value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
+                      text: translate('iou.createExpense'),
+                      icon: icons.Plus,
+                      sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
+                      onSelected: () => {
+                          if (!iouReportID) {
+                              return;
+                          }
+                          if (
+                              policy &&
+                              policy.type !== CONST.POLICY.TYPE.PERSONAL &&
+                              shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
+                          ) {
+                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                              return;
+                          }
+                          startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, draftTransactionIDs, undefined, false, iouRequestBackToReport);
+                      },
+                  },
+                  {
+                      value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
+                      text: translate('iou.trackDistance'),
+                      icon: icons.Location,
+                      sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
+                      onSelected: () => {
+                          if (!iouReportID) {
+                              return;
+                          }
+                          if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                              return;
+                          }
+                          startDistanceRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, draftTransactionIDs, lastDistanceExpenseType, false, iouRequestBackToReport);
+                      },
+                  },
+              ]),
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_EXISTING_EXPENSE,
             text: translate('iou.addExistingExpense'),
@@ -10445,14 +10450,6 @@ function isTeachersUniteReport(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * The Teachers Unite workspace doesn't support reimbursement, so "Add expense" entry points must start a
- * TRACK request instead of a SUBMIT request when targeting a report on that policy.
- */
-function getMoneyRequestIOUType(policyID: string | undefined): IOUType {
-    return isTeachersUnitePolicyID(policyID) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
-}
-
-/**
  * Helper method to define what expense options we want to show for particular method.
  * There are 4 expense options: Submit, Split, Pay and Track expense:
  * - Submit option should show for:
@@ -14181,7 +14178,8 @@ export {
     getRouteFromLink,
     canDeleteCardTransactionByLiabilityType,
     getAddExpenseDropdownOptions,
-    getMoneyRequestIOUType,
+    isTeachersUnitePolicyID,
+    isTeachersUniteReport,
     getTaskAssigneeChatOnyxData,
     getTransactionDetails,
     getTransactionReportName,

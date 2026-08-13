@@ -19553,6 +19553,26 @@ describe('ReportUtils', () => {
             result.at(2)?.onSelected?.();
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(mockPolicy.id));
         });
+
+        it('should hide the CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE options for a Teachers Unite report', () => {
+            const mockPolicy = createRandomPolicy(0);
+            mockPolicy.id = CONST.TEACHERS_UNITE.TEST_POLICY_ID;
+
+            const result = getAddExpenseDropdownOptions({
+                translate: mockTranslate,
+                icons: mockIcons,
+                iouReportID: mockIouReportID,
+                policy: mockPolicy,
+                userBillingGracePeriodEnds: undefined,
+                draftTransactionIDs: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                currentUserAccountID,
+            });
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_EXISTING_EXPENSE);
+        });
     });
     describe('GBR: draft report with delayed submission off then on (issue #69891)', () => {
         const policyID = 'policy-delayed-submit';
