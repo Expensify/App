@@ -7,10 +7,7 @@ import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 import CONST from '../../.github/libs/CONST';
 import GithubUtils from '../../.github/libs/GithubUtils';
 import GitUtils from '../../.github/libs/GitUtils';
-
-type ObjectMethodData<T> = {
-    data: T;
-};
+import createMock from '../utils/createMock';
 
 type PullRequest = {
     issue_number: number;
@@ -40,10 +37,10 @@ type CommitData = {
 let run: () => Promise<void>;
 
 const mockGetInput = jest.fn();
-const mockGetPullRequest = jest.fn();
-const mockCreateComment = jest.fn();
-const mockListTags = jest.fn();
-const mockGetCommit = jest.fn();
+const mockGetPullRequest = jest.fn<PullRequestData, [PullRequestParams]>();
+const mockCreateComment = jest.fn<void, Parameters<InternalOctokit['rest']['issues']['createComment']>>();
+const mockListTags = jest.fn<Promise<{data: Array<{name: string; commit: {sha: string}}>}>, Parameters<InternalOctokit['rest']['repos']['listTags']>>();
+const mockGetCommit = jest.fn<CommitData, [Commit]>();
 
 let workflowRunURL: string | null;
 
@@ -108,36 +105,47 @@ beforeAll(() => {
     mockGetInput.mockImplementation(mockGetInputDefaultImplementation);
 
     // Mock octokit module
-    const mockOctokit = {
-        rest: {
-            issues: {
-                listForRepo: jest.fn().mockImplementation(async () => ({
-                    data: [
-                        {
-                            number: 5,
-                        },
-                    ],
-                })),
-
-                listEvents: jest.fn().mockImplementation(async () => ({
-                    data: [{event: 'closed', actor: {login: 'thor'}}],
-                })),
-                createComment: mockCreateComment,
-            },
-            pulls: {
-                get: mockGetPullRequest,
-            },
-            repos: {
-                listTags: mockListTags,
-            },
-            git: {
-                getCommit: mockGetCommit,
-            },
-        },
-        paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
-    };
-
-    GithubUtils.internalOctokit = mockOctokit as unknown as InternalOctokit;
+    GithubUtils.initOctokitWithToken('fake_token');
+    const initializedOctokit = GithubUtils.internalOctokit;
+    if (!initializedOctokit) {
+        throw new Error('GithubUtils failed to initialize Octokit.');
+    }
+    jest.spyOn(initializedOctokit.rest.issues, 'listForRepo').mockResolvedValue(
+        createMock<Awaited<ReturnType<InternalOctokit['rest']['issues']['listForRepo']>>>({
+            data: [{number: 5}],
+            headers: {},
+        }),
+    );
+    const listEventsEndpoint = initializedOctokit.rest.issues.listEvents.endpoint;
+    const listEventsDefaults = initializedOctokit.rest.issues.listEvents.defaults;
+    jest.spyOn(initializedOctokit.rest.issues, 'listEvents').mockResolvedValue(
+        createMock<Awaited<ReturnType<InternalOctokit['rest']['issues']['listEvents']>>>({
+            data: [{event: 'closed', actor: {login: 'thor'}}],
+            headers: {},
+        }),
+    );
+    const mockListEvents = jest.mocked(initializedOctokit.rest.issues.listEvents, {shallow: true});
+    mockListEvents.endpoint = listEventsEndpoint;
+    mockListEvents.defaults = listEventsDefaults;
+    jest.spyOn(initializedOctokit.rest.issues, 'createComment').mockImplementation(async (...args) => {
+        mockCreateComment(...args);
+        return createMock<Awaited<ReturnType<InternalOctokit['rest']['issues']['createComment']>>>({});
+    });
+    jest.spyOn(initializedOctokit.rest.pulls, 'get').mockImplementation(async (params) => {
+        if (!params) {
+            throw new Error('Pull request parameters are required.');
+        }
+        return createMock<Awaited<ReturnType<InternalOctokit['rest']['pulls']['get']>>>(mockGetPullRequest(params));
+    });
+    jest.spyOn(initializedOctokit.rest.repos, 'listTags').mockImplementation(async (...args) =>
+        createMock<Awaited<ReturnType<InternalOctokit['rest']['repos']['listTags']>>>(await mockListTags(...args)),
+    );
+    jest.spyOn(initializedOctokit.rest.git, 'getCommit').mockImplementation(async (params) => {
+        if (!params) {
+            throw new Error('Commit parameters are required.');
+        }
+        return createMock<Awaited<ReturnType<InternalOctokit['rest']['git']['getCommit']>>>(mockGetCommit(params));
+    });
 
     // Mock GitUtils
     GitUtils.getPullRequestsDeployedBetween = jest.fn();
@@ -145,7 +153,7 @@ beforeAll(() => {
     jest.mock('../../.github/libs/ActionUtils', () => ({
         getJSONInput: jest.fn().mockImplementation((name: string, defaultValue: string) => {
             try {
-                const input = mockGetInput(name) as string;
+                const input = String(mockGetInput(name));
                 return JSON.parse(input) as unknown;
             } catch (err) {
                 return defaultValue;
