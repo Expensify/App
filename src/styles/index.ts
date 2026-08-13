@@ -6483,6 +6483,10 @@ const staticStyles = (theme: ThemeColors) =>
             width: 112,
             height: 160,
         },
+        commuterExclusionStaticIllustration: {
+            width: 160,
+            height: 140,
+        },
         helpStaticIllustration: {
             width: 174,
             height: 156,
