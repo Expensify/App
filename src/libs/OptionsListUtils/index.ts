@@ -1691,7 +1691,7 @@ function buildFilteredOptionListCacheKey(args: Array<string | number | boolean>)
     return args.join('_');
 }
 
-// Clone top-level options because consumers mutate their marks; nested values and shell hydrators stay shared.
+// Clone top-level options because consumers mutate their marks. Nested values and shell hydrators stay shared.
 function cloneOptionList(optionList: OptionList): OptionList {
     return {
         reports: optionList.reports.map((option) => ({...option})),
@@ -1754,7 +1754,7 @@ function buildFullOption(accountID: number, item: PersonalDetails | null, report
         isHydrated: true,
     };
 
-    // Freeze the shared value; callers receive mutable top-level copies.
+    // Freeze the shared value. Callers receive mutable top-level copies.
     if (__DEV__) {
         deepFreeze(built);
     }
@@ -1764,7 +1764,7 @@ function buildFullOption(accountID: number, item: PersonalDetails | null, report
 
 /**
  * Step 5 of createFilteredOptionList: one lightweight shell per personal detail.
- * Only filter/rank fields are computed here; getValidOptions hydrates survivors via hydrateContactOption.
+ * Only filter/rank fields are computed here. getValidOptions hydrates survivors via hydrateContactOption.
  */
 function buildPersonalDetailsOptions(reportMapForAccountIDs: Record<number, Report>, context: LazyHydrationContext): PersonalDetailShell[] {
     const {personalDetails, translate} = context;
@@ -3016,7 +3016,7 @@ function getValidOptions(
             ? Math.max(maxElements - recentReportOptions.length - workspaceChats.length - (!selfDMChat ? 1 : 0), MIN_PERSONAL_DETAILS_SLOTS)
             : undefined;
         const groupedPersonalDetails = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
-        // Only the top-N survivors of the heap are hydrated; the shells filtered out above never pay the build cost.
+        // Only the top-N survivors of the heap are hydrated. The shells filtered out above never pay the build cost.
         personalDetailsOptions = groupedPersonalDetails.options.map(hydrateContactOption);
 
         hasMore = hasMore || groupedPersonalDetails.hasMore;

@@ -17,7 +17,7 @@ type UseFilteredOptionsConfig = {
     maxRecentReports?: number;
     /** Whether the hook should be enabled (default: true) */
     enabled?: boolean;
-    /** Whether to build contact shells; must match the downstream `includeP2P` value. */
+    /** Whether to build contact shells. This value must match the downstream `includeP2P` value. */
     includeP2P: boolean;
     /** Number of reports to load per batch when paginating (default: 100) */
     batchSize?: number;
