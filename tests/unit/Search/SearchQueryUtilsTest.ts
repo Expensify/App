@@ -317,6 +317,15 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual(`${defaultQuery} amount:2000000 foo test`);
         });
 
+        test('rebuilds a single value containing a comma as one value', () => {
+            expect(getQueryWithUpdatedValues(String.raw`merchant:Acme\,Inc`)).toEqual(`${defaultQuery} merchant:"Acme,Inc"`);
+            expect(getQueryWithUpdatedValues('merchant:"Acme,Inc"')).toEqual(`${defaultQuery} merchant:"Acme,Inc"`);
+        });
+
+        test('rebuilds a comma separated list as separate values', () => {
+            expect(getQueryWithUpdatedValues('category:Travel,Meals')).toEqual(`${defaultQuery} category:Travel,Meals`);
+        });
+
         test('returns query with user emails substituted', () => {
             const userQuery = 'from:johndoe@example.com hello';
 
@@ -464,12 +473,12 @@ describe('SearchQueryUtils', () => {
         test('has empty category values', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
-                category: ['equipment', 'consulting', 'none,Uncategorized'],
+                category: ['equipment', 'consulting', CONST.SEARCH.CATEGORY_EMPTY_VALUE],
             };
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('type:expense category:equipment,consulting,none,Uncategorized');
+            expect(result).toEqual(`type:expense category:equipment,consulting,${CONST.SEARCH.CATEGORY_EMPTY_VALUE}`);
         });
 
         test('empty filter values', () => {
@@ -4111,21 +4120,19 @@ describe('SearchQueryUtils', () => {
             expect(sanitizeSearchValue('Acme\xA0Inc')).toBe('"Acme\xA0Inc"');
         });
 
-        it('only quotes on a comma when asked to', () => {
-            expect(sanitizeSearchValue('Acme,Inc')).toBe('Acme,Inc');
-            expect(sanitizeSearchValue('Acme,Inc', true)).toBe('"Acme,Inc"');
+        it('quotes on a comma, so a value containing one is not read back as two', () => {
+            expect(sanitizeSearchValue('Acme,Inc')).toBe('"Acme,Inc"');
         });
 
         it('escapes quotes and backslashes so the parser reads them as part of the value', () => {
             expect(sanitizeSearchValue('A"B')).toBe('A\\"B');
             expect(sanitizeSearchValue('A\\B')).toBe('A\\\\B');
-            expect(sanitizeSearchValue('Acme "US",Inc', true)).toBe('"Acme \\"US\\",Inc"');
+            expect(sanitizeSearchValue('Acme "US",Inc')).toBe('"Acme \\"US\\",Inc"');
             expect(sanitizeSearchValue('Acme “US” Inc')).toBe('"Acme \\“US\\” Inc"');
         });
 
-        it('serializes a value without a quote or backslash exactly as before, so its query hash is unchanged', () => {
+        it('serializes a value with no character needing escaping exactly as before', () => {
             expect(sanitizeSearchValue('Acme, Inc.')).toBe('"Acme, Inc."');
-            expect(sanitizeSearchValue('Acme,Inc', true)).toBe('"Acme,Inc"');
             expect(sanitizeSearchValue('Travel')).toBe('Travel');
         });
     });

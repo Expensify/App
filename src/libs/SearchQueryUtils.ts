@@ -166,12 +166,12 @@ function getUserFriendlyValue(value: string | undefined): UserFriendlyValue {
 /**
  * @private
  * Escapes the characters the parser would otherwise act on, then wraps the value in quotes "" if it contains a space,
- * &nbsp; (no-breaking space), or a comma when shouldQuoteComma is set. A comma inside quotes needs no escape, so a
- * value that held one before still serializes the same way and keeps its query hash.
+ * &nbsp; (no-breaking space) or a comma. Callers pass one value at a time and join them with commas themselves, so a
+ * comma inside the value is part of it and has to survive being read back.
  */
-function sanitizeSearchValue(str: string, shouldQuoteComma = false) {
+function sanitizeSearchValue(str: string) {
     const escaped = str.replaceAll(/[\\"“”]/g, '\\$&');
-    if (escaped.includes(' ') || escaped.includes(`\xA0`) || (shouldQuoteComma && escaped.includes(','))) {
+    if (escaped.includes(' ') || escaped.includes(`\xA0`) || escaped.includes(',')) {
         return `"${escaped}"`;
     }
     return escaped;
@@ -457,6 +457,8 @@ function getFilterFromQuery(queryJSON: SearchQueryJSON | undefined, filterKey: S
     return {value, isNegated};
 }
 
+// getUpdatedFilterValue runs while building a query, outside React, and already resolves emails through the cache in
+// PersonalDetailsUtils. Threading policies through it would mean a parameter on every caller of getQueryWithUpdatedValues.
 let allPolicies: OnyxCollection<OnyxTypes.Policy> = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -474,7 +476,8 @@ function resolvePolicyIDFromName(value: string, policies: OnyxCollection<OnyxTyp
         return value;
     }
 
-    const matches = Object.values(policies ?? {}).filter((policy) => policy?.name?.toLowerCase() === value.toLowerCase());
+    const lowerCaseValue = value.toLowerCase();
+    const matches = Object.values(policies ?? {}).filter((policy) => policy?.name?.toLowerCase() === lowerCaseValue);
     return matches.length === 1 ? (matches.at(0)?.id ?? value) : value;
 }
 
