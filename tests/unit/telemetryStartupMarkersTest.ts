@@ -35,6 +35,8 @@ const activeSpansMock = jest.requireMock<{startSpan: jest.Mock}>('@libs/telemetr
 describe('telemetry startup markers (native)', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        // Keep "now" close to the mocked appStartTime so the prewarm staleness guard accepts it.
+        jest.spyOn(Date, 'now').mockReturnValue(2_000);
         global.requestAnimationFrame = jest.fn();
         mockMarkers.mockReturnValue({});
         activeSpansMock.startSpan.mockReturnValue({setAttribute: jest.fn()});
@@ -54,10 +56,12 @@ describe('telemetry startup markers (native)', () => {
 
         // Then stage spans are built between consecutive timestamps, sorted by time, plus StartupNewDotJSInit
         const stageCalls = startInactiveSpanMock.mock.calls.map(([options]: [{name: string; startTime: number}]) => [options.name, options.startTime]);
+        // Start-of-event markers (OldDotDisplay, RNSetupStart) end an interval named for the work
+        // that precedes them — see STARTUP_STAGE_SPAN_NAMES.
         expect(stageCalls).toEqual([
             ['NativeDeviceConfig', 1_000],
-            ['OldDotDisplay', 1_003],
-            ['RNSetupStart', 1_828],
+            ['OldDotJSBoot', 1_003],
+            ['OldDotToRNHandoff', 1_828],
             ['NativeYAPLLoad', 1_843],
             ['StartupNewDotJSInit', 1_930],
         ]);
