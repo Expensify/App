@@ -99,7 +99,13 @@ export default Repack.defineRspackConfig((env) => {
                 // which OXC cannot parse. React Compiler never applied here (babel sources filter).
                 {
                     test: /\.[cm]?[jt]sx?$/,
-                    exclude: [path.resolve(projectRoot, 'src')],
+                    exclude: [
+                        path.resolve(projectRoot, 'src'),
+                        // Prebuilt minified browser bundle; babelLoader's hermes-parser pass takes ~95s
+                        // to parse it, serializing the whole cold build. Plain ESM with no RN-specific
+                        // syntax, so rspack can parse it natively.
+                        path.resolve(projectRoot, 'node_modules/@lottiefiles/dotlottie-react'),
+                    ],
                     type: 'javascript/auto',
                     use: {
                         loader: '@callstack/repack/babel-swc-loader',
