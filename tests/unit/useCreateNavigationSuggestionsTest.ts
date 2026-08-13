@@ -38,6 +38,8 @@ const mockGetGroupPoliciesWhereReportCanBeCreated = jest.fn<unknown[], [policies
 const mockShouldShowPolicy = jest.fn<boolean, unknown[]>(() => true);
 const mockIsOnSearchMoneyRequestReportPage = jest.fn(() => false);
 const mockGetCurrencyDecimals = jest.fn();
+let mockIsRestrictedPolicyCreation = false;
+let mockOnyxValues = new Map<string, unknown>();
 const mockIcon = () => null;
 
 jest.mock('@hooks/useCreateReport', () => ({
@@ -104,7 +106,7 @@ jest.mock('@hooks/usePermissions', () => ({
 
 jest.mock('@hooks/usePreferredPolicy', () => ({
     __esModule: true,
-    default: () => ({isRestrictedPolicyCreation: false}),
+    default: () => ({isRestrictedPolicyCreation: mockIsRestrictedPolicyCreation}),
 }));
 
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
@@ -175,7 +177,7 @@ const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`]: submitPol
 const session = {accountID: 1, email: 'test@example.com'};
 
 function setupUseOnyx() {
-    const values = new Map<string, unknown>([
+    mockOnyxValues = new Map<string, unknown>([
         [ONYXKEYS.COLLECTION.POLICY, policies],
         [ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {}],
         [ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP],
@@ -189,7 +191,7 @@ function setupUseOnyx() {
     ]);
 
     mockUseOnyx.mockImplementation((key, options) => {
-        const value = values.get(key);
+        const value = mockOnyxValues.get(key);
         return [options?.selector ? options.selector(value) : value, {status: 'loaded'}];
     });
 }
@@ -203,7 +205,9 @@ describe('useCreateNavigationSuggestions', () => {
         mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([]);
         mockIsBetaEnabled.mockImplementation((beta) => beta !== CONST.BETAS.SUBMIT_2026);
         mockIsOnSearchMoneyRequestReportPage.mockReturnValue(false);
+        mockIsRestrictedPolicyCreation = false;
         mockCreateReportIsVisible = true;
+        jest.mocked(Navigation.isTopmostRouteModalScreen).mockReturnValue(false);
     });
 
     it('uses beta-aware report policies and renders only available Create actions', () => {
@@ -237,8 +241,57 @@ describe('useCreateNavigationSuggestions', () => {
         renderHook(() => useCreateNavigationSuggestions('reports'));
         expect(mockUseCreateReport).toHaveBeenLastCalledWith(expect.objectContaining({shouldSkipEmptyReportConfirmation: true}));
 
-        renderHook(() => useCreateNavigationSuggestions('new chat'));
-        expect(mockUseCreateReport).toHaveBeenLastCalledWith(expect.objectContaining({shouldSkipEmptyReportConfirmation: false}));
+        for (const query of ['new chat', 'add expense', 'go to']) {
+            renderHook(() => useCreateNavigationSuggestions(query));
+            expect(mockUseCreateReport).toHaveBeenLastCalledWith(expect.objectContaining({shouldSkipEmptyReportConfirmation: false}));
+        }
+    });
+
+    it('dismisses an existing RHP before running the Create report action', () => {
+        jest.mocked(Navigation.isTopmostRouteModalScreen).mockReturnValue(true);
+        const {result} = renderHook(() => useCreateNavigationSuggestions());
+
+        act(() => result.current.find((item) => item.keyForList === 'create_report')?.action?.());
+
+        expect(mockCreateReport).not.toHaveBeenCalled();
+        expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
+
+        const afterTransition = jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0)?.afterTransition;
+        act(() => afterTransition?.());
+        expect(mockCreateReport).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not create a report without a default policy', () => {
+        renderHook(() => useCreateNavigationSuggestions());
+
+        const onCreateReport = mockUseCreateReport.mock.calls.at(0)?.at(0)?.onCreateReport;
+        act(() => onCreateReport?.());
+
+        expect(createNewReport).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['policy creation is restricted', true, false],
+        ['the app is loading', false, true],
+    ])('hides New workspace when %s', (_condition, isRestrictedPolicyCreation, isLoading) => {
+        mockIsRestrictedPolicyCreation = isRestrictedPolicyCreation;
+        mockOnyxValues.set(ONYXKEYS.IS_LOADING_APP, isLoading);
+        mockShouldShowPolicy.mockReturnValue(false);
+
+        const {result} = renderHook(() => useCreateNavigationSuggestions());
+
+        expect(result.current.some((item) => item.keyForList === 'create_workspace')).toBe(false);
+    });
+
+    it('controls invoice and workspace visibility independently', () => {
+        mockCanSendInvoice.mockReturnValue(true);
+        mockShouldShowPolicy.mockReturnValue(true);
+
+        const {result} = renderHook(() => useCreateNavigationSuggestions());
+
+        expect(result.current.some((item) => item.keyForList === 'create_invoice')).toBe(true);
+        expect(result.current.some((item) => item.keyForList === 'create_workspace')).toBe(false);
     });
 
     it('passes Submit eligibility and exposes permission-gated actions', () => {
@@ -270,6 +323,15 @@ describe('useCreateNavigationSuggestions', () => {
         expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, 'draft-report', expect.anything(), undefined, undefined, undefined, true);
         expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, 'draft-report', expect.anything(), CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, undefined, undefined, true);
         expect(startNewChat).toHaveBeenCalledTimes(1);
+    });
+
+    it('starts a distance request without a type when no saved type exists', () => {
+        mockOnyxValues.set(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, undefined);
+        const {result} = renderHook(() => useCreateNavigationSuggestions());
+
+        act(() => result.current.find((item) => item.keyForList === 'create_trackDistance')?.action?.());
+
+        expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, 'draft-report', expect.anything(), undefined, undefined, undefined, true);
     });
 
     it('creates a report and navigates through the Reports root', () => {
