@@ -198,6 +198,7 @@ describe('useCreateEmptyReportConfirmation', () => {
         render(
             <>
                 {lastShowConfirmModalOptions?.prompt}
+                {/* Keep this null second child to render the ReactNode prompt without triggering react/jsx-no-useless-fragment. */}
                 {null}
             </>,
         );
