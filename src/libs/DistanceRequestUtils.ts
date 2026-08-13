@@ -20,7 +20,6 @@ import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
 import replaceAllDigits from './replaceAllDigits';
 import {getCurrency, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
-import {getUnitTranslationKey} from './WorkspacesSettingsUtils';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -459,11 +458,15 @@ function getDistanceDisplayDetailsWithCommuter(
     const originalDistance = reimbursableDistance + commuterExclusion;
     const originalDistanceFormatted = getFormattedDistanceInUnits(originalDistance, unitToUse, translate, true);
     const commuterDistance = commuterExclusion.toFixed(CONST.DISTANCE_DECIMAL_PLACES);
-    const commuterUnit = translate(getUnitTranslationKey(unitToUse));
-
     return {
         distanceToDisplayDescription: `${baseLabel} ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original', {formattedDistance: originalDistanceFormatted})}`,
-        distanceToDisplayHintText: translate('distance.commuterExclusion.removedCommuterDistance', {distance: commuterDistance, unit: commuterUnit}),
+        distanceToDisplayHintText: translate(
+            unitToUse === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'distance.commuterExclusion.removedCommuterDistance.mi' : 'distance.commuterExclusion.removedCommuterDistance.km',
+            {
+                distance: commuterDistance,
+                count: commuterExclusion,
+            },
+        ),
     };
 }
 
