@@ -27,6 +27,11 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '../..');
 const RULE_DIRS = [path.join(REPO, 'node_modules/eslint-config-expensify/eslint-plugin-expensify'), path.join(REPO, 'eslint-plugin-local-rules')];
 
+// Cases this repo owns for rules it does not: a rule that lives in node_modules and has no upstream
+// test cannot be given one where it lives, because node_modules is not committed. The rule module is
+// still resolved from RULE_DIRS, so a case here tests exactly the module both linters load.
+const EXTRA_TEST_DIRS = [path.join(HERE, 'cases')];
+
 const treeDir = path.resolve(process.argv[2]);
 const ruleConfig = JSON.parse(fs.readFileSync(process.argv[3], 'utf8'));
 const wanted = new Set(Object.keys(ruleConfig));
@@ -92,8 +97,7 @@ function expectationOf(testCase) {
 async function harvest(known) {
     const byRule = new Map();
     const missing = [];
-    for (const dir of RULE_DIRS) {
-        const testsDir = path.join(dir, 'tests');
+    for (const testsDir of [...RULE_DIRS.map((dir) => path.join(dir, 'tests')), ...EXTRA_TEST_DIRS]) {
         if (!fs.existsSync(testsDir)) {
             missing.push(path.relative(REPO, testsDir));
             continue;
