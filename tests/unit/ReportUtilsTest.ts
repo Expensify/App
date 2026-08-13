@@ -18,6 +18,7 @@ import type {FormulaContext} from '@libs/Formula';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translate} from '@libs/Localize';
 import Log from '@libs/Log';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -212,7 +213,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {
     BankAccountList,
     Beta,
@@ -15530,6 +15531,213 @@ describe('ReportUtils', () => {
             await Onyx.clear();
         });
 
+        it('should return null when the only violating transaction is pending deletion (e.g. a reverted split child)', async () => {
+            await Onyx.clear();
+
+            const policyID = 'policy-rbr-deleting';
+            const chatReportID = 'chat-rbr-deleting';
+            const expenseReportID = 'expense-rbr-deleting';
+            const transactionID = 'transaction-rbr-deleting';
+
+            const policyData: Policy = {
+                id: policyID,
+                name: 'RBR Pending Delete Test Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.ADMIN,
+                outputCurrency: CONST.CURRENCY.USD,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                employeeList: {
+                    [currentUserEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+                owner: currentUserEmail,
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            const chatReport: Report = {
+                ...createPolicyExpenseChat(807),
+                reportID: chatReportID,
+                ownerAccountID: currentUserAccountID,
+                policyID,
+                iouReportID: expenseReportID,
+                hasOutstandingChildRequest: true,
+            };
+
+            const expenseReport: Report = {
+                ...createExpenseReport(808),
+                reportID: expenseReportID,
+                chatReportID,
+                ownerAccountID: currentUserAccountID,
+                managerID: 42,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 5000,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const baseTransaction = createRandomTransaction(809);
+            // The reverted split child stays in Onyx marked for deletion until the server confirms.
+            const transaction: Transaction = {
+                ...baseTransaction,
+                transactionID,
+                reportID: expenseReportID,
+                amount: 5000,
+                currency: CONST.CURRENCY.USD,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                reimbursable: true,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+
+            const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as OnyxKey;
+            const transactionViolationsCollection: OnyxCollection<TransactionViolation[]> = {
+                [transactionViolationsKey]: [
+                    {
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ],
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await waitForBatchedUpdates();
+
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyData),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction),
+                Onyx.merge(transactionViolationsKey, transactionViolationsCollection[transactionViolationsKey]),
+            ]);
+            await waitForBatchedUpdates();
+
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            expect(result).toBeNull();
+
+            // Positive control: the same violating transaction lights the RBR when it isn't pending deletion.
+            // This proves the null above comes from the DELETE filter and not from some unrelated gate.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {pendingAction: null});
+            await waitForBatchedUpdates();
+            expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+
+            await Onyx.clear();
+        });
+
+        it('should still surface RBR when a report has a live violating transaction alongside a DELETE-pending one', async () => {
+            await Onyx.clear();
+
+            const policyID = 'policy-rbr-mixed';
+            const chatReportID = 'chat-rbr-mixed';
+            const expenseReportID = 'expense-rbr-mixed';
+            const deletedTransactionID = 'transaction-rbr-mixed-deleted';
+            const liveTransactionID = 'transaction-rbr-mixed-live';
+
+            const policyData: Policy = {
+                id: policyID,
+                name: 'RBR Mixed Transactions Test Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.ADMIN,
+                outputCurrency: CONST.CURRENCY.USD,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                employeeList: {
+                    [currentUserEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    },
+                },
+                owner: currentUserEmail,
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            const chatReport: Report = {
+                ...createPolicyExpenseChat(810),
+                reportID: chatReportID,
+                ownerAccountID: currentUserAccountID,
+                policyID,
+                iouReportID: expenseReportID,
+                hasOutstandingChildRequest: true,
+            };
+
+            const expenseReport: Report = {
+                ...createExpenseReport(811),
+                reportID: expenseReportID,
+                chatReportID,
+                ownerAccountID: currentUserAccountID,
+                managerID: 42,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 10000,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            // Two violating transactions on the SAME expense report: a reverted split child (DELETE-pending)
+            // and one that is still live. The report's RBR must survive because the live child still violates.
+            const deletedTransaction: Transaction = {
+                ...createRandomTransaction(812),
+                transactionID: deletedTransactionID,
+                reportID: expenseReportID,
+                amount: 5000,
+                currency: CONST.CURRENCY.USD,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                reimbursable: true,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+            const liveTransaction: Transaction = {
+                ...createRandomTransaction(813),
+                transactionID: liveTransactionID,
+                reportID: expenseReportID,
+                amount: 5000,
+                currency: CONST.CURRENCY.USD,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                reimbursable: true,
+                pendingAction: null,
+            };
+
+            const deletedViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${deletedTransactionID}` as OnyxKey;
+            const liveViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${liveTransactionID}` as OnyxKey;
+            const transactionViolationsCollection: OnyxCollection<TransactionViolation[]> = {
+                [deletedViolationsKey]: [
+                    {
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ],
+                [liveViolationsKey]: [
+                    {
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ],
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await waitForBatchedUpdates();
+
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyData),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransaction.transactionID}`, deletedTransaction),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${liveTransaction.transactionID}`, liveTransaction),
+                Onyx.merge(deletedViolationsKey, transactionViolationsCollection[deletedViolationsKey]),
+                Onyx.merge(liveViolationsKey, transactionViolationsCollection[liveViolationsKey]),
+            ]);
+            await waitForBatchedUpdates();
+
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            expect(result).toBe(expenseReportID);
+
+            await Onyx.clear();
+        });
+
         it('should return null when all expense reports in the policy are closed', async () => {
             await Onyx.clear();
 
@@ -18031,7 +18239,15 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the category step
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                            action: CONST.IOU.ACTION.CATEGORIZE,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: transaction.transactionID,
+                            reportID: policyExpenseReport.reportID,
+                        }),
+                        ROUTES.REPORT_WITH_ID.getRoute('1'),
+                    ),
                 );
             });
 
@@ -18077,7 +18293,15 @@ describe('ReportUtils', () => {
 
                 // Then it should automatically pick the available policy and navigate to the category step
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                            action: CONST.IOU.ACTION.CATEGORIZE,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: transaction.transactionID,
+                            reportID: policyExpenseReport.reportID,
+                        }),
+                        ROUTES.REPORT_WITH_ID.getRoute('2'),
+                    ),
                 );
             });
 
@@ -18265,7 +18489,15 @@ describe('ReportUtils', () => {
                 // Then it should NOT navigate to restricted action page, but to category step
                 expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                            action: CONST.IOU.ACTION.CATEGORIZE,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: transaction.transactionID,
+                            reportID: policyExpenseReport.reportID,
+                        }),
+                        ROUTES.REPORT_WITH_ID.getRoute('1'),
+                    ),
                 );
             });
 
@@ -18349,7 +18581,15 @@ describe('ReportUtils', () => {
 
                 // Then it should pick the policy from the policies param and navigate to the category step
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                            action: CONST.IOU.ACTION.CATEGORIZE,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: transaction.transactionID,
+                            reportID: policyExpenseReport.reportID,
+                        }),
+                        ROUTES.REPORT_WITH_ID.getRoute('1'),
+                    ),
                 );
             });
 

@@ -1,3 +1,4 @@
+import type {Mock} from 'bun:test';
 import {afterEach, beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
 
 import CONST from '@github/libs/CONST';
@@ -8,38 +9,21 @@ import GithubUtils from '@github/libs/GithubUtils';
 import * as core from '@actions/core';
 import {RequestError} from '@octokit/request-error';
 
-const mockListIssues = jest.fn();
+import createMock from '../utils/createMock';
 
-type ObjectMethodData<T> = {
-    data: T;
-};
+type OctokitCompareCommits = InternalOctokit['rest']['repos']['compareCommits'];
+type OctokitCompareCommitsResponse = Awaited<ReturnType<OctokitCompareCommits>>;
 
-type OctokitCreateIssue = InternalOctokit['rest']['issues']['create'];
+let internalOctokit: InternalOctokit;
 
 beforeAll(() => {
-    // Mock octokit module
-    const mockOctokit = {
-        rest: {
-            issues: {
-                create: jest.fn().mockImplementation((arg: Parameters<OctokitCreateIssue>[0]) =>
-                    Promise.resolve({
-                        data: {
-                            ...arg,
-                            html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-                        },
-                    }),
-                ),
-                listForRepo: mockListIssues,
-            },
-        },
-        paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
-    } as unknown as InternalOctokit;
+    GithubUtils.initOctokitWithToken('fake_token');
+    const initializedOctokit = GithubUtils.internalOctokit;
+    if (!initializedOctokit) {
+        throw new Error('Expected GithubUtils to initialize an Octokit client.');
+    }
 
-    GithubUtils.internalOctokit = mockOctokit;
-});
-
-afterEach(() => {
-    mockListIssues.mockClear();
+    internalOctokit = initializedOctokit;
 });
 
 describe('GithubUtils', () => {
@@ -190,7 +174,7 @@ describe('GithubUtils', () => {
     };
 
     describe('getCommitHistoryBetweenTags', () => {
-        let mockCompareCommits: jest.Mock;
+        let mockCompareCommits: Mock<OctokitCompareCommits>;
 
         beforeEach(() => {
             jest.spyOn(core, 'getInput').mockImplementation((name) => {
@@ -201,19 +185,11 @@ describe('GithubUtils', () => {
             });
 
             // Prepare the mocked GitHub API
-            mockCompareCommits = jest.fn();
-            const mockOctokitInstance = {
-                rest: {
-                    repos: {
-                        compareCommits: mockCompareCommits,
-                    },
-                },
-                paginate: jest.fn(),
-            } as unknown as InternalOctokit;
+            mockCompareCommits = jest.spyOn(internalOctokit.rest.repos, 'compareCommits');
 
             // Replace the real initOctokit with our mocked one
             jest.spyOn(GithubUtils, 'initOctokit').mockImplementation(() => {});
-            GithubUtils.internalOctokit = mockOctokitInstance;
+            GithubUtils.internalOctokit = internalOctokit;
         });
 
         afterEach(() => {
@@ -221,7 +197,7 @@ describe('GithubUtils', () => {
         });
 
         test('should call GitHub API with correct parameters', async () => {
-            mockCompareCommits.mockResolvedValue(commitHistoryData.emptyResponse);
+            mockCompareCommits.mockResolvedValue(createMock<OctokitCompareCommitsResponse>(commitHistoryData.emptyResponse));
 
             await GithubUtils.getCommitHistoryBetweenTags('v1.0.0', 'v1.0.1', CONST.APP_REPO);
 
@@ -236,21 +212,21 @@ describe('GithubUtils', () => {
         });
 
         test('should return empty array when no commits found', async () => {
-            mockCompareCommits.mockResolvedValue(commitHistoryData.emptyResponse);
+            mockCompareCommits.mockResolvedValue(createMock<OctokitCompareCommitsResponse>(commitHistoryData.emptyResponse));
 
             const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
             expect(result).toEqual([]);
         });
 
         test('should return formatted commit history when commits exist', async () => {
-            mockCompareCommits.mockResolvedValue(commitHistoryData.singleCommit);
+            mockCompareCommits.mockResolvedValue(createMock<OctokitCompareCommitsResponse>(commitHistoryData.singleCommit));
 
             const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
             expect(result).toEqual(commitHistoryData.expectedFormattedCommit);
         });
 
         test('should handle multiple commits correctly', async () => {
-            mockCompareCommits.mockResolvedValue(commitHistoryData.multipleCommitsResponse);
+            mockCompareCommits.mockResolvedValue(createMock<OctokitCompareCommitsResponse>(commitHistoryData.multipleCommitsResponse));
 
             const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
 

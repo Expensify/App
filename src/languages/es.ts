@@ -1715,6 +1715,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 bulkSubtitle: 'Elige un aprobador adicional para estos informes antes de que los enviemos por el resto del flujo de aprobación.',
             },
             bulkSubtitle: 'Elige una opción para cambiar el aprobador de estos informes.',
+            delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
+                `Este informe se envió a <mention-user>@${originalManager}</mention-user> en lugar de a ti (su sustituto de vacaciones) porque no eres miembro de la política de este informe`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
+                `Este informe se te envió a ti en lugar de a tu sustituto de vacaciones <mention-user>@${delegate}</mention-user> porque no es miembro de la política de este informe`,
+            delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
+                `Este informe se envió a <mention-user>@${originalManager}</mention-user> en lugar de a su delegado de vacaciones <mention-user>@${delegate}</mention-user> porque no es miembro de la política de este informe`,
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `Este informe se envió a <mention-user>@${originalManager}</mention-user> para su aprobación, ya que no puedes aprobar tus propios informes`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
+                `Este informe se te envió para su aprobación porque tu delegado de vacaciones, <mention-user>@${delegate}</mention-user>, no puede aprobar sus propios informes`,
+            delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
+                `Este informe se envió a <mention-user>@${originalManager}</mention-user> para su aprobación ya que su delegado de vacaciones, <mention-user>@${delegate}</mention-user>, no puede aprobar sus propios informes`,
         },
         chooseWorkspace: 'Elige un espacio de trabajo',
         routedDueToDEW: (to: string, reason?: string) => `informe enviado a ${to}${reason ? ` porque ${reason}` : ''}`,
@@ -2864,7 +2876,7 @@ ${amount} para ${merchant} - ${date}`,
         editAvatar: 'Cambiar avatar',
         defaultAgentName: (displayName: string) => `Agente de ${displayName}`,
         defaultPrompt:
-            'Rechazar gastos por juegos de azar, películas u otras razones claramente no comerciales.\n\nRecordar al usuario que siempre incluya una imagen del recibo que muestre claramente la propina.\n\nAprobar el informe si es muy similar a informes anteriores del mismo usuario.\n\nRechazar informes con más de $500 en gastos de viaje.',
+            'Clasifica todos los gastos de cafeterías como Comidas.\n\nEn cada viaje de transporte compartido, establece la descripción en «Viaje de cliente».\n\nEtiqueta todo lo que compre en la tienda de electrónica como Equipamiento.\n\nMarca cualquier gasto que no tenga recibo para que pueda añadir uno antes de enviarlo.',
         copilotNote: 'Este agente se añadirá como copiloto con acceso completo a tu cuenta, para que pueda actuar en tu nombre.',
     },
     editAgentPage: {
@@ -8669,6 +8681,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la configuración de facturas de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la configuración de viaje de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
+        updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitado' : 'deshabilitado'} el requisito de categorización de gastos`,
+        updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitado' : 'deshabilitado'} el requisito de etiquetado de gastos`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `cambió los asistentes de la categoría «${categoryName}» a ${newValue ? 'obligatorio' : 'no es obligatorio'} (previamente ${newValue ? 'no es obligatorio' : 'obligatorio'})`;
         },

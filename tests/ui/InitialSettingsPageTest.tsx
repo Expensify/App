@@ -22,6 +22,7 @@ import SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
+import type ReactNative from 'react-native';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
@@ -100,8 +101,8 @@ jest.mock('@components/Navigation/TopBarWithLoadingBar', () => {
 });
 
 jest.mock('@components/MenuItem', () => {
-    const ReactMock = require('react') as typeof React;
-    const {Text} = require('react-native') as {Text: React.ComponentType<{testID: string; children?: React.ReactNode}>};
+    const ReactMock = jest.requireActual<typeof React>('react');
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
     return ({title}: {title: string}) => ReactMock.createElement(Text, {testID: `menu-item-${String(title)}`}, title);
 });
 
