@@ -6,6 +6,7 @@ import type {OnyxKey} from 'react-native-onyx';
 
 import type Middleware from './Middleware/types';
 
+import {getCurrentFlushPromise} from './actions/QueuedOnyxUpdates';
 import APP_STARTUP_NETWORK_REQUEST from './AppStartupNetworkRequest';
 import HttpUtils from './HttpUtils';
 import Log from './Log';
@@ -17,6 +18,9 @@ import trackStartupDataRender from './telemetry/trackStartupDataRender';
 let middlewares: Middleware[] = [];
 
 let responseApplyAttempt = 0;
+
+/** Reauthentication retries the same request object from inside the still-pending original call, so only its newest attempt may record the phase. */
+const latestApplyAttemptByRequest = new WeakMap<WeakKey, number>();
 
 function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response<TKey> | void> {
     const finalParameters = enhanceParameters(request.command, request?.data ?? {});
@@ -34,7 +38,13 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
     const attempt = shouldMeasureResponseApply ? (responseApplyAttempt += 1) : 0;
     const applySpanId = `${CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY}_${attempt}`;
     if (shouldMeasureResponseApply) {
+        latestApplyAttemptByRequest.set(request, attempt);
         result = result.then((response) => {
+            // The Reauthentication middleware below is about to retry this request, and that attempt measures the apply.
+            if (response?.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
+                return response;
+            }
+
             startSpan(applySpanId, {
                 name: CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY,
                 op: CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY,
@@ -52,8 +62,18 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
     if (shouldMeasureResponseApply) {
         result = result.then(
             (response) => {
-                endSpan(applySpanId);
-                trackStartupDataRender(request.command, attempt);
+                // A reauthenticated retry already measured this request, and this attempt only waited for it.
+                if (latestApplyAttemptByRequest.get(request) !== attempt) {
+                    cancelSpan(applySpanId);
+                    return response;
+                }
+
+                // WRITE responses are staged by queueOnyxUpdates and reach Onyx only once SequentialQueue flushes them
+                // after this promise settles, so the phase has to be closed from the flush rather than awaited here.
+                getCurrentFlushPromise().then(() => {
+                    endSpan(applySpanId);
+                    trackStartupDataRender(request.command, attempt);
+                });
                 return response;
             },
             (error: unknown) => {
