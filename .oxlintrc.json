@@ -57,12 +57,14 @@
         "propWrapperFunctions": ["forbidExtraProps", "exact", "Object.freeze"],
         "progress": {
             "hide": false
-        },
-        "seatbelt": {
-            "seatbeltFile": "/Users/lukasz.modzelewski/CODE/RN/ExpensifyProject/Expensify-App-w2/config/eslint/eslint.seatbelt.tsv",
-            "threadsafe": true,
-            "readOnly": true
         }
+        // No `seatbelt` block, deliberately. eslint.config.mjs sets settings.seatbelt.seatbeltFile
+        // with path.join(dirname, ...), which JSON cannot express, and nothing on this side reads it:
+        // eslint-seatbelt suppresses through an ESLint processor, which oxlint has no concept of, so
+        // `eslint-seatbelt/configure` is off here (obstacle #1 in ruleMap.py's PORT_PLAN). The block
+        // this replaces carried an absolute path from one developer's checkout, so it resolved
+        // nowhere else; verified dead, the full-repo report is identical without it. A `seatbelt`
+        // block belongs here again only once something on this side reads the baseline.
     },
     "ignorePatterns": [
         "!**/.storybook",
