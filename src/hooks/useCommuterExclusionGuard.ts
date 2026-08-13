@@ -64,6 +64,7 @@ function useCommuterExclusionGuard({policyID, isManualDistanceRequest = false, i
             showConfirmModal({
                 title: translate('distance.error.mapOrGpsDistanceRequired.title'),
                 titleStyles: styles.textHeadline,
+                titleContainerStyles: styles.mb2,
                 prompt: translate('distance.error.mapOrGpsDistanceRequired.description'),
                 promptStyles: [styles.textSupporting, styles.mb4],
                 confirmText: translate('common.buttonConfirm'),

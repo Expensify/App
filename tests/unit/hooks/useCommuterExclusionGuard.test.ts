@@ -13,6 +13,7 @@ type MockConfirmModalOptions = {
     imageStyles?: unknown;
     imageWidth?: number;
     promptStyles?: unknown;
+    titleContainerStyles?: unknown;
 };
 
 const mockShowConfirmModal = jest.fn<void, [MockConfirmModalOptions]>();
@@ -67,6 +68,7 @@ describe('useCommuterExclusionGuard', () => {
                 imageStyles: expect.arrayContaining([expect.objectContaining({marginTop: 20}), expect.objectContaining({marginHorizontal: 20})]),
                 imageWidth: 160,
                 promptStyles: expect.arrayContaining([expect.objectContaining({marginBottom: 16})]),
+                titleContainerStyles: expect.objectContaining({marginBottom: 8}),
             }),
         );
     });
