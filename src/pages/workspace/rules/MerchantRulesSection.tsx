@@ -75,9 +75,10 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
         //   2. Active source loaded but this ID is not in it → "unavailable" (so a rule pointing at a
         //      stale/inactive connection never surfaces a misleading name).
         //   3. No active vendor-matching source (e.g. admin switched the non-reimbursable export mode
-        //      away from vendor-matching) → permissive lookup across every connection so the historical
-        //      vendor name still renders. Raw external ID as a last resort while connection data hasn't
-        //      hydrated.
+        //      away from vendor-matching, or the connection was disconnected) → permissive lookup across
+        //      every connection so the historical vendor name still renders (including while connection
+        //      data is still hydrating). When no connection knows the ID, render "unavailable" rather than
+        //      leaking the raw external ID.
         const activeVendorName = getMatchingVendorByID(policy, rule.vendorID)?.name;
         let vendorValue: string;
         if (activeVendorName) {
@@ -85,7 +86,9 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
         } else if (isMatchingVendorListLoaded(policy)) {
             vendorValue = translate(isXeroActiveMatchingSource(policy) ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
         } else {
-            vendorValue = findVendorByID(policy, rule.vendorID)?.name ?? rule.vendorID;
+            vendorValue =
+                findVendorByID(policy, rule.vendorID)?.name ??
+                translate(isXeroActiveMatchingSource(policy) ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
         }
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.vendor, vendorValue));
     }

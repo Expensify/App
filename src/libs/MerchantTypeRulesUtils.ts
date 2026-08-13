@@ -162,9 +162,10 @@ function getMerchantCodingRulesTableData({
                 //   2. Active-source miss with a loaded list — the ID doesn't exist in that active list; render "unavailable"
                 //      so a rule targeting a stale/inactive-connection vendor never surfaces a misleading name.
                 //   3. No active vendor-matching source (e.g. admin switched the non-reimbursable export mode away from
-                //      vendor-matching) — fall back to `findVendorByID`'s permissive search across every connection's data
-                //      so the historical vendor name still renders instead of a raw external ID; otherwise the raw ID
-                //      as a last resort while the connection data hasn't loaded yet.
+                //      vendor-matching, or the connection was disconnected) — fall back to `findVendorByID`'s permissive
+                //      search across every connection's data so the historical vendor name still renders (including while
+                //      connection data is still hydrating). When no connection knows the ID, render "unavailable" rather
+                //      than leaking the raw external ID.
                 const activeVendorName = getMatchingVendorByID(policy, rule.vendorID)?.name;
                 let vendorValue: string;
                 if (activeVendorName) {
@@ -172,7 +173,9 @@ function getMerchantCodingRulesTableData({
                 } else if (isMatchingVendorListLoaded(policy)) {
                     vendorValue = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
                 } else {
-                    vendorValue = findVendorByID(policy, rule.vendorID)?.name ?? rule.vendorID;
+                    vendorValue =
+                        findVendorByID(policy, rule.vendorID)?.name ??
+                        translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
                 }
                 actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.vendor, vendorValue));
             }

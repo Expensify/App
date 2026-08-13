@@ -147,9 +147,15 @@ describe('Vendor matching on merchant rules', () => {
             expect(buildTableData(policy).at(0)?.ruleDescription).toContain('Update vendor to "Vendor unavailable"');
         });
 
-        it('falls back to the raw external ID while the list is not yet loaded', () => {
+        it('renders "Vendor unavailable" instead of the raw external ID when no connection knows the vendor', () => {
+            // No active matching list and no connection (active or stale) resolves the vendorID — e.g. the accounting
+            // connection was disconnected, so its vendor data is gone from Onyx. The summary must surface the
+            // "unavailable" copy rather than leaking the raw external ID. (A vendorID that a connection still knows
+            // continues to render its name — see the export-mode-switch case, which exercises the same tier-3 branch.)
             const policy = withCodingRules(buildQBOPolicy(undefined), {rule1: buildVendorRule('v-1')});
-            expect(buildTableData(policy).at(0)?.ruleDescription).toContain('Update vendor to "v-1"');
+            const description = buildTableData(policy).at(0)?.ruleDescription;
+            expect(description).toContain('Update vendor to "Vendor unavailable"');
+            expect(description).not.toContain('"v-1"');
         });
 
         it('shows "Vendor unavailable" when the vendorID only resolves against a stale/inactive connection', () => {
@@ -207,8 +213,10 @@ describe('Vendor matching on merchant rules', () => {
             expect(describeRule(buildQBOPolicy([]), 'v-1')).toContain('Update vendor to "Vendor unavailable"');
         });
 
-        it('falls back to the raw external ID while the list is not yet loaded and no other connection knows the vendor', () => {
-            expect(describeRule(buildQBOPolicy(undefined), 'v-1')).toContain('Update vendor to "v-1"');
+        it('renders "Vendor unavailable" instead of the raw external ID when no connection knows the vendor', () => {
+            const description = describeRule(buildQBOPolicy(undefined), 'v-1');
+            expect(description).toContain('Update vendor to "Vendor unavailable"');
+            expect(description).not.toContain('"v-1"');
         });
 
         it('resolves the historical vendor name when the workspace has switched its export mode away from vendor-matching mode', () => {
