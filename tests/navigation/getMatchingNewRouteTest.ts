@@ -481,6 +481,19 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-destination-edit')).toBe(undefined);
     });
 
+    it('redirects legacy money request category path to the category dynamic route', () => {
+        expect(getMatchingNewRoute('/create/expense/category/123/456')).toBe('/r/456/category?action=create&iouType=expense&transactionID=123&reportID=456');
+    });
+
+    it('redirects legacy money request category-new path to the stacked add-category dynamic route', () => {
+        expect(getMatchingNewRoute('/create/expense/category/new/123/456')).toBe('/r/456/category/add-category?action=create&iouType=expense&transactionID=123&reportID=456');
+    });
+
+    it('does not redirect the already-migrated money request category dynamic routes', () => {
+        expect(getMatchingNewRoute('/r/456/category?action=create&iouType=expense&transactionID=123&reportID=456')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/456/category/add-category?action=create&iouType=expense&transactionID=123&reportID=456')).toBe(undefined);
+    });
+
     it('redirects legacy per diem time step to the new destination-based dynamic route (#83850)', () => {
         expect(getMatchingNewRoute('/create/submit/time/123/456')).toBe('/create/submit/destination/123/456/per-diem-time');
     });

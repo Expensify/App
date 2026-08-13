@@ -60,12 +60,8 @@ const createPayload = (selection: string): CopyMessagePayload =>
         originalReport: {},
         getLocalDateFromDatetime: jest.fn(),
         policyTags: {},
-        translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => {
-            if (parameters.length > 0) {
-                return path;
-            }
-            return path;
-        },
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Translation parameters are required by the production callback signature; this stub intentionally returns only the key.
+        translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => path,
         formatPhoneNumber,
         currentUserPersonalDetails: {
             accountID: 1,
@@ -82,12 +78,8 @@ const createReportActionPayload = (reportAction: CopyMessagePayload['reportActio
         originalReport: {},
         getLocalDateFromDatetime: jest.fn(),
         policyTags: {},
-        translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => {
-            if (parameters.length > 0) {
-                return path;
-            }
-            return path;
-        },
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Translation parameters are required by the production callback signature; this stub intentionally returns only the key.
+        translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => path,
         currentUserPersonalDetails: {
             accountID: 1,
             login: 'user@expensify.com',
@@ -165,5 +157,26 @@ describe('ContextMenuActions copy message', () => {
 
         expect(mockGetClipboardText).toHaveBeenCalledWith(expectedTranslationKey);
         expect(mockSetString).toHaveBeenCalledWith('mocked clipboard text');
+    });
+
+    it('copies the localized message for a category update action', () => {
+        mockCanSetHtml.mockReturnValue(false);
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
+                    message: [{html: ''}],
+                    originalMessage: {categoryName: 'Advertising', updatedField: 'areAttendeesRequired', oldValue: '', newValue: true},
+                }),
+            ),
+        );
+
+        expect(mockSetString).toHaveBeenCalledWith('workspaceActions.updateAreAttendeesRequired');
     });
 });
