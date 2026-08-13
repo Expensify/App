@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearLinkPlaidBankAccountErrors, clearPlaid, linkPlaidToBankAccount} from '@libs/actions/BankAccounts';
 import {openPlaidBankLogin} from '@libs/actions/Plaid';
 import {hasBrokenPlaidConnection, isConnectedViaPlaid} from '@libs/BankAccountUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 
 import Navigation from '@navigation/Navigation';
@@ -58,21 +59,16 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
 
     const [plaidLinkToken] = useOnyx(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN);
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
 
-    const policyID = bankAccountList?.[bankAccountID]?.accountData?.additionalData?.policyID;
-    const isLoading = !!bankAccountList?.[bankAccountID]?.isLoading;
-    const bankAccountErrorMessages = Object.values(bankAccountList?.[bankAccountID]?.errors ?? {}).filter((message): message is string => !!message);
-    const hasError = bankAccountErrorMessages.length > 0;
-    const isWrongAccountError = bankAccountErrorMessages.includes(CONST.ERROR.PLAID_WRONG_BANK_ACCOUNT);
+    const policyID = bankAccount?.accountData?.additionalData?.policyID;
+    const isLoading = !!bankAccount?.isLoading;
+    const latestErrorMessage = getLatestErrorMessage(bankAccount);
+    const hasError = !!latestErrorMessage;
+    const isWrongAccountError = latestErrorMessage === CONST.ERROR.PLAID_WRONG_BANK_ACCOUNT;
 
     const [hasSubmitted, setHasSubmitted] = useState(false);
-    const isSuccess =
-        hasSubmitted &&
-        !isLoading &&
-        !hasError &&
-        isConnectedViaPlaid(bankAccountList?.[bankAccountID]?.accountData) &&
-        !hasBrokenPlaidConnection(bankAccountList?.[bankAccountID]?.accountData);
+    const isSuccess = hasSubmitted && !isLoading && !hasError && isConnectedViaPlaid(bankAccount?.accountData) && !hasBrokenPlaidConnection(bankAccount?.accountData);
 
     useEffect(() => {
         openPlaidBankLogin(false, bankAccountID);
