@@ -111,6 +111,7 @@ type LazyHydrationContext = {
     visibleReportActionsData: VisibleReportActionsDerivedValue;
     privateIsArchivedMap: PrivateIsArchivedMap;
     conciergeReportID: string | undefined;
+    currentUserAccountID: number;
 
     /** Date-fns locale used when the option list was built. */
     dateFnsLocale: DateFnsLocale | undefined;
