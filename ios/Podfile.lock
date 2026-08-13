@@ -474,6 +474,7 @@ PODS:
   - onfido-react-native-sdk (15.1.0):
     - Onfido (~> 32.6.0)
     - React
+  - OpenSSL-Universal (3.6.2000)
   - Plaid (6.4.2)
   - PromisesObjC (2.4.0)
   - pusher-websocket-react-native (1.3.1):
@@ -482,6 +483,37 @@ PODS:
   - PusherSwift (10.1.6):
     - NWWebSocket (~> 0.5.7)
     - TweetNacl (~> 1.0.0)
+  - QuickCrypto (1.1.6):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - NitroModules
+    - OpenSSL-Universal (~> 3.6.2000)
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-callinvoker
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
   - RCT-Folly (2024.11.18.00):
     - boost
     - DoubleConversion
@@ -544,6 +576,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -569,6 +602,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -593,6 +627,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -619,6 +654,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -644,6 +680,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -669,6 +706,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -694,6 +732,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -719,6 +758,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -744,6 +784,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -769,6 +810,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -794,6 +836,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -819,6 +862,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -844,6 +888,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -869,6 +914,7 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -2799,6 +2845,34 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - react-native-quick-base64 (3.0.1):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
   - react-native-safe-area-context (5.6.2):
     - boost
     - DoubleConversion
@@ -4370,6 +4444,7 @@ DEPENDENCIES:
   - NitroModules (from `../node_modules/react-native-nitro-modules`)
   - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
   - "pusher-websocket-react-native (from `../node_modules/@pusher/pusher-websocket-react-native`)"
+  - QuickCrypto (from `../node_modules/react-native-quick-crypto`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTDeprecation (from `../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
   - RCTRequired (from `../node_modules/react-native/Libraries/Required`)
@@ -4422,6 +4497,7 @@ DEPENDENCIES:
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-pdf (from `../node_modules/react-native-pdf`)
   - react-native-plaid-link-sdk (from `../node_modules/react-native-plaid-link-sdk`)
+  - react-native-quick-base64 (from `../node_modules/react-native-quick-base64`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-skia (from `../node_modules/@shopify/react-native-skia`)"
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
@@ -4517,6 +4593,7 @@ SPEC REPOS:
     - nanopb
     - NWWebSocket
     - Onfido
+    - OpenSSL-Universal
     - Plaid
     - PromisesObjC
     - PusherSwift
@@ -4605,6 +4682,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@onfido/react-native-sdk"
   pusher-websocket-react-native:
     :path: "../node_modules/@pusher/pusher-websocket-react-native"
+  QuickCrypto:
+    :path: "../node_modules/react-native-quick-crypto"
   RCT-Folly:
     :podspec: "../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec"
   RCTDeprecation:
@@ -4707,6 +4786,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-pdf"
   react-native-plaid-link-sdk:
     :path: "../node_modules/react-native-plaid-link-sdk"
+  react-native-quick-base64:
+    :path: "../node_modules/react-native-quick-base64"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-skia:
@@ -4846,7 +4927,7 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 50d11b2f62c4a490d4e81a1c36f70e2ecb70a27e
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
+  boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXConstants: 1c400bb9969f4c9e5ab324553138b74ae47b9efe
   expensify-react-native-background-task: 03c640e1f5649692d058cba48c0a138f024a6dd3
@@ -4887,7 +4968,7 @@ SPEC CHECKSUMS:
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
-  hermes-engine: b9fce68308a7c2ec975e1717cb7fabe2dc9dd83e
+  hermes-engine: 9411dff0f6c67abb9b2c6b7e565367d07431272d
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
@@ -4902,10 +4983,12 @@ SPEC CHECKSUMS:
   NWWebSocket: b4741420f1976e1dff4da3edad00c401e4f1d769
   Onfido: 65454f91d10758193c857fd149417f6efbea84c5
   onfido-react-native-sdk: bb8cfd9198e2e97978461d969497d18b37e45ca7
+  OpenSSL-Universal: ecee7b138fa75a74ecf00d7ffd248fb584739b9e
   Plaid: 8a212ed955d480364e0deb7fed93625b29811e9d
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   pusher-websocket-react-native: 31b5fdd632bfa6d417f9ad0bceefe403ab41825d
   PusherSwift: fa3d5f6587c20ad5790de87a5c9b150367b5f0f5
+  QuickCrypto: 17cf0ce8529e95012d571358768b8729f9a571ed
   RCT-Folly: 36c4f904fb6cd0219dcb76b94e9502d2a72fab0b
   RCTDeprecation: 225e022b85a206cf0883a909c4a114159783363c
   RCTRequired: 827a95c181af0886a11e21bc66c084088cf87839
@@ -4914,7 +4997,7 @@ SPEC CHECKSUMS:
   RCTTypeSafety: 47f936a87875e1a08ccf1ffe34e8bf29f1d85567
   React: e2dc35338068bbd299c66f043ae0d7f25de8499e
   React-callinvoker: d3163d80425735b095cff517da3b8631691fd734
-  React-Core: 821522bb86acc8bbe37698e87a6862a1f0504b05
+  React-Core: 4b12e8863a200ff319a724cdf3f7bb461ac30fbd
   React-CoreModules: f732869c77b076b962a4e3ee5becd704a87d2817
   React-cxxreact: 84b7c9400c1c84bde649d06755b9c64b48114904
   React-debug: f6293d03b643d4bcc487c7da7c745a75fd48ad7d
@@ -4957,6 +5040,7 @@ SPEC CHECKSUMS:
   react-native-pager-view: c62ab82db28e2d11e7809c59085e2984a45979c5
   react-native-pdf: 6a09a9be0e7ee954ea671437483316f9a28f8572
   react-native-plaid-link-sdk: 425c0a3a923310fcd8489142209ff1508372a7bf
+  react-native-quick-base64: eca82f83cc5fd9e8615d50e789788877ff3f8401
   react-native-safe-area-context: 0a3b034bb63a5b684dd2f5fffd3c90ef6ed41ee8
   react-native-skia: 51f30133876025c83e933f4f7253479e6de5d937
   react-native-view-shot: 1a01c96f6fb09b99539142749cd93f685af7fe48
@@ -4965,7 +5049,7 @@ SPEC CHECKSUMS:
   React-NativeModulesApple: 67c09c715a8763a07a8a241a3019661ffc3f71d6
   React-networking: 72b8973a280b6a54e46930717e6c15f7c389d76e
   React-oscompat: 563c536fc2d9cece1f54442fa2a3d9f68a9621e3
-  React-perflogger: 69b12c83ec90d61e9fc8055bdce33f3fed9978b3
+  React-perflogger: 5bfe39e71aa4432d197003142eaef4158c03b69d
   React-performancecdpmetrics: dc08b5f87fa0c9c43915bfcd58b8124d2d07c8f9
   React-performancetimeline: 773a4631cf1a12499d25e5afe356c0d4934cb509
   React-RCTActionSheet: ea8200cac284d410090bd780baf729903912e4e6
@@ -4981,7 +5065,7 @@ SPEC CHECKSUMS:
   React-RCTSettings: 1ba76e945f541c1c246618d2775caea0c6a76e26
   React-RCTText: 1d7a4f263266efbd5fa5335a107fbd00ff94ba9e
   React-RCTVibration: 0de7b5cc470892e4a65358ae7853f117fe5c2173
-  React-rendererconsistency: e90b9e1bab21c3fabbaa220c3fab820ee81c59d9
+  React-rendererconsistency: 88c6e0d56897a13f9254a1fd14d909a99d29486c
   React-renderercss: 41759ec6208f3afe6f7cd0205d4358a983f7ac6d
   React-rendererdebug: 0ddb9d40c7e40d47b03e7ef76b8ea02157ccf83c
   React-RuntimeApple: 345c69430aba5a1f958962e7ea03d2bd88f017d0

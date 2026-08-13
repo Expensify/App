@@ -10,13 +10,16 @@ import ParticipantPicker from '@components/ParticipantPicker';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultParticipants from '@hooks/useDefaultParticipants';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMappedPolicies from '@hooks/useMappedPolicies';
 import useNetwork from '@hooks/useNetwork';
 import useOdometerReceiptStitcher from '@hooks/useOdometerReceiptStitcher';
 import useOnyx from '@hooks/useOnyx';
@@ -55,9 +58,9 @@ import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismiss
 import Navigation from '@libs/Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import {cancelTracking, getPendingSubmitFollowUpAction, isTracking} from '@libs/telemetry/submitFollowUpAction';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
     getRequestType,
     hasReceipt,
@@ -83,13 +86,15 @@ import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import {policyDistanceDefaultCategoriesSelector} from '@selectors/Policy';
+import type {OnyxEntry} from 'react-native-onyx';
+
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {startTransition, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -109,6 +114,18 @@ import useExpenseSubmission from './confirmation/useExpenseSubmission';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
+const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
+    policy && {
+        id: policy.id,
+        name: policy.name,
+        type: policy.type,
+        role: policy.role,
+        owner: policy.owner,
+        outputCurrency: policy.outputCurrency,
+        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
+        customUnits: policy.customUnits,
+    };
+
 type IOURequestStepConfirmationIncomingRouteName = typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION | typeof SCREENS.MONEY_REQUEST.CREATE;
 
 type StepConfirmationParams = MoneyRequestNavigatorParamList[typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION];
@@ -127,6 +144,7 @@ function IOURequestStepConfirmation({
     shouldHideHeader = false,
     navigation,
 }: IOURequestStepConfirmationProps) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const params = route.params;
     const {iouType, reportID, transactionID: initialTransactionID, action, backToReport, backTo} = params;
     const participantsAutoAssignedFromRoute = route.name === SCREENS.MONEY_REQUEST.STEP_CONFIRMATION ? (params as StepConfirmationParams).participantsAutoAssigned : undefined;
@@ -160,11 +178,14 @@ function IOURequestStepConfirmation({
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
+    const selectedWorkspacePolicyID =
+        initialTransaction?.participants?.find((participant) => participant?.isSender)?.policyID ??
+        initialTransaction?.participants?.find((participant) => participant?.isPolicyExpenseChat)?.policyID;
     // A workspace with submissions (delayed submission) disabled has no autoReporting, so the new flow seeds the
     // expense onto the self-DM, whose report carries the placeholder '_FAKE_' policy. After selecting that workspace
     // chat via the in-place "To" picker, the route report is still that self-DM; its fake policyID must not shadow
     // the selected participant's report, or the workspace expense fields (Category, etc.) never resolve. See #96576.
-    const realPolicyID = getIOURequestPolicyID(initialTransaction, pickReportForPolicy(reportReal, participantReport));
+    const realPolicyID = selectedWorkspacePolicyID ?? getIOURequestPolicyID(initialTransaction, pickReportForPolicy(reportReal, participantReport));
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`);
@@ -242,6 +263,11 @@ function IOURequestStepConfirmation({
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
+    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        policyID: policy?.id,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+    });
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
@@ -276,10 +302,7 @@ function IOURequestStepConfirmation({
     }, [transactionReport, currentUserPersonalDetails.accountID, transaction?.transactionID, iouType]);
 
     const participantsPolicies = useParticipantsPolicies(transaction?.participants ?? []);
-    // `participantsPolicies` only holds the policies of the participants the transaction has right now, so it can't
-    // resolve the workspace the user is switching *to*. Keep the default distance categories of every policy at hand
-    // for that case instead.
-    const [policyDistanceDefaultCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyDistanceDefaultCategoriesSelector});
+    const [mappedPolicies] = useMappedPolicies(policyMapper);
 
     const participants = useMemo(
         () =>
@@ -326,7 +349,7 @@ function IOURequestStepConfirmation({
 
     const sourceReportID = transaction?.reportID ?? reportID;
     const sourceReport = useMemo(() => (sourceReportID ? getReportOrDraftReport(sourceReportID) : undefined), [sourceReportID]);
-    const resolvedDefaultParticipants = useDefaultParticipants({sourceReport, transaction, iouType});
+    const {participants: resolvedDefaultParticipants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport, transaction, iouType});
     const defaultParticipants = useMemo(() => {
         // Don't override the participants the user has already selected, and bail when there is no source report.
         const hasSelectedParticipants = (transaction?.participants ?? []).some((participant) => participant?.selected);
@@ -343,8 +366,8 @@ function IOURequestStepConfirmation({
         const transactionParticipants = transaction?.participants ?? [];
         const hasTransactionParticipants = transactionParticipants.length > 0;
         const hasDefaultParticipants = defaultParticipants.length > 0;
-        return !hasTransactionParticipants && !hasDefaultParticipants && isNewManualExpenseFlowEnabled && isManualRequest;
-    }, [transaction?.transactionID, transaction?.participants, defaultParticipants.length, isNewManualExpenseFlowEnabled, isManualRequest]);
+        return !hasTransactionParticipants && !hasDefaultParticipants && !isLoadingDefaultParticipants && isNewManualExpenseFlowEnabled && isManualRequest;
+    }, [transaction?.transactionID, transaction?.participants, defaultParticipants.length, isLoadingDefaultParticipants, isNewManualExpenseFlowEnabled, isManualRequest]);
     const activeTransactionID = transaction?.transactionID;
     const [manuallyOpenedParticipantPickerForTransactionID, setManuallyOpenedParticipantPickerForTransactionID] = useState<string | undefined>();
     const [dismissedAutoOpenParticipantPickerForTransactionID, setDismissedAutoOpenParticipantPickerForTransactionID] = useState<string | undefined>();
@@ -368,6 +391,10 @@ function IOURequestStepConfirmation({
                 return;
             }
             const selectedParticipant = participantsList.at(0);
+            const selectedPolicyID = selectedParticipant?.policyID ?? (selectedParticipant?.reportID ? getReportOrDraftReport(selectedParticipant.reportID)?.policyID : undefined);
+            if (blockManualOrOdometerDistanceRequestIfNeeded(selectedPolicyID)) {
+                return;
+            }
             // P2P chats don't support negative amounts. When a negative amount was entered before a participant
             // was selected (e.g. "Submit it to someone" from a self DM), assigning it to a P2P participant would
             // fail at submit, so keep the expense on the self DM (its default) instead of assigning the P2P
@@ -380,7 +407,9 @@ function IOURequestStepConfirmation({
             if (shouldKeepOnSelfDM) {
                 setMoneyRequestParticipantsFromReport(activeTransactionID, selfDMReport, currentUserPersonalDetails.accountID);
                 setTransactionReport(activeTransactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
-                navigation.setParams({iouType: CONST.IOU.TYPE.TRACK});
+                if (iouType !== CONST.IOU.TYPE.TRACK) {
+                    navigation.setParams({iouType: CONST.IOU.TYPE.TRACK});
+                }
             } else {
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) {
                     navigation.setParams({iouType: CONST.IOU.TYPE.CREATE});
@@ -415,16 +444,34 @@ function IOURequestStepConfirmation({
                             });
                             setCustomUnitRateID(activeTransactionID, p2pRateID, transaction, undefined, false, personalPolicy?.outputCurrency);
                         }
-                        setMoneyRequestCategory(activeTransactionID, '', undefined);
+                        setMoneyRequestCategory(activeTransactionID, '', undefined, getCurrencyDecimals);
                         setMoneyRequestTag(activeTransactionID, '');
-                    } else if (firstParticipant.policyID && firstParticipant.policyID !== policyID) {
+                    } else {
+                        const workspacePolicy = firstParticipant.policyID ? mappedPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
+                        if (isDistanceRequest) {
+                            const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
+                            const isCurrentRateFromWorkspace = !!currentRateID && !!DistanceRequestUtils.getMileageRates(workspacePolicy)[currentRateID];
+                            if (!isCurrentRateFromWorkspace) {
+                                const workspaceRateID = DistanceRequestUtils.getCustomUnitRateID({
+                                    reportID: participantReportID,
+                                    isPolicyExpenseChat: true,
+                                    policy: workspacePolicy,
+                                    lastSelectedDistanceRates,
+                                    expenseDate: transaction?.created,
+                                });
+                                setCustomUnitRateID(activeTransactionID, workspaceRateID, transaction, workspacePolicy, false, workspacePolicy?.outputCurrency);
+                            }
+                        }
+
                         // Switching to a different workspace: the previous workspace's category and tag no longer apply,
                         // so reset them to the destination workspace's defaults. This mirrors the legacy participants-step
                         // flow (useParticipantSubmission.goToNextStep), which resets both on every selection and passes no
                         // policy so the previous workspace's category-derived tax is cleared along with the category.
-                        const defaultCategory = isDistanceRequest ? (policyDistanceDefaultCategories?.[firstParticipant.policyID] ?? '') : '';
-                        setMoneyRequestCategory(activeTransactionID, defaultCategory, undefined);
-                        setMoneyRequestTag(activeTransactionID, '');
+                        if (firstParticipant.policyID && firstParticipant.policyID !== policyID) {
+                            const defaultCategory = isDistanceRequest ? (getDistanceRateCustomUnit(workspacePolicy)?.defaultCategory ?? '') : '';
+                            setMoneyRequestCategory(activeTransactionID, defaultCategory, undefined, getCurrencyDecimals);
+                            setMoneyRequestTag(activeTransactionID, '');
+                        }
                     }
                 }
             }
@@ -444,8 +491,10 @@ function IOURequestStepConfirmation({
             lastSelectedDistanceRates,
             transaction,
             personalPolicy?.outputCurrency,
+            blockManualOrOdometerDistanceRequestIfNeeded,
+            mappedPolicies,
+            getCurrencyDecimals,
             policyID,
-            policyDistanceDefaultCategories,
         ],
     );
 
@@ -750,7 +799,7 @@ function IOURequestStepConfirmation({
         setMoneyRequestReceipt(currentTransactionID, source, file.name ?? '', true, file.type);
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptOnDrop);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(setReceiptOnDrop);
 
     const handleDroppingReceipt = (e: DragEvent) => {
         const file = e?.dataTransfer?.files[0];
@@ -761,11 +810,7 @@ function IOURequestStepConfirmation({
     };
 
     if (isLoadingTransaction) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'IOURequestStepConfirmation',
-            isLoadingTransaction,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     const showNextTransaction = () => {
@@ -893,15 +938,7 @@ function IOURequestStepConfirmation({
                             ) : null}
                         </HeaderWithBackButton>
                     )}
-                    {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && (
-                        <FullScreenLoadingIndicator
-                            reasonAttributes={{
-                                context: 'IOURequestStepConfirmation',
-                                isLoading,
-                                isScanRequestWithNoReceipts: isScanRequest(transaction) && !Object.values(receiptFiles).length,
-                            }}
-                        />
-                    )}
+                    {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && <FullScreenLoadingIndicator />}
                     {PDFValidationComponent}
                     <DragAndDropConsumer onDrop={handleDroppingReceipt}>
                         <DropZoneUI
@@ -912,7 +949,6 @@ function IOURequestStepConfirmation({
                             dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
                         />
                     </DragAndDropConsumer>
-                    {ErrorModal}
                     <SubmitExpenseOrchestrator
                         createTransaction={createTransaction}
                         destinationReportID={destinationReportID}
@@ -992,6 +1028,7 @@ function IOURequestStepConfirmation({
                             // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
                             // matching standard RHP behavior, not just close the stacked participant picker.
                             onBackdropPress={() => Navigation.dismissModal()}
+                            shouldBlockParticipantSelection={blockManualOrOdometerDistanceRequestIfNeeded}
                         />
                     )}
                 </View>

@@ -113,13 +113,7 @@ function UserListItemContent<TItem extends ListItem>({
                 <TextWithTooltip
                     shouldShowTooltip={showTooltip}
                     text={Str.removeSMSDomain(item.text ?? '')}
-                    style={[
-                        styles.optionDisplayName,
-                        isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                        item.isBold !== false && styles.sidebarLinkTextBold,
-                        styles.pre,
-                        item.alternateText ? styles.mb1 : null,
-                    ]}
+                    style={[styles.optionDisplayName, styles.sidebarLinkText, item.isBold !== false && styles.sidebarLinkTextBold, styles.pre, item.alternateText ? styles.mb1 : null]}
                 />
                 {!!item.alternateText && (
                     <TextWithTooltip

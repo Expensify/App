@@ -13,6 +13,7 @@ import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@compo
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
@@ -205,6 +206,7 @@ function ReportActionItem({
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, datetimeToCalendarTime} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const [actorDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsDisplayNameSelector(action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID, translate)});
     const {showConfirmModal} = useConfirmModal();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -253,7 +255,19 @@ function ReportActionItem({
     const dismissError = () => {
         const transactionIDToDismiss = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (isSendingMoney && transactionIDToDismiss && reportID) {
-            cleanUpMoneyRequest(transactionIDToDismiss, action, reportID, transactionThreadReport, report, chatReport, undefined, originalReportID, true, iouPolicy);
+            cleanUpMoneyRequest({
+                transactionID: transactionIDToDismiss,
+                reportAction: action,
+                reportID,
+                transactionThreadReport,
+                iouReport: report,
+                chatReport,
+                isChatIOUReportArchived: undefined,
+                originalReportID,
+                getCurrencyDecimals,
+                isSingleTransactionView: true,
+                policy: iouPolicy,
+            });
             return;
         }
         if (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && isReportActionLinked) {

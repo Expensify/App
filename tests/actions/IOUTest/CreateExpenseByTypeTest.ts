@@ -17,6 +17,7 @@ import Onyx from 'react-native-onyx';
 import currencyList from '../../unit/currencyList.json';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
+import {getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/IOU/TrackExpense', () => ({
@@ -30,6 +31,7 @@ jest.mock('@libs/actions/IOU/Split', () => ({
 
 jest.mock('@libs/actions/IOU/PerDiem', () => ({
     submitPerDiemExpense: jest.fn(),
+    getPerDiemExpensePolicyID: jest.fn(),
 }));
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -132,6 +134,7 @@ describe('actions/IOU/createExpenseByType', () => {
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
         };
 
         return {transaction, transactionDetails, params};
@@ -149,6 +152,7 @@ describe('actions/IOU/createExpenseByType', () => {
             recentWaypoints: undefined,
             isTrackIntentUser: undefined,
             formatPhoneNumber: (phoneNumber: string) => phoneNumber,
+            participantsPolicyTags: {},
             ...overrides,
         });
     }

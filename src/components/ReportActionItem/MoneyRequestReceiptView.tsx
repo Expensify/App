@@ -139,7 +139,7 @@ function MoneyRequestReceiptView({
 }: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {getReportRHPActiveRoute} = useActiveRoute();
@@ -175,6 +175,7 @@ function MoneyRequestReceiptView({
     }, [parentReportAction]);
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
@@ -271,7 +272,7 @@ function MoneyRequestReceiptView({
         });
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal: AttachmentErrorModal} = useFilesValidation(onAttachmentFilesValidated);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(onAttachmentFilesValidated);
 
     const iouType = useMemo(() => {
         if (isTrackExpense) {
@@ -476,18 +477,19 @@ function MoneyRequestReceiptView({
             if (parentReportAction) {
                 const backToRoute = routeBackTo ?? Navigation.getActiveRoute();
                 setDeleteTransactionNavigateBackUrl(backToRoute);
-                cleanUpMoneyRequest(
-                    transaction?.transactionID ?? linkedTransactionID,
-                    parentReportAction,
-                    report.reportID,
-                    parentReportActionChildReport,
+                cleanUpMoneyRequest({
+                    transactionID: transaction?.transactionID ?? linkedTransactionID,
+                    reportAction: parentReportAction,
+                    reportID: report.reportID,
+                    transactionThreadReport: parentReportActionChildReport,
                     iouReport,
-                    chatIOUReport,
+                    chatReport: chatIOUReport,
                     isChatIOUReportArchived,
                     originalReportID,
-                    true,
+                    getCurrencyDecimals,
+                    isSingleTransactionView: true,
                     policy,
-                );
+                });
                 return;
             }
         }
@@ -568,6 +570,7 @@ function MoneyRequestReceiptView({
             transactionPolicyCategories: policyCategories,
             transactionPolicyTagList: policyTagList,
             transactionViolations: rawTransactionViolations,
+            transactionReport,
         });
     };
 
@@ -771,7 +774,6 @@ function MoneyRequestReceiptView({
             )}
             {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
             {!hasReceiptUploadError && !!shouldShowAuditMessage && !hasReceipt && receiptAuditMessagesRow}
-            {AttachmentErrorModal}
             {PDFValidationComponent}
         </View>
     );

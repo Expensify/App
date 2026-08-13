@@ -1,6 +1,7 @@
 import type {OptionRowLHNDataProps} from '@components/LHNOptionsList/types';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
@@ -52,6 +53,7 @@ function OptionRowLHNData({
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
     const {translate, localeCompare} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const oneTransactionThreadReportID = oneTransactionThreadReport?.reportID;
@@ -158,6 +160,7 @@ function OptionRowLHNData({
         card,
         lastAction,
         translate,
+        convertToDisplayString,
         localeCompare,
         isReportArchived,
         lastActionReport,

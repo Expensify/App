@@ -10,6 +10,7 @@ import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs
 import {addComment, notifyNewAction} from '@libs/actions/Report';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOriginalMessage, isActionOfType, isAddCommentAction, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getAncestors, getReportOrDraftReport} from '@libs/ReportUtils';
@@ -56,7 +57,7 @@ import {createRandomReport, createSelfDM} from '../../utils/collections/reports'
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
-import {formatPhoneNumber, getGlobalFetchMock, getOnyxData, translateLocal} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
 
@@ -389,6 +390,7 @@ describe('split expense', () => {
                 splitBill(
                     // TODO: Migrate after the backend accepts accountIDs
                     {
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
                         participants: [
                             [CARLOS_EMAIL, String(CARLOS_ACCOUNT_ID)],
                             [JULES_EMAIL, String(JULES_ACCOUNT_ID)],
@@ -726,6 +728,7 @@ describe('split expense', () => {
 
         // When the user split bill on the workspace
         splitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
@@ -779,6 +782,7 @@ describe('split expense', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {reportID: workspaceReportID, isOwnPolicyExpenseChat: true});
 
         splitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
@@ -806,6 +810,7 @@ describe('split expense', () => {
         expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toHaveProperty('isFirstQuickAction', true);
 
         splitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
@@ -840,6 +845,7 @@ describe('split expense', () => {
         await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
 
         splitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
@@ -879,6 +885,7 @@ describe('split expense', () => {
 
         // When the user split bill twice on the DM
         splitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
@@ -904,6 +911,7 @@ describe('split expense', () => {
         await waitForBatchedUpdates();
 
         splitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
@@ -976,6 +984,7 @@ describe('split expense', () => {
 
         // When doing a distance split expense
         splitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
@@ -1026,6 +1035,7 @@ describe('split expense', () => {
 
         // When the user split bill on the group chat
         splitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
@@ -1087,6 +1097,7 @@ describe('split expense', () => {
 
         // When doing a split bill
         splitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{isPolicyExpenseChat: true, policyID}],
             existingSplitChatReportID: policyExpenseChat.reportID,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -1155,6 +1166,7 @@ describe('split expense', () => {
 
         // Start a scan split bill
         const {splitTransactionID} = startSplitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
@@ -1195,6 +1207,7 @@ describe('split expense', () => {
 
         // Complete this split bill without changing the description
         completeSplitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             chatReportID: reportID,
             reportAction: iouAction,
             updatedTransaction: updatedSplitTransaction,
@@ -1257,6 +1270,7 @@ describe('split expense', () => {
 
         const iouAction: ReportAction = {
             ...buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: Math.abs(originalAmount),
                 currency: 'USD',
@@ -1317,6 +1331,7 @@ describe('split expense', () => {
 
         // When splitting the expense
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -1340,7 +1355,6 @@ describe('split expense', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -1399,6 +1413,7 @@ describe('split expense', () => {
 
         // When splitting a bill with explicit personalDetails
         splitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
@@ -1460,6 +1475,7 @@ describe('split expense', () => {
 
         // When splitting a bill among multiple participants with explicit personalDetails
         splitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [
                 {accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL},
                 {accountID: JULES_ACCOUNT_ID, login: JULES_EMAIL},
@@ -1532,6 +1548,7 @@ describe('split expense', () => {
         const participantsPolicyTags = await getParticipantsPolicyTags(participants);
 
         startSplitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
@@ -1609,6 +1626,7 @@ describe('split expense', () => {
         };
 
         completeSplitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             chatReportID: reportID,
             reportAction: iouAction,
             updatedTransaction: updatedSplitTransaction,
@@ -1653,6 +1671,7 @@ describe('startSplitBill', () => {
 
         // When doing a split bill with a receipt
         startSplitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -1699,6 +1718,7 @@ describe('startSplitBill', () => {
 
         // When starting a split bill
         const {splitTransactionID} = startSplitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -1748,6 +1768,7 @@ describe('startSplitBill', () => {
 
         // When starting a split bill
         const {splitTransactionID} = startSplitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -1797,6 +1818,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         };
         const iouAction: ReportAction = {
             ...buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: transaction.amount,
                 currency: transaction.currency,
@@ -1847,6 +1869,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -1870,7 +1893,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -1914,6 +1936,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         };
         const iouAction: ReportAction = {
             ...buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: transaction.amount,
                 currency: transaction.currency,
@@ -1967,6 +1990,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -1990,7 +2014,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -2039,6 +2062,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         };
         const iouAction: ReportAction = {
             ...buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: transaction.amount,
                 currency: transaction.currency,
@@ -2099,6 +2123,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -2122,7 +2147,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -2184,6 +2208,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
             betas: [CONST.BETAS.ALL],
@@ -2266,6 +2291,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         let reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
@@ -2290,7 +2316,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -2330,6 +2355,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
@@ -2351,7 +2377,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -2412,6 +2437,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
             betas: [CONST.BETAS.ALL],
@@ -2523,6 +2549,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         let firstIOU = getIOUActionForReportID(reports.expenseReport?.reportID, originalTransactionID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
@@ -2547,7 +2574,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -2587,6 +2613,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
@@ -2610,7 +2637,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
@@ -2649,6 +2675,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const splitTransactionID4 = rand64();
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             // Use the search-page-merged view (live data plus any stale snapshot-only ghosts) exactly as
             // `SplitExpensePage` would pass it via `useAllTransactions()` when opened from Spend > Expenses.
             allTransactionsList: mergedTransactionsFromSearchPage,
@@ -2675,7 +2702,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -2696,6 +2722,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         const unreportedIOUAction = {
             ...buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
                 amount: amount / 2,
                 currency: CONST.CURRENCY.USD,
@@ -2727,6 +2754,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
@@ -2748,7 +2776,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -2814,6 +2841,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         const workspaceChildIOUAction: ReportAction = {
             ...buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 5000,
                 currency: 'USD',
@@ -2825,6 +2853,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         };
         const selfDMChildIOUAction: ReportAction = {
             ...buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
                 amount: 5000,
                 currency: 'USD',
@@ -2876,6 +2905,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // leaving the workspace split as the sole remaining split — this triggers a reverse split that merges
         // the workspace split's data back into the original transaction.
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -2898,7 +2928,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -2957,6 +2986,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         const child1IOUAction: ReportAction = {
             ...buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
                 amount: 5000,
                 currency: 'USD',
@@ -2968,6 +2998,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         };
         const child2IOUAction: ReportAction = {
             ...buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
                 amount: 5000,
                 currency: 'USD',
@@ -3018,6 +3049,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // leaving the other as the sole remaining split — this triggers a reverse split that merges it back
         // into the original transaction.
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -3040,7 +3072,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -3079,6 +3110,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const transactionThread: Report = {...createRandomReport(32, undefined)};
         const iouAction: ReportAction = {
             ...buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: transaction.amount,
                 currency: transaction.currency,
@@ -3126,6 +3158,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When the expense is split in half
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -3151,7 +3184,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: await getAllPolicyTags(),
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -3206,6 +3238,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         const child1IOUAction: ReportAction = {
             ...buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
                 amount: 5000,
                 currency: 'EUR',
@@ -3217,6 +3250,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         };
         const child2IOUAction: ReportAction = {
             ...buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
                 amount: 5000,
                 currency: 'EUR',
@@ -3262,6 +3296,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When one of the two splits is removed, reverting the split back into a single expense
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -3284,7 +3319,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -3336,6 +3370,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         const child1IOUAction: ReportAction = {
             ...buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
                 amount: 5000,
                 currency: 'EUR',
@@ -3347,6 +3382,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         };
         const child2IOUAction: ReportAction = {
             ...buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
                 amount: 5000,
                 currency: 'EUR',
@@ -3391,6 +3427,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When the amounts of both splits are edited
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -3416,7 +3453,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -3475,6 +3511,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
             const childIOUAction: ReportAction = {
                 ...buildOptimisticIOUReportAction({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
                     amount: 5000,
                     currency: 'EUR',
@@ -3515,6 +3552,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         await getOnyxData({key: ONYXKEYS.COLLECTION.SNAPSHOT, callback: (value) => (allSnapshots = value)});
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -3537,7 +3575,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -3660,6 +3697,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
             betas: [CONST.BETAS.ALL],
@@ -3742,6 +3780,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         let reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
@@ -3766,7 +3805,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -3851,6 +3889,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
@@ -3872,7 +3911,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: reports.transactionReport,
@@ -4023,6 +4061,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When the user reduces splits to 1 (triggering a reverse-split that will delete the expense report)
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -4046,7 +4085,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: allPolicyTags1,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -4158,6 +4196,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When the user reduces splits to 1 (triggering a reverse-split, but the expense report still has another transaction)
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -4181,7 +4220,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: allPolicyTags2,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -4240,6 +4278,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
         requestMoney({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
             participantParams: {
@@ -4344,6 +4383,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -4367,7 +4407,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -4419,6 +4458,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
         requestMoney({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
             participantParams: {
@@ -4523,6 +4563,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -4546,7 +4587,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -4603,6 +4643,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
             participantParams: {
@@ -4716,6 +4757,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // it should use splitExpensesTotal in its calculation
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -4739,7 +4781,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -4797,6 +4838,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // Create the initial expense
         requestMoney({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
             participantParams: {
@@ -4931,6 +4973,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // When splitting the held expense
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -4954,7 +4997,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -5061,6 +5103,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
             participantParams: {
@@ -5117,6 +5160,7 @@ describe('updateSplitTransactions', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactions({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -5141,7 +5185,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -5197,6 +5240,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
             participantParams: {
@@ -5254,6 +5298,7 @@ describe('updateSplitTransactions', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactions({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -5278,7 +5323,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -5335,6 +5379,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
             participantParams: {
@@ -5389,6 +5434,7 @@ describe('updateSplitTransactions', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactions({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -5413,7 +5459,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -5483,6 +5528,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
             participantParams: {
@@ -5569,6 +5615,7 @@ describe('updateSplitTransactions', () => {
         const reports = getTransactionAndExpenseReports(reportID);
 
         updateSplitTransactions({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -5595,7 +5642,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -5638,6 +5684,7 @@ describe('updateSplitTransactions', () => {
         const writeSpy = jest.spyOn(APIlib, 'write').mockImplementation((...args) => originalWrite(...args));
 
         updateSplitTransactions({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -5662,7 +5709,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -5902,6 +5948,7 @@ describe('updateSplitTransactions', () => {
         const splitExpenses: SplitExpense[] = [{transactionID: splitTransactionID1, reportID: remainingSplitTransaction?.reportID, amount, created: DateUtils.getDBTime()}];
 
         updateSplitTransactions({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -5923,7 +5970,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -6016,6 +6062,7 @@ describe('updateSplitTransactions', () => {
         const splitExpenses: SplitExpense[] = [{transactionID: splitTransactionID1, reportID: remainingSplitTransaction?.reportID, amount, created: DateUtils.getDBTime()}];
 
         updateSplitTransactions({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports2,
             allReportActionsList: undefined,
@@ -6037,7 +6084,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -6091,6 +6137,7 @@ describe('updateSplitTransactions', () => {
         const reports = getTransactionAndExpenseReports(expenseReport.reportID);
 
         updateSplitTransactions({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -6115,7 +6162,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -6162,6 +6208,7 @@ describe('updateSplitTransactions', () => {
 
         // The preview action lives in the chat report's actions, supplied via the new allReportActionsList param.
         updateSplitTransactions({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -6186,7 +6233,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -6238,6 +6284,7 @@ describe('updateSplitTransactions', () => {
         const emptyChatReportActions = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.chatReportID}`]: {}};
 
         updateSplitTransactions({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: emptyChatReportActions,
@@ -6262,7 +6309,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -6308,6 +6354,7 @@ describe('updateSplitTransactions', () => {
         const splitExpensesTotal = splitAmount * 3;
 
         updateSplitTransactions({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -6333,7 +6380,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags,
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -6383,6 +6429,7 @@ describe('updateSplitTransactions', () => {
         // two prior revert cycles whose cleanup was skipped/incomplete while offline.
         const staleIOUAction1: ReportAction = {
             ...buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 20000,
                 currency: 'USD',
@@ -6394,6 +6441,7 @@ describe('updateSplitTransactions', () => {
         };
         const staleIOUAction2: ReportAction = {
             ...buildOptimisticIOUReportAction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 20000,
                 currency: 'USD',
@@ -6420,6 +6468,7 @@ describe('updateSplitTransactions', () => {
         // just the first stale action (matching `iouActions.at(0)` in SplitExpensePage.tsx) and the rest via
         // `extraIOUActions` (matching `iouActions.slice(1)`).
         updateSplitTransactions({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: undefined,
@@ -6445,7 +6494,6 @@ describe('updateSplitTransactions', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
@@ -6491,7 +6539,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, undefined, undefined, undefined, undefined, undefined);
+        initSplitExpense(transaction, undefined, undefined, undefined, undefined, undefined, getCurrencyDecimals, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -6516,7 +6564,7 @@ describe('initSplitExpense', () => {
     });
     it('should not initialize split expense for null transaction', async () => {
         const transaction: Transaction | undefined = undefined;
-        initSplitExpense(transaction, undefined, undefined, undefined, undefined, undefined);
+        initSplitExpense(transaction, undefined, undefined, undefined, undefined, undefined, getCurrencyDecimals, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         expect(transaction).toBeFalsy();
@@ -6540,7 +6588,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, undefined, undefined, undefined, undefined, undefined);
+        initSplitExpense(transaction, undefined, undefined, undefined, undefined, undefined, getCurrencyDecimals, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -6610,7 +6658,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, undefined, policy, undefined, undefined, undefined);
+        initSplitExpense(transaction, undefined, policy, undefined, undefined, undefined, getCurrencyDecimals, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -6683,7 +6731,7 @@ describe('initSplitExpense', () => {
         await waitForBatchedUpdates();
 
         // When the user initiates a split on the remaining transaction
-        initSplitExpense(remainingTransaction, undefined, undefined, undefined, undefined, undefined);
+        initSplitExpense(remainingTransaction, undefined, undefined, undefined, undefined, undefined, getCurrencyDecimals, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         // Then a fresh split is started keyed by the remaining transaction (2 new splits)
@@ -6744,7 +6792,7 @@ describe('initSplitExpense', () => {
         await waitForBatchedUpdates();
 
         // When the user opens the edit-splits flow from one of the children
-        initSplitExpense(secondChildTransaction, undefined, undefined, undefined, undefined, undefined);
+        initSplitExpense(secondChildTransaction, undefined, undefined, undefined, undefined, undefined, getCurrencyDecimals, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         // Then the edit-splits draft is keyed by the original transaction and rebuilt from the existing children
@@ -6774,7 +6822,7 @@ describe('initSplitExpense', () => {
         };
 
         // When the workspace is billing-restricted, the caller passes the restricted policy ID
-        initSplitExpense(transaction, undefined, undefined, undefined, '7', undefined);
+        initSplitExpense(transaction, undefined, undefined, undefined, '7', undefined, getCurrencyDecimals, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         // Then the user is redirected to the restricted action page and no split draft is created
@@ -6836,7 +6884,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, undefined, effectivePolicy, undefined, undefined, undefined);
+        initSplitExpense(transaction, undefined, effectivePolicy, undefined, undefined, undefined, getCurrencyDecimals, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -6882,7 +6930,7 @@ describe('initSplitExpense', () => {
         };
 
         // No effectivePolicy (P2P), and personalPolicyOutputCurrency = 'EUR' passed as the 6th argument.
-        initSplitExpense(transaction, undefined, undefined, undefined, undefined, 'EUR');
+        initSplitExpense(transaction, undefined, undefined, undefined, undefined, 'EUR', getCurrencyDecimals, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -6953,7 +7001,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined);
+        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -7016,7 +7064,7 @@ describe('addSplitExpenseField', () => {
         };
 
         // Action: Add a new split expense field
-        addSplitExpenseField(cardTransaction, draftTransaction, expenseReport, undefined, false, undefined);
+        addSplitExpenseField(cardTransaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${cardTransaction.transactionID}`);
@@ -7053,7 +7101,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(undefined, draftTransaction, expenseReport, undefined, false, undefined);
+        addSplitExpenseField(undefined, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const result = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}guard-orig`);
@@ -7071,7 +7119,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, undefined, expenseReport, undefined, false, undefined);
+        addSplitExpenseField(transaction, undefined, expenseReport, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const result = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}guard-tx`);
@@ -7104,7 +7152,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined);
+        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         // Should write to the originalTransactionID key, not transaction.transactionID
@@ -7148,7 +7196,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined);
+        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}manual-sum`);
@@ -7193,7 +7241,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined);
+        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}manual-no-sum`);
@@ -7238,7 +7286,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined);
+        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}unedited-sum`);
@@ -7276,7 +7324,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined);
+        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}dates-reset`);
@@ -7310,7 +7358,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined);
+        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}empty-start`);
@@ -7415,7 +7463,7 @@ describe('addSplitExpenseField', () => {
             currency: 'USD',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, transactionReport, policy, false, undefined);
+        addSplitExpenseField(transaction, draftTransaction, transactionReport, policy, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -7470,7 +7518,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, 'EUR');
+        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, 'EUR', getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}p2p-eur`);
@@ -7522,7 +7570,7 @@ describe('addSplitExpenseField', () => {
             reportID: '456',
         };
 
-        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined);
+        addSplitExpenseField(transaction, draftTransaction, expenseReport, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}p2p-usd`);
@@ -7557,7 +7605,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             reportID: 'rep-2',
         };
 
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -7584,7 +7632,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             reportID: 'rep-3',
         };
 
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -7615,7 +7663,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             reportID: 'rep-4',
         };
 
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -7644,7 +7692,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             reportID: 'rep-5',
         };
 
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -7673,7 +7721,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             reportID: 'rep-6',
         };
 
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -7703,7 +7751,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             reportID: 'rep-7',
         };
 
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -7734,7 +7782,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             reportID: 'rep-neg-3',
         };
 
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -7764,7 +7812,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
             reportID: 'rep-neg-2',
         };
 
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, undefined, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -7865,7 +7913,7 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
         };
 
         const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, originalTransaction, policy, false, undefined);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, originalTransaction, policy, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -7914,7 +7962,7 @@ describe('updateSplitExpenseAmountField', () => {
             reportID: '456',
         };
 
-        updateSplitExpenseAmountField(draftTransaction, currentTransactionID, 20, undefined, false, undefined);
+        updateSplitExpenseAmountField(draftTransaction, currentTransactionID, 20, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -8006,7 +8054,7 @@ describe('updateSplitExpenseAmountField', () => {
             reportID: '456',
         };
 
-        updateSplitExpenseAmountField(draftTransaction, currentTransactionID, 15000, policy, false, undefined);
+        updateSplitExpenseAmountField(draftTransaction, currentTransactionID, 15000, policy, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -8178,7 +8226,7 @@ describe('initSplitExpenseItemData', () => {
         expect(splitExpense.reportID).toBe('456');
     });
 
-    it('should use provided parameters over transaction data', () => {
+    it('should use provided parameters without inheriting commuter exclusion data', () => {
         const transaction: Transaction = {
             transactionID: '123',
             amount: -100,
@@ -8202,6 +8250,9 @@ describe('initSplitExpenseItemData', () => {
             customUnitRateID: 'rate-123',
             distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
             quantity: 50,
+            commuterExclusion: 2,
+            reimbursableDistance: 48,
+            commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
         };
 
         const transactionReport: Report = {
@@ -8225,7 +8276,13 @@ describe('initSplitExpenseItemData', () => {
         expect(splitExpense.reportID).toBe('888');
         expect(splitExpense.created).toBe('2024-01-01');
         expect(splitExpense.merchant).toBe('Custom Merchant');
-        expect(splitExpense.customUnit).toEqual(customUnit);
+        expect(splitExpense.customUnit).toEqual({
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            customUnitID: 'distance-unit',
+            customUnitRateID: 'rate-123',
+            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            quantity: 50,
+        });
     });
 
     it('should handle transaction with waypoints and odometer readings', () => {
@@ -8397,7 +8454,7 @@ describe('resetSplitExpensesByDateRange', () => {
             comment: {...transaction.comment, originalTransactionID: transactionID},
         };
 
-        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate, undefined, false, undefined);
+        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -8486,7 +8543,7 @@ describe('resetSplitExpensesByDateRange', () => {
             comment: {...transaction.comment, originalTransactionID: transactionID},
         };
 
-        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate, policy, false, undefined);
+        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate, policy, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -8537,7 +8594,7 @@ describe('resetSplitExpensesByDateRange', () => {
             comment: {...transaction.comment, originalTransactionID: transactionID},
         };
 
-        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate, undefined, false, undefined);
+        resetSplitExpensesByDateRange(transaction, draftTransactionInput, transactionReport, startDate, endDate, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -8549,7 +8606,7 @@ describe('resetSplitExpensesByDateRange', () => {
     });
 
     it('should not reset if transaction, startDate, or endDate is missing', async () => {
-        resetSplitExpensesByDateRange(undefined, undefined, undefined, '2024-01-01', '2024-01-03', undefined, false, undefined);
+        resetSplitExpensesByDateRange(undefined, undefined, undefined, '2024-01-01', '2024-01-03', undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
     });
 });
@@ -8689,7 +8746,7 @@ describe('updateSplitExpenseField', () => {
             reportID: '456',
         };
 
-        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, undefined, false, undefined);
+        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -8825,7 +8882,7 @@ describe('updateSplitExpenseField', () => {
             reportID: '456',
         };
 
-        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, policy, false, undefined);
+        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, policy, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -8898,7 +8955,7 @@ describe('updateSplitExpenseField', () => {
             reportID: '456',
         };
 
-        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, undefined, false, undefined);
+        updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, originalTransaction, undefined, false, undefined, getCurrencySymbol);
         await waitForBatchedUpdates();
 
         const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
@@ -8928,6 +8985,7 @@ describe('createDistanceRequest', () => {
         recentWaypoints: Awaited<ReturnType<typeof getOnyxValue<typeof ONYXKEYS.NVP_RECENT_WAYPOINTS>>> = [],
     ): Parameters<typeof createDistanceRequest>[0] {
         return {
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             report,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
@@ -9495,6 +9553,7 @@ describe('startSplitBill delegateAccountID forwarding', () => {
         const participantsPolicyTags = await getParticipantsPolicyTags(participants);
 
         const {splitTransactionID} = startSplitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,

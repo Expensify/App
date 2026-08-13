@@ -39,7 +39,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import {close} from '@userActions/Modal';
@@ -231,14 +230,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         return menuItems;
     }, [isValidateCodeFormVisible, translate, turnOnDeleteModal, isDefaultContactMethod, icons.Trashcan]);
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'ContactMethodDetailsPage',
-        isLoadingOnyxValues,
-        isLoadingReportData,
-    };
-
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
-        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullscreenLoadingIndicator />;
     }
 
     if (!contactMethod || !loginData) {

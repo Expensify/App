@@ -64,6 +64,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {
+    BankAccountList,
     Beta,
     BillingGraceEndPeriod,
     ExportTemplate,
@@ -74,7 +75,6 @@ import type {
     Report,
     ReportAction,
     ReportActions,
-    ReportNextStepDeprecated,
     SaveSearch,
     Transaction,
 } from '@src/types/onyx';
@@ -224,13 +224,13 @@ type HandleActionButtonPressParams = {
     activePolicy?: OnyxEntry<Policy>;
     chatReport?: OnyxEntry<Report>;
     chatReportPolicy?: OnyxEntry<Policy>;
-    iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
     delegateEmail?: string;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     conciergeChat: OnyxEntry<Report>;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 function handleActionButtonPress({
@@ -263,13 +263,13 @@ function handleActionButtonPress({
     activePolicy,
     chatReport,
     chatReportPolicy,
-    iouReportCurrentNextStepDeprecated,
     searchData,
     chatReportActions,
     delegateEmail,
     delegateAccountID,
     isTrackIntentUser,
     conciergeChat,
+    getCurrencyDecimals,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -313,7 +313,6 @@ function handleActionButtonPress({
                 activePolicy,
                 chatReport,
                 chatReportPolicy,
-                iouReportCurrentNextStepDeprecated,
                 userBillingGracePeriodEnds,
                 ownerBillingGracePeriodEnd,
                 amountOwed,
@@ -323,6 +322,7 @@ function handleActionButtonPress({
                 delegateAccountID,
                 isTrackIntentUser,
                 conciergeChat,
+                getCurrencyDecimals,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -351,11 +351,11 @@ function handleActionButtonPress({
                 userBillingGracePeriodEnds,
                 ownerBillingGracePeriodEnd,
                 amountOwed,
-                iouReportCurrentNextStepDeprecated,
                 delegateEmail,
                 delegateAccountID,
                 isTrackIntentUser,
                 ownerLogin: submitterLogin,
+                getCurrencyDecimals,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
@@ -522,7 +522,6 @@ type GetPayActionCallbackParams = {
     activePolicy?: OnyxEntry<Policy>;
     chatReport?: OnyxEntry<Report>;
     chatReportPolicy?: OnyxEntry<Policy>;
-    iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
@@ -532,6 +531,7 @@ type GetPayActionCallbackParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     conciergeChat: OnyxEntry<Report>;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 function getPayActionCallback({
@@ -551,7 +551,6 @@ function getPayActionCallback({
     activePolicy,
     chatReport,
     chatReportPolicy,
-    iouReportCurrentNextStepDeprecated,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     amountOwed,
@@ -561,6 +560,7 @@ function getPayActionCallback({
     delegateAccountID,
     isTrackIntentUser,
     conciergeChat,
+    getCurrencyDecimals,
 }: GetPayActionCallbackParams) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
 
@@ -594,7 +594,6 @@ function getPayActionCallback({
         chatReport: chatReportForPayment,
         iouReport: snapshotReport,
         introSelected,
-        iouReportCurrentNextStepDeprecated,
         currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
         currentUserLogin: currentUserLogin ?? '',
         activePolicy,
@@ -611,6 +610,7 @@ function getPayActionCallback({
         delegateAccountID,
         isTrackIntentUser,
         conciergeChat,
+        getCurrencyDecimals,
     });
 }
 
@@ -627,11 +627,11 @@ type GetApproveActionCallbackParams = {
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
-    iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     delegateEmail?: string;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 function getApproveActionCallback({
@@ -647,11 +647,11 @@ function getApproveActionCallback({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     amountOwed,
-    iouReportCurrentNextStepDeprecated,
     delegateEmail,
     delegateAccountID,
     isTrackIntentUser,
     ownerLogin,
+    getCurrencyDecimals,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
         return;
@@ -669,7 +669,6 @@ function getApproveActionCallback({
         currentUserEmailParam: currentUserLogin ?? '',
         hasViolations,
         isASAPSubmitBetaEnabled,
-        expenseReportCurrentNextStepDeprecated: iouReportCurrentNextStepDeprecated,
         betas,
         userBillingGracePeriodEnds,
         amountOwed,
@@ -680,6 +679,7 @@ function getApproveActionCallback({
         full: true,
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
         isTrackIntentUser,
+        getCurrencyDecimals,
     });
 }
 
@@ -718,6 +718,8 @@ function getOnyxLoadingData(
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
                 errors: null,
+                // The code explains the errors it was stored with, so the two have to be cleared together.
+                search: {responseJsonCode: null},
             },
         },
     ];
@@ -754,7 +756,10 @@ function getOnyxLoadingData(
                 search: {
                     type,
                     ...(isSearchAPI && {isLoading: false}),
-                    ...(isSearchRequest && {hash}),
+                    // 0 stands for "failed with no usable response code", which covers a network-level rejection that
+                    // never reaches the server. A real HTTP failure overwrites it below once the response lands. Every
+                    // write of `errors` carries a code this way, so the error view never has to guess.
+                    ...(isSearchRequest && {hash, responseJsonCode: 0}),
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
@@ -1040,11 +1045,11 @@ function search({
     isLoading: boolean;
     shouldUpdateLastSearchParams?: boolean;
     /**
-     * When true, fires the search API immediately without waiting for pending
-     * writes in the sequential queue. Use for the post-expense-creation flow
-     * where the expense write is deferred and search snapshot data lives in
-     * separate Onyx keys, so there is no risk of the response overwriting
-     * optimistic write data.
+     * When true, fires the search API immediately without waiting for pending writes in the sequential queue. Safe because search
+     * responses only write snapshot keys, so they can't overwrite a pending write's optimistic data. Used by the
+     * post-expense-creation flow (where the expense write is deferred) and by home screen sections that would otherwise sit behind
+     * a slow OpenApp. Only pass this when the query itself doesn't depend on data OpenApp delivers — otherwise the request is sent
+     * with an incomplete filter set and has to be re-fired once that data lands.
      */
     skipWaitForWrites?: boolean;
 }) {
@@ -1087,6 +1092,14 @@ function search({
                 // The UI treats a successful response with no snapshot data as an empty result, so record it for diagnosis.
                 if (result?.jsonCode === CONST.JSON_CODE.SUCCESS && response?.data === undefined) {
                     Log.info('[Search] loading_terminal_empty', false, {hash: queryJSON.hash, type: queryJSON.type});
+                }
+
+                // Store the failing code alongside the errors it produced. The snapshot is the only place this
+                // survives a reload, and the error view needs it to tell an invalid query apart from a retryable one.
+                if (typeof result?.jsonCode === 'number' && result.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode: result.jsonCode}}).catch((error: unknown) =>
+                        Log.hmmm('[Search] failed to store the search response code', {error: String(error)}),
+                    );
                 }
 
                 if (shouldUpdateLastSearchParams) {
@@ -1414,6 +1427,7 @@ function rejectMoneyRequestInBulk(
     currentUserLogin: string,
     betas: OnyxEntry<Beta[]>,
     delegateAccountID: number | undefined,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     hash?: number,
 ) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -1433,7 +1447,18 @@ function rejectMoneyRequestInBulk(
         }
     > = {};
     for (const transactionID of transactionIDs) {
-        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, delegateAccountID, undefined, true);
+        const data = prepareRejectMoneyRequestData({
+            transactionID,
+            reportID,
+            comment,
+            policy,
+            currentUserAccountIDParam,
+            currentUserLogin,
+            betas,
+            delegateAccountID,
+            getCurrencyDecimals,
+            shouldUseBulkAction: true,
+        });
         if (data) {
             optimisticData.push(...data.optimisticData);
             successData.push(...data.successData);
@@ -1471,6 +1496,7 @@ function rejectMoneyRequestsOnSearch(
     currentUserLogin: string,
     betas: OnyxEntry<Beta[]>,
     delegateAccountID: number | undefined,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ) {
     const transactionIDs = Object.keys(selectedTransactions);
 
@@ -1503,7 +1529,7 @@ function rejectMoneyRequestsOnSearch(
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
-            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, currentUserLogin, betas, delegateAccountID, hash);
+            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, currentUserLogin, betas, delegateAccountID, getCurrencyDecimals, hash);
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
@@ -1512,7 +1538,7 @@ function rejectMoneyRequestsOnSearch(
                 existingRejectedReport = nextRejectedReport;
             };
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, delegateAccountID, {
+                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, delegateAccountID, getCurrencyDecimals, {
                     sharedRejectedToReportID,
                     existingRejectedReport,
                     setExistingRejectedReport,
@@ -1876,6 +1902,7 @@ function handleBulkPayItemSelected(params: {
     showLockedAccountModal: () => void;
     policy: OnyxEntry<Policy>;
     businessBankAccountOptions: BankAccountMenuItem[] | undefined;
+    bankAccountList: OnyxEntry<BankAccountList>;
     activeAdminPolicies: Policy[];
     isUserValidated: boolean | undefined;
     isDelegateAccessRestricted: boolean;
@@ -1894,6 +1921,7 @@ function handleBulkPayItemSelected(params: {
         showLockedAccountModal,
         policy,
         businessBankAccountOptions,
+        bankAccountList,
         activeAdminPolicies,
         isUserValidated,
         isDelegateAccessRestricted,
@@ -1912,26 +1940,46 @@ function handleBulkPayItemSelected(params: {
     }
 
     if (isDelegateAccessRestricted) {
+        Log.info('[BulkPay] Blocking bulk pay: delegate access is restricted');
         deferModalPresentationAfterPopoverDismiss(showDelegateNoAccessModal);
         return;
     }
 
     if (isAccountLocked) {
+        Log.info('[BulkPay] Blocking bulk pay: account is locked');
         deferModalPresentationAfterPopoverDismiss(showLockedAccountModal);
         return;
     }
 
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+        Log.info('[BulkPay] Blocking bulk pay: billable actions are restricted', false, {policyID: policy.id});
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy?.id));
         return;
     }
 
     if (!isUserValidated && item.key !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+        Log.info('[BulkPay] Blocking bulk pay: user is not validated, redirecting to account verification');
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
         return;
     }
 
-    if ((!!policyFromPaymentMethod || shouldSelectPaymentMethod) && item.key !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+    // The pay menu can offer any open business bank account the admin has access to, not only the one linked to
+    // the policy, so when a specific open account is selected we pay with it directly instead of gating on the
+    // KYC wall, which only accepts the policy-linked account and would bounce the user to the bank account setup.
+    const selectedBankAccountID = (item?.additionalData as BulkPaySelectionData | undefined)?.bankAccountID;
+    const selectedBankAccountData = selectedBankAccountID ? bankAccountList?.[selectedBankAccountID]?.accountData : undefined;
+    const isPayingWithSelectedOpenBusinessBankAccount =
+        item.key === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT &&
+        selectedBankAccountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+        selectedBankAccountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+
+    if ((!!policyFromPaymentMethod || shouldSelectPaymentMethod) && item.key !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !isPayingWithSelectedOpenBusinessBankAccount) {
+        Log.info('[BulkPay] Routing bulk pay through the KYC wall', false, {
+            itemKey: item.key,
+            policyID: (policyFromPaymentMethod ?? policyFromContext)?.id,
+            selectedBankAccountID,
+            selectedBankAccountState: selectedBankAccountData?.state,
+        });
         setPendingPaymentAdditionalData?.(item?.additionalData as BulkPaySelectionData | undefined);
         triggerKYCFlow({
             event: undefined,
@@ -2003,7 +2051,12 @@ function getTotalFormattedAmount(
  *
  * Note: we don't create anything new, we just optimistically generate the data that we know will be returned by API.
  */
-function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemType, transactionPreviewData: TransactionPreviewData, IOUTransactionID?: string) {
+function setOptimisticDataForTransactionThreadPreview(
+    item: TransactionListItemType,
+    transactionPreviewData: TransactionPreviewData,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    IOUTransactionID?: string,
+) {
     const {reportID, report, amount, currency, transactionID, created, policyID, from} = item;
     const moneyRequestReportActionID = item?.reportAction?.reportActionID;
     const {hasParentReport, hasParentReportAction, hasTransaction, hasTransactionThreadReport} = transactionPreviewData;
@@ -2035,6 +2088,7 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
             } as ReportAction,
             // delegateAccountIDParam: will be threaded in PR 15; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
             delegateAccountIDParam: undefined,
+            getCurrencyDecimals,
         });
         optimisticIOUAction.pendingAction = undefined;
         optimisticIOUAction.actorAccountID = from?.accountID;

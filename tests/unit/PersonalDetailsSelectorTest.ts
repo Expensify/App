@@ -8,7 +8,6 @@ import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import {
     createDisplayDetailsByAccountIDsSelector,
     multiPersonalDetailsSelector,
-    personalDetailByLoginSelector,
     personalDetailsDisplayNameSelector,
     personalDetailsListSelector,
     personalDetailsLoginSelector,
@@ -16,6 +15,7 @@ import {
     personalDetailsSelector,
 } from '@selectors/PersonalDetails';
 
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 
 describe('PersonalDetailsSelector', () => {
@@ -25,9 +25,9 @@ describe('PersonalDetailsSelector', () => {
         displayName: 'Test User',
         login: 'test@user.com',
     };
-    const personalDetailsList = {
+    const personalDetailsList = createMock<PersonalDetailsList>({
         [accountID]: personalDetails,
-    } as unknown as PersonalDetailsList;
+    });
     describe('personalDetailsSelector', () => {
         it('should return the personal details for the given accountID', () => {
             const result = personalDetailsSelector(accountID)(personalDetailsList);
@@ -57,9 +57,9 @@ describe('PersonalDetailsSelector', () => {
                 displayName: 'Some Other Name',
                 login: 'concierge@expensify.com',
             };
-            const list = {
+            const list = createMock<PersonalDetailsList>({
                 [CONST.ACCOUNT_ID.CONCIERGE]: conciergeDetails,
-            } as unknown as PersonalDetailsList;
+            });
 
             const result = personalDetailsDisplayNameSelector(CONST.ACCOUNT_ID.CONCIERGE, translateLocal)(list);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
@@ -70,9 +70,9 @@ describe('PersonalDetailsSelector', () => {
                 accountID,
                 login: 'fallback@user.com',
             };
-            const list = {
+            const list = createMock<PersonalDetailsList>({
                 [accountID]: personalDetailsWithLoginOnly,
-            } as unknown as PersonalDetailsList;
+            });
 
             const result = personalDetailsDisplayNameSelector(accountID, translateLocal)(list);
             expect(result).toBe('fallback@user.com');
@@ -147,41 +147,6 @@ describe('PersonalDetailsSelector', () => {
         });
     });
 
-    describe('personalDetailByLoginSelector', () => {
-        it('should return the personal details for the given login', () => {
-            const result = personalDetailByLoginSelector('test@user.com')(personalDetailsList);
-            expect(result).toEqual(personalDetails);
-        });
-
-        it('should match the login case-insensitively', () => {
-            const result = personalDetailByLoginSelector('TEST@USER.COM')(personalDetailsList);
-            expect(result).toEqual(personalDetails);
-        });
-
-        it('should return undefined if the login is not in the list', () => {
-            const result = personalDetailByLoginSelector('missing@user.com')(personalDetailsList);
-            expect(result).toBeUndefined();
-        });
-
-        it('should return undefined if the login is undefined', () => {
-            const result = personalDetailByLoginSelector(undefined)(personalDetailsList);
-            expect(result).toBeUndefined();
-        });
-
-        it('should return undefined if the personalDetailsList is undefined', () => {
-            const result = personalDetailByLoginSelector('test@user.com')(undefined);
-            expect(result).toBeUndefined();
-        });
-
-        it('should skip null entries in the list', () => {
-            const listWithNull: PersonalDetailsList = {
-                [accountID]: null,
-            };
-            const result = personalDetailByLoginSelector('test@user.com')(listWithNull);
-            expect(result).toBeUndefined();
-        });
-    });
-
     describe('multiPersonalDetailsSelector', () => {
         it('should return the personal details for the given accountIDs', () => {
             const result = multiPersonalDetailsSelector([accountID])(personalDetailsList);
@@ -232,15 +197,15 @@ describe('PersonalDetailsSelector', () => {
     });
 
     describe('createDisplayDetailsByAccountIDsSelector', () => {
-        const fullDetails = {
+        const fullDetails = createMock<PersonalDetails>({
             accountID,
             displayName: 'Test User',
             login: 'test@user.com',
             avatar: 'https://example.com/avatar.png',
             pronouns: 'they/them',
-            timezone: {selected: 'UTC'},
-        } as unknown as PersonalDetails;
-        const listWithAvatar = {[accountID]: fullDetails} as unknown as PersonalDetailsList;
+            timezone: {selected: 'Europe/London'},
+        });
+        const listWithAvatar = createMock<PersonalDetailsList>({[accountID]: fullDetails});
 
         it('should return only the display detail fields for present account IDs', () => {
             const result = createDisplayDetailsByAccountIDsSelector([accountID])(listWithAvatar);

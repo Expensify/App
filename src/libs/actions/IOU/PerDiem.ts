@@ -1,5 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {CreatePerDiemRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -11,7 +13,7 @@ import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getPerDiemCustomUnit, getPerDiemRateCustomUnitRate} from '@libs/PolicyUtils';
@@ -60,7 +62,7 @@ import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
 import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantParams';
 
-import {getAllPersonalDetails, getAllReports, getPolicyTags} from '.';
+import {getAllPersonalDetails, getAllReports} from '.';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
@@ -227,6 +229,8 @@ type PerDiemExpenseInformation = {
     recentlyUsedParams?: RecentlyUsedParams;
     transactionParams: PerDiemExpenseTransactionParams;
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
+    /** The policy's tags, keyed the same way `getPolicyTags()` would return for this expense's policyID. */
+    policyTags: OnyxTypes.PolicyTagLists;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
@@ -244,6 +248,7 @@ type PerDiemExpenseInformation = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type PerDiemExpenseInformationParams = {
@@ -254,6 +259,8 @@ type PerDiemExpenseInformationParams = {
     recentlyUsedParams?: RecentlyUsedParams;
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     moneyRequestReportID?: string;
+    /** The policy's tags, keyed the same way `getPolicyTags()` would return for this expense's policyID. */
+    policyTags: OnyxTypes.PolicyTagLists;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
@@ -268,6 +275,7 @@ type PerDiemExpenseInformationParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type PerDiemExpenseInformationForSelfDM = {
@@ -281,6 +289,7 @@ type PerDiemExpenseInformationForSelfDM = {
     optimisticChatReportID: string;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type PerDiemExpenseInformationForSelfDMResult = {
@@ -298,6 +307,50 @@ type PerDiemExpenseInformationForSelfDMResult = {
     >;
 };
 
+type GetPerDiemExpensePolicyIDParams = {
+    report: OnyxEntry<OnyxTypes.Report>;
+    participantParams: RequestMoneyParticipantParams;
+    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    currentUserAccountIDParam: number;
+};
+
+/**
+ * Resolves the policyID that `getPerDiemExpenseInformation`'s iouReport will end up with, without waiting for its
+ * STEP 1/STEP 2 (chatReport/iouReport resolution) to run. It is read-only and does not build any optimistic report or
+ * transaction. Keep in sync with STEP 1/STEP 2 in `getPerDiemExpenseInformation` (and the chat report/moneyRequestReportID
+ * resolution in `submitPerDiemExpense`) if their resolution order changes.
+ */
+function getPerDiemExpensePolicyID({report, participantParams, existingIOUReport, betas, currentUserAccountIDParam}: GetPerDiemExpensePolicyIDParams): string | undefined {
+    const {payeeAccountID = currentUserAccountIDParam, participant} = participantParams;
+    const payerAccountID = Number(participant.accountID);
+    const isPolicyExpenseChat = participant.isPolicyExpenseChat;
+    const allReports = getAllReports();
+
+    const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
+    const parentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
+
+    const parentChatReportCandidate = parentChatReport?.reportID ? parentChatReport : null;
+    const policyExpenseChatCandidate = isPolicyExpenseChat ? (allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`] ?? null) : null;
+    const chatReport = parentChatReportCandidate ?? policyExpenseChatCandidate ?? getChatByParticipants([payerAccountID, payeeAccountID]) ?? null;
+
+    let iouReport: OnyxInputValue<OnyxTypes.Report> = null;
+    if (existingIOUReport) {
+        iouReport = existingIOUReport;
+    } else if (moneyRequestReportID) {
+        iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
+    } else if (chatReport) {
+        iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
+    }
+    const shouldCreateNew = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, false, betas);
+
+    if (iouReport && !shouldCreateNew) {
+        return iouReport.policyID;
+    }
+    return isPolicyExpenseChat ? (chatReport?.policyID ?? CONST.POLICY.OWNER_EMAIL_FAKE) : undefined;
+}
+
 /**
  * Gathers all the data needed to submit a per diem expense. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
  * it creates optimistic versions of them and uses those instead
@@ -311,6 +364,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         recentlyUsedParams = {},
         existingIOUReport: existingIOUReportParam,
         moneyRequestReportID = '',
+        policyTags,
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -325,6 +379,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         formatPhoneNumber,
         delegateAccountID,
         isTrackIntentUser,
+        getCurrencyDecimals,
     } = perDiemExpenseInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -397,8 +452,9 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
                   optimisticIOUReportID: optimisticReportID,
                   reportTransactions,
                   betas,
+                  getCurrencyDecimals,
               })
-            : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
+            : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, getCurrencyDecimals);
     } else if (isPolicyExpenseChat) {
         // Capture the previous reimbursable totals before the mutation so we can apply the diff
         // consistently regardless of whether the freshly tracked field was already populated.
@@ -449,9 +505,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     optimisticTransaction.hasEReceipt = true;
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
-        // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
-
-        policyTags: getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReport.policyID}`] ?? {},
+        policyTags,
         policyRecentlyUsedTags,
         transactionTags: tag,
     });
@@ -467,6 +521,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     // Note: The CREATED action for the IOU report must be optimistically generated before the IOU action so there's no chance that it appears after the IOU action in the chat
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
         buildOptimisticMoneyRequestEntities({
+            getCurrencyDecimals,
             iouReport,
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             amount,
@@ -484,9 +539,18 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
 
     if (reportPreviewAction) {
-        reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
+        reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, false, comment, optimisticTransaction);
     } else {
-        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID, delegateAccountID);
+        reportPreviewAction = buildOptimisticReportPreview(
+            chatReport,
+            iouReport,
+            getCurrencyDecimals,
+            comment,
+            optimisticTransaction,
+            undefined,
+            optimisticReportPreviewActionID,
+            delegateAccountID,
+        );
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
         // Generated ReportPreview action is a parent report action of the iou report.
@@ -511,17 +575,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
 
     const predictedNextStatus =
         iouReport.statusNum ?? (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN);
-    // buildOptimisticNextStep is used in parallel
-    const optimisticNextStepDeprecated = buildNextStepNew({
-        report: iouReport,
-        predictedNextStatus,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        policy,
-        isTrackIntentUser,
-    });
     const optimisticNextStep = buildOptimisticNextStep({
         report: iouReport,
         predictedNextStatus,
@@ -569,7 +622,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             },
             personalDetailListAction: optimisticPersonalDetailListAction,
             nextStep: optimisticNextStep,
-            nextStepDeprecated: optimisticNextStepDeprecated,
         },
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -578,6 +630,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         personalDetails,
         delegateAccountID,
         isTrackIntentUser,
+        getCurrencyDecimals,
     });
 
     return {
@@ -606,7 +659,8 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
  * Gathers all the data needed to submit a per diem expense from self DM.
  */
 function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDiemExpenseInformationForSelfDM): PerDiemExpenseInformationForSelfDMResult {
-    const {selfDMReport, transactionParams, policy, currentUserAccountIDParam, currentUserEmailParam, quickAction, optimisticChatReportID, delegateAccountID} = perDiemExpenseInformation;
+    const {selfDMReport, transactionParams, policy, currentUserAccountIDParam, currentUserEmailParam, quickAction, optimisticChatReportID, delegateAccountID, getCurrencyDecimals} =
+        perDiemExpenseInformation;
     const {comment = '', currency, created, category, tag, customUnit, billable, attendees, reimbursable} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
@@ -754,6 +808,7 @@ function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDie
     };
 
     const [, , iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] = buildOptimisticMoneyRequestEntities({
+        getCurrencyDecimals,
         iouReport: chatReport,
         type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
         amount,
@@ -921,6 +976,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         recentlyUsedParams = {},
         transactionParams,
         existingIOUReport,
+        policyTags,
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -938,6 +994,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         formatPhoneNumber,
         delegateAccountID,
         isTrackIntentUser,
+        getCurrencyDecimals,
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
@@ -978,6 +1035,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         transactionParams,
         existingIOUReport,
         moneyRequestReportID,
+        policyTags,
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -992,6 +1050,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         formatPhoneNumber,
         delegateAccountID,
         isTrackIntentUser,
+        getCurrencyDecimals,
     });
 
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
@@ -1061,8 +1120,18 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
  * Submit a per diem expense from self DM
  */
 function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemExpenseInformationForSelfDM) {
-    const {selfDMReport, policy, transactionParams, currentUserAccountIDParam, currentUserEmailParam, quickAction, optimisticChatReportID, delegateAccountID, isTrackIntentUser} =
-        submitPerDiemExpenseInformation;
+    const {
+        selfDMReport,
+        policy,
+        transactionParams,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        quickAction,
+        optimisticChatReportID,
+        delegateAccountID,
+        isTrackIntentUser,
+        getCurrencyDecimals,
+    } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, billable, reimbursable} = transactionParams;
 
     if (
@@ -1077,6 +1146,7 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
     }
 
     const {chatReport, transaction, iouAction, transactionThreadReportID, createdReportActionIDForThread, onyxData} = getPerDiemExpenseInformationForSelfDM({
+        getCurrencyDecimals,
         selfDMReport,
         policy,
         transactionParams,
@@ -1143,6 +1213,7 @@ export {
     addSubrate,
     computePerDiemExpenseAmount,
     isValidPerDiemExpenseAmount,
+    getPerDiemExpensePolicyID,
     getPerDiemExpenseInformation,
     submitPerDiemExpense,
     submitPerDiemExpenseForSelfDM,

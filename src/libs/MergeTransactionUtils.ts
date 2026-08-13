@@ -225,12 +225,17 @@ function getMergeableDataAndConflictFields(
     searchReports: Array<OnyxEntry<Report>> = [],
     targetTransactionPolicy?: OnyxEntry<Policy>,
     sourceTransactionPolicy?: OnyxEntry<Policy>,
+    targetReportOwnerAsAttendee?: Attendee,
+    sourceReportOwnerAsAttendee?: Attendee,
 ) {
     const conflictFields: string[] = [];
     const mergeableData: Record<string, unknown> = {};
 
-    const targetTransactionDetails = getTransactionDetails(targetTransaction);
-    const sourceTransactionDetails = getTransactionDetails(sourceTransaction);
+    // Resolve the report-owner fallback the same way the display path (buildMergeFieldsData) does, so an expense
+    // with no stored attendee is compared as [owner] instead of [] and doesn't produce a false attendee conflict
+    // against an expense whose attendee is that same owner.
+    const targetTransactionDetails = getTransactionDetails(targetTransaction, undefined, undefined, undefined, undefined, targetReportOwnerAsAttendee);
+    const sourceTransactionDetails = getTransactionDetails(sourceTransaction, undefined, undefined, undefined, undefined, sourceReportOwnerAsAttendee);
 
     for (const field of getMergeFields(targetTransaction)) {
         const targetValue = getMergeFieldValue(targetTransactionDetails, targetTransaction, field);

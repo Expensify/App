@@ -295,11 +295,10 @@ function WorkspaceInviteMessageComponent({
                             size={CONST.AVATAR_SIZE.XXX_LARGE}
                             accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
                             horizontalStacking={{
-                                displayInRows: true,
+                                maxRows: 2,
                             }}
                             secondaryAvatarContainerStyle={styles.secondAvatarInline}
                             invitedEmailsToAccountIDs={invitedEmailsToAccountIDsDraft}
-                            shouldUseCustomFallbackAvatar
                             shouldShowTooltip={shouldShowTooltip}
                         />
                     </View>
