@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 
 import type {NumberFormProps} from './types';
 
@@ -6,12 +6,13 @@ import {NumberFormActionsContext, NumberFormStateContext} from './context';
 
 function NumberForm({value = '', onInputChange, negativeMode = 'inValue', errorText, onBlur, children}: NumberFormProps) {
     const [currentValue, setCurrentValue] = useState(value);
+    const [previousValue, setPreviousValue] = useState(value);
 
-    useEffect(() => {
-        // Keep externally controlled form values in sync with the editing state.
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronizing controlled input state
+    // Keep externally controlled form values in sync with the editing state.
+    if (previousValue !== value) {
+        setPreviousValue(value);
         setCurrentValue(value);
-    }, [value]);
+    }
 
     const handleInputChange = (nextValue: string) => {
         setCurrentValue(nextValue);
