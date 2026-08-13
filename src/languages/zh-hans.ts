@@ -1654,6 +1654,17 @@ const translations: TranslationDeepObject<typeof en> = {
                 bulkSubtitle: '在我们将这些报表提交给其余审批流程之前，请为其选择一位额外审批人。',
             },
             bulkSubtitle: '选择一个选项来更改这些报表的审批人。',
+            delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
+                `该报表已发送给 <mention-user>@${originalManager}</mention-user>，而不是发送给你（他们的休假代理人），因为你不是此报表所属政策的成员`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
+                `此报表被发送给你，而不是你的休假代理人 <mention-user>@${delegate}</mention-user>，因为 TA 不是此报表所属政策的成员`,
+            delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
+                `此报表被发送给 <mention-user>@${originalManager}</mention-user>，而不是他们的假期代理人 <mention-user>@${delegate}</mention-user>，因为该代理人不是此报表所属策略的成员`,
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) => `由于你不能审批自己的报销单，此报销单已发送给 <mention-user>@${originalManager}</mention-user> 审批`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
+                `由于你的休假代理人 <mention-user>@${delegate}</mention-user> 无法审批自己的报销单，因此此报销单已发送给你审批`,
+            delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
+                `此报销单已发送给 <mention-user>@${originalManager}</mention-user> 审批，因为其休假代理人 <mention-user>@${delegate}</mention-user> 不能审批自己提交的报销单`,
         },
         chooseWorkspace: '选择工作区',
         routedDueToDEW: (to: string, reason?: string) => `报销单已转交给 ${to}${reason ? ` 因为 ${reason}` : ''}`,
@@ -1821,14 +1832,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                requiredDepositCurrency?: string,
             ) => {
+                const account = requiredDepositCurrency ? `${requiredDepositCurrency} 银行账户` : '银行账户';
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你</strong>添加银行账户。`;
+                        return `正在等待<strong>你</strong>添加${account}。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 添加银行账户。`;
+                        return `正在等待 <strong>${actor}</strong> 添加${account}。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `正在等待管理员添加银行账户。`;
+                        return `正在等待管理员添加${account}。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
@@ -2846,7 +2859,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         editAvatar: '切换头像',
         defaultAgentName: (displayName: string) => `${displayName} 的代理人`,
         defaultPrompt:
-            '拒绝与赌博、电影或其他明显非商务原因相关的报销。\n\n提醒用户务必附上一张能清楚显示小费金额的收据图片。\n\n如果报销报告与同一用户之前的报告非常相似，则批准该报告。\n\n拒绝包含超过 500 美元差旅费用的报销报告。',
+            '将所有来自咖啡店的报销分类为“餐饮”。\n\n将每一笔网约车出行的描述设为“客户出行”。\n\n将我在电子产品商店购买的任何项目标记为“设备”。\n\n标记任何缺少收据的报销，这样我可以在提交前补上一张。',
         copilotNote: '该代理将作为对你账户拥有完全访问权限的 Copilot 添加，以便代表你执行操作。',
     },
     editAgentPage: {
@@ -8467,6 +8480,8 @@ ${reportName}`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制发票设置`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制出差设置`,
         },
+        updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 费用分类要求`,
+        updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 费用标签要求`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `将“${categoryName}”类别的出席者更改为 ${newValue ? '必填' : '非必填'}（之前为 ${newValue ? '非必填' : '必填'}）`;
         },
