@@ -8,7 +8,10 @@ import type {StyleProp, TextStyle} from 'react-native';
 import React, {isValidElement} from 'react';
 
 type TitleProps = {
+    /** Title content — rendered as a headline when a string, as-is when a ReactNode */
     children?: ReactNode;
+
+    /** Additional style applied to the title text (string titles only) */
     style?: StyleProp<TextStyle>;
 };
 

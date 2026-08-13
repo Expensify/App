@@ -3,6 +3,7 @@ import type {ReactNode} from 'react';
 import {isValidElement} from 'react';
 
 type PageProps = {
+    /** Page content — an Illustration and a Body */
     children?: ReactNode;
 };
 

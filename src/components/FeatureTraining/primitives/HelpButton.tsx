@@ -7,8 +7,13 @@ import CONST from '@src/CONST';
 import React from 'react';
 
 type HelpButtonProps = {
+    /** Text label shown on the help button */
     children: string;
+
+    /** Called when the help button is pressed */
     onPress?: () => void;
+
+    /** Sentry label for the help button */
     sentryLabel?: string;
 };
 

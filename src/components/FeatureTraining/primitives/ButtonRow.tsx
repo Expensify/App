@@ -6,6 +6,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ButtonRowProps = {
+    /** Buttons sharing the horizontal row, e.g. BackButton and ConfirmButton */
     children?: ReactNode;
 };
 

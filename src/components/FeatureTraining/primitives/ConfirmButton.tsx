@@ -6,7 +6,10 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 
 type ConfirmButtonProps = {
+    /** Text label shown on the confirm button */
     children: string;
+
+    /** Sentry label for the confirm button; falls back to the root confirmSentryLabel */
     sentryLabel?: string;
 
     /** Style for the button container, e.g. flex1 when sharing a ButtonRow */

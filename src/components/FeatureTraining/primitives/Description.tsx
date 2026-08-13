@@ -7,7 +7,10 @@ import React from 'react';
 import {View} from 'react-native';
 
 type DescriptionProps = {
+    /** Description text to render */
     children?: string;
+
+    /** Whether the description is HTML markup and should be rendered via RenderHTML */
     shouldRenderHTML?: boolean;
 };
 

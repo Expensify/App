@@ -7,6 +7,7 @@ import type {ReactNode} from 'react';
 import React from 'react';
 
 type SubtitleProps = {
+    /** Subtitle text shown above the title */
     children?: ReactNode;
 };
 
