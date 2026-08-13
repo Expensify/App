@@ -11,12 +11,11 @@ import HttpUtils from './HttpUtils';
 import Log from './Log';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
-import {cancelSpan, endSpan, startSpan} from './telemetry/activeSpans';
+import {cancelSpan, endSpanWithAttributes, startSpan} from './telemetry/activeSpans';
+import MEASURED_REQUEST_PHASE_COMMANDS, {getNextRequestPhaseAttempt, getRequestPhaseSpanNames} from './telemetry/measuredRequestPhaseCommands';
 import trackStartupDataRender from './telemetry/trackStartupDataRender';
 
 let middlewares: Middleware[] = [];
-
-let responseApplyAttempt = 0;
 
 function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response<TKey> | void> {
     const finalParameters = enhanceParameters(request.command, request?.data ?? {});
@@ -28,16 +27,16 @@ function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response
 function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isFromSequentialQueue = false): Promise<Response<TKey> | void> {
     let result = makeXHR(request);
 
-    // The splash-based startup spans measure nothing for flows that never show a splash (magic code, copilot, supportal).
-    const shouldMeasureResponseApply = APP_STARTUP_NETWORK_REQUEST.has(request.command);
-    // Reauthentication re-enters this function for the same request, so the span id has to be per-attempt or the retry cancels the attempt before it.
-    const attempt = shouldMeasureResponseApply ? (responseApplyAttempt += 1) : 0;
-    const applySpanId = `${CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY}_${attempt}`;
+    // The splash-based startup spans measure nothing for flows that never show a splash (magic code, copilot, supportal), and nothing at all for Search.
+    const shouldMeasureResponseApply = MEASURED_REQUEST_PHASE_COMMANDS.has(request.command);
+    const applySpanName = getRequestPhaseSpanNames(request.command).APPLY;
+    const attempt = shouldMeasureResponseApply ? getNextRequestPhaseAttempt(applySpanName) : 0;
+    const applySpanId = `${applySpanName}_${attempt}`;
     if (shouldMeasureResponseApply) {
         result = result.then((response) => {
             startSpan(applySpanId, {
-                name: CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY,
-                op: CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY,
+                name: applySpanName,
+                op: applySpanName,
                 forceTransaction: true,
                 attributes: {[CONST.TELEMETRY.ATTRIBUTE_COMMAND]: request.command, [CONST.TELEMETRY.ATTRIBUTE_ATTEMPT]: attempt},
             });
@@ -52,8 +51,12 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
     if (shouldMeasureResponseApply) {
         result = result.then(
             (response) => {
-                endSpan(applySpanId);
-                trackStartupDataRender(request.command, attempt);
+                endSpanWithAttributes(applySpanId, {[CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: response?.requestID});
+                // Only startup gets a render span: Search already brackets its render end-to-end with ManualNavigateToReportsContentLoad,
+                // so its render cost is that span minus the SearchData phases.
+                if (APP_STARTUP_NETWORK_REQUEST.has(request.command)) {
+                    trackStartupDataRender(request.command, attempt, response?.requestID);
+                }
                 return response;
             },
             (error: unknown) => {

@@ -15,14 +15,14 @@ import {setTimeSkew} from './actions/Network';
 import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
-import APP_STARTUP_NETWORK_REQUEST from './AppStartupNetworkRequest';
 import HttpsError from './Errors/HttpsError';
 import {setLoadTestParameters} from './Network/LoadTestState';
 import preparePrefetchRequest from './Prefetch/preparePrefetchRequest';
 import registerPrefetchOnAppStart from './Prefetch/registerPrefetchOnAppStart';
 import prepareRequestPayload from './prepareRequestPayload';
-import {cancelSpan, endSpan, startSpan} from './telemetry/activeSpans';
+import {cancelSpan, endSpan, endSpanWithAttributes, startSpan} from './telemetry/activeSpans';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
+import MEASURED_REQUEST_PHASE_COMMANDS, {getNextRequestPhaseAttempt, getRequestPhaseSpanNames} from './telemetry/measuredRequestPhaseCommands';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -69,10 +69,7 @@ const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREA
  */
 const APICommandRegex = /\/api\/([^&?]+)\??.*/;
 
-/** Reauthentication (407) and throttle backoff both re-send the same command, so each attempt needs its own span id or the retry cancels the attempt before it. */
-let startupRequestAttempt = 0;
-
-function startStartupNetworkPhaseSpan(spanName: string, attempt: number, command: string, contentLength?: string) {
+function startRequestNetworkPhaseSpan(spanName: string, attempt: number, command: string, contentLength?: string) {
     startSpan(`${spanName}_${attempt}`, {
         name: spanName,
         op: spanName,
@@ -117,19 +114,20 @@ function processHTTPRequest<TKey extends OnyxKey>(
     registerPrefetchOnAppStart({prefetchKey, fetchParams, command, url});
 
     // Mirrors the "Waiting" / "Content Download" split Chrome shows for this request.
-    const isStartupRequest = !!command && APP_STARTUP_NETWORK_REQUEST.has(command);
-    const attempt = isStartupRequest ? (startupRequestAttempt += 1) : 0;
-    const waitSpanId = `${CONST.TELEMETRY.SPAN_STARTUP_DATA.WAIT}_${attempt}`;
-    const downloadSpanId = `${CONST.TELEMETRY.SPAN_STARTUP_DATA.DOWNLOAD}_${attempt}`;
-    if (isStartupRequest && command) {
-        startStartupNetworkPhaseSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.WAIT, attempt, command);
+    const isMeasuredRequest = !!command && MEASURED_REQUEST_PHASE_COMMANDS.has(command);
+    const phaseSpanNames = getRequestPhaseSpanNames(command ?? '');
+    const attempt = isMeasuredRequest ? getNextRequestPhaseAttempt(phaseSpanNames.WAIT) : 0;
+    const waitSpanId = `${phaseSpanNames.WAIT}_${attempt}`;
+    const downloadSpanId = `${phaseSpanNames.DOWNLOAD}_${attempt}`;
+    if (isMeasuredRequest && command) {
+        startRequestNetworkPhaseSpan(phaseSpanNames.WAIT, attempt, command);
     }
 
     return fetch(url, fetchParams)
         .then((response) => {
-            if (isStartupRequest && command) {
+            if (isMeasuredRequest && command) {
                 endSpan(waitSpanId);
-                startStartupNetworkPhaseSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.DOWNLOAD, attempt, command, response.headers?.get('content-length') ?? undefined);
+                startRequestNetworkPhaseSpan(phaseSpanNames.DOWNLOAD, attempt, command, response.headers?.get('content-length') ?? undefined);
             }
             if (response.headers) {
                 setLoadTestParameters(response.headers.get('X-Load-Test'));
@@ -185,10 +183,20 @@ function processHTTPRequest<TKey extends OnyxKey>(
             }
 
             const parsedResponse = response.json() as Promise<Response<TKey>>;
-            if (!isStartupRequest) {
+            if (!isMeasuredRequest) {
                 return parsedResponse;
             }
-            return parsedResponse.finally(() => endSpan(downloadSpanId));
+            // The server's requestID only exists once the body is parsed, which is exactly when this phase ends. It ties every phase of one attempt together in Sentry.
+            return parsedResponse.then(
+                (parsedBody) => {
+                    endSpanWithAttributes(downloadSpanId, {[CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: parsedBody?.requestID});
+                    return parsedBody;
+                },
+                (error: unknown) => {
+                    endSpan(downloadSpanId);
+                    throw error;
+                },
+            );
         })
         .then((response) => {
             // Some retried requests will result in a "Unique Constraints Violation" error from the server, which just means the record already exists

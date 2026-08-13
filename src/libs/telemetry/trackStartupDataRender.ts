@@ -11,13 +11,17 @@ const REQUIRED_HEALTHY_FRAMES = 2;
 const MAX_WAIT_MS = 10_000;
 
 /** Onyx resolves once subscribers are notified, before React renders, so StartupData.Apply cannot see this cascade. */
-function trackStartupDataRender(command: string, attempt: number): void {
+function trackStartupDataRender(command: string, attempt: number, requestID?: string): void {
     const spanId = `${CONST.TELEMETRY.SPAN_STARTUP_DATA.RENDER}_${attempt}`;
     const span = startSpan(spanId, {
         name: CONST.TELEMETRY.SPAN_STARTUP_DATA.RENDER,
         op: CONST.TELEMETRY.SPAN_STARTUP_DATA.RENDER,
         forceTransaction: true,
-        attributes: {[CONST.TELEMETRY.ATTRIBUTE_COMMAND]: command, [CONST.TELEMETRY.ATTRIBUTE_ATTEMPT]: attempt},
+        attributes: {
+            [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: command,
+            [CONST.TELEMETRY.ATTRIBUTE_ATTEMPT]: attempt,
+            [CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: requestID,
+        },
     });
 
     if (!span) {
