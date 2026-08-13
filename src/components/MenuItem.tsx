@@ -900,7 +900,14 @@ function MenuItem({
                                             ),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
-                                        isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
+                                        role !== CONST.ROLE.TAB &&
+                                            isHovered &&
+                                            interactive &&
+                                            !focused &&
+                                            !pressed &&
+                                            !shouldRemoveBackground &&
+                                            !shouldRemoveHoverBackground &&
+                                            styles.hoveredComponentBG,
                                         // Nav rows (role=tab) use the lighter product200/product300 hover/selected colors, held through a press
                                         role === CONST.ROLE.TAB && focused && !shouldRemoveBackground && StyleUtils.getBackgroundColorStyle(theme.navItemSelectedBG),
                                         role === CONST.ROLE.TAB &&
