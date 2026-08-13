@@ -150,6 +150,9 @@ function ReanimatedModal({
     }, [isVisible, isContainerOpen, isTransitioning]);
 
     const backdropStyle: ViewStyle = useMemo(() => {
+        if (getPlatform() === CONST.PLATFORM.WEB) {
+            return {backgroundColor: backdropColor};
+        }
         return {width: windowWidth, height: windowHeight, backgroundColor: backdropColor};
     }, [windowWidth, windowHeight, backdropColor]);
 
