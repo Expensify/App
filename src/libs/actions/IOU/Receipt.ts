@@ -6,6 +6,7 @@ import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {buildOptimisticDetachReceipt, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {logReceiptCaptured, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
@@ -366,7 +367,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
         }
         navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
     };
-    readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
+    readFileAsync(ReceiptStorage.resolve(receiptPath) ?? receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
 function checkIfLocalFileIsAccessible(
@@ -381,7 +382,7 @@ function checkIfLocalFileIsAccessible(
         return Promise.resolve();
     }
 
-    return readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
+    return readFileAsync(ReceiptStorage.resolve(receiptPath) ?? receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
 export {checkIfLocalFileIsAccessible, detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt};
