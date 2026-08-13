@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import type * as SearchContextModule from '@components/Search/SearchContext';
+
 import useExportActions from '@hooks/useExportActions';
 
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
@@ -28,7 +30,7 @@ jest.mock('@libs/actions/Link', () => ({
 }));
 
 jest.mock('@components/Search/SearchContext', () => ({
-    ...jest.requireActual<typeof import('@components/Search/SearchContext')>('@components/Search/SearchContext'),
+    ...jest.requireActual<typeof SearchContextModule>('@components/Search/SearchContext'),
     useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
 }));
 
