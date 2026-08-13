@@ -9,7 +9,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -131,17 +134,21 @@ describe('ReportActionItemSingle', () => {
         }
 
         type Ancestor = {props: {style?: unknown}; parent: Ancestor | null};
-        function hasBorderLeftWidth(style: unknown): boolean {
+        function isModerationFlagStyle(style: unknown): style is StyleProp<Pick<ViewStyle, 'borderLeftWidth'>> {
             if (Array.isArray(style)) {
-                return style.some(hasBorderLeftWidth);
+                return style.every(isModerationFlagStyle);
             }
-            return typeof style === 'object' && style !== null && 'borderLeftWidth' in style && style.borderLeftWidth !== undefined;
+            if (style === undefined || style === null || style === false || style === '') {
+                return true;
+            }
+            return typeof style === 'object' && (!('borderLeftWidth' in style) || style.borderLeftWidth === undefined || typeof style.borderLeftWidth === 'number');
         }
 
         function findFlaggedAncestor(start: Ancestor | null): Ancestor | null {
             let cursor = start;
             while (cursor) {
-                if (hasBorderLeftWidth(cursor.props.style)) {
+                const style = cursor.props.style;
+                if (isModerationFlagStyle(style) && StyleSheet.flatten(style)?.borderLeftWidth !== undefined) {
                     return cursor;
                 }
                 cursor = cursor.parent;
