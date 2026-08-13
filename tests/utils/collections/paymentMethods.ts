@@ -1,5 +1,3 @@
-import GenericBank from '@assets/images/bank-icons/generic-bank-account.svg';
-
 import CONST from '@src/CONST';
 import type AccountData from '@src/types/onyx/AccountData';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
@@ -20,7 +18,7 @@ type MalformedPaymentMethodOverrides = (Omit<PaymentMethodOverrides, 'accountDat
  * Defaults represent a valid open business bank account so tests can override only the fields they need.
  */
 function createMockPaymentMethod(overrides: PaymentMethodOverrides | MalformedPaymentMethodOverrides = {}): PaymentMethod {
-    const defaults = {
+    const defaults: BankPaymentMethod = {
         accountData: {
             type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
             state: CONST.BANK_ACCOUNT.STATE.OPEN,
@@ -28,20 +26,19 @@ function createMockPaymentMethod(overrides: PaymentMethodOverrides | MalformedPa
         methodID: 123,
         title: 'Business Account',
         description: 'USD • Ending in 0000',
-        icon: GenericBank,
+        // @ts-expect-error -- undefined icons intentionally preserve the established fixture shape.
+        icon: undefined,
         iconStyles: [],
         iconSize: 40,
         bankCurrency: CONST.CURRENCY.USD,
         bankCountry: CONST.COUNTRY.US,
-    } satisfies PaymentMethod;
+    };
 
     if (overrides.accountData === null) {
         const {accountData, ...validOverrides} = overrides;
         return {
             ...defaults,
             ...validOverrides,
-            // @ts-expect-error -- undefined icons intentionally preserve the established fixture shape.
-            icon: overrides.icon,
             // @ts-expect-error -- null account data intentionally exercises the runtime guard.
             accountData,
         };
@@ -52,8 +49,6 @@ function createMockPaymentMethod(overrides: PaymentMethodOverrides | MalformedPa
         return {
             ...defaults,
             ...validOverrides,
-            // @ts-expect-error -- undefined icons intentionally preserve the established fixture shape.
-            icon: overrides.icon,
             // @ts-expect-error -- null method IDs intentionally exercise the runtime guard.
             methodID,
         };
@@ -62,8 +57,6 @@ function createMockPaymentMethod(overrides: PaymentMethodOverrides | MalformedPa
     return {
         ...defaults,
         ...overrides,
-        // @ts-expect-error -- undefined icons intentionally preserve the established fixture shape.
-        icon: overrides.icon,
     };
 }
 
