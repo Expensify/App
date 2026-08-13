@@ -7,6 +7,13 @@ inputs:
     description: 'Indicates if node is set up for hybrid app'
     required: false
     default: 'false'
+  SEED_STICKY_DISKS:
+    description: |
+      'true' only in the seedStickyDisks workflow, which installs dependencies and nothing else.
+      Everywhere else the disks are mounted read-through so no job can persist build artifacts or
+      tool caches into the snapshot.
+    required: false
+    default: 'false'
 
 outputs:
   cache-hit:
@@ -30,17 +37,13 @@ runs:
       shell: bash
       run: echo "use-sticky-disk=${{ runner.os == 'Linux' && contains(runner.name, 'blacksmith') }}" >> "$GITHUB_OUTPUT"
 
-    # if-missing: whichever job first mounts a fresh key commits its snapshot when the job ends;
-    # once a snapshot exists every later mount is read-through (the clone is discarded). The snapshot
-    # can carry one job's worth of build artifacts (whoever wins the initial race), but it can never
-    # grow after that, and the key rotates with every lockfile/patch change anyway.
     - id: stickydisk-node-modules
       if: steps.runner-info.outputs.use-sticky-disk == 'true'
       uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
       with:
         key: ${{ format('{0}-{1}-{2}-node-modules-{3}', github.repository, runner.os, runner.arch, inputs.IS_HYBRID_BUILD == 'true' && hashFiles('normalized-package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**') || hashFiles('normalized-package-lock.json', 'patches/**')) }}
         path: node_modules
-        commit: if-missing
+        commit: ${{ inputs.SEED_STICKY_DISKS == 'true' && 'if-missing' || 'false' }}
 
     - id: stickydisk-old-dot-node-modules
       if: steps.runner-info.outputs.use-sticky-disk == 'true' && inputs.IS_HYBRID_BUILD == 'true'
@@ -48,10 +51,8 @@ runs:
       with:
         key: ${{ format('{0}-{1}-{2}-old-dot-node-modules-{3}', github.repository, runner.os, runner.arch, hashFiles('Mobile-Expensify/package-lock.json', 'Mobile-Expensify/patches/**')) }}
         path: Mobile-Expensify/node_modules
-        commit: if-missing
+        commit: ${{ inputs.SEED_STICKY_DISKS == 'true' && 'if-missing' || 'false' }}
 
-    # The npm cache disk has no hash in its key and barely grows (tarballs are content-addressed):
-    # on-change commits whenever npm ci actually wrote new tarballs and skips runs that never touch ~/.npm.
     - id: stickydisk-npm
       if: steps.runner-info.outputs.use-sticky-disk == 'true'
       uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
