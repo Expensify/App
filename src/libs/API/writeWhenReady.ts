@@ -24,6 +24,24 @@ type WriteReadyBarrier = (signal: AbortSignal) => PromiseLike<unknown>;
 
 type ReleaseReason = 'success' | 'rejected' | 'safetyTimeout' | 'appBackground';
 
+type WriteWhenReadyOptions = {
+    safetyTimeoutMs?: number;
+
+    /**
+     * Fires exactly once, on every release path (including the already-backgrounded-at-call-time
+     * path, and a barrier that throws synchronously), BEFORE `write()` is invoked. A throwing
+     * `onRelease` is logged and does not block the write.
+     */
+    onRelease?: (reason: ReleaseReason) => void;
+
+    /**
+     * Fires only after `write()` has been called and returned without throwing - for bundling a
+     * side effect (e.g. a notification) that today runs synchronously right after `API.write()`.
+     * A throwing `onWriteStarted` is logged and does not affect the write's outcome.
+     */
+    onWriteStarted?: () => void;
+};
+
 // How long writeWhenReady waits for the barrier before executing, so the write happens even if the promise never settles.
 // Must stay longer than the default barrier's worst case (CONST.MAX_TRANSITION_START_WAIT_MS + CONST.MAX_TRANSITION_DURATION_MS); a unit test pins that against drift.
 // Exported for that test so it asserts on the real value rather than a copy of the formula.
@@ -124,16 +142,19 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData?: OnyxData<TKey>,
     barrier?: WriteReadyBarrier,
-    safetyTimeoutMs?: number,
+    options?: number | WriteWhenReadyOptions,
 ): Promise<void | Response<TKey>>;
 function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData<TKey> = {},
     barrier: WriteReadyBarrier = waitForTransition,
-    safetyTimeoutMs: number = SAFETY_TIMEOUT_MS,
+    options: number | WriteWhenReadyOptions = {},
 ): Promise<void | Response<TKey>> {
     Log.info('[API] Called API writeWhenReady', false, buildLogParams(command, apiCommandParameters ?? {}));
+
+    // Back-compat: the fifth parameter used to be a bare safetyTimeoutMs number.
+    const {safetyTimeoutMs = SAFETY_TIMEOUT_MS, onRelease, onWriteStarted} = typeof options === 'number' ? {safetyTimeoutMs: options} : options;
 
     return new Promise((resolve, reject) => {
         let hasExecuted = false;
@@ -165,7 +186,22 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
                     });
                 }
 
+                // onRelease must never block or fail the write - isolate it in its own try/catch.
+                try {
+                    onRelease?.(reason);
+                } catch (error) {
+                    Log.warn('[API] writeWhenReady onRelease threw', {command, error});
+                }
+
                 write(command, apiCommandParameters, onyxData).then(resolve, reject);
+
+                // Fires only after write() has been called and returned without throwing. Isolated so a
+                // throwing side effect can't be mistaken for a failed write or surface as an unhandled rejection.
+                try {
+                    onWriteStarted?.();
+                } catch (error) {
+                    Log.warn('[API] writeWhenReady onWriteStarted threw', {command, error});
+                }
             } catch (error) {
                 reject(error);
             }
@@ -204,4 +240,4 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
 }
 
 export {writeWhenReady, createTransitionBarrier, SAFETY_TIMEOUT_MS};
-export type {WriteReadyBarrier};
+export type {WriteReadyBarrier, WriteWhenReadyOptions, ReleaseReason};

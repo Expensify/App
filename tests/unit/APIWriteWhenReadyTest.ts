@@ -474,4 +474,142 @@ describe('API.writeWhenReady', () => {
     it('keeps the safety timeout above the default barrier worst case (guards constant drift)', () => {
         expect(SAFETY_TIMEOUT_MS).toBeGreaterThan(CONST.MAX_TRANSITION_START_WAIT_MS + CONST.MAX_TRANSITION_DURATION_MS);
     });
+
+    describe('onRelease/onWriteStarted options', () => {
+        it('calls onRelease with "success" before write() executes, and onWriteStarted after', async () => {
+            const calls: string[] = [];
+            const onRelease = jest.fn(() => calls.push('release'));
+            const onWriteStarted = jest.fn(() => calls.push('started'));
+            mockPush.mockImplementationOnce(() => {
+                calls.push('pushed');
+                return Promise.resolve();
+            });
+
+            await API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, {}, () => Promise.resolve(), {onRelease, onWriteStarted});
+            await flushMicrotasks(pushHappened);
+
+            expect(onRelease).toHaveBeenCalledWith('success');
+            expect(onWriteStarted).toHaveBeenCalledTimes(1);
+            expect(calls).toEqual(['release', 'pushed', 'started']);
+        });
+
+        it('calls onRelease with the release reason on the safety-timeout and app-background paths', async () => {
+            jest.useFakeTimers();
+            try {
+                const onRelease = jest.fn();
+                API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, {}, neverSettlingBarrier(), {onRelease});
+                await jest.advanceTimersByTimeAsync(SAFETY_TIMEOUT_MS);
+                await flushMicrotasks(pushHappened);
+
+                expect(onRelease).toHaveBeenCalledTimes(1);
+                expect(onRelease).toHaveBeenCalledWith('safetyTimeout');
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
+        it('calls onRelease with "appBackground" when already backgrounded at call time', async () => {
+            emitAppState('background');
+            const onRelease = jest.fn();
+
+            API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, {}, neverSettlingBarrier(), {onRelease});
+            await flushMicrotasks(pushHappened);
+
+            expect(onRelease).toHaveBeenCalledTimes(1);
+            expect(onRelease).toHaveBeenCalledWith('appBackground');
+        });
+
+        it('calls onRelease with "rejected" when the barrier rejects', async () => {
+            const onRelease = jest.fn();
+
+            API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, {}, () => Promise.reject(new Error('barrier failed')), {onRelease});
+            await flushMicrotasks(pushHappened);
+
+            expect(onRelease).toHaveBeenCalledTimes(1);
+            expect(onRelease).toHaveBeenCalledWith('rejected');
+        });
+
+        it('fires onRelease exactly once even if the safety timeout also elapses after a normal release', async () => {
+            jest.useFakeTimers();
+            try {
+                let releaseBarrier: () => void = () => {};
+                const barrier: WriteReadyBarrier = () => new Promise<void>((resolve) => (releaseBarrier = resolve));
+                const onRelease = jest.fn();
+
+                API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, {}, barrier, {onRelease});
+                await flushMicrotasks();
+                releaseBarrier();
+                await flushMicrotasks(pushHappened);
+
+                await jest.advanceTimersByTimeAsync(SAFETY_TIMEOUT_MS * 2);
+
+                expect(onRelease).toHaveBeenCalledTimes(1);
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
+        it('lets write() execute even when onRelease throws, and logs instead of propagating', async () => {
+            const onRelease = jest.fn(() => {
+                throw new Error('onRelease boom');
+            });
+
+            const promise = API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, {}, () => Promise.resolve(), {onRelease});
+            await flushMicrotasks(pushHappened);
+
+            expect(mockPush).toHaveBeenCalledTimes(1);
+            await expect(promise).resolves.toBeUndefined();
+        });
+
+        it("does not change the write's outcome when onWriteStarted throws, and does not surface as an unhandled rejection", async () => {
+            const onWriteStarted = jest.fn(() => {
+                throw new Error('onWriteStarted boom');
+            });
+
+            const promise = API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, {}, () => Promise.resolve(), {onWriteStarted});
+            await flushMicrotasks(pushHappened);
+
+            expect(onWriteStarted).toHaveBeenCalledTimes(1);
+            await expect(promise).resolves.toBeUndefined();
+        });
+
+        it('does not call onWriteStarted when write() throws synchronously', async () => {
+            const updateSpy = jest.spyOn(Onyx, 'update').mockImplementationOnce(() => {
+                throw new Error('write boom');
+            });
+            try {
+                const onWriteStarted = jest.fn();
+                const onyxData: DeferWriteOnyxData = {
+                    optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_PREFERRED_LOCALE, value: CONST.LOCALES.EN}],
+                };
+
+                const outcome = API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, onyxData, () => Promise.resolve(), {onWriteStarted}).then(
+                    () => 'resolved',
+                    () => 'rejected',
+                );
+                await flushMicrotasks(() => updateSpy.mock.calls.length > 0);
+
+                await expect(outcome).resolves.toBe('rejected');
+                expect(onWriteStarted).not.toHaveBeenCalled();
+            } finally {
+                updateSpy.mockRestore();
+            }
+        });
+
+        it('still accepts a bare number as the fifth parameter for backward compatibility', async () => {
+            jest.useFakeTimers();
+            try {
+                const customTimeoutMs = 100;
+                deferWrite(neverSettlingBarrier(), customTimeoutMs);
+                await flushMicrotasks();
+
+                await jest.advanceTimersByTimeAsync(customTimeoutMs);
+                await flushMicrotasks(pushHappened);
+
+                expect(mockPush).toHaveBeenCalledTimes(1);
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+    });
 });
