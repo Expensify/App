@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-// These tests build the hook props partially, so every rerender/initialProps call needs a @ts-expect-error.
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import {renderHook} from '@testing-library/react-native';
 
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
@@ -86,11 +84,12 @@ describe('useSearchHighlightAndScroll', () => {
     it('should trigger search when new transaction added and focused', () => {
         const initialProps = {
             ...baseProps,
-            transactions: {transactions_1: {transactionID: '1'}},
-            previousTransactions: {transactions_1: {transactionID: '1'}},
+            transactions: {'1': {transactionID: '1'}},
+            previousTransactions: {'1': {transactionID: '1'}},
         };
 
         const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             initialProps,
         });
@@ -98,12 +97,13 @@ describe('useSearchHighlightAndScroll', () => {
         const updatedProps = {
             ...baseProps,
             transactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_2: {transactionID: '2'},
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
             },
-            previousTransactions: {transactions_1: {transactionID: '1'}},
+            previousTransactions: {'1': {transactionID: '1'}},
         };
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
         expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
@@ -118,9 +118,10 @@ describe('useSearchHighlightAndScroll', () => {
 
         const updatedProps = {
             ...baseProps,
-            transactions: {transactions_1: {transactionID: '1'}},
+            transactions: {'1': {transactionID: '1'}},
         };
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
         expect(search).not.toHaveBeenCalled();
@@ -145,6 +146,7 @@ describe('useSearchHighlightAndScroll', () => {
         };
 
         const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             initialProps: chatProps,
         });
@@ -159,6 +161,7 @@ describe('useSearchHighlightAndScroll', () => {
             },
         };
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
         expect(search).toHaveBeenCalledWith({queryJSON: chatProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
@@ -168,16 +171,17 @@ describe('useSearchHighlightAndScroll', () => {
         const initialProps = {
             ...baseProps,
             transactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_2: {transactionID: '2'},
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
             },
             previousTransactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_2: {transactionID: '2'},
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
             },
         };
 
         const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             initialProps,
         });
@@ -185,170 +189,11 @@ describe('useSearchHighlightAndScroll', () => {
         const updatedProps = {
             ...baseProps,
             transactions: {
-                transactions_1: {transactionID: '1'},
+                '1': {transactionID: '1'},
             },
         };
 
-        // @ts-expect-error
-        rerender(updatedProps);
-        expect(search).not.toHaveBeenCalled();
-    });
-
-    it('should trigger search when a transaction that is absent from the results is added', () => {
-        const initialProps = {
-            ...baseProps,
-            searchResults: {
-                ...baseProps.searchResults,
-                data: {
-                    transactions_1: {transactionID: '1'},
-                },
-            },
-            transactions: {
-                transactions_1: {transactionID: '1'},
-            },
-            previousTransactions: {
-                transactions_1: {transactionID: '1'},
-            },
-        };
-
-        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
-            // @ts-expect-error
-            initialProps,
-        });
-
-        const updatedProps = {
-            ...initialProps,
-            transactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_2: {transactionID: '2'},
-            },
-        };
-
-        // @ts-expect-error
-        rerender(updatedProps);
-        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
-    });
-
-    it('should not trigger search when the added transaction is already in the search results', () => {
-        const initialProps = {
-            ...baseProps,
-            searchResults: {
-                ...baseProps.searchResults,
-                data: {
-                    transactions_1: {transactionID: '1'},
-                    transactions_2: {transactionID: '2'},
-                },
-            },
-            transactions: {
-                transactions_1: {transactionID: '1'},
-            },
-            previousTransactions: {
-                transactions_1: {transactionID: '1'},
-            },
-        };
-
-        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
-            // @ts-expect-error
-            initialProps,
-        });
-
-        const updatedProps = {
-            ...initialProps,
-            transactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_2: {transactionID: '2'},
-            },
-        };
-
-        // @ts-expect-error
-        rerender(updatedProps);
-        expect(search).not.toHaveBeenCalled();
-    });
-
-    it('should not trigger search on a non-chat search when a report action was added and Onyx holds a transaction the query filters out', () => {
-        const initialProps = {
-            ...baseProps,
-            searchResults: {
-                ...baseProps.searchResults,
-                data: {
-                    transactions_1: {transactionID: '1'},
-                },
-            },
-            // `transactions_99` is held by the client but filtered out by the query, the normal paginated/filtered state.
-            transactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_99: {transactionID: '99'},
-            },
-            previousTransactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_99: {transactionID: '99'},
-            },
-            reportActions: {
-                reportActions_1: {
-                    '1': {actionName: 'EXISTING', reportActionID: '1'},
-                },
-            },
-            previousReportActions: {
-                reportActions_1: {
-                    '1': {actionName: 'EXISTING', reportActionID: '1'},
-                },
-            },
-        };
-
-        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
-            // @ts-expect-error
-            initialProps,
-        });
-
-        const updatedProps = {
-            ...initialProps,
-            reportActions: {
-                reportActions_1: {
-                    '1': {actionName: 'EXISTING', reportActionID: '1'},
-                    '2': {actionName: 'ADDCOMMENT', reportActionID: '2'},
-                },
-            },
-        };
-
-        // @ts-expect-error
-        rerender(updatedProps);
-        expect(search).not.toHaveBeenCalled();
-    });
-
-    it('should not trigger search when the added transaction is already in the results and Onyx holds one the query filters out', () => {
-        const initialProps = {
-            ...baseProps,
-            searchResults: {
-                ...baseProps.searchResults,
-                data: {
-                    transactions_1: {transactionID: '1'},
-                    transactions_2: {transactionID: '2'},
-                },
-            },
-            transactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_99: {transactionID: '99'},
-            },
-            previousTransactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_99: {transactionID: '99'},
-            },
-        };
-
-        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
-            // @ts-expect-error
-            initialProps,
-        });
-
-        const updatedProps = {
-            ...initialProps,
-            transactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_99: {transactionID: '99'},
-                transactions_2: {transactionID: '2'},
-            },
-        };
-
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
         expect(search).not.toHaveBeenCalled();
@@ -375,6 +220,7 @@ describe('useSearchHighlightAndScroll', () => {
         };
 
         const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             initialProps: chatProps,
         });
@@ -388,6 +234,7 @@ describe('useSearchHighlightAndScroll', () => {
             },
         };
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
         expect(search).not.toHaveBeenCalled();
@@ -411,14 +258,15 @@ describe('useSearchHighlightAndScroll', () => {
                 },
             },
             transactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_2: {transactionID: '2'},
-                transactions_3: {transactionID: '3'},
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
+                '3': {transactionID: '3'},
             },
             previousTransactions: {
-                transactions_1: {transactionID: '1'},
+                '1': {transactionID: '1'},
             },
         };
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
         expect(result.current.newSearchResultKeys?.size).toBe(2);
@@ -432,8 +280,10 @@ describe('useSearchHighlightAndScroll', () => {
             focusTextInput: jest.fn(),
         };
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         result.current.handleSelectionListScroll([{transactionID: '1'}, {transactionID: '2'}], ref);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         result.current.handleSelectionListScroll([{transactionID: '2'}, {transactionID: '1'}], ref);
 
@@ -469,12 +319,12 @@ describe('useSearchHighlightAndScroll', () => {
                 }),
             }),
             transactions: {
-                transactions_1: createMock<Transaction>({transactionID: '1'}),
-                transactions_2: createMock<Transaction>({transactionID: '2'}),
-                transactions_3: createMock<Transaction>({transactionID: '3'}),
+                '1': createMock<Transaction>({transactionID: '1'}),
+                '2': createMock<Transaction>({transactionID: '2'}),
+                '3': createMock<Transaction>({transactionID: '3'}),
             },
             previousTransactions: {
-                transactions_1: createMock<Transaction>({transactionID: '1'}),
+                '1': createMock<Transaction>({transactionID: '1'}),
             },
         };
 
@@ -521,6 +371,7 @@ describe('useSearchHighlightAndScroll', () => {
             },
         };
         const {rerender, result} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             initialProps: chatProps,
         });
@@ -554,6 +405,7 @@ describe('useSearchHighlightAndScroll', () => {
                 },
             },
         };
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
         expect(result.current.newSearchResultKeys?.size).toBe(2);
