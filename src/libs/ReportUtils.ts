@@ -291,6 +291,7 @@ import {
     isReceiptBeingScanned,
     isScanning,
     isScanRequest as isScanRequestTransactionUtils,
+    isTransactionPendingDelete,
 } from './TransactionUtils';
 import addTrailingForwardSlash from './UrlUtils';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
@@ -9558,13 +9559,15 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
             if (!potentialReport) {
                 return false;
             }
-            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${potentialReport.policyID}`];
-            const transactions = getReportTransactions(potentialReport.reportID);
-
             // Allow both open and processing reports to show RBR for violations
             if (!isOpenOrProcessingReport(potentialReport)) {
                 return false;
             }
+
+            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${potentialReport.policyID}`];
+            // Ignore transactions that are already pending deletion (e.g. a reverted split child) so the LHN RBR stays
+            // consistent with what the opened report renders, which also filters out DELETE-pending transactions.
+            const transactions = getReportTransactions(potentialReport.reportID).filter((transaction) => !isTransactionPendingDelete(transaction));
 
             const excludedNoticeNamesForLHN = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.MODIFIED_AMOUNT] : [];
 

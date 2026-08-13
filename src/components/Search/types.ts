@@ -338,7 +338,12 @@ type SearchDateFilterKeys =
 
 type SearchDateKey = `${SearchDateFilterKeys}${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}` | ReportFieldDateKey;
 
-type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT;
+type SearchAmountFilterKeys =
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED;
 type SearchAmountValues = Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>;
 
 type SearchFilterKey =

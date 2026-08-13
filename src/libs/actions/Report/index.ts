@@ -4407,7 +4407,9 @@ function buildNewReportOptimisticData({
         });
     }
 
-    optimisticData.push(...updateTitleFieldToMatchPolicy(reportID, policy));
+    if (!reportName) {
+        optimisticData.push(...updateTitleFieldToMatchPolicy(reportID, policy));
+    }
 
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
     if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
