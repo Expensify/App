@@ -314,3 +314,11 @@
 - E/App issue: https://github.com/Expensify/App/issues/97471
 - PR introducing patch: https://github.com/Expensify/App/pull/97496
 - 0.86.0 migration note: the `fixFindShadowNodeByTagRaceCondition` flag still defaults to `false` in RN 0.86.0 (unchanged from 0.85.3), and the surrounding code in `UIManager.cpp` is byte-for-byte identical, so the original diff applies with zero fuzz. Only the patch-package filename was renumbered from `0.85.3+040` to `0.86.0+036`; no content changes were needed.
+
+### [react-native+0.86.0+037+fix-stale-font-scale.patch](react-native+0.86.0+037+fix-stale-font-scale.patch)
+
+- Reason: Fixes Fabric reusing shadow nodes that hold a stale font scale, leaving text at its old measured size after the OS font size changes. RN 0.86.0 dirties measurable nodes from `SurfaceHandler::constraintLayout` only on the commit where the multiplier changes, and only compares against the *root's* value — so a node cloned from a parent still carrying an obsolete `fontSizeMultiplier` is never re-dirtied. The upstream rewrite stores `fontSizeMultiplier` on `LayoutMetrics` and threads it through `YogaLayoutableShadowNode::configureYogaTree` alongside `pointScaleFactor`, so every commit re-checks each node's own value and calls `markDirtyAndPropagate()` when it is out of date; the now-redundant `dirtyMeasurableNodes`/`dirtyMeasurableNodesRecursive` helpers are removed from `SurfaceHandler`. Gated by RN's existing `enableFontScaleChangesUpdatingLayout` flag, which defaults to `true` in 0.86.0.
+- Upstream PR/issue: https://github.com/react/react-native/pull/57246 (fixes https://github.com/react/react-native/issues/52895)
+- E/App issue: 🛑 — backport of an upstream fix, no separate E/App issue was filed.
+- PR introducing patch: https://github.com/Expensify/App/pull/98507
+- 0.86.0 migration note: **drop this patch with the RN 0.87 upgrade** — upstream commit `45904c8` is absent from every 0.86.x release but ships in `v0.87.0`, and the patch will not apply against it. Two deviations from the upstream commit: the `scripts/cxx-api/api-snapshots/*.api` hunks are omitted (those files are not shipped in the npm package), and `fontSizeMultiplier` is declared *last* in `LayoutMetrics` rather than after `pointScaleFactor`, because `@rnmapbox/maps` initializes that struct positionally and inserting a field mid-struct breaks its iOS build.
