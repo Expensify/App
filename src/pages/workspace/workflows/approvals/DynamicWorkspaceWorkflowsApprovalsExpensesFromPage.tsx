@@ -11,6 +11,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+import useRunAfterTransitions from '@hooks/useRunAfterTransitions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearInviteDraft, setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
@@ -63,8 +64,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {showConfirmModal} = useConfirmModal();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-
-    const personalDetailLogins = useMemo(() => Object.fromEntries(Object.entries(personalDetails ?? {}).map(([id, details]) => [id, details?.login])), [personalDetails]);
+    const shouldInitializeSearch = useRunAfterTransitions(true);
 
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
@@ -88,7 +88,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         includeUserToInvite: true,
         excludeLogins: excludedUsers,
         includeRecentReports: false,
-        shouldInitialize: true,
+        shouldInitialize: shouldInitializeSearch,
     });
 
     useEffect(() => {
@@ -153,7 +153,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                     }
                 }
 
-                const login = personalDetailLogins?.[accountID] ?? member.email;
+                const login = personalDetails?.[accountID]?.login ?? member.email;
                 const displayName = member.displayName ?? personalDetail?.displayName ?? member.email;
                 const avatar = member.avatar ?? personalDetail?.avatar;
 

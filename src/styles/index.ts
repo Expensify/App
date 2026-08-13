@@ -2051,6 +2051,15 @@ const staticStyles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.SYSTEM.fontFamily,
         },
 
+        onboardingHeaderContainer: {
+            height: 52,
+            paddingHorizontal: 20,
+            paddingVertical: 16,
+            marginTop: 8,
+            justifyContent: 'center',
+            alignItems: 'flex-start',
+        },
+
         createMenuContainer: {
             width: variables.sideBarWidth - 40,
             paddingVertical: variables.componentBorderRadiusLarge,
@@ -5561,26 +5570,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         checkboxWithLabelCheckboxStyle: {
             marginLeft: -2,
-        },
-
-        headerProgressBarContainer: {
-            position: 'absolute',
-            width: '100%',
-            pointerEvents: 'none',
-        },
-
-        headerProgressBar: {
-            width: variables.componentSizeMedium,
-            height: variables.iconSizeXXXSmall,
-            borderRadius: variables.componentBorderRadiusRounded,
-            backgroundColor: theme.border,
-            alignSelf: 'center',
-        },
-
-        headerProgressBarFill: {
-            borderRadius: variables.componentBorderRadiusRounded,
-            height: '100%',
-            backgroundColor: theme.success,
         },
 
         interactiveStepHeaderContainer: {

@@ -4437,7 +4437,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace
-            Report.moveIOUReportToPolicy(iouReport, policy, undefined);
+            Report.moveIOUReportToPolicy(iouReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -4459,7 +4459,7 @@ describe('actions/Report', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
             const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
-            const result = Report.moveIOUReportToPolicy(expenseReport, policy, undefined);
+            const result = Report.moveIOUReportToPolicy(expenseReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal);
             expect(result).toBeUndefined();
         });
 
@@ -4484,7 +4484,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {[iouReportAction.reportActionID]: iouReportAction});
             await waitForBatchedUpdates();
 
-            const result = Report.moveIOUReportToPolicy(iouReport, policy, undefined, false);
+            const result = Report.moveIOUReportToPolicy(iouReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal, false);
             expect(result).toBeUndefined();
         });
 
@@ -4521,7 +4521,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When isFromSettlementButton is true, it should proceed despite hasRequestFromCurrentAccount being true
-            const result = Report.moveIOUReportToPolicy(iouReport, policy, undefined, true);
+            const result = Report.moveIOUReportToPolicy(iouReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal, true);
             expect(result).toBeDefined();
             expect(result?.policyExpenseChatReportID).toBeDefined();
         });
@@ -4551,7 +4551,7 @@ describe('actions/Report', () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
 
                 // When converting IOU report to expense report
-                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat123', undefined, []);
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat123', undefined, TestHelper.getCurrencyDecimalsLocal, []);
 
                 // Then the report name should be set to the default formula result ("New Report")
                 const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
@@ -4583,7 +4583,7 @@ describe('actions/Report', () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
 
                 // When converting IOU report to expense report
-                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat124', undefined, []);
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat124', undefined, TestHelper.getCurrencyDecimalsLocal, []);
 
                 // Then the report name should be set to the default formula result ("New Report")
                 const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
@@ -4615,7 +4615,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace and invite the submitter
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -4681,7 +4681,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Call moveIOUReportToPolicyAndInviteSubmitter
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Simulate network failure
@@ -4739,7 +4739,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
             // When moving IOU to a workspace with reportTransactions
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, [transaction]);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal, [transaction]);
             await waitForBatchedUpdates();
 
             // Then the transaction amounts should be negated optimistically
@@ -4785,7 +4785,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
             // When moving IOU to a workspace with transactions
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, [transaction]);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal, [transaction]);
             await waitForBatchedUpdates();
 
             // Then the report should be converted to an expense report with the new policyID
@@ -4813,7 +4813,7 @@ describe('actions/Report', () => {
 
         it('should return undefined when iouReport is missing', () => {
             const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
-            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(undefined, policy, {}, undefined, TEST_USER_ACCOUNT_ID, '', false);
+            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(undefined, policy, {}, undefined, TEST_USER_ACCOUNT_ID, '', false, TestHelper.getCurrencyDecimalsLocal);
             expect(result).toBeUndefined();
         });
     });

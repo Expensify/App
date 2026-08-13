@@ -197,7 +197,6 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: 'à',
         genericErrorMessage: 'Oups... une erreur s’est produite et votre requête n’a pas pu être effectuée. Veuillez réessayer plus tard.',
         percentage: 'Pourcentage',
-        progressBarLabel: "Progression de l'intégration",
         converted: 'Converti',
         error: {
             invalidAmount: 'Montant invalide',
@@ -1904,14 +1903,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                requiredDepositCurrency?: string,
             ) => {
+                const account = requiredDepositCurrency ? `compte bancaire en ${requiredDepositCurrency}` : 'compte bancaire';
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `En attente que <strong>vous</strong> ajoutiez un compte bancaire.`;
+                        return `En attente que <strong>vous</strong> ajoutiez un ${account}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `En attente que <strong>${actor}</strong> ajoute un compte bancaire.`;
+                        return `En attente que <strong>${actor}</strong> ajoute un ${account}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `En attente qu’un administrateur ajoute un compte bancaire.`;
+                        return `En attente qu’un administrateur ajoute un ${account}.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
@@ -2594,6 +2595,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnection: 'Veuillez corriger cette connexion',
             fixConnectionIn: (companyCardsRoute: string) => `Veuillez corriger cette connexion dans <a href="${companyCardsRoute}">cartes d’entreprise</a>`,
             askAdminToFixConnection: 'Veuillez demander à un administrateur de corriger cette connexion',
+            reconnectBank: 'Votre connexion bancaire doit être réauthentifiée',
         },
         bankAccountStatus: {
             active: 'Actif',
@@ -2963,7 +2965,7 @@ ${amount} pour ${merchant} - ${date}`,
         editAvatar: "Changer d'avatar",
         defaultAgentName: (displayName: string) => `Agent de ${displayName}`,
         defaultPrompt:
-            'Rejeter les dépenses liées aux jeux d’argent, aux films ou à d’autres motifs manifestement non professionnels.\n\nRappeler à l’utilisateur d’inclure systématiquement une image du reçu où le pourboire est clairement visible.\n\nApprouver le rapport s’il est très similaire aux rapports précédents du même utilisateur.\n\nRejeter les rapports contenant plus de 500 $ de frais de déplacement.',
+            'Catégoriser toutes les dépenses dans des cafés en Repas.\n\nPour chaque trajet en VTC, définir la description sur « Déplacement client ».\n\nTaguer tout ce que j’achète au magasin d’électronique en Équipement.\n\nSignaler toute dépense sans reçu afin que je puisse en ajouter un avant de soumettre.',
         copilotNote: 'Cet agent sera ajouté comme copilote avec un accès complet à votre compte, afin de pouvoir agir en votre nom.',
     },
     editAgentPage: {
@@ -6739,6 +6741,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 chooseLimitType: 'Choisissez un type de limite',
                 smartLimit: 'Limite intelligente',
                 smartLimitDescription: 'Dépenser jusqu’à un certain montant avant de nécessiter une approbation',
+                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
+                    `<muted-text-label>Dépenser jusqu’à un certain montant avant de nécessiter une approbation. <a href="${workspaceWorkflowsLink}">Activez les approbations</a> pour sélectionner cette option.</muted-text-label>`,
                 monthly: 'Mensuel',
                 monthlyDescription: 'Dépenser jusqu’à un certain montant par mois',
                 fixedAmount: 'Montant fixe',
@@ -8867,6 +8871,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `paramètres de facturation copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `paramètres de déplacement copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
+        updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'Désactivé'} l’exigence de catégorisation des dépenses`,
+        updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'Désactivé'} l’exigence de tag des dépenses`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `a modifié les participants de la catégorie « ${categoryName} » en ${newValue ? 'obligatoire' : 'non obligatoire'} (précédemment ${newValue ? 'non obligatoire' : 'obligatoire'})`;
         },

@@ -1,8 +1,8 @@
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
+import OnboardingHeader from '@components/OnboardingHeader';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import RadioButtonWithLabel from '@components/RadioButtonWithLabel';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -16,7 +16,6 @@ import useCompleteOnboarding from '@hooks/useCompleteOnboarding';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -36,7 +35,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 // eslint-disable-next-line no-restricted-imports
@@ -130,7 +128,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [onboardingUserReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
     const [onboardingFeaturesMap] = useOnyx(ONYXKEYS.ONBOARDING_INTERESTED_FEATURES_MAP);
-    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.ACCOUNTING, {isAccountingEnabled: true});
 
     const isKnownIntegration = isIntegrationKey(onboardingUserReportedIntegration);
     let initialSelectedIntegration: AccountingOptionKey | undefined;
@@ -272,13 +269,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             shouldEnableMaxHeight={!isMobileSafari()}
             shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
         >
-            <HeaderWithBackButton
-                shouldShowBackButton
-                stepCounter={onboardingStep?.stepCounter}
-                progressBarPercentage={onboardingStep?.progressBarPercentage}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute())}
-                shouldDisplayHelpButton={false}
-            />
+            <OnboardingHeader onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute())} />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <Text
                     style={[styles.textHeadlineH1, styles.mb5]}
