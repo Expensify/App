@@ -55,7 +55,7 @@ import CardSectionUtils from './utils';
 
 function CardSection() {
     const route = useRoute();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'Bill', 'Close']);
     const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes']);
@@ -125,6 +125,7 @@ function CardSection() {
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>
         CardSectionUtils.getBillingStatus({
             translate,
+            dateFnsLocale,
             stripeCustomerId: privateStripeCustomerID,
             accountData: defaultCard?.accountData ?? {},
             purchase: purchaseList?.[0],
@@ -140,7 +141,7 @@ function CardSection() {
         }),
     );
 
-    const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
+    const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate(dateFnsLocale) : undefined;
 
     const sectionSubtitle = getSectionSubtitle({
         translate,
@@ -155,6 +156,7 @@ function CardSection() {
         setBillingStatus(
             CardSectionUtils.getBillingStatus({
                 translate,
+                dateFnsLocale,
                 stripeCustomerId: privateStripeCustomerID,
                 accountData: defaultCard?.accountData ?? {},
                 purchase: purchaseList?.[0],
@@ -174,6 +176,7 @@ function CardSection() {
         subscriptionRetryBillingStatusSuccessful,
         subscriptionRetryBillingStatusFailed,
         translate,
+        dateFnsLocale,
         defaultCard?.accountData,
         privateStripeCustomerID,
         purchaseList,
@@ -243,25 +246,27 @@ function CardSection() {
             <View style={styles.mb3}>{isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}</View>
             {billingStatus?.isRetryAvailable !== undefined && (
                 <CardSectionButton
-                    text={translate('subscription.cardSection.retryPaymentButton')}
                     isDisabled={isOffline || !billingStatus?.isRetryAvailable}
                     isLoading={subscriptionRetryBillingStatusPending}
                     onPress={handleRetryPayment}
                     style={[styles.w100, styles.mb3]}
-                    large
+                    size={CONST.BUTTON_SIZE.LARGE}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.RETRY_PAYMENT}
-                />
+                >
+                    <CardSectionButton.Text>{translate('subscription.cardSection.retryPaymentButton')}</CardSectionButton.Text>
+                </CardSectionButton>
             )}
             {hasCardAuthenticatedError(privateStripeCustomerID, amountOwed) && (
                 <CardSectionButton
-                    text={translate('subscription.cardSection.authenticatePayment')}
                     isDisabled={isOffline || !billingStatus?.isAuthenticationRequired}
                     isLoading={isVerifyingSetupIntent}
                     onPress={handleAuthenticatePayment}
                     style={[styles.w100, styles.mt5]}
-                    large
+                    size={CONST.BUTTON_SIZE.LARGE}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.AUTHENTICATE_PAYMENT}
-                />
+                >
+                    <CardSectionButton.Text>{translate('subscription.cardSection.authenticatePayment')}</CardSectionButton.Text>
+                </CardSectionButton>
             )}
 
             {!!account?.hasPurchases && (

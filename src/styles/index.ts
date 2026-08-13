@@ -2051,6 +2051,15 @@ const staticStyles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.SYSTEM.fontFamily,
         },
 
+        onboardingHeaderContainer: {
+            height: 52,
+            paddingHorizontal: 20,
+            paddingVertical: 16,
+            marginTop: 8,
+            justifyContent: 'center',
+            alignItems: 'flex-start',
+        },
+
         createMenuContainer: {
             width: variables.sideBarWidth - 40,
             paddingVertical: variables.componentBorderRadiusLarge,
@@ -2799,6 +2808,17 @@ const staticStyles = (theme: ThemeColors) =>
 
         htmlTableLastRow: {
             borderBottomWidth: 0,
+        },
+
+        // A step past the hover background the surrounding comment uses, so a hovered row stays distinguishable
+        // while the whole comment is also highlighted.
+        htmlTableRowHovered: {
+            backgroundColor: theme.activeComponentBG,
+        },
+
+        htmlTableChevronCell: {
+            width: variables.htmlTableChevronColumnWidth,
+            alignItems: 'flex-end',
         },
 
         htmlTableCell: {
@@ -4368,6 +4388,19 @@ const staticStyles = (theme: ThemeColors) =>
             color: colors.productLight100,
         },
 
+        alternativeDistanceLabelWrapper: {
+            backgroundColor: colors.green100,
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 4,
+            textAlign: 'center',
+        },
+        alternativeDistanceLabelText: {
+            fontSize: 13,
+            fontWeight: FontUtils.fontWeight.bold,
+            color: colors.green800,
+        },
+
         productTrainingTooltipWrapper: {
             backgroundColor: theme.tooltipHighlightBG,
             borderRadius: variables.componentBorderRadiusNormal,
@@ -5539,26 +5572,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: -2,
         },
 
-        headerProgressBarContainer: {
-            position: 'absolute',
-            width: '100%',
-            pointerEvents: 'none',
-        },
-
-        headerProgressBar: {
-            width: variables.componentSizeMedium,
-            height: variables.iconSizeXXXSmall,
-            borderRadius: variables.componentBorderRadiusRounded,
-            backgroundColor: theme.border,
-            alignSelf: 'center',
-        },
-
-        headerProgressBarFill: {
-            borderRadius: variables.componentBorderRadiusRounded,
-            height: '100%',
-            backgroundColor: theme.success,
-        },
-
         interactiveStepHeaderContainer: {
             flex: 1,
             alignSelf: 'center',
@@ -6470,6 +6483,11 @@ const staticStyles = (theme: ThemeColors) =>
             width: 112,
             height: 160,
         },
+        commuterExclusionStaticIllustration: {
+            width: 160,
+            height: 140,
+            alignSelf: 'center',
+        },
         helpStaticIllustration: {
             width: 174,
             height: 156,
@@ -7152,9 +7170,20 @@ const plainStyles = (theme: ThemeColors) =>
             lineCap: 'round',
         } satisfies MapDirectionStyle,
 
+        alternativeMapDirection: {
+            lineColor: colors.green200,
+            lineWidth: 6,
+            lineCap: 'round',
+        },
+
         mapDirectionLayer: {
             layout: {'line-join': 'round', 'line-cap': 'round'},
             paint: {'line-color': colors.green400, 'line-width': 6},
+        },
+
+        alternativeMapDirectionLayer: {
+            layout: {'line-join': 'round', 'line-cap': 'round'},
+            paint: {'line-color': colors.green200, 'line-width': 6},
         },
 
         mapDirectionLayerBorder: {
