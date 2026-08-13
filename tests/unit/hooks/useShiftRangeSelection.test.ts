@@ -483,6 +483,31 @@ describe('useShiftRangeSelection', () => {
             });
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});
         });
+
+        it('resolves a seeded block against the rows the list holds at shift+click, not the ones it held when seeded', () => {
+            const onApplyRange = makeApplyMock();
+            // Seeded while only `a` is in the list, so none of the block's rows can be resolved yet.
+            const {result, rerender} = renderHook((props: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({onApplyRange, items: props.items})), {initialProps: {items: [ROW_A]}});
+            act(() => result.current.seedRangeFromSelection(['b', 'c', 'd']));
+
+            // The rest of the block arrives, the way a group's children do once it is expanded.
+            rerender({items: ROWS});
+            act(() => {
+                result.current.applyShiftClick(ROW_C, true);
+            });
+
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c'], toDeselect: ['d']});
+        });
+
+        it('accepts a membership test, so a block can be seeded before any of its rows are known', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            act(() => result.current.seedRangeFromSelection((key) => key === 'b' || key === 'c' || key === 'd'));
+            act(() => {
+                result.current.applyShiftClick(ROW_C, true);
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c'], toDeselect: ['d']});
+        });
     });
 
     describe('shift+click always selects (no deselect mode)', () => {

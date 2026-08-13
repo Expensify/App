@@ -32,8 +32,8 @@ type Api<TItem> = {
     /** Records a plainly clicked row, so the next shift+click continues from there */
     notifyAnchor: (item: TItem) => void;
 
-    /** Lets a selection made elsewhere, such as a group header, be narrowed by the next shift+click */
-    seedRangeFromSelection: (selectedKeys: ReadonlySet<string> | readonly string[]) => void;
+    /** Lets a selection made elsewhere, such as a group header, be narrowed by the next shift+click. Pass a test where the rows may still be loading */
+    seedRangeFromSelection: (members: ReadonlySet<string> | readonly string[] | ((key: string) => boolean)) => void;
 
     /** The same, for Select All */
     seedFullRange: () => void;
@@ -46,9 +46,12 @@ type Api<TItem> = {
  * Shift+click only ever selects, so the session has no mode to get stuck in. `painted` is the set of rows this session
  * selected, held by key so reordering the list cannot confuse it, and shrinking a range gives back only those rows.
  */
-type SessionState = {kind: 'idle'} | {kind: 'anchored'; anchor: string} | {kind: 'ranging'; anchor: string; painted: ReadonlySet<string>};
+type ResolvedSession = {kind: 'idle'} | {kind: 'anchored'; anchor: string} | {kind: 'ranging'; anchor: string; painted: ReadonlySet<string>};
 
-const IDLE: SessionState = {kind: 'idle'};
+/** A seeded block is held as a membership test, not as rows: it resolves at the next shift+click, so rows that had not loaded when it was seeded still join. */
+type SessionState = ResolvedSession | {kind: 'seeded'; isMember: (key: string) => boolean};
+
+const IDLE: ResolvedSession = {kind: 'idle'};
 
 /** Shift+click range selection. Consumers notify on plain clicks / select-all so the hook can resolve an anchor for the next shift+click. */
 function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
@@ -86,15 +89,18 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
             }
             sessionRef.current = {kind: 'anchored', anchor: key};
         },
-        seedRangeFromSelection: (selectedKeys) => {
-            // Keys are passed in because the caller's selection is optimistic — reading it here would see the pre-toggle set.
-            const currentParams = paramsRef.current;
-            const set = selectedKeys instanceof Set ? selectedKeys : new Set(selectedKeys);
-            sessionRef.current = seedRangeState(currentParams, (key) => set.has(key));
+        seedRangeFromSelection: (members) => {
+            // Recorded, not resolved: the caller's selection is optimistic, and the rows may not even be in the list yet.
+            if (typeof members === 'function') {
+                sessionRef.current = {kind: 'seeded', isMember: members};
+                return;
+            }
+            const set = members instanceof Set ? members : new Set(members);
+            sessionRef.current = {kind: 'seeded', isMember: (key) => set.has(key)};
         },
         seedFullRange: () => {
             // After Select All: seed a full-list range so the next shift+click collapses the selection to the clicked sub-range.
-            sessionRef.current = seedRangeState(paramsRef.current, () => true);
+            sessionRef.current = {kind: 'seeded', isMember: () => true};
         },
         clearAnchor: () => {
             sessionRef.current = IDLE;
@@ -123,7 +129,7 @@ function buildKeyIndex<TItem>(params: Params<TItem>): Map<string, number> {
 }
 
 /** Builds a `ranging` session anchored at the first selectable item passing `isIncluded` and painting every passing key, or `IDLE` when none qualify. */
-function seedRangeState<TItem>(params: Params<TItem>, isIncluded: (key: string) => boolean): SessionState {
+function seedRangeState<TItem>(params: Params<TItem>, isIncluded: (key: string) => boolean): ResolvedSession {
     let anchor: string | null = null;
     const painted = new Set<string>();
     for (const item of params.items) {
@@ -189,15 +195,18 @@ function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, ta
 
     const keyToIndex = buildKeyIndex(params);
 
-    const seed = state.kind === 'idle' ? null : state.anchor;
+    // A seeded block resolves here rather than when it was seeded, against the rows the list holds now.
+    const resolved: ResolvedSession = state.kind === 'seeded' ? seedRangeState(params, state.isMember) : state;
+
+    const seed = resolved.kind === 'idle' ? null : resolved.anchor;
     const anchor = resolveAnchor(params, keyToIndex, seed);
     if (anchor == null) {
         return null;
     }
     // The session survives only while the same anchor does; a re-resolved or cold anchor starts fresh.
-    const sameAnchor = state.kind !== 'idle' && anchor === state.anchor;
-    const continuing = state.kind === 'ranging' && sameAnchor;
-    const prevPainted: ReadonlySet<string> = continuing ? state.painted : startingPainted(params, sameAnchor);
+    const sameAnchor = resolved.kind !== 'idle' && anchor === resolved.anchor;
+    const continuing = resolved.kind === 'ranging' && sameAnchor;
+    const prevPainted: ReadonlySet<string> = continuing ? resolved.painted : startingPainted(params, sameAnchor);
     const preSelected = protectedKeys(params, prevPainted);
 
     const anchorIdx = keyToIndex.get(anchor);

@@ -29,7 +29,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useLayoutEffect, useRef} from 'react';
 
 import type {SearchListItem, TransactionListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SearchRowSelectionActionsValue, SelectedTransactionInfo, SelectedTransactions} from './types';
@@ -167,7 +167,8 @@ function SearchWriteActionsProvider({
     const searchHash = searchResults?.search?.hash;
     const {groupChildrenByKey, openGroupKeys, shiftRangeChildrenActions} = useGroupChildrenRegistry(searchHash);
 
-    const pendingSeedGroupKeyRef = useRef<string | undefined>(undefined);
+    // A seeded block resolves at the next shift+click, so it has to read the index as it is then, not as it was at the click that seeded it.
+    const groupKeyByChildKeyRef = useRef<ReadonlyMap<string, string>>(new Map());
 
     const searchResultsData = searchResults?.data;
     const currentUserEmail = email ?? '';
@@ -227,6 +228,9 @@ function SearchWriteActionsProvider({
     const flattenedShiftRangeItems = buildShiftRangeItems(renderedData, groupChildrenByKey, openGroupKeys, hasValidGroupBy);
     // Built from the rows the range spans, so a row can't be ranged under one parent and stored under another.
     const {childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey} = buildGroupChildrenIndex(renderedData, groupChildrenByKey, openGroupKeys, hasValidGroupBy);
+    useLayoutEffect(() => {
+        groupKeyByChildKeyRef.current = groupKeyByChildKey;
+    }, [groupKeyByChildKey]);
     const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
 
     // A child's parent, resolved once, or undefined where the group is not a whole-group selection this code may enumerate.
@@ -413,25 +417,14 @@ function SearchWriteActionsProvider({
     // The session belongs to one search, the same as the registry: a row matching both queries would otherwise let the old span collapse rows in the new results.
     useEffect(() => {
         rangeApi.clearAnchor();
-        pendingSeedGroupKeyRef.current = undefined;
     }, [searchHash, rangeApi]);
 
-    const seedGroup = (groupChildren: TransactionListItemType[]) => rangeApi.seedRangeFromSelection(new Set(groupChildren.map((child) => child.keyForList).filter(Boolean)));
+    // Seeded as membership rather than rows, so a group whose children are still loading seeds correctly once they arrive.
+    const seedGroup = (groupKey: string) => rangeApi.seedRangeFromSelection((childKey) => groupKeyByChildKeyRef.current.get(childKey) === groupKey);
 
     const toggle: SearchRowSelectionActionsValue['toggle'] = (item, itemTransactions, shiftKey) => {
         if (isReportActionListItemType(item) || isTaskListItemType(item)) {
             return;
-        }
-
-        // Held only until the very next gesture, so a seed arriving this late can never overwrite a session started in between.
-        const pendingSeedGroupKey = pendingSeedGroupKeyRef.current;
-        pendingSeedGroupKeyRef.current = undefined;
-
-        if (shiftKey && pendingSeedGroupKey) {
-            const pendingChildren = childrenByGroupKey.get(pendingSeedGroupKey) ?? [];
-            if (pendingChildren.length > 0 && isGroupSelected(groupSelectionParams(pendingSeedGroupKey, pendingChildren))) {
-                seedGroup(pendingChildren);
-            }
         }
 
         // The hook rejects headers as range targets, so shift+click on one falls through to the group toggle.
@@ -439,24 +432,16 @@ function SearchWriteActionsProvider({
             return;
         }
 
-        // The selection covers every row the group has loaded; the seed can only cover the ones a range can reach.
+        // One children source for the seed and the selection, so a group can't seed a different block than it selects.
         const groupTransactions = isTransactionGroupListItemType(item) ? (itemTransactions ?? item.transactions ?? []) : [];
 
         if (isShiftRangeHeaderItem(item) && isTransactionGroupListItemType(item)) {
-            // A header click selects a whole block, so seed it and a later shift+click can narrow it (like Select All).
-            // A collapsed group's rows are loaded but not in the list, so there is nothing to span until it opens.
-            const rangeableChildren = childrenByGroupKey.get(item.keyForList) ?? [];
-            const groupWasSelected = isGroupSelected(groupSelectionParams(item.keyForList, groupTransactions));
-            if (groupWasSelected) {
+            if (isGroupSelected(groupSelectionParams(item.keyForList, groupTransactions))) {
                 // Deselecting paints no block, so reset instead of leaving a stale span to collapse.
                 rangeApi.clearAnchor();
-            } else if (rangeableChildren.length > 0) {
-                // Seed just this block: seeding the whole selection would span unrelated rows and deselect them.
-                seedGroup(rangeableChildren);
             } else {
-                // Nothing to seed yet, so hold the block for the next shift+click.
-                rangeApi.clearAnchor();
-                pendingSeedGroupKeyRef.current = item.keyForList;
+                // Seed just this block: seeding the whole selection would span unrelated rows and deselect them.
+                seedGroup(item.keyForList);
             }
         } else if (!isShiftRangeHeaderItem(item)) {
             // Seed the anchor so a later shift+click continues from here. The hook ignores rows a range can't reach.
@@ -582,7 +567,6 @@ function SearchWriteActionsProvider({
 
     const toggleAll: SearchRowSelectionActionsValue['toggleAll'] = () => {
         // Decide select-all vs clear before the updater so the range seed/clear (a ref write) stays out of the reducer.
-        pendingSeedGroupKeyRef.current = undefined;
         const isClearing = Object.keys(getSelectedTransactions()).length > 0;
         if (isClearing) {
             rangeApi.clearAnchor();
