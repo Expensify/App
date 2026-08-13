@@ -256,6 +256,7 @@ type SearchSelectionActionsValue = {
             shouldClearAllMatchingSelectionWhenEmpty?: boolean;
             reconciledExcludedTransactions?: SelectedTransactions;
             deselectedWithoutEntry?: SelectedTransactions;
+            selectableRowCount?: number;
         },
     ) => void;
     /** Reads the current selection on demand without subscribing, so the shift-range hook can anchor from the live selection. */

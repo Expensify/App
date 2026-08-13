@@ -28,7 +28,9 @@ function useGroupChildrenForShiftRange({groupKey, ...rowArgs}: UseGroupChildrenF
     // Selection-independent on purpose: folding isSelected in would churn the registered children on every selection change.
     const rangeChildren = useGroupChildRows(rowArgs);
 
-    useRegisterGroupChildrenForShiftRange(groupKey, rangeChildren, !rowArgs.isExpenseReportType);
+    // Nothing is published until the source resolves, so "no rows" always means the group is empty rather than not loaded yet.
+    const hasResolvedRows = !!rowArgs.snapshotData || rowArgs.groupTransactions.length > 0;
+    useRegisterGroupChildrenForShiftRange(groupKey, rangeChildren, !rowArgs.isExpenseReportType && hasResolvedRows);
 
     // A group selected before its children were fetched is stored under the group key, since no transaction IDs were known yet.
     const isGroupSelected = !!selectedTransactions[groupKey]?.isSelected;

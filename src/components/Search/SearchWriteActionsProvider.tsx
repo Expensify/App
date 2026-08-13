@@ -469,8 +469,8 @@ function SearchWriteActionsProvider({
         // Compared by value: an equal array must not re-register and re-render every row, but changed rows must replace the stale copy.
         registerGroupChildren: (groupKey, groupChildren) =>
             setGroupChildrenByKey((prev) => {
-                // A group whose snapshot has not resolved yet must not wipe the rows it published before.
-                if (groupChildren.length === 0 || deepEqual(prev[groupKey], groupChildren)) {
+                // An empty publish means the group's rows are gone, so it has to land: a group that has not loaded yet publishes nothing at all.
+                if (deepEqual(prev[groupKey], groupChildren) || (!(groupKey in prev) && groupChildren.length === 0)) {
                     return prev;
                 }
                 return {...prev, [groupKey]: groupChildren};
@@ -533,6 +533,9 @@ function SearchWriteActionsProvider({
 
     // Every write path has to agree on this: a deselection is recorded as an exclusion only where the backend can be told about it.
     const canRecordExclusions = type === CONST.SEARCH.DATA_TYPES.EXPENSE;
+
+    // Only comparable with the exclusions where a row is what gets selected: a group-by search counts groups, not the rows inside them.
+    const selectableRowCount = areItemsGrouped ? undefined : totalSelectableItemsCount;
 
     // Expense-report rows are the selectable unit. Only group-by rows are headers whose children flatten in.
     const hasValidGroupBy = areItemsGrouped && !isExpenseReportType;
@@ -669,6 +672,7 @@ function SearchWriteActionsProvider({
             {
                 data: filteredData,
                 totalSelectableItemsCount,
+                selectableRowCount,
                 // Matches the row and group toggles, so narrowing records exclusions rather than dropping every unloaded match.
                 shouldPreserveAllMatchingSelection: canRecordExclusions,
                 shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
@@ -786,6 +790,7 @@ function SearchWriteActionsProvider({
                 applySelection((selectedTransactions) => selectedTransactions, {
                     data: filteredData,
                     totalSelectableItemsCount,
+                    selectableRowCount,
                     shouldPreserveAllMatchingSelection: canRecordExclusions,
                     shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
                     deselectedWithoutEntry: clickExclusion,
@@ -835,6 +840,7 @@ function SearchWriteActionsProvider({
                 },
                 {
                     totalSelectableItemsCount,
+                    selectableRowCount,
                     shouldPreserveAllMatchingSelection: canRecordExclusions,
                     shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
                 },
@@ -898,6 +904,7 @@ function SearchWriteActionsProvider({
             },
             {
                 totalSelectableItemsCount,
+                selectableRowCount,
                 shouldPreserveAllMatchingSelection: canRecordExclusions,
                 shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
                 deselectedWithoutEntry: groupExclusions,
@@ -957,6 +964,7 @@ function SearchWriteActionsProvider({
             {
                 data: filteredData,
                 totalSelectableItemsCount,
+                selectableRowCount,
                 // Selecting the page covers rows that were excluded, so the exclusions go with it. Clearing must not preserve them.
                 shouldPreserveAllMatchingSelection: !isClearing && canRecordExclusions,
                 shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,

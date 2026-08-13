@@ -43,9 +43,11 @@ function GroupChildrenContainer({
     const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, false, item.keyForList);
     const isContentVisible = isExpanded || isRendered;
 
-    // The same question the header above it asks, so the two halves of one group cannot paint differently.
+    // Asked of the rows this container actually holds, so a group whose children live in a snapshot it cannot see paints nothing rather than guessing.
     const isSelected =
-        !!item.isSelected || isGroupChecked({groupKey: item.groupKeyForList, children: item.transactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected});
+        !!item.isSelected ||
+        (item.transactions.length > 0 &&
+            isGroupChecked({groupKey: item.groupKeyForList, children: item.transactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,

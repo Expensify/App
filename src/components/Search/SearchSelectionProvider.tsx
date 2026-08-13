@@ -147,11 +147,12 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
                     }
                 }
                 // Under all-matching the exclusions are the whole story, so the selection has run out once they cover every selectable row.
+                const selectableRowCount = options?.selectableRowCount;
                 if (
                     options?.shouldClearAllMatchingSelectionWhenEmpty &&
-                    totalSelectableItemsCount !== undefined &&
-                    Object.keys(selectedTransactions).length + Object.keys(excludedTransactions).length >= totalSelectableItemsCount &&
-                    isEmptyObject(selectedTransactions)
+                    selectableRowCount !== undefined &&
+                    isEmptyObject(selectedTransactions) &&
+                    Object.keys(excludedTransactions).length >= selectableRowCount
                 ) {
                     areAllMatchingItemsSelected = false;
                     excludedTransactions = {};

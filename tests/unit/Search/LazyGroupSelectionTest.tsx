@@ -1003,7 +1003,7 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
     });
 
-    it('keeps a group’s published rows when its publisher has nothing to say yet', async () => {
+    it('drops a group’s rows from ranges once they are gone, rather than ranging over transactions that no longer exist', async () => {
         const {result} = renderSelection();
         const [firstChild, , thirdChild] = threeLoadedChildren;
 
@@ -1013,13 +1013,13 @@ describe('Lazily loaded group selection', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        // When the publisher re-renders before its snapshot has resolved, so it has nothing to publish
+        // When every one of its transactions goes away, so the group publishes an empty list
         await act(async () => {
             result.current.registerGroupChildren(GROUP_KEY, []);
             await waitForBatchedUpdatesWithAct();
         });
 
-        // Then a range still spans the rows published before, rather than the group having been emptied out from under it
+        // Then a range reaches none of them, rather than writing selections for rows that are no longer there
         await act(async () => {
             result.current.toggle(firstChild);
             await waitForBatchedUpdatesWithAct();
@@ -1028,7 +1028,7 @@ describe('Lazily loaded group selection', () => {
             result.current.toggle(thirdChild, undefined, true);
             await waitForBatchedUpdatesWithAct();
         });
-        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']).toBeUndefined();
     });
 
     it('still ranges a group reopened before its rows were published again', async () => {

@@ -169,7 +169,7 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
         // Unchecking rows one at a time never empties the map, so the exclusions are what say the selection has run out
         act(() => {
             result.current.actions.applySelection((selectedTransactions) => selectedTransactions, {
-                totalSelectableItemsCount: 2,
+                selectableRowCount: 2,
                 shouldPreserveAllMatchingSelection: true,
                 shouldClearAllMatchingSelectionWhenEmpty: true,
                 deselectedWithoutEntry: buildSelected('tx_1', 'tx_2'),

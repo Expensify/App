@@ -155,9 +155,15 @@ describe('useGroupChildrenForShiftRange', () => {
         expect(registerGroupChildren).not.toHaveBeenCalled();
     });
 
-    it('publishes an empty list before the snapshot arrives, rather than leaving a stale one in place', () => {
+    it('publishes nothing before the snapshot arrives, so no rows is never mistaken for an empty group', () => {
         const {registerGroupChildren, result} = renderGroupChildren({snapshotData: undefined});
         expect(result.current.transactions).toEqual([]);
+        expect(registerGroupChildren).not.toHaveBeenCalled();
+    });
+
+    it('publishes an empty list once the snapshot has resolved with nothing in it, so rows that went away are not left behind', () => {
+        mockGetSections.mockReturnValueOnce([[]]);
+        const {registerGroupChildren} = renderGroupChildren();
         expect(registerGroupChildren).toHaveBeenCalledWith(GROUP_KEY, []);
     });
 });
