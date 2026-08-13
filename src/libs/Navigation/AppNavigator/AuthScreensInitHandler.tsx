@@ -129,7 +129,12 @@ function AuthScreensInitHandler() {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current);
+        initializePusher(
+            session?.accountID,
+            session?.email,
+            () => topmostOneTransactionThreadReportIDRef.current,
+            () => reportAttributesRef.current,
+        );
     }, [session?.accountID, session?.email]);
 
     useEffect(() => {
@@ -152,7 +157,12 @@ function AuthScreensInitHandler() {
         });
         PusherConnectionManager.init();
 
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, () => reportAttributesRef.current).finally(() => {
+        initializePusher(
+            session?.accountID,
+            session?.email,
+            () => topmostOneTransactionThreadReportIDRef.current,
+            () => reportAttributesRef.current,
+        ).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 
@@ -170,7 +180,7 @@ function AuthScreensInitHandler() {
         } else if (SessionUtils.didUserLogInDuringSession()) {
             const reportID = getReportIDFromLink(initialURL ?? null);
             if (reportID && !isAuthenticatedAtStartup) {
-                Report.openReport({reportID, introSelected, betas, hasReportActions: false, currentUserAccountID: session?.accountID});
+                Report.openReport({reportID, introSelected, betas, hasReportActions: false, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID});
                 // Don't want to call `openReport` again when logging out and then logging in
                 setIsAuthenticatedAtStartup(true);
             }

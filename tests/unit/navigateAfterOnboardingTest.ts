@@ -20,7 +20,7 @@ const ONBOARDING_POLICY_ID = '2';
 const REPORT_ID = '3';
 const USER_ID = '4';
 const mockFindLastAccessedReport = jest.fn<OnyxEntry<Report>, Parameters<typeof ReportUtils.findLastAccessedReport>>();
-const mockShouldOpenOnAdminRoom = jest.fn();
+const mockShouldOpenOnAdminRoom = jest.fn(() => false);
 const mockIsReportRevealedInTopmostSplitNavigator = jest.fn<boolean, []>(() => false);
 
 jest.mock('@expensify/react-native-hybrid-app', () => ({
@@ -71,7 +71,7 @@ jest.mock('@libs/ReportUtils', () => ({
 
 jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({
     __esModule: true,
-    default: () => mockShouldOpenOnAdminRoom() as boolean,
+    default: () => mockShouldOpenOnAdminRoom(),
 }));
 
 jest.mock('@libs/Navigation/helpers/isReportRevealedInTopmostSplitNavigator', () => ({
