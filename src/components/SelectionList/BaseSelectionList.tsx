@@ -253,7 +253,7 @@ function BaseSelectionListImpl({
         getFocusedOption: () => focusedOption,
         confirmButtonOptions,
         isActive: isFocused,
-        focusedIndex,
+        focusedIndex: isKeyboardNavigating || !!syncedSearchValue?.trim() || !confirmButtonOptions?.onConfirm || shouldStopPropagation ? focusedIndex : -1,
         disableKeyboardShortcuts,
         shouldStopPropagation,
         shouldBubble: !focusedOption,
