@@ -18,7 +18,7 @@ import {useSplashScreenState} from '@src/SplashScreenStateContext';
 
 import {hasStartedLocationUpdatesAsync, startLocationUpdatesAsync, stopLocationUpdatesAsync} from 'expo-location';
 import React, {useEffect, useState} from 'react';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import Onyx from 'react-native-onyx';
 
 import useUpdateGpsNotification from './useUpdateGpsNotification';
 import useUpdateGpsTripOnReconnect from './useUpdateGpsTripOnReconnect';
@@ -39,7 +39,7 @@ function GPSTripStateChecker() {
     useEffect(() => {
         async function handleGpsTripInProgressOnAppRestart() {
             await checkAndCleanGpsNotification();
-            const gpsTrip = OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
+            const gpsTrip = Onyx.get(ONYXKEYS.GPS_DRAFT_DETAILS);
 
             if (!gpsTrip?.isTracking) {
                 const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);

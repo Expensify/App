@@ -10,7 +10,7 @@ import type {LocationObject} from 'expo-location';
 
 import NetInfo from '@react-native-community/netinfo';
 import {defineTask} from 'expo-task-manager';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import Onyx from 'react-native-onyx';
 
 type BackgroundLocationTrackingTaskData = {locations: LocationObject[]};
 
@@ -23,7 +23,7 @@ defineTask<BackgroundLocationTrackingTaskData>(BACKGROUND_LOCATION_TRACKING_TASK
     // Use NetInfo.fetch() instead of the in-memory NetworkState.isOffline() because this
     // background task may run in a headless JS context (Android) where module-level state
     // in NetworkState.ts hasn't been populated via Onyx/NetInfo subscribers.
-    const gpsDraftDetails = OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS) ?? undefined;
+    const gpsDraftDetails = Onyx.get(ONYXKEYS.GPS_DRAFT_DETAILS) ?? undefined;
     const netInfoState = await NetInfo.fetch();
     if (!gpsDraftDetails) {
         return;
@@ -58,7 +58,7 @@ async function updateStartAddress(gpsPoints: GPSPoint[][], isOffline: boolean) {
         const address = await addressFromGpsPoint({lat: startPoint.lat, long: startPoint.long});
 
         // To avoid race conditions, we need to get the latest gpsDraftDetails, because reverse geocoding may even take a few seconds
-        const updatedGpsDraftDetails = OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS) ?? undefined;
+        const updatedGpsDraftDetails = Onyx.get(ONYXKEYS.GPS_DRAFT_DETAILS) ?? undefined;
         const updatedGpsPoints = updatedGpsDraftDetails ? getGpsPoints(updatedGpsDraftDetails) : gpsPoints;
 
         if (address !== null) {

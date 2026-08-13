@@ -20,7 +20,6 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxCache, {TASK} from 'react-native-onyx/dist/OnyxCache';
 import OnyxKeys from 'react-native-onyx/dist/OnyxKeys';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import type {DerivedValueContext} from './types';
 
@@ -42,7 +41,7 @@ function init() {
         // We cast its type to match the tuple expected by config.compute.
         const dependencyValues = new Array(totalConnections) as Parameters<typeof compute>[0];
 
-        let derivedValue = OnyxUtils.get(key);
+        let derivedValue = Onyx.get(key);
         if (derivedValue) {
             Log.info(`Derived value for ${key} restored from cache`);
         }
