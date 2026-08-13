@@ -13,10 +13,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {getCustomAgentParticipantAccountID, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
 import {getReportChatType} from '@selectors/Report';
-import {getNewestReportActionSelector} from '@selectors/ReportAction';
+import {getLatestReportActionForActorSelector, getNewestReportActionSelector} from '@selectors/ReportAction';
 import {agentZeroProcessingAgentIDsSelector} from '@selectors/ReportNameValuePairs';
 import {accountIDSelector} from '@selectors/Session';
-import React, {createContext, useContext, useEffect} from 'react';
+import React, {createContext, useContext, useEffect, useMemo, useRef, useState} from 'react';
 
 type AgentZeroStatusState = {
     /**
@@ -106,6 +106,7 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
             isActive={!!reportID && isAgentZeroChat}
             serverAgentIDs={serverAgentIDs}
             includeConcierge={isConciergeChat || isAdmin}
+            isAdmin={isAdmin}
             customAgentDMAccountID={customAgentDMAccountID}
         >
             {children}
@@ -118,9 +119,17 @@ function AgentZeroStatusGate({
     isActive,
     serverAgentIDs,
     includeConcierge,
+    isAdmin,
     customAgentDMAccountID,
     children,
-}: React.PropsWithChildren<{reportID: string | undefined; isActive: boolean; serverAgentIDs: number[] | undefined; includeConcierge: boolean; customAgentDMAccountID?: number}>) {
+}: React.PropsWithChildren<{
+    reportID: string | undefined;
+    isActive: boolean;
+    serverAgentIDs: number[] | undefined;
+    includeConcierge: boolean;
+    isAdmin: boolean;
+    customAgentDMAccountID?: number;
+}>) {
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
 
     // When the agent's reply (ADDCOMMENT) lands before the server's indicator-clear NVP update,
@@ -130,6 +139,56 @@ function AgentZeroStatusGate({
     // Keyed on the report only while an agent responds here: the gate mounts for every report, and
     // this selector re-runs on every report-action change.
     const [newestReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isActive ? reportID : undefined}`, {selector: getNewestReportActionSelector});
+    const latestUserReportActionSelector = useMemo(() => getLatestReportActionForActorSelector(currentUserAccountID), [currentUserAccountID]);
+    const [latestUserReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isActive ? reportID : undefined}`, {selector: latestUserReportActionSelector});
+
+    // In an admins room, Auth may leave a processing label for an unrelated agent after the user
+    // explicitly tags a different agent. Keep the set of agents named by the current user request
+    // for the duration of that processing cycle so the UI only renders bubbles for the requested
+    // agent(s). A null value means the request was untagged and all server-named agents are valid;
+    // an empty array means a tagged request has no matching active agent yet, so no unrelated
+    // bubble should be shown.
+    const [taggedAgentIDs, setTaggedAgentIDs] = useState<number[] | null>(null);
+    const isServerProcessing = (serverAgentIDs ?? []).length > 0;
+    const processingCycleRef = useRef(false);
+    const handledRequestActionIDRef = useRef<string | undefined>(undefined);
+    const isCurrentUserComment =
+        newestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT &&
+        newestReportAction.actorAccountID !== undefined &&
+        newestReportAction.actorAccountID === currentUserAccountID;
+
+    useEffect(() => {
+        if (!isActive || !isAdmin) {
+            processingCycleRef.current = false;
+            handledRequestActionIDRef.current = undefined;
+            setTaggedAgentIDs(null);
+            return;
+        }
+
+        const isNewProcessingCycle = !processingCycleRef.current;
+        const isNewUserRequest = latestUserReportAction?.reportActionID !== handledRequestActionIDRef.current;
+        if (isNewUserRequest || (isServerProcessing && isNewProcessingCycle)) {
+            const mentionedAccountIDs = latestUserReportAction?.mentionedAccountIDs ?? [];
+            setTaggedAgentIDs(mentionedAccountIDs.length > 0 ? mentionedAccountIDs : null);
+            handledRequestActionIDRef.current = latestUserReportAction?.reportActionID;
+        }
+
+        if (!isServerProcessing) {
+            // Keep a tag captured from the user's optimistic request long enough to suppress the
+            // default Concierge bubble before the server's per-agent labels arrive. Once the
+            // newest action is no longer the user's request, the cycle is complete and the filter
+            // can be cleared for the next untagged request.
+            if (!isCurrentUserComment) {
+                processingCycleRef.current = false;
+                handledRequestActionIDRef.current = undefined;
+                setTaggedAgentIDs(null);
+            } else {
+                processingCycleRef.current = false;
+            }
+            return;
+        }
+        processingCycleRef.current = true;
+    }, [isActive, isAdmin, isServerProcessing, isCurrentUserComment, latestUserReportAction]);
 
     // One reasoning Pusher subscription per report (not per agent). The handler in Report
     // actions routes each event to the right agent's reasoning history by its actorAccountID.
@@ -172,6 +231,14 @@ function AgentZeroStatusGate({
     }
     if (currentUserAccountID !== undefined) {
         candidateIDs.delete(currentUserAccountID);
+    }
+    if (isAdmin && taggedAgentIDs !== null) {
+        const taggedAgentIDSet = new Set(taggedAgentIDs);
+        for (const candidateAgentID of candidateIDs) {
+            if (!taggedAgentIDSet.has(candidateAgentID)) {
+                candidateIDs.delete(candidateAgentID);
+            }
+        }
     }
     // Suppress an agent whose reply is already the newest action. The server's indicator-clear NVP
     // can arrive up to ~250ms after the reply Pusher event, leaving the bubble visible on top of
