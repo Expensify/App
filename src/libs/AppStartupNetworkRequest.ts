@@ -11,5 +11,4 @@ function isStartupNetworkRequest(command?: string): boolean {
     return !!command && APP_STARTUP_NETWORK_REQUEST.has(command);
 }
 
-export default APP_STARTUP_NETWORK_REQUEST;
-export {isStartupNetworkRequest};
+export default isStartupNetworkRequest;

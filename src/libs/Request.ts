@@ -7,7 +7,7 @@ import type {OnyxKey} from 'react-native-onyx';
 import type Middleware from './Middleware/types';
 
 import {getCurrentFlushPromise} from './actions/QueuedOnyxUpdates';
-import {isStartupNetworkRequest} from './AppStartupNetworkRequest';
+import isStartupNetworkRequest from './AppStartupNetworkRequest';
 import HttpUtils from './HttpUtils';
 import Log from './Log';
 import enhanceParameters from './Network/enhanceParameters';
@@ -57,7 +57,7 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
     if (shouldMeasureResponseApply) {
         result = result.then(
             (response) => {
-                // A reauthenticated retry already measured this request, and this attempt only waited for it.
+                // The reauthentication retry already measured this request, and this attempt only waited for it.
                 if (latestApplyAttemptByRequest.get(request) !== attempt) {
                     cancelSpan(applySpanId);
                     return response;

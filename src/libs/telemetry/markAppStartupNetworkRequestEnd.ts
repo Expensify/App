@@ -1,4 +1,4 @@
-import {isStartupNetworkRequest} from '@libs/AppStartupNetworkRequest';
+import isStartupNetworkRequest from '@libs/AppStartupNetworkRequest';
 
 import CONST from '@src/CONST';
 
