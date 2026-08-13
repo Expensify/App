@@ -17,6 +17,8 @@ const lodashUnderscore = fromRepo('node_modules/eslint-plugin-you-dont-need-loda
 const reactNativeA11y = fromRepo('node_modules/eslint-plugin-react-native-a11y');
 // package-relative resolution of this one is blocked by the package's "exports" field
 const noInlineUseOnyxSelector = fromRepo('node_modules/eslint-config-expensify/eslint-plugin-expensify/no-inline-useOnyx-selector.js');
+// the same nested copy oxlint's rh-plugin.mjs loads, so both tools run one plugin instance
+const reactHooks = fromRepo('node_modules/eslint-config-expensify/node_modules/eslint-plugin-react-hooks');
 
 const plugin = (mod) => ({rules: (mod?.rules ?? mod?.default?.rules) || {}});
 
@@ -43,9 +45,11 @@ export default [
             'react-native-a11y': plugin(reactNativeA11y),
             rulesdir: {rules: {'no-inline-useOnyx-selector': noInlineUseOnyxSelector}},
         },
-        // propWrapperFunctions mirrors the repo config and is load-bearing: react/prefer-exact-props
-        // reports nothing unless it knows which wrappers count as exact.
-        settings: {react: {version: 'detect'}, propWrapperFunctions: ['forbidExtraProps', 'exact', 'Object.freeze']},
+        // propWrapperFunctions mirrors the repo config plus one entry the repo does not have, the
+        // object form {property: 'exact', exact: true}. See oxlint.fixtures.json for why: the repo's
+        // plain strings leave react/prefer-exact-props inert on both tools, so without this the rule
+        // could not be covered at all.
+        settings: {react: {version: 'detect'}, propWrapperFunctions: ['forbidExtraProps', 'exact', 'Object.freeze', {property: 'exact', exact: true}]},
         rules: {
             // port candidates: rules oxlint either lacks or implements differently
             'no-unreachable-loop': ['error', {ignore: []}],
@@ -67,6 +71,43 @@ export default [
             'rulesdir/no-inline-useOnyx-selector': 'error',
             // wired 2026-08-11: ESLint core and plugin rules oxlint has no native port for, hosted
             // through the core/ and hosted/ aliases. Options copied from eslint-config-expensify.
+            // the full nine-selector array from eslint-config-expensify, because the selectors are the
+            // rule: a bridge that mishandles the regex attribute matches or the `:not(:has(...))` would
+            // still pass a one-selector fixture
+            'no-restricted-syntax': [
+                'error',
+                {selector: 'TSEnumDeclaration', message: "Please don't declare enums, use union types instead."},
+                {
+                    selector: 'CallExpression[callee.object.name="React"][callee.property.name="forwardRef"]',
+                    message: 'forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs',
+                },
+                {
+                    selector: 'ImportNamespaceSpecifier[parent.source.value=/^@libs/]',
+                    message: 'Namespace imports from @libs are not allowed. Use named imports instead. Example: import { method } from "@libs/module"',
+                },
+                {
+                    selector: 'ImportNamespaceSpecifier[parent.source.value=/^@userActions/]',
+                    message: 'Namespace imports from @userActions are not allowed. Use named imports instead. Example: import { action } from "@userActions/module"',
+                },
+                {
+                    selector: 'ImportNamespaceSpecifier[parent.source.value=/^\\.\\./]',
+                    message: 'Namespace imports from parent directories are not allowed. Use named imports instead. Example: import { method } from "../libs/module"',
+                },
+                {
+                    selector: 'ImportNamespaceSpecifier[parent.source.value=/^\\./]',
+                    message: 'Namespace imports from sibling modules are not allowed. Use named imports instead. Example: import { method } from "./libs/module"',
+                },
+                {
+                    selector:
+                        'JSXElement[openingElement.name.name=/^Pressable(WithoutFeedback|WithFeedback|WithDelayToggle|WithoutFocus)$/]:not(:has(JSXAttribute[name.name="sentryLabel"]))',
+                    message: 'All Pressable components must include sentryLabel prop for Sentry tracking. Example: <PressableWithoutFeedback sentryLabel="MoreMenu-ExportFile" />',
+                },
+                {selector: 'LabeledStatement', message: 'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.'},
+                {
+                    selector: 'WithStatement',
+                    message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated.',
+                },
+            ],
             strict: ['error', 'never'],
             'one-var': ['error', 'never'],
             'no-undef-init': 'error',
@@ -86,7 +127,6 @@ export default [
             'react/no-unused-class-component-methods': 'error',
             'react/no-unused-prop-types': ['error', {customValidators: [], skipShapeProps: true}],
             'react/no-unused-state': 'error',
-            'react/prefer-exact-props': 'error',
             'react/prefer-stateless-function': ['error', {ignorePureComponents: true}],
             'react/sort-comp': [
                 'error',
@@ -148,6 +188,49 @@ export default [
         },
     },
     {
+        // The eslint-plugin-react-hooks rules, scoped to the rh* fixtures for the same reasons as in
+        // oxlint.fixtures.json: they run the React Compiler over every file they see, and the other
+        // fixtures contain components that would report shapes no manifest entry claims.
+        // rules-of-hooks is absent because production runs oxlint's native port of it, not the
+        // sidecar copy.
+        files: ['**/rh*.tsx'],
+        languageOptions: {parser: tseslint.parser, parserOptions: {sourceType: 'module', ecmaFeatures: {jsx: true}}},
+        plugins: {'react-hooks': {rules: reactHooks.rules}},
+        rules: {
+            'react-hooks/component-hook-factories': 'error',
+            'react-hooks/config': 'error',
+            'react-hooks/error-boundaries': 'error',
+            'react-hooks/exhaustive-deps': 'error',
+            'react-hooks/gating': 'error',
+            'react-hooks/globals': 'error',
+            'react-hooks/immutability': 'error',
+            'react-hooks/incompatible-library': 'error',
+            'react-hooks/preserve-manual-memoization': 'error',
+            'react-hooks/purity': 'error',
+            'react-hooks/refs': 'error',
+            'react-hooks/set-state-in-effect': 'error',
+            'react-hooks/set-state-in-render': 'error',
+            'react-hooks/static-components': 'error',
+            'react-hooks/unsupported-syntax': 'error',
+            'react-hooks/use-memo': 'error',
+        },
+    },
+    {
+        // gating validates the compiler options it is handed, so its violation cannot live in a source
+        // file alone: this block configures dynamic gating, and the fixture then asks for it with a
+        // directive naming something that is not an identifier. Production passes no options, which is
+        // why the rule can never report there.
+        files: ['**/rhGating.tsx'],
+        rules: {'react-hooks/gating': ['error', {dynamicGating: {source: '@libs/CompilerGate'}}]},
+    },
+    {
+        // Scoped to one file because the rule throws on any *read* of `.propTypes` once an exact
+        // wrapper is configured, and reactPropTypes.tsx contains one deliberately. See the header
+        // comment in fixtures/reactExactProps.tsx.
+        files: ['**/reactExactProps.tsx'],
+        rules: {'react/prefer-exact-props': 'error'},
+    },
+    {
         // no-octal and no-octal-escape can only be violated in script mode: in a module the legacy
         // syntax is a parse error on both tools. ESLint gives .cjs sourceType commonjs by default,
         // and oxlint parses .cjs as a script, so the fixture is linted the same way by both.
@@ -155,6 +238,12 @@ export default [
         rules: {
             'no-octal': 'error',
             'no-octal-escape': 'error',
+            // plain-JS only in the repo config, since typescript-eslint switches all three off for
+            // TS. no-dupe-args additionally needs sloppy mode, which is the other reason this block
+            // is the only one that enables them.
+            'dot-notation': ['error', {allowKeywords: true, allowPattern: ''}],
+            'no-dupe-args': 'error',
+            'no-return-await': 'error',
             'no-undef': 'off',
             'no-unused-vars': 'off',
         },

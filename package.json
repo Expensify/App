@@ -58,6 +58,8 @@
     "oxlint-react-compiler-gate": "python3 oxlint-probe/checkReactCompilerGate.py",
     "oxlint-locale-compare-port": "python3 oxlint-probe/checkLocaleComparePort.py",
     "oxlint-rule-tester": "python3 oxlint-probe/rule-tester/compareRuleTester.py",
+    "oxlint-jsx-uses-port": "python3 oxlint-probe/checkJsxUsesPort.py",
+    "oxlint-sidecar-coverage": "python3 oxlint-probe/checkSidecarCoverage.py",
     "lint-watch": "onchange '**/*.{js,jsx,ts,tsx,mjs,cjs}' -- ./scripts/lint.sh {{changed}}",
     "eslint-report": "bun scripts/eslint-report.ts",
     "knip": "KNIP=true knip --include dependencies --exclude unlisted --no-exit-code --reporter compact",

@@ -69,6 +69,11 @@ export default [
     },
     {
         files: ALL,
+        // The cases for require-a11y-disable-justification are made of real eslint-disable comments,
+        // naming rules from a plugin this config does not load. ESLint's own report for those carries
+        // no ruleId, which the comparer reads as a fatal error rather than a finding, so it is off.
+        // oxlint reports unused directives only when asked, and the harness does not ask.
+        linterOptions: {reportUnusedDisableDirectives: 'off'},
         plugins: {rulesdir: {rules: await loadRules()}},
         // The same processor the repo attaches. Two of the rules under test are gated on the React
         // Compiler in oxlint; without the processor here, a case that both compilers memoize would
