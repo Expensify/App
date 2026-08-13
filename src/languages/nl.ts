@@ -197,7 +197,6 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: 'naar',
         genericErrorMessage: 'Oeps... er is iets misgegaan en je verzoek kon niet worden voltooid. Probeer het later opnieuw.',
         percentage: 'Percentage',
-        progressBarLabel: 'Voortgang onboarding',
         converted: 'Geconverteerd',
         error: {
             invalidAmount: 'Ongeldig bedrag',
@@ -299,7 +298,7 @@ const translations: TranslationDeepObject<typeof en> = {
         replace: 'Vervangen',
         distance: 'Afstand',
         mile: 'mijl',
-        miles: 'mijl',
+        miles: 'mijlen',
         kilometer: 'kilometer',
         kilometers: 'kilometers',
         recent: 'Recent',
@@ -1165,6 +1164,7 @@ const translations: TranslationDeepObject<typeof en> = {
         importSpreadsheetLibraryError: 'Laden van spreadsheetmodule mislukt. Controleer je internetverbinding en probeer het opnieuw.',
         importSpreadsheet: 'Spreadsheet importeren',
         importWorkflows: 'Workflows importeren',
+        downloadWorkflows: 'Workflows downloaden',
         downloadCSV: 'CSV downloaden',
         importMemberConfirmation: () => ({
             one: `Bevestig hieronder de gegevens voor een nieuw werkruimte‑lid dat wordt toegevoegd als onderdeel van deze upload. Bestaande leden ontvangen geen rolupdates of uitnodigingsberichten.`,
@@ -1890,14 +1890,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                requiredDepositCurrency?: string,
             ) => {
+                const account = requiredDepositCurrency ? `${requiredDepositCurrency} bankrekening` : 'bankrekening';
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Er wordt gewacht tot <strong>jij</strong> een bankrekening toevoegt.`;
+                        return `Er wordt gewacht tot <strong>jij</strong> een ${account} toevoegt.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Wachten tot <strong>${actor}</strong> een bankrekening toevoegt.`;
+                        return `Wachten tot <strong>${actor}</strong> een ${account} toevoegt.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Wachten tot een beheerder een bankrekening toevoegt.`;
+                        return `Wachten tot een beheerder een ${account} toevoegt.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
@@ -2582,6 +2584,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnection: 'Repareer deze verbinding alsjeblieft',
             fixConnectionIn: (companyCardsRoute: string) => `Repareer deze verbinding in <a href="${companyCardsRoute}">bedrijfskaarten</a>`,
             askAdminToFixConnection: 'Vraag een/beheerder om deze verbinding te herstellen',
+            reconnectBank: 'Je bankverbinding moet opnieuw worden geverifieerd',
         },
         bankAccountStatus: {
             active: 'Actief',
@@ -2948,7 +2951,7 @@ ${amount} voor ${merchant} - ${date}`,
         editAvatar: 'Profielavatar wisselen',
         defaultAgentName: (displayName: string) => `Agent van ${displayName}`,
         defaultPrompt:
-            'Wijs declaraties af die zijn voor gokken, films of andere duidelijk niet-zakelijke redenen.\n\nHerinner de gebruiker eraan altijd een bonafbeelding toe te voegen waarop de fooi duidelijk is.\n\nKeur het verslag goed als het sterk lijkt op eerdere verslagen van dezelfde gebruiker.\n\nWijs verslagen af met meer dan $500 aan reiskosten.',
+            'Categoriseer alle uitgaven bij koffiebars als Maaltijden.\n\nStel bij elke deelrit de omschrijving in op „Reiskosten klant”.\n\nLabel alles wat ik bij de elektronicawinkel koop als Materieel.\n\nMarkeer elke uitgave zonder bon, zodat ik er een kan toevoegen voordat ik indien.',
         copilotNote: 'Deze agent wordt toegevoegd als Copilot met volledige toegang tot je account, zodat hij namens jou kan handelen.',
     },
     editAgentPage: {
@@ -6205,7 +6208,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 cardFeedAllowDeletingTransaction: 'Verwijderen van transacties toestaan',
                 removeCardFeed: 'Kaartfeed verwijderen',
                 removeCardFeedTitle: (feedName: string) => `Feed ${feedName} verwijderen`,
-                removeCardFeedDescription: 'Weet je zeker dat je deze kaartfeed wilt verwijderen? Hierdoor worden alle kaarten losgekoppeld.',
+                removeCardFeedDescription: 'Weet je zeker dat je deze kaartfeed wilt verwijderen? Hiermee worden alle kaarten losgekoppeld en worden niet-ingediende transacties verwijderd.',
                 error: {
                     feedNameRequired: 'Naam van kaartfeed is vereist',
                     statementCloseDateRequired: 'Selecteer een afsluitdatum voor het afschrift.',
@@ -6671,6 +6674,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 chooseLimitType: 'Kies een limiettype',
                 smartLimit: 'Slimme limiet',
                 smartLimitDescription: 'Tot een bepaald bedrag uitgeven voordat goedkeuring vereist is',
+                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
+                    `<muted-text-label>Tot een bepaald bedrag uitgeven voordat goedkeuring vereist is. <a href="${workspaceWorkflowsLink}">Schakel goedkeuringen in</a> om deze optie te selecteren.</muted-text-label>`,
                 monthly: 'Maandelijks',
                 monthlyDescription: 'Geef per maand tot een bepaald bedrag uit',
                 fixedAmount: 'Vast bedrag',
@@ -7644,6 +7649,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 expenseDefaultsSubtitle: 'Velden bijwerken zonder dat de indiener iets hoeft te doen',
                 ifAnyExpenseMatches: 'Als een uitgave overeenkomt:',
                 thenApplyFollowingDefaults: 'Pas vervolgens de volgende standaardinstellingen toe:',
+                vendorUnavailable: 'Leverancier niet beschikbaar',
+                supplierUnavailable: 'Leverancier niet beschikbaar',
             },
             categoryRules: {
                 title: 'Categorisatieregels',
@@ -9076,7 +9083,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         exportedTo: 'Geëxporteerd naar',
         exportAll: {
             selectAllMatchingItems: 'Selecteer alle overeenkomende items',
-            allMatchingItemsSelected: 'Alle overeenkomende items geselecteerd',
             selectAllOnThisPage: 'Selecteer alles op deze pagina',
         },
         errors: {
@@ -9495,7 +9501,16 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Origineel: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} woon-werk${unit} verwijderd`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `${distance} woon-werkmijl verwijderd`,
+                    other: `${distance} woon-werkmijlen verwijderd`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `${distance} woon-werk kilometer verwijderd`,
+                    other: `${distance} woon-werkkilometers verwijderd`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `${distance} woon-werk-${unit} verwijderd op basis van ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">werkruimte-afstandsinstellingen</a>` : 'instelling voor werkruimte-afstand'}.`,
         },
@@ -10335,6 +10350,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         basicExport: 'Standaardexport',
         reportLevelExport: 'Alle gegevens - rapportniveau',
         expenseLevelExport: 'Alle gegevens - uitgaveniveau',
+        multipleTaxExport: 'Canadese export met meerdere belastingen',
         exportInProgress: 'Export bezig',
         conciergeWillSend: 'Concierge stuurt je het bestand zo meteen.',
         currentView: 'Huidige weergave',
