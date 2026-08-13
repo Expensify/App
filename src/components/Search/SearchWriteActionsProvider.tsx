@@ -392,7 +392,7 @@ function SearchWriteActionsProvider({
     // A row checked through a group header belongs to that block, so a range may take it back. Report rows are the row the user clicked, not a block.
     const isRowHandPicked = (item: SearchData[number]) => {
         const selectedTransactions = getSelectedTransactions();
-        // A report row keeps its selection under its children, so any child picked on its own makes the report one the user chose.
+        // A report row is the row the user clicked, so any selected child makes it hand-picked — unlike a group header, which selects a block.
         if (isTransactionGroupListItemType(item) && item.transactions.length > 0) {
             return item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
         }
@@ -439,18 +439,20 @@ function SearchWriteActionsProvider({
             return;
         }
 
-        // One children source for the seed and the selection, so a group can't seed a different block than it selects.
+        // The selection covers every row the group has loaded; the seed can only cover the ones a range can reach.
         const groupTransactions = isTransactionGroupListItemType(item) ? (itemTransactions ?? item.transactions ?? []) : [];
 
         if (isShiftRangeHeaderItem(item) && isTransactionGroupListItemType(item)) {
             // A header click selects a whole block, so seed it and a later shift+click can narrow it (like Select All).
+            // A collapsed group's rows are loaded but not in the list, so there is nothing to span until it opens.
+            const rangeableChildren = childrenByGroupKey.get(item.keyForList) ?? [];
             const groupWasSelected = isGroupSelected(groupSelectionParams(item.keyForList, groupTransactions));
             if (groupWasSelected) {
                 // Deselecting paints no block, so reset instead of leaving a stale span to collapse.
                 rangeApi.clearAnchor();
-            } else if (groupTransactions.length > 0) {
+            } else if (rangeableChildren.length > 0) {
                 // Seed just this block: seeding the whole selection would span unrelated rows and deselect them.
-                seedGroup(groupTransactions);
+                seedGroup(rangeableChildren);
             } else {
                 // Nothing to seed yet, so hold the block for the next shift+click.
                 rangeApi.clearAnchor();

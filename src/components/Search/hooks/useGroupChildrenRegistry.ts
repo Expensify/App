@@ -41,7 +41,7 @@ function useGroupChildrenRegistry(searchHash: number | undefined): GroupChildren
         registerGroupChildren: (groupKey, groupChildren) =>
             setGroupChildrenByKey((prev) => {
                 // Whatever arrives is the truth: a group that has not loaded yet publishes nothing at all, so an empty list means its rows are gone.
-                if (deepEqual(prev[groupKey], groupChildren)) {
+                if (prev[groupKey] === groupChildren || deepEqual(prev[groupKey], groupChildren)) {
                     return prev;
                 }
                 return {...prev, [groupKey]: groupChildren};

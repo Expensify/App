@@ -572,6 +572,9 @@ function MoneyRequestReportTransactionList({
     // A shift+click asks this once per row, and again if it has to re-resolve the anchor, so the lookup has to be constant time.
     const selectedTransactionIDsSet = useMemo(() => new Set(selectedTransactionIDs), [selectedTransactionIDs]);
 
+    // The same reason: every checkbox press has to find the row the id belongs to.
+    const transactionsByID = useMemo(() => new Map(visualOrderTransactions.map((transaction) => [transaction.transactionID, transaction])), [visualOrderTransactions]);
+
     const rangeApi = useShiftRangeSelection<OnyxTypes.Transaction>({
         items: visualOrderTransactions,
         getItemKey: (t) => t.transactionID ?? null,
@@ -582,7 +585,7 @@ function MoneyRequestReportTransactionList({
 
     const toggleTransaction = useCallback(
         (transactionID: string, shiftKey?: boolean) => {
-            const item = visualOrderTransactions.find((t) => t.transactionID === transactionID);
+            const item = transactionsByID.get(transactionID);
             if (item && rangeApi.applyShiftClick(item, shiftKey)) {
                 return;
             }
@@ -591,7 +594,7 @@ function MoneyRequestReportTransactionList({
                 rangeApi.notifyAnchor(item);
             }
         },
-        [setSelectedTransactions, selectedTransactionIDs, visualOrderTransactions, rangeApi],
+        [setSelectedTransactions, selectedTransactionIDs, transactionsByID, rangeApi],
     );
 
     // Primitive proxy for visualOrderTransactionIDs used as the effect dependency below.
@@ -801,10 +804,9 @@ function MoneyRequestReportTransactionList({
     const isDesktopTableLayout = !shouldUseNarrowLayout;
 
     const lastTransactionID = useMemo(() => {
-        const allTransactions = shouldGroupTransactions ? groupedTransactions.flatMap((group) => group.transactions) : resolvedTransactions;
-        const visibleTransactions = allTransactions.filter((t) => isOffline || !isTransactionPendingDelete(t));
+        const visibleTransactions = visualOrderTransactions.filter((t) => isOffline || !isTransactionPendingDelete(t));
         return visibleTransactions.at(-1)?.transactionID;
-    }, [shouldGroupTransactions, groupedTransactions, resolvedTransactions, isOffline]);
+    }, [visualOrderTransactions, isOffline]);
 
     const listItems: TransactionListItemData[] = [];
     if (shouldGroupTransactions) {

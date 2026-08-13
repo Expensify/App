@@ -1,13 +1,10 @@
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import {isGroupChecked} from '@components/Search/selectionBuilders';
-import type {SelectedTransactions} from '@components/Search/types';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -39,7 +36,7 @@ function GroupChildrenContainer({
 }: GroupChildrenContainerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, false, item.keyForList);
     const isContentVisible = isExpanded || isRendered;
 

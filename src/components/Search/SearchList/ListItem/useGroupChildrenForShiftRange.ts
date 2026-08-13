@@ -1,8 +1,5 @@
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import {isRowChecked} from '@components/Search/selectionBuilders';
-import type {SelectedTransactions} from '@components/Search/types';
-
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {TransactionListItemType} from './types';
 import type {UseGroupChildRowsArgs} from './useGroupChildRows';
@@ -23,7 +20,7 @@ function useGroupChildrenForShiftRange({groupKey, ...rowArgs}: UseGroupChildrenF
     transactions: TransactionListItemType[];
     isGroupChecked: boolean;
 } {
-    const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
 
     // Selection-independent on purpose: folding isSelected in would churn the registered children on every selection change.
     const rangeChildren = useGroupChildRows(rowArgs);

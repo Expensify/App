@@ -5,7 +5,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import {countCheckedGroupChildren, isGroupChecked} from '@components/Search/selectionBuilders';
-import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy, SelectedTransactions} from '@components/Search/types';
+import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -29,7 +29,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -101,7 +100,7 @@ function GroupHeader({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -186,8 +185,12 @@ function GroupHeader({
     const {isSelectAllChecked, isIndeterminate} = useMemo(() => {
         const params = {groupKey: originalKey, children: effectiveTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected};
         const selectableTransactions = effectiveTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        // A group with no rows of its own answers from its key, which is the one case the count cannot speak for.
+        if (selectableTransactions.length === 0) {
+            return {isSelectAllChecked: isGroupChecked(params), isIndeterminate: false};
+        }
         const selectedCount = countCheckedGroupChildren({...params, children: selectableTransactions});
-        return {isSelectAllChecked: isGroupChecked(params), isIndeterminate: selectedCount > 0 && selectedCount !== selectableTransactions.length};
+        return {isSelectAllChecked: selectedCount === selectableTransactions.length, isIndeterminate: selectedCount > 0 && selectedCount !== selectableTransactions.length};
     }, [selectedTransactions, excludedTransactions, areAllMatchingItemsSelected, effectiveTransactions, originalKey]);
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;

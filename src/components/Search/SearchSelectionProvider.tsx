@@ -46,24 +46,11 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         currentSearchHashRef.current = currentSearchHash;
     }, [currentSearchHash]);
 
-    // Read through this ref so selectionActionsValue stays stable and actions-only consumers don't re-render on every selection change.
-    // Refreshed during the commit, so a click handler reading it decides the same way the reducer will.
-    const selectedTransactionsRef = useRef(selectionState.selectedTransactions);
+    // Held as one object, refreshed during the commit, so a handler cannot read two slices of the selection at different freshness.
+    const selectionStateRef = useRef(selectionState);
     useLayoutEffect(() => {
-        selectedTransactionsRef.current = selectionState.selectedTransactions;
-    }, [selectionState.selectedTransactions]);
-
-    // The same for the exclusions, which are rebuilt on every commit, so reading them in render would re-render every row on each press.
-    const excludedTransactionsRef = useRef(selectionState.excludedTransactions);
-    useLayoutEffect(() => {
-        excludedTransactionsRef.current = selectionState.excludedTransactions;
-    }, [selectionState.excludedTransactions]);
-
-    // And the flag, so a handler deciding what a row shows reads all three at the same freshness.
-    const areAllMatchingItemsSelectedRef = useRef(selectionState.areAllMatchingItemsSelected);
-    useLayoutEffect(() => {
-        areAllMatchingItemsSelectedRef.current = selectionState.areAllMatchingItemsSelected;
-    }, [selectionState.areAllMatchingItemsSelected]);
+        selectionStateRef.current = selectionState;
+    }, [selectionState]);
 
     const setSelectedTransactions: SearchSelectionActionsValue['setSelectedTransactions'] = (transactionIDs, data) => {
         if (transactionIDs instanceof Array) {
@@ -109,7 +96,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
             const reconciledExcludedTransactions = options?.reconciledExcludedTransactions;
             // An empty map means the selection ran out, unless the caller is naming a row it just took out of it: that row was checked, so something was still selected.
             const hasNamedDeselection = !isEmptyObject(options?.deselectedWithoutEntry ?? {});
-            const canRecordNamedDeselection = hasNamedDeselection && !!options?.shouldPreserveAllMatchingSelection;
+            const canRecordNamedDeselection = hasNamedDeselection && prevState.areAllMatchingItemsSelected && !!options?.shouldPreserveAllMatchingSelection;
             const shouldClearAllMatchingSelection = options?.shouldClearAllMatchingSelectionWhenEmpty && isEmptyObject(selectedTransactions) && !canRecordNamedDeselection;
             // A deselection can only be recorded as an exclusion while an all-matching selection is being preserved.
             const shouldRecordExclusions = prevState.areAllMatchingItemsSelected && !!options?.shouldPreserveAllMatchingSelection && !shouldClearAllMatchingSelection;
@@ -154,14 +141,11 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
                     }
                 }
                 // Under all-matching the exclusions are the whole story, so the selection has run out once they cover every selectable row.
-                const fullyExcludedItemCount = options?.countFullyExcludedItems?.(excludedTransactions);
-                if (
-                    options?.shouldClearAllMatchingSelectionWhenEmpty &&
-                    totalSelectableItemsCount !== undefined &&
-                    fullyExcludedItemCount !== undefined &&
-                    isEmptyObject(selectedTransactions) &&
-                    fullyExcludedItemCount >= totalSelectableItemsCount
-                ) {
+                const fullyExcludedItemCount =
+                    options?.shouldClearAllMatchingSelectionWhenEmpty && totalSelectableItemsCount !== undefined && isEmptyObject(selectedTransactions)
+                        ? options.countFullyExcludedItems?.(excludedTransactions)
+                        : undefined;
+                if (fullyExcludedItemCount !== undefined && totalSelectableItemsCount !== undefined && fullyExcludedItemCount >= totalSelectableItemsCount) {
                     areAllMatchingItemsSelected = false;
                     excludedTransactions = {};
                 }
@@ -298,9 +282,9 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     const selectionActionsValue: SearchSelectionActionsValue = {
         setSelectedTransactions,
         applySelection,
-        getSelectedTransactions: () => selectedTransactionsRef.current,
-        getExcludedTransactions: () => excludedTransactionsRef.current,
-        getAreAllMatchingItemsSelected: () => areAllMatchingItemsSelectedRef.current,
+        getSelectedTransactions: () => selectionStateRef.current.selectedTransactions,
+        getExcludedTransactions: () => selectionStateRef.current.excludedTransactions,
+        getAreAllMatchingItemsSelected: () => selectionStateRef.current.areAllMatchingItemsSelected,
         setSelectedReports,
         setCurrentSelectedTransactionReportID,
         clearSelectedTransactions,
