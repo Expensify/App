@@ -2,12 +2,12 @@ import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {searchUserInServer} from '@libs/actions/Report';
 import {filterOption, getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 
 import CONST from '@src/CONST';
@@ -106,7 +106,8 @@ function BaseVacationDelegateSelectionComponent({
     // When a selection is pending confirmation, pin the newly selected delegate so it stays visible.
     const hasPendingDelegateChange = !!vacationDelegate?.previousDelegate;
     const pinnedVacationDelegate = searchValue || hasPendingDelegateChange ? currentVacationDelegate : (initialVacationDelegate ?? currentVacationDelegate);
-    const pinnedDelegatePersonalDetails = getPersonalDetailByEmail(pinnedVacationDelegate);
+
+    const pinnedDelegatePersonalDetails = usePersonalDetailByLogin(pinnedVacationDelegate);
     const pinnedDelegateLogin = pinnedDelegatePersonalDetails?.login ?? pinnedVacationDelegate;
 
     // Pin the current delegate even when personal details are missing (e.g. right after a cache

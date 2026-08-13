@@ -82,7 +82,7 @@ describe('ReportActionItemSingle', () => {
             }
 
             it('renders avatar properly', async () => {
-                const expectedIconTestID = 'ReportActionAvatars-SingleAvatar';
+                const expectedIconTestID = 'SingleAvatar';
 
                 await setup();
                 await waitFor(() => {

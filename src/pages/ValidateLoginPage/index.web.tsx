@@ -178,15 +178,7 @@ function ValidateLoginPage({
                 />
             )}
             {((!effectiveAutoAuthState ? shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN) || isCompletingDirectSignIn) && (
-                <FullScreenLoadingIndicator
-                    testID="validate-login-loading"
-                    reasonAttributes={{
-                        context: 'ValidateLoginPage',
-                        isSigningIn: autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN,
-                        shouldStartSignInWithValidateCode,
-                        hasAutoAuthState: !!autoAuthState,
-                    }}
-                />
+                <FullScreenLoadingIndicator testID="validate-login-loading" />
             )}
         </>
     );

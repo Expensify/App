@@ -7,7 +7,7 @@ import {render} from '@testing-library/react-native';
 
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
 
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
@@ -83,9 +83,8 @@ jest.mock('@libs/PhoneNumber', () => ({
     }),
 }));
 
-jest.mock('@libs/PersonalDetailsUtils', () => ({
-    getPersonalDetailByEmail: jest.fn(() => undefined),
-}));
+// `usePersonalDetailByLogin` reads from PersonalDetailsByLoginProvider, which isn't mounted here.
+jest.mock('@hooks/usePersonalDetailByLogin', () => jest.fn(() => undefined));
 
 jest.mock('@libs/PersonalDetailOptionsListUtils', () => ({
     getHeaderMessage: jest.fn(() => ''),
@@ -136,7 +135,7 @@ jest.mock('@components/SelectionList/SelectionListWithSections', () => {
     return MockSelectionList;
 });
 
-const mockGetPersonalDetailByEmail = jest.mocked(getPersonalDetailByEmail);
+const mockUsePersonalDetailByLogin = jest.mocked(usePersonalDetailByLogin);
 
 const EMAIL_DELEGATE = 'jane@example.com';
 const PHONE_DELEGATE_WITH_SMS_DOMAIN = '+919789942470@expensify.sms';
@@ -159,7 +158,7 @@ describe('BaseVacationDelegateSelectionComponent', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         capturedSectionsList.length = 0;
-        mockGetPersonalDetailByEmail.mockReturnValue(undefined);
+        mockUsePersonalDetailByLogin.mockReturnValue(undefined);
     });
 
     function renderComponent(delegate: string | undefined) {
@@ -181,7 +180,7 @@ describe('BaseVacationDelegateSelectionComponent', () => {
                 displayName: 'Jane Doe',
                 avatar: 'jane-avatar',
             };
-            mockGetPersonalDetailByEmail.mockReturnValue(personalDetails);
+            mockUsePersonalDetailByLogin.mockReturnValue(personalDetails);
 
             renderComponent(EMAIL_DELEGATE);
 
@@ -204,7 +203,7 @@ describe('BaseVacationDelegateSelectionComponent', () => {
                 displayName: PHONE_DELEGATE_RAW,
                 avatar: 'phone-avatar',
             };
-            mockGetPersonalDetailByEmail.mockReturnValue(personalDetails);
+            mockUsePersonalDetailByLogin.mockReturnValue(personalDetails);
 
             renderComponent(PHONE_DELEGATE_WITH_SMS_DOMAIN);
 
@@ -226,7 +225,7 @@ describe('BaseVacationDelegateSelectionComponent', () => {
         // `excludeLogins`, so the pinned row is the only place it can appear. It must still render
         // (falling back to the raw login and DEFAULT_MISSING_ID) even when personal details are gone.
         it('still pins the current delegate row for an email account when personal details are missing', () => {
-            mockGetPersonalDetailByEmail.mockReturnValue(undefined);
+            mockUsePersonalDetailByLogin.mockReturnValue(undefined);
 
             renderComponent(EMAIL_DELEGATE);
 
@@ -241,7 +240,7 @@ describe('BaseVacationDelegateSelectionComponent', () => {
 
         // Bug #89578 — the exact scenario reported.
         it('still pins the current delegate row for a phone account when personal details are missing', () => {
-            mockGetPersonalDetailByEmail.mockReturnValue(undefined);
+            mockUsePersonalDetailByLogin.mockReturnValue(undefined);
 
             renderComponent(PHONE_DELEGATE_WITH_SMS_DOMAIN);
 

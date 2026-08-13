@@ -9,7 +9,6 @@ import useOnyx from '@hooks/useOnyx';
 
 import {clearVacationDelegateError, deleteVacationDelegate, setVacationDelegate} from '@libs/actions/VacationDelegate';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,10 +41,10 @@ function VacationDelegatePage() {
     };
 
     const showWarningModal = useCallback(
-        async (delegateLogin: string) => {
+        async (delegateLogin: string, delegateDisplayName: string | undefined) => {
             const result = await showConfirmModal({
                 title: translate('common.headsUp'),
-                prompt: translate('statusPage.vacationDelegateWarning', Str.removeSMSDomain(getPersonalDetailByEmail(delegateLogin)?.displayName ?? delegateLogin)),
+                prompt: translate('statusPage.vacationDelegateWarning', Str.removeSMSDomain(delegateDisplayName ?? delegateLogin)),
                 confirmText: translate('common.confirm'),
                 cancelText: translate('common.cancel'),
                 shouldShowCancelButton: true,
@@ -82,7 +81,7 @@ function VacationDelegatePage() {
                 }
 
                 if (response.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
-                    showWarningModal(option?.login ?? '');
+                    showWarningModal(option?.login ?? '', option.text);
                     return;
                 }
 

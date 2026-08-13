@@ -1,12 +1,11 @@
 /**
  * These tests verify the prompt passed to the confirm modal for:
- *  - existing accounts (personal details present) for both email and phone-number logins
- *  - new accounts (personal details missing, e.g. after cache clear) for both email and phone-number logins
+ *  - selected rows that carry a display name, for both email and phone-number logins
+ *  - selected rows without a display name (e.g. right after a cache clear), for both email and phone-number logins
  */
 import {act, render} from '@testing-library/react-native';
 
 import {setVacationDelegate} from '@libs/actions/VacationDelegate';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 
 import VacationDelegatePage from '@pages/settings/Profile/CustomStatus/VacationDelegatePage';
 
@@ -58,10 +57,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
 
-jest.mock('@libs/PersonalDetailsUtils', () => ({
-    getPersonalDetailByEmail: jest.fn(() => undefined),
-}));
-
 jest.mock('@components/ScreenWrapper', () => {
     function MockScreenWrapper({children}: {children: React.ReactNode}) {
         return children;
@@ -82,7 +77,6 @@ jest.mock('@components/BaseVacationDelegateSelectionComponent', () => {
 });
 
 const mockSetVacationDelegate = jest.mocked(setVacationDelegate);
-const mockGetPersonalDetailByEmail = jest.mocked(getPersonalDetailByEmail);
 
 const EMAIL_DELEGATE = 'jane@example.com';
 const PHONE_DELEGATE_WITH_SMS_DOMAIN = '+919789942470@expensify.sms';
@@ -94,48 +88,39 @@ describe('VacationDelegatePage warning modal', () => {
         capturedOnSelectRow = undefined;
         mockShowConfirmModal.mockResolvedValue({action: 'CLOSE'});
         mockSetVacationDelegate.mockResolvedValue({jsonCode: CONST.JSON_CODE.POLICY_DIFF_WARNING});
-        mockGetPersonalDetailByEmail.mockReturnValue(undefined);
     });
 
-    async function selectRowAndFlush(login: string) {
+    async function selectRowAndFlush(login: string, text?: string) {
         render(<VacationDelegatePage />);
         await act(async () => {
-            capturedOnSelectRow?.({login} as Participant);
+            capturedOnSelectRow?.({login, text} as Participant);
         });
     }
 
-    describe('existing account (personal details available)', () => {
-        it('uses the displayName for an email account in the warning prompt', async () => {
-            mockGetPersonalDetailByEmail.mockReturnValue({accountID: 42, login: EMAIL_DELEGATE, displayName: 'Jane Doe'});
-
-            await selectRowAndFlush(EMAIL_DELEGATE);
+    describe('the selected row carries a display name', () => {
+        it('uses the display name for an email account in the warning prompt', async () => {
+            await selectRowAndFlush(EMAIL_DELEGATE, 'Jane Doe');
 
             expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: 'statusPage.vacationDelegateWarning(Jane Doe)'}));
         });
 
-        it('strips `@expensify.sms` from the displayName for an existing phone account', async () => {
-            mockGetPersonalDetailByEmail.mockReturnValue({accountID: 43, login: PHONE_DELEGATE_WITH_SMS_DOMAIN, displayName: PHONE_DELEGATE_WITH_SMS_DOMAIN});
-
-            await selectRowAndFlush(PHONE_DELEGATE_WITH_SMS_DOMAIN);
+        it('strips `@expensify.sms` from the display name for a phone account', async () => {
+            await selectRowAndFlush(PHONE_DELEGATE_WITH_SMS_DOMAIN, PHONE_DELEGATE_WITH_SMS_DOMAIN);
 
             expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: `statusPage.vacationDelegateWarning(${PHONE_DELEGATE_RAW})`}));
             expect(JSON.stringify(mockShowConfirmModal.mock.calls)).not.toContain('@expensify.sms');
         });
     });
 
-    describe('new account (personal details missing, e.g. after cache clear)', () => {
-        it('falls back to the email login in the prompt when personal details are missing', async () => {
-            mockGetPersonalDetailByEmail.mockReturnValue(undefined);
-
+    describe('the selected row has no display name (e.g. after cache clear)', () => {
+        it('falls back to the email login in the prompt', async () => {
             await selectRowAndFlush(EMAIL_DELEGATE);
 
             expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: `statusPage.vacationDelegateWarning(${EMAIL_DELEGATE})`}));
         });
 
         // Bug #89578 — the exact scenario reported.
-        it('strips `@expensify.sms` from the phone-number login in the prompt when personal details are missing', async () => {
-            mockGetPersonalDetailByEmail.mockReturnValue(undefined);
-
+        it('strips `@expensify.sms` from the phone-number login in the prompt', async () => {
             await selectRowAndFlush(PHONE_DELEGATE_WITH_SMS_DOMAIN);
 
             expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: `statusPage.vacationDelegateWarning(${PHONE_DELEGATE_RAW})`}));
