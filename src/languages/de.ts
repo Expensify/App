@@ -2959,7 +2959,7 @@ ${amount} für ${merchant} – ${date}`,
         editAvatar: 'Profilbild wechseln',
         defaultAgentName: (displayName: string) => `Agent*in von ${displayName}`,
         defaultPrompt:
-            'Lehne Ausgaben ab, die für Glücksspiele, Kinobesuche oder andere offensichtlich nicht geschäftliche Zwecke sind.\n\nErinnere den:die Nutzer:in daran, immer ein Belegfoto beizufügen, auf dem das Trinkgeld klar erkennbar ist.\n\nGenehmige den Bericht, wenn er früheren Berichten derselben Person sehr ähnlich ist.\n\nLehne Berichte mit mehr als 500 $ an Reisekosten ab.',
+            'Kategorisiere alle Ausgaben aus Cafés als Verpflegung.\n\nLege für jede Fahrdienstreise die Beschreibung auf „Kundenreise“ fest.\n\nKennzeichne alles, was ich im Elektronikgeschäft kaufe, als Ausstattung.\n\nMarkiere jede Ausgabe ohne Beleg, damit ich einen hinzufügen kann, bevor ich sie einreiche.',
         copilotNote: 'Dieser Agent wird als Copilot mit vollem Zugriff auf dein Konto hinzugefügt, sodass er in deinem Namen handeln kann.',
     },
     editAgentPage: {
