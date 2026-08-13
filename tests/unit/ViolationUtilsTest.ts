@@ -3443,6 +3443,33 @@ describe('getViolationTranslation', () => {
         );
     });
 
+    it('should return the re-authentication message for the re-auth rterType (438/532)', () => {
+        const testPolicyID = 'test-policy-123';
+        const companyCardPageURL = `workspaces/${testPolicyID}/company-cards`;
+        const connectionLink = `settings/wallet/card/${testPolicyID}`;
+        const reauthType = CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH;
+
+        // Company card, admin
+        expect(translateLocal('violations.rter', false, true, false, undefined, reauthType, companyCardPageURL, undefined, false, false)).toBe(
+            `Bank connection needs re-authentication. <a href="${companyCardPageURL}">Reconnect to match receipt</a>`,
+        );
+
+        // Company card, non-admin member
+        expect(translateLocal('violations.rter', false, false, false, undefined, reauthType, companyCardPageURL, undefined, false, false)).toBe(
+            'Bank connection needs re-authentication. Ask an admin to reconnect to match receipt.',
+        );
+
+        // Personal card, not mark-as-cash
+        expect(translateLocal('violations.rter', false, false, false, undefined, reauthType, companyCardPageURL, connectionLink, true, false)).toBe(
+            `Can't auto-match receipt because your bank connection needs re-authentication. <a href="${connectionLink}">Reconnect</a> to match the receipt.`,
+        );
+
+        // Personal card, mark-as-cash
+        expect(translateLocal('violations.rter', false, false, false, undefined, reauthType, companyCardPageURL, connectionLink, true, true)).toBe(
+            `Can't auto-match receipt because your bank connection needs re-authentication. Mark as cash to ignore, or <a href="${connectionLink}">reconnect</a> to match the receipt.`,
+        );
+    });
+
     describe('increasedDistance violation', () => {
         const increasedDistanceViolation: TransactionViolation = {
             name: CONST.VIOLATIONS.INCREASED_DISTANCE,

@@ -32,16 +32,27 @@ function BrokenConnectionDescription({transactionID, policy, report}: BrokenConn
     const {environmentURL} = useEnvironment();
 
     const brokenConnection530Error = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530);
+    const brokenConnectionReauthError = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH);
     const brokenConnectionError = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const workspaceCompanyCardRoute = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy?.id)}`;
 
-    if (!brokenConnection530Error && !brokenConnectionError) {
+    if (!brokenConnection530Error && !brokenConnectionReauthError && !brokenConnectionError) {
         return '';
     }
 
     if (brokenConnection530Error) {
         return translate('violations.brokenConnection530Error');
+    }
+
+    if (brokenConnectionReauthError) {
+        if (isPolicyAdmin && !isCurrentUserSubmitter(report)) {
+            return <RenderHTML html={translate('violations.adminReauthConnectionError', {workspaceCompanyCardRoute})} />;
+        }
+        if (isReportApproved({report}) || isReportManuallyReimbursed(report)) {
+            return translate('violations.memberReauthConnectionError');
+        }
+        return `${translate('violations.memberReauthConnectionError')} ${translate('violations.markAsCashToIgnore')}`;
     }
 
     if (isPolicyAdmin && !isCurrentUserSubmitter(report)) {
