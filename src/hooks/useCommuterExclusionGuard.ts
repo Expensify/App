@@ -72,6 +72,8 @@ function useCommuterExclusionGuard({policyID, isManualDistanceRequest = false, i
                 shouldUseSuccessStyleForConfirm: true,
                 shouldFitImageToContainer: true,
                 imageStyles: styles.commuterExclusionStaticIllustration,
+                imageWidth: 160,
+                imageHeight: 140,
             });
 
             return true;
