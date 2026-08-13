@@ -718,6 +718,58 @@ describe('ReportUtils', () => {
 
             expect(result.optimisticAssigneeAddComment).toBeUndefined();
         });
+
+        describe('delegateAccountID', () => {
+            const MODULE_DELEGATE_EMAIL = 'module-delegate@vikings.net';
+            const MODULE_DELEGATE_ACCOUNT_ID = 900;
+            const PASSED_DELEGATE_ACCOUNT_ID = 901;
+
+            const buildAssigneeChatOnyxData = (delegateAccountID: number | undefined) =>
+                getTaskAssigneeChatOnyxData(
+                    1,
+                    2,
+                    'taskReportID',
+                    'assigneeChatReportID',
+                    'parentReportID',
+                    'Task title',
+                    createMock<OnyxEntry<Report>>({}),
+                    'email@user.com',
+                    50,
+                    delegateAccountID,
+                );
+
+            beforeEach(async () => {
+                // The module-level delegate is what `buildOptimisticAddCommentReportAction` falls back to, so it has to
+                // differ from the passed value for these tests to prove which one wins.
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [MODULE_DELEGATE_ACCOUNT_ID]: {accountID: MODULE_DELEGATE_ACCOUNT_ID, login: MODULE_DELEGATE_EMAIL, displayName: 'Module Delegate'},
+                });
+                await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: MODULE_DELEGATE_EMAIL}});
+                await waitForBatchedUpdates();
+            });
+
+            afterEach(async () => {
+                await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: null}});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[MODULE_DELEGATE_ACCOUNT_ID]: null});
+                await waitForBatchedUpdates();
+            });
+
+            it('uses the passed delegateAccountID instead of the module-level delegate', () => {
+                const {optimisticAssigneeAddComment} = buildAssigneeChatOnyxData(PASSED_DELEGATE_ACCOUNT_ID);
+
+                const reportAction = optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
+                expect(reportAction?.delegateAccountID).toBe(PASSED_DELEGATE_ACCOUNT_ID);
+            });
+
+            // TODO: the fallback assertion below flips to `toBeUndefined()` once the module-level Onyx.connect is
+            // removed (https://github.com/Expensify/App/issues/66425).
+            it('falls back to the module-level delegate when no delegateAccountID is passed', () => {
+                const {optimisticAssigneeAddComment} = buildAssigneeChatOnyxData(undefined);
+
+                const reportAction = optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
+                expect(reportAction?.delegateAccountID).toBe(MODULE_DELEGATE_ACCOUNT_ID);
+            });
+        });
     });
 
     describe('prepareOnboardingOnyxData', () => {

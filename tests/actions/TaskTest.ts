@@ -1009,6 +1009,54 @@ describe('actions/Task', () => {
                 }),
             );
         });
+
+        it('should set the passed delegateAccountID on the optimistic task comment in the parent report', () => {
+            const DELEGATE_ACCOUNT_ID = 999;
+
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: DELEGATE_ACCOUNT_ID,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
+            });
+
+            const reportActionsUpdate = getRequiredOnyxUpdate(getRequiredWriteOnyxData(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockParentReportID}`);
+            const reportAction = getRequiredReportAction(reportActionsUpdate, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
+            expect(reportAction.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        });
+
+        it('should leave delegateAccountID unset on the optimistic task comment when no delegate is passed', () => {
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
+            });
+
+            const reportActionsUpdate = getRequiredOnyxUpdate(getRequiredWriteOnyxData(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockParentReportID}`);
+            const reportAction = getRequiredReportAction(reportActionsUpdate, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
+            expect(reportAction.delegateAccountID).toBeUndefined();
+        });
     });
 
     describe('completeTask', () => {
