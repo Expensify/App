@@ -18,6 +18,17 @@ const STARTUP_FLAG_MARKERS: Record<string, string> = {
 };
 
 /**
+ * Most markers are recorded when their work finishes, so the interval ending at a marker is named
+ * after it. These markers fire at the start of an event instead — name their interval after the
+ * work that actually precedes them.
+ */
+const STARTUP_STAGE_SPAN_NAMES: Record<string, string> = {
+    OldDotDisplay: 'OldDotJSBoot',
+    OldDotNavigateToNewDot: 'OldDotDisplayToNavigate',
+    RNSetupStart: 'OldDotToRNHandoff',
+};
+
+/**
  * Turns the named startup timestamps recorded by the native layer (see recordStartupMarker in
  * Mobile-Expensify) into backdated child spans of ManualAppStartup, so the pre-JS native head
  * of the startup is visible in Sentry instead of being one opaque block.
@@ -39,9 +50,10 @@ function reportStartupMarkers(startupSpan: Span, nativeAppStartTimeMs: number) {
                 startupSpan.setAttribute(flagAttribute, true);
                 continue;
             }
+            const spanName = STARTUP_STAGE_SPAN_NAMES[name] ?? name;
             const stageSpan = Sentry.startInactiveSpan({
-                name,
-                op: name,
+                name: spanName,
+                op: spanName,
                 parentSpan: startupSpan,
                 startTime: previousTimestampMs,
             });
