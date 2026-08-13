@@ -492,21 +492,21 @@ function linkPlaidToBankAccount(bankAccountID: number, publicToken: string, mask
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.BANK_ACCOUNT_LIST,
-                value: {[bankAccountID]: {isLoading: true, shouldShowLinkPlaidSuccess: false, errors: null}},
+                value: {[bankAccountID]: {isLoading: true, errors: null}},
             },
         ],
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.BANK_ACCOUNT_LIST,
-                value: {[bankAccountID]: {isLoading: false, shouldShowLinkPlaidSuccess: true, errors: null}},
+                value: {[bankAccountID]: {isLoading: false}},
             },
         ],
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.BANK_ACCOUNT_LIST,
-                value: {[bankAccountID]: {isLoading: false, shouldShowLinkPlaidSuccess: false}},
+                value: {[bankAccountID]: {isLoading: false}},
             },
         ],
     };
@@ -515,7 +515,7 @@ function linkPlaidToBankAccount(bankAccountID: number, publicToken: string, mask
 }
 
 function clearLinkPlaidState(bankAccountID: number) {
-    return Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: {isLoading: false, shouldShowLinkPlaidSuccess: false, errors: null}});
+    return Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: {isLoading: false, errors: null}});
 }
 
 /**
