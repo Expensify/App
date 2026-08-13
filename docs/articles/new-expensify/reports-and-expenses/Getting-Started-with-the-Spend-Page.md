@@ -88,18 +88,18 @@ Each row represents an expense and includes:
 
 ---
 
-# How to change the currency of the total spend on the Spend page
+## How to change the currency of the total spend on the Spend page
 
 The **Spend** page footer shows the **Total spend** for what you're viewing. When your expenses were created in different currencies, you can convert the **Total spend** to a single currency to see their combined value. Conversion works whether you've selected specific rows or nothing at all.
 
-## What the total spend footer shows
+### What the total spend footer shows
 
 - **Total spend:** the combined amount, shown with a currency code. With nothing selected, this covers the whole search result; when you select rows, it covers just your selection.
 - **Expenses:** the number of expenses currently selected (shown when you've made a selection).
 
 The total is shown in your default currency until you choose a different one.
 
-## How to change the total spend currency
+### How to change the total spend currency
 
 1. On the **Spend** page, optionally select the rows you want to total using the checkboxes. Leave everything unselected to convert the whole search result.
 2. In the footer, click the currency shown next to the **Total spend** amount.
@@ -115,11 +115,11 @@ Conversion works across the different ways you can view and select expenses:
 - **Reports:** converts the total of the reports you've selected.
 - **Grouped searches** (for example, grouped by category): converts the grand total, or the totals of the groups you select. You can also mix a whole group with individual expenses from another group, and the footer total includes both.
 
-## When the total spend currency picker is disabled
+### When the total spend currency picker is disabled
 
 The currency picker can't be opened in these cases:
 
-- You're **offline**, because converting the total requires a refresh from Expensify.
+- You're offline, because converting the total requires a refresh from Expensify.
 - The totals are still loading.
 
 ---
@@ -205,5 +205,7 @@ Previews update **in real time** as expenses are added or removed. Deleted repor
 Yes. When someone comments, a Comments section appears in the preview, and the layout adjusts to accommodate the discussion.
 
 ## Why can't I change the total spend currency?
-The currency picker is only disabled when you're offline or while the totals are still loading, because converting the total requires a refresh from Expensify. Reconnect or wait for the totals to finish loading to enable it. It works with nothing selected (converting the whole search) and with any selection, including individual expenses on later pages, reports, and grouped searches.
+The currency picker is only disabled in two cases: when you're offline, or while the totals are still loading. Both happen because converting the total requires a refresh from Expensify. Reconnect or wait for the totals to finish loading to enable it.
+
+Otherwise, it always works. You can convert with nothing selected (which converts the whole search), or with any selection. That includes individual expenses on later pages, reports, and grouped searches.
 
