@@ -487,31 +487,35 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
 function linkPlaidToBankAccount(bankAccountID: number, publicToken: string, mask: string | undefined, policyID: string | undefined) {
     const parameters: LinkPlaidToBankAccountParams = {bankAccountID, publicToken, mask, policyID};
 
-    const onyxData: OnyxData<typeof ONYXKEYS.LINK_PLAID_TO_BANK_ACCOUNT> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.BANK_ACCOUNT_LIST> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.LINK_PLAID_TO_BANK_ACCOUNT,
-                value: {bankAccountID, isLoading: true, isSuccess: false},
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {[bankAccountID]: {isLoading: true, shouldShowLinkPlaidSuccess: false, errors: null}},
             },
         ],
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.LINK_PLAID_TO_BANK_ACCOUNT,
-                value: {isLoading: false, isSuccess: true},
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {[bankAccountID]: {isLoading: false, shouldShowLinkPlaidSuccess: true, errors: null}},
             },
         ],
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.LINK_PLAID_TO_BANK_ACCOUNT,
-                value: {isLoading: false, isSuccess: false},
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {[bankAccountID]: {isLoading: false, shouldShowLinkPlaidSuccess: false}},
             },
         ],
     };
 
     API.write(WRITE_COMMANDS.LINK_PLAID_TO_BANK_ACCOUNT, parameters, onyxData);
+}
+
+function clearLinkPlaidState(bankAccountID: number) {
+    return Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: {isLoading: false, shouldShowLinkPlaidSuccess: false, errors: null}});
 }
 
 /**
@@ -1917,6 +1921,7 @@ export {
     connectBankAccountWithPlaid,
     clearPlaid,
     linkPlaidToBankAccount,
+    clearLinkPlaidState,
     createCorpayBankAccount,
     deletePaymentBankAccount,
     handlePlaidError,
