@@ -77,7 +77,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         policy,
         true,
         true,
-        doesWorkspaceOutputCAD,
+        isWorkspaceOutputCurrencyCAD,
     );
     const isExported = isExportedUtils(reportActions, moneyRequestReport);
 
