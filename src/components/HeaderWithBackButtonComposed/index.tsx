@@ -16,7 +16,6 @@ import HeaderDownloadButton from './primitives/HeaderDownloadButton';
 import HeaderHelpButton from './primitives/HeaderHelpButton';
 import HeaderIcon from './primitives/HeaderIcon';
 import HeaderMenuItemButtonTooltip from './primitives/HeaderMenuItemButtonTooltip';
-import HeaderPinButton from './primitives/HeaderPinButton';
 import HeaderPolicyAvatar from './primitives/HeaderPolicyAvatar';
 import HeaderReportAvatar from './primitives/HeaderReportAvatar';
 import HeaderRotateButton from './primitives/HeaderRotateButton';
@@ -47,7 +46,6 @@ function HeaderWithBackButton({
     isDownloading = false,
     shouldShowRotateButton = false,
     isRotating = false,
-    shouldShowPinButton = false,
     shouldSetModalVisibility = true,
     shouldShowThreeDotsButton = false,
     shouldDisableThreeDotsButton = false,
@@ -136,7 +134,6 @@ function HeaderWithBackButton({
                             isLoading={isRotating}
                         />
                     )}
-                    {shouldShowPinButton && <HeaderPinButton report={report} />}
                 </View>
 
                 {shouldShowThreeDotsButton &&
