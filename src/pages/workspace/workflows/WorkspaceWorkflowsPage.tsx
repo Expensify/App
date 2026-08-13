@@ -24,7 +24,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -36,6 +36,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
+import {downloadMembersCSV} from '@libs/actions/Policy/Member';
 import {
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
@@ -157,18 +158,16 @@ function WorkflowsLoadMoreCard({count, onPress}: {count: number; onPress: () => 
 
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.workflows');
-    const {translate, localeCompare} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const illustrations = useMemoizedLazyIllustrations(['Workflows']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Info', 'Plus', 'Table']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Info', 'Plus', 'Table', 'Download']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds] = useCardFeeds(policy?.id);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
@@ -217,8 +216,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 passedPersonalDetails: getPersonalDetailByEmail(policyReimburserEmail ?? ''),
                 defaultValue: policyReimburserEmail,
                 translate,
+                formatPhoneNumber,
             }),
-        [policyReimburserEmail, translate],
+        [policyReimburserEmail, translate, formatPhoneNumber],
     );
 
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
@@ -267,12 +267,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const confirmDisableApprovals = useCallback(() => {
         setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, isTrackIntentUser, {
-            reportNextSteps: allReportNextSteps,
             transactionViolations,
             betas,
             personalDetailsList: personalDetails,
         });
-    }, [allReportNextSteps, betas, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser]);
+    }, [betas, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser]);
 
     const navigateToHRSettings = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(route.params.policyID));
@@ -356,17 +355,53 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_IMPORT.getRoute(route.params.policyID));
     }, [isAccountLocked, showLockedAccountModal, isOffline, showConfirmModal, translate, route.params.policyID, canAccessSubmit2026Features, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
-    const approvalSecondaryActions = useMemo<Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>>>(
-        () => [
-            {
+    // The Workflows CSV export reuses the Members export command so the downloaded file is identical to Members > Download CSV.
+    const downloadWorkflowsAction = useCallback(() => {
+        if (isOffline) {
+            showConfirmModal({
+                title: translate('common.youAppearToBeOffline'),
+                prompt: translate('common.thisFeatureRequiresInternet'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                shouldHandleNavigationBack: true,
+            });
+            return;
+        }
+        downloadMembersCSV(
+            route.params.policyID,
+            () => {
+                showConfirmModal({
+                    title: translate('common.downloadFailedTitle'),
+                    prompt: translate('common.downloadFailedDescription'),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                });
+            },
+            translate,
+        );
+    }, [isOffline, showConfirmModal, translate, route.params.policyID]);
+
+    const shouldBlockApprovalWorkflowEditing = isAnyHRReadOnlyWorkflowMode(policy);
+    const approvalSecondaryActions = useMemo<Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>>>(() => {
+        const actions: Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [];
+        // Importing modifies the workflows, so only offer it when editing is allowed.
+        if (!shouldBlockApprovalWorkflowEditing) {
+            actions.push({
                 icon: expensifyIcons.Table,
                 text: translate('spreadsheet.importWorkflows'),
                 onSelected: importWorkflowsAction,
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
-            },
-        ],
-        [expensifyIcons.Table, translate, importWorkflowsAction],
-    );
+            });
+        }
+        // Downloading is read-only, so it stays available even when editing is blocked.
+        actions.push({
+            icon: expensifyIcons.Download,
+            text: translate('spreadsheet.downloadWorkflows'),
+            onSelected: downloadWorkflowsAction,
+            value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+        });
+        return actions;
+    }, [shouldBlockApprovalWorkflowEditing, expensifyIcons.Table, expensifyIcons.Download, translate, importWorkflowsAction, downloadWorkflowsAction]);
 
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
     const hrFinalApproverEmail = getHRFinalApprover(policy) ?? undefined;
@@ -430,7 +465,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
     const isHRConnected = isAnyHRConnected(policy);
-    const shouldBlockApprovalWorkflowEditing = isAnyHRReadOnlyWorkflowMode(policy);
     const approvalSubtitle = useMemo(() => {
         if (!isHRConnected) {
             return translate('workflowsPage.addApprovalsDescription');
@@ -665,7 +699,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         currentUserEmail,
                         isTrackIntentUser,
                         {
-                            reportNextSteps: allReportNextSteps,
                             transactionViolations,
                             betas,
                             personalDetailsList: personalDetails,
@@ -1011,7 +1044,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         updateApprovalMode,
         currentUserAccountID,
         currentUserEmail,
-        allReportNextSteps,
         transactionViolations,
         betas,
         showConfirmModal,
@@ -1072,20 +1104,21 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const isGroupPolicy = isGroupPolicyUtil(policy);
     const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
-    const headerButtons =
-        !shouldBlockApprovalWorkflowEditing && canWriteApprovals ? (
-            <View style={[styles.flexRow, styles.gap2]}>
-                <ButtonWithDropdownMenu
-                    onPress={() => {}}
-                    shouldAlwaysShowDropdownMenu
-                    customText={translate('common.more')}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_DROPDOWN}
-                    options={approvalSecondaryActions}
-                    isSplitButton={false}
-                    wrapperStyle={styles.flexGrow0}
-                />
-            </View>
-        ) : undefined;
+    // Show the More dropdown whenever the user can manage workflows. When editing is blocked it renders download-only
+    // (the Import action is filtered out of approvalSecondaryActions above).
+    const headerButtons = canWriteApprovals ? (
+        <View style={[styles.flexRow, styles.gap2]}>
+            <ButtonWithDropdownMenu
+                onPress={() => {}}
+                shouldAlwaysShowDropdownMenu
+                customText={translate('common.more')}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_DROPDOWN}
+                options={approvalSecondaryActions}
+                isSplitButton={false}
+                wrapperStyle={styles.flexGrow0}
+            />
+        </View>
+    ) : undefined;
 
     return (
         <AccessOrNotFoundWrapper
@@ -1095,7 +1128,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         >
             <WorkspacePageWithSections
                 headerText={translate('workspace.common.workflows')}
-                icon={illustrations.Workflows}
                 route={route}
                 headerContent={headerButtons}
                 shouldShowOfflineIndicatorInWideScreen

@@ -1,5 +1,7 @@
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+
 import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -16,13 +18,14 @@ function ReportPreviewHoldMenu() {
     const holdMenu = useReportPreviewHoldMenu();
     const {iouReport, chatReport, transactions} = useReportPreviewData();
     const {startAnimation, startApprovedAnimation, onHoldMenuClose} = useReportPreviewActions();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     if (!holdMenu || !iouReport) {
         return null;
     }
 
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, holdMenu.canPay, transactions);
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, holdMenu.canPay, transactions, convertToDisplayString);
 
     return (
         <ProcessMoneyReportHoldMenu

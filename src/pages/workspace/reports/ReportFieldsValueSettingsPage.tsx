@@ -1,5 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -159,7 +159,7 @@ function ReportFieldsValueSettingsPage({
                         onPress={navigateToEditValue}
                     />
                     {canWriteReportFields && !hasAccountingConnections && (
-                        <MenuItem
+                        <MenuItemAction
                             icon={icons.Trashcan}
                             title={translate('common.delete')}
                             onPress={confirmAndDeleteListValue}

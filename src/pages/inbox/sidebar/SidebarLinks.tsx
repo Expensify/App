@@ -12,7 +12,6 @@ import {setSidebarLoaded} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 
@@ -100,13 +99,6 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
     // Unread/To-do tabs, where the filtered list is legitimately empty while reports still exist.
     const shouldShowLoadingSkeleton = isLoadingReportData && !hasReportData;
 
-    const sidebarSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'SidebarLinks',
-        isLoadingReportData,
-        hasReportData,
-        optionListItemsCount: optionListItems?.length,
-    };
-
     return (
         <View style={[styles.flex1, styles.h100]}>
             <View style={[styles.pRelative, styles.flex1]}>
@@ -127,10 +119,7 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
                 )}
                 {shouldShowLoadingSkeleton && (
                     <View style={[StyleSheet.absoluteFill, styles.appBG, styles.mt3]}>
-                        <OptionsListSkeletonView
-                            shouldAnimate
-                            reasonAttributes={sidebarSkeletonReasonAttributes}
-                        />
+                        <OptionsListSkeletonView shouldAnimate />
                     </View>
                 )}
             </View>
