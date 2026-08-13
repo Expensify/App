@@ -19,6 +19,7 @@ type BankAccountConnectionStatus = {
     messageKey?: TranslationPaths;
     actionKey?: TranslationPaths;
     requiresUnlockHandler?: boolean;
+    requiresPlaidHandler?: boolean;
     tooltipKey?: TranslationPaths;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
