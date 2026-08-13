@@ -24,38 +24,16 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import type * as MockReanimatedModalModule from '../utils/mockReanimatedModal';
+
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
-
-// ReanimatedModal calls onModalHide via the native Modal's onDismiss callback,
-// which doesn't fire in tests because animations are disabled.
-// This mock simulates that behavior synchronously so that the showConfirmModal
-// promise resolves correctly in tests.
 jest.mock('@components/Modal/ReanimatedModal', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {useEffect, useRef}: {useEffect: typeof React.useEffect; useRef: typeof React.useRef} = require('react');
-
-    function MockReanimatedModal({isVisible, onModalHide, children}: {isVisible: boolean; onModalHide?: () => void; children: React.ReactNode}) {
-        const wasVisible = useRef<boolean>(isVisible);
-
-        useEffect(() => {
-            if (wasVisible.current && !isVisible) {
-                onModalHide?.();
-            }
-            wasVisible.current = isVisible;
-        }, [isVisible, onModalHide]);
-
-        if (!isVisible) {
-            return null;
-        }
-
-        return children;
-    }
-
+    const {default: MockReanimatedModal} = jest.requireActual<typeof MockReanimatedModalModule>('../utils/mockReanimatedModal');
     return MockReanimatedModal;
 });
 
