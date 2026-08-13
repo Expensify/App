@@ -25,9 +25,6 @@ on:
         description: Webhook used to announce failures.
         required: true
 
-env:
-  DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
-
 jobs:
   buildSlice:
     name: Build iOS Slice
@@ -61,6 +58,9 @@ jobs:
         uses: ./.github/actions/composite/setupNode
         with:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
+
+      - name: Set up Xcode version
+        uses: ./.github/actions/composite/getXcodeVersion
 
       - name: Resolve Hermes version
         id: hermes
@@ -128,6 +128,9 @@ jobs:
 
       - name: Fetch prebuild files from upstream RN
         uses: ./.github/actions/composite/fetchReactNativePrebuild
+
+      - name: Set up Xcode version
+        uses: ./.github/actions/composite/getXcodeVersion
 
       - name: Download slice artifacts
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131

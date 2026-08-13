@@ -2,6 +2,7 @@ import Button from '@components/ButtonComposed';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -27,6 +28,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const {moneyRequestReport, isOffline, reportActions, transactionThreadReportID, requestParentReportAction} = useTransactionThreadData(reportID, chatReportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -51,7 +53,16 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
                     for (const action of IOUActions) {
                         const linkedTransaction = getLinkedIOUTransaction(action, transactions);
                         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${linkedTransaction?.transactionID}`];
-                        changeMoneyRequestHoldStatus(action, linkedTransaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, isTrackIntentUser);
+                        changeMoneyRequestHoldStatus(
+                            action,
+                            linkedTransaction,
+                            isOffline,
+                            currentUserLogin ?? '',
+                            currentUserAccountID,
+                            transactionViolations,
+                            isTrackIntentUser,
+                            delegateAccountID,
+                        );
                     }
                     return;
                 }
@@ -63,7 +74,16 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
 
                 const linkedTransaction = getLinkedIOUTransaction(moneyRequestAction, transactions);
                 const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${linkedTransaction?.transactionID}`];
-                changeMoneyRequestHoldStatus(moneyRequestAction, linkedTransaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, isTrackIntentUser);
+                changeMoneyRequestHoldStatus(
+                    moneyRequestAction,
+                    linkedTransaction,
+                    isOffline,
+                    currentUserLogin ?? '',
+                    currentUserAccountID,
+                    transactionViolations,
+                    isTrackIntentUser,
+                    delegateAccountID,
+                );
             }}
         >
             <Button.Text>{translate('iou.unhold')}</Button.Text>

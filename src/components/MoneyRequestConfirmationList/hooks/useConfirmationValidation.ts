@@ -239,7 +239,7 @@ function useConfirmationValidation({
 
         const isCategoryBeingCreated = policyCategories?.[iouCategory]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
-        // The 'Uncategorized'/'none' sentinel means no category, so treat it as missing (not out of policy) here, mirroring
+        // The 'Uncategorized'/'none' placeholder means no category, so treat it as missing (not out of policy) here, mirroring
         // isCategoryMissing/ViolationsUtils. Otherwise it wrongly blocks confirmation when the policy lacks that literal category.
         if (iouCategory && !isCategoryMissing(iouCategory) && policyCategories && !policyCategories[iouCategory]?.enabled && !isCategoryBeingCreated) {
             return {errorKey: 'violations.categoryOutOfPolicy'};
@@ -322,7 +322,9 @@ function useConfirmationValidation({
                 return {errorKey: 'iou.error.genericSmartscanFailureMessage', shouldSetDidConfirmSplit: true};
             }
 
-            if (isEditingSplitBill && iouAmount === 0) {
+            const isFullyCoveredByCommuterExclusion =
+                isDistanceRequest && (transaction?.comment?.customUnit?.commuterExclusion ?? 0) > 0 && transaction?.comment?.customUnit?.reimbursableDistance === 0;
+            if (isEditingSplitBill && iouAmount === 0 && !isFullyCoveredByCommuterExclusion) {
                 return {errorKey: 'iou.error.invalidAmount'};
             }
 
