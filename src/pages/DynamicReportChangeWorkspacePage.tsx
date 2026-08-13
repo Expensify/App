@@ -7,6 +7,7 @@ import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/typ
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 
 import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -70,6 +71,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const reportTransactions = useReportTransactions(reportID);
 
     const reportPreviewAction = useParentReportAction(report);
@@ -132,10 +134,11 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 submitterLogin,
                 doesSubmitterPersonalDetailExist ?? false,
+                getCurrencyDecimals,
                 reportTransactions,
             );
             if (!invite?.policyExpenseChatReportID) {
-                moveIOUReportToPolicy(report, policy, reportPreviewAction, false, reportTransactions);
+                moveIOUReportToPolicy(report, policy, reportPreviewAction, getCurrencyDecimals, false, reportTransactions);
             }
             return;
             // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -144,6 +147,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, submitterLogin)) {
             const employeeList = policy?.employeeList;
             changeReportPolicyAndInviteSubmitter({
+                getCurrencyDecimals,
                 report,
                 parentReport,
                 policy,
@@ -169,6 +173,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         }
 
         changeReportPolicy({
+            getCurrencyDecimals,
             report,
             parentReport,
             policy,

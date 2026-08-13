@@ -183,7 +183,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             keyForList: `${accountID}`,
             accountID,
             login: details?.login ?? '',
-            name: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
+            name: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
             email: formatPhoneNumber(details?.login ?? ''),
             isAdmin: role === CONST.REPORT.ROLE.ADMIN,
             isGroupChat,

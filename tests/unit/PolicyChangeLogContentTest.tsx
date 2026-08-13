@@ -10,17 +10,20 @@ import PolicyChangeLogContent, {HANDLED_POLICY_CHANGE_LOG_ACTIONS, isHandledPoli
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+import type ReportActionName from '@src/types/onyx/ReportActionName';
 
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockPolicy = createRandomPolicy(1);
-const allTypes = Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG);
-const handledTypes = [...HANDLED_POLICY_CHANGE_LOG_ACTIONS];
+const allTypes = [...new Set<ReportActionName>(Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG))];
+const handledActionTypes = [...HANDLED_POLICY_CHANGE_LOG_ACTIONS];
+const handledTypes = allTypes.filter((type) => HANDLED_POLICY_CHANGE_LOG_ACTIONS.has(type));
 const fallthroughTypes = allTypes.filter((type) => !HANDLED_POLICY_CHANGE_LOG_ACTIONS.has(type));
 
 describe('PolicyChangeLogContent', () => {
@@ -47,12 +50,12 @@ describe('PolicyChangeLogContent', () => {
 
     it('no handled type is missing from CONST', () => {
         const allTypesSet = new Set<string>(allTypes);
-        const orphaned = handledTypes.filter((type) => !allTypesSet.has(type));
+        const orphaned = handledActionTypes.filter((type) => !allTypesSet.has(type));
         expect(orphaned).toEqual([]);
     });
 
     it.each(handledTypes)('renders non-null for handled type %s', async (type) => {
-        const fakeAction = {actionName: type, originalMessage: {}} as ReportAction;
+        const fakeAction = createMock<ReportAction>({actionName: type, originalMessage: {}});
 
         render(
             <NavigationContainer>
@@ -70,11 +73,11 @@ describe('PolicyChangeLogContent', () => {
     });
 
     it.each(handledTypes)('isHandledPolicyChangeLogAction returns true for %s', (type) => {
-        expect(isHandledPolicyChangeLogAction({actionName: type} as ReportAction)).toBe(true);
+        expect(isHandledPolicyChangeLogAction(createMock<ReportAction>({actionName: type}))).toBe(true);
     });
 
     it.each(fallthroughTypes)('renders null for fallthrough type %s', async (type) => {
-        const fakeAction = {actionName: type, originalMessage: {}} as ReportAction;
+        const fakeAction = createMock<ReportAction>({actionName: type, originalMessage: {}});
 
         render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
@@ -90,6 +93,6 @@ describe('PolicyChangeLogContent', () => {
     });
 
     it.each(fallthroughTypes)('isHandledPolicyChangeLogAction returns false for %s', (type) => {
-        expect(isHandledPolicyChangeLogAction({actionName: type} as ReportAction)).toBe(false);
+        expect(isHandledPolicyChangeLogAction(createMock<ReportAction>({actionName: type}))).toBe(false);
     });
 });
