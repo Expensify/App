@@ -7,13 +7,6 @@ inputs:
     description: 'Indicates if node is set up for hybrid app'
     required: false
     default: 'false'
-  SEED_STICKY_DISKS:
-    description: |
-      'true' only in the dedicated seed workflow: commits the sticky disk snapshots after installing.
-      Everywhere else the disks are mounted read-through (commit: false) so no job can ever pollute
-      the snapshot with build artifacts or tool caches.
-    required: false
-    default: 'false'
 
 outputs:
   cache-hit:
@@ -37,17 +30,17 @@ runs:
       shell: bash
       run: echo "use-sticky-disk=${{ runner.os == 'Linux' && contains(runner.name, 'blacksmith') }}" >> "$GITHUB_OUTPUT"
 
-    # Snapshot commits are restricted to the dedicated seed workflow (SEED_STICKY_DISKS=true), which
-    # commits only when no snapshot exists yet for the key (if-missing). Every other consumer mounts
-    # with commit: false — whatever a job writes into the clone (gradle/CMake outputs, tool caches in
-    # node_modules/.cache) is discarded, so the billed snapshot always stays a clean npm ci result.
+    # if-missing: whichever job first mounts a fresh key commits its snapshot when the job ends;
+    # once a snapshot exists every later mount is read-through (the clone is discarded). The snapshot
+    # can carry one job's worth of build artifacts (whoever wins the initial race), but it can never
+    # grow after that, and the key rotates with every lockfile/patch change anyway.
     - id: stickydisk-node-modules
       if: steps.runner-info.outputs.use-sticky-disk == 'true'
       uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
       with:
         key: ${{ format('{0}-{1}-{2}-node-modules-{3}', github.repository, runner.os, runner.arch, inputs.IS_HYBRID_BUILD == 'true' && hashFiles('normalized-package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**') || hashFiles('normalized-package-lock.json', 'patches/**')) }}
         path: node_modules
-        commit: ${{ inputs.SEED_STICKY_DISKS == 'true' && 'if-missing' || 'false' }}
+        commit: if-missing
 
     - id: stickydisk-old-dot-node-modules
       if: steps.runner-info.outputs.use-sticky-disk == 'true' && inputs.IS_HYBRID_BUILD == 'true'
@@ -55,11 +48,10 @@ runs:
       with:
         key: ${{ format('{0}-{1}-{2}-old-dot-node-modules-{3}', github.repository, runner.os, runner.arch, hashFiles('Mobile-Expensify/package-lock.json', 'Mobile-Expensify/patches/**')) }}
         path: Mobile-Expensify/node_modules
-        commit: ${{ inputs.SEED_STICKY_DISKS == 'true' && 'if-missing' || 'false' }}
+        commit: if-missing
 
-    # The npm cache disk has no hash in its key and barely grows (tarballs are content-addressed),
-    # so it isn't gated behind the seed workflow: on-change commits whenever npm ci actually wrote
-    # new tarballs and skips the many runs that never touch ~/.npm.
+    # The npm cache disk has no hash in its key and barely grows (tarballs are content-addressed):
+    # on-change commits whenever npm ci actually wrote new tarballs and skips runs that never touch ~/.npm.
     - id: stickydisk-npm
       if: steps.runner-info.outputs.use-sticky-disk == 'true'
       uses: useblacksmith/stickydisk@6d373c96a74cbde0c99fedc5ea5d3a7ba66ba494 # v1.4.0
