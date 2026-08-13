@@ -152,7 +152,7 @@ Paid Workspace Admins may have dedicated support contacts assigned to their acco
 4. Below **Concierge**, look for your assigned support contacts.
 5. Click a contact to open a direct message with them.
 
-If a support contact has a scheduling link set up, a **Book a call** button also appears next to them here. This works for your Account Manager, Partner Manager, and Guide. See **How to book a call with your support contact** below for details.
+If a support contact has a scheduling link set up, a **Book a call** button also appears next to them here. This works for your Account Manager, Partner Manager, and Guide. Learn [how to book a call with your support contact](#how-to-book-a-call-with-your-support-contact) below.
 
 ---
 
@@ -164,7 +164,7 @@ If your Account Manager, Partner Manager, or Guide has a scheduling link set up,
 - In the header of your direct message with that support contact.
 - In the header of your **Concierge** chat.
 
-In **Concierge**, only one **Book a call** button appears at a time. If more than one support contact has a scheduling link, the button follows this order: Account Manager first, then Partner Manager, then Guide. The Guide's **Book a call** button only appears while no Account Manager is assigned to your account.
+In **Concierge**, only one **Book a call** button appears at a time, even if more than one of your support contacts has a scheduling link.
 
 The **Book a call** button only appears if the support contact has a scheduling link configured. If you don't see it, you can still message the support contact directly or ask **Concierge** to help schedule a call.
 
@@ -249,7 +249,7 @@ Account Managers are typically assigned to accounts with subscriptions that incl
 
 ## Why don't I see the Book a call button?
 
-You'll only see the **Book a call** button if you have an assigned support contact (Account Manager, Partner Manager, or Guide) who has a scheduling link configured. If no support contact is assigned or none has a scheduling link set up, the button won't appear. In **Concierge**, only one button shows at a time (Account Manager, then Partner Manager, then Guide), and the Guide's button only appears while no Account Manager is assigned.
+You'll only see the **Book a call** button if you have an assigned support contact (Account Manager, Partner Manager, or Guide) who has a scheduling link configured. If no support contact is assigned or none has a scheduling link set up, the button won't appear. In **Concierge**, only one **Book a call** button shows at a time.
 
 ## Are there keyboard shortcuts for opening reports or workspaces?
 
