@@ -336,6 +336,8 @@ const config = defineConfig([
             'rulesdir/require-a11y-disable-justification': 'error',
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
             'rulesdir/no-useOnyx-dependencies-arg': 'error',
+            // Ships as a warning while the synchronous read is still being introduced; promoted to an error once the first wave of conversions lands.
+            'rulesdir/no-onyx-get-in-render': 'warn',
             'rulesdir/require-locale-for-localized-date-format': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
