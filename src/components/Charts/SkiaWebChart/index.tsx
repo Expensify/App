@@ -79,7 +79,10 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps}: Ski
     );
 
     return (
-        <View ref={viewRef(containerRef)}>
+        <View
+            ref={viewRef(containerRef)}
+            style={styles.mw100}
+        >
             <WithSkiaWeb
                 opts={{locateFile: (file: string) => `/${file}`}}
                 getComponent={getComponent}

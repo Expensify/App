@@ -284,11 +284,6 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/new/task/share-destination')).toBe('/task-details/task-confirm/task-share-destination');
     });
 
-    // NOTE: the redirect appends the dynamic suffix (`/send-from`, `/company-info`) so a deep-link restores the actual substep,
-    // not just the confirmation entry. Query preservation is intentionally not asserted here: the OldRoutes matcher captures the
-    // trailing segment with a greedy `(.*)` that also swallows the query string, so a suffix cannot be appended after it while
-    // keeping `?backTo=…` at the end. This is acceptable because no call site produces these legacy paths with a query anymore
-    // (all navigations moved to `createDynamicRoute` without `backTo`).
     it('redirects legacy invoice send-from substep to the new dynamic route including the suffix', () => {
         expect(getMatchingNewRoute('/create/invoice/from/123/456')).toBe('/create/invoice/confirmation/123/456/send-from');
     });
@@ -477,11 +472,6 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/create/submit/destination/123/456')).toBe('/create/submit/start/123/456/per-diem-destination');
     });
 
-    // NOTE: the redirect appends the dynamic suffix (`/destination`) onto the start base so a deep-link restores the
-    // actual wizard step. Query preservation is intentionally not asserted: the OldRoutes matcher captures the trailing
-    // segment with a greedy `(.*)` that also swallows the query string, so a suffix cannot be appended after it while
-    // keeping `?backTo=…` at the end. This is acceptable because no call site produces these legacy paths with a query
-    // anymore (all navigations moved to `createDynamicRoute` without `backTo`).
     it('redirects legacy per diem destination edit step to the new confirmation-based dynamic route (#83850)', () => {
         expect(getMatchingNewRoute('/create/submit/destination/123/456/edit')).toBe('/create/submit/confirmation/123/456/per-diem-destination-edit');
     });
@@ -489,6 +479,32 @@ describe('getBestMatchingPath', () => {
     it('does not redirect the already-migrated per diem destination dynamic routes (#83850)', () => {
         expect(getMatchingNewRoute('/create/submit/start/123/456/per-diem-destination')).toBe(undefined);
         expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-destination-edit')).toBe(undefined);
+    });
+
+    it('redirects legacy money request category path to the category dynamic route', () => {
+        expect(getMatchingNewRoute('/create/expense/category/123/456')).toBe('/r/456/category?action=create&iouType=expense&transactionID=123&reportID=456');
+    });
+
+    it('redirects legacy money request category-new path to the stacked add-category dynamic route', () => {
+        expect(getMatchingNewRoute('/create/expense/category/new/123/456')).toBe('/r/456/category/add-category?action=create&iouType=expense&transactionID=123&reportID=456');
+    });
+
+    it('does not redirect the already-migrated money request category dynamic routes', () => {
+        expect(getMatchingNewRoute('/r/456/category?action=create&iouType=expense&transactionID=123&reportID=456')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/456/category/add-category?action=create&iouType=expense&transactionID=123&reportID=456')).toBe(undefined);
+    });
+
+    it('redirects legacy per diem time step to the new destination-based dynamic route (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/time/123/456')).toBe('/create/submit/destination/123/456/per-diem-time');
+    });
+
+    it('redirects legacy per diem time edit step to the new confirmation-based dynamic route (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/time/123/456/edit')).toBe('/create/submit/confirmation/123/456/per-diem-time-edit');
+    });
+
+    it('does not redirect the already-migrated per diem time dynamic routes (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/start/123/456/per-diem-destination/per-diem-time')).toBe(undefined);
+        expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-time-edit')).toBe(undefined);
     });
 
     // The legacy `?backTo=` query is not preserved: the trailing wildcard swallows it and the new suffix carries its own query.
