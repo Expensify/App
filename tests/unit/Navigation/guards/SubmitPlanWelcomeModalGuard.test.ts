@@ -154,7 +154,7 @@ describe('SubmitPlanWelcomeModalGuard', () => {
         // Same case as the previous test, but the membership is the migrated object form and the group lives under the
         // sharedNVP collection instead of the legacy SECURITY_GROUP collection.
         const restrictedDomain = 'restricted.example.com';
-        const securityGroupID = 'group1';
+        const securityGroupID = '654321';
         const ownerAccountID = 456;
         await Onyx.merge(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {[restrictedDomain]: {securityGroupID, ownerAccountID}});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP}${securityGroupID}_${ownerAccountID}`, {enableRestrictedPolicyCreation: true});

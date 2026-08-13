@@ -96,9 +96,9 @@ describe('WorkspaceListPage', () => {
 
     it('should not show new workspace button when the restrict creation policy in the group domain is enabled and the restricting group is under the sharedNVP key', async () => {
         const TEST_DOMAIN = 'domain.com';
-        const TEST_SECURITY_GROUP_ID = 'test-id';
+        const TEST_SECURITY_GROUP_ID = '123456';
         const TEST_OWNER_ACCOUNT_ID = 42;
-        const TEST_POLICY_ID = 'test-policy-id';
+        const TEST_POLICY_ID = 'A1B2C3D4E5F6A7B8';
         const TEST_EMAIL = 'test@domain.com';
         const TEST_ACCOUNT_ID = 1;
 

@@ -63,9 +63,9 @@ describe('usePreferredPolicy', () => {
     });
 
     it('should return restricted workspace when the security group is under the sharedNVP key and has enableRestrictedPrimaryPolicy enabled', async () => {
-        const securityGroupID = 'securityGroup123';
+        const securityGroupID = '123456';
         const ownerAccountID = 42;
-        const restrictedPolicyID = 'policy456';
+        const restrictedPolicyID = 'C3D4E5F6A7B8C9D0';
 
         await Onyx.set(ONYXKEYS.SESSION, {
             email: 'user@example.com',
