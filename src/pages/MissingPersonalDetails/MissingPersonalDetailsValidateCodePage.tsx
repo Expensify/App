@@ -36,7 +36,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {areAllExpensifyCardsShipped} from '@selectors/Card';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
