@@ -2167,7 +2167,7 @@ type DualEntryExport = {
 type DualEntryExportCardProgramAccountsOfflineFeedbackKey = `${typeof CONST.DUALENTRY_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${string}`;
 
 /**
- * Offline feedback keys for `DualEntryCoding`
+ * Offline feedback keys for `DualEntryExport`
  */
 type DualEntryExportOfflineFeedbackKeys = keyof Omit<DualEntryExport, 'cardProgramAccounts'> | DualEntryExportCardProgramAccountsOfflineFeedbackKey;
 
@@ -2756,6 +2756,9 @@ type CodingRule = {
     /** Tax configuration for the expense */
     tax?: CodingRuleTax;
 
+    /** The external ID of the vendor to set on matching expenses */
+    vendorID?: string;
+
     /** When this rule was created */
     created?: string;
 
@@ -2950,6 +2953,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether new transactions need to be tagged */
         requiresTag?: boolean;
+
+        /** Whether to show tag GL codes when selecting a tag */
+        showTagGLCodes?: boolean;
 
         /** Client-only marker used to restore required tags after switching tag levels clears all tags */
         pendingRequiresTagRestore?: boolean | null;
@@ -3271,4 +3277,5 @@ export type {
     RilletSubsidiary,
     DualEntryConnectionsConfig,
     DualEntryCompany,
+    DualEntryCoding,
 };

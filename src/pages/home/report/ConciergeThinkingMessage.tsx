@@ -87,7 +87,7 @@ function ConciergeThinkingBubble({reportID, agentAccountID}: {reportID: string; 
 function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLabel}: {accountID: number; reasoningHistory: ReasoningEntry[]; statusLabel: string}) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {datetimeToCalendarTime, translate} = useLocalize();
+    const {datetimeToCalendarTime, translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const hasReasoningHistory = useMemo(() => !!reasoningHistory && reasoningHistory.length > 0, [reasoningHistory]);
     const [manuallyCollapsed, setManuallyCollapsed] = useState(true);
@@ -136,7 +136,7 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
     }));
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], translate}) ?? CONST.CONCIERGE_DISPLAY_NAME;
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], translate, formatPhoneNumber}) ?? CONST.CONCIERGE_DISPLAY_NAME;
     const actorIcon = personalDetails?.[accountID]?.avatar ? {source: personalDetails[accountID].avatar, name: displayName, type: CONST.ICON_TYPE_AVATAR} : undefined;
 
     const showConciergeDetails = () => {
@@ -179,7 +179,6 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
                     ) : (
                         <AccountAvatar
                             containerStyle={styles.actionAvatar}
-                            shouldShowTooltip
                             accountID={accountID}
                         />
                     )}

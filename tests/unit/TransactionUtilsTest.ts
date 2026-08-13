@@ -12,6 +12,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import type {Card, Policy, Report, ReviewDuplicates, Transaction} from '../../src/types/onyx';
+import type {Routes} from '../../src/types/onyx/Transaction';
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
@@ -513,6 +514,54 @@ describe('TransactionUtils', () => {
             });
         });
 
+        it('leaves the existing routes intact when only the distance changes', () => {
+            // A manual distance edit used to null out `routes.route0.distance`. That also wipes the alternate routes
+            // the Map tab and the footer read from, so the routes are left untouched now and the manually typed value
+            // lives only in `customUnit.quantity`.
+            const routes: Routes = {
+                route0: {
+                    distance: 16093.44,
+                    geometry: {
+                        coordinates: [
+                            [0, 0],
+                            [1, 1],
+                        ],
+                    },
+                },
+                route1: {
+                    distance: 19312.13,
+                    geometry: {
+                        coordinates: [
+                            [0, 0],
+                            [2, 2],
+                        ],
+                    },
+                },
+            };
+            const transaction = generateTransaction({
+                comment: {
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+                routes,
+            });
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: undefined,
+                transactionChanges: {distance: 20},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            expect(updatedTransaction.routes).toEqual(routes);
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(20);
+        });
+
         it('recalculates amount/merchant on a rate change when waypoints are pending but the distance is known locally', () => {
             // Given: a policy with two mileage rates
             const fakePolicy: Policy = {
@@ -722,6 +771,88 @@ describe('TransactionUtils', () => {
             });
 
             expect(updatedTransaction.comment?.customUnit?.quantity).toBe(20);
+            expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBe(3);
+            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBe(17);
+            expect(updatedTransaction.modifiedAmount).toBe(17);
+            expect(updatedTransaction.modifiedMerchant).toContain('17');
+            expect(updatedTransaction.modifiedMerchant).not.toContain('20');
+        });
+
+        it('recalculates commuter exclusion data when an alternate route is selected', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 3,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            default: {
+                                customUnitRateID: '1',
+                                currency: CONST.CURRENCY.USD,
+                                rate: 1,
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            // A 10 mile primary route and a 20 mile alternate one.
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    selectedRouteKey: CONST.TRANSACTION.DEFAULT_ROUTE_KEY,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                        routeDistanceMeters: 16093.44,
+                        commuterExclusion: 3,
+                        reimbursableDistance: 7,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    },
+                },
+                routes: {
+                    route0: {
+                        distance: 16093.44,
+                        geometry: {
+                            coordinates: [
+                                [0, 0],
+                                [1, 1],
+                            ],
+                        },
+                    },
+                    route1: {
+                        distance: 32186.88,
+                        geometry: {
+                            coordinates: [
+                                [0, 0],
+                                [2, 2],
+                            ],
+                        },
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+            });
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {selectedRouteKey: 'route1'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+
+            // The commute is excluded from the new route's distance, so only the 17 reimbursable miles are charged.
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(20);
+            expect(updatedTransaction.comment?.customUnit?.routeDistanceMeters).toBe(32186.88);
             expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBe(3);
             expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBe(17);
             expect(updatedTransaction.modifiedAmount).toBe(17);
@@ -4460,5 +4591,160 @@ describe('doesMoneyRequestDraftHaveUserInput', () => {
     it('returns true when the user entered a waypoint', () => {
         const transaction = generateTransaction({comment: {waypoints: {waypoint0: {address: '350 5th Ave, New York', lat: 40.7484, lng: -73.9857}, waypoint1: {}}}});
         expect(doesMoneyRequestDraftHaveUserInput(transaction)).toBe(true);
+    });
+});
+
+describe('getSelectedRouteDistance', () => {
+    const routes: Routes = {
+        route0: {distance: 1000, geometry: {type: 'LineString', coordinates: [[0, 0]]}},
+        route1: {distance: 1500, geometry: {type: 'LineString', coordinates: [[1, 1]]}},
+    };
+
+    it('returns the selected route distance in meters when an alternate route is selected', () => {
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, comment: {selectedRouteKey: 'route1'}, routes});
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBe(1500);
+    });
+
+    it('returns the default route distance when the default route is selected or no route is selected', () => {
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, comment: {selectedRouteKey: 'route0'}, routes});
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBe(1000);
+        expect(TransactionUtils.getSelectedRouteDistance(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, routes}))).toBe(1000);
+    });
+
+    it('falls back to the default route when the selected route is no longer available', () => {
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, comment: {selectedRouteKey: 'route1'}, routes: {route0: routes.route0}});
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBe(1000);
+    });
+
+    it('returns undefined when the selected route has no distance', () => {
+        const nullDistance = generateTransaction({
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {selectedRouteKey: 'route1'},
+            routes: {route1: {...routes.route1, distance: null}},
+        });
+        expect(TransactionUtils.getSelectedRouteDistance(nullDistance)).toBeUndefined();
+    });
+
+    it('returns undefined when the transaction has no routes', () => {
+        expect(TransactionUtils.getSelectedRouteDistance(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP}))).toBeUndefined();
+    });
+
+    it('returns the selected route distance for the legacy distance request type', () => {
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE, comment: {selectedRouteKey: 'route1'}, routes});
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBe(1500);
+        expect(TransactionUtils.getSelectedRouteDistance(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE, routes}))).toBe(1000);
+    });
+
+    it('returns undefined for distance requests that are not map based', () => {
+        const transaction = generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, comment: {selectedRouteKey: 'route1'}, routes});
+        expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBeUndefined();
+        expect(TransactionUtils.getSelectedRouteDistance(undefined)).toBeUndefined();
+    });
+});
+
+describe('getSelectedRouteKey', () => {
+    const routes: Routes = {
+        route0: {distance: 1000, geometry: {type: 'LineString', coordinates: [[0, 0]]}},
+        route1: {distance: 1500, geometry: {type: 'LineString', coordinates: [[1, 1]]}},
+    };
+
+    it('returns the explicitly selected route', () => {
+        const transaction = generateTransaction({comment: {selectedRouteKey: 'route1', customUnit: {routeDistanceMeters: 1000}}, routes});
+        expect(TransactionUtils.getSelectedRouteKey(transaction)).toBe('route1');
+    });
+
+    it('derives the selection from the saved route distance when there is no explicit selection', () => {
+        const transaction = generateTransaction({comment: {customUnit: {routeDistanceMeters: 1500}}, routes});
+        expect(TransactionUtils.getSelectedRouteKey(transaction)).toBe('route1');
+    });
+
+    it('picks the closest route when the saved distance does not match exactly', () => {
+        const transaction = generateTransaction({comment: {customUnit: {routeDistanceMeters: 1493.27}}, routes});
+        expect(TransactionUtils.getSelectedRouteKey(transaction)).toBe('route1');
+    });
+
+    it('derives the selection from the route distance even when a manual distance override is set', () => {
+        const transaction = generateTransaction({comment: {customUnit: {quantity: 42, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, routeDistanceMeters: 1500}}, routes});
+        expect(TransactionUtils.getSelectedRouteKey(transaction)).toBe('route1');
+    });
+
+    it('keeps the default route for an exact tie', () => {
+        const transaction = generateTransaction({comment: {customUnit: {routeDistanceMeters: 1000}}, routes: {...routes, route1: {...routes.route1, distance: 1000}}});
+        expect(TransactionUtils.getSelectedRouteKey(transaction)).toBe('route0');
+    });
+
+    it('falls back to the default route when there is nothing to derive the selection from', () => {
+        expect(TransactionUtils.getSelectedRouteKey(generateTransaction({routes}))).toBe('route0');
+        expect(TransactionUtils.getSelectedRouteKey(generateTransaction({comment: {customUnit: {routeDistanceMeters: 1500}}}))).toBe('route0');
+        expect(TransactionUtils.getSelectedRouteKey(generateTransaction({comment: {customUnit: {routeDistanceMeters: 1500}}, routes: {route0: {...routes.route0, distance: null}}}))).toBe(
+            'route0',
+        );
+        expect(TransactionUtils.getSelectedRouteKey(undefined)).toBe('route0');
+    });
+});
+
+describe('hasManualDistanceOverride', () => {
+    // 1 mi = 1609.344 m, so these are exactly 1 mi and 2 mi.
+    const routes: Routes = {
+        route0: {distance: 1609.344, geometry: {type: 'LineString', coordinates: [[0, 0]]}},
+        route1: {distance: 3218.688, geometry: {type: 'LineString', coordinates: [[1, 1]]}},
+    };
+    const withQuantity = (quantity: number | null, comment: Transaction['comment'] = {}) =>
+        generateTransaction({
+            comment: {...comment, customUnit: {...comment?.customUnit, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, quantity}},
+            routes,
+        });
+
+    it('detects a quantity that does not match the selected route', () => {
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(50))).toBe(true);
+    });
+
+    it('does not flag a quantity that matches the primary route', () => {
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(1))).toBe(false);
+    });
+
+    it('does not flag a route-derived quantity when the re-fetched route distance drifted', () => {
+        // The expense was created from a 1 mi route (`routeDistanceMeters`), but the re-fetch returned 1.01 mi for
+        // the same route. The quantity still matches the creation-time distance, so it is not a manual override.
+        const transaction = generateTransaction({
+            comment: {customUnit: {distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, quantity: 1, routeDistanceMeters: 1609.344}},
+            routes: {route0: {distance: 1625.4, geometry: {type: 'LineString', coordinates: [[0, 0]]}}},
+        });
+        expect(TransactionUtils.hasManualDistanceOverride(transaction)).toBe(false);
+    });
+
+    it('compares against the selected alternate route, not the primary one', () => {
+        // 2 mi is route1's own distance — an alternate route selection, not an override.
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(2, {selectedRouteKey: 'route1'}))).toBe(false);
+        // 1 mi matches route0, but route1 is the selected route, so it is an override of it.
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(1, {selectedRouteKey: 'route1'}))).toBe(true);
+    });
+
+    it('recovers the selection from routeDistanceMeters when the expense has no local pick', () => {
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(2, {customUnit: {routeDistanceMeters: 3218.688}}))).toBe(false);
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(50, {customUnit: {routeDistanceMeters: 3218.688}}))).toBe(true);
+    });
+
+    it('returns false when there is nothing to compare', () => {
+        expect(TransactionUtils.hasManualDistanceOverride(withQuantity(null))).toBe(false);
+        expect(TransactionUtils.hasManualDistanceOverride(generateTransaction({comment: {customUnit: {quantity: 50}}}))).toBe(false);
+        expect(TransactionUtils.hasManualDistanceOverride(undefined)).toBe(false);
+    });
+});
+
+describe('getDistanceInMeters', () => {
+    const routes: Routes = {
+        route0: {distance: 1000, geometry: {type: 'LineString', coordinates: [[0, 0]]}},
+        route1: {distance: 1500, geometry: {type: 'LineString', coordinates: [[1, 1]]}},
+    };
+
+    it('returns the selected route distance', () => {
+        const transaction = generateTransaction({comment: {selectedRouteKey: 'route1'}, routes});
+        expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(1500);
+    });
+
+    it('falls back to route0 when the selected route is no longer available', () => {
+        const transaction = generateTransaction({comment: {selectedRouteKey: 'route1'}, routes: {route0: routes.route0}});
+        expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(1000);
     });
 });
