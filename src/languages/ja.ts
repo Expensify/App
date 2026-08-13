@@ -197,7 +197,6 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: '宛先',
         genericErrorMessage: 'おっと…問題が発生したため、リクエストを完了できませんでした。時間をおいてもう一度お試しください。',
         percentage: 'パーセンテージ',
-        progressBarLabel: 'オンボーディング進捗',
         converted: '変換済み',
         error: {
             invalidAmount: '金額が無効です',
@@ -294,7 +293,6 @@ const translations: TranslationDeepObject<typeof en> = {
         billable: '請求可能',
         nonBillable: '請求不可',
         tag: 'タグ',
-        violations: '違反事項',
         receipt: 'レシート',
         verified: '確認済み',
         replace: '置換',
@@ -488,7 +486,6 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '前年',
         nextYear: '来年',
         avatar: 'アバター',
-        currentOfTotal: ({current, total}: {current: number; total: number}) => `${total} 件中 ${current} 件目`,
         editor: '編集者',
         restrictions: '制限',
         tryAgain: '再試行',
@@ -1152,6 +1149,7 @@ const translations: TranslationDeepObject<typeof en> = {
         importSpreadsheetLibraryError: 'スプレッドシートモジュールの読み込みに失敗しました。インターネット接続を確認して、もう一度お試しください。',
         importSpreadsheet: 'スプレッドシートをインポート',
         importWorkflows: 'ワークフローをインポート',
+        downloadWorkflows: 'ワークフローをダウンロード',
         downloadCSV: 'CSV をダウンロード',
         importMemberConfirmation: () => ({
             one: `このアップロードの一部として追加される新しいワークスペースメンバーの詳細を、以下で確認してください。既存のメンバーにはロールの更新や招待メッセージは送信されません。`,
@@ -1878,14 +1876,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                requiredDepositCurrency?: string,
             ) => {
+                const account = requiredDepositCurrency ? `${requiredDepositCurrency} 銀行口座` : '銀行口座';
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `銀行口座の追加を<strong>お待ちしています</strong>。`;
+                        return `${account}の追加を<strong>お待ちしています</strong>。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> が銀行口座を追加するのを待っています。`;
+                        return `<strong>${actor}</strong> が${account}を追加するのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者が銀行口座を追加するのを待っています。`;
+                        return `管理者が${account}を追加するのを待っています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
@@ -2560,6 +2560,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnection: 'この接続を修正してください',
             fixConnectionIn: (companyCardsRoute: string) => `この接続を<a href="${companyCardsRoute}">会社カード</a>で修正してください`,
             askAdminToFixConnection: '管理者にこの接続の修正を依頼してください',
+            reconnectBank: '銀行連携の再認証が必要です',
         },
         bankAccountStatus: {
             active: 'アクティブ',
@@ -2714,12 +2715,8 @@ ${date} の ${merchant} への ${amount}`,
             lastDayOfMonth: '月末最終日',
             lastBusinessDayOfMonth: '月末最終営業日',
             ordinals: {
-                one: 'st',
-                two: '番目',
-                few: 'rd',
-                other: '第',
                 '1': '最初',
-                '2': '秒',
+                '2': '2番目',
                 '3': '3 番目',
                 '4': '4番目',
                 '5': '5番目',
@@ -2925,7 +2922,7 @@ ${date} の ${merchant} への ${amount}`,
         editAvatar: 'アバターを切り替え',
         defaultAgentName: (displayName: string) => `${displayName} さんの代理人`,
         defaultPrompt:
-            'ギャンブル、映画、またはその他明らかにビジネス目的ではない理由による経費は却下します。\n\nチップの金額が明確にわかるレシート画像を必ず添付するよう、ユーザーにリマインドします。\n\n同じユーザーの過去のレポートと非常によく似ている場合は、そのレポートを承認します。\n\n出張費が500ドルを超えるレポートは却下します。',
+            'コーヒーショップでのすべての経費を「食事」に分類します。\n\nすべてのライドシェアの移動について、説明を「顧客訪問」に設定します。\n\n家電量販店での購入はすべて「備品」としてタグ付けします。\n\n領収書がない経費にはフラグを付けて、提出前に追加できるようにします。',
         copilotNote: 'このエージェントは、アカウントへのフルアクセス権を持つCopilotとして追加され、あなたの代わりに操作できるようになります。',
     },
     editAgentPage: {
@@ -6143,7 +6140,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 cardFeedAllowDeletingTransaction: '取引の削除を許可',
                 removeCardFeed: 'カードフィードを削除',
                 removeCardFeedTitle: (feedName: string) => `${feedName}フィードを削除`,
-                removeCardFeedDescription: 'このカードフィードを削除してもよろしいですか？すべてのカードの割り当てが解除されます。',
+                removeCardFeedDescription: 'このカードフィードを削除してもよろしいですか？すべてのカードの割り当てが解除され、未提出の取引が削除されます。',
                 error: {
                     feedNameRequired: 'カードフィード名は必須です',
                     statementCloseDateRequired: '明細書の締め日を選択してください。',
@@ -6392,6 +6389,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 one: '1日タグ',
                 other: (count: number) => `${count} 件のタグ`,
             }),
+            showTagGLCodes: 'タグ選択時にGLコードを表示する',
         },
         taxes: {
             subtitle: '税名と税率を追加し、デフォルトを設定します。',
@@ -6608,6 +6606,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 chooseLimitType: '上限の種類を選択',
                 smartLimit: 'スマート制限',
                 smartLimitDescription: '承認が必要になる前に、一定額まで支出できる',
+                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
+                    `<muted-text-label>承認が必要になる前に、一定額まで支出できます。このオプションを選択するには<a href="${workspaceWorkflowsLink}">承認を有効化</a>してください。</muted-text-label>`,
                 monthly: '毎月',
                 monthlyDescription: '毎月、一定額まで利用する',
                 fixedAmount: '固定額',
@@ -7575,6 +7575,8 @@ ${reportName}`,
                 expenseDefaultsSubtitle: '申請者が何も操作しなくてもフィールドを更新する',
                 ifAnyExpenseMatches: 'いずれかの経費が次の条件に一致する場合：',
                 thenApplyFollowingDefaults: '次に、以下のデフォルトを適用します。',
+                vendorUnavailable: 'ベンダーを利用できません',
+                supplierUnavailable: 'サプライヤーを利用できません',
             },
             categoryRules: {
                 title: 'カテゴリルール',
@@ -8692,6 +8694,8 @@ ${reportName}`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から請求書の設定をコピーしました`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から出張設定をコピーしました`,
         },
+        updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 経費の分類要件`,
+        updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} の経費タグ付け要件`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `「${categoryName}」カテゴリの出席者を${newValue ? '必須' : '必須ではありません'}に変更しました（以前は${newValue ? '必須ではありません' : '必須'}）`;
         },
@@ -9001,7 +9005,7 @@ ${reportName}`,
             description: 'おっと、アイテムがたくさんありますね！まとめて整理して、間もなくConciergeからファイルをお送りします。',
         },
         exportedTo: 'エクスポート先',
-        exportAll: {selectAllMatchingItems: '一致する項目をすべて選択', allMatchingItemsSelected: '一致する項目をすべて選択済み', selectAllOnThisPage: 'このページのすべてを選択'},
+        exportAll: {selectAllMatchingItems: '一致する項目をすべて選択', selectAllOnThisPage: 'このページのすべてを選択'},
         errors: {
             pleaseSelectDatesForBothFromAndTo: '開始日と終了日の両方を選択してください',
         },
@@ -9023,7 +9027,6 @@ ${reportName}`,
             topSpenders: '上位の支出者',
             topCategories: '上位カテゴリ',
             topMerchants: '上位加盟店',
-            violationsBySubmitter: '申請者による違反',
         },
     },
     genericErrorPage: {
@@ -9405,7 +9408,16 @@ ${reportName}`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `元の距離: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} の通勤${unit}を削除しました`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `${distance}マイルの通勤距離を削除しました`,
+                    other: `${distance}マイルの通勤距離を削除しました`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `${distance}キロメートルの通勤距離を削除しました`,
+                    other: `${distance}キロメートルの通勤距離を削除しました`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ワークスペースの距離設定</a>` : 'ワークスペース距離設定'} に基づき、通勤距離 ${distance} ${unit} を削除しました。`,
         },
@@ -9693,53 +9705,6 @@ ${reportName}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `料金は${startDate}からのみ有効です`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `料金は${endDate}までのみ有効です`,
         cannotMergeDuplicates: '経費を統合できるのは、下書きまたは未清算のレポートのみです。レポートを取り下げて、もう一度お試しください。',
-        shortName: {
-            allTagLevelsRequired: 'すべてのタグが必須です',
-            autoReportedRejectedExpense: '経費が却下されました',
-            billableExpense: '請求対象は無効になりました',
-            cashExpenseWithNoReceipt: '領収書が必要です',
-            categoryOutOfPolicy: 'カテゴリは無効になりました',
-            companyCardRequired: '会社カードが必要です',
-            conversionSurcharge: '両替手数料が適用されました',
-            customUnitOutOfPolicy: 'ワークスペースでは有効なレートではありません',
-            customUnitRateOutOfDateRange: '有効期間外のレートです',
-            duplicatedTransaction: '重複の可能性',
-            fieldRequired: 'レポートフィールドは必須です',
-            futureDate: '未来の日付は使用できません',
-            hold: '保留中の経費',
-            inactiveVendor: 'ベンダーが無効になりました',
-            increasedDistance: '距離がルートを超えています',
-            invoiceMarkup: '請求書がマークアップされました',
-            itemizedReceiptRequired: '明細付き領収書が必要です',
-            maxAge: '経費が古すぎます',
-            missingAttendees: '参加者必須',
-            missingCategory: 'カテゴリが未設定です',
-            missingComment: '説明が必要です',
-            missingTag: 'タグがありません',
-            modifiedAmount: '金額が変更されました',
-            modifiedDate: '更新日',
-            noRoute: '有効なルートがありません',
-            nonExpensiworksExpense: 'Expensiworks 外の経費',
-            overAutoApprovalLimit: '自動承認上限超過',
-            overCategoryLimit: 'カテゴリ上限超過',
-            overLimit: '限度超過',
-            overTripLimit: '出張上限を超過',
-            perDayLimit: '1 日あたりの上限超過',
-            prohibitedExpense: '禁止経費',
-            receiptGeneratedWithAI: 'AI 生成の可能性があるレシート',
-            receiptNotSmartScanned: 'レシートを手動で追加しました',
-            receiptRequired: '領収書が必要です',
-            rter: 'カードの照合待ち',
-            smartscanFailed: 'レシートのスキャンに失敗しました',
-            someTagLevelsRequired: 'タグが必要です',
-            tagOutOfPolicy: 'タグは有効ではありません',
-            overLimitAttendee: '人数上限超過',
-            customRules: 'カスタムルール違反',
-            taxAmountChanged: '税額が変更されました',
-            taxOutOfPolicy: '税率が無効になりました',
-            taxRateChanged: '税率を変更しました',
-            taxRequired: '税率が未設定です',
-        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} は必須です`,
@@ -10280,6 +10245,7 @@ ${reportName}`,
         basicExport: '基本エクスポート',
         reportLevelExport: 'すべてのデータ - レポートレベル',
         expenseLevelExport: 'すべてのデータ - 経費レベル',
+        multipleTaxExport: 'カナダの複数税エクスポート',
         exportInProgress: 'エクスポート処理中',
         conciergeWillSend: 'Conciergeがまもなくファイルを送信します。',
         currentView: '現在のビュー',
