@@ -144,6 +144,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
                         description={translate('editAgentPage.instructions')}
                         title={Str.htmlDecode(agent?.prompt?.trim() ?? '')}
                         shouldParseTitle
+                        excludedMarkdownRules={['reportMentions']}
                         shouldTruncateTitle
                         characterLimit={CONST.AGENT_PROMPT_LIMIT}
                         shouldShowRightIcon
