@@ -457,7 +457,6 @@
 "../../src/components/ValidateCodeInput.tsx"	"react-hooks/refs"	1
 "../../src/components/ValidateCodeInput.tsx"	"react-hooks/set-state-in-effect"	3
 "../../src/components/VideoPlayer/BaseVideoPlayer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
-"../../src/components/VideoPlayer/BaseVideoPlayer.tsx"	"no-restricted-syntax"	1
 "../../src/components/VideoPlayer/BaseVideoPlayer.tsx"	"react-hooks/refs"	13
 "../../src/components/VideoPlayer/BaseVideoPlayer.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/components/VideoPlayer/useHandleNativeVideoControls/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1

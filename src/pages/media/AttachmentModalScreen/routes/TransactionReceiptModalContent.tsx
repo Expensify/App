@@ -164,7 +164,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const receiptFilename = transaction?.receipt?.filename;
     const isStitchedOdometerReceipt = isOdometerDistanceRequest(transaction) && !imageType;
 
-    const shouldShowReplaceReceiptButton = ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt && !isStitchedOdometerReceipt;
+    const canEditReceiptButtons = ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt;
+    const shouldShowReplaceReceiptButton = canEditReceiptButtons && !isStitchedOdometerReceipt;
     const shouldShowDeleteReceiptButton = canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt;
 
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
@@ -367,13 +368,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     const shouldShowRotateAndCropReceiptButton = useMemo(
         () =>
-            shouldShowReplaceReceiptButton &&
+            canEditReceiptButtons &&
             transaction &&
             (hasReceiptSource(transaction) || (isOdometerImage && hasOdometerImageSource(transaction, imageType))) &&
             !isEReceipt &&
             !transaction?.receipt?.isTestDriveReceipt &&
             isImage,
-        [shouldShowReplaceReceiptButton, transaction, isEReceipt, isOdometerImage, imageType, isImage],
+        [canEditReceiptButtons, transaction, isEReceipt, isOdometerImage, imageType, isImage],
     );
 
     const enterCropMode = useCallback(() => {
