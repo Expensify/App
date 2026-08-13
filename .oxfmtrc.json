@@ -73,7 +73,7 @@
         "src/libs/SearchParser/autocompleteParser.js",
         "Mobile-Expensify",
         "modules/group-ib-fp",
-        "oxlint-probe/port-probe/fixtures"
+        "oxlint-migration/port-probe/fixtures"
     ],
     "overrides": [
         {

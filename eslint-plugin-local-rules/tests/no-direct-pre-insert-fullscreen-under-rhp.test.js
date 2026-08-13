@@ -1,5 +1,5 @@
 // Cases for the local rule, in the same shape as the upstream eslint-plugin-expensify tests, so
-// oxlint-probe/rule-tester replays them through both linters (npm run oxlint-rule-tester).
+// oxlint-migration/rule-tester replays them through both linters (npm run oxlint-rule-tester).
 //
 // This rule leans on scope analysis harder than any other local rule: it tracks the import binding
 // through sourceCode.getDeclaredVariables and sourceCode.getScope, and keeps the Variable objects in
@@ -7,7 +7,7 @@
 // aliasing cases below matter more than the plain one.
 import {RuleTester} from 'eslint';
 
-// eslint-disable-next-line import/extensions -- Node resolves this file directly when the oxlint-probe harness imports it, so the extension is required
+// eslint-disable-next-line import/extensions -- Node resolves this file directly when the oxlint-migration harness imports it, so the extension is required
 import {create, meta} from '../no-direct-pre-insert-fullscreen-under-rhp.js';
 
 const ruleTester = new RuleTester({

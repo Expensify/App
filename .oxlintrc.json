@@ -6,7 +6,7 @@
     //                               (core/, rh/, hosted/) because oxlint's native port diverges.
     //   OFF, mirrors ESLint       -- ESLint has it off in the same scope; parity, not a gap.
     //   OFF, coverage gap         -- we want the rule, something specific blocks it. The reason is
-    //                               on the line, and machine-readable in oxlint-probe/ruleMap.py
+    //                               on the line, and machine-readable in oxlint-migration/ruleMap.py
     //                               (PORT_PLAN); `npm run oxlint-rule-availability` prints them.
     "$schema": "./node_modules/oxlint/configuration_schema.json",
     "plugins": ["typescript", "import", "jsx-a11y", "unicorn", "react"],
@@ -18,11 +18,11 @@
     // Per-override jsPlugins stay bare package specifiers: their meta.name already matches the
     // prefix ESLint uses, so declaring it would only add noise.
     "jsPlugins": [
-        {"name": "rulesdir", "specifier": "./oxlint-probe/expensify-rules.mjs"},
+        {"name": "rulesdir", "specifier": "./config/oxlint/plugins/expensify-rules.mjs"},
         {"name": "report-name-utils", "specifier": "./config/eslint/plugins/eslint-plugin-report-name-utils.mjs"},
-        {"name": "core", "specifier": "./oxlint-probe/core-rules.mjs"},
-        {"name": "hosted", "specifier": "./oxlint-probe/hosted-rules.mjs"},
-        {"name": "rh", "specifier": "./oxlint-probe/rh-plugin.mjs"}
+        {"name": "core", "specifier": "./config/oxlint/plugins/core-rules.mjs"},
+        {"name": "hosted", "specifier": "./config/oxlint/plugins/hosted-rules.mjs"},
+        {"name": "rh", "specifier": "./config/oxlint/plugins/rh-plugin.mjs"}
     ],
     "categories": {
         "correctness": "off"
@@ -102,7 +102,7 @@
         "src/languages/pl.ts",
         "src/languages/pt-BR.ts",
         "src/languages/zh-hans.ts",
-        "oxlint-probe/**"
+        "oxlint-migration/**"
     ],
     "rules": {
         "array-callback-return": [
@@ -469,7 +469,7 @@
         // The four rulesdir rules below are listed as OFF on purpose rather than left out: a rule
         // missing from this file is indistinguishable from an oversight. Each is still wanted — the
         // reason it cannot run yet is on its own line, and the machine-readable copy lives in
-        // oxlint-probe/ruleMap.py (PORT_PLAN), printed by `npm run oxlint-rule-availability`.
+        // oxlint-migration/ruleMap.py (PORT_PLAN), printed by `npm run oxlint-rule-availability`.
         // OFF, blocked upstream: needs the type of the `&&` left operand; jsPlugins get no type info.
         "rulesdir/boolean-conditional-rendering": "off",
         // OFF, blocked upstream: needs typeChecker.isArrayType to tell arrays from records, so a
@@ -477,10 +477,10 @@
         "rulesdir/prefer-at": "off",
         // OFF here, ON for src/**/*.ts(x) below, mirroring ESLint's scope exactly. ESLint's copy of
         // this rule needs the type checker, so oxlint runs a type-free rewrite
-        // (oxlint-probe/preferLocaleCompareFromContext.mjs): the only type question it asks is
+        // (config/oxlint/preferLocaleCompareFromContext.mjs): the only type question it asks is
         // "is the receiver a string", and localeCompare exists on exactly one built-in prototype.
         "rulesdir/prefer-locale-compare-from-context": "off",
-        // Wired 2026-08-12 behind the React Compiler gate (oxlint-probe/reactCompilerGate.mjs).
+        // Wired 2026-08-12 behind the React Compiler gate (config/oxlint/reactCompilerGate.mjs).
         // Without the gate this reports 238 findings across 186 files that ESLint never shows,
         // because its processor drops every message from this rule in a dual-memoized file.
         "rulesdir/no-inline-useOnyx-selector": "error",
@@ -678,7 +678,7 @@
         // measured and rejected on 2026-08-12: it works, but it needs 115 inline suppressions plus
         // one for every context provider written from then on, because it cannot ask the compilers.
         // The native port also diverges twice (both upstream bugs, measured by
-        // `python3 oxlint-probe/compareNativeCtxValues.py`): it anchors on the JSX provider rather
+        // `python3 oxlint-migration/compareNativeCtxValues.py`): it anchors on the JSX provider rather
         // than the declaration, and it does not require the value to be declared in a component.
         "react/jsx-no-constructed-context-values": "off",
         "react/no-unstable-nested-components": "error",
@@ -881,7 +881,7 @@
         "core/no-unreachable-loop": ["error", {"ignore": []}],
         "hosted/jsx-no-bind": ["error", {"ignoreRefs": true, "allowArrowFunctions": true, "allowFunctions": false, "allowBind": false, "ignoreDOMComponents": true}],
         "hosted/function-component-definition": ["error", {"namedComponents": "function-declaration", "unnamedComponents": "arrow-function"}],
-        // Wired 2026-08-12 behind the React Compiler gate (oxlint-probe/reactCompilerGate.mjs),
+        // Wired 2026-08-12 behind the React Compiler gate (config/oxlint/reactCompilerGate.mjs),
         // which is why it is hosted rather than native: see the `react/` entry above.
         "hosted/jsx-no-constructed-context-values": "error",
         "hosted/prefer-default-export": "error",
@@ -1102,7 +1102,7 @@
                 "typescript/restrict-template-expressions": "error",
                 "typescript/triple-slash-reference": "error",
                 "typescript/unbound-method": "error",
-                // typescript-eslint's own rule, hosted by oxlint-probe/hosted-rules.mjs because
+                // typescript-eslint's own rule, hosted by config/oxlint/plugins/hosted-rules.mjs because
                 // tsgolint has not implemented it. It reports under the `hosted/` alias: oxlint
                 // rejects `@typescript-eslint` as a JS-plugin name ("reserved ... already implemented
                 // natively"), so ESLint's id cannot be reused and suppression comments need this one.

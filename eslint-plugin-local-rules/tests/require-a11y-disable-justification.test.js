@@ -1,5 +1,5 @@
 // Cases for the local rule, in the same shape as the upstream eslint-plugin-expensify tests, so
-// oxlint-probe/rule-tester replays them through both linters (npm run oxlint-rule-tester).
+// oxlint-migration/rule-tester replays them through both linters (npm run oxlint-rule-tester).
 //
 // The cases are made of real eslint-disable comments, because that is what the rule reads. Two
 // consequences for the replay harness: the ESLint config it uses turns
@@ -8,7 +8,7 @@
 // linter has loaded, which both tools ignore.
 import {RuleTester} from 'eslint';
 
-// eslint-disable-next-line import/extensions -- Node resolves this file directly when the oxlint-probe harness imports it, so the extension is required
+// eslint-disable-next-line import/extensions -- Node resolves this file directly when the oxlint-migration harness imports it, so the extension is required
 import {create, meta} from '../require-a11y-disable-justification.js';
 
 const ruleTester = new RuleTester({

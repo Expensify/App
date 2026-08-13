@@ -721,8 +721,9 @@ const config = defineConfig([
     globalIgnores([
         '!**/.storybook',
         '!**/.github',
-        // Oxlint migration investigation artifacts (see OXLINT_MIGRATION_INVESTIGATION.md)
-        'oxlint-probe/**',
+        // Oxlint migration harness, deleted with ESLint (see oxlint-migration/README.md).
+        // config/oxlint/ is deliberately NOT ignored: it is production lint config, not an artifact.
+        'oxlint-migration/**',
         '.github/actions/**/index.js',
         '**/*.config.js',
         '**/*.config.mjs',
