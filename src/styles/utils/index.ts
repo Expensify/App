@@ -1986,7 +1986,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
                 columnWidth = {
-                    ...getWidthStyle(isDateColumnWide ? variables.w102 : variables.w62),
+                    ...getWidthStyle(isDateColumnWide ? variables.w102 : variables.w80),
                 };
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:

@@ -9104,6 +9104,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             paid: 'Payé',
             exported: 'Exporté',
             posted: 'Publié',
+            created: 'Créé',
+            createdDate: 'Date de création',
             withdrawn: 'Retiré',
             billable: 'Facturable',
             reimbursable: 'Remboursable',

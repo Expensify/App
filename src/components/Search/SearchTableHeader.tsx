@@ -43,7 +43,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
-        translationKey: 'common.date',
+        translationKey: 'search.filters.created',
         canEdit: true,
     },
     {
@@ -203,7 +203,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
 const taskHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
-        translationKey: 'common.date',
+        translationKey: 'search.filters.created',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
@@ -246,7 +246,7 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
-        translationKey: 'common.date',
+        translationKey: 'search.filters.created',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
