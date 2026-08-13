@@ -21,18 +21,28 @@ function getUserSecurityGroup(
     // Get the security group details for the user's domain
     const groupMembership = userDomain ? myDomainSecurityGroups?.[userDomain] : undefined;
 
-    // The membership form determines which collection holds the group.
-    // Legacy string membership: the group only lives under the legacy SECURITY_GROUP collection.
-    if (typeof groupMembership === 'string') {
-        return groupMembership ? legacySecurityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${groupMembership}`] : undefined;
+    // Read the object membership first, since it carries the owner account ID (domainAccountID), and fall back to the legacy string membership that only carries the security group ID.
+    const securityGroupID = typeof groupMembership === 'object' ? groupMembership.securityGroupID : groupMembership;
+    const ownerAccountID = typeof groupMembership === 'object' ? groupMembership.ownerAccountID : undefined;
+
+    if (!securityGroupID) {
+        return undefined;
     }
 
-    // Object membership: The security group is a sharedNVP owned by the domain account, keyed under SHARED_NVP_SECURITY_GROUP as  `<securityGroupID>_<ownerAccountID>`.
-    // read the sharedNVP key only, no legacy fallback, so a moved or deleted group resolves to undefined rather than stale securityGroup_ data.
-    const securityGroupID = groupMembership?.securityGroupID;
-    const ownerAccountID = groupMembership?.ownerAccountID;
+    let securityGroup: OnyxEntry<SecurityGroup>;
 
-    return securityGroupID && ownerAccountID !== undefined ? securityGroups?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP}${securityGroupID}_${ownerAccountID}`] : undefined;
+    // A legacy string membership has no owner account ID, so there is no sharedNVP key to read.
+    if (ownerAccountID !== undefined) {
+        // The security group is a sharedNVP owned by the domain account, keyed under SHARED_NVP_SECURITY_GROUP as `<securityGroupID>_<ownerAccountID>`.
+        securityGroup = securityGroups?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP}${securityGroupID}_${ownerAccountID}`];
+    }
+
+    // The backend writes both keys throughout the rollout, so fall back to the legacy collection.
+    if (!securityGroup) {
+        securityGroup = legacySecurityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${securityGroupID}`];
+    }
+
+    return securityGroup;
 }
 
 export default getUserSecurityGroup;
