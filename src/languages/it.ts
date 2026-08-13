@@ -2950,7 +2950,7 @@ ${amount} per ${merchant} - ${date}`,
         editAvatar: 'Cambia avatar',
         defaultAgentName: (displayName: string) => `Agente di ${displayName}`,
         defaultPrompt:
-            "Rifiuta le spese relative a gioco d'azzardo, cinema o altri motivi chiaramente non legati all'attività.\n\nRicorda all'utente di includere sempre un'immagine della ricevuta in cui la mancia sia ben visibile.\n\nApprova il report se è molto simile ai report precedenti dello stesso utente.\n\nRifiuta i report con più di 500 $ di spese di viaggio.",
+            'Classifica tutte le spese al bar come Pasti.\n\nPer ogni corsa condivisa, imposta la descrizione su «Viaggio cliente».\n\nTagga qualsiasi cosa compro al negozio di elettronica come Attrezzatura.\n\nContrassegna qualsiasi spesa senza ricevuta così posso aggiungerne una prima di inviarla.',
         copilotNote: 'Questo agente verrà aggiunto come Copilot con accesso completo al tuo account, così potrà agire per tuo conto.',
     },
     editAgentPage: {
