@@ -9,64 +9,48 @@ import GithubUtils from '../../.github/libs/GithubUtils';
 import GitUtils from '../../.github/libs/GitUtils';
 import createMock from '../utils/createMock';
 
-type PullRequest = {
-    issue_number: number;
-    title: string;
-    merged_by: {login: string};
-    labels: Array<{name: string}>;
-};
-
-type PullRequestParams = {
-    pull_number: number;
-};
-
-type PullRequestData = {
-    data?: PullRequest;
-};
-
-type Commit = {
-    commit_sha: string;
-};
-
-type CommitData = {
-    data: {
-        message: string;
-    };
-};
+type GetPullRequest = InternalOctokit['rest']['pulls']['get'];
+type GetPullRequestResponse = Awaited<ReturnType<GetPullRequest>>;
+type PullRequest = GetPullRequestResponse['data'];
+type ListTags = InternalOctokit['rest']['repos']['listTags'];
+type ListTagsResponse = Awaited<ReturnType<ListTags>>;
+type Tag = ListTagsResponse['data'][number];
+type GetCommit = InternalOctokit['rest']['git']['getCommit'];
+type GetCommitResponse = Awaited<ReturnType<GetCommit>>;
+type Commit = GetCommitResponse['data'];
+type CreateComment = InternalOctokit['rest']['issues']['createComment'];
+type CreateCommentResponse = Awaited<ReturnType<CreateComment>>;
 
 let run: () => Promise<void>;
 
 const mockGetInput = jest.fn();
-const mockGetPullRequest = jest.fn<PullRequestData, [PullRequestParams]>();
-const mockCreateComment = jest.fn<void, Parameters<InternalOctokit['rest']['issues']['createComment']>>();
-const mockListTags = jest.fn<Promise<{data: Array<{name: string; commit: {sha: string}}>}>, Parameters<InternalOctokit['rest']['repos']['listTags']>>();
-const mockGetCommit = jest.fn<CommitData, [Commit]>();
+const mockGetPullRequest = jest.fn<ReturnType<GetPullRequest>, Parameters<GetPullRequest>>();
+const mockCreateComment = jest.fn<ReturnType<CreateComment>, Parameters<CreateComment>>();
+const mockListTags = jest.fn<ReturnType<ListTags>, Parameters<ListTags>>();
+const mockGetCommit = jest.fn<ReturnType<GetCommit>, Parameters<GetCommit>>();
 
 let workflowRunURL: string | null;
 
 const PRList: Record<number, PullRequest> = {
-    1: {
-        issue_number: 1,
+    1: createMock<PullRequest>({
+        number: 1,
         title: 'Test PR 1',
         merged_by: {
             login: 'odin',
         },
         labels: [],
-    },
-    2: {
-        issue_number: 2,
+    }),
+    2: createMock<PullRequest>({
+        number: 2,
         title: 'Test PR 2',
         merged_by: {
             login: 'loki',
         },
         labels: [],
-    },
+    }),
 };
 const version = '42.42.42-42';
-const defaultTags = [
-    {name: '42.42.42-42', commit: {sha: 'abcd'}},
-    {name: '42.42.42-41', commit: {sha: 'hash'}},
-];
+const defaultTags: ListTagsResponse['data'] = [createMock<Tag>({name: '42.42.42-42', commit: {sha: 'abcd'}}), createMock<Tag>({name: '42.42.42-41', commit: {sha: 'hash'}})];
 
 function mockGetInputDefaultImplementation(key: string): boolean | string {
     switch (key) {
@@ -90,11 +74,15 @@ function mockGetInputDefaultImplementation(key: string): boolean | string {
     }
 }
 
-function mockGetCommitDefaultImplementation({commit_sha}: Commit): CommitData {
-    if (commit_sha === 'abcd') {
-        return {data: {message: 'Test commit 1'}};
+async function mockGetCommitDefaultImplementation(...[params]: Parameters<GetCommit>): ReturnType<GetCommit> {
+    if (!params) {
+        throw new Error('Commit parameters are required.');
     }
-    return {data: {message: 'Test commit 2'}};
+    const {commit_sha} = params;
+    if (commit_sha === 'abcd') {
+        return {data: createMock<Commit>({message: 'Test commit 1'}), headers: {}, status: 200, url: ''};
+    }
+    return {data: createMock<Commit>({message: 'Test commit 2'}), headers: {}, status: 200, url: ''};
 }
 
 beforeAll(() => {
@@ -127,25 +115,10 @@ beforeAll(() => {
     const mockListEvents = jest.mocked(initializedOctokit.rest.issues.listEvents, {shallow: true});
     mockListEvents.endpoint = listEventsEndpoint;
     mockListEvents.defaults = listEventsDefaults;
-    jest.spyOn(initializedOctokit.rest.issues, 'createComment').mockImplementation(async (...args) => {
-        mockCreateComment(...args);
-        return createMock<Awaited<ReturnType<InternalOctokit['rest']['issues']['createComment']>>>({});
-    });
-    jest.spyOn(initializedOctokit.rest.pulls, 'get').mockImplementation(async (params) => {
-        if (!params) {
-            throw new Error('Pull request parameters are required.');
-        }
-        return createMock<Awaited<ReturnType<InternalOctokit['rest']['pulls']['get']>>>(mockGetPullRequest(params));
-    });
-    jest.spyOn(initializedOctokit.rest.repos, 'listTags').mockImplementation(async (...args) =>
-        createMock<Awaited<ReturnType<InternalOctokit['rest']['repos']['listTags']>>>(await mockListTags(...args)),
-    );
-    jest.spyOn(initializedOctokit.rest.git, 'getCommit').mockImplementation(async (params) => {
-        if (!params) {
-            throw new Error('Commit parameters are required.');
-        }
-        return createMock<Awaited<ReturnType<InternalOctokit['rest']['git']['getCommit']>>>(mockGetCommit(params));
-    });
+    jest.spyOn(initializedOctokit.rest.issues, 'createComment').mockImplementation((...args) => mockCreateComment(...args));
+    jest.spyOn(initializedOctokit.rest.pulls, 'get').mockImplementation((...args) => mockGetPullRequest(...args));
+    jest.spyOn(initializedOctokit.rest.repos, 'listTags').mockImplementation((...args) => mockListTags(...args));
+    jest.spyOn(initializedOctokit.rest.git, 'getCommit').mockImplementation((...args) => mockGetCommit(...args));
 
     // Mock GitUtils
     GitUtils.getPullRequestsDeployedBetween = jest.fn();
@@ -168,10 +141,18 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
-    mockGetPullRequest.mockImplementation(({pull_number}: PullRequestParams): PullRequestData => (pull_number in PRList ? {data: PRList[pull_number]} : {}));
-    mockListTags.mockResolvedValue({
-        data: defaultTags,
+    mockGetPullRequest.mockImplementation(async (params) => {
+        if (!params) {
+            throw new Error('Pull request parameters are required.');
+        }
+        const pullRequest = PRList[params.pull_number];
+        if (!pullRequest) {
+            throw new Error(`Unexpected pull request: ${params.pull_number}`);
+        }
+        return {data: pullRequest, headers: {}, status: 200, url: ''};
     });
+    mockCreateComment.mockResolvedValue({data: createMock<CreateCommentResponse['data']>({}), headers: {}, status: 201, url: ''});
+    mockListTags.mockResolvedValue({data: defaultTags, headers: {}, status: 200, url: ''});
     mockGetCommit.mockImplementation(mockGetCommitDefaultImplementation);
 });
 
@@ -195,6 +176,9 @@ describe('markPullRequestsAsDeployed', () => {
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
         for (let i = 0; i < Object.keys(PRList).length; i++) {
             const PR = PRList[i + 1];
+            if (!PR.merged_by) {
+                throw new Error(`Pull request ${PR.number} has no merger.`);
+            }
             expect(mockCreateComment).toHaveBeenNthCalledWith(i + 1, {
                 body: `🚀 [Deployed](${workflowRunURL}) to staging by https://github.com/${PR.merged_by.login} in version: ${version} 🚀
 
@@ -203,7 +187,7 @@ platform | result
 🕸 web 🕸|success ✅
 🤖 android 🤖|success ✅
 🍎 iOS 🍎|success ✅`,
-                issue_number: PR.issue_number,
+                issue_number: PR.number,
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
             });
@@ -232,7 +216,7 @@ platform | result
 🕸 web 🕸|success ✅
 🤖 android 🤖|success ✅
 🍎 iOS 🍎|success ✅`,
-                issue_number: PRList[i + 1].issue_number,
+                issue_number: PRList[i + 1].number,
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
             });
@@ -249,33 +233,51 @@ platform | result
             }
             return mockGetInputDefaultImplementation(key);
         });
-        mockGetPullRequest.mockImplementation(({pull_number}: PullRequestParams) => {
+        mockGetPullRequest.mockImplementation(async (params) => {
+            if (!params) {
+                throw new Error('Pull request parameters are required.');
+            }
+            const {pull_number} = params;
             if (pull_number === 3) {
                 return {
-                    data: {
-                        issue_number: 3,
+                    data: createMock<PullRequest>({
+                        number: 3,
                         title: 'Test PR 3',
                         merged_by: {
                             login: 'thor',
                         },
                         labels: [{name: CONST.LABELS.CP_STAGING}],
-                    },
+                    }),
+                    headers: {},
+                    status: 200,
+                    url: '',
                 };
             }
-            return {};
+            throw new Error(`Unexpected pull request: ${pull_number}`);
         });
         mockListTags.mockResolvedValue({
-            data: [{name: '42.42.42-43', commit: {sha: 'xyz'}}, ...defaultTags],
+            data: [createMock<Tag>({name: '42.42.42-43', commit: {sha: 'xyz'}}), ...defaultTags],
+            headers: {},
+            status: 200,
+            url: '',
         });
-        mockGetCommit.mockImplementation(({commit_sha}: Commit) => {
+        mockGetCommit.mockImplementation(async (...args) => {
+            const [params] = args;
+            if (!params) {
+                throw new Error('Commit parameters are required.');
+            }
+            const {commit_sha} = params;
             if (commit_sha === 'xyz') {
                 return {
-                    data: {
+                    data: createMock<Commit>({
                         message: `Merge pull request #3 blahblahblah\\n(cherry picked from commit dag_dag)\\n(cherry-picked to staging by freyja)`,
-                    },
+                    }),
+                    headers: {},
+                    status: 200,
+                    url: '',
                 };
             }
-            return mockGetCommitDefaultImplementation({commit_sha});
+            return mockGetCommitDefaultImplementation(...args);
         });
 
         // Note: we import this in here so that it executes after all the mocks are set up
@@ -313,6 +315,9 @@ platform | result
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
         for (let i = 0; i < Object.keys(PRList).length; i++) {
             const PR = PRList[i + 1];
+            if (!PR.merged_by) {
+                throw new Error(`Pull request ${PR.number} has no merger.`);
+            }
             expect(mockCreateComment).toHaveBeenNthCalledWith(i + 1, {
                 body: `🚀 [Deployed](${workflowRunURL}) to staging by https://github.com/${PR.merged_by.login} in version: ${version} 🚀
 
@@ -321,7 +326,7 @@ platform | result
 🕸 web 🕸|success ✅
 🤖 android 🤖|skipped 🚫
 🍎 iOS 🍎|failed ❌`,
-                issue_number: PR.issue_number,
+                issue_number: PR.number,
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
             });

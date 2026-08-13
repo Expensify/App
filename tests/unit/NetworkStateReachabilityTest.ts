@@ -1,3 +1,4 @@
+// cspell:ignore bssid
 import CONST from '@src/CONST';
 import type Middleware from '@src/libs/Middleware/types';
 import type * as NetworkState from '@src/libs/NetworkState';
