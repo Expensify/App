@@ -574,7 +574,7 @@ function isAmountMissing(transaction: OnyxEntry<Transaction>, isFromExpenseRepor
     if (isFromExpenseReport) {
         return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
     }
-    return (transaction?.amount === 0 || transaction?.amount === undefined) && (!transaction?.modifiedAmount || transaction?.modifiedAmount === 0 || transaction?.modifiedAmount === '');
+    return (transaction?.amount === 0 || transaction?.amount === undefined) && !hasValidModifiedAmount(transaction);
 }
 
 function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boolean {
