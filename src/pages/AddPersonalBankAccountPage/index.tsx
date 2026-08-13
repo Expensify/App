@@ -83,6 +83,7 @@ function AddPersonalBankAccountPage() {
             case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
                 Navigation.goBack(ROUTES.SETTINGS_WALLET);
                 break;
+            case SCREENS.HOME:
             case NAVIGATORS.REPORTS_SPLIT_NAVIGATOR:
                 Navigation.closeRHPFlow();
                 break;
@@ -223,7 +224,7 @@ function AddPersonalBankAccountPage() {
     }, [error]);
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'AddPersonalBankAccountPage', isRedirecting}} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

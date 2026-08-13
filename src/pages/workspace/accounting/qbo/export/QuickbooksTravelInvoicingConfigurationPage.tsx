@@ -9,6 +9,7 @@ import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils
 
 import Navigation from '@navigation/Navigation';
 
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -21,6 +22,7 @@ const payableAccount = [CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT
 
 function QuickbooksTravelInvoicingConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
 
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
@@ -33,6 +35,7 @@ function QuickbooksTravelInvoicingConfigurationPage({policy}: WithPolicyConnecti
             displayName="QuickbooksTravelInvoicingConfigurationPage"
             headerTitle="workspace.common.travelInvoicing"
             title="workspace.qbo.travelInvoicingDescription"
+            titleAlreadyTranslated={translate('workspace.qbo.travelInvoicingDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
