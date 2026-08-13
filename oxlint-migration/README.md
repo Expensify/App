@@ -55,6 +55,7 @@ Generated reports are gitignored, not committed: `rule-inventory.json`, `rule-av
 
 ## The plan documents
 
-`OXLINT_MIGRATION_INVESTIGATION.md`, `OXLINT_MIGRATION_TLDR.md`, `OXLINT_SIDE_BY_SIDE_PLAN.md` and
-`OXLINT_RULE_TEST_SUITE_PLAN.md` at the repo root carry the measurements, the decisions and the
-remaining checklist.
+`OXLINT_MIGRATION_INVESTIGATION.md`, `OXLINT_MIGRATION_TLDR.md`, `OXLINT_SIDE_BY_SIDE_PLAN.md`,
+`OXLINT_MIGRATION_STEPS.md` and `OXLINT_RULE_TEST_SUITE_PLAN.md` at the repo root carry the
+measurements, the decisions and the remaining checklist. Start with `OXLINT_MIGRATION_STEPS.md` if
+what you want is the order of work.

@@ -473,7 +473,11 @@
         // OFF, blocked upstream: needs the type of the `&&` left operand; jsPlugins get no type info.
         "rulesdir/boolean-conditional-rendering": "off",
         // OFF, blocked upstream: needs typeChecker.isArrayType to tell arrays from records, so a
-        // syntactic port would fire on every obj[key].
+        // syntactic port would fire on every obj[key]. Measured 2026-08-13: unicorn/prefer-at with
+        // checkAllIndexAccess reports 413 findings in src/, 0 of the sampled 104 real. The same rule
+        // at default options covers the x[x.length - N] half and matches ESLint's own copy of it
+        // exactly (2 findings, same 2 lines, whole repo); enabling it on both linters is step 10a of
+        // OXLINT_MIGRATION_STEPS.md, pending the two source fixes it needs.
         "rulesdir/prefer-at": "off",
         // OFF here, ON for src/**/*.ts(x) below, mirroring ESLint's scope exactly. ESLint's copy of
         // this rule needs the type checker, so oxlint runs a type-free rewrite

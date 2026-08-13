@@ -84,8 +84,16 @@ PORT_PLAN = {
     # oxlint-migration/checkLocaleComparePort.py.
     'rulesdir/prefer-at': {
         'mechanism': 'blocked - needs typeChecker.isArrayType to tell arrays from records',
-        'effort': 'blocked', 'proven': False,
-        'notes': 'a syntactic port would fire on every obj[key]; wait for typed jsPlugins or a tsgolint rule',
+        'effort': 'blocked, partial', 'proven': False,
+        'notes': 'a syntactic port would fire on every obj[key]: measured 2026-08-13, oxlint\'s '
+                 'unicorn/prefer-at with checkAllIndexAccess reports 413 findings in src/ and ESLint\'s '
+                 'type-aware rule confirms 0 of the sampled 104 as real array reads. But the same rule '
+                 'at DEFAULT options covers the x[x.length - N] family, exists natively in oxlint AND '
+                 'upstream in eslint-plugin-unicorn (already a dependency), and the two agree exactly: '
+                 '2 findings, same 2 lines, over the whole production file set. Same rule id on both '
+                 'tools, so one eslint-disable comment suppresses both and no twin is needed. Enabling '
+                 'it recovers everything except plain arr[0]/arr[i]. See step 10a of '
+                 'OXLINT_MIGRATION_STEPS.md',
     },
     'rulesdir/boolean-conditional-rendering': {
         'mechanism': 'blocked - needs the type of the && left operand',
