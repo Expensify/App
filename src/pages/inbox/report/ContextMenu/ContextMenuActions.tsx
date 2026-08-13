@@ -139,6 +139,7 @@ import {
     isActionableTrackExpense,
     isActionOfType,
     isCardIssuedAction,
+    isCategoryModificationAction,
     isCreatedAction,
     isCreatedTaskReportAction,
     isDeletedAction as isDeletedActionReportActionsUtils,
@@ -1057,12 +1058,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getWorkspaceCurrencyUpdateMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY) {
                     Clipboard.setString(getWorkspaceFrequencyUpdateMessage(translate, reportAction));
-                } else if (
-                    reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY ||
-                    reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY ||
-                    reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY ||
-                    reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME
-                ) {
+                } else if (reportAction?.actionName && isCategoryModificationAction(reportAction.actionName)) {
                     Clipboard.setString(getWorkspaceCategoryUpdateMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORIES) {
                     Clipboard.setString(getWorkspaceCategoriesUpdatedMessage(translate, reportAction));

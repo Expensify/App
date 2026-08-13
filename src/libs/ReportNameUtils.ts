@@ -95,6 +95,7 @@ import {
     getUpdatedCardFeedStatementPeriodMessage,
     getUpdatedProhibitedExpensesMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
+    getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
     getWorkspaceCustomUnitRateDeletedMessage,
@@ -111,6 +112,7 @@ import {
     isActionableJoinRequest,
     isActionOfType,
     isCardIssuedAction,
+    isCategoryModificationAction,
     isDynamicExternalWorkflowApproveFailedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
     isMarkAsClosedAction,
@@ -697,6 +699,10 @@ function computeReportNameBasedOnReportAction({
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSER)) {
         return getReimburserUpdateMessage(translate, parentReportAction);
+    }
+
+    if (parentReportAction?.actionName && isCategoryModificationAction(parentReportAction.actionName)) {
+        return getWorkspaceCategoryUpdateMessage(translate, parentReportAction, reportPolicy);
     }
 
     if (
