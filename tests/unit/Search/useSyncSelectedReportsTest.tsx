@@ -102,6 +102,7 @@ function renderHarness({
                 setSelectedTransactions: () => {},
                 getSelectedTransactions: () => ({}),
                 getExcludedTransactions: () => ({}),
+                getAreAllMatchingItemsSelected: () => false,
                 applySelection: () => {},
                 setSelectedReports,
                 removeTransaction: () => {},

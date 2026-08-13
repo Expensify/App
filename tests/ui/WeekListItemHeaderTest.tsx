@@ -56,6 +56,7 @@ const mockSearchActionsContext = {
     setSelectedTransactions: jest.fn(),
     getSelectedTransactions: jest.fn(() => ({})),
     getExcludedTransactions: () => ({}),
+    getAreAllMatchingItemsSelected: () => false,
     applySelection: jest.fn(),
     setSelectedReports: jest.fn(),
     removeTransaction: jest.fn(),

@@ -65,6 +65,7 @@ const defaultSearchSelectionActions: SearchSelectionActionsValue = {
     setSelectedTransactions: () => {},
     getSelectedTransactions: () => ({}),
     getExcludedTransactions: () => ({}),
+    getAreAllMatchingItemsSelected: () => false,
     applySelection: () => {},
     setSelectedReports: () => {},
     setCurrentSelectedTransactionReportID: () => {},

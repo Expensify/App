@@ -59,6 +59,12 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         excludedTransactionsRef.current = selectionState.excludedTransactions;
     }, [selectionState.excludedTransactions]);
 
+    // And the flag, so a handler deciding what a row shows reads all three at the same freshness.
+    const areAllMatchingItemsSelectedRef = useRef(selectionState.areAllMatchingItemsSelected);
+    useLayoutEffect(() => {
+        areAllMatchingItemsSelectedRef.current = selectionState.areAllMatchingItemsSelected;
+    }, [selectionState.areAllMatchingItemsSelected]);
+
     const setSelectedTransactions: SearchSelectionActionsValue['setSelectedTransactions'] = (transactionIDs, data) => {
         if (transactionIDs instanceof Array) {
             if (!transactionIDs.length && areTransactionsEmpty.current) {
@@ -293,6 +299,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         applySelection,
         getSelectedTransactions: () => selectedTransactionsRef.current,
         getExcludedTransactions: () => excludedTransactionsRef.current,
+        getAreAllMatchingItemsSelected: () => areAllMatchingItemsSelectedRef.current,
         setSelectedReports,
         setCurrentSelectedTransactionReportID,
         clearSelectedTransactions,

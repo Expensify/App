@@ -263,6 +263,8 @@ type SearchSelectionActionsValue = {
     getSelectedTransactions: () => SelectedTransactions;
     /** The same for the exclusions, which are rebuilt on every commit and would otherwise re-render every row on each press. */
     getExcludedTransactions: () => SelectedTransactions;
+    /** And for the all-matching flag, so a handler reads it at the same freshness as the two maps. */
+    getAreAllMatchingItemsSelected: () => boolean;
     setSelectedReports: (reports: SelectedReports[]) => void;
     setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */

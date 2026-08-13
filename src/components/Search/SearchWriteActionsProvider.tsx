@@ -158,12 +158,11 @@ function SearchWriteActionsProvider({
     const isFocused = useIsFocused();
     const {isProduction} = useEnvironment();
     const {isOffline} = useNetwork();
-    const {areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-    const {applySelection, getSelectedTransactions, getExcludedTransactions} = useSearchSelectionActions();
+    const {applySelection, getSelectedTransactions, getExcludedTransactions, getAreAllMatchingItemsSelected} = useSearchSelectionActions();
 
     const searchHash = searchResults?.search?.hash;
     const {groupChildrenByKey, openGroupKeys, shiftRangeChildrenActions} = useGroupChildrenRegistry(searchHash);
@@ -176,17 +175,21 @@ function SearchWriteActionsProvider({
 
     // One lookup policy (snapshot first, live Onyx fallback) so a row's action flags can't differ by selection gesture.
     const readTransaction = (transactionID: string | undefined): OnyxEntry<Transaction> => {
+        if (!transactionID) {
+            return undefined;
+        }
         const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         return isTransactionEntry(key) ? (searchResultsData?.[key] ?? transactions?.[key]) : undefined;
     };
 
     const resolveTransactionRefs = (item: TransactionListItemType) => {
         const itemTransaction = readTransaction(item.transactionID);
-        const parentReportKey = `${ONYXKEYS.COLLECTION.REPORT}${item.report?.parentReportID}`;
+        const parentReportID = item.report?.parentReportID;
+        const parentReportKey = `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`;
         return {
             itemTransaction,
             originalItemTransaction: readTransaction(itemTransaction?.comment?.originalTransactionID),
-            parentReport: isReportEntry(parentReportKey) ? searchResultsData?.[parentReportKey] : undefined,
+            parentReport: parentReportID && isReportEntry(parentReportKey) ? searchResultsData?.[parentReportKey] : undefined,
         };
     };
 
@@ -229,7 +232,7 @@ function SearchWriteActionsProvider({
     // The group holds rows nobody can name yet, so enumerating it would drop the ones that never arrived.
     const isCoveredByPartialGroup = (selection: SelectedTransactions, childKey: string) => {
         const groupKey = groupKeyByChildKey.get(childKey);
-        if (!groupKey || areAllMatchingItemsSelected || !selection[groupKey]?.isSelected) {
+        if (!groupKey || getAreAllMatchingItemsSelected() || !selection[groupKey]?.isSelected) {
             return false;
         }
         const totalCount = childCountByGroupKey.get(groupKey);
@@ -240,7 +243,7 @@ function SearchWriteActionsProvider({
     const spellOutGroupSelection = (selection: SelectedTransactions, childKey: string): SelectedTransactions => {
         const groupKey = groupKeyByChildKey.get(childKey);
         // Select-all-matching already covers the group, so writing it out would only record the whole group as excluded.
-        if (!groupKey || areAllMatchingItemsSelected || !selection[groupKey]?.isSelected) {
+        if (!groupKey || getAreAllMatchingItemsSelected() || !selection[groupKey]?.isSelected) {
             return selection;
         }
         const spelledOut: SelectedTransactions = {...selection};
@@ -262,7 +265,7 @@ function SearchWriteActionsProvider({
         children: groupChildren,
         selectedTransactions,
         excludedTransactions: getExcludedTransactions(),
-        areAllMatchingItemsSelected,
+        areAllMatchingItemsSelected: getAreAllMatchingItemsSelected(),
     });
 
     // A row checked by select-all-matching alone has no entry to remove, so deselecting it can only be recorded as an exclusion.
@@ -271,12 +274,18 @@ function SearchWriteActionsProvider({
             return {};
         }
         // Only select-all-matching can express a deselection as an exclusion. A group selected on its own is written out instead.
-        if (!canRecordExclusions || !areAllMatchingItemsSelected || isTransactionPendingDelete(row)) {
+        if (!canRecordExclusions || !getAreAllMatchingItemsSelected() || isTransactionPendingDelete(row)) {
             return {};
         }
         const selectedTransactions = getSelectedTransactions();
         const parentGroupKey = groupKeyByChildKey.get(row.keyForList);
-        const isChecked = isRowChecked({rowKey: row.keyForList, parentGroupKey, selectedTransactions, excludedTransactions: getExcludedTransactions(), areAllMatchingItemsSelected});
+        const isChecked = isRowChecked({
+            rowKey: row.keyForList,
+            parentGroupKey,
+            selectedTransactions,
+            excludedTransactions: getExcludedTransactions(),
+            areAllMatchingItemsSelected: getAreAllMatchingItemsSelected(),
+        });
         // An entry of its own is removed by the ordinary diff, so only rows checked purely by the wider selection need naming.
         if (!isChecked || selectedTransactions[row.keyForList]?.isSelected) {
             return {};
@@ -358,6 +367,7 @@ function SearchWriteActionsProvider({
     const isRowVisiblyChecked = (item: SearchData[number]) => {
         const selectedTransactions = getSelectedTransactions();
         const excludedTransactions = getExcludedTransactions();
+        const areAllMatchingItemsSelected = getAreAllMatchingItemsSelected();
         if (isTransactionGroupListItemType(item) && item.transactions.length > 0) {
             return item.transactions.some((transaction) =>
                 isRowChecked({rowKey: transaction.keyForList, parentGroupKey: item.keyForList, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}),
@@ -505,7 +515,7 @@ function SearchWriteActionsProvider({
                 Object.assign(groupExclusions, buildExclusionForCheckedRowWithoutEntry(child));
             }
             // Naming only the rows it happens to hold would leave the rest of the group selected, so a group that is not all here is excluded whole.
-            if (canRecordExclusions && areAllMatchingItemsSelected && isTransactionGroupListItemType(item)) {
+            if (canRecordExclusions && getAreAllMatchingItemsSelected() && isTransactionGroupListItemType(item)) {
                 const totalCount = 'count' in item && typeof item.count === 'number' ? item.count : undefined;
                 if (totalCount !== undefined && groupTransactions.length < totalCount) {
                     const [groupKey, groupEntry] = mapEmptyReportToSelectedEntry(item);

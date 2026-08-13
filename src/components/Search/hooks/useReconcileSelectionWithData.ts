@@ -238,7 +238,14 @@ function useReconcileSelectionWithData({
         if (areItemsGrouped) {
             for (const [key, selectedTransaction] of Object.entries(selectedTransactions)) {
                 const parentGroupKey = selectedTransaction.groupKey;
-                if (!parentGroupKey || Object.hasOwn(newTransactionList, key) || Object.hasOwn(excludedTransactions, key) || !presentGroupKeys.has(parentGroupKey)) {
+                // A group excluded whole covers its children, the same rule the grouped loop above applies, or the group would come back partly checked.
+                if (
+                    !parentGroupKey ||
+                    Object.hasOwn(newTransactionList, key) ||
+                    Object.hasOwn(excludedTransactions, key) ||
+                    Object.hasOwn(excludedTransactions, parentGroupKey) ||
+                    !presentGroupKeys.has(parentGroupKey)
+                ) {
                     continue;
                 }
                 newTransactionList[key] = liveSelectionEntries.get(key) ?? selectedTransaction;
