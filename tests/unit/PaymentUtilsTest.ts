@@ -260,6 +260,7 @@ describe('PaymentUtils', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
+                formatPhoneNumber,
             });
         });
 
@@ -290,6 +291,7 @@ describe('PaymentUtils', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
+                formatPhoneNumber,
             });
         });
 

@@ -49,7 +49,7 @@ function useCreateNewReport() {
                 shouldDismissEmptyReportsConfirmation,
             );
         },
-        [betas, currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policies, isTrackIntentUser, getCurrencyDecimals],
+        [betas, currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policies, isTrackIntentUser, getCurrencyDecimals, formatPhoneNumber],
     );
 }
 
