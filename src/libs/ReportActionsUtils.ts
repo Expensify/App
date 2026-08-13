@@ -1850,6 +1850,15 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
  * @param actionName - The name of the action
  * @returns - Whether the action is a tag modification action
  * */
+function isCategoryModificationAction(actionName: string): boolean {
+    return (
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY ||
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY ||
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY ||
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME
+    );
+}
+
 function isTagModificationAction(actionName: string): boolean {
     return (
         actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG ||
@@ -2661,7 +2670,6 @@ function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportActio
 /**
  * Check if the current user is the requestor of the action
  */
-// TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
 function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID?: number): boolean {
     return (currentUserAccountID ?? deprecatedCurrentUserAccountID) === reportAction?.actorAccountID;
 }
@@ -3041,7 +3049,10 @@ function getWorkspaceCategoryUpdateMessage(translate: LocalizedTranslate, action
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY && categoryName) {
         if (updatedField === 'commentHint') {
-            return translate('workspaceActions.updatedDescriptionHint', decodedOptionName, newValue as string | undefined, oldValue as string | undefined);
+            // Description hints are stored as HTML, so they have to be converted back to plain text to read correctly in a message
+            const newHint = typeof newValue === 'string' && newValue ? Parser.htmlToText(newValue) : undefined;
+            const oldHint = typeof oldValue === 'string' && oldValue ? Parser.htmlToText(oldValue) : undefined;
+            return translate('workspaceActions.updatedDescriptionHint', decodedOptionName, newHint, oldHint);
         }
 
         if (updatedField === 'enabled') {
@@ -4608,6 +4619,7 @@ function getCardIssuedMessage({
     expensifyCard,
     companyCard,
     translate,
+    currentUserAccountID,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     shouldRenderHTML?: boolean;
@@ -4616,6 +4628,7 @@ function getCardIssuedMessage({
     expensifyCard?: Card;
     companyCard?: Card;
     translate: LocaleContextProps['translate'];
+    currentUserAccountID: number;
 }) {
     const cardIssuedActionOriginalMessage = isCardIssuedAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
 
@@ -4629,7 +4642,7 @@ function getCardIssuedMessage({
     const isExpensifyCardActive = isCardActive(expensifyCard);
     const expensifyCardLink = (expensifyCardLinkText: string) =>
         shouldRenderHTML && isExpensifyCardActive ? `<a href='${environmentURL}/${navigateRoute}'>${expensifyCardLinkText}</a>` : expensifyCardLinkText;
-    const isAssigneeCurrentUser = deprecatedCurrentUserAccountID === assigneeAccountID;
+    const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
     const companyCardLink =
         shouldRenderHTML && isAssigneeCurrentUser && companyCard
             ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translate('workspace.companyCards.companyCard')}</a>`
@@ -4986,6 +4999,7 @@ export {
     getMostRecentActiveDEWApproveFailedAction,
     hasPendingDEWApprove,
     isWhisperActionTargetedToOthers,
+    isCategoryModificationAction,
     isTagModificationAction,
     isIOUActionMatchingTransactionList,
     isResolvedActionableWhisper,
