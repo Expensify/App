@@ -14178,7 +14178,6 @@ export {
     getRouteFromLink,
     canDeleteCardTransactionByLiabilityType,
     getAddExpenseDropdownOptions,
-    isTeachersUnitePolicyID,
     isTeachersUniteReport,
     getTaskAssigneeChatOnyxData,
     getTransactionDetails,
