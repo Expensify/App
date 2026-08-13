@@ -37,7 +37,7 @@ function Footer({isTaxEnabled, integrationName}: {isTaxEnabled: boolean; integra
 
     return (
         <View style={[styles.gap2, styles.mt2, styles.ph5]}>
-            {isTaxEnabled && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription', {integrationName})}</Text>}
+            {isTaxEnabled && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription', integrationName)}</Text>}
         </View>
     );
 }
@@ -101,7 +101,7 @@ function DynamicQuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
         (row: MenuItem) => {
             if (!row.accounts.at(0)) {
                 setSelectedExportDestinationError({
-                    [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(`workspace.qbo.exportDestinationSetupAccountsInfo.${row.value}`, {integrationName}),
+                    [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(`workspace.qbo.exportDestinationSetupAccountsInfo.${row.value}`, integrationName),
                 });
                 return;
             }

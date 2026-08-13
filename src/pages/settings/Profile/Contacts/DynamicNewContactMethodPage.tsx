@@ -1,0 +1,177 @@
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import type {FormOnyxValues} from '@components/Form/types';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {addErrorMessage, getLatestErrorField} from '@libs/ErrorUtils';
+import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
+
+import {addNewContactMethod, clearContactMethod, clearUnvalidatedNewContactMethodAction, setServerErrorsOnForm, updateIsVerifiedValidateActionCode} from '@userActions/User';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/NewContactMethodForm';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
+function DynamicNewContactMethodPage() {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const loginInputRef = useRef<AnimatedTextInputRef>(null);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
+    const [validateActionCode] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
+    const listPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_CONTACT_METHOD.path);
+    const loginData = pendingContactAction?.contactMethod ? loginList?.[pendingContactAction?.contactMethod] : undefined;
+    const validateLoginError = getLatestErrorField(loginData, 'addedLogin');
+    const validateActionCodeError = getLatestErrorField(validateActionCode, 'addedLogin');
+
+    useEffect(() => {
+        updateIsVerifiedValidateActionCode(false);
+    }, []);
+    useEffect(() => {
+        let error = validateLoginError;
+        if (isEmptyObject(error)) {
+            error = validateActionCodeError;
+        }
+        setServerErrorsOnForm(error);
+    }, [validateLoginError, validateActionCodeError]);
+    useEffect(() => {
+        return () => {
+            if (!loginList) {
+                return;
+            }
+            const removedLogin: string[] = [];
+            for (const login of Object.keys(loginList)) {
+                const error = getLatestErrorField(loginList?.[login], 'addedLogin');
+                if (!isEmptyObject(error)) {
+                    removedLogin.push(login);
+                }
+            }
+            clearContactMethod(removedLogin);
+        };
+    }, [loginList]);
+
+    const handleAddSecondaryLogin = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
+            const phoneLogin = getPhoneLogin(values.phoneOrEmail, countryCode);
+            const validateIfNumber = validateNumber(phoneLogin);
+            const submitDetail = (validateIfNumber || values.phoneOrEmail).trim().toLowerCase();
+            addNewContactMethod(submitDetail, pendingContactAction?.validateActionCode ?? '');
+        },
+        [countryCode, pendingContactAction?.validateActionCode],
+    );
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
+            const phoneLogin = getPhoneLogin(values.phoneOrEmail, countryCode);
+            const validateIfNumber = validateNumber(phoneLogin);
+
+            const errors = {};
+
+            if (!values.phoneOrEmail) {
+                addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.contactMethodRequired'));
+            } else if (values.phoneOrEmail.length > CONST.LOGIN_CHARACTER_LIMIT) {
+                addErrorMessage(errors, 'phoneOrEmail', translate('common.error.characterLimitExceedCounter', values.phoneOrEmail.length, CONST.LOGIN_CHARACTER_LIMIT));
+            }
+
+            if (!!values.phoneOrEmail && !(validateIfNumber || Str.isValidEmail(values.phoneOrEmail))) {
+                addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.invalidContactMethod'));
+            }
+
+            if (!!values.phoneOrEmail && loginList?.[validateIfNumber || values.phoneOrEmail.toLowerCase()]) {
+                addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmitted'));
+            }
+
+            return errors;
+        },
+        // We don't need `loginList` because when submitting this form
+        // the loginList gets updated, causing this function to run again.
+        // https://github.com/Expensify/App/issues/20610
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [translate, countryCode],
+    );
+
+    const onBackButtonPress = useCallback(() => {
+        Navigation.goBack(listPath);
+    }, [listPath]);
+
+    // Guards against firing twice: once this screen is replaced, useDynamicBackPath (reactive to
+    // navigation state) recomputes listPath against the NEW screen, so a second effect run would
+    // navigate forward again on top of an already-stale base path.
+    const hasNavigatedForwardRef = useRef(false);
+    useEffect(() => {
+        if (hasNavigatedForwardRef.current || !pendingContactAction?.actionVerified || !pendingContactAction?.contactMethod) {
+            return;
+        }
+        hasNavigatedForwardRef.current = true;
+        // forceReplace so this transient new-contact-method form isn't left in the stack under the details
+        // page - its back path assumes it sits directly on the contact methods list.
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.getRoute(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod), true), listPath), {
+            forceReplace: true,
+        });
+        clearUnvalidatedNewContactMethodAction();
+    }, [pendingContactAction?.actionVerified, pendingContactAction?.contactMethod, listPath]);
+
+    return (
+        <ScreenWrapper
+            onEntryTransitionEnd={() => loginInputRef.current?.focus()}
+            includeSafeAreaPaddingBottom
+            shouldEnableMaxHeight
+            shouldShowOfflineIndicatorInWideScreen
+            testID="DynamicNewContactMethodPage"
+        >
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                <HeaderWithBackButton
+                    title={translate('contacts.newContactMethod')}
+                    onBackButtonPress={onBackButtonPress}
+                />
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM}
+                    validate={validate}
+                    onSubmit={handleAddSecondaryLogin}
+                    submitButtonText={translate('common.add')}
+                    style={[styles.flexGrow1, styles.mh5]}
+                    isLoading={pendingContactAction?.isLoading}
+                >
+                    <Text style={styles.mb5}>{translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
+                    <View style={styles.mb6}>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
+                            aria-label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
+                            role={CONST.ROLE.PRESENTATION}
+                            inputMode={CONST.INPUT_MODE.EMAIL}
+                            ref={loginInputRef}
+                            inputID={INPUT_IDS.PHONE_OR_EMAIL}
+                            autoCapitalize="none"
+                            enterKeyHint="done"
+                        />
+                    </View>
+                </FormProvider>
+            </DelegateNoAccessWrapper>
+        </ScreenWrapper>
+    );
+}
+
+export default DynamicNewContactMethodPage;
