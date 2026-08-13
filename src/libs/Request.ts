@@ -11,7 +11,7 @@ import HttpUtils from './HttpUtils';
 import Log from './Log';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
-import {endSpan, startSpan} from './telemetry/activeSpans';
+import {cancelSpan, endSpan, startSpan} from './telemetry/activeSpans';
 import trackStartupDataRender from './telemetry/trackStartupDataRender';
 
 let middlewares: Middleware[] = [];
@@ -50,10 +50,18 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
     }
 
     if (shouldMeasureResponseApply) {
-        result = result.finally(() => {
-            endSpan(applySpanId);
-            trackStartupDataRender(request.command, attempt);
-        });
+        result = result.then(
+            (response) => {
+                endSpan(applySpanId);
+                trackStartupDataRender(request.command, attempt);
+                return response;
+            },
+            (error: unknown) => {
+                // A failed request applies nothing, so ending this span would record a phase that never ran.
+                cancelSpan(applySpanId);
+                throw error;
+            },
+        );
     }
 
     return result.catch((reason: unknown) => {

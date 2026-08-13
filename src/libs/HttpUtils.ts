@@ -21,7 +21,7 @@ import {setLoadTestParameters} from './Network/LoadTestState';
 import preparePrefetchRequest from './Prefetch/preparePrefetchRequest';
 import registerPrefetchOnAppStart from './Prefetch/registerPrefetchOnAppStart';
 import prepareRequestPayload from './prepareRequestPayload';
-import {endSpan, startSpan} from './telemetry/activeSpans';
+import {cancelSpan, endSpan, startSpan} from './telemetry/activeSpans';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
 
 let shouldFailAllRequests = false;
@@ -232,6 +232,12 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 alertUser();
             }
             return response;
+        })
+        .catch((error: unknown) => {
+            // A rejected fetch skips the success path above, leaving these spans open to record everything until something else tears them down.
+            cancelSpan(waitSpanId);
+            cancelSpan(downloadSpanId);
+            throw error;
         })
         .finally(() => markAppStartupNetworkRequestEnd(command));
 }
