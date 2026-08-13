@@ -1,5 +1,5 @@
 import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData} from '@libs/actions/IOU/DeleteMoneyRequest';
-import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import {updateMoneyRequestAmountAndCurrency} from '@libs/actions/IOU/UpdateMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -547,6 +547,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -654,6 +655,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -787,6 +789,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -933,6 +936,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
             await waitForBatchedUpdates();
@@ -1159,7 +1163,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             expect(iouReport).toHaveProperty('chatReportID');
             expect(iouReport?.total).toBe(30000);
 
-            const iouPreview = chatReport?.reportID && iouReport?.reportID ? getReportPreviewAction(chatReport.reportID, iouReport.reportID) : undefined;
+            const iouPreview = chatReport?.reportID && iouReport?.reportID ? getReportPreviewReportAction(chatReport.reportID, iouReport.reportID) : undefined;
             expect(iouPreview).toBeTruthy();
             expect(getReportActionText(iouPreview)).toBe('rory@expensifail.com owes $300.00');
 
@@ -1260,6 +1264,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -1446,6 +1451,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -1469,7 +1475,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
 
             // When a comment is added
-            let iouPreview = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID);
+            let iouPreview = getReportPreviewReportAction(chatReport?.reportID, iouReport?.reportID);
             const ancestors = [];
             ancestors.push(...(iouReport && createIOUAction ? [{report: iouReport, reportAction: createIOUAction, shouldDisplayNewMarker: false}] : []));
             ancestors.push(...(chatReport && iouPreview ? [{report: chatReport, reportAction: iouPreview, shouldDisplayNewMarker: false}] : []));
@@ -1513,7 +1519,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             expect(createIOUAction?.childVisibleActionCount).toEqual(1);
             expect(createIOUAction?.childCommenterCount).toEqual(1);
 
-            iouPreview = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID);
+            iouPreview = getReportPreviewReportAction(chatReport?.reportID, iouReport?.reportID);
             expect(iouPreview).toBeTruthy();
             expect(iouPreview?.childVisibleActionCount).toEqual(1);
             expect(iouPreview?.childCommenterCount).toEqual(1);
@@ -1541,7 +1547,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             // Then we expect the reportPreview to update with new childVisibleActionCount
 
-            iouPreview = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID);
+            iouPreview = getReportPreviewReportAction(chatReport?.reportID, iouReport?.reportID);
             expect(iouPreview).toBeTruthy();
             expect(iouPreview?.childVisibleActionCount).toEqual(0);
             expect(iouPreview?.childCommenterCount).toEqual(0);
@@ -1551,7 +1557,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // Then we expect the reportPreview to update with new childVisibleActionCount
-            iouPreview = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID);
+            iouPreview = getReportPreviewReportAction(chatReport?.reportID, iouReport?.reportID);
             expect(iouPreview).toBeTruthy();
             expect(iouPreview?.childVisibleActionCount).toEqual(0);
             expect(iouPreview?.childCommenterCount).toEqual(0);
