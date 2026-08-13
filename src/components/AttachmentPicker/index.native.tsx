@@ -10,10 +10,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {stageAttachment} from '@libs/actions/Attachment';
 import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
 import fileURIToPath from '@libs/fileURIToPath';
 import Log from '@libs/Log';
-import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -135,14 +135,19 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
           });
 
     // Move the file out of the cache directory (which the OS can purge) into durable storage so it
-    // survives an app force-kill while the upload is queued offline. `source` is what prepareRequestPayload
-    // re-reads on offline replay, so it must point at the durable path too. On failure
-    // moveReceiptToDurableStorage returns the original URI, so the catch is just a safeguard.
+    // survives an app force-kill while the upload is queued offline. Staging lands in the same
+    // `attachments/` dir that cacheAttachment later caches into, so cacheAttachment reuses it
+    // instead of copying again (no duplicate). `source` is what prepareRequestPayload re-reads on
+    // offline replay, so it must point at the durable path too. On failure stageAttachment returns
+    // the original URI, so the catch is just a safeguard.
     return fileWithSize.then((file) =>
-        moveReceiptToDurableStorage(file.uri ?? '', file.name ?? CONST.DEFAULT_ATTACHMENT_FILENAME)
+        stageAttachment({
+            uri: file.uri ?? '',
+            fileName: file.name ?? CONST.DEFAULT_ATTACHMENT_FILENAME,
+        })
             .then((durableUri) => ({...file, uri: durableUri, source: durableUri}) as FileObject)
             .catch((error: unknown) => {
-                Log.warn('[AttachmentPicker] Failed to move attachment to durable storage, using original URI', {error});
+                Log.warn('[AttachmentPicker] Failed to stage attachment, using original URI', {error});
                 return file;
             }),
     );
@@ -238,13 +243,20 @@ function AttachmentPicker({
                         }
 
                         if (asset.type?.startsWith('image')) {
-                            verifyFileFormat({fileUri: asset.uri, formatSignatures: CONST.HEIC_SIGNATURES})
+                            verifyFileFormat({
+                                fileUri: asset.uri,
+                                formatSignatures: CONST.HEIC_SIGNATURES,
+                            })
                                 .then((isHEIC) => {
                                     // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
                                     if (isHEIC && asset.uri) {
                                         ImageManipulator.manipulate(asset.uri)
                                             .renderAsync()
-                                            .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
+                                            .then((manipulatedImage) =>
+                                                manipulatedImage.saveAsync({
+                                                    format: SaveFormat.JPEG,
+                                                }),
+                                            )
                                             .then((manipulationResult) => {
                                                 const uri = manipulationResult.uri;
                                                 const convertedAsset = {
@@ -365,7 +377,11 @@ function AttachmentPicker({
         return data;
     }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
 
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+        initialFocusedIndex: -1,
+        maxIndex: menuItemData.length - 1,
+        isActive: isVisible,
+    });
 
     /**
      * An attachment error dialog when user selected malformed images

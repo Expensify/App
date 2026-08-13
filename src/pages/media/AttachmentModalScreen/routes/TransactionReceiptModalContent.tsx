@@ -13,6 +13,7 @@ import usePolicy from '@hooks/usePolicy';
 import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {stageAttachment} from '@libs/actions/Attachment';
 import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
 import {openReport} from '@libs/actions/Report';
@@ -20,7 +21,6 @@ import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
-import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
 import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
@@ -157,8 +157,17 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction});
-    const canDeleteReceipt = canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, isDeleteAction: true, transaction});
+    const canEditReceipt = canEditFieldOfMoneyRequest({
+        reportAction: parentReportAction,
+        fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+        transaction,
+    });
+    const canDeleteReceipt = canEditFieldOfMoneyRequest({
+        reportAction: parentReportAction,
+        fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+        isDeleteAction: true,
+        transaction,
+    });
 
     const receiptFilename = transaction?.receipt?.filename;
     const isStitchedOdometerReceipt = isOdometerDistanceRequest(transaction) && !imageType;
@@ -299,7 +308,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             if (!transaction?.transactionID) {
                 return Promise.resolve();
             }
-            return moveReceiptToDurableStorage(imageUri, filename).then((durableUri) => {
+            return stageAttachment({uri: imageUri, fileName: filename}).then((durableUri) => {
                 const durableFile = Object.assign(new File([file], file.name || filename, {type: file.type}), {uri: durableUri, source: durableUri});
                 if (isOdometerImage) {
                     setMoneyRequestOdometerImage(transaction, imageType, durableFile, isDraftTransaction, !isEditingConfirmation);

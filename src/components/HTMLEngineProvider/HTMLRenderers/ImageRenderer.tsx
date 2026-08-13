@@ -1,11 +1,11 @@
 import {AttachmentContext} from '@components/AttachmentContext';
+import {AttachmentIDContextProvider} from '@components/Attachments/AttachmentIDContext';
 import {getButtonRole} from '@components/Button/utils';
 import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
 
-import useCachedAttachmentSource from '@hooks/useCachedAttachmentSource';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -64,7 +64,6 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     // For other image formats, we retain the thumbnail as is to avoid unnecessary modifications.
     const processedPreviewSource = typeof previewSource === 'string' ? previewSource.replaceAll(/\.png\.(1024|320)\.jpg$/g, '.png') : previewSource;
     const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src);
-    const cachedPreviewSource = useCachedAttachmentSource(attachmentID, processedPreviewSource);
 
     const alt = htmlAttribs.alt;
     const imageWidth = (htmlAttribs['data-expensify-width'] && parseInt(htmlAttribs['data-expensify-width'], 10)) || undefined;
@@ -82,18 +81,20 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     }
 
     const thumbnailImageComponent = (
-        <ThumbnailImage
-            previewSourceURL={cachedPreviewSource ?? processedPreviewSource}
-            style={styles.webViewStyles.tagStyles.img}
-            isAuthTokenRequired={isAttachmentOrReceipt}
-            fallbackIcon={fallbackIcon}
-            imageWidth={imageWidth}
-            imageHeight={imageHeight}
-            isDeleted={isDeleted}
-            altText={alt}
-            fallbackIconBackground={theme.highlightBG}
-            fallbackIconColor={theme.border}
-        />
+        <AttachmentIDContextProvider attachmentID={attachmentID}>
+            <ThumbnailImage
+                previewSourceURL={processedPreviewSource}
+                style={styles.webViewStyles.tagStyles.img}
+                isAuthTokenRequired={isAttachmentOrReceipt}
+                fallbackIcon={fallbackIcon}
+                imageWidth={imageWidth}
+                imageHeight={imageHeight}
+                isDeleted={isDeleted}
+                altText={alt}
+                fallbackIconBackground={theme.highlightBG}
+                fallbackIconColor={theme.border}
+            />
+        </AttachmentIDContextProvider>
     );
 
     const {anchor, report, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();

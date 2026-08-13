@@ -37,6 +37,7 @@ import {Str} from 'expensify-common';
 import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import {clearCachedAttachments} from './Attachment';
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
@@ -974,6 +975,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             }),
     );
     clearSoundAssetsCache();
+    clearCachedAttachments();
     return resetPromise;
 }
 

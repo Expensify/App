@@ -1,35 +1,44 @@
-import type {Attachment} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
-
 type CacheAttachmentProps = {
-    /** Attachment ID based on the data-attachment-id attribute */
-    attachmentID: string;
-
-    /** URI of the given attachment either external or local source */
     uri: string;
+    /** Attachment ID based on the data-attachment-id attribute. Required for markdown and local file uploads; not needed for auth-protected remote attachments */
+    attachmentID?: string;
 
-    /** MIME type of the given attachment (native-only) */
-    mimeType?: string;
+    /** Auth token for protected remote attachments */
+    authToken?: string;
+
+    /** MIME type of the given attachment, used as a fallback when the URI doesn't reveal the type (native-only) */
+    fileType?: string;
 };
 
 type GetCachedAttachmentProps = {
+    uri: string;
     /** Attachment ID based on the data-attachment-id attribute */
-    attachmentID: string;
+    attachmentID?: string;
 
-    /** Attachment data from Onyx */
-    attachment: OnyxEntry<Attachment>;
+    /** Remote source URL for markdown attachments, used to detect source changes and re-cache */
+    remoteSource?: string;
 
-    /** Current source of the attachment */
-    currentSource: string;
+    /** Onyx-stored file path from a previous cache, used to verify the file still exists (native-only) */
+    localSource?: string;
+
+    /** Auth token for protected remote attachments */
+    authToken?: string;
 };
 
 type RemoveCachedAttachmentProps = {
     /** Attachment ID based on the data-attachment-id attribute */
     attachmentID: string;
 
-    /** Local source of the attachment (for-native-only) */
+    /** Onyx-stored file path of the cached attachment (native-only) */
     localSource?: string;
 };
 
-export type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachmentProps};
+type StageAttachmentProps = {
+    /** Local file:// URI of the freshly captured/picked file that should be moved into durable storage */
+    uri: string;
+
+    /** Original filename, used to derive a safe on-disk name */
+    fileName?: string;
+};
+
+export type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachmentProps, StageAttachmentProps};
