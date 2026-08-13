@@ -1,8 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
-import NumberForm from '@components/NumberForm';
-import {useNumberFormContext} from '@components/NumberForm/context';
-import type {NumberFormProps} from '@components/NumberForm/types';
+import NumberForm, {useNumberFormContext} from '@components/NumberForm';
+import type {NumberFormProps} from '@components/NumberForm';
 
 import type {NativeSyntheticEvent, TextInputFocusEventData} from 'react-native';
 
