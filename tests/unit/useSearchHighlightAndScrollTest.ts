@@ -227,6 +227,9 @@ describe('useSearchHighlightAndScroll', () => {
     });
 
     it('should not trigger search when the added transaction is already in the search results', () => {
+        // Onyx keeps one value object per collection member, so an unedited transaction has to keep its
+        // reference across renders — the hook reads that identity to tell an edit from an untouched row.
+        const transaction1 = {transactionID: '1'};
         const initialProps = {
             ...baseProps,
             searchResults: {
@@ -237,10 +240,10 @@ describe('useSearchHighlightAndScroll', () => {
                 },
             },
             transactions: {
-                transactions_1: {transactionID: '1'},
+                transactions_1: transaction1,
             },
             previousTransactions: {
-                transactions_1: {transactionID: '1'},
+                transactions_1: transaction1,
             },
         };
 
@@ -252,7 +255,7 @@ describe('useSearchHighlightAndScroll', () => {
         const updatedProps = {
             ...initialProps,
             transactions: {
-                transactions_1: {transactionID: '1'},
+                transactions_1: transaction1,
                 transactions_2: {transactionID: '2'},
             },
         };
@@ -262,7 +265,68 @@ describe('useSearchHighlightAndScroll', () => {
         expect(search).not.toHaveBeenCalled();
     });
 
+    it('should trigger search when a transaction that is already in the results is edited', () => {
+        const transaction = {transactionID: '1', amount: 100};
+        const initialProps = {
+            ...baseProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    transactions_1: {transactionID: '1'},
+                },
+            },
+            transactions: {transactions_1: transaction},
+            previousTransactions: {transactions_1: transaction},
+        };
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // @ts-expect-error
+            initialProps,
+        });
+
+        const updatedProps = {
+            ...initialProps,
+            transactions: {transactions_1: {transactionID: '1', amount: 250}},
+        };
+
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
+    });
+
+    it('should not trigger search when the edited transaction is absent from the results', () => {
+        const visibleTransaction = {transactionID: '1', amount: 100};
+        const filteredOutTransaction = {transactionID: '99', amount: 100};
+        const initialProps = {
+            ...baseProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    transactions_1: {transactionID: '1'},
+                },
+            },
+            transactions: {transactions_1: visibleTransaction, transactions_99: filteredOutTransaction},
+            previousTransactions: {transactions_1: visibleTransaction, transactions_99: filteredOutTransaction},
+        };
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // @ts-expect-error
+            initialProps,
+        });
+
+        const updatedProps = {
+            ...initialProps,
+            transactions: {transactions_1: visibleTransaction, transactions_99: {transactionID: '99', amount: 250}},
+        };
+
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(search).not.toHaveBeenCalled();
+    });
+
     it('should not trigger search on a non-chat search when a report action was added and Onyx holds a transaction the query filters out', () => {
+        const transaction1 = {transactionID: '1'};
+        const transaction99 = {transactionID: '99'};
         const initialProps = {
             ...baseProps,
             searchResults: {
@@ -273,12 +337,12 @@ describe('useSearchHighlightAndScroll', () => {
             },
             // `transactions_99` is held by the client but filtered out by the query, the normal paginated/filtered state.
             transactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_99: {transactionID: '99'},
+                transactions_1: transaction1,
+                transactions_99: transaction99,
             },
             previousTransactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_99: {transactionID: '99'},
+                transactions_1: transaction1,
+                transactions_99: transaction99,
             },
             reportActions: {
                 reportActions_1: {
@@ -313,6 +377,8 @@ describe('useSearchHighlightAndScroll', () => {
     });
 
     it('should not trigger search when the added transaction is already in the results and Onyx holds one the query filters out', () => {
+        const transaction1 = {transactionID: '1'};
+        const transaction99 = {transactionID: '99'};
         const initialProps = {
             ...baseProps,
             searchResults: {
@@ -323,12 +389,12 @@ describe('useSearchHighlightAndScroll', () => {
                 },
             },
             transactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_99: {transactionID: '99'},
+                transactions_1: transaction1,
+                transactions_99: transaction99,
             },
             previousTransactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_99: {transactionID: '99'},
+                transactions_1: transaction1,
+                transactions_99: transaction99,
             },
         };
 
@@ -340,8 +406,8 @@ describe('useSearchHighlightAndScroll', () => {
         const updatedProps = {
             ...initialProps,
             transactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_99: {transactionID: '99'},
+                transactions_1: transaction1,
+                transactions_99: transaction99,
                 transactions_2: {transactionID: '2'},
             },
         };
