@@ -3,11 +3,13 @@ import useLocalize from '@hooks/useLocalize';
 
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {cleanFileObject, cleanFileObjectName, getFilesFromClipboardEvent} from '@libs/fileDownload/FileUtils';
+import getPlatform from '@libs/getPlatform';
 
 import Navigation from '@navigation/Navigation';
 
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -22,6 +24,8 @@ function useAttachmentPicker(reportID: string) {
     const {clearComposer} = useComposerActions();
     const {attachmentFileRef, suggestionsRef} = useComposerMeta();
     const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
+    const platform = getPlatform();
+    const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
 
@@ -40,6 +44,12 @@ function useAttachmentPicker(reportID: string) {
 
     const onFilesValidated = (files: FileObject[], dataTransferItems: DataTransferItem[]) => {
         if (files.length === 0) {
+            return;
+        }
+
+        // With native platforms, we don't need to show the preview screen.
+        if (isNative) {
+            addAttachment(files);
             return;
         }
 
