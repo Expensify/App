@@ -64,6 +64,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 
     const connectedIntegration = getValidConnectedIntegration(policy);
     const connectedIntegrationFallback = getConnectedIntegration(policy);
+
     // Archiving a workspace removes its policy from Onyx, so its output currency is no longer readable. An expense report's
     // currency is the workspace's output currency, so keep currency-specific export options after archiving.
     const isWorkspaceOutputCurrencyCAD = (policy?.outputCurrency ?? moneyRequestReport?.currency) === CONST.CURRENCY.CAD;
