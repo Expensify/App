@@ -1,4 +1,4 @@
-import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
+import Button from '@components/ButtonComposed';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -34,25 +34,6 @@ function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(String(cardID))});
     const possibleFraud = card?.nameValuePairs?.possibleFraud ?? null;
 
-    const buttons: ActionableItem[] = originalMessage?.resolution
-        ? []
-        : [
-              {
-                  text: 'cardPage.cardFraudAlert.confirmButtonText',
-                  key: `${action.reportActionID}-cardFraudAlert-confirm`,
-                  onPress: () => {
-                      resolveFraudAlert(cardID, false, reportID, reportActionID, possibleFraud);
-                  },
-                  isPrimary: true,
-              },
-              {
-                  text: 'cardPage.cardFraudAlert.reportFraudButtonText',
-                  key: `${action.reportActionID}-cardFraudAlert-reportFraud`,
-                  onPress: () => {
-                      resolveFraudAlert(cardID, true, reportID, reportActionID, possibleFraud);
-                  },
-              },
-          ];
     const message = getActionableCardFraudAlertMessage(translate, dateFnsLocale, action, getLocalDateFromDatetime, convertToDisplayString);
 
     return (
@@ -62,12 +43,24 @@ function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
             accessibilityLabel={translate('reportFraudConfirmationPage.title')}
         >
             <ReportActionItemBasicMessage message={message} />
-            {buttons.length > 0 && (
-                <ActionableItemButtons
-                    items={buttons}
-                    shouldUseLocalization
-                    layout="horizontal"
-                />
+            {!originalMessage?.resolution && (
+                <ActionableItemButtons layout="horizontal">
+                    <Button
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        onPress={() => {
+                            resolveFraudAlert(cardID, false, reportID, reportActionID, possibleFraud);
+                        }}
+                    >
+                        <Button.Text>{translate('cardPage.cardFraudAlert.confirmButtonText')}</Button.Text>
+                    </Button>
+                    <Button
+                        onPress={() => {
+                            resolveFraudAlert(cardID, true, reportID, reportActionID, possibleFraud);
+                        }}
+                    >
+                        <Button.Text>{translate('cardPage.cardFraudAlert.reportFraudButtonText')}</Button.Text>
+                    </Button>
+                </ActionableItemButtons>
             )}
         </View>
     );

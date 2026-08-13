@@ -102,7 +102,6 @@ const spendIcons = {
     Pencil: mockIcon,
     ThumbsUp: mockIcon,
     CheckCircle: mockIcon,
-    UserEye: mockIcon,
 };
 
 function createSpendMenuItem(

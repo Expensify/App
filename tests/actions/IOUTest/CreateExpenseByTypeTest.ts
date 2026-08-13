@@ -17,7 +17,7 @@ import Onyx from 'react-native-onyx';
 import currencyList from '../../unit/currencyList.json';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
-import {getCurrencyDecimalsLocal} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/IOU/TrackExpense', () => ({
@@ -133,6 +133,7 @@ describe('actions/IOU/createExpenseByType', () => {
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: undefined,
+            formatPhoneNumber,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
         };
 
