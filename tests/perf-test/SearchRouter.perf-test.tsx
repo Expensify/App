@@ -1,17 +1,23 @@
-import type * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
-import {measureRenders} from 'reassure';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
+
 import {setHasRadio} from '@libs/NetworkState';
+
 import ComposeProviders from '@src/components/ComposeProviders';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+import {measureRenders} from 'reassure';
+
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {createRandomReport} from '../utils/collections/reports';
@@ -45,7 +51,10 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@src/hooks/useRootNavigationState', () => ({
     __esModule: true,
-    default: () => ({contextualReportID: undefined, isSearchRouterScreen: false}),
+    default: () => ({
+        contextualReportID: undefined,
+        isSearchRouterScreen: false,
+    }),
 }));
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
@@ -75,6 +84,7 @@ jest.mock('@react-navigation/native', () => {
             isReady: () => jest.fn(),
             getCurrentRoute: () => jest.fn(),
             getState: () => jest.fn(),
+            getRootState: () => undefined,
         }),
         useNavigationState: () => ({
             routes: [],

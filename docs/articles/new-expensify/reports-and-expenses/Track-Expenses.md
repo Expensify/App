@@ -1,7 +1,7 @@
 ---
 title: Track Expenses
 description: Learn how to create and manage expenses in New Expensify without submitting them for reimbursement or approval.
-keywords: track expenses, create expense, scan receipt, enter mileage, expense chat, just track it
+keywords: track expenses, create expense, scan receipt, enter mileage, expense chat, just track it, out-of-pocket, out of pocket, out-of-pocket expenses, reimbursable
 ---
 
 

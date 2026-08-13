@@ -1,17 +1,28 @@
-import React from 'react';
 import type {SelectorType} from '@components/SelectionScreen';
+
+import useLocalize from '@hooks/useLocalize';
+
 import {updateQuickbooksOnlineTravelInvoicingPayableAccount} from '@libs/actions/connections/QuickbooksOnline';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import TravelInvoicingPayableAccountSelectPage from '@pages/workspace/accounting/common/TravelInvoicingPayableAccountSelectPage';
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
+import React from 'react';
+
 function QuickbooksExportTravelPayableAccountSelectPage({policy}: WithPolicyConnectionsProps) {
+    const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const {creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
 
@@ -40,6 +51,7 @@ function QuickbooksExportTravelPayableAccountSelectPage({policy}: WithPolicyConn
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             emptyStateTitle="workspace.qbo.noAccountsFound"
             emptyStateSubtitle="workspace.qbo.noAccountsFoundDescription"
+            emptyStateSubtitleAlreadyTranslated={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
             onSelect={selectAccount}
             onBack={() => Navigation.goBack(backPath)}
             pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT], qboConfig?.pendingFields)}

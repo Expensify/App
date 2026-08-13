@@ -1,14 +1,18 @@
-import type {AndroidCardData, IOSEncryptPayload} from '@expensify/react-native-wallet';
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {AcceptWalletTermsParams, AnswerQuestionsForWalletParams, UpdatePersonalDetailsForWalletParams, VerifyIdentityParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
+
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ProvisioningCardData, WalletAdditionalQuestionDetails} from '@src/types/onyx';
+
+import type {AndroidCardData, IOSEncryptPayload} from '@expensify/react-native-wallet';
+import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import pkg from '../../../package.json';
 
 type WalletQuestionAnswer = {
@@ -289,6 +293,13 @@ function resetWalletAdditionalDetailsDraft() {
     Onyx.set(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT, null);
 }
 
+/**
+ * Clears the errors shown while confirming a validateCode in the wallet additional-details step
+ */
+function clearWalletAdditionalDetailsErrors() {
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errors: null, errorCode: null});
+}
+
 function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, certificates: string[], cardID: number): Promise<IOSEncryptPayload> {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
@@ -375,6 +386,7 @@ export {
     acceptWalletTerms,
     setKYCWallSource,
     resetWalletAdditionalDetailsDraft,
+    clearWalletAdditionalDetailsErrors,
     issuerEncryptPayloadCallback,
     createDigitalGoogleWallet,
 };

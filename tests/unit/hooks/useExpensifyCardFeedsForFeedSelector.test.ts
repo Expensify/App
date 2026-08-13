@@ -1,5 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -42,6 +44,13 @@ function domainWithAdmin(fundID: number, accountID: number) {
     };
 }
 
+function configuredCardSettings(overrides: Record<string, unknown> = {}) {
+    return {
+        [US_PROGRAM]: {paymentBankAccountID: 23242},
+        ...overrides,
+    };
+}
+
 describe('useExpensifyCardFeedsForFeedSelector', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -79,19 +88,19 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
         });
     });
 
-    it('partitions by preferredPolicy when no entry has linkedPolicyIDs', () => {
+    it('ignores preferredPolicy: visible feeds with no linkedPolicyIDs are never primary', () => {
         mockUseOnyx.mockImplementation((key: string) => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
-                        [cardSettingsKey(111)]: {
+                        [cardSettingsKey(111)]: configuredCardSettings({
                             preferredPolicy: currentPolicyID,
                             isEnabled: true,
-                        },
-                        [cardSettingsKey(222)]: {
+                        }),
+                        [cardSettingsKey(222)]: configuredCardSettings({
                             preferredPolicy: otherPolicyID,
                             isEnabled: true,
-                        },
+                        }),
                     },
                     {status: 'loaded'},
                 ];
@@ -99,16 +108,18 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.POLICY) {
                 return [{...adminPolicy(currentPolicyID), ...adminPolicy(otherPolicyID)}, {status: 'loaded'}];
             }
+            if (key === ONYXKEYS.COLLECTION.DOMAIN) {
+                return [{...domainWithAdmin(111, currentUserAccountID), ...domainWithAdmin(222, currentUserAccountID)}, {status: 'loaded'}];
+            }
             return [undefined, {}];
         });
 
         const {result} = renderHook(() => useExpensifyCardFeedsForFeedSelector(currentPolicyID));
 
+        // preferredPolicy is no longer used for partitioning; feeds without linkedPolicyIDs are never primary.
         expect(result.current.allFeeds).toHaveLength(2);
-        expect(result.current.primaryFeeds).toHaveLength(1);
-        expect(result.current.primaryFeeds.at(0)?.fundID).toBe(111);
-        expect(result.current.otherFeeds).toHaveLength(1);
-        expect(result.current.otherFeeds.at(0)?.fundID).toBe(222);
+        expect(result.current.primaryFeeds).toHaveLength(0);
+        expect(result.current.otherFeeds).toHaveLength(2);
     });
 
     it('partitions by linkedPolicyIDs for feeds that define them (per feed, not global)', () => {
@@ -116,22 +127,25 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
-                        [cardSettingsKey(10)]: {
+                        [cardSettingsKey(10)]: configuredCardSettings({
                             preferredPolicy: otherPolicyID,
                             isEnabled: true,
                             linkedPolicyIDs: [currentPolicyID],
-                        },
-                        [cardSettingsKey(20)]: {
+                        }),
+                        [cardSettingsKey(20)]: configuredCardSettings({
                             preferredPolicy: currentPolicyID,
                             isEnabled: true,
                             linkedPolicyIDs: [otherPolicyID],
-                        },
+                        }),
                     },
                     {status: 'loaded'},
                 ];
             }
             if (key === ONYXKEYS.COLLECTION.POLICY) {
                 return [{...adminPolicy(currentPolicyID), ...adminPolicy(otherPolicyID)}, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.COLLECTION.DOMAIN) {
+                return [{...domainWithAdmin(10, currentUserAccountID), ...domainWithAdmin(20, currentUserAccountID)}, {status: 'loaded'}];
             }
             return [undefined, {}];
         });
@@ -154,6 +168,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
                             [US_PROGRAM]: {
                                 linkedPolicyIDs: [currentPolicyID, otherPolicyID],
                                 isEnabled: true,
+                                paymentBankAccountID: 23242,
                             },
                             hasOnceLoaded: true,
                         },
@@ -163,6 +178,9 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             }
             if (key === ONYXKEYS.COLLECTION.POLICY) {
                 return [{...adminPolicy(currentPolicyID), ...adminPolicy(otherPolicyID)}, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.COLLECTION.DOMAIN) {
+                return [domainWithAdmin(77, currentUserAccountID), {status: 'loaded'}];
             }
             return [undefined, {}];
         });
@@ -185,6 +203,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
                             [US_PROGRAM]: {
                                 linkedPolicyIDs: [policyIdUpper, otherPolicyID],
                                 isEnabled: true,
+                                paymentBankAccountID: 23242,
                             },
                             hasOnceLoaded: true,
                         },
@@ -194,6 +213,9 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             }
             if (key === ONYXKEYS.COLLECTION.POLICY) {
                 return [{...adminPolicy(policyIdUpper), ...adminPolicy(otherPolicyID)}, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.COLLECTION.DOMAIN) {
+                return [domainWithAdmin(88, currentUserAccountID), {status: 'loaded'}];
             }
             return [undefined, {}];
         });
@@ -210,17 +232,20 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
-                        [cardSettingsKey(7)]: {
+                        [cardSettingsKey(7)]: configuredCardSettings({
                             preferredPolicy: otherPolicyID,
                             isEnabled: true,
                             linkedPolicyIDs: [currentPolicyID, otherPolicyID],
-                        },
+                        }),
                     },
                     {status: 'loaded'},
                 ];
             }
             if (key === ONYXKEYS.COLLECTION.POLICY) {
                 return [{...adminPolicy(currentPolicyID), ...adminPolicy(otherPolicyID)}, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.COLLECTION.DOMAIN) {
+                return [domainWithAdmin(7, currentUserAccountID), {status: 'loaded'}];
             }
             return [undefined, {}];
         });
@@ -261,10 +286,10 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
-                        [cardSettingsKey(orphanDomainFundID)]: {
+                        [cardSettingsKey(orphanDomainFundID)]: configuredCardSettings({
                             domainName: 'example.com',
                             isEnabled: true,
-                        },
+                        }),
                     },
                     {status: 'loaded'},
                 ];
@@ -295,10 +320,10 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
-                        [cardSettingsKey(workspaceAccountID)]: {
+                        [cardSettingsKey(workspaceAccountID)]: configuredCardSettings({
                             domainName: 'example.com',
                             isEnabled: true,
-                        },
+                        }),
                     },
                     {status: 'loaded'},
                 ];
@@ -336,10 +361,10 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
-                        [cardSettingsKey(orphanDomainFundID)]: {
+                        [cardSettingsKey(orphanDomainFundID)]: configuredCardSettings({
                             domainName: 'example.com',
                             isEnabled: true,
-                        },
+                        }),
                     },
                     {status: 'loaded'},
                 ];

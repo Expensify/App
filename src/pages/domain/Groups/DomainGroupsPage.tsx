@@ -1,12 +1,9 @@
-import type {DomainSecurityGroupWithID} from '@selectors/Domain';
-import {defaultSecurityGroupIDSelector, domainNameSelector, groupsSelector, isSecurityGroupPendingDeleteSelector} from '@selectors/Domain';
-import React from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {DomainGroupRowData} from '@components/Tables/DomainGroupsTable';
 import DomainGroupsTable from '@components/Tables/DomainGroupsTable';
+
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -15,19 +12,30 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {hasDomainGroupDetailsErrors} from '@libs/DomainUtils';
 import {getLatestError} from '@libs/ErrorUtils';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
+
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+
 import {clearGroupCreateError, clearGroupDeleteError} from '@userActions/Domain';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {DomainSecurityGroupWithID} from '@selectors/Domain';
+
+import {defaultSecurityGroupIDSelector, domainNameSelector, groupsSelector, isSecurityGroupPendingDeleteSelector} from '@selectors/Domain';
+import React from 'react';
+import {View} from 'react-native';
 
 type DomainGroupsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.GROUPS>;
 
@@ -84,14 +92,15 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const createGroupHeaderButton = (
         <Button
             accessibilityLabel={translate('domain.groups.createNewGroupButton')}
-            text={translate('domain.groups.createNewGroupButton')}
             sentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_GROUP_BUTTON}
             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE.getRoute(domainAccountID))}
-            icon={icons.Plus}
             innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
             style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : undefined}
-            success
-        />
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('domain.groups.createNewGroupButton')}</Button.Text>
+        </Button>
     );
 
     return (
@@ -113,7 +122,10 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
                 </HeaderWithBackButton>
                 {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{createGroupHeaderButton}</View>}
 
-                <DomainGroupsTable groups={groupRows} />
+                <DomainGroupsTable
+                    domainAccountID={domainAccountID}
+                    groups={groupRows}
+                />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
     );

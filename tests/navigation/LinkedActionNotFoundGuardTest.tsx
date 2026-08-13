@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment */
-import {act, render} from '@testing-library/react-native';
-import React from 'react';
-import {View} from 'react-native';
+import {act, render, screen} from '@testing-library/react-native';
+
 import CONST from '@src/CONST';
 import LinkedActionNotFoundGuard from '@src/pages/inbox/LinkedActionNotFoundGuard';
 import type {ReportAction} from '@src/types/onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const REPORT_ID = '12345';
 const REPORT_ACTION_ID = '67890';
@@ -64,9 +66,11 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     default: () => ({shouldUseNarrowLayout: false}),
 }));
 
+let mockIsReportActionVisible = true;
+
 jest.mock('@libs/ReportActionsUtils', () => ({
-    ...jest.requireActual('@libs/ReportActionsUtils'),
-    isReportActionVisible: () => true,
+    __esModule: true,
+    isReportActionVisible: () => mockIsReportActionVisible,
     isWhisperAction: () => false,
 }));
 
@@ -110,7 +114,7 @@ function createReportAction(overrides: Partial<ReportAction> = {}): ReportAction
 }
 
 function TestChildren() {
-    return <View />;
+    return <View testID="test-children" />;
 }
 
 describe('LinkedActionNotFoundGuard', () => {
@@ -122,6 +126,7 @@ describe('LinkedActionNotFoundGuard', () => {
         mockRouteParams.reportActionID = REPORT_ACTION_ID;
         mockLinkedAction = createReportAction();
         mockIsLoadingInitialReportActions = false;
+        mockIsReportActionVisible = true;
     });
 
     it('renders children when linked action exists', () => {
@@ -131,7 +136,46 @@ describe('LinkedActionNotFoundGuard', () => {
             </LinkedActionNotFoundGuard>,
         );
 
+        expect(screen.getByTestId('test-children')).toBeTruthy();
         expect(mockSetParams).not.toHaveBeenCalled();
+    });
+
+    it('renders children and clears reportActionID once when the linked action is already deleted on mount', () => {
+        mockIsReportActionVisible = false;
+
+        render(
+            <LinkedActionNotFoundGuard>
+                <TestChildren />
+            </LinkedActionNotFoundGuard>,
+        );
+
+        expect(screen.getByTestId('test-children')).toBeTruthy();
+        expect(mockSetParams).toHaveBeenCalledTimes(1);
+        expect(mockSetParams).toHaveBeenCalledWith({reportActionID: undefined}, ROUTE_KEY, NAVIGATOR_KEY);
+    });
+
+    it('clears reportActionID when the linked action is deleted while being viewed', () => {
+        const {rerender} = render(
+            <LinkedActionNotFoundGuard>
+                <TestChildren />
+            </LinkedActionNotFoundGuard>,
+        );
+
+        expect(mockSetParams).not.toHaveBeenCalled();
+
+        act(() => {
+            mockIsReportActionVisible = false;
+        });
+
+        rerender(
+            <LinkedActionNotFoundGuard>
+                <TestChildren />
+            </LinkedActionNotFoundGuard>,
+        );
+
+        expect(screen.getByTestId('test-children')).toBeTruthy();
+        expect(mockSetParams).toHaveBeenCalledWith({reportActionID: undefined}, ROUTE_KEY, NAVIGATOR_KEY);
+        expect(mockCleanStaleBackToParam).toHaveBeenCalledWith(REPORT_ID, REPORT_ACTION_ID);
     });
 
     it('clears reportActionID when linked action is completely removed from Onyx', () => {

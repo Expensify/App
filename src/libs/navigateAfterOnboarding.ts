@@ -1,14 +1,20 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {handleRHPVariantNavigation, shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {OnboardingRHPVariant, ReportNameValuePairs} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {setDisableDismissOnEscape} from './actions/Modal';
 import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
+import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
+import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingNavigationUtils';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
@@ -21,6 +27,11 @@ Onyx.connectWithoutView({
     },
 });
 
+type NavigateAfterOnboardingOptions = {
+    afterTransition?: () => void;
+    variantOverride?: OnboardingRHPVariant | null;
+};
+
 /**
  * Determines the report ID to navigate to after onboarding for control variant or ineligible users.
  * On large screens, navigates to the admins chat if available. On small screens, finds the last
@@ -29,7 +40,7 @@ Onyx.connectWithoutView({
 function getReportIDAfterOnboarding(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
-    conciergeReportID: string,
+    conciergeReportID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
@@ -60,12 +71,12 @@ function getReportIDAfterOnboarding(
 function navigateAfterOnboarding(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
-    conciergeReportID: string,
+    conciergeReportID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
-    variantOverride?: OnboardingRHPVariant | null,
+    options?: NavigateAfterOnboardingOptions,
 ) {
     setDisableDismissOnEscape(false);
 
@@ -73,14 +84,16 @@ function navigateAfterOnboarding(
     // should navigate directly to the Concierge DM (which contains onboarding tasks).
     // This check is outside shouldOpenRHPVariant because that function returns false on native
     // (Side Panel doesn't exist on native), but we still need to navigate to Concierge on mobile.
+    const navigationOptions = options?.afterTransition ? {afterTransition: options.afterTransition} : undefined;
+    const variantOverride = options?.variantOverride;
     const variant = variantOverride ?? onboardingRHPVariant;
     if (isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), navigationOptions);
         return;
     }
 
     if (shouldOpenRHPVariant(variantOverride)) {
-        handleRHPVariantNavigation(onboardingPolicyID, variantOverride);
+        handleRHPVariantNavigation(onboardingPolicyID, variantOverride, navigationOptions);
         return;
     }
 
@@ -94,24 +107,24 @@ function navigateAfterOnboarding(
         shouldPreventOpenAdminRoom,
     );
     if (reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    } else {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), navigationOptions);
+    } else if (!isReportTopmostSplitNavigator()) {
         // Navigate to home to trigger guard evaluation
-        Navigation.navigate(ROUTES.HOME);
+        Navigation.navigate(ROUTES.HOME, navigationOptions);
     }
 }
 
 function navigateAfterOnboardingWithMicrotaskQueue(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
-    conciergeReportID: string,
+    conciergeReportID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
-    variantOverride?: OnboardingRHPVariant | null,
+    options?: NavigateAfterOnboardingOptions,
 ) {
-    Navigation.dismissModal();
+    dismissOnboardingModalBeforeExit();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         navigateAfterOnboarding(
             isSmallScreenWidth,
@@ -121,7 +134,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
             onboardingPolicyID,
             onboardingAdminsChatReportID,
             shouldPreventOpenAdminRoom,
-            variantOverride,
+            options,
         );
     });
 }
@@ -149,7 +162,7 @@ function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNa
 }
 
 function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, shouldUseNarrowLayout = false) {
-    Navigation.dismissModal();
+    dismissOnboardingModalBeforeExit();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout);
     });

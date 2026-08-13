@@ -1,6 +1,9 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useActiveRoute from '@hooks/useActiveRoute';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 

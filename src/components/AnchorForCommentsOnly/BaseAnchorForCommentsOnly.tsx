@@ -1,19 +1,26 @@
-import {useIsFocused} from '@react-navigation/native';
-import {Str} from 'expensify-common';
-import React, {useEffect, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {Text as RNText} from 'react-native';
-import {StyleSheet} from 'react-native';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Accessibility from '@libs/Accessibility';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+
 import {hideContextMenu, showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import CONST from '@src/CONST';
+
+// eslint-disable-next-line no-restricted-imports
+import type {Text as RNText} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/native';
+import {Str} from 'expensify-common';
+import React, {useEffect, useRef} from 'react';
+import {StyleSheet} from 'react-native';
+
 import type {BaseAnchorForCommentsOnlyProps, LinkProps} from './types';
 
 /*

@@ -8,6 +8,7 @@ import {
     hasDomainMembersErrors,
     hasDomainMembersSettingsErrors,
 } from '@libs/DomainUtils';
+
 import CONST from '@src/CONST';
 import type DomainErrors from '@src/types/onyx/DomainErrors';
 import type DomainPendingAction from '@src/types/onyx/DomainPendingActions';

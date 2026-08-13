@@ -1,9 +1,13 @@
-import type {DataModule, SkTypeface} from '@shopify/react-native-skia';
-import {Skia} from '@shopify/react-native-skia';
-import {Image} from 'react-native';
 import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
+
 import Log from '@libs/Log';
+
+import type {DataModule, SkTypeface} from '@shopify/react-native-skia';
+
+import {Skia} from '@shopify/react-native-skia';
+import {Image} from 'react-native';
+
 import buildSkiaFontManager from './buildSkiaFontManager';
 import {CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, CHART_SKIA_TYPEFACE_ASSETS} from './chartFontAssets';
 import hasAnyLoadedChartTypeface from './hasAnyLoadedChartTypeface';

@@ -1,5 +1,6 @@
-import type {TNode} from 'react-native-render-html';
 import {getCodeBlockText} from '@components/HTMLEngineProvider/htmlEngineUtils';
+
+import type {TNode} from 'react-native-render-html';
 
 /** Build a text node carrying raw `data`. */
 function textNode(data: string): TNode {

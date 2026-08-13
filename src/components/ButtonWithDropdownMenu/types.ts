@@ -1,12 +1,16 @@
-import type {RefObject} from 'react';
-import type {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+
+import type {ButtonVariant} from '@styles/utils/types';
+
 import type CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {RefObject} from 'react';
+import type {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BULK_ACTION_TYPES>;
 
@@ -86,17 +90,14 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** Whether we should show a loading state for the main button */
     isLoading?: boolean;
 
-    /** The size of button size */
-    buttonSize?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
-
-    /** Render button in extra-small size */
-    extraSmall?: boolean;
+    /** The size of the button */
+    size?: ValueOf<typeof CONST.BUTTON_SIZE>;
 
     /** Should the confirmation button be disabled? */
     isDisabled?: boolean;
 
     /** Whether the button should stay visually normal even when disabled. */
-    shouldStayNormalOnDisable?: boolean;
+    stayNormalOnDisable?: boolean;
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
@@ -120,8 +121,8 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
 
-    /** Whether the button should use success style or not */
-    success?: boolean;
+    /** The visual variant of the button (success/danger) */
+    variant?: ButtonVariant;
 
     /** Whether the dropdown menu should be shown even if it has only one option */
     shouldAlwaysShowDropdownMenu?: boolean;

@@ -1,4 +1,5 @@
 import getWorkspaceCreatedAnalyticsEvent from '@libs/getWorkspaceCreatedAnalyticsEvent';
+
 import CONST from '@src/CONST';
 
 const SALES_ELIGIBLE = CONST.ANALYTICS.EVENT.WORKSPACE_CREATED_SALES_ELIGIBLE.NAME;

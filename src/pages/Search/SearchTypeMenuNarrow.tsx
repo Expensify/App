@@ -1,9 +1,3 @@
-// NOTE: This component has a static twin in SearchPageNarrow/StaticSearchTypeMenu.tsx
-// used for fast perceived performance. If you change the UI here, verify the
-// static version still looks visually identical.
-import {useIsFocused, useNavigation} from '@react-navigation/native';
-import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
 import type BaseModalProps from '@components/Modal/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PopoverMenu from '@components/PopoverMenu';
@@ -12,6 +6,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
+
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -23,13 +18,23 @@ import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useShareSavedSearch, {MENU_CLOSE_DELAY_MS} from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
+
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {getItemBadgeText, getOverflowMenu} from '@libs/SearchUIUtils';
+import {getItemBadgeText, getOverflowMenu, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {accountIDSelector} from '@src/selectors/Session';
+
+// NOTE: This component has a static twin in SearchPageNarrow/StaticSearchTypeMenu.tsx
+// used for fast perceived performance. If you change the UI here, verify the
+// static version still looks visually identical.
+import {useIsFocused, useNavigation} from '@react-navigation/native';
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import useSavedSearchTitles from './hooks/useSavedSearchTitles';
 
 type SearchTypeMenuNarrowProps = {
@@ -74,14 +79,19 @@ function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTa
 function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps) {
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
-    const {translate, localeCompare} = useLocalize();
-    const {typeMenuSections, activeKey: activeTypeMenuKey} = useSearchTypeMenuSections({
-        hash: queryJSON?.hash,
-        similarSearchHash: queryJSON?.similarSearchHash,
-        sortBy: queryJSON?.sortBy,
-        sortOrder: queryJSON?.sortOrder,
-        type: queryJSON?.type,
-    });
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const styles = useThemeStyles();
+    const isFocused = useIsFocused();
+    const {typeMenuSections, activeKey: activeTypeMenuKey} = useSearchTypeMenuSections(
+        {
+            hash: queryJSON?.hash,
+            similarSearchHash: queryJSON?.similarSearchHash,
+            sortBy: queryJSON?.sortBy,
+            sortOrder: queryJSON?.sortOrder,
+            type: queryJSON?.type,
+        },
+        isFocused,
+    );
     const personalDetails = usePersonalDetails();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
@@ -93,7 +103,6 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const isFocused = useIsFocused();
     const {counts: reportCounts} = useTodoCounts(isFocused);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const reportAttributes = useReportAttributes();
@@ -110,6 +119,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         policies: allPolicies,
         currentUserAccountID,
         translate,
+        formatPhoneNumber,
         feedKeysWithCards,
         reportAttributes,
         bankAccountList,
@@ -122,26 +132,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
     const {copiedHash, handleShare} = useShareSavedSearch();
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons([
-        'Receipt',
-        'MoneyBag',
-        'CreditCard',
-        'MoneyHourglass',
-        'CreditCardHourglass',
-        'Bank',
-        'User',
-        'Folder',
-        'Basket',
-        'CalendarSolid',
-        'Bookmark',
-        'Pencil',
-        'Trashcan',
-        'LinkCopy',
-        'Checkmark',
-        'Document',
-        'ThumbsUp',
-        'CheckCircle',
-    ]);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([...SEARCH_TYPE_MENU_ICON_NAMES, 'Bookmark', 'Trashcan', 'LinkCopy', 'Checkmark']);
 
     const queryMap = new Map<string, {query: string; name?: string}>();
     const tabItems: TabSelectorBaseItem[] = [];
@@ -196,6 +187,8 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                     icon: expensifyIcons[item.icon],
                     title,
                     badgeText,
+                    isBadgeCondensed: true,
+                    badgeStyles: styles.tabSelectorBadge,
                 });
                 queryMap.set(item.key, {query: item.searchQuery});
                 if (item.key === activeTypeMenuKey) {

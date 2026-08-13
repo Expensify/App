@@ -13,12 +13,14 @@
  *   - Third failure                          → reject to error boundary (loop prevention).
  */
 import {renderHook} from '@testing-library/react-native';
-import type {ComponentType} from 'react';
+
 import usePageRefresh from '@hooks/usePageRefresh';
+
 import CONST from '@src/CONST';
 import lazyRetry from '@src/utils/lazyRetry';
+import retryDynamicImport from '@src/utils/retryDynamicImport';
 
-type ComponentImport<T> = () => Promise<{default: T}>;
+import type {ComponentType} from 'react';
 
 const mockClearWorkboxRecoveryCaches = jest.fn();
 jest.mock('@libs/clearWorkboxRecoveryCaches', () => ({
@@ -130,7 +132,7 @@ describe('ChunkLoadError recovery', () => {
 
         it('plain-reloads on the first failure without clearing caches', async () => {
             sessionStorage.removeItem(stateKey);
-            const failingImport = jest.fn().mockRejectedValue(chunkError) as unknown as ComponentImport<ComponentType>;
+            const failingImport = jest.fn<Promise<{default: ComponentType}>, []>().mockRejectedValue(chunkError);
 
             lazyRetry(failingImport, RETRY_KEY);
             await flushMicrotasks();
@@ -143,7 +145,7 @@ describe('ChunkLoadError recovery', () => {
         it('clears SW caches before reloading on the second ChunkLoadError failure when online', async () => {
             sessionStorage.setItem(stateKey, 'true');
             jest.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
-            const failingImport = jest.fn().mockRejectedValue(chunkError) as unknown as ComponentImport<ComponentType>;
+            const failingImport = jest.fn<Promise<{default: ComponentType}>, []>().mockRejectedValue(chunkError);
 
             lazyRetry(failingImport, RETRY_KEY);
             await flushMicrotasks();
@@ -156,7 +158,7 @@ describe('ChunkLoadError recovery', () => {
         it('rejects to the error boundary on second ChunkLoadError failure when offline to preserve the offline cache', async () => {
             sessionStorage.setItem(stateKey, 'true');
             jest.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
-            const failingImport = jest.fn().mockRejectedValue(chunkError) as unknown as ComponentImport<ComponentType>;
+            const failingImport = jest.fn<Promise<{default: ComponentType}>, []>().mockRejectedValue(chunkError);
 
             await expect(lazyRetry(failingImport, RETRY_KEY)).rejects.toBeDefined();
             await flushMicrotasks();
@@ -168,7 +170,7 @@ describe('ChunkLoadError recovery', () => {
         it('rejects to the error boundary on second failure when the error is not a ChunkLoadError', async () => {
             sessionStorage.setItem(stateKey, 'true');
             const networkError = new Error('Failed to fetch');
-            const failingImport = jest.fn().mockRejectedValue(networkError) as unknown as ComponentImport<ComponentType>;
+            const failingImport = jest.fn<Promise<{default: ComponentType}>, []>().mockRejectedValue(networkError);
 
             await expect(lazyRetry(failingImport, RETRY_KEY)).rejects.toThrow('Failed to fetch');
             await flushMicrotasks();
@@ -179,7 +181,7 @@ describe('ChunkLoadError recovery', () => {
 
         it('rejects to the error boundary on the third failure to prevent an infinite reload loop', async () => {
             sessionStorage.setItem(stateKey, 'cache-cleared');
-            const failingImport = jest.fn().mockRejectedValue(chunkError) as unknown as ComponentImport<ComponentType>;
+            const failingImport = jest.fn<Promise<{default: ComponentType}>, []>().mockRejectedValue(chunkError);
 
             await expect(lazyRetry(failingImport, RETRY_KEY)).rejects.toBeDefined();
             await flushMicrotasks();
@@ -191,7 +193,7 @@ describe('ChunkLoadError recovery', () => {
         it('keeps each import retry state isolated so a sibling success does not reset it', async () => {
             // 'other' chunk already reloaded once; a successful 'test' chunk import must not reset it.
             sessionStorage.setItem(`${CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED}:other`, 'true');
-            const successfulImport = jest.fn().mockResolvedValue({default: () => null}) as unknown as ComponentImport<ComponentType>;
+            const successfulImport = jest.fn<Promise<{default: ComponentType}>, []>().mockResolvedValue({default: () => null});
 
             await lazyRetry(successfulImport, RETRY_KEY);
             await flushMicrotasks();
@@ -201,13 +203,112 @@ describe('ChunkLoadError recovery', () => {
 
         it('does not reload on successful import', async () => {
             sessionStorage.removeItem(stateKey);
-            const successfulImport = jest.fn().mockResolvedValue({default: () => null}) as unknown as ComponentImport<ComponentType>;
+            const successfulImport = jest.fn<Promise<{default: ComponentType}>, []>().mockResolvedValue({default: () => null});
 
             await lazyRetry(successfulImport, RETRY_KEY);
             await flushMicrotasks();
 
             expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
             expect(reloadMock).not.toHaveBeenCalled();
+        });
+    });
+
+    // Covers non-component dynamic imports (e.g. the locale bundles in IntlStore), which before the
+    // shared ladder rejected with nothing catching them — the "green screen of death" stuck boot splash.
+    describe('retryDynamicImport (non-component imports)', () => {
+        const chunkError = Object.assign(new Error('Loading chunk 9345 failed.'), {name: 'ChunkLoadError'});
+        const RETRY_KEY = 'locale:en';
+        const stateKey = `${CONST.SESSION_STORAGE_KEYS.RETRY_LAZY_REFRESHED}:${RETRY_KEY}`;
+
+        it('plain-reloads on the first failure without clearing caches', async () => {
+            sessionStorage.removeItem(stateKey);
+            const failingImport = jest.fn().mockRejectedValue(chunkError);
+
+            retryDynamicImport(failingImport, RETRY_KEY).catch(() => {});
+            await flushMicrotasks();
+
+            expect(reloadMock).toHaveBeenCalledTimes(1);
+            expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+            expect(callOrder).toEqual(['reload']);
+        });
+
+        it('clears SW caches before reloading on the second ChunkLoadError failure when online', async () => {
+            sessionStorage.setItem(stateKey, 'true');
+            jest.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
+            const failingImport = jest.fn().mockRejectedValue(chunkError);
+
+            retryDynamicImport(failingImport, RETRY_KEY).catch(() => {});
+            await flushMicrotasks();
+
+            expect(mockClearWorkboxRecoveryCaches).toHaveBeenCalledTimes(1);
+            expect(reloadMock).toHaveBeenCalledTimes(1);
+            expect(callOrder).toEqual(['clear', 'reload']);
+        });
+
+        it('rejects on the third failure so the caller can surface it instead of reloading forever', async () => {
+            sessionStorage.setItem(stateKey, 'cache-cleared');
+            const failingImport = jest.fn().mockRejectedValue(chunkError);
+
+            await expect(retryDynamicImport(failingImport, RETRY_KEY)).rejects.toThrow('Loading chunk 9345 failed.');
+            await flushMicrotasks();
+
+            expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+            expect(reloadMock).not.toHaveBeenCalled();
+        });
+
+        it('rejects without clearing caches on the second failure when offline to preserve the offline shell', async () => {
+            sessionStorage.setItem(stateKey, 'true');
+            jest.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+            const failingImport = jest.fn().mockRejectedValue(chunkError);
+
+            await expect(retryDynamicImport(failingImport, RETRY_KEY)).rejects.toBeDefined();
+            await flushMicrotasks();
+
+            expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+            expect(reloadMock).not.toHaveBeenCalled();
+        });
+
+        it('resets the retry state on a successful import', async () => {
+            sessionStorage.setItem(stateKey, 'true');
+            const successfulImport = jest.fn().mockResolvedValue({default: 'translations'});
+
+            await retryDynamicImport(successfulImport, RETRY_KEY);
+            await flushMicrotasks();
+
+            expect(sessionStorage.getItem(stateKey)).toBe('false');
+            expect(reloadMock).not.toHaveBeenCalled();
+        });
+
+        // Without the storage guard the retry state can never advance, so every attempt would reload again — an infinite reload loop.
+        it('rejects instead of reloading when the retry state cannot be read', async () => {
+            const getItemSpy = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+                throw new Error('SecurityError: sessionStorage is not available');
+            });
+            const failingImport = jest.fn().mockRejectedValue(chunkError);
+
+            await expect(retryDynamicImport(failingImport, RETRY_KEY)).rejects.toBeDefined();
+            await flushMicrotasks();
+
+            expect(reloadMock).not.toHaveBeenCalled();
+            expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+
+            getItemSpy.mockRestore();
+        });
+
+        it('rejects instead of reloading when the retry state cannot be written', async () => {
+            sessionStorage.removeItem(stateKey);
+            const setItemSpy = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+                throw new Error('QuotaExceededError');
+            });
+            const failingImport = jest.fn().mockRejectedValue(chunkError);
+
+            await expect(retryDynamicImport(failingImport, RETRY_KEY)).rejects.toBeDefined();
+            await flushMicrotasks();
+
+            expect(reloadMock).not.toHaveBeenCalled();
+            expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+
+            setItemSpy.mockRestore();
         });
     });
 });

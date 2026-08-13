@@ -1,14 +1,19 @@
-import React from 'react';
-import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
+
 import {updateGustoApprovalMode} from '@libs/actions/connections/Gusto';
 import {isGustoConnected} from '@libs/HRUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import HRApprovalModePageBase from '@pages/workspace/hr/HRApprovalModePageBase';
 import type {HRApprovalModeProviderConfig} from '@pages/workspace/hr/HRApprovalModePageBase';
+
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
 
 type GustoApprovalModePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE>;
 

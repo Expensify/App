@@ -1,4 +1,5 @@
 import type {ForwardedRef} from 'react';
+
 import type {BaseValidateCodeFormRef} from './BaseValidateCodeForm';
 
 type ValidateCodeFormProps = {

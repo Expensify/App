@@ -1,7 +1,10 @@
-import {useMemo} from 'react';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
 import CONST from '@src/CONST';
+
+import {useMemo} from 'react';
 
 /**
  * Retrieves SettlementButton payment methods.
@@ -21,6 +24,7 @@ const useSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translat
                 text: translate('iou.settleBusiness', ''),
                 icon: icons.Building,
                 value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                shouldUpdateSelectedIndex: false,
                 key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {

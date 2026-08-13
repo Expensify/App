@@ -1,9 +1,13 @@
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {getConnectedIntegration, getValidConnectedIntegration} from '@libs/PolicyUtils';
+
 import type {ExportType} from '@pages/inbox/report/DynamicReportDetailsExportPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -28,10 +32,7 @@ function useExportAgainModal(reportID: string | undefined, policyID: string | un
 
         showConfirmModal({
             title: translate('workspace.exportAgainModal.title'),
-            prompt: translate('workspace.exportAgainModal.description', {
-                connectionName: integrationForExport,
-                reportName,
-            }),
+            prompt: translate('workspace.exportAgainModal.description', reportName, integrationForExport),
             confirmText: translate('workspace.exportAgainModal.confirmText'),
             cancelText: translate('workspace.exportAgainModal.cancelText'),
         }).then((result) => {

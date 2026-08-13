@@ -1,16 +1,17 @@
-import React from 'react';
 import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessage';
+
+import React from 'react';
 
 type ReportActionsListHeaderProps = {
     /** The ID of the report being displayed */
     reportID: string;
 
-    /** Whether the user has an active Concierge draft response — hides the thinking indicator */
-    hasActiveDraft?: boolean;
+    /** Whether a Concierge draft is still streaming in — hides the thinking indicator only while the reply is actively revealing, not after it completes */
+    isDraftPendingCompletion?: boolean;
 };
 
-function ReportActionsListHeader({reportID, hasActiveDraft}: ReportActionsListHeaderProps) {
-    if (hasActiveDraft) {
+function ReportActionsListHeader({reportID, isDraftPendingCompletion}: ReportActionsListHeaderProps) {
+    if (isDraftPendingCompletion) {
         return null;
     }
 

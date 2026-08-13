@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {getCategoryListSections, getCategoryOptionTree, sortCategories} from '@libs/CategoryOptionListUtils';
 import type {Category, CategoryTreeSection} from '@libs/CategoryOptionListUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {PolicyCategories} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
 import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -352,6 +354,7 @@ describe('CategoryOptionListUtils', () => {
                         isDisabled: true,
                         isSelected: false,
                         pendingAction: undefined,
+                        shouldHideSelectionButton: true,
                     },
                     {
                         text: '    Audi',
@@ -433,6 +436,7 @@ describe('CategoryOptionListUtils', () => {
                         isDisabled: true,
                         isSelected: false,
                         pendingAction: undefined,
+                        shouldHideSelectionButton: true,
                     },
                     {
                         text: '    Meals',
@@ -720,6 +724,7 @@ describe('CategoryOptionListUtils', () => {
                 isDisabled: true,
                 isSelected: false,
                 pendingAction: undefined,
+                shouldHideSelectionButton: true,
             },
             {
                 text: '    Audi',
@@ -747,6 +752,7 @@ describe('CategoryOptionListUtils', () => {
                 isDisabled: true,
                 isSelected: false,
                 pendingAction: undefined,
+                shouldHideSelectionButton: true,
             },
             {
                 text: '    Meals',
@@ -810,6 +816,7 @@ describe('CategoryOptionListUtils', () => {
                 isDisabled: true,
                 isSelected: false,
                 pendingAction: undefined,
+                shouldHideSelectionButton: true,
             },
             {
                 text: '    B',
@@ -819,6 +826,7 @@ describe('CategoryOptionListUtils', () => {
                 isDisabled: true,
                 isSelected: false,
                 pendingAction: undefined,
+                shouldHideSelectionButton: true,
             },
             {
                 text: '        C',
@@ -837,6 +845,7 @@ describe('CategoryOptionListUtils', () => {
                 isDisabled: true,
                 isSelected: false,
                 pendingAction: undefined,
+                shouldHideSelectionButton: true,
             },
             {
                 text: '                E',
@@ -1262,6 +1271,50 @@ describe('CategoryOptionListUtils', () => {
         expect(sortCategories(categoriesIncorrectOrdering, localeCompare)).toStrictEqual(result);
         expect(sortCategories(categoriesIncorrectOrdering2, localeCompare)).toStrictEqual(result2);
         expect(sortCategories(categoriesIncorrectOrdering3, localeCompare)).toStrictEqual(result3);
+    });
+
+    it('hides the selection button for a synthesized parent row that has no backing category (e.g. a recently used subcategory)', () => {
+        // When only the child "Parent: Child" is passed in (as in the Recent section), the tree builder
+        // synthesizes a "Parent" header row. That row has no backing category, so it is a structural header
+        // and must not render a selection control (radio), while the real "Parent: Child" leaf still does.
+        const recentlyUsedCategories = [{name: 'Parent: Child', enabled: true}];
+
+        const result = getCategoryOptionTree(recentlyUsedCategories);
+
+        expect(result).toStrictEqual([
+            {
+                text: 'Parent',
+                keyForList: 'Parent',
+                searchText: 'Parent',
+                tooltipText: 'Parent',
+                isDisabled: true,
+                isSelected: false,
+                pendingAction: undefined,
+                shouldHideSelectionButton: true,
+            },
+            {
+                text: '    Child',
+                keyForList: 'Parent: Child',
+                searchText: 'Parent: Child',
+                tooltipText: 'Parent: Child',
+                isDisabled: false,
+                isSelected: false,
+                pendingAction: undefined,
+            },
+        ]);
+    });
+
+    it('keeps the selection button for a real parent category (structural header only hides it)', () => {
+        // When the parent "Parent" is a real backing category (as in the All section), its row is a genuine,
+        // selectable category and must keep its selection control - even though it may be disabled.
+        const categories = {
+            Parent: {enabled: true, name: 'Parent'},
+            'Parent: Child': {enabled: true, name: 'Parent: Child'},
+        };
+
+        const result = getCategoryOptionTree(categories);
+
+        expect(result.at(0)?.shouldHideSelectionButton).toBeUndefined();
     });
 
     it('sortCategories keeps colon‑only categories', () => {

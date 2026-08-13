@@ -1,6 +1,7 @@
 import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import ROUTES from '@src/ROUTES';
 
 jest.mock('@libs/Navigation/Navigation', () => ({

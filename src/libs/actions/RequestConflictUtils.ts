@@ -1,12 +1,15 @@
-import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {TupleToUnion} from 'type-fest';
 import type {DetachReceiptParams, OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyRequest, ConflictActionData} from '@src/types/onyx/Request';
+
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
 
 type AnyRequestMatcher = (request: AnyRequest) => boolean;
 
@@ -70,6 +73,25 @@ function resolveDuplicationConflictAction(persistedRequests: AnyRequest[], reque
             index,
         },
     };
+}
+
+/**
+ * Duplicate resolver for an incoming OpenApp. See the Conflict Resolution section of
+ * contributingGuides/SEQUENTIAL_QUEUE.md.
+ *
+ * OpenApp re-fetches the whole account, so one already in flight makes an incoming one redundant. The generic
+ * resolver cannot see that, because the in-flight request has already left the persisted queue.
+ */
+function resolveOpenAppDuplicationConflictAction(persistedRequests: AnyRequest[], ongoingRequest: AnyRequest | null, shouldDedupeWithInFlight: boolean): ConflictActionData {
+    if (shouldDedupeWithInFlight && ongoingRequest?.command === WRITE_COMMANDS.OPEN_APP) {
+        return {
+            conflictAction: {
+                type: 'noAction',
+            },
+        };
+    }
+
+    return resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.OPEN_APP);
 }
 
 function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, parameters: OpenReportParams): ConflictActionData {
@@ -143,6 +165,10 @@ function readUpdateIDFrom(params: unknown): number | undefined {
 function reconnectCoverageFrom(request: AnyRequest): number {
     const updateIDFrom = request.data?.updateIDFrom;
     return typeof updateIDFrom === 'number' ? updateIDFrom : 0;
+}
+
+function isFullDownloadRequest(request: AnyRequest): boolean {
+    return isReconnectFamilyRequest(request) && reconnectCoverageFrom(request) === 0;
 }
 
 /**
@@ -347,9 +373,12 @@ function resolveDetachReceiptConflicts<TKey extends OnyxKey>(persistedRequests: 
 
 export {
     resolveDuplicationConflictAction,
+    resolveOpenAppDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
     resolveReconnectDuplicationConflictAction,
     readUpdateIDFrom,
+    isFullDownloadRequest,
+    isReconnectFamilyRequest,
     resolveCommentDeletionConflicts,
     resolveEditCommentWithNewAddCommentRequest,
     createUpdateCommentMatcher,

@@ -1,11 +1,11 @@
-import React from 'react';
-import {View} from 'react-native';
 import SkeletonRect from '@components/SkeletonRect';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
+
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const DEFAULT_CONTAINER_WIDTH = 84;
 const DEFAULT_PILL_WIDTH = 60;
@@ -20,13 +20,11 @@ type SearchFiltersSkeletonProps = {
     itemCount?: number;
     width?: number;
     height?: number;
-    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
-function SearchFiltersSkeleton({shouldAnimate = true, itemCount = 5, width = 84, height = 28, reasonAttributes}: SearchFiltersSkeletonProps) {
+function SearchFiltersSkeleton({shouldAnimate = true, itemCount = 5, width = 84, height = 28}: SearchFiltersSkeletonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    useSkeletonSpan('SearchFiltersSkeleton', reasonAttributes);
 
     const skeletonCount = new Array(itemCount).fill(0);
 

@@ -1,20 +1,25 @@
-import React from 'react';
-import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
-import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
-import type {OnyxEntry} from 'react-native-onyx';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFooter';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
+
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import type TransactionStateType from '@src/types/utils/TransactionStateType';
+
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
+import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ErrorState = {
     shouldShowAtLeastTwoDifferentWaypointsError: boolean;
@@ -45,6 +50,9 @@ type DistanceMapTabContentProps = {
     buttonText: string;
     errorState: ErrorState;
     loadingState: LoadingState;
+
+    /** The state of the transaction being rendered, used to persist route selection to the correct Onyx key */
+    transactionState: TransactionStateType;
 };
 
 function DistanceMapTabContent({
@@ -61,6 +69,7 @@ function DistanceMapTabContent({
     buttonText,
     errorState,
     loadingState,
+    transactionState,
 }: DistanceMapTabContentProps) {
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -79,6 +88,7 @@ function DistanceMapTabContent({
                         transaction={transaction}
                         policy={policy}
                         mapContainerStyle={{minHeight: undefined}}
+                        transactionState={transactionState}
                     />
                 </View>
             )}
@@ -96,6 +106,7 @@ function DistanceMapTabContent({
                                 navigateToWaypointEditPage={navigateToWaypointEditPage}
                                 transaction={transaction}
                                 policy={policy}
+                                transactionState={transactionState}
                             />
                         ) : undefined
                     }
@@ -110,16 +121,16 @@ function DistanceMapTabContent({
                         />
                     )}
                     <Button
-                        success
-                        allowBubble
-                        pressOnEnter
-                        large
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100, styles.mb5, styles.ph5, styles.flexShrink0]}
                         onPress={submitWaypoints}
-                        text={buttonText}
                         isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_MAP_NEXT_BUTTON}
-                    />
+                    >
+                        <Button.KeyboardShortcut allowBubble />
+                        <Button.Text>{buttonText}</Button.Text>
+                    </Button>
                 </View>
             </View>
         </View>

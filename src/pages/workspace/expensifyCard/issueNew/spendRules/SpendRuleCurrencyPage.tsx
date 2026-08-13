@@ -1,11 +1,15 @@
-import React from 'react';
 import SpendRulesCurrencyBase from '@components/SpendRules/configuration/SpendRulesCurrencyBase';
+
 import useOnyx from '@hooks/useOnyx';
+
 import {setIssueNewCardData} from '@libs/actions/Card';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
 
 type SpendRuleCurrencyEditPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CURRENCY>;
 

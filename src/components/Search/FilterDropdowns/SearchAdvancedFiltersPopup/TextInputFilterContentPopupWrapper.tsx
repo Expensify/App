@@ -1,15 +1,22 @@
-import React from 'react';
 import type {TextInputFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 import TextInputFilterContent from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
+
 import useThemeStyles from '@hooks/useThemeStyles';
 
-function TextInputFilterContentPopupWrapper({filterKey, value, onChange}: TextInputFilterContentWrapperProps) {
+import {isFilterNegatable} from '@libs/SearchQueryUtils';
+
+import React from 'react';
+
+function TextInputFilterContentPopupWrapper({baseFilterKey, value, isNegated, onChange}: TextInputFilterContentWrapperProps) {
     const styles = useThemeStyles();
+    const isFilterKeyNegatable = isFilterNegatable(baseFilterKey);
+
     return (
         <TextInputFilterContent
-            filterKey={filterKey}
+            baseFilterKey={baseFilterKey}
             value={value}
-            style={[styles.pt5]}
+            isNegated={isNegated}
+            style={[isFilterKeyNegatable ? styles.pt6 : styles.pt5]}
             onChange={onChange}
         />
     );

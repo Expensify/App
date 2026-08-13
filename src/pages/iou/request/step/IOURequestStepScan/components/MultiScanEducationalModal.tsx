@@ -1,8 +1,11 @@
-import React from 'react';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+
 import {useMultiScanActions, useMultiScanState} from './MultiScanContext';
 
 /**

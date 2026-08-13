@@ -1,20 +1,25 @@
-import React from 'react';
-import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import type {TableData} from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
 import Tooltip from '@components/Tooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type SpendRuleTableItem = TableData & {
     ruleID: string;
@@ -41,6 +46,8 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
     const {translate} = useLocalize();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lock', 'CircleSlash', 'Checkmark']);
     const {processedData} = useTableContext<SpendRuleTableItem>();
+
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const isDeleting = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const accessibilityLabel = `${item.actionLabel}. ${item.cardSummary}. ${item.ruleSummary}`;
@@ -78,7 +85,10 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                 disabled={isDeleting}
                 accessibilityLabel={accessibilityLabel}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
-                offlineWithFeedback={{pendingAction: item.pendingAction, shouldHideOnDelete: false}}
+                offlineWithFeedback={{
+                    pendingAction: item.pendingAction,
+                    shouldHideOnDelete: false,
+                }}
                 onPress={item.action}
                 checkboxReplacementElement={lockIcon}
             >
@@ -96,12 +106,14 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                                         isCondensed
                                     />
                                     <TextWithTooltip
+                                        shouldShowTooltip
                                         text={item.cardSummary}
                                         numberOfLines={1}
                                         style={[styles.optionDisplayName, styles.pre, styles.flexShrink1]}
                                     />
                                 </View>
                                 <TextWithTooltip
+                                    shouldShowTooltip
                                     text={item.ruleSummary}
                                     numberOfLines={1}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mt1]}
@@ -111,7 +123,10 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
 
                         {!shouldUseNarrowTableLayout && (
                             <>
-                                <View style={[styles.justifyContentCenter]}>
+                                <View
+                                    style={[styles.justifyContentCenter]}
+                                    {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                                >
                                     <Badge
                                         text={item.actionLabel}
                                         icon={item.isBlock ? Expensicons.CircleSlash : Expensicons.Checkmark}
@@ -121,15 +136,23 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                                         isCondensed
                                     />
                                 </View>
-                                <View style={[styles.flex1]}>
+                                <View
+                                    style={[styles.flex1]}
+                                    {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                                >
                                     <TextWithTooltip
+                                        shouldShowTooltip
                                         numberOfLines={1}
                                         text={item.cardSummary}
                                         style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                                     />
                                 </View>
-                                <View style={[styles.flex1]}>
+                                <View
+                                    style={[styles.flex1]}
+                                    {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                                >
                                     <TextWithTooltip
+                                        shouldShowTooltip
                                         numberOfLines={1}
                                         text={item.ruleSummary}
                                         style={[styles.lh16, styles.optionDisplayName, styles.pre]}
@@ -138,13 +161,15 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                             </>
                         )}
 
-                        <Icon
-                            src={Expensicons.ArrowRight}
-                            fill={theme.icon}
-                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
-                            width={variables.iconSizeNormal}
-                            height={variables.iconSizeNormal}
-                        />
+                        <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
+                            <Icon
+                                src={Expensicons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, (!hovered || item.disabled) && styles.opacitySemiTransparent]}
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
+                            />
+                        </View>
                     </>
                 )}
             </Table.Row>

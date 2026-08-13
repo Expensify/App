@@ -1,27 +1,34 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
-import type {ReactElement} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {filterCardsByPersonalDetails, getTranslationKeyForLimitType} from '@libs/CardUtils';
+
+import {filterCardsByPersonalDetails, getTranslationKeyForCardStatus, getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import WorkspaceCardListLabels from '@pages/workspace/expensifyCard/WorkspaceCardListLabels';
+
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
+
 import type {Card, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {ReactElement} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import WorkspaceExpensifyCardsTableRow from './WorkspaceExpensifyCardsTableRow';
 
-type WorkspaceExpensifyCardTableColumnKey = 'name' | 'type' | 'limitType' | 'lastFour' | 'limit' | 'actions';
+type WorkspaceExpensifyCardTableColumnKey = 'name' | 'type' | 'limitType' | 'lastFour' | 'status' | 'limit' | 'remainingLimit' | 'actions';
 
 type WorkspaceExpensifyCardTableRowData = TableData & {
     cardID: number;
@@ -30,6 +37,7 @@ type WorkspaceExpensifyCardTableRowData = TableData & {
     name: string;
     cardholder?: PersonalDetails | null;
     limit: number;
+    remainingLimit: number;
     currency?: string;
     isVirtual: boolean;
     limitType: CardLimitType | undefined;
@@ -102,25 +110,58 @@ export default function WorkspaceExpensifyCardsTable({
             key: 'name',
             label: translate('workspace.expensifyCard.name'),
             sortable: true,
+            styling: {
+                // Cardholder names and card titles are the longest values in the table, so this column takes the
+                // space freed up by giving Type, Last 4 and Status fixed widths. Limit type still needs a full share
+                // to fit its longest value, so this stops at double rather than taking everything.
+                flex: 2,
+            },
         },
         {
             key: 'type',
             label: translate('common.type'),
             sortable: true,
+            width: variables.tableTypeColumnWidth,
+            styling: {
+                containerStyles: [styles.mnw0],
+            },
         },
         {
             key: 'limitType',
             label: translate('workspace.card.issueNewCard.limitType'),
             sortable: true,
+            styling: {
+                // minWidth: 0 lets the grid track size purely from its 1fr share instead of the cell content,
+                // so a long limit type value truncates instead of widening the column.
+                containerStyles: [styles.mnw0],
+            },
         },
         {
             key: 'lastFour',
             label: translate('workspace.expensifyCard.lastFour'),
             sortable: true,
+            width: variables.tableLastFourColumnWidth,
+        },
+        {
+            key: 'status',
+            label: translate('common.status'),
+            sortable: true,
+            width: variables.tableCardStatusColumnWidth,
+            styling: {
+                containerStyles: [styles.mnw0],
+            },
         },
         {
             key: 'limit',
             label: translate('workspace.expensifyCard.limit'),
+            sortable: true,
+            styling: {
+                containerStyles: [styles.justifyContentEnd],
+            },
+        },
+        {
+            key: 'remainingLimit',
+            label: translate('workspace.expensifyCard.remaining'),
             sortable: true,
             styling: {
                 containerStyles: [styles.justifyContentEnd],
@@ -153,8 +194,20 @@ export default function WorkspaceExpensifyCardsTable({
             return localeCompare(item1.lastFourPAN, item2.lastFourPAN) * orderMultiplier;
         }
 
+        if (activeSorting.columnKey === 'status') {
+            const status1TranslationKey = getTranslationKeyForCardStatus(item1.card.state, item1.isVirtual);
+            const status2TranslationKey = getTranslationKeyForCardStatus(item2.card.state, item2.isVirtual);
+            const status1 = status1TranslationKey ? translate(status1TranslationKey) : '';
+            const status2 = status2TranslationKey ? translate(status2TranslationKey) : '';
+            return localeCompare(status1, status2) * orderMultiplier;
+        }
+
         if (activeSorting.columnKey === 'limit') {
             return (item1.limit - item2.limit) * orderMultiplier;
+        }
+
+        if (activeSorting.columnKey === 'remainingLimit') {
+            return (item1.remainingLimit - item2.remainingLimit) * orderMultiplier;
         }
 
         const cardholderName1 = item1.cardholder?.displayName ?? item1.cardholder?.login ?? '';
@@ -174,7 +227,7 @@ export default function WorkspaceExpensifyCardsTable({
 
     const cardListHeaderContent = (
         <>
-            <View style={[styles.appBG, styles.flexShrink0, styles.flexGrow1]}>
+            <View style={[styles.appBG, styles.flexShrink0, styles.flexGrow1, styles.mb5]}>
                 <WorkspaceCardListLabels
                     policyID={policyID}
                     cardSettings={cardSettingsBase}
@@ -188,13 +241,9 @@ export default function WorkspaceExpensifyCardsTable({
                     </View>
                 )}
             </View>
-            {cards.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
-                <Table.SearchBar
-                    label={translate('workspace.expensifyCard.findCard')}
-                    style={[styles.mb0, styles.mt5]}
-                />
-            )}
-            <Table.Header style={styles.mt5} />
+            <Table.FilterBar label={translate('workspace.expensifyCard.findCard')} />
+            <Table.NoResultsState />
+            <Table.Header />
         </>
     );
 

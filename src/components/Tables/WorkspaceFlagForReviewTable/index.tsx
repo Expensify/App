@@ -1,8 +1,13 @@
-import React from 'react';
 import type {TableRenderRowProps} from '@components/Table';
+import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 import WorkspaceCategoryRulesTable from '@components/Tables/WorkspaceCategoryRulesTable';
+
 import useLocalize from '@hooks/useLocalize';
+
 import type {FlagForReviewTableItem} from '@libs/FlagForReviewRulesUtils';
+
+import React from 'react';
+
 import WorkspaceFlagForReviewTableRow from './WorkspaceFlagForReviewTableRow';
 
 type WorkspaceFlagForReviewTableProps = {
@@ -10,10 +15,10 @@ type WorkspaceFlagForReviewTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    emptyStateContent?: React.ReactElement;
+    emptyState: TableEmptyStateProps;
 };
 
-function WorkspaceFlagForReviewTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, emptyStateContent}: WorkspaceFlagForReviewTableProps) {
+function WorkspaceFlagForReviewTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, emptyState}: WorkspaceFlagForReviewTableProps) {
     const {translate} = useLocalize();
 
     const renderRow = ({item, rowIndex, shouldUseNarrowTableLayout}: TableRenderRowProps<FlagForReviewTableItem>) => (
@@ -31,7 +36,7 @@ function WorkspaceFlagForReviewTable({rulesData, selectionEnabled, selectedKeys,
             selectionEnabled={selectionEnabled}
             selectedKeys={selectedKeys}
             onRowSelectionChange={onRowSelectionChange}
-            emptyStateContent={emptyStateContent}
+            emptyState={emptyState}
             tableTitle={translate('workspace.rules.tabs.flagForReview')}
             findRuleLabel={translate('workspace.rules.flagForReviewTable.findRule')}
             typeColumnLabel={translate('workspace.rules.flagForReviewTable.tableColumnType')}

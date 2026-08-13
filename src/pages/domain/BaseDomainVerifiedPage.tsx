@@ -1,24 +1,28 @@
-import {Str} from 'expensify-common';
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import {isAdminSelector} from '@src/selectors/Domain';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {Str} from 'expensify-common';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 type BaseDomainVerifiedPageProps = {
     /** The accountID of the domain */
@@ -48,11 +52,7 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination
     }, [domainAccountID, domain?.validated, doesDomainExist, redirectTo]);
 
     if (isLoadingOnyxValue(domainMetadata)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'BaseDomainVerifiedPage',
-            isLoadingDomain: isLoadingOnyxValue(domainMetadata),
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     if (!domain || !isAdmin) {

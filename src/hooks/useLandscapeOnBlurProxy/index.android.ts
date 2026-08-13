@@ -1,6 +1,7 @@
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardState from '@hooks/useKeyboardState';
 import usePrevious from '@hooks/usePrevious';
+
 import type {UseLandscapeOnBlurProxy} from './types';
 
 // During a portrait → landscape rotation and sometimes when the keyboard is

@@ -1,11 +1,17 @@
-import type * as ReactNavigationNative from '@react-navigation/native';
 import {render, screen} from '@testing-library/react-native';
+
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import ReportNotFoundGuard from '@pages/inbox/ReportNotFoundGuard';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import type * as ReactNavigationNative from '@react-navigation/native';
+
 import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import ReportNotFoundGuard from '@pages/inbox/ReportNotFoundGuard';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORT_ID = '1';

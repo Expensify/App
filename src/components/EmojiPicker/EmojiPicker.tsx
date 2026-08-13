@@ -1,18 +1,18 @@
-import React, {Activity, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {ForwardedRef, RefObject} from 'react';
-import {Dimensions, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
+
 import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import type {AnchorOrigin, EmojiPickerOnModalHide, EmojiPickerRef, EmojiPopoverAnchor, OnEmojiSelected, ShowEmojiPickerOptions} from '@libs/actions/EmojiPickerAction';
 import {isMobileChrome} from '@libs/Browser';
@@ -21,9 +21,17 @@ import DomUtils from '@libs/DomUtils';
 import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+
 import {close} from '@userActions/Modal';
+
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import type {ForwardedRef, RefObject} from 'react';
+
+import React, {Activity, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {Dimensions, View} from 'react-native';
+
 import EmojiPickerMenu from './EmojiPickerMenu';
 
 const DEFAULT_ANCHOR_ORIGIN = {

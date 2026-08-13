@@ -1,17 +1,23 @@
-import React, {useEffect, useState} from 'react';
-import {Keyboard, View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Text from '@components/Text';
+
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {normalizeLogin} from '@libs/LoginUtils';
+
 import {beginSignIn, clearSignInData, resetSMSDeliveryFailureStatus} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect, useState} from 'react';
+import {Keyboard, View} from 'react-native';
+
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
 
@@ -67,14 +73,15 @@ function SMSDeliveryFailurePage() {
                 </View>
                 <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd]}>
                     <Button
-                        success
-                        large
-                        text={translate('common.buttonConfirm')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={() => clearSignInData()}
-                        pressOnEnter
                         style={styles.w100}
                         sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.CONFIRM}
-                    />
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
+                    </Button>
                 </View>
                 <View style={[styles.mt3, styles.mb2]}>
                     <ChangeExpensifyLoginLink onPress={() => clearSignInData()} />

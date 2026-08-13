@@ -1,16 +1,21 @@
 import {act, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import type {MenuItemProps} from '@components/MenuItem';
 import MoneyRequestConfirmationListFooter from '@components/MoneyRequestConfirmationListFooter';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -187,8 +192,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        const accessibilityState = reportItem.props.accessibilityState as {disabled: boolean};
-        expect(accessibilityState.disabled).toBe(false);
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 
     it('should disable report field when there is only 1 outstanding report and creating from policy chat', async () => {
@@ -219,8 +223,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        const accessibilityState = reportItem.props.accessibilityState as {disabled: boolean};
-        expect(accessibilityState.disabled).toBe(true);
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
 
     it('should disable report field when there are no reports available', async () => {
@@ -242,8 +245,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        const accessibilityState = reportItem.props.accessibilityState as {disabled: boolean};
-        expect(accessibilityState.disabled).toBe(true);
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
 
     it('should disable report field when transaction has reportID and creating from FAB with only 1 outstanding report', async () => {
@@ -274,8 +276,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        const accessibilityState = reportItem.props.accessibilityState as {disabled: boolean};
-        expect(accessibilityState.disabled).toBe(true);
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
 
     it('should allow editing report field when transaction is unReported and creating from FAB with only 1 outstanding report', async () => {
@@ -306,7 +307,6 @@ describe('MoneyRequestConfirmationListFooter', () => {
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        const accessibilityState = reportItem.props.accessibilityState as {disabled: boolean};
-        expect(accessibilityState.disabled).toBe(false);
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 });

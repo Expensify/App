@@ -1,12 +1,15 @@
-// We need direct access to useOnyx from react-native-onyx to avoid reading search snapshots instead of live to-do data
-// eslint-disable-next-line no-restricted-imports
-import {useOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {getTodoReportsForSearchKey} from '@libs/TodosUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportActions, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+// We need direct access to useOnyx from react-native-onyx to avoid reading search snapshots instead of live to-do data
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx} from 'react-native-onyx';
 
 type TodoSearchResultsData = SearchResults['data'];
 
@@ -130,7 +133,7 @@ function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSear
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allTransactions, transactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -156,6 +159,7 @@ function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSear
         bankAccountList,
         currentUserAccountID: userAccountID,
         login,
+        areTransactionsLoaded: transactionsMetadata.status === 'loaded',
     });
 
     const metadata = computeMetadata(reports, transactionsByReportID);

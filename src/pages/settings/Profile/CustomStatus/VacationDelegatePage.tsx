@@ -1,18 +1,21 @@
-import React, {useCallback, useEffect, useRef} from 'react';
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {clearVacationDelegateError, deleteVacationDelegate, setVacationDelegate} from '@libs/actions/VacationDelegate';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import React, {useCallback, useEffect, useRef} from 'react';
 
 function VacationDelegatePage() {
     const {translate} = useLocalize();
@@ -37,10 +40,10 @@ function VacationDelegatePage() {
     };
 
     const showWarningModal = useCallback(
-        async (delegateLogin: string) => {
+        async (delegateLogin: string, delegateDisplayName: string | undefined) => {
             const result = await showConfirmModal({
                 title: translate('common.headsUp'),
-                prompt: translate('statusPage.vacationDelegateWarning', getPersonalDetailByEmail(delegateLogin)?.displayName ?? delegateLogin),
+                prompt: translate('statusPage.vacationDelegateWarning', delegateDisplayName ?? delegateLogin),
                 confirmText: translate('common.confirm'),
                 cancelText: translate('common.cancel'),
                 shouldShowCancelButton: true,
@@ -77,7 +80,7 @@ function VacationDelegatePage() {
                 }
 
                 if (response.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
-                    showWarningModal(option?.login ?? '');
+                    showWarningModal(option?.login ?? '', option.text);
                     return;
                 }
 

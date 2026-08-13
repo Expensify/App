@@ -1,7 +1,3 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import type {ForwardedRef, RefObject} from 'react';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -9,7 +5,9 @@ import BareUserListItem from '@components/SelectionList/ListItem/BareUserListIte
 import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
+
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
@@ -22,6 +20,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSortedActions from '@hooks/useSortedActions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import FS from '@libs/Fullstory';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@libs/OptionsListUtils';
@@ -30,21 +29,32 @@ import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {formatReportLastMessageText, getReportOrDraftReport, getReportSubtitlePrefix} from '@libs/ReportUtils';
+import {getParsableSearchValue} from '@libs/SearchAutocompleteUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {ForwardedRef, RefObject} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+
 import type {SearchQueryItem, SearchQueryListItemProps} from './SearchList/ListItem/SearchQueryListItem';
-import SearchQueryListItem, {isSearchQueryItem} from './SearchList/ListItem/SearchQueryListItem';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
-import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 import type {UserFriendlyKey} from './types';
+
+import getAutocompleteInitialFocus from './getAutocompleteInitialFocus';
+import AvatarWithTextCell from './SearchList/ListItem/AvatarWithTextCell';
+import SearchQueryListItem, {isSearchQueryItem} from './SearchList/ListItem/SearchQueryListItem';
+import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 
 type AutocompleteListItem = NewListItem & Partial<Omit<OptionData, keyof NewListItem>> & Partial<Omit<SearchQueryItem, keyof NewListItem>>;
 
@@ -91,6 +101,29 @@ const defaultListOptions = {
 };
 
 const EMPTY_RANK_MAP: ReadonlyMap<string, number> = new Map();
+
+// The list shows at most MAX_AMOUNT_OF_SUGGESTIONS recent reports, so building full option data for the
+// default 500-report list every time is unnecessary. Start from a smaller raw cap and only expand to the
+// full set if that batch filters down below the visible cap (see the loadAll effect below); typing a
+// query bypasses this cap entirely (isSearching drops the limit in createFilteredOptionList).
+// 100 leaves buffer for hidden/muted chats getting filtered out after the raw-recency slice.
+// The batch size stays at 500 (not smaller) because createFilteredOptionList rebuilds its whole
+// top-N slice from scratch each call, so a small batch would mean repeated rebuilds.
+const INITIAL_MAX_RECENT_REPORTS = 100;
+const RECENT_REPORTS_BATCH_SIZE = 500;
+
+// A DM's keyForList changes from the accountID to the reportID once its report loads from search, which would move the
+// row between sections. To keep it stable, key DMs and personal details by accountID instead. We can't do this for every
+// account-backed option though: task/expense reports also carry an accountID, and keying them by it would let them
+// masquerade as the DM row for the same person. So only DMs and personal details use the accountID; everything else
+// keeps its reportID/keyForList. The `account-` prefix keeps accountIDs from clashing with reportIDs.
+function getStableRankKey(option: {accountID?: number | null; keyForList?: string; reportID?: string; isDM?: boolean}): string | undefined {
+    const isDMOrPersonalDetail = !!option.isDM || !option.reportID;
+    if (isDMOrPersonalDetail && option.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID) {
+        return `account-${option.accountID}`;
+    }
+    return option.keyForList ?? option.reportID ?? undefined;
+}
 
 const emptyOptionList = {
     reports: [],
@@ -153,8 +186,12 @@ function SearchAutocompleteList({
     ref,
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
+        addOfflineIndicatorBottomSafeAreaPadding: true,
+        style: styles.pb2,
+    });
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
@@ -180,7 +217,20 @@ function SearchAutocompleteList({
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const {options: listOptions, isLoading: isLoadingOptions} = useFilteredOptions({enabled: true, isSearching: !!autocompleteQueryValue.trim(), betas: betas ?? []});
+    const {
+        options: listOptions,
+        isLoading: isLoadingOptions,
+        loadAll: loadAllRecentReports,
+        hasMore: hasMoreRecentReports,
+    } = useFilteredOptions({
+        enabled: true,
+        isSearching: !!autocompleteQueryValue.trim(),
+        // The empty-query state renders only recent searches and recent reports (no standalone contacts),
+        // so contacts can be deferred until the user types a query.
+        deferContactsUntilSearch: true,
+        maxRecentReports: INITIAL_MAX_RECENT_REPORTS,
+        batchSize: RECENT_REPORTS_BATCH_SIZE,
+    });
 
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
 
@@ -207,6 +257,7 @@ function SearchAutocompleteList({
             return defaultListOptions;
         }
         return getSearchOptions({
+            dateFnsLocale,
             options: listOptions,
             draftComments,
             betas: betas ?? [],
@@ -229,6 +280,7 @@ function SearchAutocompleteList({
             sortedActions,
             conciergeReportID,
             isTrackIntentUser,
+            translate,
         }).options;
     }, [
         listOptions,
@@ -245,6 +297,8 @@ function SearchAutocompleteList({
         sortedActions,
         conciergeReportID,
         isTrackIntentUser,
+        translate,
+        dateFnsLocale,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -345,6 +399,7 @@ function SearchAutocompleteList({
                           currentUserAccountID,
                           autoCompleteWithSpace: false,
                           translate,
+                          formatPhoneNumber,
                           feedKeysWithCards,
                           reportAttributes,
                           bankAccountList,
@@ -367,6 +422,7 @@ function SearchAutocompleteList({
         policies,
         currentUserAccountID,
         translate,
+        formatPhoneNumber,
         feedKeysWithCards,
         reportAttributes,
         bankAccountList,
@@ -391,7 +447,7 @@ function SearchAutocompleteList({
         return reportOptions.slice(0, 20);
     }, [autocompleteQueryValue, searchOptions]);
 
-    // Locked rank map (keyForList -> originalIndex) capturing the order of locally-known
+    // Locked rank map (stable key -> originalIndex) capturing the order of locally-known
     // results at the moment the query changes. Recomputed only when the query changes, so server
     // reports merged into Onyx later do not shift the rows already visible in the top section.
     const [frozenLocalRank, setFrozenLocalRank] = useState<ReadonlyMap<string, number>>(EMPTY_RANK_MAP);
@@ -400,7 +456,7 @@ function SearchAutocompleteList({
     const buildRankMap = (options: OptionData[]): Map<string, number> => {
         const rank = new Map<string, number>();
         for (const [index, option] of options.entries()) {
-            const key = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
+            const key = getStableRankKey(option);
             if (key) {
                 rank.set(key, index);
             }
@@ -431,12 +487,6 @@ function SearchAutocompleteList({
     useEffect(() => {
         debounceHandleSearch();
     }, [autocompleteQueryWithoutFilters, debounceHandleSearch]);
-
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'SearchAutocompleteList',
-        isRecentSearchesDataLoaded,
-        isLoadingOptions,
-    };
 
     /* Sections generation */
     const {sections, styledRecentReports, suggestionsCount} = useMemo(() => {
@@ -487,11 +537,6 @@ function SearchAutocompleteList({
                 fixedNumItems={3}
                 shouldStyleAsTable
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                reasonAttributes={{
-                    context: 'SearchAutocompleteList',
-                    isRecentSearchesDataLoaded,
-                    isLoadingOptions,
-                }}
             />
         );
 
@@ -512,7 +557,8 @@ function SearchAutocompleteList({
             const localRows: AutocompleteListItem[] = [];
             const serverRows: AutocompleteListItem[] = [];
             for (const item of nextStyledRecentReports) {
-                if (item.keyForList && frozenLocalRank.has(item.keyForList)) {
+                const stableKey = getStableRankKey(item);
+                if (stableKey && frozenLocalRank.has(stableKey)) {
                     localRows.push(item);
                 } else {
                     serverRows.push(item);
@@ -520,7 +566,7 @@ function SearchAutocompleteList({
             }
             // Sort the local section by the rank captured at query-change time so it cannot
             // reorder when the API returns.
-            localRows.sort((a, b) => (frozenLocalRank.get(a.keyForList ?? '') ?? 0) - (frozenLocalRank.get(b.keyForList ?? '') ?? 0));
+            localRows.sort((a, b) => (frozenLocalRank.get(getStableRankKey(a) ?? '') ?? 0) - (frozenLocalRank.get(getStableRankKey(b) ?? '') ?? 0));
 
             if (localRows.length > 0 || !isLoadingOptions) {
                 pushSection({title: translate('search.recentChats'), data: localRows, sectionIndex: sectionIndex++});
@@ -545,15 +591,25 @@ function SearchAutocompleteList({
         }
 
         if (autocompleteSuggestions.length > 0) {
-            const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
+            const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey, workspaceIcon}) => {
+                const value = mapKey && autocompleteID ? getParsableSearchValue(filterKey, text) : text;
                 return {
                     text: getAutocompleteDisplayText(filterKey, text),
-                    mapKey: mapKey ? getSubstitutionMapKey(mapKey, text) : undefined,
+                    mapKey: mapKey ? getSubstitutionMapKey(mapKey, value) : undefined,
                     singleIcon: expensifyIcons.MagnifyingGlass,
-                    searchQuery: text,
+                    searchQuery: value,
                     autocompleteID,
                     keyForList: autocompleteID ?? text, // in case we have a unique identifier then use it because text might not be unique
                     searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION,
+                    // For report-backed `in:` suggestions, show the owning workspace on the right of the row so identically
+                    // named rooms (e.g. #admins) in different workspaces can be told apart.
+                    rightElement: workspaceIcon ? (
+                        <AvatarWithTextCell
+                            reportName={workspaceIcon.name}
+                            icon={workspaceIcon}
+                            textStyle={styles.textLabelSupporting}
+                        />
+                    ) : undefined,
                 };
             });
 
@@ -574,11 +630,23 @@ function SearchAutocompleteList({
         styles,
         translate,
         isLoadingOptions,
-        isRecentSearchesDataLoaded,
         reports,
     ]);
 
     const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
+
+    // The list shows at most MAX_AMOUNT_OF_SUGGESTIONS recent reports. If the initial raw cap filters down
+    // below that (e.g. many hidden/muted chats), expand to the full report set in one step so the remaining
+    // slots fill from less-recent reports. This replaces scroll-driven loading: the list never paginates past
+    // the visible cap, so there is nothing to load on scroll. Fires at most once: afterwards either the visible
+    // cap is reached or hasMoreRecentReports is false.
+    useEffect(() => {
+        if (trimmedAutocompleteQueryValue !== '' || isLoadingOptions || recentReportsOptions.length >= CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS || !hasMoreRecentReports) {
+            return;
+        }
+        loadAllRecentReports();
+    }, [trimmedAutocompleteQueryValue, isLoadingOptions, recentReportsOptions.length, hasMoreRecentReports, loadAllRecentReports]);
+
     const isLoading = !isRecentSearchesDataLoaded;
     const suggestionsAnnouncement = suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedAutocompleteQueryValue) : '';
     useDebouncedAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, autocompleteQueryValue);
@@ -587,48 +655,21 @@ function SearchAutocompleteList({
     const shouldAnnounceNoResults = !isLoading && suggestionsCount === 0 && !!trimmedAutocompleteQueryValue;
     useDebouncedAccessibilityAnnouncement(noResultsFoundText, shouldAnnounceNoResults, autocompleteQueryValue);
 
-    // Locate the first recent report row in the order it is actually rendered. The two-section switcher sorts the
-    // local "Recent chats" rows by a frozen rank, so the rendered order can differ from styledRecentReports (the
-    // unsorted combined local + server list). Walking sections keeps the focused row, its reference text, and the
-    // initially focused key all pointing at the first row the user actually sees.
     const recentReportKeys = new Set(styledRecentReports.map((report) => report.keyForList));
-    let firstRecentReportKey: string | undefined;
-    let firstRecentReportText = '';
-    let firstRecentReportFlatIndex = -1;
-    let flatIndex = 0;
-    for (const section of sections) {
-        const hasData = (section.data?.length ?? 0) > 0;
-        const hasHeader = hasData && (section.title !== undefined || ('customHeader' in section && section.customHeader !== undefined));
-        if (hasHeader) {
-            flatIndex++;
-        }
-        for (const item of section.data ?? []) {
-            if (item.keyForList && recentReportKeys.has(item.keyForList)) {
-                firstRecentReportKey = item.keyForList;
-                firstRecentReportText = item.text ?? '';
-                firstRecentReportFlatIndex = flatIndex;
-                break;
-            }
-            flatIndex++;
-        }
-        if (firstRecentReportFlatIndex !== -1) {
-            break;
-        }
-    }
-
+    const {firstRecentReportText, firstRecentReportFlatIndex, defaultFocusedKey, defaultFocusedFlatIndex} = getAutocompleteInitialFocus(sections, recentReportKeys);
     const normalizedReferenceText = firstRecentReportText.toLowerCase();
 
     // When options initialize after the list is already mounted, initiallyFocusedItemKey has no effect
     // because useState(initialFocusedIndex) in useArrowKeyFocusManager only reads the initial value.
-    // Imperatively focus the first recent report once options become available (desktop only).
+    // Imperatively focus the default row once options become available (desktop only).
     useEffect(() => {
-        if (shouldUseNarrowLayout || isLoadingOptions || hasSetInitialFocusRef.current || firstRecentReportFlatIndex === -1) {
+        if (shouldUseNarrowLayout || isLoadingOptions || hasSetInitialFocusRef.current || defaultFocusedFlatIndex === -1) {
             return;
         }
         hasSetInitialFocusRef.current = true;
 
-        innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, false);
-    }, [isLoadingOptions, firstRecentReportFlatIndex, shouldUseNarrowLayout]);
+        innerListRef.current?.updateAndScrollToFocusedIndex(defaultFocusedFlatIndex, false);
+    }, [isLoadingOptions, defaultFocusedFlatIndex, shouldUseNarrowLayout]);
 
     useEffect(() => {
         const targetText = autocompleteQueryValue;
@@ -647,7 +688,6 @@ function SearchAutocompleteList({
                 fixedNumItems={4}
                 shouldStyleAsTable
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                reasonAttributes={reasonAttributes}
             />
         );
     }
@@ -661,14 +701,14 @@ function SearchAutocompleteList({
             style={{
                 containerStyle: [styles.mh100],
                 listStyle: [styles.ph2, styles.overscrollBehaviorContain],
-                contentContainerStyle: styles.pb2,
+                contentContainerStyle,
                 listItemWrapperStyle: [styles.pr0, styles.pl0],
                 sectionTitleStyles: styles.mhn2,
             }}
             shouldSingleExecuteRowSelect
             ref={setListRef}
             initialScrollIndex={0}
-            initiallyFocusedItemKey={!shouldUseNarrowLayout ? firstRecentReportKey : undefined}
+            initiallyFocusedItemKey={!shouldUseNarrowLayout ? defaultFocusedKey : undefined}
             shouldHighlightInitiallyFocusedItem={!shouldUseNarrowLayout}
             shouldScrollToFocusedIndex={!isInitialRender}
             disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}

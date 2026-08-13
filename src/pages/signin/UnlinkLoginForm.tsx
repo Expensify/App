@@ -1,20 +1,25 @@
-import React from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getErrorsWithTranslationData} from '@libs/ErrorUtils';
 import {normalizeLogin} from '@libs/LoginUtils';
+
 import {requestUnlinkValidationLink} from '@userActions/Session';
 import redirectToSignIn from '@userActions/SignInRedirect';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function UnlinkLoginForm() {
     const styles = useThemeStyles();
@@ -61,13 +66,14 @@ function UnlinkLoginForm() {
                     <Text style={[styles.link]}>{translate('common.back')}</Text>
                 </PressableWithFeedback>
                 <Button
-                    success
-                    text={translate('unlinkLoginForm.unlink')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     isLoading={account?.isLoading && account.loadingForm === CONST.FORMS.UNLINK_LOGIN_FORM}
-                    onPress={() => requestUnlinkValidationLink()}
+                    onPress={() => requestUnlinkValidationLink(credentials?.login)}
                     isDisabled={!!isOffline || !!account?.message}
                     sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.UNLINK}
-                />
+                >
+                    <Button.Text>{translate('unlinkLoginForm.unlink')}</Button.Text>
+                </Button>
             </View>
         </>
     );

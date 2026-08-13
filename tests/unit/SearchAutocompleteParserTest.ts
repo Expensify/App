@@ -1,5 +1,7 @@
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import {parse} from '@libs/SearchParser/autocompleteParser';
+
 import parserCommonTests from '../utils/fixtures/searchParsersCommonQueries';
 
 const tests = [

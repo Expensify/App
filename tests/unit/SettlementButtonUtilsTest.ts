@@ -1,7 +1,10 @@
 import {renderHook} from '@testing-library/react-native';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+
 import useSettlementButtonPaymentMethods from '@libs/SettlementButtonUtils';
+
 import CONST from '@src/CONST';
 
 const mockTranslate = jest.fn((key: string) => key);
@@ -47,6 +50,7 @@ describe('useSettlementButtonPaymentMethods', () => {
             text: translate('iou.settleBusiness', ''),
             icon: icons.current.Building,
             value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+            shouldUpdateSelectedIndex: false,
             key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
         });
     });
@@ -113,10 +117,10 @@ describe('useSettlementButtonPaymentMethods', () => {
         }
     });
 
-    it('should only set shouldUpdateSelectedIndex for elsewhere payment type', () => {
+    it('should set shouldUpdateSelectedIndex to false for business bank account and elsewhere payment types', () => {
         const {result} = renderHook(() => useSettlementButtonPaymentMethods(true, translate));
         expect(result.current[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]).not.toHaveProperty('shouldUpdateSelectedIndex');
-        expect(result.current[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]).not.toHaveProperty('shouldUpdateSelectedIndex');
+        expect(result.current[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT].shouldUpdateSelectedIndex).toBe(false);
         expect(result.current[CONST.IOU.PAYMENT_TYPE.ELSEWHERE].shouldUpdateSelectedIndex).toBe(false);
     });
 });

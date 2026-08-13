@@ -1,8 +1,10 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type {Errors} from './OnyxCommon';
 
-/** Possible states of the automatic authentication after user clicks on a magic link */
+/** Possible states of the automatic authentication after user clicks on a security link */
 type AutoAuthState = ValueOf<typeof CONST.AUTO_AUTH_STATE>;
 
 /** Model of user session data */
@@ -28,7 +30,7 @@ type Session = {
     /** Currently logged in user accountID */
     accountID?: number;
 
-    /** Current state of the automatic authentication after user clicks on a magic link */
+    /** Current state of the automatic authentication after user clicks on a security link */
     autoAuthState?: AutoAuthState;
 
     /** Server side errors keyed by microtime */

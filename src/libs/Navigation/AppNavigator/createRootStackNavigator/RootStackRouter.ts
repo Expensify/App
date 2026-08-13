@@ -1,26 +1,18 @@
-import {CommonActions, StackRouter} from '@react-navigation/native';
-import type {RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
-import type {ParamListBase} from '@react-navigation/routers';
 import {createGuardContext, evaluateGuards} from '@libs/Navigation/guards';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import {getTabScreenParam} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import {
-    handleDismissModalAction,
-    handleNavigatingToModalFromModal,
-    handlePushFullscreenAction,
-    handleRemoveFullscreenUnderRHP,
-    handleReplaceFullscreenUnderRHP,
-    handleReplaceReportsSplitNavigatorAction,
-    handleToggleMfaModalNavigatorWithHistoryAction,
-    handleToggleModalWithHistoryAction,
-    handleToggleSidePanelWithHistoryAction,
-} from './GetStateForActionHandlers';
-import syncBrowserHistory from './syncBrowserHistory';
+
+import type {RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
+import type {ParamListBase} from '@react-navigation/routers';
+
+import {CommonActions, StackRouter} from '@react-navigation/native';
+
 import type {
     DismissModalActionType,
     PreloadActionType,
@@ -34,6 +26,20 @@ import type {
     ToggleModalWithHistoryActionType,
     ToggleSidePanelWithHistoryActionType,
 } from './types';
+
+import {
+    handleDismissModalAction,
+    handleNavigatingToModalFromModal,
+    handlePushFullscreenAction,
+    handleRemoveFullscreenUnderRHP,
+    handleReplaceFullscreenUnderRHP,
+    handleReplaceReportsSplitNavigatorAction,
+    handleToggleMfaModalNavigatorWithHistoryAction,
+    handleToggleModalWithHistoryAction,
+    handleToggleSidePanelWithHistoryAction,
+    MODAL_ROUTES_TO_DISMISS,
+} from './GetStateForActionHandlers';
+import syncBrowserHistory from './syncBrowserHistory';
 
 function isPushAction(action: RootStackNavigatorAction): action is PushActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH;
@@ -71,6 +77,14 @@ function isPreloadAction(action: RootStackNavigatorAction): action is PreloadAct
     return action.type === CONST.NAVIGATION.ACTION_TYPE.PRELOAD;
 }
 
+// Onboarding REDIRECT layers a modal on top of whatever was already on screen.
+// Preserve the underlying fullscreen base rather than replacing the entire stack.
+const MODAL_GUARD_REDIRECT_TARGETS = new Set<string>([NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]);
+
+function isModalGuardRedirectTarget(name: string | undefined): boolean {
+    return !!name && MODAL_GUARD_REDIRECT_TARGETS.has(name);
+}
+
 /**
  * Evaluates navigation guards and handles BLOCK/REDIRECT results
  *
@@ -99,6 +113,52 @@ function handleNavigationGuards(
 
         if (!redirectState?.routes) {
             return null;
+        }
+
+        const isModalGuardRedirect = redirectState.routes.some((r) => isModalGuardRedirectTarget(r.name));
+        const focusedRouteName = state.routes[state.index]?.name;
+        const redirectTargetName = redirectState.routes.at(-1)?.name;
+
+        // Skip re-applying a modal redirect whose target is already the focused route: re-running it
+        // produces a redundant state reset that re-triggers the guard - the same infinite navigation
+        // loop OnboardingGuard prevents (APP-7FR).
+        // Scoped to modal redirects only: a non-modal redirect like HOME must still apply even when
+        // HOME is already focused, so it can reset nested tab state.
+        if (isModalGuardRedirect && focusedRouteName && redirectTargetName && focusedRouteName === redirectTargetName) {
+            return state;
+        }
+
+        if (isModalGuardRedirect) {
+            // Drop dismissible-modal routes (RHP, SignIn modal, CONCIERGE, etc.) and anything
+            // above them so the new stack doesn't end up with two modals on top of
+            // each other - regression #86258 (two Expensify logos when SignIn RHP was still
+            // on top at REDIRECT time).
+            const firstDismissibleModalIndex = state.routes.findIndex((route) => MODAL_ROUTES_TO_DISMISS.has(route.name));
+            const cleanedRoutes = firstDismissibleModalIndex === -1 ? state.routes : state.routes.slice(0, firstDismissibleModalIndex);
+
+            const underlyingFullScreen = cleanedRoutes.findLast((r) => isFullScreenName(r.name));
+            const redirectModal = redirectState.routes.findLast((r) => isModalGuardRedirectTarget(r.name));
+
+            // Rebuild the stack as [fullscreen report, onboarding modal] so the deep-linked report
+            // stays underneath the onboarding modal instead of being replaced by Home. If no
+            // fullscreen route survived the cleanup above (e.g. opening `/concierge` from a
+            // force-closed app leaves the stack as just [CONCIERGE]), skip this and fall through to
+            // the unmodified redirect state below, which restores the Home baseline the `/concierge`
+            // flow relies on - replacing it caused regression #90303.
+            if (underlyingFullScreen && redirectModal) {
+                const redirectModalWithKey: StackNavigationState<ParamListBase>['routes'][number] = {
+                    ...redirectModal,
+                    key: redirectModal.key ?? `${redirectModal.name}-modal-redirect`,
+                };
+                const modalResetState: StackNavigationState<ParamListBase> = {
+                    ...state,
+                    index: 1,
+                    routes: [underlyingFullScreen, redirectModalWithKey],
+                    preloadedRoutes: [],
+                };
+                const modalResetAction = CommonActions.reset(modalResetState);
+                return stackRouter.getStateForAction(state, modalResetAction, configOptions);
+            }
         }
 
         const resetAction = CommonActions.reset({

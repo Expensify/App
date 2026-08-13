@@ -1,8 +1,6 @@
-import {areInvoicesEnabledSelector} from '@selectors/Policy';
-import truncate from 'lodash/truncate';
-import type {TupleToUnion} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
+
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,9 +16,16 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import useSettlementButtonPaymentMethods from '@libs/SettlementButtonUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AccountData} from '@src/types/onyx';
+
+import type {TupleToUnion} from 'type-fest';
+
+import {areInvoicesEnabledSelector} from '@selectors/Policy';
+import truncate from 'lodash/truncate';
+
 import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';

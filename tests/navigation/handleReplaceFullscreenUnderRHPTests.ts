@@ -1,13 +1,16 @@
-import type {NavigationState, ParamListBase, PartialState, StackNavigationState} from '@react-navigation/native';
-import {StackRouter} from '@react-navigation/native';
 import {clearPreInsertedOriginalTabRoute, handleReplaceFullscreenUnderRHP} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import type {ReplaceFullscreenUnderRHPActionType} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationState, ParamListBase, PartialState, StackNavigationState} from '@react-navigation/native';
+
+import {StackRouter} from '@react-navigation/native';
 
 jest.mock('@libs/Navigation/helpers/getStateFromPath', () => jest.fn());
 jest.mock('@libs/ReportUtils', () => ({

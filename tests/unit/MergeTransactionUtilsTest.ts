@@ -1,5 +1,3 @@
-import Onyx from 'react-native-onyx';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {
     areTransactionsEligibleForMerge,
     buildMergedTransactionData,
@@ -16,12 +14,16 @@ import {
 } from '@libs/MergeTransactionUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {isFromCreditCardImport} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
-import {translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock localeCompare function for tests

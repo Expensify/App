@@ -1,7 +1,9 @@
-import {useEffect, useMemo, useRef, useState} from 'react';
 import type {CancellationType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useEffect, useMemo, useRef, useState} from 'react';
+
 import useOnyx from './useOnyx';
 
 function useCancellationType(): CancellationType | undefined {

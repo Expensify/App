@@ -1,13 +1,16 @@
+import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchColumnType, SearchFilterKey} from '@components/Search/types';
+
+import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
+import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
+
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTypes';
-import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchColumnType, SearchFilterKey} from '@components/Search/types';
-import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
-import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
+
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
-import {getUserFriendlyValue} from './SearchQueryUtils';
+import {getUserFriendlyValue, sanitizeSearchValue, stripSearchValueQuotes} from './SearchQueryUtils';
 
 /**
  * Parses given query using the autocomplete parser.
@@ -20,6 +23,20 @@ function parseForAutocomplete(text: string) {
     } catch (e) {
         console.error(`Error when parsing autocomplete query"`, e);
     }
+}
+
+/**
+ * Returns a value that survives a round trip through the parser under the given filter key. Quotes are only dropped
+ * when the value cannot be read back as one value, because `from` and the other name filters carry them fine while
+ * `workspace` and `in` do not. Only safe for a value that is swapped for an ID before the query is sent.
+ */
+function getParsableSearchValue(filterKey: string, value: string) {
+    const ranges = parseForAutocomplete(`${filterKey}:${sanitizeSearchValue(value, true)}`)?.ranges ?? [];
+    if (ranges.length === 1 && ranges.at(0)?.value === value) {
+        return value;
+    }
+
+    return stripSearchValueQuotes(value);
 }
 
 /**
@@ -163,6 +180,7 @@ function filterOutRangesWithCorrectValue(
     const receiptTypeList = userFriendlyReceiptTypeList;
     const withdrawalTypeList = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE) as string[];
     const withdrawalStatusList = Object.values(CONST.SEARCH.SETTLEMENT_STATUS) as string[];
+    const paidStatusList = Object.values(CONST.SEARCH.PAID_STATUS) as string[];
     const statusList = userFriendlyStatusList;
     const groupByList = userFriendlyGroupByList;
     const viewList = userFriendlyViewList;
@@ -206,7 +224,9 @@ function filterOutRangesWithCorrectValue(
             return withdrawalTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS:
             return withdrawalStatusList.includes(range.value);
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS:
+            return paidStatusList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS:
             return statusList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:
             return actionList.includes(range.value);
@@ -329,6 +349,7 @@ function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldK
 
 export {
     getAutocompleteCategories,
+    getParsableSearchValue,
     getAutocompleteQueryWithComma,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,

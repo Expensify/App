@@ -1,16 +1,20 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import type {DomainMemberRowData} from '@components/Tables/DomainMembersTable';
+
 import useDomainGroupFilter from '@hooks/useDomainGroupFilter';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Domain from '@src/types/onyx/Domain';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const DOMAIN_ACCOUNT_ID = 99999;
 const SECURITY_GROUP_PREFIX = CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX;
-const ALL_MEMBERS_VALUE = 'all';
 
 function buildDomain(groups: Record<string, {members: Record<string, 'read' | null>; name: string}>): Domain {
     const domain: Record<string, unknown> = {
@@ -90,23 +94,28 @@ describe('useDomainGroupFilter', () => {
             expect(result.current.shouldShowGroupColumn).toBe(true);
         });
 
-        it('should include "All Members" and all security groups when multiple groups exist', async () => {
+        it('should sort security groups alphabetically by name in the filter options', async () => {
             const domain = buildDomain({
-                '1': {members: {'100': 'read', '200': 'read'}, name: 'Engineering'},
                 '2': {members: {'300': 'read'}, name: 'Marketing'},
+                '1': {members: {'100': 'read', '200': 'read'}, name: 'Engineering'},
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
 
             const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
 
             await waitFor(() => {
-                expect(result.current.filterConfig?.group.options).toHaveLength(3);
+                expect(result.current.filterConfig?.group.options).toHaveLength(2);
             });
 
-            expect(result.current.filterConfig?.group.options.at(0)?.value).toBe(ALL_MEMBERS_VALUE);
-            expect(result.current.filterConfig?.group.options.at(1)).toEqual({label: 'Engineering', value: '1'});
-            expect(result.current.filterConfig?.group.options.at(2)).toEqual({label: 'Marketing', value: '2'});
-            expect(result.current.filterConfig?.group.default).toBe(ALL_MEMBERS_VALUE);
+            expect(result.current.filterConfig?.group.filterType).toBe(CONST.TABLES.FILTER_TYPE.MULTI_SELECT);
+            expect(result.current.filterConfig?.group.options.at(0)).toEqual({
+                label: 'Engineering',
+                value: '1',
+            });
+            expect(result.current.filterConfig?.group.options.at(1)).toEqual({
+                label: 'Marketing',
+                value: '2',
+            });
         });
     });
 
@@ -116,7 +125,7 @@ describe('useDomainGroupFilter', () => {
             expect(result.current.isItemInFilter).toBeUndefined();
         });
 
-        it('should allow all members through when "All Members" is selected', async () => {
+        it('should allow all members through when no groups are selected', async () => {
             const domain = buildDomain({
                 '1': {members: {'100': 'read', '200': 'read'}, name: 'Engineering'},
                 '2': {members: {'300': 'read'}, name: 'Marketing'},
@@ -129,11 +138,11 @@ describe('useDomainGroupFilter', () => {
                 expect(result.current.isItemInFilter).toBeDefined();
             });
 
-            expect(result.current.isItemInFilter?.(buildMemberRow(100), [ALL_MEMBERS_VALUE])).toBe(true);
-            expect(result.current.isItemInFilter?.(buildMemberRow(999), [ALL_MEMBERS_VALUE])).toBe(true);
+            expect(result.current.isItemInFilter?.(buildMemberRow(100), [])).toBe(true);
+            expect(result.current.isItemInFilter?.(buildMemberRow(999), [])).toBe(true);
         });
 
-        it('should filter members to the selected group', async () => {
+        it('should filter members to a single selected group', async () => {
             const domain = buildDomain({
                 '1': {members: {'100': 'read', '200': 'read'}, name: 'Engineering'},
                 '2': {members: {'300': 'read'}, name: 'Marketing'},
@@ -151,7 +160,25 @@ describe('useDomainGroupFilter', () => {
             expect(result.current.isItemInFilter?.(buildMemberRow(300), ['1'])).toBe(false);
         });
 
-        it('should allow all members when the selected group is not found', async () => {
+        it('should show the union of members when multiple groups are selected', async () => {
+            const domain = buildDomain({
+                '1': {members: {'100': 'read'}, name: 'Engineering'},
+                '2': {members: {'200': 'read'}, name: 'Marketing'},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
+
+            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
+
+            await waitFor(() => {
+                expect(result.current.isItemInFilter).toBeDefined();
+            });
+
+            expect(result.current.isItemInFilter?.(buildMemberRow(100), ['1', '2'])).toBe(true);
+            expect(result.current.isItemInFilter?.(buildMemberRow(200), ['1', '2'])).toBe(true);
+            expect(result.current.isItemInFilter?.(buildMemberRow(999), ['1', '2'])).toBe(false);
+        });
+
+        it('should allow all members when no selected groups are found', async () => {
             const domain = buildDomain({
                 '1': {members: {'100': 'read'}, name: 'Group 1'},
                 '2': {members: {'200': 'read'}, name: 'Group 2'},
@@ -166,6 +193,23 @@ describe('useDomainGroupFilter', () => {
 
             expect(result.current.isItemInFilter?.(buildMemberRow(100), ['doesNotExist'])).toBe(true);
             expect(result.current.isItemInFilter?.(buildMemberRow(999), ['doesNotExist'])).toBe(true);
+        });
+
+        it('should ignore invalid group IDs and filter by remaining valid selections', async () => {
+            const domain = buildDomain({
+                '1': {members: {'100': 'read'}, name: 'Group 1'},
+                '2': {members: {'200': 'read'}, name: 'Group 2'},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
+
+            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
+
+            await waitFor(() => {
+                expect(result.current.isItemInFilter).toBeDefined();
+            });
+
+            expect(result.current.isItemInFilter?.(buildMemberRow(100), ['1', 'doesNotExist'])).toBe(true);
+            expect(result.current.isItemInFilter?.(buildMemberRow(200), ['1', 'doesNotExist'])).toBe(false);
         });
     });
 

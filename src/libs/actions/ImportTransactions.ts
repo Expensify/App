@@ -1,5 +1,3 @@
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {ImportCSVTransactionsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -7,6 +5,7 @@ import {generateCardID} from '@libs/CardUtils';
 import parseCSVDate from '@libs/CSVDateUtils';
 import DateUtils from '@libs/DateUtils';
 import {rand64} from '@libs/NumberUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList} from '@src/types/onyx';
@@ -14,6 +13,11 @@ import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
 import type {ImportFinalModal, ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {getImportFailedFinalModal, getImportFinalModalID, getImportFinalModalOnyxData, waitForImportFinalModal} from './ImportSpreadsheet';
 
 type TransactionFromCSV = {
@@ -237,19 +241,55 @@ function buildOptimisticTransactions(transactionList: TransactionFromCSV[], card
 }
 
 /**
+ * Builds the import settings to use when adding transactions to a card that was already created by a CSV import.
+ * Re-uploading a file skips the settings step, so the card's current configuration is reused instead of the
+ * defaults that apply to a brand new card.
+ *
+ * @param card - The existing CSV imported card the transactions are added to
+ * @param savedLayout - The saved column layout for that card, which holds the currency and amount sign settings picked on the first import
+ * @param customCardName - The name of the card in the custom card names NVP, if the card was renamed
+ */
+function getExistingCardImportSettings(card: Card | undefined, savedLayout: SavedCSVColumnLayoutData | undefined, customCardName: string | undefined): ImportTransactionSettings {
+    const settings: ImportTransactionSettings = {};
+
+    const cardDisplayName = customCardName ?? card?.nameValuePairs?.cardTitle ?? card?.cardName ?? savedLayout?.name;
+    if (cardDisplayName) {
+        settings.cardDisplayName = cardDisplayName;
+    }
+
+    const currency = savedLayout?.accountDetails?.currency;
+    if (currency) {
+        settings.currency = currency;
+    }
+
+    const isReimbursable = card?.reimbursable ?? savedLayout?.reimbursable;
+    if (isReimbursable !== undefined) {
+        settings.isReimbursable = isReimbursable;
+    }
+
+    if (savedLayout?.flipAmountSign !== undefined) {
+        settings.flipAmountSign = savedLayout.flipAmountSign;
+    }
+
+    return settings;
+}
+
+/**
  * Import transactions from a CSV spreadsheet
  * @param spreadsheet - The imported spreadsheet data
  * @param accountID - The current (importing) user's accountID, used as the cardholder for a new optimistic card
  * @param existingCardID - Optional cardID to add transactions to an existing card instead of creating a new one
  * @param previouslySavedLayout - Optional previous saved layout to restore on failure
+ * @param existingCardSettings - Optional settings of the existing card, which take precedence over the settings collected during the import flow
  */
 async function importTransactionsFromCSV(
     spreadsheet: ImportedSpreadsheet,
     accountID: number,
     existingCardID?: number,
     previouslySavedLayout?: SavedCSVColumnLayoutData,
+    existingCardSettings?: ImportTransactionSettings,
 ): Promise<ImportFinalModal> {
-    const settings = spreadsheet.importTransactionSettings ?? {};
+    const settings = {...spreadsheet.importTransactionSettings, ...existingCardSettings};
     const {cardDisplayName = 'Imported Card', currency = CONST.CURRENCY.USD, isReimbursable = true, flipAmountSign = false} = settings;
 
     // Build transaction list from spreadsheet
@@ -375,5 +415,5 @@ async function importTransactionsFromCSV(
     }
 }
 
-export {getColumnIndexes, buildColumnLayout, buildTransactionListFromSpreadsheet};
+export {getColumnIndexes, buildColumnLayout, buildTransactionListFromSpreadsheet, getExistingCardImportSettings};
 export default importTransactionsFromCSV;

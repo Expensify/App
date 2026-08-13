@@ -1,19 +1,23 @@
-import React, {useRef} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
 import type {DateFilterBaseHandle} from '@components/Search/FilterComponents/DateFilterBase';
 import type {SearchDateFilterKeys} from '@components/Search/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDateModifierTitle} from '@libs/SearchQueryUtils';
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useRef} from 'react';
+
 type DateFilterContentProps = {
-    filterKey: SearchDateFilterKeys;
+    baseFilterKey: SearchDateFilterKeys;
     value: SearchDateValues;
     selectedDateModifier: SearchDateModifier | null;
     hasFeed: boolean;
@@ -23,7 +27,7 @@ type DateFilterContentProps = {
     onChange: (values: SearchDateValues) => void;
 };
 
-function DateFilterContent({filterKey, value, selectedDateModifier, hasFeed, largeButton, style, onDateModifierSelected, onChange}: DateFilterContentProps) {
+function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed, largeButton, style, onDateModifierSelected, onChange}: DateFilterContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const dateFilterRef = useRef<DateFilterBaseHandle>(null);
@@ -50,7 +54,7 @@ function DateFilterContent({filterKey, value, selectedDateModifier, hasFeed, lar
                 selectedDateModifier={selectedDateModifier}
                 onSelectDateModifier={onDateModifierSelected}
                 defaultDateValues={value}
-                presets={getDatePresets(filterKey, hasFeed)}
+                presets={getDatePresets(baseFilterKey, hasFeed)}
                 onSubmit={onChange}
                 shouldShowActionButtons={false}
             />

@@ -1,26 +1,36 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import {hasAccountingConnections, hasDependentTags as hasDependentTagsUtil, isMultiLevelTags as isMultiLevelTagsUtil} from '@libs/PolicyUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
+
+import {enablePolicyCategories, setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
 import {clearPolicyErrorField} from '@userActions/Policy/Policy';
-import {setPolicyRequiresTag} from '@userActions/Policy/Tag';
+import {enablePolicyTags, setPolicyRequiresTag} from '@userActions/Policy/Tag';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 type RulesRequireFieldsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS>;
 
@@ -34,16 +44,22 @@ function RulesRequireFieldsPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
+    const {showConfirmModal} = useConfirmModal();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
-    const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    // Match the Categories/Tags toggles on WorkspaceMoreFeaturesPage: only an accounting connection owns these
+    // features. policy.connections also holds HR connections, which must not lock the Required toggles.
+    const isConnectedToAccounting = hasAccountingConnections(policy);
     const hasEnabledCategories = hasEnabledOptions(policyData.categories);
-    const isCategoryToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledCategories || isConnectedToAccounting;
+    const isCategoryFeatureDisabled = !policy?.areCategoriesEnabled;
+    const isCategoryToggleDisabled = isCategoryFeatureDisabled || !hasEnabledCategories || isConnectedToAccounting;
 
     const hasEnabledTags = hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
-    const isTagToggleDisabled = !policy?.areTagsEnabled || !hasEnabledTags;
-
+    const isTagFeatureDisabled = !policy?.areTagsEnabled;
+    const isTagToggleDisabled = isTagFeatureDisabled || !hasEnabledTags || isConnectedToAccounting;
+    // For independent multi-level tags, Required is configured per level in each tag list's RHP, so the policy-wide toggle is hidden (same gate as WorkspaceTagsSettingsPage).
+    const shouldShowTagToggle = !isMultiLevelTagsUtil(policyTags) || hasDependentTagsUtil(policy, policyTags);
     const initialCategoryRequired = !!policy?.requiresCategory;
     const initialTagRequired = !!policy?.requiresTag;
 
@@ -85,6 +101,99 @@ function RulesRequireFieldsPage({
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     }, [hasChanges, categoryRequired, initialCategoryRequired, tagRequired, initialTagRequired, policyData]);
 
+    // Lock UX only when the feature itself is off (or categories are accounting-controlled).
+    // Feature on but no enabled items: toggle stays disabled without lock/modal.
+    const shouldShowCategoryLock = isCategoryFeatureDisabled || isConnectedToAccounting;
+    const shouldShowTagLock = isTagFeatureDisabled || isConnectedToAccounting;
+
+    const categoryDisabledText = (() => {
+        if (!shouldShowCategoryLock) {
+            return undefined;
+        }
+        if (isConnectedToAccounting) {
+            return translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText');
+        }
+        return translate('workspace.rules.individualExpenseRules.enableCategoriesToUnlockPrompt');
+    })();
+
+    const promptEnableCategoriesForRequireCategory = useCallback(async () => {
+        if (isConnectedToAccounting) {
+            const {action} = await showConfirmModal({
+                title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
+                prompt: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText'),
+                confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
+                cancelText: translate('common.cancel'),
+            });
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+            return;
+        }
+
+        if (!isCategoryFeatureDisabled) {
+            return;
+        }
+
+        const {action} = await showConfirmModal({
+            title: translate('workspace.rules.individualExpenseRules.enableCategoriesToUnlockTitle'),
+            prompt: translate('workspace.rules.individualExpenseRules.enableCategoriesAndRequirePrompt'),
+            confirmText: translate('common.ok'),
+            cancelText: translate('common.cancel'),
+        });
+        if (action !== ModalActions.CONFIRM) {
+            return;
+        }
+        enablePolicyCategories(policyData, true, false);
+        setWorkspaceRequiresCategory(policyData, true);
+        setCategoryRequired(true);
+    }, [isCategoryFeatureDisabled, isConnectedToAccounting, policyData, policyID, showConfirmModal, translate]);
+
+    const tagDisabledText = (() => {
+        if (!shouldShowTagLock) {
+            return undefined;
+        }
+        if (isConnectedToAccounting) {
+            return translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText');
+        }
+        return translate('workspace.rules.individualExpenseRules.enableTagsToUnlockPrompt');
+    })();
+
+    const promptEnableTagsForRequireTag = useCallback(async () => {
+        // Accounting owns Tags while a connection is active, same as the Tags toggle on More features, so this must
+        // not force the feature on from here.
+        if (isConnectedToAccounting) {
+            const {action} = await showConfirmModal({
+                title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
+                prompt: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText'),
+                confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
+                cancelText: translate('common.cancel'),
+            });
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+            return;
+        }
+
+        if (!isTagFeatureDisabled) {
+            return;
+        }
+
+        const {action} = await showConfirmModal({
+            title: translate('workspace.rules.individualExpenseRules.enableTagsToUnlockTitle'),
+            prompt: translate('workspace.rules.individualExpenseRules.enableTagsAndRequirePrompt'),
+            confirmText: translate('common.ok'),
+            cancelText: translate('common.cancel'),
+        });
+        if (action !== ModalActions.CONFIRM) {
+            return;
+        }
+        enablePolicyTags(policyData, true);
+        setPolicyRequiresTag(policyData, true);
+        setTagRequired(true);
+    }, [isConnectedToAccounting, isTagFeatureDisabled, policyData, policyID, showConfirmModal, translate]);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -115,38 +224,45 @@ function RulesRequireFieldsPage({
                         wrapperStyle={styles.pv3}
                         isActive={categoryRequired}
                         disabled={isCategoryToggleDisabled}
-                        showLockIcon={isCategoryToggleDisabled}
+                        showLockIcon={shouldShowCategoryLock}
+                        disabledText={categoryDisabledText}
+                        disabledAction={shouldShowCategoryLock ? promptEnableCategoriesForRequireCategory : undefined}
                         pendingAction={policy?.pendingFields?.requiresCategory}
                         errors={policy?.errorFields?.requiresCategory ?? undefined}
                         onCloseError={() => clearPolicyErrorField(policyID, 'requiresCategory')}
                         onToggle={setCategoryRequired}
                     />
 
-                    <ToggleSettingOptionRow
-                        title={translate('workspace.rules.requireFields.tag')}
-                        switchAccessibilityLabel={translate('workspace.rules.requireFields.tag')}
-                        shouldPlaceSubtitleBelowSwitch
-                        wrapperStyle={styles.pv3}
-                        isActive={tagRequired}
-                        disabled={isTagToggleDisabled}
-                        showLockIcon={isTagToggleDisabled}
-                        pendingAction={policy?.pendingFields?.requiresTag}
-                        errors={policy?.errorFields?.requiresTag ?? undefined}
-                        onCloseError={() => clearPolicyErrorField(policyID, 'requiresTag')}
-                        onToggle={setTagRequired}
-                    />
+                    {shouldShowTagToggle && (
+                        <ToggleSettingOptionRow
+                            title={translate('workspace.rules.requireFields.tag')}
+                            switchAccessibilityLabel={translate('workspace.rules.requireFields.tag')}
+                            shouldPlaceSubtitleBelowSwitch
+                            wrapperStyle={styles.pv3}
+                            isActive={tagRequired}
+                            disabled={isTagToggleDisabled}
+                            showLockIcon={shouldShowTagLock}
+                            disabledText={tagDisabledText}
+                            disabledAction={shouldShowTagLock ? promptEnableTagsForRequireTag : undefined}
+                            pendingAction={policy?.pendingFields?.requiresTag}
+                            errors={policy?.errorFields?.requiresTag ?? undefined}
+                            onCloseError={() => clearPolicyErrorField(policyID, 'requiresTag')}
+                            onToggle={setTagRequired}
+                        />
+                    )}
                 </ScrollView>
                 <FixedFooter
                     addBottomSafeAreaPadding
                     addOfflineIndicatorBottomSafeAreaPadding
                 >
                     <Button
-                        success
-                        large
-                        text={translate('workspace.rules.requireFields.save')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={handleSave}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_SAVE}
-                    />
+                    >
+                        <Button.Text>{translate('workspace.rules.requireFields.save')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

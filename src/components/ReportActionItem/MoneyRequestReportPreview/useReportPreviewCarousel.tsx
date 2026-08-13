@@ -1,18 +1,27 @@
-import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {ViewToken} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {compareByRBR} from '@libs/TransactionPreviewUtils';
 import {getCreated} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
+
+import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
+import type {ViewToken} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type {MoneyRequestReportPreviewStyleType} from './types';
 
 const MAX_PREVIEWS_NUMBER = 10;
@@ -69,6 +78,7 @@ function useReportPreviewCarousel({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
     const isFocusedRef = useIsFocusedRef();
 
     const carouselTransactions = useMemo(() => {
@@ -76,7 +86,16 @@ function useReportPreviewCarousel({
             return [];
         }
         const sorted = [...transactions].sort((a, b) => {
-            const rbrComparison = compareByRBR(a, b, transactionViolations, currentUserDetails?.login ?? '', currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID, iouReport, policy);
+            const rbrComparison = compareByRBR(
+                a,
+                b,
+                transactionViolations,
+                currentUserDetails?.login ?? '',
+                currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                iouReport,
+                ownerLogin,
+                policy,
+            );
             if (rbrComparison !== 0) {
                 return rbrComparison;
             }
@@ -84,7 +103,7 @@ function useReportPreviewCarousel({
             return localeCompare(getCreated(a), getCreated(b));
         });
         return sorted.slice(0, MAX_PREVIEWS_NUMBER + 1);
-    }, [shouldShowAccessPlaceHolder, transactions, transactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, iouReport, policy, localeCompare]);
+    }, [shouldShowAccessPlaceHolder, transactions, transactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, iouReport, ownerLogin, policy, localeCompare]);
     const prevCarouselTransactionLength = useRef(0);
 
     useEffect(() => {

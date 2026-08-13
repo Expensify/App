@@ -1,4 +1,5 @@
 import NAVIGATORS from '@src/NAVIGATORS';
+
 import isDynamicRouteSuffix from './dynamicRoutesUtils/isDynamicRouteSuffix';
 
 type ScreenConfigEntry = string | {path?: string; screens?: Record<string, ScreenConfigEntry>};

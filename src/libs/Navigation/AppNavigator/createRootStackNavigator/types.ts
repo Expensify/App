@@ -1,6 +1,7 @@
-import type {CommonActions, StackActionType, StackRouterOptions} from '@react-navigation/native';
 import type CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
+
+import type {CommonActions, StackActionType, StackRouterOptions} from '@react-navigation/native';
 
 type RootStackNavigatorActionType =
     | {

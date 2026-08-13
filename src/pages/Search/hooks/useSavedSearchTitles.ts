@@ -1,7 +1,9 @@
-import {useDeferredValue} from 'react';
 import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQueryUtils';
 import type {BuildUserReadableQueryStringParams} from '@libs/SearchQueryUtils';
+
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
+
+import {useDeferredValue} from 'react';
 
 type SavedSearchCollection = Record<string, SaveSearchItem>;
 
@@ -11,10 +13,10 @@ type SavedSearchTitlesHookParams = Omit<BuildUserReadableQueryStringParams, 'que
 };
 
 /** Returns a map of raw query string → human-readable title for saved searches that have no custom name. Heavy resolution is deferred to avoid blocking the UI. */
-function useSavedSearchTitles({savedSearches, translate, enabled = true, ...rest}: SavedSearchTitlesHookParams): Map<string, string> {
-    // `savedSearches` and `translate` are intentionally excluded from the deferred object.
+function useSavedSearchTitles({savedSearches, translate, formatPhoneNumber, enabled = true, ...rest}: SavedSearchTitlesHookParams): Map<string, string> {
+    // `savedSearches`, `translate` and `formatPhoneNumber` are intentionally excluded from the deferred object.
     // `savedSearches` drives which items appear in the list — deferring it would cause a flash
-    // `translate` is a stable function reference that never triggers heavy re-computation on its own.
+    // `translate` and `formatPhoneNumber` are stable function references that never trigger heavy re-computation on their own.
     const deferredRest = useDeferredValue(rest);
     const {PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID, feedKeysWithCards, reportAttributes, bankAccountList} = deferredRest;
 
@@ -45,6 +47,7 @@ function useSavedSearchTitles({savedSearches, translate, enabled = true, ...rest
             currentUserAccountID,
             autoCompleteWithSpace: false,
             translate,
+            formatPhoneNumber,
             feedKeysWithCards,
             reportAttributes,
             bankAccountList,

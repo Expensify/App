@@ -1,11 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return -- jest factory mocks use CommonJS require() which returns untyped modules */
-import Onyx from 'react-native-onyx';
 import {createTransactionThreadReport} from '@libs/actions/Report';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
 import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return -- jest factory mocks use CommonJS require() which returns untyped modules */
+import Onyx from 'react-native-onyx';
+
 import {actionR14932} from '../../../__mocks__/reportData/actions';
 import {transactionR14932} from '../../../__mocks__/reportData/transactions';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -20,7 +23,7 @@ jest.mock('@libs/actions/Report', () => {
 
 const mockCreateTransactionThreadReport = jest.mocked(createTransactionThreadReport);
 
-const CONTEXT = {introSelected: undefined, betas: undefined, currentUserEmail: 'me@test.com', currentUserAccountID: 1};
+const CONTEXT = {introSelected: undefined, betas: undefined, currentUserEmail: 'me@test.com', currentUserAccountID: 1, personalDetails: undefined};
 
 function buildTransaction(transactionID: string, reportID: string): Transaction {
     return {transactionID, reportID, amount: 0, created: '', currency: 'USD', merchant: '', comment: {}};

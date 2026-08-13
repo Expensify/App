@@ -1,4 +1,5 @@
 import {isDirectFeed} from '@libs/CardUtils';
+
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardFeedErrorState} from '@src/types/onyx/DerivedValues';
 

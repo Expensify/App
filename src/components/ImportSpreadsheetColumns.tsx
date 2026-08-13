@@ -1,15 +1,20 @@
-import React from 'react';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setContainsHeader} from '@libs/actions/ImportSpreadsheet';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {ColumnRole} from './ImportColumn';
+
 import Button from './Button';
 import FixedFooter from './FixedFooter';
-import type {ColumnRole} from './ImportColumn';
 import ImportColumn from './ImportColumn';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScrollView from './ScrollView';
@@ -46,6 +51,9 @@ type ImportSpreadsheetColumnsProps = {
     shouldShowDropdownMenu?: boolean;
 
     customHeaderText?: string;
+
+    /** An optional boolean indicating whether the import button should be disabled while offline. Defaults to true. */
+    shouldDisableButtonWhenOffline?: boolean;
 };
 
 function ImportSpreadsheetColumns({
@@ -59,6 +67,7 @@ function ImportSpreadsheetColumns({
     shouldShowColumnHeader = true,
     shouldShowDropdownMenu = true,
     customHeaderText,
+    shouldDisableButtonWhenOffline = true,
 }: ImportSpreadsheetColumnsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -119,7 +128,7 @@ function ImportSpreadsheetColumns({
                         text={translate('common.import')}
                         onPress={importFunction}
                         isLoading={isButtonLoading}
-                        isDisabled={isOffline}
+                        isDisabled={shouldDisableButtonWhenOffline && isOffline}
                         pressOnEnter
                         success
                         large

@@ -1,7 +1,8 @@
-import React from 'react';
-import {View} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function ColorSchemeWrapper({children}: React.PropsWithChildren): React.ReactElement {
     const theme = useTheme();

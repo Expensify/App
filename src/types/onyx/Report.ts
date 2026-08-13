@@ -1,7 +1,9 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
+import type {ValueOf} from 'type-fest';
+
 import type * as OnyxCommon from './OnyxCommon';
 import type {PolicyReportField} from './Policy';
 import type {TripData} from './TripData';
@@ -81,6 +83,9 @@ type ReportNextStep = {
 
     /** The fill color of the icon */
     iconFill?: string;
+
+    /** Currency the submitter's deposit account must use for direct reimbursement, named in the waitingForSubmitterAccount copy */
+    requiredDepositCurrency?: string;
 };
 
 /** Model of report data */

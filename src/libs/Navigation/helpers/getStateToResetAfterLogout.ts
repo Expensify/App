@@ -1,6 +1,7 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
 
 /**
  * Pure decision logic for the NavigationRoot post-logout reset (kept out of the effect so it

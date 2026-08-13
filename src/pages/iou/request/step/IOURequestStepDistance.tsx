@@ -1,16 +1,11 @@
-import {deepEqual} from 'fast-equals';
-import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
-import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
-import type {OnyxEntry} from 'react-native-onyx';
 import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceRequestRenderItem';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import TabSelector from '@components/TabSelector/TabSelector';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
@@ -23,13 +18,14 @@ import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import usePreMountDestination from '@hooks/usePreMountDestination';
 import usePrevious from '@hooks/usePrevious';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
-import useSkipConfirmationPreInsert from '@hooks/useSkipConfirmationPreInsert';
 import useWaypointItems from '@hooks/useWaypointItems';
+
 import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
@@ -40,21 +36,38 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {getWaypointsHasUnsavedChanges} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
-import {doesMoneyRequestDraftHaveUserInput, getDistanceInMeters, getRateID, getRequestType, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
+import {getDistanceInMeters, getRateID, getRequestType, getSelectedRouteKey, hasManualDistanceOverride, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type TransactionStateType from '@src/types/utils/TransactionStateType';
+
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
+import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {deepEqual} from 'fast-equals';
+import isEmpty from 'lodash/isEmpty';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
+import getSkipConfirmationPreMountDestinationRoute from './confirmation/getSkipConfirmationPreMountDestinationRoute';
 import DistanceManualTabContent from './DistanceManualTabContent';
 import DistanceMapTabContent from './DistanceMapTabContent';
 import useDistanceNavigation from './IOURequestStepDistance/hooks/useDistanceNavigation';
@@ -63,7 +76,6 @@ import useDistanceTransactionBackup from './IOURequestStepDistance/hooks/useDist
 import useWaypointValidation, {isWaypointEmpty} from './IOURequestStepDistance/hooks/useWaypointValidation';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepDistanceProps = WithCurrentUserPersonalDetailsProps &
@@ -80,12 +92,15 @@ function IOURequestStepDistance({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceProps) {
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isArchived = useReportIsArchived(report?.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const iouReportOwnerLoginSelector = useMemo(() => personalDetailsLoginSelector(parentReport?.ownerAccountID), [parentReport?.ownerAccountID]);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: iouReportOwnerLoginSelector});
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -154,12 +169,9 @@ function IOURequestStepDistance({
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const iouRequestType = getRequestType(currentTransaction);
     const customUnitRateID = getRateID(currentTransaction);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
-
-    const {notifySaving} = useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => isCreatingNewRequest && doesMoneyRequestDraftHaveUserInput(transaction),
-    });
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -189,16 +201,47 @@ function IOURequestStepDistance({
         [distanceInMeters, distanceUnit],
     );
 
+    // Whether the user picked a different route than the one the expense currently sits on.
+    // A waypoint edit re-fetches the routes and resets the selection to the primary one, so the committed
+    // selection refers to routes that no longer exist and can't be compared against. In that case anything
+    // other than the primary route is a fresh pick the user made on the re-fetched routes.
+    const getHasSelectedRouteChanged = useCallback(
+        (committedTransaction: OnyxEntry<Transaction>, haveWaypointsChanged: boolean) => {
+            const selectedRouteKey = getSelectedRouteKey(currentTransaction);
+            return haveWaypointsChanged ? selectedRouteKey !== CONST.TRANSACTION.DEFAULT_ROUTE_KEY : selectedRouteKey !== getSelectedRouteKey(committedTransaction);
+        },
+        [currentTransaction],
+    );
+
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => {
+            // Manual distance sits in `manualNumberFormRef` until Save — gate on the mounted ref so a cleared (empty) value still counts as dirty against a committed distance.
+            const manualForm = manualNumberFormRef.current;
+            const typedDistance = manualForm?.getNumber();
+            const typedManualDistance = typedDistance ? roundToTwoDecimalPlaces(parseFloat(typedDistance)) : undefined;
+            const manualDistanceChanged = !!manualForm && typedManualDistance !== currentDistance;
+            // Split edits skip the transaction backup, so their pre-edit route lives in `originalSplitTransactionDraft`.
+            const committedTransaction = isEditingSplit ? originalSplitTransactionDraft : transactionBackup;
+            const waypointsChanged = getWaypointsHasUnsavedChanges(transaction, committedTransaction?.comment?.waypoints, waypoints, isCreatingNewRequest);
+
+            const committedTransactionWithRoutes =
+                committedTransaction && !committedTransaction.routes ? {...committedTransaction, routes: currentTransaction?.routes} : committedTransaction;
+            const routeChanged = !isCreatingNewRequest && getHasSelectedRouteChanged(committedTransactionWithRoutes, waypointsChanged);
+            return manualDistanceChanged || waypointsChanged || routeChanged;
+        },
+    });
+
     // Track whether the user has typed in the manual tab so route re-fetches don't clobber in-progress
-    // input. Editing waypoints clears this (in the effect below) — a recalculated route supersedes a
-    // manual value the same way it would on a fresh map expense (GH #90083).
+    // input. Editing waypoints and picking a different route both clear this (in the effects below) — an
+    // explicit route change supersedes a manual value the same way it would on a fresh map expense (GH #90083).
     const isManuallyEditing = useRef(false);
 
-    // Keep the manual tab input in sync with the recalculated route distance:
-    //  - On a waypoint edit, `saveWaypoint`/`updateWaypoints` clear `routes.route0.distance` (and
-    //    `customUnit.quantity`) to null, then the BE returns the new geometry. That recalculation wins
-    //    over any earlier manual value, so the null → value transition flows back into the manual tab
-    //    and re-enables future syncs (GH #90082, #90083).
+    // Keep the manual tab input in sync with the distance of the *selected* route:
+    //  - On a waypoint edit, `saveWaypoint`/`updateWaypoints` clear `routes` (and `customUnit.quantity`) to
+    //    null, then the BE returns the new geometry. That recalculation wins over any earlier manual value,
+    //    so the null → value transition flows back into the manual tab and re-enables future syncs
+    //    (GH #90082, #90083).
+    //  - Tapping the alternate route on the map is a value → value transition, so it flows back too.
     //  - A re-fetch of an already-saved expense is also a null → value transition but keeps a non-null
     //    `customUnit.quantity` (the persisted value, possibly a manual override), so we skip it there
     //    to avoid overwriting it (GH #90082).
@@ -206,9 +249,24 @@ function IOURequestStepDistance({
     // `customUnit.quantity` together, so by the time `routeDistance` comes back non-null `customUnitQuantity`
     // is already null; the re-fetch path never clears `customUnit.quantity` at all. So the `!= null` check
     // below stays correct regardless of the order Onyx delivers those two updates in.
-    const routeDistance = currentTransaction?.routes?.route0?.distance;
+    const selectedRouteKeyForSync = getSelectedRouteKey(currentTransaction);
+    const routeDistance = currentTransaction?.routes?.[selectedRouteKeyForSync]?.distance;
     const customUnitQuantity = currentTransaction?.comment?.customUnit?.quantity;
     const lastSyncedRouteDistance = useRef<number | null | undefined>(routeDistance);
+
+    // Picking a different route on the map supersedes a manual value the same way a waypoint edit does (see the
+    // effect below). Without this reset the sync would be skipped and the stale typed number would be sent as
+    // `distance` on save, which outranks `selectedRouteKey` in `getUpdatedTransaction` and would pin the expense
+    // to the route the user just moved away from.
+    const lastSelectedRouteKey = useRef(selectedRouteKeyForSync);
+    useEffect(() => {
+        if (lastSelectedRouteKey.current === selectedRouteKeyForSync) {
+            return;
+        }
+        lastSelectedRouteKey.current = selectedRouteKeyForSync;
+        isManuallyEditing.current = false;
+    }, [selectedRouteKeyForSync]);
+
     useEffect(() => {
         if (routeDistance == null) {
             // The route was cleared because the user edited waypoints — let the new value flow back
@@ -254,7 +312,8 @@ function IOURequestStepDistance({
         return iouType !== CONST.IOU.TYPE.SPLIT && !isArchived && !(isPolicyExpenseChatUtil(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
     }, [report, skipConfirmation, policy?.requiresCategory, policy?.requiresTag, isArchived, iouType]);
 
-    useSkipConfirmationPreInsert(shouldSkipConfirmation, report?.reportID);
+    const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(shouldSkipConfirmation, report?.reportID);
+    usePreMountDestination(skipConfirmationPreMountRoute);
 
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {
@@ -292,6 +351,7 @@ function IOURequestStepDistance({
             return;
         }
         setShouldShowAtLeastTwoDifferentWaypointsError(false);
+        setManualFormError('');
     }, [atLeastTwoDifferentWaypointsError, duplicateWaypointsError, hasRouteError, isLoading, isLoadingRoute, nonEmptyWaypointsCount, transaction]);
 
     const transactionWasSaved = useRef(false);
@@ -310,6 +370,8 @@ function IOURequestStepDistance({
     }, [backTo]);
 
     const navigateBackAfterSave = useCallback(() => {
+        // Suppress the discard prompt — otherwise `beforeRemove` treats this post-save navigation as an abandoned dirty edit.
+        suppressDiscardPrompt();
         // When editing an individual split, the previous RHP screen is the edit-split page the user
         // wants to return to — `closeRHPFlow` would tear it down too. Use `goBack` so the RHP stays
         // open at the edit-split page.
@@ -318,13 +380,10 @@ function IOURequestStepDistance({
             return;
         }
         Navigation.closeRHPFlow();
-    }, [isEditingSplit, backTo]);
+    }, [isEditingSplit, backTo, suppressDiscardPrompt]);
 
-    // In the edit flow this page is rendered inside an OnyxTabNavigator. A plain `goBack()` with no
-    // target would be swallowed by that tab navigator (reverting to the Map tab) instead of leaving
-    // the page, so the header back must leave explicitly: honor an explicit `backTo` (e.g. the
-    // edit-split page) and otherwise close the RHP — matching other tabbed RHP pages like
-    // IOURequestStartPage. The browser/hardware back keeps the default tab behavior (revert tab first).
+    // In the edit flow this page is rendered inside an OnyxTabNavigator. The header back honors an
+    // explicit `backTo` (e.g. the edit-split page) and otherwise leaves the whole flow.
     const navigateBackFromEditFlow = useCallback(() => {
         if (backTo) {
             Navigation.goBack(backTo);
@@ -392,13 +451,19 @@ function IOURequestStepDistance({
             return getLatestErrorField(currentTransaction, 'route');
         }
         if (isWaypointsNullIslandError) {
-            return {isWaypointsNullIslandError: `${translate('common.please')} ${translate('common.fixTheErrors')} ${translate('common.inTheFormBeforeContinuing')}.`} as Errors;
+            return {
+                isWaypointsNullIslandError: `${translate('common.please')} ${translate('common.fixTheErrors')} ${translate('common.inTheFormBeforeContinuing')}.`,
+            } as Errors;
         }
         if (duplicateWaypointsError) {
-            return {duplicateWaypointsError: translate('iou.error.duplicateWaypointsErrorMessage')} as Errors;
+            return {
+                duplicateWaypointsError: translate('iou.error.duplicateWaypointsErrorMessage'),
+            } as Errors;
         }
         if (atLeastTwoDifferentWaypointsError) {
-            return {atLeastTwoDifferentWaypointsError: translate('iou.error.atLeastTwoDifferentWaypoints')} as Errors;
+            return {
+                atLeastTwoDifferentWaypointsError: translate('iou.error.atLeastTwoDifferentWaypoints'),
+            } as Errors;
         }
         return {};
     }, [hasRouteError, currentTransaction, isWaypointsNullIslandError, translate, duplicateWaypointsError, atLeastTwoDifferentWaypointsError]);
@@ -453,35 +518,54 @@ function IOURequestStepDistance({
                 setDraftSplitTransaction(
                     CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
                     originalSplitTransactionDraft,
-                    {waypoints: currentTransaction?.comment?.waypoints, routes: currentTransaction?.routes},
+                    {
+                        waypoints: currentTransaction?.comment?.waypoints,
+                        routes: currentTransaction?.routes,
+                        selectedRouteKey: getSelectedRouteKey(currentTransaction),
+                    },
                     policy,
+                    personalPolicy?.outputCurrency,
+                    undefined,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 );
                 navigateBackAfterSave();
                 return;
             }
 
             // If nothing was changed, simply go to transaction thread.
-            // We compare addresses only because numbers are rounded vs. the backup. We also send the
-            // update when a manual `customUnit.quantity` override was cleared by `saveWaypoint` (a
-            // waypoint re-save resets the distance to the route value), so the BE re-evaluates and
-            // clears stale distance violations like `increasedDistance` (GH #90105).
+            // We compare addresses only because numbers are rounded vs. the backup.
             const hasRouteChanged = !deepEqual(transactionBackup?.routes, transaction?.routes);
-            const distanceWasReset = transactionBackup?.comment?.customUnit?.quantity != null && transactionBackup.comment.customUnit.quantity !== transaction?.comment?.customUnit?.quantity;
-            if (!haveWaypointAddressesChanged(transactionBackup?.comment?.waypoints, waypoints) && !distanceWasReset) {
+            // Picking a alternate route without waypoints change changes nothing else about the transaction, so it needs its own signal or
+            // the save would be skipped by the check below and the selection silently dropped.
+            const haveWaypointsChanged = haveWaypointAddressesChanged(transactionBackup?.comment?.waypoints, waypoints);
+            const selectedRouteKey = getSelectedRouteKey(currentTransaction);
+            const shouldUpdateSelectedRoute = getHasSelectedRouteChanged(transactionBackup, haveWaypointsChanged);
+            // Saving from the Map tab means the distance comes from the map route, so a manual `customUnit.quantity`
+            // override on the saved expense is dropped even when nothing else changed. This reads the backup rather
+            // than the current transaction because `saveWaypoint` clears the override locally while the BE still has
+            // it, so re-saving a waypoint has to reach the BE too for it to re-evaluate and clear stale distance
+            // violations like `increasedDistance` (GH #90105). No `distance` is ever sent from this tab — the BE
+            // overwrites it with the `selectedRouteDistance` that `selectedRouteKey` carries.
+            const selectedRouteDistanceInMeters = currentTransaction?.routes?.[selectedRouteKey]?.distance;
+            const shouldDropManualDistance = !!selectedRouteDistanceInMeters && hasManualDistanceOverride(transactionBackup);
+            if (!haveWaypointsChanged && !shouldUpdateSelectedRoute && !shouldDropManualDistance) {
                 transactionWasSaved.current = true;
                 navigateBackAfterSave();
                 return;
             }
-            const routeDistanceInUnit = currentDistanceInMeters > 0 ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(currentDistanceInMeters, distanceUnit)) : undefined;
             if (transaction?.transactionID && report?.reportID) {
                 updateMoneyRequestDistance({
                     transaction,
                     transactionThreadReport: report,
                     parentReport,
+                    iouReportOwnerLogin,
                     waypoints,
                     recentWaypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
-                    ...(distanceWasReset && routeDistanceInUnit !== undefined ? {distance: routeDistanceInUnit} : {}),
+                    // Sent when dropping an override too: it is what carries `selectedRouteDistance` to the BE, which is
+                    // the distance the expense is rewritten to.
+                    ...(shouldUpdateSelectedRoute || shouldDropManualDistance ? {selectedRouteKey} : {}),
                     policy,
                     policyTagList: policyTags,
                     policyCategories,
@@ -489,9 +573,13 @@ function IOURequestStepDistance({
                     currentUserAccountIDParam,
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
-                    parentReportNextStep,
                     delegateAccountID,
                     distanceOriginalPolicy,
+                    reportPolicyTags,
+                    isTrackIntentUser,
+                    personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
             }
             transactionWasSaved.current = true;
@@ -502,7 +590,7 @@ function IOURequestStepDistance({
             return;
         }
 
-        notifySaving();
+        suppressDiscardPrompt();
         navigateToNextStep();
     }, [
         duplicateWaypointsError,
@@ -514,28 +602,31 @@ function IOURequestStepDistance({
         isCreatingNewRequest,
         navigateToNextStep,
         navigateBackAfterSave,
-        notifySaving,
+        suppressDiscardPrompt,
         isEditingSplit,
         originalSplitTransactionDraft,
         transactionBackup,
+        getHasSelectedRouteChanged,
         waypoints,
         transaction,
         report,
-        currentTransaction?.comment?.waypoints,
-        currentTransaction?.routes,
-        currentDistanceInMeters,
-        distanceUnit,
+        currentTransaction,
         policy,
         parentReport,
+        iouReportOwnerLogin,
         recentWaypoints,
         policyTags,
         policyCategories,
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
-        parentReportNextStep,
         delegateAccountID,
         distanceOriginalPolicy,
+        reportPolicyTags,
+        isTrackIntentUser,
+        personalPolicy?.outputCurrency,
+        getCurrencyDecimals,
+        getCurrencySymbol,
     ]);
 
     const submitManualDistance = useCallback(() => {
@@ -565,7 +656,16 @@ function IOURequestStepDistance({
 
         if (isEditingSplit && transaction) {
             setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action, iouType), distanceUnit);
-            setDraftSplitTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, splitDraftTransaction, {distance: distanceAsFloat}, policy);
+            setDraftSplitTransaction(
+                CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                splitDraftTransaction,
+                {distance: distanceAsFloat},
+                policy,
+                personalPolicy?.outputCurrency,
+                undefined,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            );
             navigateBackAfterSave();
             return;
         }
@@ -578,20 +678,32 @@ function IOURequestStepDistance({
         // If so, we must still send the update even if the distance value itself didn't change.
         const haveWaypointsChanged = haveWaypointAddressesChanged(transactionBackup?.comment?.waypoints, waypoints);
 
-        if (!isDistanceChanged && !isDistanceUnitChanged && !haveWaypointsChanged) {
+        const selectedRouteKey = getSelectedRouteKey(currentTransaction);
+        // Picking a route on the Map tab moves the distance the manual input is prefilled with, so on its own it leaves
+        // the value unchanged and the checks above would skip the save — stranding the selection in local Onyx while the
+        // expense keeps the previous route's distance and amount.
+        const shouldUpdateSelectedRoute = wasOriginallyMapDistance && getHasSelectedRouteChanged(transactionBackup, haveWaypointsChanged);
+
+        if (!isDistanceChanged && !isDistanceUnitChanged && !haveWaypointsChanged && !shouldUpdateSelectedRoute) {
             transactionWasSaved.current = true;
             navigateBackAfterSave();
             return;
         }
 
+        // When the route pick is the only change, the distance is the route's own — sending it would store it as a manual
+        // override of that route. `selectedRouteKey` alone is what carries the new distance to the BE.
+        const isRouteSelectionOnlyChange = shouldUpdateSelectedRoute && !isDistanceChanged && !isDistanceUnitChanged && !haveWaypointsChanged;
         const hasRouteChanged = haveWaypointsChanged && !deepEqual(transactionBackup?.routes, transaction?.routes);
         updateMoneyRequestDistance({
             transaction,
             transactionThreadReport: report,
             parentReport,
+            iouReportOwnerLogin,
             waypoints,
-            distance: distanceAsFloat,
+            ...(isRouteSelectionOnlyChange ? {} : {distance: distanceAsFloat}),
             ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
+            // We need to pass selectedRouteKey to ensure that updating manual distance won't cause alternate route to be overriden with the primary one
+            ...(wasOriginallyMapDistance ? {selectedRouteKey} : {}),
             transactionBackup,
             policy,
             policyTagList: policyTags,
@@ -599,10 +711,14 @@ function IOURequestStepDistance({
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
-            parentReportNextStep,
             delegateAccountID,
             recentWaypoints,
             distanceOriginalPolicy,
+            reportPolicyTags,
+            isTrackIntentUser,
+            personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+            getCurrencyDecimals,
+            getCurrencySymbol,
         });
         transactionWasSaved.current = true;
         // Remove the backup eagerly so the parent report view reads the optimistic transaction
@@ -610,35 +726,41 @@ function IOURequestStepDistance({
         removeBackupTransaction(transaction?.transactionID);
         navigateBackAfterSave();
     }, [
-        translate,
+        transactionBackup,
+        getHasSelectedRouteChanged,
+        duplicateWaypointsError,
+        atLeastTwoDifferentWaypointsError,
+        hasRouteError,
         distanceRate,
-        transactionID,
-        action,
-        iouType,
-        distanceUnit,
         isEditingSplit,
         transaction,
-        currentTransaction?.comment?.customUnit?.distanceUnit,
-        splitDraftTransaction,
-        policy,
-        navigateBackAfterSave,
+        currentTransaction,
         currentDistance,
+        distanceUnit,
         waypoints,
-        transactionBackup,
         report,
         parentReport,
+        iouReportOwnerLogin,
+        policy,
         policyTags,
         policyCategories,
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
-        parentReportNextStep,
         recentWaypoints,
-        duplicateWaypointsError,
-        atLeastTwoDifferentWaypointsError,
-        hasRouteError,
         delegateAccountID,
         distanceOriginalPolicy,
+        reportPolicyTags,
+        isTrackIntentUser,
+        personalPolicy?.outputCurrency,
+        navigateBackAfterSave,
+        translate,
+        transactionID,
+        action,
+        iouType,
+        splitDraftTransaction,
+        getCurrencyDecimals,
+        getCurrencySymbol,
     ]);
 
     const renderItem = useCallback(
@@ -665,7 +787,13 @@ function IOURequestStepDistance({
     }, [manualFormError]);
 
     const errorState = useMemo(
-        () => ({shouldShowAtLeastTwoDifferentWaypointsError, atLeastTwoDifferentWaypointsError, duplicateWaypointsError, hasRouteError, getError}),
+        () => ({
+            shouldShowAtLeastTwoDifferentWaypointsError,
+            atLeastTwoDifferentWaypointsError,
+            duplicateWaypointsError,
+            hasRouteError,
+            getError,
+        }),
         [shouldShowAtLeastTwoDifferentWaypointsError, atLeastTwoDifferentWaypointsError, duplicateWaypointsError, hasRouteError, getError],
     );
 
@@ -682,16 +810,31 @@ function IOURequestStepDistance({
                     scrollViewRef={scrollViewRef}
                     renderItem={renderItem}
                     navigateToWaypointEditPage={navigateToWaypointEditPage}
-                    transaction={transaction}
+                    transaction={currentTransaction}
                     policy={policy}
                     submitWaypoints={submitWaypoints}
                     buttonText={buttonText}
                     errorState={errorState}
                     loadingState={loadingState}
+                    transactionState={transactionState}
                 />
             </TabScreenWithFocusTrapWrapper>
         ),
-        [waypointItems, waypoints, extractKey, updateWaypoints, renderItem, navigateToWaypointEditPage, transaction, policy, submitWaypoints, buttonText, errorState, loadingState],
+        [
+            waypointItems,
+            waypoints,
+            extractKey,
+            updateWaypoints,
+            renderItem,
+            navigateToWaypointEditPage,
+            currentTransaction,
+            policy,
+            submitWaypoints,
+            buttonText,
+            errorState,
+            loadingState,
+            transactionState,
+        ],
     );
 
     const renderManualTab = useCallback(
@@ -748,12 +891,13 @@ function IOURequestStepDistance({
                 scrollViewRef={scrollViewRef}
                 renderItem={renderItem}
                 navigateToWaypointEditPage={navigateToWaypointEditPage}
-                transaction={transaction}
+                transaction={currentTransaction}
                 policy={policy}
                 submitWaypoints={submitWaypoints}
                 buttonText={buttonText}
                 errorState={errorState}
                 loadingState={loadingState}
+                transactionState={transactionState}
             />
         </StepScreenWrapper>
     );

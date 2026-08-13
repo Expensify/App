@@ -1,7 +1,9 @@
 /* cspell:disable */
 import {formatTransitLocationLabel, getAirReservations, getPNRReservationDataFromTripReport, getReservationsFromTripReport, isPnrCancelled} from '@libs/TripReservationUtils';
+
 import CONST from '@src/CONST';
 import type {Pnr, TripData} from '@src/types/onyx/TripData';
+
 import {airReservationPnrData, airReservationTravelers} from '../data/TripAirReservationData';
 import {createRandomReport} from '../utils/collections/reports';
 

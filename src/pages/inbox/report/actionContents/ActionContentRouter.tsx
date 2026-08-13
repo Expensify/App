@@ -1,5 +1,3 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import CreatedReportForUnapprovedTransactionsAction from '@components/ReportActionItem/CreatedReportForUnapprovedTransactionsAction';
 import CreateHarvestReportAction from '@components/ReportActionItem/CreateHarvestReportAction';
@@ -11,11 +9,15 @@ import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
 import UnreportedTransactionAction from '@components/ReportActionItem/UnreportedTransactionAction';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getChangedApproverActionMessage,
+    getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
     getForwardedReportActionMessage,
     getIOUReportIDFromReportActionPreview,
@@ -24,6 +26,7 @@ import {
     getRenamedAction,
     getReportActionHtml,
     getSettlementAccountLockedMessage,
+    getTravelNudgeMessage,
     getTravelUpdateMessage,
     isActionableCardFraudAlert,
     isActionableJoinRequest,
@@ -44,11 +47,19 @@ import {
     isTripPreview,
 } from '@libs/ReportActionsUtils';
 import {getMovedActionMessage, isExpenseReport} from '@libs/ReportUtils';
+
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {policyRoleSelector} from '@src/selectors/Policy';
 import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import ApprovalFlowContent, {isApprovalFlowAction} from './ApprovalFlowContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
@@ -151,6 +162,7 @@ function ActionContentRouter({
     const styles = useThemeStyles();
 
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {selector: getStableReportSelector});
+    const [policyRole] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`, {selector: policyRoleSelector});
 
     // Report that owns this action for mutations (thread / merged-list cases use originalReport). This is a stable projection (heartbeat fields stripped).
     const actionOwnerReportStable = originalReport ?? report;
@@ -348,6 +360,13 @@ function ActionContentRouter({
             </ReportActionItemBasicMessage>
         );
     }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_NUDGE)) {
+        return (
+            <ReportActionItemBasicMessage message="">
+                <RenderHTML html={`<comment><muted-text>${getTravelNudgeMessage(translate, action)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
+    }
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
         return (
             <UnreportedTransactionAction
@@ -444,6 +463,7 @@ function ActionContentRouter({
             <IntegrationSyncFailedMessage
                 action={action}
                 policyID={policyID}
+                originalReport={originalReport}
             />
         );
     }
@@ -458,6 +478,15 @@ function ActionContentRouter({
         return (
             <ReportActionItemBasicMessage message="">
                 <RenderHTML html={`<comment><muted-text>${getPlaidBalanceFailureMessage(translate, action)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION)) {
+        // Only admins can open the workspace distance settings, so members get plain text instead of a link.
+        const distanceSettingsPolicyID = policyRole === CONST.POLICY.ROLE.ADMIN ? policyID : undefined;
+        return (
+            <ReportActionItemBasicMessage>
+                <RenderHTML html={`<comment><muted-text>${getCommuterExclusionMessage(translate, action, distanceSettingsPolicyID)}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
     }

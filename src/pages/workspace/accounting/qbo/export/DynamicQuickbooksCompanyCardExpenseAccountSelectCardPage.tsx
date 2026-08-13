@@ -1,22 +1,30 @@
-import React, {useCallback, useMemo} from 'react';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateManyPolicyConnectionConfigs} from '@libs/actions/connections';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import {canUseVendorBillForCompanyCardExport} from '@pages/workspace/accounting/qbo/utils';
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Account, QBONonReimbursableExportAccountType} from '@src/types/onyx/Policy';
+
+import React, {useCallback, useMemo} from 'react';
 
 type MenuItem = ListItem & {
     value: QBONonReimbursableExportAccountType;
@@ -26,6 +34,7 @@ type MenuItem = ListItem & {
 
 function DynamicQuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -105,7 +114,9 @@ function DynamicQuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: With
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={goBack}
             listFooterContent={
-                !canUseVendorBill ? <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pv3]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription')}</Text> : undefined
+                !canUseVendorBill ? (
+                    <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pv3]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription', integrationName)}</Text>
+                ) : undefined
             }
             errors={getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION)}
             errorRowStyles={[styles.ph5, styles.pv3]}

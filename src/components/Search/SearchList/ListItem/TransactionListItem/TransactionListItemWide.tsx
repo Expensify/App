@@ -1,5 +1,3 @@
-import React, {useEffect, useRef, useState} from 'react';
-import type {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -8,13 +6,20 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
+
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
+
 import CONST from '@src/CONST';
+
+import type {View} from 'react-native';
+
+import React, {useEffect, useRef, useState} from 'react';
+
 import type {TransactionListItemWideProps} from './types';
 
 function TransactionListItemWide<TItem extends ListItem>({
@@ -40,9 +45,11 @@ function TransactionListItemWide<TItem extends ListItem>({
     exportedReportActions,
     policyCategories,
     policyTagLists,
+    rowPolicy,
     nonPersonalAndWorkspaceCards,
     isAttendeesEnabledForMovingPolicy,
     currentSearchHash,
+    chatReport,
 }: TransactionListItemWideProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -51,7 +58,7 @@ function TransactionListItemWide<TItem extends ListItem>({
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const transactionItem = item as unknown as TransactionListItemType;
-    const {isSelected} = useRowSelection(item.keyForList);
+    const {isSelected} = useRowSelection(item.keyForList, transactionItem.selectionGroupKey);
 
     const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
     const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
@@ -173,13 +180,16 @@ function TransactionListItemWide<TItem extends ListItem>({
                     <TransactionItemRow
                         transactionItem={transactionItem}
                         report={transactionItem.report}
-                        policy={transactionItem.policy}
+                        chatReport={chatReport}
+                        policy={rowPolicy ?? transactionItem.policy}
                         policyCategories={policyCategories}
                         policyTagLists={policyTagLists}
                         shouldShowTooltip={showTooltip}
                         onButtonPress={handleActionButtonPress}
                         onCheckboxPress={() => onCheckboxPress?.(item)}
                         shouldUseNarrowLayout={false}
+                        shouldUseFullHeightEditableCellHoverTarget
+                        shouldSkipDeferRBR
                         isLargeScreenWidth
                         columns={columns}
                         isActionLoading={isLoading ?? isActionLoading}
@@ -196,7 +206,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         isActionColumnWide={transactionItem.isActionColumnWide}
                         shouldShowCheckbox={!!canSelectMultiple}
                         checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
-                        style={[styles.p3, styles.pv2, isLastItem ? styles.tableBottomRadius : styles.noBorderRadius]}
+                        style={[styles.ph3, isLastItem ? styles.tableBottomRadius : styles.noBorderRadius]}
                         violations={transactionViolations}
                         onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, transactionPreviewData, event)}
                         isHover={hovered}

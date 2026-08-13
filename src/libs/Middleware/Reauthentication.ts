@@ -1,4 +1,3 @@
-import type {OnyxKey} from 'react-native-onyx';
 import {reconnect} from '@libs/actions/Reconnect';
 import redirectToSignIn from '@libs/actions/SignInRedirect';
 import HttpsError from '@libs/Errors/HttpsError';
@@ -10,10 +9,14 @@ import {getIsOffline} from '@libs/NetworkState';
 import reauthenticateLibs from '@libs/Reauthentication';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
+
 import CONST from '@src/CONST';
 import type Request from '@src/types/onyx/Request';
 import type {PaginatedRequest} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
+
+import type {OnyxKey} from 'react-native-onyx';
+
 import type Middleware from './types';
 
 // We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
@@ -109,6 +112,13 @@ function handleExpiredSession<TKey extends OnyxKey>(
     return reauthenticate(request?.commandName)
         .then((wasSuccessful) => {
             if (!wasSuccessful) {
+                if (isFromSequentialQueue) {
+                    // A resolved 407 reads as success to SequentialQueue, which deletes the persisted write.
+                    // Throw on every give-up: the latched short-lived-token abort and the delegate restore return
+                    // false with the session alive. One that did sign out costs nothing, its Onyx.clear empties the queue first.
+                    throw new Error('Failed to reauthenticate');
+                }
+
                 // Reauth already handled the sign-in redirect, so do not briefly show the failed request UI before sign-in.
                 request.failureData = undefined;
                 request.finallyData = undefined;

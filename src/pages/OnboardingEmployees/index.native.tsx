@@ -1,10 +1,14 @@
+import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
+
+import SCREENS from '@src/SCREENS';
+
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {BackHandler} from 'react-native';
-import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
-import SCREENS from '@src/SCREENS';
-import BaseOnboardingEmployees from './BaseOnboardingEmployees';
+
 import type {OnboardingEmployeesProps} from './types';
+
+import BaseOnboardingEmployees from './BaseOnboardingEmployees';
 
 function OnboardingEmployees(props: OnboardingEmployeesProps) {
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.EMPLOYEES);

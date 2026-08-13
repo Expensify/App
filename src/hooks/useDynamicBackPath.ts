@@ -2,8 +2,10 @@ import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRout
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import type {State} from '@libs/Navigation/types';
+
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+
 import useRootNavigationState from './useRootNavigationState';
 
 /**

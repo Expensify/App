@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {extractRuleFromForm, formatExpenseRuleChanges, getKeyForRule} from '@libs/ExpenseRuleUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {ExpenseRuleForm} from '@src/types/form';
 import type {ExpenseRule, TaxRate} from '@src/types/onyx';
+
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -125,6 +127,40 @@ describe('extractRuleFromForm', () => {
         expect(result.tax).toEqual({field_id_TAX: {externalID: 'TAX_123', value: '7.5'}});
         expect(result.comment).toBe(undefined);
     });
+
+    it('drops every empty string field but keeps an explicit false', () => {
+        const emptyForm = {
+            merchantToMatch: 'Test',
+            billable: '',
+            reimbursable: '',
+            category: '',
+            tag: '',
+        } as unknown as ExpenseRuleForm;
+
+        const emptyRule = extractRuleFromForm(emptyForm);
+        expect(emptyRule.billable).toBeUndefined();
+        expect(emptyRule.reimbursable).toBeUndefined();
+        expect(emptyRule.category).toBeUndefined();
+        expect(emptyRule.tag).toBeUndefined();
+        expect(Object.values(emptyRule)).not.toContain('');
+
+        const falseForm: ExpenseRuleForm = {
+            billable: 'false',
+            category: '',
+            comment: '',
+            createReport: false,
+            merchant: '',
+            merchantToMatch: 'Test',
+            reimbursable: 'false',
+            report: '',
+            tag: '',
+            tax: '',
+        };
+
+        const falseRule = extractRuleFromForm(falseForm);
+        expect(falseRule.billable).toBe('false');
+        expect(falseRule.reimbursable).toBe('false');
+    });
 });
 
 describe('getKeyForRule', () => {
@@ -172,10 +208,10 @@ describe('getKeyForRule', () => {
             tax: {field_id_TAX: {externalID: 'TAX1', value: '10%'}},
         };
 
-        const modified = {
+        const modified: ExpenseRule = {
             ...base,
             merchant: 'Walmart',
-        } as unknown as ExpenseRule;
+        };
 
         expect(getKeyForRule(base)).not.toBe(getKeyForRule(modified));
     });

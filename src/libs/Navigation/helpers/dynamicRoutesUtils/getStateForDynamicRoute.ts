@@ -1,6 +1,8 @@
 import {dynamicTabScreensByHost, normalizedConfigs, screensWithOnyxTabNavigator} from '@libs/Navigation/linkingConfig/config';
+
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {DynamicRouteSuffix} from '@src/ROUTES';
+
 import splitPathAndQuery from './splitPathAndQuery';
 
 type LeafRoute = {

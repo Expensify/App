@@ -1,22 +1,31 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
 import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getInitialSubStepForBusinessInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBusinessInfoStep';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+
 import {clearReimbursementAccountSaveCorpayOnboardingCompanyDetails, getCorpayOnboardingFields, saveCorpayOnboardingCompanyDetails} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {View} from 'react-native';
+
 import Address from './subSteps/Address';
 import AverageReimbursement from './subSteps/AverageReimbursement';
 import BusinessType from './subSteps/BusinessType';
@@ -70,6 +79,7 @@ const INPUT_KEYS = {
 function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, stepNames, currentSubPage, backTo}: NonUSDPageProps) {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
+    const styles = useThemeStyles();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
@@ -161,7 +171,9 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, step
             startStepIndex={2}
         >
             {shouldRedirect ? (
-                <FullScreenLoadingIndicator reasonAttributes={{context: 'BusinessInfo', shouldRedirect}} />
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                </View>
             ) : (
                 <CurrentPage
                     isEditing={isEditing}

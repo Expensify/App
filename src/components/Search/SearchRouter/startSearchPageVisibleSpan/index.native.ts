@@ -1,4 +1,5 @@
 import {startSpan} from '@libs/telemetry/activeSpans';
+
 import CONST from '@src/CONST';
 
 function startSearchPageVisibleSpan() {

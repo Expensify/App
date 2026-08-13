@@ -1,0 +1,105 @@
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import Icon from '@components/Icon';
+import Table from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
+import Text from '@components/Text';
+import TextWithTooltip from '@components/TextWithTooltip';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {ReportParticipantRowData} from '.';
+
+type ReportParticipantsTableRowProps = {
+    /** The participant item for the row */
+    item: ReportParticipantRowData;
+
+    /** The index of the row relative to all other rows */
+    rowIndex: number;
+
+    /** Whether to use narrow table row layout */
+    shouldUseNarrowTableLayout: boolean;
+};
+
+export default function ReportParticipantsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: ReportParticipantsTableRowProps) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
+
+    const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
+    // Only admins surface a role, matching the production Members list where non-admins have no role indicator.
+    const roleLabel = item.isGroupChat && item.isAdmin ? translate('common.admin') : '';
+    const accessibilityLabel = roleLabel ? `${item.name}, ${item.email}, ${roleLabel}` : `${item.name}, ${item.email}`;
+    const memberSubtitle = shouldUseNarrowTableLayout && roleLabel ? `${roleLabel} • ${item.email}` : item.email;
+
+    return (
+        <Table.Row
+            interactive
+            rowIndex={rowIndex}
+            disabled={item.disabled}
+            accessibilityLabel={accessibilityLabel}
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.PARTICIPANTS_ROW}
+            offlineWithFeedback={{pendingAction: item.pendingAction}}
+            onPress={item.action}
+        >
+            {(hovered) => (
+                <>
+                    <View
+                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
+                        <AccountAvatar
+                            size={avatarSize}
+                            accountID={item.accountID}
+                            fallbackDisplayName={item.name ?? item.email}
+                        />
+                        <View style={[shouldUseNarrowTableLayout && styles.gap1, styles.flex1]}>
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                text={item.name}
+                                style={[styles.optionDisplayName, styles.pre]}
+                                numberOfLines={1}
+                            />
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                text={memberSubtitle}
+                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                numberOfLines={1}
+                            />
+                        </View>
+                    </View>
+
+                    {!shouldUseNarrowTableLayout && item.isGroupChat && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <Text numberOfLines={1}>{roleLabel}</Text>
+                        </View>
+                    )}
+
+                    <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
+                        <Icon
+                            src={icons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, !hovered && styles.opacitySemiTransparent]}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                    </View>
+                </>
+            )}
+        </Table.Row>
+    );
+}

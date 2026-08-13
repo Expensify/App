@@ -1,4 +1,5 @@
 import type {NavigationRoute} from '@libs/Navigation/types';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 
 /**

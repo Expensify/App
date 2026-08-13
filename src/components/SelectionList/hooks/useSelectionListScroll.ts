@@ -1,8 +1,11 @@
+import useDebounce from '@hooks/useDebounce';
+
+import Log from '@libs/Log';
+
+import CONST from '@src/CONST';
+
 import type {FlashListRef} from '@shopify/flash-list';
 import type {RefObject} from 'react';
-import useDebounce from '@hooks/useDebounce';
-import Log from '@libs/Log';
-import CONST from '@src/CONST';
 
 type ScrollToIndex = (index: number, animated?: boolean) => void;
 

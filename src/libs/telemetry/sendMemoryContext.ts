@@ -1,6 +1,9 @@
-import * as Sentry from '@sentry/react-native';
 import AppStateMonitor from '@libs/AppStateMonitor';
+
 import CONST from '@src/CONST';
+
+import * as Sentry from '@sentry/react-native';
+
 import formatMemoryBreadcrumb from './formatMemoryBreadcrumb';
 import getMemoryInfo from './getMemoryInfo';
 import getMemoryLogLevel from './getMemoryLogLevel';

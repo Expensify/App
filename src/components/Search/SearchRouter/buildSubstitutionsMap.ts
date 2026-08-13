@@ -1,11 +1,16 @@
-import type {OnyxCollection} from 'react-native-onyx';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SearchAutocompleteQueryRange} from '@components/Search/types';
+
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import type {BankAccountList, CardFeeds, CardList, PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
+
 import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from './getQueryWithSubstitutions';
 
 /**
@@ -36,6 +41,7 @@ function buildSubstitutionsMap(
     policies: OnyxCollection<Policy>,
     currentUserAccountID: number,
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
     bankAccountList?: BankAccountList,
 ): SubstitutionMap {
@@ -92,6 +98,7 @@ function buildSubstitutionsMap(
                 policies,
                 currentUserAccountID,
                 translate,
+                formatPhoneNumber,
                 reportAttributes,
                 bankAccountList,
             });

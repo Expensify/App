@@ -1,7 +1,10 @@
-import {useRef, useState} from 'react';
+import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+
 import type {RefObject} from 'react';
 import type {BlurEvent, View} from 'react-native';
-import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+
+import {useRef, useState} from 'react';
+
 import type {SuggestionsRef} from './ComposerContext';
 import type {ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
 

@@ -1,3 +1,30 @@
+import Checkbox from '@components/Checkbox';
+import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import StatusBadge from '@components/StatusBadge';
+import TransactionItemRow from '@components/TransactionItemRow';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import Navigation from '@libs/Navigation/Navigation';
+import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
+import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
+import type {SearchResults} from '@src/types/onyx';
+
+import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
+
 /**
  * Lightweight, hook-minimal static version of the search results list used
  * during the submit-and-navigate flow for fast perceived performance.
@@ -15,37 +42,15 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
-import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
-import Checkbox from '@components/Checkbox';
-import {useSession} from '@components/OnyxListItemProvider';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
-import StatusBadge from '@components/StatusBadge';
-import TransactionItemRow from '@components/TransactionItemRow';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
-import Navigation from '@libs/Navigation/Navigation';
-import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
-import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
-import type {SearchResults} from '@src/types/onyx';
+
 import type {TransactionListItemType} from './SearchList/ListItem/types';
+import type {SearchColumnType, SearchQueryJSON} from './types';
+
 import UserInfoCellsWithArrow from './SearchList/ListItem/UserInfoCellsWithArrow';
 import SearchTableHeader from './SearchTableHeader';
-import type {SearchColumnType, SearchQueryJSON} from './types';
 
 const STATIC_LIST_MAX_ITEMS = 10;
 const DEFAULT_COLUMNS: SearchColumnType[] = [];
-
-const PENDING_EXPENSE_REASON_ATTRIBUTES = {context: 'SearchStaticList.PendingExpensePlaceholder'} as const;
 
 type SearchStaticListProps = {
     searchResults: SearchResults | undefined;
@@ -71,19 +76,21 @@ function SearchStaticList({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const session = useSession();
+    const personalDetails = usePersonalDetails();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(
         () => hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) || Navigation.getIsFullscreenPreInsertedUnderRHP(),
     );
 
-    const {type, status, sortBy, sortOrder, groupBy} = queryJSON;
+    const {type, sortBy, sortOrder, groupBy} = queryJSON;
     const validGroupBy = getValidGroupBy(groupBy);
     const searchData = searchResults?.data;
 
@@ -93,6 +100,7 @@ function SearchStaticList({
         }
 
         const [filteredData] = getSections({
+            dateFnsLocale,
             type,
             data: searchData,
             currentAccountID: accountID,
@@ -100,11 +108,12 @@ function SearchStaticList({
             translate,
             formatPhoneNumber,
             bankAccountList: undefined,
-            conciergeReportID: undefined,
+            conciergeReportID,
             convertToDisplayString,
+            reportAttributesDerivedValue: undefined,
         });
 
-        return getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy)
+        return getSortedSections(type, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy)
             .filter((item): item is TransactionListItemType => 'transactionID' in item && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .slice(0, STATIC_LIST_MAX_ITEMS);
     })();
@@ -133,12 +142,14 @@ function SearchStaticList({
             // They're only used for guided-setup onboarding data, which is gated behind introSelected/onboarding checks
             // that won't apply here - the user has already completed onboarding if they're submitting expenses.
             createAndOpenSearchTransactionThread({
+                getCurrencyDecimals,
                 item,
                 introSelected: undefined,
                 backTo,
                 currentUserLogin: email ?? '',
                 currentUserAccountID: accountID,
                 betas: undefined,
+                personalDetails,
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
                 IOUTransactionID: item.reportAction?.childReportID,
@@ -207,7 +218,7 @@ function SearchStaticList({
                                     participantFromDisplayName={participantFromDisplayName}
                                     participantToDisplayName=""
                                     participantTo={item.to}
-                                    avatarSize={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                                    avatarSize={CONST.AVATAR_SIZE.XXX_SMALL}
                                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
                                     infoCellsTextStyle={styles.mutedNormalTextLabel}
                                     infoCellsAvatarStyle={styles.pr1half}
@@ -305,8 +316,6 @@ function SearchStaticList({
         onLayoutProp?.();
     };
 
-    const pendingExpenseReasonAttributes = PENDING_EXPENSE_REASON_ATTRIBUTES;
-
     if (sortedData.length === 0 && showPendingExpensePlaceholder) {
         return (
             <View
@@ -317,7 +326,6 @@ function SearchStaticList({
                     shouldAnimate
                     fixedNumItems={1}
                     containerStyle={contentContainerStyle}
-                    reasonAttributes={pendingExpenseReasonAttributes}
                 />
             </View>
         );
@@ -378,7 +386,6 @@ function SearchStaticList({
                             shouldAnimate
                             fixedNumItems={1}
                             isLoadMore
-                            reasonAttributes={pendingExpenseReasonAttributes}
                         />
                     ) : undefined
                 }

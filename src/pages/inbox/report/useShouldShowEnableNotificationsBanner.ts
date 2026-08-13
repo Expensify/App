@@ -1,11 +1,15 @@
-import {useEffect, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
+
 import NotificationPermission from '@libs/Notification/notificationPermission';
 import type {NotificationPermissionStatus} from '@libs/Notification/notificationPermission/types';
 import {isConciergeChatReport} from '@libs/ReportUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect, useState} from 'react';
 
 function useShouldShowEnableNotificationsBanner(report: OnyxEntry<Report>): boolean {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);

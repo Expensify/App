@@ -1,4 +1,5 @@
 import {merchantStateSelector} from '@components/MoneyRequestConfirmationList/sections/selectors';
+
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 

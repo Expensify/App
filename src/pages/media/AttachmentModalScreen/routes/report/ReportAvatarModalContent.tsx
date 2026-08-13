@@ -1,17 +1,21 @@
-import React, {useMemo} from 'react';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
-import {getReportName} from '@libs/ReportNameUtils';
+
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {getDefaultGroupAvatar, getPolicyName, getWorkspaceIcon, isGroupChat, isThread, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserAvatarUtils';
+
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useMemo} from 'react';
 
 function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.REPORT_AVATAR>) {
     const {reportID, policyID} = route.params;
@@ -27,20 +31,20 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
         if (isGroupChat(report) && !isThread(report)) {
             return {
                 source: report?.avatarUrl ? getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}) : getDefaultGroupAvatar(report?.reportID),
-                headerTitle: getReportName(report, reportAttributes),
+                headerTitle: deprecatedGetReportName(report, reportAttributes),
                 isWorkspaceAvatar: false,
             };
         }
         if (isUserCreatedPolicyRoom(report) && report?.avatarUrl) {
             return {
                 source: getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}),
-                headerTitle: getReportName(report, reportAttributes),
+                headerTitle: deprecatedGetReportName(report, reportAttributes),
                 isWorkspaceAvatar: false,
             };
         }
 
         return {
-            source: getFullSizeAvatar({avatarSource: getWorkspaceIcon(report, policy).source, defaultAvatars}),
+            source: getFullSizeAvatar({avatarSource: getWorkspaceIcon(report, translate, policy).source, defaultAvatars}),
             headerTitle: getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
             // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID,

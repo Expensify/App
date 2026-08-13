@@ -1,14 +1,11 @@
-import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
-import type {NavigationState, PartialState} from '@react-navigation/native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {translate} from '@libs/Localize';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+
 import type {Video} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -17,6 +14,13 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Locale, Onboarding} from '@src/types/onyx';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
+import Onyx from 'react-native-onyx';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
 type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
@@ -115,13 +119,11 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
     const isVsb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
+    const isVsbOrSmb = isVsb || isSmb;
     const isIndividual = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
     const isCurrentOnboardingPurposeManageTeam = currentOnboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
 
-    if (isVsb) {
-        Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
-    }
-    if (isSmb) {
+    if (isVsbOrSmb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
     }
 
@@ -136,10 +138,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     // PRIVATE_DOMAIN ("People you may know are already here") only makes sense for users on a private domain. Only redirect
     // validated accounts; unvalidated users mid-AddWorkEmail can legitimately land here while isFromPublicDomain is stale.
     if (isUserFromPublicDomain && isAccountValidated && initialPath.includes(ROUTES.ONBOARDING_PRIVATE_DOMAIN.route)) {
-        if (isVsb) {
-            return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
-        }
-        if (isSmb) {
+        if (isVsbOrSmb) {
             return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
         }
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
@@ -152,10 +151,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
     }
 
-    if (isVsb) {
-        return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
-    }
-    if (isSmb) {
+    if (isVsbOrSmb) {
         return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
     }
 
@@ -168,7 +164,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (
-        initialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) &&
+        (initialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) || initialPath.includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route)) &&
         ((currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) || (currentOnboardingCompanySize === null && currentOnboardingPurposeSelected !== null))
     ) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;

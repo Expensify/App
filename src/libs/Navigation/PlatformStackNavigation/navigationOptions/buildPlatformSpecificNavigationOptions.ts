@@ -1,4 +1,5 @@
 import type {CommonStackNavigationOptions, PlatformSpecificNavigationOptions, PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import withAnimation from './animation/withAnimation';
 
 const getCommonNavigationOptions = (screenOptions: PlatformStackNavigationOptions | undefined): CommonStackNavigationOptions =>

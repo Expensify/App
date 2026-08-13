@@ -1,10 +1,15 @@
-import React, {createContext, useContext, useState} from 'react';
-import type {Dispatch, SetStateAction} from 'react';
-import type {ValueOf} from 'type-fest';
 import type {TextSelection} from '@components/Composer/types';
+
 import useTransactionThreadReportID from '@hooks/useTransactionThreadReportID';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {Dispatch, SetStateAction} from 'react';
+import type {ValueOf} from 'type-fest';
+
+import React, {createContext, useContext, useState} from 'react';
+
 import useActiveDraftReportAction from './useActiveDraftReportAction';
 
 function noop() {

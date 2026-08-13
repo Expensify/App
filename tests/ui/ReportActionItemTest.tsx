@@ -1,31 +1,39 @@
-import {PortalProvider} from '@gorhom/portal';
-import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import {openLink} from '@libs/actions/Link';
 import {setHasRadio} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import type * as UrlType from '@libs/Url';
+
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
+
 import colors from '@styles/theme/colors';
+
 import type CONFIGType from '@src/CONFIG';
 import type CONSTType from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction} from '@src/types/onyx';
+import type {BankAccountList, Report, ReportAction} from '@src/types/onyx';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
+
+import {PortalProvider} from '@gorhom/portal';
+import * as NativeNavigation from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -81,7 +89,7 @@ const ACTOR_ACCOUNT_ID = 123456789;
 const actorEmail = 'test@test.com';
 
 const createReportAction = (actionName: ReportActionName, originalMessageExtras: Partial<OriginalMessage<ReportActionName>>) =>
-    ({
+    createMock<ReportAction>({
         reportActionID: '12345',
         actorAccountID: ACTOR_ACCOUNT_ID,
         created: '2025-07-12 09:03:17.653',
@@ -95,7 +103,7 @@ const createReportAction = (actionName: ReportActionName, originalMessageExtras:
         originalMessage: {
             ...originalMessageExtras,
         },
-    }) as ReportAction;
+    });
 
 describe('ReportActionItem', () => {
     beforeAll(() => {
@@ -132,7 +140,7 @@ describe('ReportActionItem', () => {
 
     function renderItemWithAction(action: ReportAction) {
         return render(
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
                 <ScreenWrapper testID="test">
                     <PortalProvider>
                         <ReportActionItem
@@ -177,7 +185,12 @@ describe('ReportActionItem', () => {
                 originalMessageExtras: {harvesting: true},
                 translationKey: 'iou.automaticallySubmitted',
             },
-        ];
+        ] satisfies Array<{
+            testTitle: string;
+            actionName: ReportActionName;
+            originalMessageExtras: Partial<OriginalMessage<ReportActionName>>;
+            translationKey: TranslationPaths;
+        }>;
 
         const parseTextWithTrailingLink = (translatedText: string) => {
             const match = translatedText.match(/^(.*?)(<a[^>]*>)(.*?)(<\/a>)$/);
@@ -194,7 +207,7 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(CONST.CONCIERGE_DISPLAY_NAME)).toBeOnTheScreen();
-            const parsedText = parseTextWithTrailingLink(translateLocal(translationKey as TranslationPaths));
+            const parsedText = parseTextWithTrailingLink(translateLocal(translationKey));
             if (!parsedText) {
                 throw new Error('Text cannot be parsed, translation failed');
             }
@@ -755,7 +768,7 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the action message should be displayed
-            expect(screen.getByText(translateLocal('iou.paidElsewhere', {}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.paidElsewhere'))).toBeOnTheScreen();
         });
     });
 
@@ -1408,7 +1421,7 @@ describe('ReportActionItem', () => {
             };
 
             render(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
@@ -1561,6 +1574,15 @@ describe('ReportActionItem', () => {
 
     describe('System notification actions', () => {
         it('MOVED action renders moved message', async () => {
+            // Seed the destination policy locally so the message is computed live (the member scenario).
+            // Without a local policy, getMovedActionMessage falls back to the stored action HTML.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {
+                    id: 'policy1',
+                    name: 'Test Workspace',
+                });
+            });
+
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MOVED, {
                 toPolicyID: 'policy1',
                 newParentReportID: 'report2',
@@ -1627,6 +1649,64 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/1234/)).toBeOnTheScreen();
+        });
+
+        describe('COMMUTER_EXCLUSION action', () => {
+            const COMMUTER_EXCLUSION_POLICY_ID = 'commuterPolicy';
+
+            function renderCommuterExclusionAction() {
+                const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION, {
+                    distance: '1.00',
+                    unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                });
+                return render(
+                    <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <ReportActionItem
+                                    chatReport={undefined}
+                                    report={{reportID: 'testReport', policyID: COMMUTER_EXCLUSION_POLICY_ID}}
+                                    transactionThreadReport={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    isFirstVisibleReportAction={false}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </ComposeProviders>,
+                );
+            }
+
+            it('renders the workspace distance settings as a link for an admin', async () => {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${COMMUTER_EXCLUSION_POLICY_ID}`, {
+                        id: COMMUTER_EXCLUSION_POLICY_ID,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    });
+                });
+                renderCommuterExclusionAction();
+                await waitForBatchedUpdatesWithAct();
+
+                expect(screen.getByText(/Removed 1.00 commuter/)).toBeOnTheScreen();
+                // The anchor renders a nested pressable, so more than one node carries the link role
+                expect(screen.getAllByRole(CONST.ROLE.LINK, {name: 'workspace distance settings'}).length).toBeGreaterThan(0);
+            });
+
+            it('renders the workspace distance settings as plain text for a member', async () => {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${COMMUTER_EXCLUSION_POLICY_ID}`, {
+                        id: COMMUTER_EXCLUSION_POLICY_ID,
+                        role: CONST.POLICY.ROLE.USER,
+                    });
+                });
+                renderCommuterExclusionAction();
+                await waitForBatchedUpdatesWithAct();
+
+                expect(screen.getByText(/Removed 1.00 commuter/)).toBeOnTheScreen();
+                expect(screen.queryByRole(CONST.ROLE.LINK, {name: 'workspace distance settings'})).not.toBeOnTheScreen();
+            });
         });
 
         it('TAKE_CONTROL action renders changed approver message', async () => {
@@ -1832,7 +1912,7 @@ describe('ReportActionItem', () => {
                     reportID: 'testReport',
                     ownerAccountID: ACTOR_ACCOUNT_ID,
                 });
-                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {acc1: {accountData: {defaultCredit: true}} as never});
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, createMock<BankAccountList>({acc1: {accountData: {defaultCredit: true}}}));
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -1903,7 +1983,7 @@ describe('ReportActionItem', () => {
         it('IOU PAY VBBA manual renders business bank account message with last 4 digits', async () => {
             await act(async () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {12345: {accountData: {accountNumber: '000098765'}} as never});
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, createMock<BankAccountList>({12345: {accountData: {accountNumber: '000098765'}}}));
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -1936,10 +2016,58 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/paid with bank account/i)).toBeOnTheScreen();
         });
 
+        it('IOU PAY VBBA manual prefers originalMessage accountNumber over current policy account', async () => {
+            const policyID = 'snapshot-policy';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    id: policyID,
+                    achAccount: {
+                        accountNumber: 'XXXX2222',
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                automaticAction: false,
+                accountNumber: 'XXXX1111',
+            });
+            const report = {
+                reportID: 'testReport',
+                ownerAccountID: ACTOR_ACCOUNT_ID,
+                policyID,
+            } as Report;
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={report}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/1111/)).toBeOnTheScreen();
+            expect(screen.queryByText(/2222/)).toBeNull();
+        });
+
         it('IOU PAY VBBA automatic renders auto-paid message', async () => {
             await act(async () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {12345: {accountData: {accountNumber: '000098765'}} as never});
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, createMock<BankAccountList>({12345: {accountData: {accountNumber: '000098765'}}}));
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -1975,7 +2103,7 @@ describe('ReportActionItem', () => {
         it('IOU PAY with bankAccountID and payAsBusiness renders settleInvoiceBusiness message', async () => {
             await act(async () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {55555: {accountData: {accountNumber: '000012345'}} as never});
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, createMock<BankAccountList>({55555: {accountData: {accountNumber: '000012345'}}}));
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -2015,7 +2143,7 @@ describe('ReportActionItem', () => {
         it('IOU PAY with bankAccountID and no payAsBusiness renders settleInvoicePersonal message', async () => {
             await act(async () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {77777: {accountData: {accountNumber: '000067890'}} as never});
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, createMock<BankAccountList>({77777: {accountData: {accountNumber: '000067890'}}}));
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -2267,7 +2395,7 @@ describe('ReportActionItem', () => {
                 testTitle: 'UPDATE_AUTO_HARVESTING',
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
                 originalMessage: {value: true},
-                assertion: /enabled scheduled submit/i,
+                assertion: /enabled submissions/i,
             },
             {testTitle: 'SET_AUTO_JOIN', actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN, originalMessage: {enabled: true}, assertion: /enabled pre-approval/i},
             {testTitle: 'UPDATE_TIME_ENABLED', actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED, originalMessage: {enabled: true}, assertion: /time tracking/i},
@@ -2656,7 +2784,7 @@ describe('ReportActionItem', () => {
         it('isCardBrokenConnectionAction renders tappable bank login link for personal broken connection', async () => {
             const CARD_ID_KEY = '100';
 
-            (openLink as jest.Mock).mockClear();
+            jest.mocked(openLink).mockClear();
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.CARD_LIST, {
                     [CARD_ID_KEY]: {cardID: 100, cardName: 'Broken Card', lastScrapeResult: 401},
@@ -2678,7 +2806,7 @@ describe('ReportActionItem', () => {
         it('isCardBrokenConnectionAction renders no tappable link when card connection is not broken', async () => {
             const CARD_ID_KEY = '100';
 
-            (openLink as jest.Mock).mockClear();
+            jest.mocked(openLink).mockClear();
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.CARD_LIST, {
                     [CARD_ID_KEY]: {cardID: 100, cardName: 'Healthy Card', lastScrapeResult: 200},
@@ -3119,7 +3247,7 @@ describe('ReportActionItem', () => {
             action.reportID = TEST_REPORT_ID;
 
             render(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItemMessage

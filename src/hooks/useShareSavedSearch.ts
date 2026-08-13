@@ -1,6 +1,9 @@
-import {useEffect, useRef, useState} from 'react';
 import Clipboard from '@libs/Clipboard';
+
 import ROUTES from '@src/ROUTES';
+
+import {useEffect, useRef, useState} from 'react';
+
 import useEnvironment from './useEnvironment';
 
 // Matches the success state duration in useThrottledButtonState used by ContextMenuItem

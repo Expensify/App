@@ -1,9 +1,15 @@
-import type {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useState} from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import useLocalize from '@hooks/useLocalize';
+
 import type {Option} from '@libs/searchOptions';
+
 import CONST from '@src/CONST';
+
+import type {CONST as COMMON_CONST} from 'expensify-common';
+
+import React, {useState} from 'react';
+
 import StateSelectorModal from './StateSelectorModal';
 
 type State = keyof typeof COMMON_CONST.STATES;

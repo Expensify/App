@@ -1,5 +1,7 @@
 import NavBarManager from '@libs/NavBarManager';
+
 import CONST from '@src/CONST';
+
 import type GetNavigationBarType from './types';
 
 const getNavigationBarType: GetNavigationBarType = (insets) => {

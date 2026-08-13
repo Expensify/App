@@ -1,17 +1,23 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return -- jest factory mocks use CommonJS require() which returns untyped modules */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import {createTransactionThreadReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
+
 import RecentlyAddedSection from '@pages/home/RecentlyAddedSection';
 import {useRecentlyAddedData} from '@pages/home/RecentlyAddedSection/useRecentlyAddedData';
+
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -33,11 +39,10 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@hooks/usePopoverPosition', () =>
-    jest.fn(() => ({
-        calculatePopoverPosition: jest.fn(() => Promise.resolve({horizontal: 0, vertical: 0, width: 0, height: 0})),
-    })),
-);
+jest.mock('@hooks/usePopoverPosition', () => {
+    const calculatePopoverPosition = jest.fn(() => Promise.resolve({horizontal: 0, vertical: 0, width: 0, height: 0}));
+    return jest.fn(() => ({calculatePopoverPosition}));
+});
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({

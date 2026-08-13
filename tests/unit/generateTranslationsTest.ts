@@ -1,3 +1,8 @@
+import generateTranslations, {GENERATED_FILE_PREFIX} from '@scripts/generateTranslations';
+import Git from '@scripts/utils/Git';
+import DummyTranslator from '@scripts/utils/Translator/DummyTranslator';
+import Translator from '@scripts/utils/Translator/Translator';
+
 /**
  * @jest-environment node
  */
@@ -5,10 +10,6 @@ import {Str} from 'expensify-common';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import generateTranslations, {GENERATED_FILE_PREFIX} from '@scripts/generateTranslations';
-import Git from '@scripts/utils/Git';
-import DummyTranslator from '@scripts/utils/Translator/DummyTranslator';
-import Translator from '@scripts/utils/Translator/Translator';
 
 let processExitSpy: jest.SpyInstance;
 let consoleErrorSpy: jest.SpyInstance;
@@ -27,17 +28,14 @@ jest.mock('openai');
 jest.mock('@scripts/utils/Git');
 
 // Mock Git methods
-const mockIsValidRef = jest.fn();
-const mockDiff = jest.fn();
-const mockShow = jest.fn();
+const mockIsValidRef = jest.fn<ReturnType<typeof Git.isValidRef>, Parameters<typeof Git.isValidRef>>();
+const mockDiff = jest.fn<ReturnType<typeof Git.diff>, Parameters<typeof Git.diff>>();
+const mockShow = jest.fn<ReturnType<typeof Git.show>, Parameters<typeof Git.show>>();
 
 // Apply mocks to Git using jest.spyOn (ignore type errors for now)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-jest.spyOn(Git as any, 'isValidRef').mockImplementation(mockIsValidRef);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-jest.spyOn(Git as any, 'diff').mockImplementation(mockDiff);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-jest.spyOn(Git as any, 'show').mockImplementation(mockShow);
+jest.spyOn(Git, 'isValidRef').mockImplementation(mockIsValidRef);
+jest.spyOn(Git, 'diff').mockImplementation(mockDiff);
+jest.spyOn(Git, 'show').mockImplementation(mockShow);
 
 let tempDir: string;
 let LANGUAGES_DIR: string;
@@ -48,7 +46,8 @@ describe('generateTranslations', () => {
     const ORIGINAL_ARGV = process.argv;
 
     beforeEach(() => {
-        processExitSpy = jest.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+        // @ts-expect-error -- process.exit is deliberately made non-terminating so the generator can be asserted.
+        processExitSpy = jest.spyOn(process, 'exit').mockImplementation(() => undefined);
         consoleErrorSpy = jest.spyOn(console, 'error');
 
         tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'translations-test-'));
@@ -61,7 +60,7 @@ describe('generateTranslations', () => {
         process.env.LANGUAGES_DIR = LANGUAGES_DIR;
 
         // Set dry-run flag for tests
-        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it'];
+        process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it'];
 
         // Reset Git mocks to default behavior for each test
         mockIsValidRef.mockReset();
@@ -113,7 +112,6 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     greeting: '[it] Hello',
                     farewell: '[it] Goodbye',
@@ -170,9 +168,10 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import Log from '@libs/Log';
-                import CONST from '@src/CONST';
-                import type en from './en';
 
+                import CONST from '@src/CONST';
+
+                import type en from './en';
                 if (CONST.REPORT.TYPE.EXPENSE == 'true') {
                     Log.info('This should not be translated');
                     console.log('This should not be translated either');
@@ -246,7 +245,6 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     simple: (name: string, greeting: string) => \`[it] \${greeting} good sir \${name}!\`,
                     simpleWithDotNotation: (myParams: {name: string; greeting: string}) => \`[it] \${myParams.greeting} good sir \${myParams.greeting}!\`,
@@ -305,7 +303,6 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     updateReportFieldAllOptionsDisabled: (count: number, enabled: boolean, option: string) => {
                         if (toggledOptionsCount > 1) {
@@ -362,7 +359,6 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     bank: '[it][ctx: As in a financial institution] Bank',
                     bankTemplate: \`[it][ctx: As in a financial institution] Bank\`,
@@ -467,7 +463,6 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     greeting: '[it] Hello',
                     farewell: '[it] Goodbye',
@@ -503,7 +498,6 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     myFunc: ({brand}: {brand: 'Apple' | 'Google'}) => \`[it] \${brand} Phone\`,
                 };
@@ -529,7 +523,6 @@ describe('generateTranslations', () => {
             expect(itContent).toStrictEqual(
                 `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     hello: '[it] こんにちは',
                     world: '[it] world',
@@ -603,6 +596,7 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
+                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([17]), // Line with newKey
                         removedLines: new Set(),
@@ -612,7 +606,7 @@ describe('generateTranslations', () => {
                 hasChanges: true,
             });
 
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
             const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
             await generateTranslations();
@@ -681,7 +675,7 @@ describe('generateTranslations', () => {
             );
 
             // Override process.argv to specify only certain paths
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save,errors.generic'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save,errors.generic'];
 
             const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
@@ -758,7 +752,7 @@ describe('generateTranslations', () => {
             );
 
             // Override process.argv to specify parent path
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common'];
 
             const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
@@ -821,7 +815,7 @@ describe('generateTranslations', () => {
             );
 
             // Override process.argv to specify both paths and compare-ref
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save', '--compare-ref', 'main'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save', '--compare-ref', 'main'];
 
             const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
@@ -861,7 +855,7 @@ describe('generateTranslations', () => {
 
             // Don't create IT_PATH - this should cause an error
 
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save'];
 
             await expect(generateTranslations()).rejects.toThrow('Target file');
         });
@@ -882,7 +876,7 @@ describe('generateTranslations', () => {
             );
 
             // Override process.argv to specify a non-existent path
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'nonexistent.path'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'nonexistent.path'];
 
             // Expect the script to throw an error during CLI parsing
             await generateTranslations();
@@ -932,7 +926,7 @@ describe('generateTranslations', () => {
             );
 
             // Test that valid paths work
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'greeting,common.save'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'greeting,common.save'];
 
             const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
@@ -1004,7 +998,7 @@ describe('generateTranslations', () => {
             );
 
             // Only retranslate specific paths - the bug is that existing translations get lost
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save,errors.generic'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save,errors.generic'];
 
             await generateTranslations();
             const itContent = fs.readFileSync(IT_PATH, 'utf8');
@@ -1096,6 +1090,7 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
+                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([10]), // Line with newKey
                         removedLines: new Set(),
@@ -1105,7 +1100,7 @@ describe('generateTranslations', () => {
                 hasChanges: true,
             });
 
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it,fr', '--compare-ref', 'main'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it,fr', '--compare-ref', 'main'];
 
             const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
@@ -1148,7 +1143,7 @@ describe('generateTranslations', () => {
             );
 
             // Test with invalid git reference
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'invalid-ref-that-does-not-exist'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'invalid-ref-that-does-not-exist'];
 
             // Expect the script to throw an error during CLI parsing
             await generateTranslations();
@@ -1196,6 +1191,7 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
+                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([2, 3, 4]), // Lines in the complex template
                         removedLines: new Set(),
@@ -1205,7 +1201,7 @@ describe('generateTranslations', () => {
                 hasChanges: true,
             });
 
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--locales', 'it', '--compare-ref', 'main'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--locales', 'it', '--compare-ref', 'main'];
 
             await generateTranslations();
             const itContent = fs.readFileSync(IT_PATH, 'utf8');
@@ -1278,6 +1274,7 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
+                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([6]), // Line with updated value
                         removedLines: new Set([7, 9, 10, 11, 12]), // Lines where sections were removed
@@ -1307,7 +1304,7 @@ describe('generateTranslations', () => {
             `),
             );
 
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--locales', 'it', '--compare-ref', 'main'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--locales', 'it', '--compare-ref', 'main'];
 
             await generateTranslations();
             const itContent = fs.readFileSync(IT_PATH, 'utf8');
@@ -1371,6 +1368,7 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
+                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([6, 7, 8, 9, 10, 11, 12]), // Lines with the new manualTest section
                         removedLines: new Set(),
@@ -1380,7 +1378,7 @@ describe('generateTranslations', () => {
                 hasChanges: true,
             });
 
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
             const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
             await generateTranslations();
@@ -1456,6 +1454,7 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
+                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([8]), // Line with the new property
                         removedLines: new Set(),
@@ -1465,7 +1464,7 @@ describe('generateTranslations', () => {
                 hasChanges: true,
             });
 
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
             const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
             await generateTranslations();
@@ -1527,6 +1526,7 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
+                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set(),
                         removedLines: new Set(),
@@ -1550,7 +1550,7 @@ describe('generateTranslations', () => {
             `),
             );
 
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
             const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
             await generateTranslations();
@@ -1618,7 +1618,7 @@ describe('generateTranslations', () => {
                 'utf8',
             );
 
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'onboarding.tasks.inviteTeamTask'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'onboarding.tasks.inviteTeamTask'];
 
             await generateTranslations();
 
@@ -1681,7 +1681,7 @@ describe('generateTranslations', () => {
             );
 
             // Test targeting the specific nested path
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'onboarding.tasks.createWorkspaceTask'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'onboarding.tasks.createWorkspaceTask'];
 
             // This currently throws an error but should succeed
             await generateTranslations();
@@ -1731,6 +1731,7 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
+                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([3]), // Only the context comment line
                         removedLines: new Set(),
@@ -1752,7 +1753,7 @@ describe('generateTranslations', () => {
             `),
             );
 
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
             const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
             await generateTranslations();
@@ -1810,6 +1811,7 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
+                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([3]), // New context comment
                         removedLines: new Set([3]), // Old context comment on same line in old version
@@ -1832,7 +1834,7 @@ describe('generateTranslations', () => {
             `),
             );
 
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
             const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
             await generateTranslations();
@@ -1897,6 +1899,7 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
+                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set(),
                         removedLines: new Set([3]), // Context comment removed
@@ -1919,7 +1922,7 @@ describe('generateTranslations', () => {
             `),
             );
 
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
             const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
             await generateTranslations();
@@ -1979,6 +1982,7 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
+                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([3]), // Regular comment line
                         removedLines: new Set(),
@@ -2000,7 +2004,7 @@ describe('generateTranslations', () => {
             `),
             );
 
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
             const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
             await generateTranslations();
@@ -2054,6 +2058,7 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
+                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([3]), // Modified comment
                         removedLines: new Set([3]), // Old comment
@@ -2076,7 +2081,7 @@ describe('generateTranslations', () => {
             `),
             );
 
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
             const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
             await generateTranslations();
@@ -2234,6 +2239,7 @@ describe('generateTranslations', () => {
                 files: [
                     {
                         filePath: 'src/languages/en.ts',
+                        diffType: 'modified',
                         hunks: [],
                         addedLines: new Set([1, 2, 5, 6]), // Import, empty, dedent middle/end
                         removedLines: new Set([2]), // Old line 2: prop1: 'First property',
@@ -2245,7 +2251,7 @@ describe('generateTranslations', () => {
 
             mockShow.mockReturnValue(oldEnContent);
 
-            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
             const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
             await generateTranslations();
@@ -2301,7 +2307,13 @@ describe('generateTranslations', () => {
             );
 
             // Mock getFailedTranslations to return failures
-            const mockFailures = [{text: 'Hello', targetLang: 'it' as const, error: 'Test error message'}];
+            const mockFailures = [
+                {
+                    text: 'Hello',
+                    targetLang: 'it' as const,
+                    error: 'Test error message',
+                },
+            ];
             jest.spyOn(DummyTranslator.prototype, 'getFailedTranslations').mockReturnValue(mockFailures);
 
             await generateTranslations();
@@ -2348,7 +2360,14 @@ describe('generateTranslations', () => {
             );
 
             // Mock getFailedTranslations with id
-            const mockFailures = [{text: 'Hello', targetLang: 'it' as const, error: 'Test error', id: 'common.greeting'}];
+            const mockFailures = [
+                {
+                    text: 'Hello',
+                    targetLang: 'it' as const,
+                    error: 'Test error',
+                    id: 'common.greeting',
+                },
+            ];
             jest.spyOn(DummyTranslator.prototype, 'getFailedTranslations').mockReturnValue(mockFailures);
 
             await generateTranslations();

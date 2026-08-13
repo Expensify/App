@@ -1,19 +1,25 @@
-import React from 'react';
-import type {ReactNode} from 'react';
-import {View} from 'react-native';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import CompactMenuContext from '@components/CompactMenuContext';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import type BaseModalProps from '@components/Modal/types';
 import {useRootMeta, useRootVisibility} from '@components/PopoverMenu/v2/root/RootContext';
 import type {ActiveAnchor} from '@components/PopoverMenu/v2/root/RootContext';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+
 import {computeAnchorPosition} from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+
+import type {ReactNode} from 'react';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import {ContentCloseContext, ContentFocusContext, ContentItemActionsContext, ContentNavigationContext, ContentSubActionsContext} from './ContentContext';
 import DismissButton from './DismissButton';
 import useContentController from './useContentController';

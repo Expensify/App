@@ -1,9 +1,15 @@
-import Onyx from 'react-native-onyx';
+// The type-only import is taken from the provider's types file (not @hooks/useCurrencyList) because that file has
+// no runtime dependencies, so this cannot create an import cycle back through CurrencyListContextProvider.
+import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider/types';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyList, Locale} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import Log from './Log';
 import {format, formatToParts} from './NumberFormatUtils';
 
@@ -173,6 +179,58 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
     });
 }
 
+/**
+ * Same as convertToDisplayString but always formats with the `en` locale. Used for building optimistic
+ * report action messages, which are stored on the action in English regardless of the viewer's locale.
+ * Decimals are injected (from useCurrencyListActions().getCurrencyDecimals, or the standalone
+ * getCurrencyDecimals at non-React boundaries) so this function does not depend on this module's
+ * Onyx fallback.
+ */
+function convertToDisplayStringEnLocale(amountInCents: number, currency: string | undefined, getCurrencyDecimalsImpl: CurrencyListActionsContextType['getCurrencyDecimals']): string {
+    const currencyWithFallback = sanitizeCurrencyCode(currency);
+    const decimals = getCurrencyDecimalsImpl(currencyWithFallback);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
+    return format(CONST.LOCALES.EN, convertedAmount, {
+        style: 'currency',
+        currency: currencyWithFallback,
+
+        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
+        // See: https://github.com/Expensify/PHP-Libs/pull/834
+        minimumFractionDigits: decimals,
+        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
+        maximumFractionDigits: 2,
+    });
+}
+
+/**
+ * Same as convertToDisplayStringWithoutCurrency but always formats with the `en` locale, with decimals
+ * injected. Used alongside convertToDisplayStringEnLocale for stored values (e.g. formula-computed
+ * report titles) that must not depend on the viewer's locale or this module's Onyx fallback.
+ */
+function convertToDisplayStringWithoutCurrencyEnLocale(
+    amountInCents: number,
+    currency: string | undefined,
+    getCurrencyDecimalsImpl: CurrencyListActionsContextType['getCurrencyDecimals'],
+): string {
+    const sanitizedCurrency = sanitizeCurrencyCode(currency);
+    const decimals = getCurrencyDecimalsImpl(sanitizedCurrency);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
+    return formatToParts(CONST.LOCALES.EN, convertedAmount, {
+        style: 'currency',
+        currency: sanitizedCurrency,
+
+        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
+        // See: https://github.com/Expensify/PHP-Libs/pull/834
+        minimumFractionDigits: decimals,
+        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
+        maximumFractionDigits: 2,
+    })
+        .filter((x) => x.type !== 'currency')
+        .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)
+        .map((x) => x.value)
+        .join('');
+}
+
 /** Same intended use as convertToDisplayString, but purposely omit currency symbol if not provided */
 function convertToDisplayStringWithExplicitCurrency(amountInCents: number, currency: string | undefined, currencies?: CurrencyList): string {
     if (!currency) {
@@ -253,8 +311,10 @@ export {
     convertToFrontendAmountAsInteger,
     convertToFrontendAmountAsString,
     convertToDisplayString,
+    convertToDisplayStringEnLocale,
     convertAmountToDisplayString,
     convertToDisplayStringWithoutCurrency,
+    convertToDisplayStringWithoutCurrencyEnLocale,
     convertToDisplayStringWithExplicitCurrency,
     convertToShortDisplayString,
 };

@@ -1,6 +1,9 @@
-import {useEffect, useRef, useState} from 'react';
 import CONST from '@src/CONST';
+
+import {useEffect, useRef, useState} from 'react';
+
 import type {Coordinate} from './MapViewTypes';
+
 import utils from './utils';
 
 type UseAnimatedLeadingDirectionCoordinateParams = {

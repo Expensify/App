@@ -1,6 +1,8 @@
-import type {StackNavigationOptions} from '@react-navigation/stack';
 import GestureDirection from '@libs/Navigation/PlatformStackNavigation/navigationOptions/gestureDirection';
 import type {PlatformSpecificNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+
+import type {StackNavigationOptions} from '@react-navigation/stack';
+
 import {InternalPlatformAnimations} from '..';
 
 const slideFromLeft: PlatformSpecificNavigationOptions = {

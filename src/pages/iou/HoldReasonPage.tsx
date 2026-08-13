@@ -1,13 +1,13 @@
-import {policyTypeSelector} from '@selectors/Policy';
-import {getReportOwnerAccountID} from '@selectors/Report';
-import React, {useCallback, useEffect} from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -17,10 +17,18 @@ import {isGroupPolicyByType} from '@libs/PolicyUtils';
 import {getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditMoneyRequest} from '@libs/ReportUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
 import {clearErrorFields, clearErrors, setErrors} from '@userActions/FormActions';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {policyTypeSelector} from '@selectors/Policy';
+import {getReportOwnerAccountID} from '@selectors/Report';
+import React, {useCallback, useEffect} from 'react';
+
 import HoldReasonFormView from './HoldReasonFormView';
 
 type HoldReasonPageProps =
@@ -30,6 +38,7 @@ type HoldReasonPageProps =
 function HoldReasonPage({route}: HoldReasonPageProps) {
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
 
     const {transactionID, reportID, backTo} = route.params;
 
@@ -43,6 +52,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
         selector: policyTypeSelector,
     });
     const [parentReportOwnerAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {selector: getReportOwnerAccountID});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
     // For personal requests, we need to allow both users to put the request on hold
@@ -65,7 +75,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             return;
         }
 
-        putOnHold(transactionID, values.comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, ancestors);
+        putOnHold(transactionID, values.comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, isTrackIntentUser, delegateAccountID, ancestors);
         Navigation.goBack(backTo);
     };
 

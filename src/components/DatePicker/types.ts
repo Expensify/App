@@ -1,6 +1,8 @@
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
+
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
 type DatePickerBaseProps = ForwardedFSClassProps & {

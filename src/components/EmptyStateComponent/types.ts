@@ -1,8 +1,10 @@
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+
+import type IconAsset from '@src/types/utils/IconAsset';
+
 import type {ImageStyle} from 'expo-image';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import type IconAsset from '@src/types/utils/IconAsset';
 
 type HeaderMedia = IconAsset;
 type EmptyStateButton = {

@@ -1,6 +1,7 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import type {NavigationPartialRoute} from '@libs/Navigation/types';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
 
 /** One partial route per tab, in the same order as `TAB_SCREENS` (TabRouter expects a stable route list). */
 const TAB_NAVIGATOR_ROUTES: NavigationPartialRoute[] = TAB_SCREENS.map((name) => ({name}));

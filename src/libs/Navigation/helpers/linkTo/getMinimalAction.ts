@@ -1,6 +1,8 @@
+import type {State} from '@navigation/types';
+
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
-import type {State} from '@navigation/types';
+
 import type {ActionPayload} from './types';
 
 type MinimalAction = {

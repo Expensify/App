@@ -1,14 +1,20 @@
-import React, {useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Role, Text, View as ViewType} from 'react-native';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+
 import variables from '@styles/variables';
+
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+// eslint-disable-next-line no-restricted-imports
+import type {GestureResponderEvent, Role, Text, View as ViewType} from 'react-native';
+
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import {PressableWithoutFeedback} from './Pressable';
 import Tooltip from './Tooltip';

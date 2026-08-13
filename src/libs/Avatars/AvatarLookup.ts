@@ -1,6 +1,8 @@
 import type {SvgProps} from 'react-native-svg';
-import {AGENT_AVATARS} from './AgentAvatarCatalog';
+
 import type {AvatarCatalog} from './AvatarCatalog';
+
+import {AGENT_AVATARS} from './AgentAvatarCatalog';
 import {USER_AVATARS} from './UserAvatarCatalog';
 
 // Catalogs whose entries are CDN-backed (not letter avatars), in lookup priority order.
