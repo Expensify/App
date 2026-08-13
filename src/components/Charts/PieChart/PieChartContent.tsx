@@ -9,6 +9,8 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import FontUtils from '@styles/utils/FontUtils';
+
 import type {LayoutChangeEvent} from 'react-native';
 
 import React, {useState} from 'react';
@@ -199,7 +201,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                             <Text
                                 numberOfLines={1}
                                 adjustsFontSizeToFit
-                                style={[styles.textHeadlineH1, styles.textAlignCenter]}
+                                style={[styles.textHeadlineH1, styles.textAlignCenter, FontUtils.fontFamily.platform.EXP_NEUE_BOLD]}
                             >
                                 {formatValue(data.reduce((sum, point) => sum + point.total, 0))}
                             </Text>
