@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getBankAccountConnectionStatus, getBankAccountState, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {getBankAccountConnectionStatus, getBankAccountState, canLinkPlaid, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import type {BankAccountConnectionStatus} from '@libs/BankAccountUtils';
 import {
     getAssignedCardSortKey,
@@ -582,7 +582,9 @@ function PaymentMethodList({
             };
             const existingBrickRoadIndicator = (paymentMethod as Partial<PaymentMethodItem>).brickRoadIndicator;
             const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData);
-            const bankConnectionStatus = shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(paymentMethod.accountData) : undefined;
+            const canBankAccountLinkPlaid = 'accountData' in paymentMethod ? canLinkPlaid(paymentMethod as BankAccount, cardOnWaitlistPolicyIDs) : false;
+            const bankConnectionStatus =
+                shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(paymentMethod.accountData, canBankAccountLinkPlaid) : undefined;
             const paymentMethodPress = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                 pressHandler({
                     event: e,
