@@ -378,7 +378,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
             const login = details.login ?? '';
             const memberEmail = formatPhoneNumber(login);
-            const memberName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate}));
+            const memberName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
 
             return {
                 keyForList: login,

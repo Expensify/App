@@ -53,7 +53,7 @@ function DistanceField({
 
     const displayUnit = unit ?? customUnit?.distanceUnit;
     const commuterExclusionData = DistanceRequestUtils.getCommuterExclusionDisplayData(customUnit, displayUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
-    const displayTitle = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, translate, true, isManualDistanceRequest, commuterExclusionData);
+    const displayTitle = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, translate, false, isManualDistanceRequest, commuterExclusionData);
     const {distanceToDisplayDescription, distanceToDisplayHintText} = DistanceRequestUtils.getDistanceDisplayDetailsWithCommuter(commuterExclusionData, displayUnit, translate);
 
     return (

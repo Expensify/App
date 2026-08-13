@@ -25,7 +25,7 @@ type ViolationMessagesProps = {
     canEdit: boolean;
     companyCardPageURL?: string;
     connectionLink?: string;
-    routeDistanceMeters?: number;
+    routeDistanceMeters?: number | null;
     distanceUnit?: Unit;
 };
 
