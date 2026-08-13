@@ -82,13 +82,13 @@ function hasBankAccountAllowDebit(accountData: AccountData | undefined): boolean
     return !!accountData.allowDebit;
 }
 
-function getBankAccountConnectionStatus(accountData: AccountData | undefined): BankAccountConnectionStatus | undefined {
+function getBankAccountConnectionStatus(accountData: AccountData | undefined, canLinkPlaid = false): BankAccountConnectionStatus | undefined {
     if (!accountData) {
         return undefined;
     }
 
     const {state, type, additionalData: {country = CONST.COUNTRY.US} = {}} = accountData;
-    if (country === CONST.COUNTRY.US && state === CONST.BANK_ACCOUNT.STATE.OPEN && type === CONST.BANK_ACCOUNT.TYPE.BUSINESS) {
+    if (canLinkPlaid && country === CONST.COUNTRY.US && state === CONST.BANK_ACCOUNT.STATE.OPEN && type === CONST.BANK_ACCOUNT.TYPE.BUSINESS) {
         if (hasBrokenPlaidConnection(accountData)) {
             return {
                 requiresPlaidHandler: true,
