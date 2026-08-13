@@ -1,3 +1,5 @@
+import {cleanFileName} from '@libs/fileDownload/FileUtils';
+import fileURIToPath from '@libs/fileURIToPath';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
@@ -27,9 +29,14 @@ const moveReceiptToDurableStorage: MoveReceiptToDurableStorage = async (sourceUr
             return sourceUri;
         }
 
-        const sourcePath = sourceUri.replace('file://', '');
-        const dotIndex = fileName.lastIndexOf('.');
-        const uniqueName = dotIndex > 0 ? `${fileName.slice(0, dotIndex)}_${rand64()}${fileName.slice(dotIndex)}` : `${fileName}_${rand64()}`;
+        const sourcePath = fileURIToPath(sourceUri);
+
+        // Sanitize the on-disk name so the returned file:// URI never contains characters (#, %, space)
+        // that make it ambiguous whether the string is percent-encoded. The user-visible filename
+        // travels separately on the file object's name field and is not affected.
+        const safeName = cleanFileName(fileName);
+        const dotIndex = safeName.lastIndexOf('.');
+        const uniqueName = dotIndex > 0 ? `${safeName.slice(0, dotIndex)}_${rand64()}${safeName.slice(dotIndex)}` : `${safeName}_${rand64()}`;
         const destPath = `${uploadFolder}/${uniqueName}`;
 
         await RNFS.moveFile(sourcePath, destPath);

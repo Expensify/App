@@ -1,16 +1,4 @@
-import type {ListItem} from '@components/SelectionList/types';
-
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
-
-type TagListItem = ListItem & {
-    value: string;
-    enabled: boolean;
-    orderWeight?: number;
-    rules?: {
-        parentTagsFilter?: string;
-    };
-    required?: boolean;
-};
 
 type PolicyTag = {
     name: string;
@@ -37,4 +25,4 @@ type PolicyTagList = {
     pendingAction?: PendingAction | null;
 };
 
-export type {TagListItem, PolicyTag, PolicyTagList};
+export type {PolicyTag, PolicyTagList};

@@ -1,4 +1,5 @@
 import Icon from '@components/Icon';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import WidgetContainer from '@components/WidgetContainer';
@@ -51,8 +52,9 @@ function RecentlyAddedSection() {
     // Once the screen blurs (e.g. after opening an expense), we hide the preview instead of leaving it floating over the RHP.
     const isFocused = useIsFocused();
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
-    const {markReportIDAsExpense} = useWideRHPActions();
+    const {markReportRHPWidth} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -69,7 +71,7 @@ function RecentlyAddedSection() {
         // resolving every sibling up front would create a thread for each multi-expense sibling on a single tap.
         // Instead, seed the cheap snapshot-derived descriptors and let the carousel resolve each sibling lazily,
         // one at a time, only when the user actually navigates to it.
-        const resolveContext = {introSelected, betas, currentUserEmail, currentUserAccountID};
+        const resolveContext = {introSelected, betas, currentUserEmail, currentUserAccountID, personalDetails};
         const reportID = getReportIDToOpenForExpense(expense, resolveContext);
 
         const siblingTransactionIDs = transactions.map((sibling) => sibling.transactionID);
@@ -88,7 +90,7 @@ function RecentlyAddedSection() {
         // arrows are available. Marking the report as an expense lets the RHP open wide immediately, before its
         // data loads, instead of flickering from narrow to wide.
         setActiveTransactionIDs(siblingTransactionIDs, siblingDescriptorsByTransactionID).then(() => {
-            markReportIDAsExpense(reportID);
+            markReportRHPWidth(reportID, 'wide');
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: ROUTES.HOME}));
         });
     };

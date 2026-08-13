@@ -6,6 +6,7 @@ import WorkspaceListLayout from '@components/WorkspaceListLayout';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -15,7 +16,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDomainErrors} from '@libs/DomainUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,7 +36,7 @@ function DomainsListPage() {
 
     useDocumentTitle(translate('common.domains'));
 
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const isAppLoadPending = useIsAppLoadPending();
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
 
@@ -49,7 +49,7 @@ function DomainsListPage() {
     };
 
     const domainRows: DomainRowData[] = [];
-    const shouldShowLoadingIndicator = !!isLoadingApp && !isOffline;
+    const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
 
     if (!isEmptyObject(allDomains)) {
         for (const domain of Object.values(allDomains)) {
@@ -75,11 +75,6 @@ function DomainsListPage() {
         }
     }
 
-    const activityIndicatorReasonAttributes = {
-        context: 'DomainsListPage',
-        isOffline,
-    } satisfies SkeletonSpanReasonAttributes;
-
     const headerButton = !!domainRows.length && (
         <Button
             success
@@ -99,10 +94,7 @@ function DomainsListPage() {
             <View style={styles.flex1}>
                 {shouldShowLoadingIndicator && (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={activityIndicatorReasonAttributes}
-                        />
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                     </View>
                 )}
 

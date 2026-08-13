@@ -2,13 +2,13 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 
 import {openApp} from '@libs/actions/App';
 import {isMobileSafari} from '@libs/Browser';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 
@@ -35,13 +35,6 @@ function SignInModal() {
     // More info https://github.com/Expensify/App/pull/62799#issuecomment-2943136220.
     const SignInPageBase = useMemo(() => (isMobileSafari() ? SignInPageWrapped : SignInPage), []);
 
-    // The SignInPage (child component of SignInModal) uses useAndroidBackButtonHandler, which adds a hardwareBackPress listener that remains active in the SignInModal.
-    // Use of useAndroidBackButtonHandler with a returning true callback disables the default SignInModal hardware Android button behaviour, leaving only SignInPage handling (https://github.com/Expensify/App/issues/69391).
-    // The SignInPage Android back button behavior needs to remain because it is a fix for issue (https://github.com/Expensify/App/issues/67883) that occurs in the SignInModal.
-    useAndroidBackButtonHandler(() => {
-        return true;
-    });
-
     useEffect(() => {
         const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
         if (!isAnonymousUser) {
@@ -63,7 +56,11 @@ function SignInModal() {
             return;
         }
 
+        const shouldPreserveRevealedReport = isReportTopmostSplitNavigator();
         Navigation.dismissModal();
+        if (shouldPreserveRevealedReport) {
+            return;
+        }
         Navigation.navigate(ROUTES.HOME);
     }, [isLoadingApp]);
 
@@ -83,7 +80,13 @@ function SignInModal() {
                     signinPageRef.current?.navigateBack();
                 }}
             />
-            <SignInPageBase ref={signinPageRef} />
+            {/* Do not reset the browser tab title here: this modal can open over an anonymous-accessible report,
+                and resetting would wrongly clear that report's tab title. The title reset only applies to the
+                public root sign-in screen. */}
+            <SignInPageBase
+                ref={signinPageRef}
+                shouldResetTabTitle={false}
+            />
         </ScreenWrapper>
     );
 }

@@ -71,6 +71,13 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
             keyForList: CONST.POLICY.ROLE.PEOPLE_ADMIN,
         },
         {
+            value: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.PAYMENTS_ADMIN),
+            alternateText: translate('workspace.common.paymentsAdminAlternateText'),
+            isSelected: role === CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+            keyForList: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+        },
+        {
             value: CONST.POLICY.ROLE.USER,
             text: translate('common.member'),
             alternateText: translate('workspace.common.memberAlternateText'),

@@ -1,6 +1,6 @@
 /*
- * Note: This file is separated from StringUtils because it is imported by a ts-node script.
- *       ts-node scripts can't import react-native (because it is written in flow),
+ * Note: This file is separated from StringUtils because it is imported by a Bun script.
+ *       Bun scripts can't import react-native (because it is written in flow),
  *       and StringUtils indirectly imports react-native.
  */
 

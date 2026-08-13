@@ -73,8 +73,8 @@ function FloatingActionButtonAndPopover() {
                 animationOutTiming={CONST.MODAL.ANIMATION_TIMING.FAB_OUT}
             >
                 <ExpenseMenuItem reportID={reportID} />
-                <TrackDistanceMenuItem reportID={reportID} />
                 <CreateReportMenuItem />
+                <TrackDistanceMenuItem reportID={reportID} />
                 <NewChatMenuItem />
                 <InvoiceMenuItem reportID={reportID} />
                 <TravelMenuItem />

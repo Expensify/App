@@ -97,7 +97,7 @@ function MentionSuggestions({
                         <View style={styles.mentionSuggestionsAvatarContainer}>
                             <Avatar
                                 source={item.icons.at(0)?.source}
-                                size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
+                                size={isIcon ? CONST.AVATAR_SIZE.XXX_SMALL : CONST.AVATAR_SIZE.X_SMALL}
                                 name={item.icons.at(0)?.name}
                                 avatarID={item.icons.at(0)?.id}
                                 type={item.icons.at(0)?.type ?? CONST.ICON_TYPE_AVATAR}

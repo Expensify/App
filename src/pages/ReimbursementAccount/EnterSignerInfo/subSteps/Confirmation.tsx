@@ -2,7 +2,7 @@ import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 
 import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 
@@ -13,7 +13,7 @@ import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 
 import React from 'react';
 
-type ConfirmationProps = SubStepProps & {policyID: string};
+type ConfirmationProps = SubPageProps & {policyID: string};
 
 function Confirmation({onNext, onMove, isEditing, policyID}: ConfirmationProps) {
     const {translate} = useLocalize();
@@ -33,6 +33,7 @@ function Confirmation({onNext, onMove, isEditing, policyID}: ConfirmationProps) 
 
     const summaryItems = [
         {
+            id: 'legal-name',
             title: enterSignerInfoFormDraft?.[INPUT_IDS.SIGNER_FULL_NAME] ?? '',
             description: translate('signerInfoStep.legalName'),
             shouldShowRightIcon: true,
@@ -41,6 +42,7 @@ function Confirmation({onNext, onMove, isEditing, policyID}: ConfirmationProps) 
             },
         },
         {
+            id: 'job-title',
             title: enterSignerInfoFormDraft?.[INPUT_IDS.SIGNER_JOB_TITLE] ?? '',
             description: translate('signerInfoStep.jobTitle'),
             shouldShowRightIcon: true,
@@ -49,6 +51,7 @@ function Confirmation({onNext, onMove, isEditing, policyID}: ConfirmationProps) 
             },
         },
         {
+            id: 'date-of-birth',
             title: enterSignerInfoFormDraft?.[INPUT_IDS.SIGNER_DATE_OF_BIRTH] ?? '',
             description: translate('common.dob'),
             shouldShowRightIcon: true,
@@ -57,6 +60,7 @@ function Confirmation({onNext, onMove, isEditing, policyID}: ConfirmationProps) 
             },
         },
         {
+            id: 'address',
             title: `${enterSignerInfoFormDraft?.[INPUT_IDS.SIGNER_STREET]}, ${enterSignerInfoFormDraft?.[INPUT_IDS.SIGNER_CITY]}, ${enterSignerInfoFormDraft?.[INPUT_IDS.SIGNER_STATE]}, ${enterSignerInfoFormDraft?.[INPUT_IDS.SIGNER_ZIP_CODE]}`,
             description: translate('ownershipInfoStep.address'),
             shouldShowRightIcon: true,
@@ -68,6 +72,7 @@ function Confirmation({onNext, onMove, isEditing, policyID}: ConfirmationProps) 
 
     if (isDocumentNeededStatus.isCopyOfIDNeeded && copyOfID.length > 0) {
         summaryItems.push({
+            id: 'copy-of-id',
             title: copyOfID.map((id) => id.name).join(', '),
             description: translate('signerInfoStep.id'),
             shouldShowRightIcon: true,
@@ -79,6 +84,7 @@ function Confirmation({onNext, onMove, isEditing, policyID}: ConfirmationProps) 
 
     if (isDocumentNeededStatus.isAddressProofNeeded && addressProof.length > 0) {
         summaryItems.push({
+            id: 'address-proof',
             title: addressProof.map((proof) => proof.name).join(', '),
             description: translate('signerInfoStep.proofOf'),
             shouldShowRightIcon: true,
@@ -90,6 +96,7 @@ function Confirmation({onNext, onMove, isEditing, policyID}: ConfirmationProps) 
 
     if (isDocumentNeededStatus.isProofOfDirectorsNeeded && proofOfDirectors.length > 0) {
         summaryItems.push({
+            id: 'proof-of-directors',
             title: proofOfDirectors.map((proof) => proof.name).join(', '),
             description: translate('signerInfoStep.proofOfDirectors'),
             shouldShowRightIcon: true,
@@ -101,6 +108,7 @@ function Confirmation({onNext, onMove, isEditing, policyID}: ConfirmationProps) 
 
     if (isDocumentNeededStatus.isCodiceFiscaleNeeded && codiceFiscale.length > 0) {
         summaryItems.push({
+            id: 'codice-fiscale',
             title: codiceFiscale.map((fiscale) => fiscale.name).join(', '),
             description: translate('signerInfoStep.codiceFiscale'),
             shouldShowRightIcon: true,

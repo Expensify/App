@@ -1,16 +1,14 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
 import EmployeesSeeTagsAsText from '@components/EmployeesSeeTagsAsText';
-import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import type {WorkspaceTagTableRowData} from '@components/Tables/WorkspaceTagsTable';
 import WorkspaceTagsTable from '@components/Tables/WorkspaceTagsTable';
 import Text from '@components/Text';
@@ -18,7 +16,6 @@ import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
-import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -45,7 +42,6 @@ import {
     setWorkspaceTagEnabled,
     setWorkspaceTagRequired,
 } from '@libs/actions/Policy/Tag';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -57,7 +53,6 @@ import {
     getCleanedTagName,
     getConnectedIntegration,
     getCountOfEnabledTagsOfList,
-    getCurrentConnectionName,
     getTagApproverRule,
     getTagLists,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
@@ -67,9 +62,9 @@ import {
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 
 import {close} from '@userActions/Modal';
 
@@ -94,7 +89,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const {backTo, policyID} = route.params;
@@ -110,9 +105,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
     const connectedIntegration = getConnectedIntegration(policy) ?? syncingAccountingIntegration;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
-    const currentConnectionName = getCurrentConnectionName(policy);
+    const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Plus', 'Trashcan', 'Close', 'Trashcan', 'Checkmark']);
-    const genericIllustration = useGenericEmptyStateIllustration();
 
     const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
         () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
@@ -319,7 +313,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         (tagValue: string, orderWeight?: number) => {
             if (orderWeight !== undefined) {
                 Navigation.navigate(
-                    isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.getRoute(orderWeight)) : ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, orderWeight),
+                    createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.getRoute(orderWeight) : DYNAMIC_ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(orderWeight)),
                 );
             } else {
                 Navigation.navigate(
@@ -329,7 +323,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 );
             }
         },
-        [isQuickSettingsFlow, policyID],
+        [isQuickSettingsFlow],
     );
 
     useEffect(() => {
@@ -436,6 +430,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         policyTags,
         shouldShowApproverColumn,
         tagApproverEmails,
+        formatPhoneNumber,
     ]);
 
     const tagRowsKeyedByName = useMemo(
@@ -448,8 +443,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     );
 
     const navigateToTagsSettings = useCallback(() => {
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(policyID, backTo) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAGS_SETTINGS.path));
-    }, [isQuickSettingsFlow, policyID, backTo]);
+        Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAGS_SETTINGS.path : DYNAMIC_ROUTES.WORKSPACE_TAGS_SETTINGS.path));
+    }, [isQuickSettingsFlow]);
 
     const navigateToCreateTagPage = () => {
         Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_CREATE.path));
@@ -465,7 +460,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const isLoading = !isOffline && policyTags === undefined;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceTagsPage', isOffline, isPolicyTagsUndefined: policyTags === undefined};
     const hasVisibleTags = tagRows.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const navigateToImportSpreadsheet = useCallback(() => {
@@ -580,17 +574,17 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
                     {hasPrimaryActions && (
                         <Button
-                            success
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={navigateToCreateTagPage}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.ADD_BUTTON}
-                            icon={expensifyIcons.Plus}
-                            text={translate('workspace.tags.addTag')}
                             style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                        />
+                        >
+                            <Button.Icon src={expensifyIcons.Plus} />
+                            <Button.Text>{translate('workspace.tags.addTag')}</Button.Text>
+                        </Button>
                     )}
                     {secondaryActions.length > 0 && (
                         <ButtonWithDropdownMenu
-                            success={false}
                             onPress={() => {}}
                             shouldAlwaysShowDropdownMenu
                             customText={translate('common.more')}
@@ -742,10 +736,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         return (
             <ButtonWithDropdownMenu
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => null}
                 shouldAlwaysShowDropdownMenu
                 isSplitButton={false}
-                buttonSize={CONST.BUTTON_SIZE.MEDIUM}
+                size={CONST.BUTTON_SIZE.MEDIUM}
                 customText={translate('workspace.common.selected', {count: selectedTagKeys.length})}
                 options={options}
                 style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
@@ -808,33 +803,27 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         );
     }, [hasAccountingConnections, translate, environmentURL, policyID, canWriteTags, styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]);
 
-    const emptyStateContent = (
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-            <GenericEmptyStateComponent
-                {...genericIllustration}
-                title={translate('workspace.tags.emptyTags.title')}
-                subtitleText={subtitleText}
-                headerStyles={styles.emptyStateCardIllustrationContainer}
-                buttons={
-                    canWriteTags && !hasAccountingConnections
-                        ? [
-                              {
-                                  icon: expensifyIcons.Table,
-                                  buttonText: translate('common.import'),
-                                  buttonAction: navigateToImportSpreadsheet,
-                              },
-                              {
-                                  success: true,
-                                  buttonAction: navigateToCreateTagPage,
-                                  icon: expensifyIcons.Plus,
-                                  buttonText: translate('workspace.tags.addTag'),
-                              },
-                          ]
-                        : undefined
-                }
-            />
-        </ScrollView>
-    );
+    const tagsTableEmptyState = {
+        title: translate('workspace.tags.emptyTags.title'),
+        subtitleText,
+        headerStyles: styles.emptyStateCardIllustrationContainer,
+        buttons:
+            canWriteTags && !hasAccountingConnections
+                ? [
+                      {
+                          icon: expensifyIcons.Table,
+                          buttonText: translate('common.import'),
+                          buttonAction: navigateToImportSpreadsheet,
+                      },
+                      {
+                          success: true,
+                          buttonAction: navigateToCreateTagPage,
+                          icon: expensifyIcons.Plus,
+                          buttonText: translate('workspace.tags.addTag'),
+                      },
+                  ]
+                : undefined,
+    };
 
     return (
         <>
@@ -881,7 +870,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.flex1]}
-                            reasonAttributes={reasonAttributes}
                         />
                     )}
                     {!isLoading && (
@@ -894,10 +882,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 selectedKeys={selectedTagKeys}
                                 isMultiLevelTags={isMultiLevelTags}
                                 hasDependentTags={hasDependentTags}
-                                shouldShowGLCodeColumn={shouldShowGLCodeColumn}
                                 shouldShowApproverColumn={shouldShowApproverColumn}
+                                shouldShowGLCodeColumn={shouldShowGLCodeColumn}
+                                emptyState={tagsTableEmptyState}
                                 onRowSelectionChange={setSelectedTagKeys}
-                                EmptyStateComponent={emptyStateContent}
                             />
                         </>
                     )}

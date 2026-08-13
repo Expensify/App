@@ -6,26 +6,27 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getBillableExpensesPendingAction, toggleBillableExpenses} from '@libs/actions/Policy/Policy';
-import {clearPolicyTagListErrors, setPolicyRequiresTag} from '@libs/actions/Policy/Tag';
+import {clearPolicyErrorField, getBillableExpensesPendingAction, toggleBillableExpenses} from '@libs/actions/Policy/Policy';
+import {clearPolicyTagListErrors, setPolicyRequiresTag, setPolicyShowTagGLCodes} from '@libs/actions/Policy/Tag';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasEnabledOptions as hasEnabledOptionsUtil} from '@libs/OptionsListUtils';
-import {getTagLists as getTagListsUtil, isMultiLevelTags as isMultiLevelTagsUtil} from '@libs/PolicyUtils';
+import {getTagLists as getTagListsUtil, hasDependentTags as hasDependentTagsUtil, isMultiLevelTags as isMultiLevelTagsUtil} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
@@ -36,11 +37,10 @@ import {View} from 'react-native';
 
 type WorkspaceTagsSettingsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS>
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS>;
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_SETTINGS>;
 
 function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     const policyID = route.params.policyID;
-    const backTo = 'backTo' in route.params ? route.params.backTo : undefined;
     const styles = useThemeStyles();
     const policyData = usePolicyData(policyID);
     const {tags: policyTags} = policyData;
@@ -57,38 +57,94 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
         },
         [policyData],
     );
-    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS;
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_SETTINGS;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAGS_SETTINGS.path);
     const shouldBlockEmptySettings = isRulesRevampEnabled && isMultiLevelTags && !isLoading;
 
-    const getTagsSettings = (policy: OnyxEntry<Policy>) => (
-        <View style={styles.flexGrow1}>
-            {!isMultiLevelTags && (
-                <OfflineWithFeedback
-                    errors={policyTags?.[policyTagLists.at(0)?.name ?? '']?.errors}
-                    onClose={() => clearPolicyTagListErrors({policyID, tagListIndex: policyTagLists.at(0)?.orderWeight ?? 0, policyTags})}
-                    pendingAction={policyTags?.[policyTagLists.at(0)?.name ?? '']?.pendingAction}
-                    errorRowStyles={styles.mh5}
-                >
-                    <MenuItemWithTopDescription
-                        title={policyTagLists.at(0)?.name ?? ''}
-                        description={translate(`workspace.tags.customTagName`)}
-                        onPress={() => {
-                            Navigation.navigate(
-                                isQuickSettingsFlow
-                                    ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.getRoute(policyTagLists.at(0)?.orderWeight ?? 0))
-                                    : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyTagLists.at(0)?.orderWeight ?? 0)),
-                            );
-                        }}
-                        shouldShowRightIcon
-                    />
-                </OfflineWithFeedback>
-            )}
-            {!isRulesRevampEnabled && (
-                <>
+    const getTagsSettings = (policy: OnyxEntry<Policy>) => {
+        const updateShowTagGLCodes = (value: boolean) => {
+            setPolicyShowTagGLCodes(policyID, value, policy?.showTagGLCodes);
+        };
+        const hasDependentTags = hasDependentTagsUtil(policy, policyTags);
+        return (
+            <View style={styles.flexGrow1}>
+                {!isMultiLevelTags && (
                     <OfflineWithFeedback
-                        errors={policy?.errorFields?.requiresTag}
-                        pendingAction={policy?.pendingFields?.requiresTag}
+                        errors={policyTags?.[policyTagLists.at(0)?.name ?? '']?.errors}
+                        onClose={() =>
+                            clearPolicyTagListErrors({
+                                policyID,
+                                tagListIndex: policyTagLists.at(0)?.orderWeight ?? 0,
+                                policyTags,
+                            })
+                        }
+                        pendingAction={policyTags?.[policyTagLists.at(0)?.name ?? '']?.pendingAction}
                         errorRowStyles={styles.mh5}
+                    >
+                        <MenuItemWithTopDescription
+                            title={policyTagLists.at(0)?.name ?? ''}
+                            description={translate(`workspace.tags.customTagName`)}
+                            onPress={() => {
+                                Navigation.navigate(
+                                    isQuickSettingsFlow
+                                        ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.getRoute(policyTagLists.at(0)?.orderWeight ?? 0))
+                                        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EDIT_TAGS.getRoute(policyTagLists.at(0)?.orderWeight ?? 0)),
+                                );
+                            }}
+                            shouldShowRightIcon
+                        />
+                    </OfflineWithFeedback>
+                )}
+                {!isRulesRevampEnabled && (
+                    <>
+                        {(!isMultiLevelTags || hasDependentTags) && (
+                            <OfflineWithFeedback
+                                errors={policy?.errorFields?.requiresTag}
+                                pendingAction={policy?.pendingFields?.requiresTag}
+                                errorRowStyles={styles.mh5}
+                            >
+                                <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                    <Text
+                                        style={[styles.textNormal, styles.flex1, styles.mr2]}
+                                        accessible={false}
+                                        aria-hidden
+                                    >
+                                        {translate('workspace.tags.requiresTag')}
+                                    </Text>
+                                    <Switch
+                                        isOn={policy?.requiresTag ?? false}
+                                        accessibilityLabel={translate('workspace.tags.requiresTag')}
+                                        onToggle={updateWorkspaceRequiresTag}
+                                        disabled={!policy?.areTagsEnabled || !hasEnabledOptions}
+                                    />
+                                </View>
+                            </OfflineWithFeedback>
+                        )}
+                        <OfflineWithFeedback pendingAction={getBillableExpensesPendingAction(policy)}>
+                            <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                <Text
+                                    style={[styles.textNormal, styles.flex1, styles.mr2]}
+                                    accessible={false}
+                                    aria-hidden
+                                >
+                                    {translate('workspace.tags.trackBillable')}
+                                </Text>
+                                <Switch
+                                    isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
+                                    accessibilityLabel={translate('workspace.tags.trackBillable')}
+                                    onToggle={() => toggleBillableExpenses(policy)}
+                                    disabled={!policy?.areTagsEnabled}
+                                />
+                            </View>
+                        </OfflineWithFeedback>
+                    </>
+                )}
+                {!!policy?.glCodes && (
+                    <OfflineWithFeedback
+                        errors={policy?.errorFields?.showTagGLCodes}
+                        pendingAction={policy?.pendingFields?.showTagGLCodes}
+                        errorRowStyles={styles.mh5}
+                        onClose={() => clearPolicyErrorField(policyID, 'showTagGLCodes')}
                     >
                         <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             <Text
@@ -96,37 +152,20 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                                 accessible={false}
                                 aria-hidden
                             >
-                                {translate('workspace.tags.requiresTag')}
+                                {translate('workspace.tags.showTagGLCodes')}
                             </Text>
                             <Switch
-                                isOn={policy?.requiresTag ?? false}
-                                accessibilityLabel={translate('workspace.tags.requiresTag')}
-                                onToggle={updateWorkspaceRequiresTag}
-                                disabled={!policy?.areTagsEnabled || !hasEnabledOptions}
-                            />
-                        </View>
-                    </OfflineWithFeedback>
-                    <OfflineWithFeedback pendingAction={getBillableExpensesPendingAction(policy)}>
-                        <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            <Text
-                                style={[styles.textNormal, styles.flex1, styles.mr2]}
-                                accessible={false}
-                                aria-hidden
-                            >
-                                {translate('workspace.tags.trackBillable')}
-                            </Text>
-                            <Switch
-                                isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
-                                accessibilityLabel={translate('workspace.tags.trackBillable')}
-                                onToggle={() => toggleBillableExpenses(policy)}
+                                isOn={policy?.showTagGLCodes ?? false}
+                                accessibilityLabel={translate('workspace.tags.showTagGLCodes')}
+                                onToggle={updateShowTagGLCodes}
                                 disabled={!policy?.areTagsEnabled}
                             />
                         </View>
                     </OfflineWithFeedback>
-                </>
-            )}
-        </View>
-    );
+                )}
+            </View>
+        );
+    };
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -142,7 +181,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                 >
                     <HeaderWithBackButton
                         title={translate('common.settings')}
-                        onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined)}
+                        onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? backPath : undefined)}
                     />
                     {isOffline && isLoading ? <FullPageOfflineBlockingView addBottomSafeAreaPadding>{getTagsSettings(policy)}</FullPageOfflineBlockingView> : getTagsSettings(policy)}
                 </ScreenWrapper>

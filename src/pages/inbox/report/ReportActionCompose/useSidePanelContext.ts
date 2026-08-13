@@ -53,6 +53,15 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
             return undefined;
         }
 
+        // On Spend > Expenses (EXPENSE search) the selected transactions can span multiple reports,
+        // so contextReportID doesn't correspond to them. Send selectedReportIDs (+ selectedTransactionIDs)
+        // instead of an invalid reportID. We only do this while no report is open in the RHP: once the user
+        // opens a report from the list (currentRHPReportID is set) contextReportID is a valid, meaningful
+        // report, so we fall through to the default return and keep sending reportID.
+        if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !currentRHPReportID && selectedReportIDsForContext) {
+            return {selectedTransactionIDs: selectedTransactionIDsForContext, selectedReportIDs: selectedReportIDsForContext};
+        }
+
         return {reportID: contextReportID, selectedTransactionIDs: selectedTransactionIDsForContext, selectedReportIDs: selectedReportIDsForContext};
     }, [conciergeReportID, reportID, isInSidePanel, currentSearchQueryJSON?.type, currentRHPReportID, currentReportID, selectedTransactionIDs, selectedTransactions, selectedReports]);
 }

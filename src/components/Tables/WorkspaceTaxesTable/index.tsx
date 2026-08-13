@@ -11,6 +11,8 @@ import variables from '@styles/variables';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
+import React from 'react';
+
 import type {WorkspaceTaxTableRowData} from './WorkspaceTaxesTableRow';
 
 import WorkspaceTaxesTableRow from './WorkspaceTaxesTableRow';
@@ -94,6 +96,7 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             onRowSelectionChange={onRowSelectionChange}
         >
             <Table.FilterBar label={translate('workspace.taxes.findTaxRate')} />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>

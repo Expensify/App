@@ -92,6 +92,20 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/abc/overview/address')).toBe('/workspaces/abc/overview/workspace-address');
     });
 
+    it('redirects legacy policy-specific downgrade paths (with and without trailing slash) to the dynamic downgrade route', () => {
+        expect(getMatchingNewRoute('/workspaces/abc/downgrade/')).toBe('/workspaces/abc/overview/plan/downgrade?policyID=abc');
+        expect(getMatchingNewRoute('/workspaces/abc/downgrade')).toBe('/workspaces/abc/overview/plan/downgrade?policyID=abc');
+    });
+
+    it('redirects legacy policy-less downgrade path to the Subscription dynamic downgrade route', () => {
+        expect(getMatchingNewRoute('/workspaces/downgrade')).toBe('/settings/subscription/downgrade');
+    });
+
+    it('does not redirect the already-migrated dynamic downgrade route', () => {
+        expect(getMatchingNewRoute('/workspaces/abc/overview/plan/downgrade')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/subscription/downgrade')).toBe(undefined);
+    });
+
     it('redirects old card reconciliation account path with two wildcards', () => {
         expect(getMatchingNewRoute('/workspaces/abc/accounting/xero/card-reconciliation/account')).toBe(
             '/workspaces/abc/accounting/xero/card-reconciliation/account-reconciliation-settings',
@@ -145,7 +159,8 @@ describe('getBestMatchingPath', () => {
 
     it('redirects old settings tag routes to the new dynamic suffix shape', () => {
         expect(getMatchingNewRoute('/settings/p123/tags/10/edit')).toBe('/settings/p123/tags/settings-tags-edit/10');
-        expect(getMatchingNewRoute('/settings/p123/tags/settings/edit/10')).toBe('/settings/p123/tags/settings/settings-tags-edit/10');
+        expect(getMatchingNewRoute('/settings/p123/tags/settings')).toBe('/settings/p123/tags/settings-tags-settings');
+        expect(getMatchingNewRoute('/settings/p123/tags/settings/edit/10')).toBe('/settings/p123/tags/settings-tags-settings/settings-tags-edit/10');
         expect(getMatchingNewRoute('/settings/p123/tags/tag-list/0/edit/0')).toBe('/settings/p123/tags/tag-list/0/settings-tags-edit/0');
         expect(getMatchingNewRoute('/settings/p123/tags/new')).toBe('/settings/p123/tags/tag-new');
         expect(getMatchingNewRoute('/settings/p123/tag/10/Meals')).toBe('/settings/p123/tags/tag-settings/10/Meals');
@@ -155,12 +170,16 @@ describe('getBestMatchingPath', () => {
 
     it('preserves query params when redirecting old settings tag routes', () => {
         expect(getMatchingNewRoute('/settings/p123/tags/10/edit?backTo=/home')).toBe('/settings/p123/tags/settings-tags-edit/10?backTo=/home');
+        expect(getMatchingNewRoute('/settings/p123/tags/settings?backTo=/home')).toBe('/settings/p123/tags/settings-tags-settings?backTo=/home');
         expect(getMatchingNewRoute('/settings/p123/tag/10/Meals?parentTagsFilter=Food')).toBe('/settings/p123/tags/tag-settings/10/Meals?parentTagsFilter=Food');
     });
 
     it('redirects old workspace tag routes to the new dynamic suffix shape', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/settings')).toBe('/workspaces/p123/tags/tags-settings');
         expect(getMatchingNewRoute('/workspaces/p123/tags/new')).toBe('/workspaces/p123/tags/tag-create');
+        expect(getMatchingNewRoute('/workspaces/p123/tag-list/0')).toBe('/workspaces/p123/tags/workspace-tag-list/0');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/import')).toBe('/workspaces/p123/tags/workspace-tags-import');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/imported')).toBe('/workspaces/p123/tags/workspace-tags-imported');
         expect(getMatchingNewRoute('/workspaces/p123/tags/10/edit')).toBe('/workspaces/p123/tags/tags-settings/workspace-edit-tags/10');
         expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals')).toBe('/workspaces/p123/tags/workspace-tag-settings/10/Meals');
         expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/edit')).toBe('/workspaces/p123/tags/workspace-tag-settings/10/Meals/workspace-tag-edit');
@@ -171,6 +190,9 @@ describe('getBestMatchingPath', () => {
     it('preserves query params when redirecting old workspace tag routes', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/settings?backTo=/home')).toBe('/workspaces/p123/tags/tags-settings?backTo=/home');
         expect(getMatchingNewRoute('/workspaces/p123/tags/new?backTo=/home')).toBe('/workspaces/p123/tags/tag-create?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/p123/tag-list/0?backTo=/home')).toBe('/workspaces/p123/tags/workspace-tag-list/0?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/import?backTo=/home')).toBe('/workspaces/p123/tags/workspace-tags-import?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/imported?backTo=/home')).toBe('/workspaces/p123/tags/workspace-tags-imported?backTo=/home');
         expect(getMatchingNewRoute('/workspaces/p123/tags/10/edit?backTo=/home')).toBe('/workspaces/p123/tags/tags-settings/workspace-edit-tags/10?backTo=/home');
         expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals?parentTagsFilter=Food')).toBe('/workspaces/p123/tags/workspace-tag-settings/10/Meals?parentTagsFilter=Food');
     });
@@ -178,12 +200,16 @@ describe('getBestMatchingPath', () => {
     it('does not redirect the new workspace tag dynamic routes', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/tags-settings')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/p123/tags/tag-create')).toBe(undefined);
+        expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tag-list/0')).toBe(undefined);
+        expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tags-import')).toBe(undefined);
+        expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tags-imported')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/p123/tags/tags-settings/workspace-edit-tags/10')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/p123/tags/workspace-tag-settings/10/Meals')).toBe(undefined);
     });
 
     it('does not redirect the new settings tag dynamic routes', () => {
         expect(getMatchingNewRoute('/settings/p123/tags/settings-tags-edit/10')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/p123/tags/settings-tags-settings')).toBe(undefined);
         expect(getMatchingNewRoute('/settings/p123/tags/tag-list/0/settings-tags-edit/0')).toBe(undefined);
     });
 
@@ -196,6 +222,42 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/e/123/details/shareCode')).toBe('/e/123/share-code');
     });
 
+    it('redirects old standalone merge-transaction routes to the dynamic route with a search base', () => {
+        expect(getMatchingNewRoute('/merge/123')).toBe('/search/merge/123');
+        expect(getMatchingNewRoute('/merge/123/receipt')).toBe('/search/merge/123/receipt');
+        expect(getMatchingNewRoute('/merge/123/details')).toBe('/search/merge/123/details');
+        expect(getMatchingNewRoute('/merge/123/confirmation')).toBe('/search/merge/123/confirmation');
+    });
+
+    it('preserves query params when redirecting old standalone merge-transaction routes', () => {
+        expect(getMatchingNewRoute('/merge/123?backTo=/home')).toBe('/search/merge/123?backTo=/home');
+        expect(getMatchingNewRoute('/merge/123/receipt?isOnSearch=true')).toBe('/search/merge/123/receipt?isOnSearch=true');
+    });
+
+    it('redirects old transaction-duplicate-review routes to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/r/123/duplicates/review')).toBe('/r/123/duplicates/review/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/merchant')).toBe('/r/123/merchant/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/category')).toBe('/r/123/transaction-duplicate-category/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/tag')).toBe('/r/123/transaction-duplicate-tag/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/tax-code')).toBe('/r/123/tax-code/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/description')).toBe('/r/123/transaction-duplicate-description/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/reimbursable')).toBe('/r/123/reimbursable/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/billable')).toBe('/r/123/billable/123');
+        expect(getMatchingNewRoute('/r/123/duplicates/confirm')).toBe('/r/123/confirm/123');
+    });
+
+    it('preserves query params when redirecting old transaction-duplicate-review routes', () => {
+        expect(getMatchingNewRoute('/r/123/duplicates/review?backTo=/home')).toBe('/r/123/duplicates/review/123?backTo=/home');
+        expect(getMatchingNewRoute('/r/123/duplicates/review/merchant?backTo=/home')).toBe('/r/123/merchant/123?backTo=/home');
+        expect(getMatchingNewRoute('/r/123/duplicates/confirm?backTo=/home')).toBe('/r/123/confirm/123?backTo=/home');
+    });
+
+    it('does not redirect the already-migrated transaction-duplicate-review dynamic routes', () => {
+        expect(getMatchingNewRoute('/r/123/duplicates/review/123')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/123/merchant/123')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/123/confirm/123')).toBe(undefined);
+    });
+
     it('redirects legacy standalone referral routes to a dynamic route with a home base', () => {
         expect(getMatchingNewRoute('/referral/shareCode')).toBe('/home/referral/shareCode');
     });
@@ -203,6 +265,37 @@ describe('getBestMatchingPath', () => {
     it('redirects old travel upgrade path to dynamic route', () => {
         expect(getMatchingNewRoute('/travel/upgrade')).toBe('/travel/travel-upgrade');
         expect(getMatchingNewRoute('/travel/upgrade?backTo=/home')).toBe('/travel/travel-upgrade?backTo=/home');
+    });
+
+    it('redirects legacy new task flat routes to the new nested dynamic routes', () => {
+        expect(getMatchingNewRoute('/new/task/details')).toBe('/task-details');
+        expect(getMatchingNewRoute('/new/task')).toBe('/task-details/task-confirm');
+        expect(getMatchingNewRoute('/new/task/title')).toBe('/task-details/task-confirm/task-title');
+        expect(getMatchingNewRoute('/new/task/description')).toBe('/task-details/task-confirm/task-description');
+        expect(getMatchingNewRoute('/new/task/assignee')).toBe('/task-details/task-confirm/task-assignee');
+    });
+
+    it('preserves query params when redirecting legacy new task routes', () => {
+        expect(getMatchingNewRoute('/new/task?backTo=/home')).toBe('/task-details/task-confirm?backTo=/home');
+        expect(getMatchingNewRoute('/new/task/title?backTo=/home')).toBe('/task-details/task-confirm/task-title?backTo=/home');
+    });
+
+    it('redirects legacy new task share destination route to the new nested dynamic route', () => {
+        expect(getMatchingNewRoute('/new/task/share-destination')).toBe('/task-details/task-confirm/task-share-destination');
+    });
+
+    it('redirects legacy invoice send-from substep to the new dynamic route including the suffix', () => {
+        expect(getMatchingNewRoute('/create/invoice/from/123/456')).toBe('/create/invoice/confirmation/123/456/send-from');
+    });
+
+    it('redirects legacy invoice company-info substep to the new dynamic route including the suffix', () => {
+        expect(getMatchingNewRoute('/create/invoice/company-info/123/456')).toBe('/create/invoice/confirmation/123/456/company-info');
+    });
+
+    it('does not redirect the already-migrated money request part 1 dynamic routes', () => {
+        expect(getMatchingNewRoute('/task-details/task-confirm/task-share-destination')).toBe(undefined);
+        expect(getMatchingNewRoute('/create/invoice/confirmation/123/456/send-from')).toBe(undefined);
+        expect(getMatchingNewRoute('/create/invoice/confirmation/123/456/company-info')).toBe(undefined);
     });
 
     it('redirects legacy profile avatar path to new avatar route', () => {
@@ -257,6 +350,18 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/settings/wallet/enable-payments/fees-and-terms')).toBe(undefined);
         expect(getMatchingNewRoute('/settings/wallet/enable-payments/fees-and-terms/fees')).toBe(undefined);
         expect(getMatchingNewRoute('/settings/wallet/enable-payments/fees-and-terms/terms')).toBe(undefined);
+    });
+
+    it('redirects old workspace workflows approvals expenses-from path to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/workflows/approvals/expenses-from')).toBe('/workspaces/p123/workflows/approvals/new/expenses-from');
+    });
+
+    it('preserves query params when redirecting old workspace workflows approvals expenses-from path', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/workflows/approvals/expenses-from?backTo=/home')).toBe('/workspaces/p123/workflows/approvals/new/expenses-from?backTo=/home');
+    });
+
+    it('does not redirect the new workspace workflows approvals expenses-from dynamic route', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/workflows/approvals/new/expenses-from')).toBe(undefined);
     });
 
     it('redirects legacy QuickBooks Online connections autosync paths to dynamic routes', () => {
@@ -327,5 +432,97 @@ describe('getBestMatchingPath', () => {
         expect(
             getMatchingNewRoute('/workspaces/D56D50B841F69B0E/company-cards/company-card-details/assign-card/oauth.mockbank.com%2322298108/Mock%20Credit%20Card%20-%201234/assignee'),
         ).toBe('/workspaces/D56D50B841F69B0E/company-cards/assign-card/oauth.mockbank.com%2322298108/Mock%20Credit%20Card%20-%201234/assignee');
+    });
+
+    it('redirects legacy Expensify Card details paths to the new card-details dynamic route', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/456')).toBe('/workspaces/p123/expensify-card/card-details/456');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/456?backTo=/home')).toBe('/workspaces/p123/expensify-card/card-details/456?backTo=/home');
+    });
+
+    it('redirects legacy Expensify Card details nested edit paths to the new card-details dynamic route', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/456/edit/limit-type')).toBe('/workspaces/p123/expensify-card/card-details/456/edit/limit-type');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/456/edit/limit')).toBe('/workspaces/p123/expensify-card/card-details/456/edit/limit');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/456/edit/name')).toBe('/workspaces/p123/expensify-card/card-details/456/edit/name');
+    });
+
+    it('does not rewrite Expensify Card keyword sibling routes that share the single-segment shape', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/settings')).toBe('/workspaces/p123/expensify-card/settings');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/choose-bank-account')).toBe('/workspaces/p123/expensify-card/choose-bank-account');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/select-feed')).toBe('/workspaces/p123/expensify-card/select-feed');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/issue-new')).toBe('/workspaces/p123/expensify-card/issue-new');
+    });
+
+    it('does not rewrite Expensify Card sibling subtrees', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/settings/frequency')).toBe('/workspaces/p123/expensify-card/settings/frequency');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/settings/account')).toBe('/workspaces/p123/expensify-card/settings/account');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/issue-new/rules/max-amount')).toBe('/workspaces/p123/expensify-card/issue-new/rules/max-amount');
+    });
+
+    it('does not rewrite Expensify Card numeric fundID work-email paths', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/789/work-email')).toBe('/workspaces/p123/expensify-card/789/work-email');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/789/verify-work-email')).toBe('/workspaces/p123/expensify-card/789/verify-work-email');
+    });
+
+    it('does not rewrite the already-migrated Expensify Card details paths', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/card-details/456')).toBe('/workspaces/p123/expensify-card/card-details/456');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/card-details/456/edit/limit')).toBe('/workspaces/p123/expensify-card/card-details/456/edit/limit');
+    });
+
+    it('redirects legacy per diem destination step to the new start-based dynamic route (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/destination/123/456')).toBe('/create/submit/start/123/456/per-diem-destination');
+    });
+
+    it('redirects legacy per diem destination edit step to the new confirmation-based dynamic route (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/destination/123/456/edit')).toBe('/create/submit/confirmation/123/456/per-diem-destination-edit');
+    });
+
+    it('does not redirect the already-migrated per diem destination dynamic routes (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/start/123/456/per-diem-destination')).toBe(undefined);
+        expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-destination-edit')).toBe(undefined);
+    });
+
+    it('redirects legacy money request category path to the category dynamic route', () => {
+        expect(getMatchingNewRoute('/create/expense/category/123/456')).toBe('/r/456/category?action=create&iouType=expense&transactionID=123&reportID=456');
+    });
+
+    it('redirects legacy money request category-new path to the stacked add-category dynamic route', () => {
+        expect(getMatchingNewRoute('/create/expense/category/new/123/456')).toBe('/r/456/category/add-category?action=create&iouType=expense&transactionID=123&reportID=456');
+    });
+
+    it('does not redirect the already-migrated money request category dynamic routes', () => {
+        expect(getMatchingNewRoute('/r/456/category?action=create&iouType=expense&transactionID=123&reportID=456')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/456/category/add-category?action=create&iouType=expense&transactionID=123&reportID=456')).toBe(undefined);
+    });
+
+    it('redirects legacy per diem time step to the new destination-based dynamic route (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/time/123/456')).toBe('/create/submit/destination/123/456/per-diem-time');
+    });
+
+    it('redirects legacy per diem time edit step to the new confirmation-based dynamic route (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/time/123/456/edit')).toBe('/create/submit/confirmation/123/456/per-diem-time-edit');
+    });
+
+    it('does not redirect the already-migrated per diem time dynamic routes (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/start/123/456/per-diem-destination/per-diem-time')).toBe(undefined);
+        expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-time-edit')).toBe(undefined);
+    });
+
+    // The legacy `?backTo=` query is not preserved: the trailing wildcard swallows it and the new suffix carries its own query.
+    it('redirects the legacy money request report step to the new dynamic route (#83851)', () => {
+        expect(getMatchingNewRoute('/edit/submit/report/123/456')).toBe('/r/456/expense-report?action=edit&iouType=submit&transactionID=123&reportID=456');
+    });
+
+    it('redirects the legacy money request edit report step to the new dynamic route (#83851)', () => {
+        expect(getMatchingNewRoute('/edit/submit/report/456/edit')).toBe('/r/456/expense-report-edit?action=edit&iouType=submit&reportID=456');
+    });
+
+    it('redirects the legacy money request tag step to the new dynamic route (#83851)', () => {
+        expect(getMatchingNewRoute('/edit/submit/tag/0/123/456')).toBe('/r/456/expense-tag?action=edit&iouType=submit&orderWeight=0&transactionID=123&reportID=456');
+    });
+
+    it('does not redirect the already-migrated money request report and tag dynamic routes (#83851)', () => {
+        expect(getMatchingNewRoute('/r/456/expense-report?action=edit&iouType=submit&transactionID=123&reportID=456')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/456/expense-report-edit?action=edit&iouType=submit&reportID=456')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/456/expense-tag?action=edit&iouType=submit&orderWeight=0&transactionID=123&reportID=456')).toBe(undefined);
     });
 });

@@ -4,10 +4,13 @@
  *     not the on-demand `transactions_` Onyx collection
  *   - returns the current user's expenses, most recent first
  *   - sorts strictly by the `inserted` (creation/insertion) timestamp, never by `created` (expense date);
- *     falls back to `created` only when `inserted` is missing
  *   - caps the list at CONST.HOME.SECTION_VISIBLE_LIMIT (5) rows
  *   - includes expenses regardless of report status (no recency-window / draft-only filter)
  *   - defensively excludes expenses owned by another account when the snapshot carries the parent report
+ *   - keeps a just-created expense visible after `pendingAction` clears but before the refreshed snapshot arrives,
+ *     then shows the snapshot copy once it lands - without dropping or duplicating the row
+ *   - keeps a deleted expense hidden after the delete succeeds but while the snapshot still lists it, and brings it
+ *     back if the delete fails
  */
 import {renderHook} from '@testing-library/react-native';
 
@@ -140,19 +143,21 @@ describe('useRecentlyAddedData — ordering', () => {
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['t3', 't2', 't1']);
     });
 
-    it('falls back to the created date for ordering when an expense is missing its inserted timestamp', () => {
+    it('breaks ties between equal inserted timestamps deterministically by transactionID', () => {
         setupSnapshot(
             [
-                makeTransaction({transactionID: 'withCreatedOnly', created: '2026-06-05', inserted: undefined}),
-                makeTransaction({transactionID: 'withInserted', created: '2026-01-01', inserted: '2026-06-04 10:00:00'}),
+                makeTransaction({transactionID: 'aaa', created: '2026-06-01', inserted: '2026-06-05 10:00:00'}),
+                makeTransaction({transactionID: 'ccc', created: '2026-06-09', inserted: '2026-06-05 10:00:00'}),
+                makeTransaction({transactionID: 'bbb', created: '2026-06-05', inserted: '2026-06-05 10:00:00'}),
             ],
             [makeReport('report_owned', ACCOUNT_ID)],
         );
 
         const {result} = renderHook(() => useRecentlyAddedData());
 
-        // withCreatedOnly has no inserted, so its created date (2026-06-05) is used and outranks withInserted (2026-06-04).
-        expect(resultTransactionIDs(result.current.transactions)).toEqual(['withCreatedOnly', 'withInserted']);
+        // Equal `inserted` timestamps tie-break on transactionID (descending) rather than the differing created dates,
+        // giving a stable order that never silently reshuffles across renders.
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['ccc', 'bbb', 'aaa']);
     });
 
     it('ranks an old-dated expense first when it was inserted most recently', () => {
@@ -257,6 +262,26 @@ describe('useRecentlyAddedData — locally pending (offline-created) expenses', 
 
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['synced']);
     });
+
+    it('shows a just-created expense from creation through the snapshot catching up, without dropping or duplicating it', () => {
+        // Render 1: created offline, pending ADD, not yet in the snapshot.
+        setupSnapshot([], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([makeTransaction({transactionID: 'new', inserted: '2026-06-02 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})]);
+
+        const {result, rerender} = renderHook(() => useRecentlyAddedData());
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['new']);
+
+        // Render 2: synced, pendingAction cleared, but the refreshed snapshot hasn't landed yet.
+        setupLocalTransactions([makeTransaction({transactionID: 'new', inserted: '2026-06-02 10:00:00'})]);
+        rerender({});
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['new']);
+
+        // Render 3: the refreshed snapshot now carries it (local copy still present), shown exactly once.
+        setupSnapshot([makeTransaction({transactionID: 'new', inserted: '2026-06-02 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([makeTransaction({transactionID: 'new', inserted: '2026-06-02 10:00:00'})]);
+        rerender({});
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['new']);
+    });
 });
 
 describe('useRecentlyAddedData — split expenses', () => {
@@ -320,6 +345,56 @@ describe('useRecentlyAddedData — offline-edited expenses', () => {
 
         const {result} = renderHook(() => useRecentlyAddedData());
 
+        expect(result.current.transactions.at(0)?.pendingAction).toBeNull();
+    });
+});
+
+describe('useRecentlyAddedData — deleted expenses', () => {
+    it('keeps the row visible with a DELETE pending action while the delete is still queued', () => {
+        setupSnapshot([makeTransaction({transactionID: 'doomed', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([makeTransaction({transactionID: 'doomed', inserted: '2026-06-01 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['doomed']);
+        expect(result.current.transactions.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    });
+
+    it('hides the row once the delete succeeds, even though the stale snapshot still lists the expense', () => {
+        // Render 1: the delete is queued, so the local copy carries pendingAction DELETE.
+        setupSnapshot(
+            [makeTransaction({transactionID: 'doomed', inserted: '2026-06-02 10:00:00'}), makeTransaction({transactionID: 'kept', inserted: '2026-06-01 10:00:00'})],
+            [makeReport('report_owned', ACCOUNT_ID)],
+        );
+        setupLocalTransactions([makeTransaction({transactionID: 'doomed', inserted: '2026-06-02 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})]);
+
+        const {result, rerender} = renderHook(() => useRecentlyAddedData());
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['doomed', 'kept']);
+
+        // Render 2: the delete succeeded, removing the local copy. The snapshot was fetched before the delete reached
+        // the server, so it still lists the expense — without the suppression the row would return as a live expense.
+        setupLocalTransactions([]);
+        rerender({});
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['kept']);
+
+        // Render 3: the refreshed snapshot finally drops it, and it stays gone.
+        setupSnapshot([makeTransaction({transactionID: 'kept', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+        rerender({});
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['kept']);
+    });
+
+    it('brings the row back when the delete fails and the local copy is restored without a pending action', () => {
+        setupSnapshot([makeTransaction({transactionID: 'doomed', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([makeTransaction({transactionID: 'doomed', inserted: '2026-06-01 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})]);
+
+        const {result, rerender} = renderHook(() => useRecentlyAddedData());
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['doomed']);
+
+        // The delete request failed, so failureData restores the transaction with its pending action cleared.
+        setupLocalTransactions([makeTransaction({transactionID: 'doomed', inserted: '2026-06-01 10:00:00'})]);
+        rerender({});
+
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['doomed']);
         expect(result.current.transactions.at(0)?.pendingAction).toBeNull();
     });
 });

@@ -114,7 +114,9 @@ function getFlaggedExpenses(
         }
 
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const visibleViolations = getVisibleTransactionViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, policy);
+        // The report is one of the current user's OPEN expense reports (see isCurrentUserOpenExpenseReport),
+        // so the report owner is the current user and the owner login is currentUserEmail.
+        const visibleViolations = getVisibleTransactionViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, currentUserEmail, policy);
         if (!hasReviewableViolation(visibleViolations)) {
             continue;
         }

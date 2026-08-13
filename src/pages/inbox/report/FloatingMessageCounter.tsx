@@ -54,7 +54,7 @@ function FloatingPillButton({success, danger, onPress, icon, iconFill, label, te
         >
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Icon
-                    small
+                    size={CONST.ICON_SIZE.SMALL}
                     src={icon}
                     fill={iconFill}
                 />

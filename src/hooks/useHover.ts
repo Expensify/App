@@ -7,6 +7,7 @@ const useHover = () => {
     const deviceHasHoverSupport = hasHoverSupport();
     return {
         hovered,
+        deviceHasHoverSupport,
         bind: {
             onMouseEnter: () => deviceHasHoverSupport && setHovered(true),
             onMouseLeave: () => deviceHasHoverSupport && setHovered(false),

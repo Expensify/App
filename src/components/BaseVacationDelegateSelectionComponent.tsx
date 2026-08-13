@@ -2,13 +2,12 @@ import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {searchUserInServer} from '@libs/actions/Report';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {filterOption, getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,7 +55,7 @@ function BaseVacationDelegateSelectionComponent({
     additionalExcludeLogins,
     includeCurrentUser = true,
 }: BaseVacationDelegateSelectionComponentProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -86,7 +85,9 @@ function BaseVacationDelegateSelectionComponent({
 
     const searchValue = debouncedSearchTerm.trim().toLowerCase();
     const pinnedVacationDelegate = searchValue ? currentVacationDelegate : (initialVacationDelegate ?? '');
-    const pinnedDelegatePersonalDetails = getPersonalDetailByEmail(pinnedVacationDelegate);
+
+    const pinnedDelegatePersonalDetails = usePersonalDetailByLogin(pinnedVacationDelegate);
+
     const pinnedDelegateOption =
         pinnedVacationDelegate && pinnedDelegatePersonalDetails
             ? {

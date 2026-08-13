@@ -29,6 +29,15 @@ type HoverableProps = {
     /** Decides whether to freeze the capture of the hover event */
     shouldFreezeCapture?: boolean;
 
+    /**
+     * When true, hover is tracked with native DOM mouseenter/mouseleave listeners on the element
+     * instead of React's synthetic onMouseEnter/onMouseLeave. React delegates synthetic mouse events
+     * at the root, so a portalled popover opening over the element can deliver a synthetic mouseenter
+     * (setting a stale hover) or skip the synthetic mouseleave (stranding the hover). Native listeners
+     * fire on the element itself and are immune to that. Opt in per-surface — not applied globally. (web only)
+     */
+    shouldUseNativeHoverEvents?: boolean;
+
     /** Reference to the outer element */
     ref?: Ref<HTMLElement>;
 };

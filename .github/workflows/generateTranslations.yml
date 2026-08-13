@@ -42,7 +42,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
         with:
           ref: ${{ steps.pr-data.outputs.HEAD_SHA }}
 
@@ -70,7 +70,7 @@ jobs:
 
       - name: Run generateTranslations for added translations
         if: steps.check-en-changes.outputs.HAS_CHANGES == 'true'
-        run: npx ts-node ./scripts/generateTranslations.ts --verbose --yes --pr-number=${{ steps.pr-data.outputs.PR_NUMBER }} --compare-ref=${{ steps.pr-data.outputs.BASE_REF }}
+        run: npx bun ./scripts/generateTranslations.ts --verbose --yes --pr-number=${{ steps.pr-data.outputs.PR_NUMBER }} --compare-ref=${{ steps.pr-data.outputs.BASE_REF }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
           OPENAI_API_KEY: ${{ secrets.PROPOSAL_POLICE_API_KEY }}

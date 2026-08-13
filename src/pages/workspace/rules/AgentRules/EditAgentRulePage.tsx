@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
@@ -29,7 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditAgentRuleForm';
 
-import type {TextInputKeyPressEvent} from 'react-native';
+import type {StyleProp, TextInputKeyPressEvent, ViewStyle} from 'react-native';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
@@ -48,15 +48,20 @@ function EditAgentRulePage({
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const shouldUseExpandedRevampFormLayout = isRulesRevampEnabled && !shouldUseScrollableLayout;
     const policy = usePolicy(policyID);
     const agentRule = policy?.rules?.agentRules?.[ruleID];
     const formRef = useRef<FormRef>(null);
+    const describeRuleLabel = isRulesRevampEnabled ? translate('workspace.rules.agentRules.describeRuleForConcierge') : translate('workspace.rules.agentRules.describeRuleTitle');
 
-    const handleKeyPress = (e: TextInputKeyPressEvent | KeyboardEvent) => {
-        if (!('key' in e)) {
+    const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
+        if (!('key' in event)) {
             return;
         }
-        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+            // The markdown input inserts a line break for any Enter keydown whose default is not already prevented, so the submit combo has to claim it first.
+            event.preventDefault();
             formRef.current?.submit();
         }
     };
@@ -73,7 +78,7 @@ function EditAgentRulePage({
         const newPrompt = values[INPUT_IDS.PROMPT];
         const previousPrompt = agentRule?.prompt ?? '';
         if (newPrompt !== previousPrompt) {
-            updatePolicyAgentRule(policyID, ruleID, newPrompt, previousPrompt);
+            updatePolicyAgentRule(policyID, ruleID, newPrompt, previousPrompt, agentRule?.title);
         }
         Navigation.goBack();
     };
@@ -103,18 +108,22 @@ function EditAgentRulePage({
         return <NotFoundPage />;
     }
 
+    const inputWrapperStyles: StyleProp<ViewStyle> = shouldUseExpandedRevampFormLayout
+        ? [styles.flex1, styles.mnh0, styles.agentRulePromptInput]
+        : [styles.flex1, shouldUseScrollableLayout && styles.minHeight42];
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             shouldBeBlocked={!isCustomAgentEnabled}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
         >
             <ScreenWrapper
                 testID="EditAgentRulePage"
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
-                shouldEnableMaxHeight={shouldUseScrollableLayout}
+                shouldEnableMaxHeight={shouldUseScrollableLayout || shouldUseExpandedRevampFormLayout}
             >
                 <HeaderWithBackButton title={translate('workspace.rules.agentRules.editRuleTitle')} />
                 <FormProvider
@@ -134,23 +143,26 @@ function EditAgentRulePage({
                     shouldRenderFooterAboveSubmit
                     footerContent={
                         <Button
-                            text={translate('workspace.rules.agentRules.deleteRule')}
                             onPress={handleDelete}
                             style={[styles.mb4]}
-                            large
+                            size={CONST.BUTTON_SIZE.LARGE}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_DELETE}
-                        />
+                        >
+                            <Button.Text>{translate('workspace.rules.agentRules.deleteRule')}</Button.Text>
+                        </Button>
                     }
                 >
                     <View style={styles.flex1}>
-                        <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
+                        <View style={inputWrapperStyles}>
                             <InputWrapper
                                 InputComponent={TextInput}
                                 inputID={INPUT_IDS.PROMPT}
-                                label={translate('workspace.rules.agentRules.describeRuleTitle')}
-                                accessibilityLabel={translate('workspace.rules.agentRules.describeRuleTitle')}
+                                label={describeRuleLabel}
+                                accessibilityLabel={describeRuleLabel}
                                 role={CONST.ROLE.PRESENTATION}
-                                onKeyPress={handleKeyPress}
+                                type="markdown"
+                                excludedMarkdownStyles={['mentionReport']}
+                                onKeyPress={submitFormOnModEnter}
                                 defaultValue={agentRule.prompt}
                                 multiline
                                 shouldLabelStayOnSingleLine

@@ -286,6 +286,31 @@ describe('useTodoCounts', () => {
             expect(result.current.singleReportIDs[CONST.SEARCH.SEARCH_KEYS.PAY]).toBeUndefined();
         });
 
+        it('keeps a stable result reference when an Onyx write does not change the counts', async () => {
+            const {result} = await renderTodoCounts();
+            const firstResult = result.current;
+
+            // Rename an excluded chat report - the REPORT collection subscription fires, but no bucket changes.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXCLUDED_REPORT_IDS.at(0)}`, {reportName: 'Renamed chat'});
+                await waitForBatchedUpdates();
+            });
+
+            expect(result.current).toBe(firstResult);
+
+            // A write that changes a count must produce a new reference.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SUBMIT_REPORT_IDS.at(0)}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                });
+                await waitForBatchedUpdates();
+            });
+
+            expect(result.current).not.toBe(firstResult);
+            expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.SUBMIT]).toBe(3);
+        });
+
         it('updates the submit count when a report state changes', async () => {
             const {result} = await renderTodoCounts();
             expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.SUBMIT]).toBe(4);

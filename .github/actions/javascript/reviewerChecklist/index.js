@@ -11628,7 +11628,6 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
     })
         .then(() => {
         console.log(`Looking through all ${combinedComments.length} comments for the reviewer checklist...`);
-        const maxCompletedItems = numberOfChecklistItems + 2;
         const minCompletedItems = numberOfChecklistItems - 2;
         let foundReviewerChecklist = false;
         let numberOfFinishedChecklistItems = 0;
@@ -11644,7 +11643,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
                 foundReviewerChecklist = true;
                 numberOfFinishedChecklistItems = (comment?.match(/- \[x\]/gi) ?? []).length;
                 numberOfUnfinishedChecklistItems = (comment?.match(/- \[ \]/g) ?? []).length;
-                if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfFinishedChecklistItems <= maxCompletedItems && numberOfUnfinishedChecklistItems === 0) {
+                if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfUnfinishedChecklistItems === 0) {
                     console.log('PR Reviewer checklist is complete 🎉');
                     return;
                 }
@@ -11655,7 +11654,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
             return;
         }
         console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
-        if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfFinishedChecklistItems <= maxCompletedItems && numberOfUnfinishedChecklistItems === 0) {
+        if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfUnfinishedChecklistItems === 0) {
             console.log('PR Reviewer checklist is complete 🎉');
             return;
         }

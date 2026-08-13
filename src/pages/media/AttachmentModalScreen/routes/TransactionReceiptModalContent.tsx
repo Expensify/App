@@ -1,9 +1,10 @@
-import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
+import Button from '@components/ButtonComposed';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ReceiptCropView from '@components/ReceiptCropView';
 import type {CropRect} from '@components/ReceiptCropView';
 
 import useAllTransactions from '@hooks/useAllTransactions';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -63,6 +64,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
     const allTransactions = useAllTransactions();
     const transactionMain = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -172,7 +174,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const isTrackExpenseActionValue = isTrackExpenseAction(parentReportAction);
     const iouType = useMemo(() => iouTypeParam ?? (isTrackExpenseActionValue ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseActionValue, iouTypeParam]);
 
-    const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const [pdfRotation, setPdfRotation] = useState<RotationDegrees>(0);
     const [isRotating, setIsRotating] = useState(false);
     const [isCropping, setIsCropping] = useState(false);
@@ -184,7 +186,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         if ((!!report && !!transaction) || isDraftTransaction) {
             return;
         }
-        openReport({reportID, introSelected, betas});
+        openReport({reportID, introSelected, betas, hasReportActions, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID});
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -265,9 +267,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
      * Detach the receipt and close the modal.
      */
     const deleteReceiptAndClose = useCallback(() => {
-        detachReceipt(transaction?.transactionID, policy, policyTagList, transactionViolations, policyCategories);
+        detachReceipt(transaction, policy, policyTagList, transactionViolations, transactionReport, policyCategories);
         navigation.goBack();
-    }, [navigation, transaction?.transactionID, policy, policyCategories, policyTagList, transactionViolations]);
+    }, [transaction, policy, policyTagList, transactionViolations, transactionReport, policyCategories, navigation]);
 
     /**
      * Remove odometer image and close the modal.
@@ -305,19 +307,20 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     setMoneyRequestReceipt(transaction.transactionID, durableUri, filename, isDraftTransaction, fileType);
                 } else {
                     replaceReceipt({
-                        transactionID: transaction.transactionID,
+                        transaction,
                         file: durableFile,
                         source: durableUri,
                         transactionPolicyCategories: policyCategories,
                         transactionPolicy: policy,
                         transactionPolicyTagList: policyTagList,
                         transactionViolations,
+                        transactionReport,
                         ...(isSameReceipt ? {state: transaction?.receipt?.state, isSameReceipt: true} : {}),
                     });
                 }
             });
         },
-        [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy, policyTagList, transactionViolations],
+        [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy, policyTagList, transactionViolations, transactionReport],
     );
 
     const rotateReceipt = useCallback(() => {
@@ -454,7 +457,25 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 menuItems.push({
                     icon: expensifyIcons.Trashcan,
                     text: isOdometerImage ? translate('distance.odometer.deleteOdometerPhoto') : translate('receipt.deleteReceipt'),
-                    onSelected: () => setIsDeleteReceiptConfirmModalVisible?.(true),
+                    onSelected: async () => {
+                        const result = await showConfirmModal({
+                            title: isOdometerImage ? translate('distance.odometer.deleteOdometerPhoto') : translate('receipt.deleteReceipt'),
+                            prompt: isOdometerImage ? translate('distance.odometer.deleteOdometerPhotoConfirmation') : translate('receipt.deleteConfirmation'),
+                            confirmText: translate('common.delete'),
+                            cancelText: translate('common.cancel'),
+                            danger: true,
+                        });
+
+                        if (result.action !== ModalActions.CONFIRM) {
+                            return;
+                        }
+
+                        if (isOdometerImage) {
+                            deleteOdometerImageAndClose();
+                        } else {
+                            deleteReceiptAndClose();
+                        }
+                    },
                     shouldCallAfterModalHide: true,
                     sentryLabel: CONST.SENTRY_LABEL.RECEIPT_MODAL.DELETE_RECEIPT,
                 });
@@ -473,30 +494,10 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             translate,
             expensifyIcons,
             onDownloadAttachment,
+            showConfirmModal,
+            deleteOdometerImageAndClose,
+            deleteReceiptAndClose,
         ],
-    );
-
-    const ExtraContent = useMemo(
-        () => (
-            <ConfirmModal
-                title={isOdometerImage ? translate('distance.odometer.deleteOdometerPhoto') : translate('receipt.deleteReceipt')}
-                isVisible={isDeleteReceiptConfirmModalVisible}
-                onConfirm={() => {
-                    if (isOdometerImage) {
-                        deleteOdometerImageAndClose();
-                    } else {
-                        deleteReceiptAndClose();
-                    }
-                    setIsDeleteReceiptConfirmModalVisible(false);
-                }}
-                onCancel={() => setIsDeleteReceiptConfirmModalVisible?.(false)}
-                prompt={isOdometerImage ? translate('distance.odometer.deleteOdometerPhotoConfirmation') : translate('receipt.deleteConfirmation')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
-        ),
-        [deleteReceiptAndClose, deleteOdometerImageAndClose, isDeleteReceiptConfirmModalVisible, isOdometerImage, translate],
     );
 
     const footerActionButtons = useMemo(() => {
@@ -505,19 +506,21 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
                     <Button
                         onPress={exitCropMode}
-                        text={translate('common.cancel')}
-                        icon={expensifyIcons.Close}
                         style={styles.transactionReceiptButton}
-                    />
+                    >
+                        <Button.Icon src={expensifyIcons.Close} />
+                        <Button.Text>{translate('common.cancel')}</Button.Text>
+                    </Button>
                     <Button
-                        success
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={saveCrop}
-                        text={translate('common.save')}
                         isLoading={isCropSaving}
                         isDisabled={!cropRect || isCropSaving}
-                        icon={expensifyIcons.Checkmark}
                         style={styles.transactionReceiptButton}
-                    />
+                    >
+                        <Button.Icon src={expensifyIcons.Checkmark} />
+                        <Button.Text>{translate('common.save')}</Button.Text>
+                    </Button>
                 </View>
             );
         }
@@ -530,33 +533,35 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
                 {!!shouldShowRotateAndCropReceiptButton && (
                     <Button
-                        icon={expensifyIcons.Rotate}
                         onPress={rotateReceipt}
-                        text={translate('common.rotate')}
                         isLoading={isRotating}
                         isDisabled={isRotating}
                         style={styles.transactionReceiptButton}
-                    />
+                    >
+                        <Button.Icon src={expensifyIcons.Rotate} />
+                        <Button.Text>{translate('common.rotate')}</Button.Text>
+                    </Button>
                 )}
                 {!!shouldShowRotateAndCropReceiptButton && (
                     <Button
-                        icon={expensifyIcons.Crop}
                         onPress={enterCropMode}
-                        text={translate('receipt.crop')}
                         style={styles.transactionReceiptButton}
-                    />
+                    >
+                        <Button.Icon src={expensifyIcons.Crop} />
+                        <Button.Text>{translate('receipt.crop')}</Button.Text>
+                    </Button>
                 )}
                 {isPDF && !isNative && (
                     <Button
-                        icon={expensifyIcons.Rotate}
                         onPress={() => setPdfRotation((prev) => ((prev + 270) % 360) as RotationDegrees)}
-                        text={translate('common.rotate')}
                         style={styles.transactionReceiptButton}
-                    />
+                    >
+                        <Button.Icon src={expensifyIcons.Rotate} />
+                        <Button.Text>{translate('common.rotate')}</Button.Text>
+                    </Button>
                 )}
                 {(shouldShowReplaceReceiptButton || isOdometerImage) && (
                     <Button
-                        icon={expensifyIcons.Camera}
                         onPress={() => {
                             const getDestinationRoute = () => {
                                 return isOdometerImage
@@ -574,9 +579,11 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                                 afterTransition: () => Navigation.navigate(getDestinationRoute()),
                             });
                         }}
-                        text={translate('common.replace')}
                         style={styles.transactionReceiptButton}
-                    />
+                    >
+                        <Button.Icon src={expensifyIcons.Camera} />
+                        <Button.Text>{translate('common.replace')}</Button.Text>
+                    </Button>
                 )}
             </View>
         );
@@ -678,7 +685,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         <AttachmentModalContainer
             navigation={navigation}
             contentProps={contentProps}
-            ExtraContent={ExtraContent}
         />
     );
 }

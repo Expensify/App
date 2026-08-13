@@ -1,7 +1,9 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
@@ -73,11 +75,19 @@ function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, tran
  * @param currency - Used to know how many decimal places are valid when splitting the total
  * @param isDefaultUser - Whether we are calculating the amount for the remainder holder
  * @param useFloorToLastRounding - `false` (default, legacy behavior) or `true` to floor all and put full remainder on the default user
+ * @param getCurrencyDecimals - Currency lookup supplied by React consumers. Falls back during staged migration.
  */
-function calculateAmount(numberOfSplits: number, total: number, currency: string, isDefaultUser = false, useFloorToLastRounding = false): number {
+function calculateAmount(
+    numberOfSplits: number,
+    total: number,
+    currency: string,
+    isDefaultUser = false,
+    useFloorToLastRounding = false,
+    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'],
+): number {
     // Since the backend can maximum store 2 decimal places, any currency with more than 2 decimals
     // has to be capped to 2 decimal places
-    const currencyUnit = Math.min(100, getCurrencyUnit(currency));
+    const currencyUnit = Math.min(100, getCurrencyDecimals ? 10 ** getCurrencyDecimals(currency) : getCurrencyUnit(currency));
     const totalInCurrencySubunit = (total / 100) * currencyUnit;
     const totalParticipants = numberOfSplits + 1;
 
@@ -333,11 +343,22 @@ function shouldShowReceiptEmptyState(iouType: IOUType, action: IOUAction, policy
     );
 }
 
+// From global create or a track expense, per diem enablement on any active policy is enough to show the tab -
+// rates load lazily and may be absent right after a cache clear, so visibility must not gate on them.
+function shouldShowPerDiemTabOption(iouType: IOUType, isFromGlobalCreate: boolean, hasCurrentPolicyPerDiemEnabled: boolean, doesPerDiemPolicyExist: boolean): boolean {
+    if (iouType === CONST.IOU.TYPE.SPLIT) {
+        return false;
+    }
+    const hasCurrentPolicyPerDiem = !isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled;
+    const hasAnyPolicyPerDiem = (iouType === CONST.IOU.TYPE.TRACK || isFromGlobalCreate) && doesPerDiemPolicyExist;
+    return hasCurrentPolicyPerDiem || hasAnyPolicyPerDiem;
+}
+
 function shouldUseTransactionDraft(action: IOUAction | undefined, type?: IOUType) {
     return action === CONST.IOU.ACTION.CREATE || type === CONST.IOU.TYPE.SPLIT_EXPENSE || isMovingTransactionFromTrackExpense(action);
 }
 
-function formatCurrentUserToAttendee(currentUser?: CurrentUserPersonalDetails, reportID?: string) {
+function formatCurrentUserToAttendee(currentUser?: CurrentUserPersonalDetails) {
     if (!currentUser) {
         return;
     }
@@ -350,13 +371,8 @@ function formatCurrentUserToAttendee(currentUser?: CurrentUserPersonalDetails, r
 
     const initialAttendee: Attendee = {
         email: login,
-        login,
         displayName,
         avatarUrl: SafeString(currentUser.avatar),
-        accountID: currentUser.accountID,
-        text: displayName,
-        selected: true,
-        reportID,
     };
 
     return [initialAttendee];
@@ -510,22 +526,46 @@ function getIsWorkspacesOnlyForTransaction(transaction: OnyxEntry<Transaction>, 
     return transaction?.amount !== undefined && transaction?.amount !== null && transaction?.amount < 0;
 }
 
+/**
+ * Whether a report carries a real workspace policy. The self-DM / personal report uses the placeholder
+ * `CONST.POLICY.ID_FAKE` ('_FAKE_') policyID, which is truthy and would otherwise pass naive `report?.policyID`
+ * checks. Money-request policy resolution must treat it as "no real policy" so a placeholder/stale route report
+ * (e.g. the self-DM a submissions-disabled workspace flow is seeded onto) does not shadow the selected workspace
+ * chat's real policy when picking which report to derive the policyID from. See #96576.
+ */
+function reportHasRealPolicy(report: OnyxEntry<Report>): boolean {
+    return !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
+}
+
+/**
+ * Picks which report a money-request page should derive its policyID from. Candidates are passed in preference order
+ * (usually route report, then transaction report, then participant report): the first one carrying a real workspace
+ * policy wins, so a placeholder/stale candidate can't shadow a real one (see `reportHasRealPolicy`). When none has a
+ * real policy the first defined candidate is returned, preserving each page's original fallback behavior.
+ */
+function pickReportForPolicy(...reports: Array<OnyxEntry<Report>>): OnyxEntry<Report> {
+    return reports.find((report) => reportHasRealPolicy(report)) ?? reports.find((report) => !!report);
+}
+
 /** Resolves which Report should receive a money-request: the picked transaction report when usable, undefined to force a new optimistic IOU, otherwise the route report. */
 function resolveReportForMoneyRequest({
     transaction,
     transactionReport,
     routeReport,
     policy,
+    reportNameValuePair,
 }: {
     transaction: OnyxEntry<Transaction>;
     transactionReport: OnyxEntry<Report>;
     routeReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
+    reportNameValuePair: OnyxInputOrEntry<ReportNameValuePairs>;
 }): OnyxEntry<Report> {
     if (transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         return undefined;
     }
-    const canUseTransactionReport = !(isProcessingReport(transactionReport) && !policy?.harvesting?.enabled) && isReportOutstanding(transactionReport, policy?.id, undefined, false);
+    const canUseTransactionReport =
+        !(isProcessingReport(transactionReport) && !policy?.harvesting?.enabled) && isReportOutstanding(transactionReport, policy?.id, reportNameValuePair, false);
     const shouldUseTransactionReport = !!transactionReport && (canUseTransactionReport || !routeReport);
     if (shouldUseTransactionReport) {
         return transactionReport;
@@ -543,6 +583,33 @@ function resolveReportForMoneyRequest({
  */
 function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean; isSelfDM?: boolean} | undefined): boolean {
     return !!(participant?.accountID && !participant.isPolicyExpenseChat && !participant.isSelfDM);
+}
+
+/**
+ * A participant points at the current user's self-DM when it carries the self-DM flag, or — for flows that seed the
+ * raw account before the flag is set (e.g. the new manual expense flow, which skips the iouType -> TRACK conversion) —
+ * when it resolves to the current user. Workspace (policy expense chat) and sender (invoice) participants are excluded.
+ */
+function isSelfDMParticipant(participant: Participant | undefined, currentUserAccountID: number | undefined): boolean {
+    if (!participant || participant.isSender || participant.isPolicyExpenseChat) {
+        return false;
+    }
+    return participant.isSelfDM === true || (!!currentUserAccountID && participant.accountID === currentUserAccountID);
+}
+
+/**
+ * An expense targets the current user's self-DM (and therefore must be tracked rather than requested) when it has a
+ * single selected participant that resolves to the current user's self-DM. SPLIT/INVOICE/PAY are never self-DM
+ * destinations. This is the single source of truth shared by the confirmation step (to resolve the destination report)
+ * and the submission hook (to route through trackExpense), so both stay in sync.
+ */
+function isSelfDMSoleDestination(participants: Participant[], iouType: IOUType, currentUserAccountID: number | undefined): boolean {
+    if (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.INVOICE || iouType === CONST.IOU.TYPE.PAY) {
+        return false;
+    }
+    const selectedParticipants = participants.filter((participant) => participant.selected);
+    const soleSelectedParticipant = selectedParticipants.length === 1 ? selectedParticipants.at(0) : undefined;
+    return isSelfDMParticipant(soleSelectedParticipant, currentUserAccountID);
 }
 
 /**
@@ -575,12 +642,16 @@ export {
     formatCurrentUserToAttendee,
     navigateToParticipantPage,
     shouldShowReceiptEmptyState,
+    shouldShowPerDiemTabOption,
     navigateToConfirmationPage,
     calculateDefaultReimbursable,
     getInitialPerDiemTargetReport,
     getIsWorkspacesOnlyForTransaction,
     isParticipantP2P,
+    isSelfDMSoleDestination,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
     resolveEarlyReportID,
+    reportHasRealPolicy,
+    pickReportForPolicy,
 };

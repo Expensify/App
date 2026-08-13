@@ -18,7 +18,6 @@ import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils} from 
 let allReports: OnyxCollection<Report>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
     },
@@ -32,7 +31,6 @@ let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
  */
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReportNameValuePairs = value;
     },
