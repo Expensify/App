@@ -13,6 +13,8 @@ import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
+import type {ValueOf} from 'type-fest';
+
 import {
     removePolicyCategoryItemizedReceiptsRequired,
     removePolicyCategoryReceiptsRequired,
@@ -839,6 +841,15 @@ type RequireFieldsDisplayedSettingParams = {
     isEditing: boolean;
 };
 
+/**
+ * Description and Attendees are stored as booleans, so "Don't require" is indistinguishable from having no
+ * override and there is no third state to deselect back to. Receipt fields do have one — no override at all,
+ * meaning the policy-level receipt requirement still applies — so only those can be cleared.
+ */
+function canClearRequireFieldsField(fieldKey: RequireFieldsRuleSettingFieldKey): boolean {
+    return fieldKey === INPUT_IDS.RECEIPT_SETTING || fieldKey === INPUT_IDS.ITEMIZED_RECEIPT_SETTING;
+}
+
 function getRequireFieldsDisplayedSetting({
     fieldKey,
     category,
@@ -849,25 +860,35 @@ function getRequireFieldsDisplayedSetting({
     clearedFields,
     isEditing,
 }: RequireFieldsDisplayedSettingParams): FieldRequirementsDirection | undefined {
-    if (clearedFields?.has(fieldKey)) {
+    const displayedSetting = ((): FieldRequirementsDirection | undefined => {
+        if (clearedFields?.has(fieldKey)) {
+            return undefined;
+        }
+
+        if (touchedFields?.has(fieldKey)) {
+            return effectiveForm?.[fieldKey];
+        }
+
+        // After changing category on edit, the draft holds the preserved rule settings and may
+        // remount without local touched state — read those explicit draft values directly.
+        if (isEditing && originalCategoryName && rawForm?.[INPUT_IDS.CATEGORY] && rawForm[INPUT_IDS.CATEGORY] !== originalCategoryName) {
+            return rawForm[fieldKey];
+        }
+
+        if (isEditing) {
+            return getActiveFieldRequirementsDirection(category, fieldKey);
+        }
+
         return undefined;
+    })();
+
+    // A missing value on a boolean-backed field means Don't require, so show it selected rather than
+    // leaving the toggle blank. Receipt fields keep a blank state for "no override".
+    if (displayedSetting === undefined && !canClearRequireFieldsField(fieldKey)) {
+        return CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE;
     }
 
-    if (touchedFields?.has(fieldKey)) {
-        return effectiveForm?.[fieldKey];
-    }
-
-    // After changing category on edit, the draft holds the preserved rule settings and may
-    // remount without local touched state — read those explicit draft values directly.
-    if (isEditing && originalCategoryName && rawForm?.[INPUT_IDS.CATEGORY] && rawForm[INPUT_IDS.CATEGORY] !== originalCategoryName) {
-        return rawForm[fieldKey];
-    }
-
-    if (isEditing) {
-        return getActiveFieldRequirementsDirection(category, fieldKey);
-    }
-
-    return undefined;
+    return displayedSetting;
 }
 
 /**
@@ -909,6 +930,15 @@ function isRequireFieldsFieldCouplingDisabled(
 
 type RequireFieldsFieldCouplingTooltipKey = 'receiptDisabledWhenItemizedRequired' | 'itemizedDisabledWhenReceiptWaived';
 
+/**
+ * Name this coupling tooltip is dismissed under in the dismissed-product-training NVP, so dismissing it once
+ * keeps it dismissed for later rules instead of only for the current mount.
+ */
+const REQUIRE_FIELDS_COUPLING_TOOLTIP_NAMES: Record<RequireFieldsFieldCouplingTooltipKey, ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>> = {
+    receiptDisabledWhenItemizedRequired: CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP,
+    itemizedDisabledWhenReceiptWaived: CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP,
+};
+
 function getRequireFieldsFieldCouplingTooltipKey(
     fieldKey: RequireFieldsRuleSettingFieldKey,
     effectiveForm: RequireFieldsRuleForm | undefined,
@@ -939,8 +969,10 @@ function getRequireFieldsFieldCouplingTooltipKey(
 }
 
 export {
+    canClearRequireFieldsField,
     categoryHasAnyRequireFieldsRule,
     deleteRequireFieldsRule,
+    REQUIRE_FIELDS_COUPLING_TOOLTIP_NAMES,
     formatRequireFieldsRuleDescriptions,
     getActiveFieldRequirementsDirection,
     getEffectiveRequireFieldsRuleForm,

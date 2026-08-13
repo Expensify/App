@@ -74,6 +74,13 @@ type SearchResultsInfo = {
      * the same request is already running. */
     state?: ValueOf<typeof CONST.SEARCH.SNAPSHOT_STATE>;
 
+    /** jsonCode of the most recent failed search response for this snapshot. Cleared when a new request starts.
+     *
+     * The error view reads it to tell an invalid query, where retrying cannot help, apart from a retryable
+     * failure. That verdict otherwise lives in component state, which a reload resets while the errored
+     * snapshot survives, so without this a reload would offer a pointless Retry. */
+    responseJsonCode?: number;
+
     /** The number of results */
     count?: number;
 
@@ -193,6 +200,18 @@ type SearchWithdrawalIDGroup = {
 
     /** Settlement state (5/6/7=failed, 8=cleared, others=pending) */
     state: number;
+
+    /** What the company was debited, when the settlement converted currencies */
+    debitedAmount?: number;
+
+    /** Currency the company was debited in */
+    debitedCurrency?: string;
+
+    /** What the employee was credited, when the settlement converted currencies */
+    creditedAmount?: number;
+
+    /** Currency the employee was credited in */
+    creditedCurrency?: string;
 
     /** Workspace ID for the grouped settlement */
     policyID?: string;

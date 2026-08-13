@@ -8,7 +8,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '@libs/Wallet/index';
 
 import CONST from '@src/CONST';
@@ -98,13 +97,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
     }
 
     if (isLoading) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddToWalletButton', isLoading};
-        return (
-            <ActivityIndicator
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={reasonAttributes}
-            />
-        );
+        return <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />;
     }
 
     if (isInWallet) {

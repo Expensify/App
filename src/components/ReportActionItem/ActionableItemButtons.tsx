@@ -1,57 +1,26 @@
-import Button from '@components/ButtonComposed';
-import type {ButtonTextProps} from '@components/ButtonComposed/primitives/ButtonText';
-import type {ButtonStyleProps} from '@components/ButtonComposed/types';
-
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
 
-type ActionableItem = {
-    isPrimary?: boolean;
-    key: string;
-    onPress: () => void;
-} & ({translationKey: TranslationPaths; text?: never} | {text: string; translationKey?: never});
-
 type ActionableItemButtonsProps = {
-    items: ActionableItem[];
+    /** The buttons to lay out */
+    children: React.ReactNode;
+
+    /** Whether the buttons are laid out in a row or stacked in a column */
     layout?: 'horizontal' | 'vertical';
 
-    /** Props forwarded to the `Button` rendered for each item */
-    buttonProps?: Pick<ButtonStyleProps, 'innerStyles'>;
-
-    /** Props forwarded to the `Button.Text` rendered for each item */
-    textProps?: Pick<ButtonTextProps, 'numberOfLines' | 'style'>;
-
-    wrapperStyle?: StyleProp<ViewStyle>;
+    /** Additional styles to apply to the container */
+    style?: StyleProp<ViewStyle>;
 };
 
-function ActionableItemButtons(props: ActionableItemButtonsProps) {
+function ActionableItemButtons({children, layout, style}: ActionableItemButtonsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const layoutStyle = layout === 'horizontal' ? styles.flexRow : [styles.flexColumn, styles.alignItemsStart];
 
-    return (
-        <View style={[styles.gap2, styles.mt2, props.layout === 'horizontal' ? styles.flexRow : [styles.flexColumn, styles.alignItemsStart], props.wrapperStyle]}>
-            {props.items?.map((item) => (
-                <Button
-                    key={item.key}
-                    onPress={item.onPress}
-                    size={CONST.BUTTON_SIZE.MEDIUM}
-                    variant={item.isPrimary ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
-                    {...props.buttonProps}
-                >
-                    <Button.Text {...props.textProps}>{item.translationKey ? translate(item.translationKey) : item.text}</Button.Text>
-                </Button>
-            ))}
-        </View>
-    );
+    return <View style={[styles.gap2, styles.mt2, layoutStyle, style]}>{children}</View>;
 }
 
 export default ActionableItemButtons;
-export type {ActionableItem};
