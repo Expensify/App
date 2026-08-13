@@ -19,7 +19,6 @@ import HeaderIcon from './primitives/HeaderIcon';
 import HeaderMenuItemButtonTooltip from './primitives/HeaderMenuItemButtonTooltip';
 import HeaderPinButton from './primitives/HeaderPinButton';
 import HeaderPolicyAvatar from './primitives/HeaderPolicyAvatar';
-import HeaderProgressBar from './primitives/HeaderProgressBar';
 import HeaderReportAvatar from './primitives/HeaderReportAvatar';
 import HeaderRotateButton from './primitives/HeaderRotateButton';
 import HeaderSearchRouter from './primitives/HeaderSearchRouter';
@@ -71,7 +70,6 @@ function HeaderWithBackButton({
     shouldNavigateToTopMostReport = false,
     shouldDisplayHelpButton = false,
     shouldDisplaySearchRouter = false,
-    progressBarPercentage,
     style,
     subTitleLink = '',
     shouldMinimizeMenuButton = false,
@@ -119,9 +117,6 @@ function HeaderWithBackButton({
                 styles.headerBar,
                 shouldUseHeadlineHeader && styles.headerBarHeight,
                 shouldShowBorderBottom && styles.borderBottom,
-                // progressBarPercentage can be 0 which would
-                // be falsy, hence using !== undefined explicitly
-                progressBarPercentage !== undefined && styles.pl0,
                 shouldShowBackButton && [styles.pl2],
                 shouldOverlay && StyleSheet.absoluteFill,
                 style,
@@ -146,21 +141,14 @@ function HeaderWithBackButton({
                     />
                 )}
                 {!!policyAvatar && <HeaderPolicyAvatar policyAvatar={policyAvatar} />}
-                {!!progressBarPercentage && (
-                    <HeaderProgressBar
-                        percentageProgress={progressBarPercentage}
-                        stepCounter={stepCounter}
-                    />
-                )}
-                {shouldShowReportAvatarWithDisplay && !progressBarPercentage && (
+                {shouldShowReportAvatarWithDisplay ? (
                     <HeaderReportAvatar
                         report={report}
                         shouldDisplayStatus={shouldDisplayStatus}
                         shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                         openParentReportInCurrentTab={openParentReportInCurrentTab}
                     />
-                )}
-                {!shouldShowReportAvatarWithDisplay && !progressBarPercentage && (
+                ) : (
                     <HeaderTitle
                         subtitle={subtitle}
                         stepCounter={stepCounter}
