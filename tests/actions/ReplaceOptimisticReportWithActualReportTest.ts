@@ -1411,4 +1411,41 @@ describe('replaceOptimisticReportWithActualReport', () => {
         // And it should be updated to point to the preexisting report
         expect(parentActions?.[reportActionID]?.childReportID).toBe(preexistingReportID);
     });
+
+    it('should transfer the draft comment the Onyx trigger reads for the optimistic report', async () => {
+        // Given a draft comment stored in Onyx for a report that has not arrived yet, and a user on a different report.
+        // Every other case in this suite calls replaceOptimisticReportWithActualReport directly and passes the draft
+        // comment in, so only this one exercises where that argument comes from.
+        const reportID = '1';
+        const preexistingReportID = '2';
+        const draftComment = 'Draft the trigger has to find';
+
+        mockIsReady.mockReturnValue(true);
+        mockGetActiveRoute.mockReturnValue('/r/999');
+
+        const existingReport = createRandomReport(Number(preexistingReportID), undefined);
+        existingReport.reportID = preexistingReportID;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, existingReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, draftComment);
+        await waitForBatchedUpdates();
+
+        // When the optimistic report arrives in Onyx, so the replacement runs from the subscription rather than a call
+        const optimisticReport = createRandomReport(Number(reportID), undefined);
+        optimisticReport.reportID = reportID;
+        optimisticReport.preexistingReportID = preexistingReportID;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, optimisticReport);
+        await waitForBatchedUpdates();
+
+        // Then the draft comment reaches the preexisting report
+        const preexistingDraftComment = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${preexistingReportID}`);
+        expect(preexistingDraftComment).toBe(draftComment);
+
+        // And the optimistic report and its draft are cleared
+        const deletedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        expect(deletedReport).toBeFalsy();
+        const deletedDraftComment = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
+        expect(deletedDraftComment).toBeFalsy();
+    });
 });
