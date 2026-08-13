@@ -318,8 +318,8 @@ describe('SearchQueryUtils', () => {
         });
 
         test('rebuilds a single value containing a comma as one value', () => {
-            expect(getQueryWithUpdatedValues(String.raw`merchant:Acme\,Inc`)).toEqual(`${defaultQuery} merchant:"Acme,Inc"`);
-            expect(getQueryWithUpdatedValues('merchant:"Acme,Inc"')).toEqual(`${defaultQuery} merchant:"Acme,Inc"`);
+            expect(getQueryWithUpdatedValues(String.raw`merchant:Globex\,Ltd`)).toEqual(`${defaultQuery} merchant:"Globex,Ltd"`);
+            expect(getQueryWithUpdatedValues('merchant:"Globex,Ltd"')).toEqual(`${defaultQuery} merchant:"Globex,Ltd"`);
         });
 
         test('rebuilds a comma separated list as separate values', () => {
@@ -4121,7 +4121,7 @@ describe('SearchQueryUtils', () => {
         });
 
         it('quotes on a comma, so a value containing one is not read back as two', () => {
-            expect(sanitizeSearchValue('Acme,Inc')).toBe('"Acme,Inc"');
+            expect(sanitizeSearchValue('Globex,Ltd')).toBe('"Globex,Ltd"');
         });
 
         it('escapes quotes and backslashes so the parser reads them as part of the value', () => {

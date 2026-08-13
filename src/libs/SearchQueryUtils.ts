@@ -457,16 +457,6 @@ function getFilterFromQuery(queryJSON: SearchQueryJSON | undefined, filterKey: S
     return {value, isNegated};
 }
 
-// getUpdatedFilterValue runs while building a query, outside React, and already resolves emails through the cache in
-// PersonalDetailsUtils. Threading policies through it would mean a parameter on every caller of getQueryWithUpdatedValues.
-let allPolicies: OnyxCollection<OnyxTypes.Policy> = {};
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (policies) => {
-        allPolicies = policies ?? {};
-    },
-});
-
 /**
  * Resolves a typed workspace name to its ID. Names are not unique, so an ambiguous one is left alone rather than
  * guessing which workspace was meant.
@@ -488,7 +478,7 @@ function resolvePolicyIDFromName(value: string, policies: OnyxCollection<OnyxTyp
  * - for personal filters it tries to substitute any user emails with accountIDs
  * - for `POLICY_ID` it tries to substitute an unambiguous workspace name with its ID
  */
-function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string | string[], shouldSkipAmountConversion = false) {
+function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string | string[], shouldSkipAmountConversion = false, policies?: OnyxCollection<OnyxTypes.Policy>) {
     if (AMOUNT_FILTER_KEYS.includes(filterName as SearchAmountFilterKeys)) {
         if (shouldSkipAmountConversion) {
             return filterValue;
@@ -519,9 +509,9 @@ function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string 
 
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
         if (typeof filterValue === 'string') {
-            return resolvePolicyIDFromName(filterValue, allPolicies);
+            return resolvePolicyIDFromName(filterValue, policies);
         }
-        return filterValue.map((value) => resolvePolicyIDFromName(value, allPolicies));
+        return filterValue.map((value) => resolvePolicyIDFromName(value, policies));
     }
 
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID) {
@@ -2208,7 +2198,7 @@ function getKeywordQueryWithCurrentSearchContext(queryString: SearchQueryString,
  * Returns new string query, after parsing it and traversing to update some filter values.
  * If there are any personal emails, it will try to substitute them with accountIDs
  */
-function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = false) {
+function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = false, policies?: OnyxCollection<OnyxTypes.Policy>) {
     const queryJSON = buildSearchQueryJSON(query);
 
     if (!queryJSON) {
@@ -2216,7 +2206,7 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
         return;
     }
 
-    const computeNodeValue = (left: SyntaxFilterKey, right: string | string[]) => getUpdatedFilterValue(left, right, shouldSkipAmountConversion);
+    const computeNodeValue = (left: SyntaxFilterKey, right: string | string[]) => getUpdatedFilterValue(left, right, shouldSkipAmountConversion, policies);
     const standardizedQuery = traverseAndUpdatedQuery(queryJSON, computeNodeValue);
     const rawFilterList = getRawFilterListFromQuery(query);
     const hasInFilter = rawFilterList?.some((filter) => !filter.isDefault && filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) ?? false;
@@ -2416,6 +2406,7 @@ function buildFilterQueryWithSortDefaults(
     filterValues: Partial<SearchAdvancedFiltersForm>,
     previousState: {view?: string; groupBy?: string},
     currentQueryOptions: {sortBy?: string; sortOrder?: string},
+    policies?: OnyxCollection<OnyxTypes.Policy>,
 ): string | undefined {
     const resetSort = shouldResetSort({
         newGroupBy: filterValues.groupBy,
@@ -2439,7 +2430,7 @@ function buildFilterQueryWithSortDefaults(
         return queryString;
     }
 
-    return getQueryWithUpdatedValues(queryString, true);
+    return getQueryWithUpdatedValues(queryString, true, policies);
 }
 
 /**

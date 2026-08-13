@@ -797,7 +797,7 @@ describe('autocomplete parser - escaped values', () => {
         ['workspace:"Acme \\"US\\",Inc"', 'policyID', 'Acme "US",Inc'],
         ['in:"Acme \\"US\\",Inc"', 'in', 'Acme "US",Inc'],
         ['from:"Bob \\"The Builder\\" Smith"', 'from', 'Bob "The Builder" Smith'],
-        ['workspace:Acme\\,Inc', 'policyID', 'Acme,Inc'],
+        ['workspace:Globex\\,Ltd', 'policyID', 'Globex,Ltd'],
     ])('reads %s back as a single value', (query, key, value) => {
         const ranges = parseForAutocomplete(query)?.ranges ?? [];
 
@@ -806,7 +806,7 @@ describe('autocomplete parser - escaped values', () => {
 
     test.each([
         ['workspace:"Acme, Inc."', 'policyID', 'Acme, Inc.'],
-        ['workspace:"Acme,Inc"', 'policyID', 'Acme,Inc'],
+        ['workspace:"Globex,Ltd"', 'policyID', 'Globex,Ltd'],
         ['workspace:A\\B', 'policyID', 'A\\B'],
         ['merchant:"C:\\Users"', 'merchant', 'C:\\Users'],
     ])('leaves an already persisted value %s unchanged', (query, key, value) => {
