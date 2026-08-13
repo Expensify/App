@@ -128,9 +128,13 @@ function ProfilePage({route}: ProfilePageProps) {
         }
     }
 
-    const displayName = formatPhoneNumber(
-        temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, shouldAddCurrentUserPostfix: isCurrentUser, youAfterTranslation: translate('common.you').toLowerCase(), translate}),
-    );
+    const displayName = temporaryGetDisplayNameOrDefault({
+        passedPersonalDetails: details,
+        shouldAddCurrentUserPostfix: isCurrentUser,
+        youAfterTranslation: translate('common.you').toLowerCase(),
+        translate,
+        formatPhoneNumber,
+    });
 
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
@@ -298,10 +302,13 @@ function ProfilePage({route}: ProfilePageProps) {
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('profilePage.customInstructions')}
-                                    title={agentPrompt?.prompt?.trim() ?? ''}
+                                    title={Str.htmlDecode(agentPrompt?.prompt?.trim() ?? '')}
+                                    shouldParseTitle
+                                    excludedMarkdownRules={['reportMentions']}
+                                    shouldTruncateTitle
+                                    characterLimit={CONST.AGENT_PROMPT_LIMIT}
                                     shouldShowRightIcon
                                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.getRoute(accountID))}
-                                    numberOfLinesTitle={2}
                                 />
                             </OfflineWithFeedback>
                         )}
