@@ -168,7 +168,7 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
                         styles.sidebarLinkInnerLHN,
                         StyleUtils.getBackgroundColorStyle(theme.sidebar),
                         isOptionFocused ? StyleUtils.getBackgroundColorStyle(theme.navItemSelectedBG) : null,
-                        (hovered || isContextMenuActive) && !isOptionFocused ? StyleUtils.getBackgroundColorStyle(theme.navItemHoverBG) : null,
+                        (hovered || isContextMenuActive) && !isOptionFocused ? styles.sidebarLinkHover : null,
                     ]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={accessibilityLabelWithContextMenuHint}

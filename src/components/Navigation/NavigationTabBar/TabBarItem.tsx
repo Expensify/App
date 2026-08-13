@@ -44,7 +44,7 @@ function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicator
                     height={variables.iconBottomBar}
                 />
                 {!!statusIndicatorColor && (
-                    <View style={[styles.navigationTabBarStatusIndicator, styles.statusIndicatorColor(statusIndicatorColor), isHovered && {borderColor: theme.navItemHoverBG}]} />
+                    <View style={[styles.navigationTabBarStatusIndicator, styles.statusIndicatorColor(statusIndicatorColor), isHovered && {borderColor: theme.sidebarHover}]} />
                 )}
             </View>
             <Text

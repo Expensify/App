@@ -88,7 +88,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                 styles.sectionMenuItem(shouldUseNarrowLayout),
                 styles.searchTypeMenuItemPadding,
                 focused ? StyleUtils.getBackgroundColorStyle(theme.navItemSelectedBG) : undefined,
-                hovered && !focused ? StyleUtils.getBackgroundColorStyle(theme.navItemHoverBG) : undefined,
+                hovered && !focused ? styles.hoveredComponentBG : undefined,
                 pressed ? {opacity: variables.pressDimValue} : undefined,
             ]}
         >

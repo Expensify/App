@@ -900,23 +900,16 @@ function MenuItem({
                                             ),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
-                                        role !== CONST.ROLE.TAB &&
-                                            isHovered &&
+                                        // Nav rows (role=tab) hold the hover color through a press (dimmed via opacity); other rows drop it on press
+                                        isHovered &&
                                             interactive &&
                                             !focused &&
-                                            !pressed &&
                                             !shouldRemoveBackground &&
                                             !shouldRemoveHoverBackground &&
+                                            (role === CONST.ROLE.TAB || !pressed) &&
                                             styles.hoveredComponentBG,
-                                        // Nav rows (role=tab) use the lighter product200/product300 hover/selected colors, held through a press
+                                        // Nav rows (role=tab) use the product300 selected color, held through a press
                                         role === CONST.ROLE.TAB && focused && !shouldRemoveBackground && StyleUtils.getBackgroundColorStyle(theme.navItemSelectedBG),
-                                        role === CONST.ROLE.TAB &&
-                                            isHovered &&
-                                            interactive &&
-                                            !focused &&
-                                            !shouldRemoveBackground &&
-                                            !shouldRemoveHoverBackground &&
-                                            StyleUtils.getBackgroundColorStyle(theme.navItemHoverBG),
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}

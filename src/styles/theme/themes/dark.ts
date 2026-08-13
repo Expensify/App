@@ -55,7 +55,6 @@ const darkTheme = {
     hoverComponentBG: 'rgba(10, 46, 37, 0.6)',
     messageHighlightBG: colors.messageHighlightDark,
     activeComponentBG: colors.productDark400,
-    navItemHoverBG: 'rgba(10, 46, 37, 0.6)',
     navItemSelectedBG: colors.productDark300,
     signInSidebar: colors.green800,
     sidebar: colors.productDark100,
