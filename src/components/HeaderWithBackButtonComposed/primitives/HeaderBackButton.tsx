@@ -42,7 +42,8 @@ function HeaderBackButton({onPress = () => Navigation.goBack(), iconFill, should
                     }
                     onPress();
                 }}
-                style={[styles.touchableButtonImage]}
+                // Header makes the space for this button with the padding, so we need to add negative margin to fill the space
+                style={[styles.touchableButtonImage, styles.mln3]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('common.back')}
                 id={CONST.BACK_BUTTON_NATIVE_ID}

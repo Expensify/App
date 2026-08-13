@@ -23,6 +23,7 @@ import HeaderRotateButton from './primitives/HeaderRotateButton';
 import HeaderSearchRouter from './primitives/HeaderSearchRouter';
 import HeaderThreeDotsMenu from './primitives/HeaderThreeDotsMenu';
 import HeaderTitle from './primitives/HeaderTitle';
+import useHeaderStyles from './styles';
 
 function HeaderWithBackButton({
     icon,
@@ -76,6 +77,7 @@ function HeaderWithBackButton({
 
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
+    const {containerStyle, innerRowStyle, rightZoneStyle} = useHeaderStyles({shouldUseHeadlineHeader, shouldShowBorderBottom, style});
 
     const threeDotMenuTooltipsSection = (
         <>
@@ -107,10 +109,10 @@ function HeaderWithBackButton({
 
     return (
         <View
-            style={[styles.headerBar, shouldUseHeadlineHeader && styles.headerBarHeight, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && [styles.pl2], style]}
+            style={containerStyle}
             onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
         >
-            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>
+            <View style={innerRowStyle}>
                 {shouldShowBackButton && (
                     <HeaderBackButton
                         onPress={onBackButtonPress}
@@ -147,7 +149,7 @@ function HeaderWithBackButton({
                         {title}
                     </HeaderTitle>
                 )}
-                <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
+                <View style={rightZoneStyle}>
                     <View style={[styles.pr2, styles.flexRow, styles.alignItemsCenter]}>
                         {children}
                         {shouldShowDownloadButton && (
