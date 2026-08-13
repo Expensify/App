@@ -39,6 +39,7 @@ import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
 
 import {isNavigationIntentOnlyQuery, matchesNavigationQuery, stripNavigationIntentPrefix} from './SearchRouterHelpers';
 
+/** Input used to build a Create action navigation suggestion. */
 type CreateNavigationItem = {
     visible: boolean;
     text: string;
