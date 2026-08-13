@@ -2,6 +2,9 @@ import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Chart
 import {CHART_SKIA_TYPEFACE_ASSETS} from '@components/Charts/utils/chartFontAssets';
 import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
 
+// eslint-disable-next-line no-restricted-imports
+import singleFontFamily from '@styles/utils/FontUtils/fontFamily/singleFontFamily';
+
 import type {SkTypeface} from '@shopify/react-native-skia';
 
 const CHART_SKIA_TYPEFACE_KEYS = Object.keys(CHART_SKIA_TYPEFACE_ASSETS) as ChartSkiaTypefaceKey[];
@@ -48,14 +51,14 @@ describe('getChartSkiaTypeface', () => {
 
     it('should resolve Expensify New Kansas by font family', () => {
         const typeface = getChartSkiaTypeface(typefaces, {
-            fontFamily: 'Expensify New Kansas',
+            fontFamily: singleFontFamily.EXP_NEW_KANSAS_MEDIUM.fontFamily,
         });
         expect(typeface).toBe(typefaces.EXP_NEW_KANSAS_MEDIUM);
     });
 
     it('should resolve italic Expensify Neue bold to the bold italic typeface', () => {
         const typeface = getChartSkiaTypeface(typefaces, {
-            fontFamily: 'Expensify Neue',
+            fontFamily: singleFontFamily.EXP_NEUE.fontFamily,
             fontStyle: 'italic',
             fontWeight: 'bold',
         });
@@ -82,7 +85,7 @@ describe('getChartSkiaTypeface', () => {
         };
 
         const typeface = getChartSkiaTypeface(partialTypefaces, {
-            fontFamily: 'Expensify New Kansas',
+            fontFamily: singleFontFamily.EXP_NEW_KANSAS_MEDIUM.fontFamily,
         });
         expect(typeface).toBe(partialTypefaces.EXP_NEUE);
     });
@@ -103,7 +106,7 @@ describe('getChartSkiaTypeface', () => {
             EXP_NEW_KANSAS_MEDIUM: makeTypefaceWithGlyphCoverage('EXP_NEW_KANSAS_MEDIUM', '₫'),
         };
 
-        const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: 'Expensify New Kansas'}, '$59');
+        const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: singleFontFamily.EXP_NEW_KANSAS_MEDIUM.fontFamily}, '$59');
         expect(typeface).toBe(glyphAwareTypefaces.EXP_NEW_KANSAS_MEDIUM);
     });
 
@@ -114,7 +117,7 @@ describe('getChartSkiaTypeface', () => {
             EXP_NEUE_BOLD: makeTypefaceWithGlyphCoverage('EXP_NEUE_BOLD', ''),
         };
 
-        const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: 'Expensify New Kansas'}, '₫59');
+        const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: singleFontFamily.EXP_NEW_KANSAS_MEDIUM.fontFamily}, '₫59');
         expect(typeface).toBe(glyphAwareTypefaces.EXP_NEUE_BOLD);
     });
 
@@ -125,7 +128,7 @@ describe('getChartSkiaTypeface', () => {
             EXP_NEUE_BOLD_ITALIC: makeTypefaceWithGlyphCoverage('EXP_NEUE_BOLD_ITALIC', ''),
         };
 
-        const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: 'Expensify New Kansas', fontStyle: 'italic'}, '₫59');
+        const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: singleFontFamily.EXP_NEW_KANSAS_MEDIUM.fontFamily, fontStyle: 'italic'}, '₫59');
         expect(typeface).toBe(glyphAwareTypefaces.EXP_NEUE_BOLD_ITALIC);
     });
 
@@ -135,7 +138,7 @@ describe('getChartSkiaTypeface', () => {
             EXP_NEW_KANSAS_MEDIUM: makeTypefaceWithGlyphCoverage('EXP_NEW_KANSAS_MEDIUM', '₫'),
         };
 
-        const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: 'Expensify New Kansas'}, 'Total\n$59');
+        const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: singleFontFamily.EXP_NEW_KANSAS_MEDIUM.fontFamily}, 'Total\n$59');
         expect(typeface).toBe(glyphAwareTypefaces.EXP_NEW_KANSAS_MEDIUM);
     });
 });
