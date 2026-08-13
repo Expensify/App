@@ -3,7 +3,6 @@ import {handleRHPVariantNavigation, shouldOpenRHPVariant} from '@components/Side
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type {OnboardingRHPVariant, ReportNameValuePairs} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -140,24 +139,18 @@ function navigateAfterOnboardingWithMicrotaskQueue(
 }
 
 /**
- * After creating or joining a Submit workspace during onboarding,
- * navigate to Workspace > Categories with the side panel open so
- * the #admins room is visible in Concierge Anywhere.
+ * After creating or joining a Submit workspace during onboarding, navigate Home with
+ * the side panel open so the #admins room is visible in Concierge Anywhere.
  */
 function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNarrowLayout = false) {
     setDisableDismissOnEscape(false);
+    Navigation.navigate(ROUTES.HOME);
 
     if (!policyID) {
-        Navigation.navigate(ROUTES.HOME);
         return;
     }
 
     setOnboardingRHPVariant(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
-
-    const categoriesRoute = ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID);
-    const backToRoute = shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACES_LIST.route;
-    Navigation.navigate(`${categoriesRoute}?backTo=${encodeURIComponent(backToRoute)}` as Route);
-
     SidePanelActions.openSidePanel(!shouldUseNarrowLayout);
 }
 
