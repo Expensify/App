@@ -5,19 +5,15 @@ import {bulkDuplicateReports} from '@libs/actions/IOU/Duplicate';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
-
-import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDelegateAccountID from './useDelegateAccountID';
 import useLocalize from './useLocalize';
-import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
 type UseBulkDuplicateReportActionParams = {
@@ -36,18 +32,6 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-
     const handleDuplicateReports = () => {
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
 
@@ -56,24 +40,13 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
             selectedReports,
             allReports: allReports ?? {},
             searchData,
-            allPolicies,
-            allPolicyCategories,
-            allPolicyTags,
             defaultExpensePolicy,
             activePolicyExpenseChat,
             ownerPersonalDetails: currentUserPersonalDetails,
             isASAPSubmitBetaEnabled,
-            betas,
-            personalDetails,
-            quickAction,
-            policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-            isSelfTourViewed,
-            transactionViolations: allTransactionViolations,
             translate,
-            recentWaypoints,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails?.accountID,
-            isTrackIntentUser,
             delegateAccountID,
             formatPhoneNumber,
             getCurrencyDecimals,

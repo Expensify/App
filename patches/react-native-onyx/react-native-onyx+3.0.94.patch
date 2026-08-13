@@ -26,7 +26,7 @@ index e8da12e..44e8443 100644
      set: typeof set;
      multiSet: typeof multiSet;
 diff --git a/node_modules/react-native-onyx/dist/Onyx.js b/node_modules/react-native-onyx/dist/Onyx.js
-index ee33551..72360cb 100644
+index ee33551..a875c1d 100644
 --- a/node_modules/react-native-onyx/dist/Onyx.js
 +++ b/node_modules/react-native-onyx/dist/Onyx.js
 @@ -209,11 +209,14 @@ function merge(key, changes) {
@@ -223,16 +223,22 @@ index ee33551..72360cb 100644
          }
          for (const [key, operations] of Object.entries(updateQueue)) {
              if (operations[0] === null) {
-@@ -520,10 +530,18 @@ function update(data) {
+@@ -520,10 +530,24 @@ function update(data) {
  function setCollection(collectionKey, collection) {
      return OnyxUtils_1.default.afterInit(() => OnyxUtils_1.default.setCollectionWithRetry({ collectionKey, collection }));
  }
 +/**
 + * Reads a value out of the Onyx cache synchronously. Returns undefined for a key that has no value,
 + * and also for any key at all before init() has hydrated the cache from storage.
++ *
++ * Delegates to tryGetCachedValue rather than to OnyxUtils.get because that is the reader whose contract
++ * already covers both shapes of key: a single key reads its entry, a collection key reads every member.
++ * OnyxUtils.get reads the collection prefix as an ordinary key and hands back undefined, which contradicts
++ * the OnyxValue<TKey> return type declared here. Nothing inside Onyx changes for this; the typing that
++ * tryGetCachedValue discards on its own signature is restored here instead of at every call site.
 + */
 +function get(key) {
-+    return OnyxUtils_1.default.get(key);
++    return OnyxUtils_1.default.tryGetCachedValue(key);
 +}
  const Onyx = {
      METHOD: OnyxUtils_1.default.METHOD,

@@ -3375,33 +3375,32 @@ describe('actions/Duplicate', () => {
             })),
             allReports: {},
             searchData: undefined,
-            allPolicies: createMock<BulkDuplicateReportsParams['allPolicies']>({
-                [`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`]: sourcePolicy,
-                [`${ONYXKEYS.COLLECTION.POLICY}${DEFAULT_POLICY_ID}`]: defaultPolicy,
-                [`${ONYXKEYS.COLLECTION.POLICY}${OTHER_POLICY_ID}`]: inaccessiblePolicy,
-            }),
-            allPolicyCategories: {},
-            allPolicyTags: {},
             defaultExpensePolicy: defaultPolicy,
             activePolicyExpenseChat,
             ownerPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Rory'},
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
             isASAPSubmitBetaEnabled: false,
-            betas: [CONST.BETAS.ALL],
-            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Rory'}},
-            quickAction: undefined,
-            policyRecentlyUsedCurrencies: [],
-            isSelfTourViewed: false,
-            transactionViolations: {},
             translate: mockTranslate,
-            recentWaypoints: [],
             delegateAccountID: undefined,
-            isTrackIntentUser: false,
             formatPhoneNumber,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             ...overrides,
         });
+
+        /**
+         * The values `bulkDuplicateReports` used to receive as parameters now come from its own reads, so the
+         * fixture has to put them in Onyx. The keys left unseeded are the ones the old fixture passed as empty
+         * or undefined anyway: categories, tags, violations, waypoints, quick action, recently used currencies,
+         * onboarding and intro-selected all read as empty from a cleared store.
+         */
+        const seedOnyxForBulkParams = async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`, sourcePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${DEFAULT_POLICY_ID}`, defaultPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${OTHER_POLICY_ID}`, inaccessiblePolicy);
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.ALL]);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Rory'}});
+        };
 
         const countWriteCommandCalls = (command: string) => writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === command).length;
 
@@ -3423,6 +3422,7 @@ describe('actions/Duplicate', () => {
             });
             await Onyx.clear();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`, activePolicyExpenseChat);
+            await seedOnyxForBulkParams();
             await waitForBatchedUpdates();
         });
 
@@ -3507,15 +3507,11 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(
-                getDefaultBulkParams(['rpt1', 'rpt2'], {
-                    allReports,
-                    allPolicyCategories: {
-                        [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${SOURCE_POLICY_ID}`]: sourceCategories,
-                        [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${DEFAULT_POLICY_ID}`]: defaultCategories,
-                    },
-                }),
-            );
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${SOURCE_POLICY_ID}`, sourceCategories);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${DEFAULT_POLICY_ID}`, defaultCategories);
+            await waitForBatchedUpdates();
+
+            bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'rpt2'], {allReports}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(2);
@@ -3754,14 +3750,10 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(
-                getDefaultBulkParams(['rpt1', 'rpt2'], {
-                    allReports,
-                    allPolicyTags: {
-                        [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${SOURCE_POLICY_ID}`]: sourceTags,
-                    },
-                }),
-            );
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${SOURCE_POLICY_ID}`, sourceTags);
+            await waitForBatchedUpdates();
+
+            bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'rpt2'], {allReports}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(2);
