@@ -591,9 +591,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
 
         return selectedItems.every((item) => {
-            // Expense rows don't have a policyID, as it's derived from the report they belong to, same as the other report-derived fields on this selection entry.
-            const policyID = item.policyID ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`]?.policyID;
-            return !!policyID && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.outputCurrency === CONST.CURRENCY.CAD;
+            // Expense rows don't have a policyID, as it's derived from the report they belong to, same as the other report-derived
+            // fields on this selection entry. A selection entry built from a search row carries that row's report, which is the
+            // only copy available when the report is in the search snapshot but not in live Onyx, so prefer it over the Onyx lookup.
+            const report = ('report' in item ? item.report : undefined) ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
+            const policyID = item.policyID ?? report?.policyID;
+            if (!policyID) {
+                return false;
+            }
+
+            // Archiving a workspace removes its policy from Onyx, so its output currency is no longer readable. An expense
+            // report's currency is the workspace's output currency, so we can keep currency-specific templates available after archiving.
+            return (policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.outputCurrency ?? report?.currency) === CONST.CURRENCY.CAD;
         });
     }, [areAllMatchingItemsSelected, allReports, queryJSON, selectedReports, selectedTransactions, policies]);
 
