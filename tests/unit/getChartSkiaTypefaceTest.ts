@@ -10,6 +10,14 @@ function makeTypefaces(): ChartDefaultTypeface {
     return Object.fromEntries(CHART_SKIA_TYPEFACE_KEYS.map((key) => [key, {id: key} as unknown as SkTypeface])) as ChartDefaultTypeface;
 }
 
+/** Simulates a typeface whose glyph coverage excludes every character in `unsupportedChars`. */
+function makeTypefaceWithGlyphCoverage(key: ChartSkiaTypefaceKey, unsupportedChars: string): SkTypeface {
+    return {
+        id: key,
+        getGlyphIDs: (text: string) => [...text].map((char) => (unsupportedChars.includes(char) ? 0 : 1)),
+    } as unknown as SkTypeface;
+}
+
 describe('getChartSkiaTypeface', () => {
     const typefaces = makeTypefaces();
 
@@ -87,5 +95,47 @@ describe('getChartSkiaTypeface', () => {
 
         const typeface = getChartSkiaTypeface(emptyTypefaces, {fontWeight: 700});
         expect(typeface).toBeNull();
+    });
+
+    it('should keep the resolved typeface when it can render the given text', () => {
+        const glyphAwareTypefaces = {
+            ...typefaces,
+            EXP_NEW_KANSAS_MEDIUM: makeTypefaceWithGlyphCoverage('EXP_NEW_KANSAS_MEDIUM', '₫'),
+        };
+
+        const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: 'Expensify New Kansas'}, '$59');
+        expect(typeface).toBe(glyphAwareTypefaces.EXP_NEW_KANSAS_MEDIUM);
+    });
+
+    it('should fall back to EXP_NEUE_BOLD when Expensify New Kansas cannot render the given text', () => {
+        const glyphAwareTypefaces = {
+            ...typefaces,
+            EXP_NEW_KANSAS_MEDIUM: makeTypefaceWithGlyphCoverage('EXP_NEW_KANSAS_MEDIUM', '₫'),
+            EXP_NEUE_BOLD: makeTypefaceWithGlyphCoverage('EXP_NEUE_BOLD', ''),
+        };
+
+        const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: 'Expensify New Kansas'}, '₫59');
+        expect(typeface).toBe(glyphAwareTypefaces.EXP_NEUE_BOLD);
+    });
+
+    it('should fall back to EXP_NEUE_BOLD_ITALIC when italic Expensify New Kansas cannot render the given text', () => {
+        const glyphAwareTypefaces = {
+            ...typefaces,
+            EXP_NEW_KANSAS_MEDIUM_ITALIC: makeTypefaceWithGlyphCoverage('EXP_NEW_KANSAS_MEDIUM_ITALIC', '₫'),
+            EXP_NEUE_BOLD_ITALIC: makeTypefaceWithGlyphCoverage('EXP_NEUE_BOLD_ITALIC', ''),
+        };
+
+        const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: 'Expensify New Kansas', fontStyle: 'italic'}, '₫59');
+        expect(typeface).toBe(glyphAwareTypefaces.EXP_NEUE_BOLD_ITALIC);
+    });
+
+    it('should ignore newlines when checking glyph coverage', () => {
+        const glyphAwareTypefaces = {
+            ...typefaces,
+            EXP_NEW_KANSAS_MEDIUM: makeTypefaceWithGlyphCoverage('EXP_NEW_KANSAS_MEDIUM', '₫'),
+        };
+
+        const typeface = getChartSkiaTypeface(glyphAwareTypefaces, {fontFamily: 'Expensify New Kansas'}, 'Total\n$59');
+        expect(typeface).toBe(glyphAwareTypefaces.EXP_NEW_KANSAS_MEDIUM);
     });
 });

@@ -45,6 +45,39 @@ function getChartSkiaTypefaceKey(fontFamily: string | undefined, fontStyle: Char
     return matchingKey ?? 'EXP_NEUE';
 }
 
+/** Ignores control characters (e.g. the `\n` line separators callers split on) that legitimately have no glyph. */
+function typefaceCanRenderText(typeface: SkTypeface, text: string): boolean {
+    for (const char of text) {
+        if (char.codePointAt(0) === undefined || (char.codePointAt(0) ?? 0) < 0x20) {
+            continue;
+        }
+
+        if (typeface.getGlyphIDs(char).every((glyphID) => glyphID === 0)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Some brand fonts (e.g. Expensify New Kansas) only cover Latin script and don't include rarer
+ * currency symbols (e.g. the Vietnamese dong sign). Unlike CSS, Skia's `Font`/`SkText` draw with a
+ * single typeface and never fall back to another font for a glyph it's missing, so an unsupported
+ * character renders as a tofu box instead of substituting.
+ */
+function getGlyphFallbackKey(typefaceKey: ChartSkiaTypefaceKey): ChartSkiaTypefaceKey {
+    if (typefaceKey === 'EXP_NEW_KANSAS_MEDIUM_ITALIC') {
+        return 'EXP_NEUE_BOLD_ITALIC';
+    }
+
+    if (typefaceKey === 'EXP_NEW_KANSAS_MEDIUM') {
+        return 'EXP_NEUE_BOLD';
+    }
+
+    return 'EXP_NEUE';
+}
+
 function getFirstAvailableTypeface(typefaces: ChartDefaultTypeface): SkTypeface | null {
     for (const typeface of Object.values(typefaces)) {
         if (typeface) {
@@ -94,9 +127,21 @@ function getChartSkiaTypeface(
         fontStyle?: string;
         fontWeight?: string | number;
     },
+    /** When provided, swaps to a typeface with broader glyph coverage if the resolved one can't render this text. */
+    text?: string,
 ): SkTypeface | null {
     const typefaceKey = getChartSkiaTypefaceKey(fontFamily, normalizeFontStyle(fontStyle), normalizeChartFontWeight(fontWeight));
-    return resolveTypefaceWithFallbacks(typefaces, typefaceKey);
+    const resolvedTypeface = resolveTypefaceWithFallbacks(typefaces, typefaceKey);
+
+    if (resolvedTypeface && text && !typefaceCanRenderText(resolvedTypeface, text)) {
+        const fallbackTypeface = resolveTypefaceWithFallbacks(typefaces, getGlyphFallbackKey(typefaceKey));
+
+        if (fallbackTypeface) {
+            return fallbackTypeface;
+        }
+    }
+
+    return resolvedTypeface;
 }
 
 export default getChartSkiaTypeface;
