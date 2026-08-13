@@ -155,7 +155,8 @@ function findCoordinateAtRouteFraction(lineCoordinates: Coordinate[], fraction: 
             break;
         }
 
-        totalLength += haversineDistance(startPoint, endPoint);
+        // map Coordinates are [long, lat], but haversineDistance treats [0] as latitude and [1] as longitude
+        totalLength += haversineDistance([startPoint[1], startPoint[0]], [endPoint[1], endPoint[0]]);
     }
 
     const targetLength = totalLength * fraction;
@@ -169,7 +170,7 @@ function findCoordinateAtRouteFraction(lineCoordinates: Coordinate[], fraction: 
             break;
         }
 
-        const segmentLength = haversineDistance(startPoint, endPoint);
+        const segmentLength = haversineDistance([startPoint[1], startPoint[0]], [endPoint[1], endPoint[0]]);
 
         if (walkedLength + segmentLength >= targetLength) {
             return simpleInterpolateCoordinate(startPoint, endPoint, segmentLength > 0 ? (targetLength - walkedLength) / segmentLength : 0);
