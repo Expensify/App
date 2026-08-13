@@ -514,8 +514,8 @@ function prepareRejectMoneyRequestData({
             });
 
             reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, getCurrencyDecimals, undefined, transaction, undefined, undefined, delegateAccountID);
-            // Skip creating system messages when moving to a Draft report
-            // New expense reports created for rejected expenses are always Draft reports (open status)
+            // The reject action posted below already tells the user this expense left the report,
+            // so a MOVED_TRANSACTION action in the same thread would repeat it
             createdIOUReportActionID = iouAction.reportActionID;
             expenseCreatedReportActionID = createdActionForExpenseReport.reportActionID;
             newExpenseReport.parentReportActionID = reportPreviewAction.reportActionID;
