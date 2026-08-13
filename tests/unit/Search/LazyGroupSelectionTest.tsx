@@ -52,6 +52,30 @@ const threeLoadedChildren = [...loadedChildren, buildChild(5, '5')];
 /** The same group as the server sees it: five rows in total, of which only the first page has loaded. */
 const partiallyLoadedGroup = {...categoryGroup, count: 5};
 
+/** The same group after its sub-snapshot was cached, so it carries its first page of rows while the rest are still unloaded. */
+const cachedPartialGroup = {...categoryGroup, count: 5, transactions: loadedChildren};
+
+function CachedPartialWrapper({children}: {children: React.ReactNode}) {
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={[cachedPartialGroup]}
+                renderedData={[cachedPartialGroup]}
+                totalSelectableItemsCount={5}
+                searchResults={undefined}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                areItemsGrouped
+                isExpenseReportType={false}
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
+
 const EARLIER_GROUP_KEY = 'Office';
 
 /** A group rendered above `categoryGroup`, used to prove a range does not start from the top of the list. */
@@ -872,6 +896,26 @@ describe('Lazily loaded group selection', () => {
         // Then its rows are recorded as excluded, rather than the click reading the group as unselected and selecting it again
         expect(result.current.excludedTransactions[firstChild.keyForList]).toBeDefined();
         expect(result.current.excludedTransactions[secondChild.keyForList]).toBeDefined();
+    });
+
+    it('excludes a whole group whose rows are only partly loaded, rather than the page it happens to hold', async () => {
+        const {result} = renderSelection(CachedPartialWrapper);
+
+        // Given every matching item selected, and a group of five carrying only the two rows its cached snapshot held
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When its header is unchecked
+        await act(async () => {
+            result.current.toggle(cachedPartialGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the group itself is excluded, so the three rows that never loaded leave the selection with the two that did
+        expect(result.current.excludedTransactions[GROUP_KEY]).toBeDefined();
     });
 
     it('records what a narrowing dropped, so keeping select-all-matching on cannot silently re-include it', async () => {

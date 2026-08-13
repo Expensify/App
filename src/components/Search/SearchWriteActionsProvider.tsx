@@ -854,6 +854,12 @@ function SearchWriteActionsProvider({
             for (const child of groupTransactions) {
                 Object.assign(groupExclusions, buildExclusionForCheckedRowWithoutEntry(child));
             }
+            // Naming only the rows it happens to hold would leave the rest of the group selected, so a group that is not all here is excluded whole.
+            const loadedCount = isTransactionGroupListItemType(item) && 'count' in item && typeof item.count === 'number' ? item.count : undefined;
+            if (canRecordExclusions && areAllMatchingItemsSelected && isTransactionGroupListItemType(item) && loadedCount !== undefined && groupTransactions.length < loadedCount) {
+                const [groupKey, groupEntry] = mapEmptyReportToSelectedEntry(item);
+                groupExclusions[groupKey] = groupEntry;
+            }
         }
 
         applySelection(
