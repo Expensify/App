@@ -7,12 +7,13 @@ import type {OnyxKey} from 'react-native-onyx';
 import type Middleware from './Middleware/types';
 
 import {getCurrentFlushPromise} from './actions/QueuedOnyxUpdates';
-import APP_STARTUP_NETWORK_REQUEST from './AppStartupNetworkRequest';
+import {isStartupNetworkRequest} from './AppStartupNetworkRequest';
 import HttpUtils from './HttpUtils';
 import Log from './Log';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
-import {cancelSpan, endSpan, startSpan} from './telemetry/activeSpans';
+import {cancelSpan, endSpan} from './telemetry/activeSpans';
+import startStartupPhaseSpan, {getStartupPhaseSpanId} from './telemetry/startStartupPhaseSpan';
 import trackStartupDataRender from './telemetry/trackStartupDataRender';
 
 let middlewares: Middleware[] = [];
@@ -33,10 +34,9 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
     let result = makeXHR(request);
 
     // The splash-based startup spans measure nothing for flows that never show a splash (magic code, copilot, supportal).
-    const shouldMeasureResponseApply = APP_STARTUP_NETWORK_REQUEST.has(request.command);
-    // Reauthentication re-enters this function for the same request, so the span id has to be per-attempt or the retry cancels the attempt before it.
+    const shouldMeasureResponseApply = isStartupNetworkRequest(request.command);
     const attempt = shouldMeasureResponseApply ? (responseApplyAttempt += 1) : 0;
-    const applySpanId = `${CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY}_${attempt}`;
+    const applySpanId = getStartupPhaseSpanId(CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY, attempt);
     if (shouldMeasureResponseApply) {
         latestApplyAttemptByRequest.set(request, attempt);
         result = result.then((response) => {
@@ -45,12 +45,7 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
                 return response;
             }
 
-            startSpan(applySpanId, {
-                name: CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY,
-                op: CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY,
-                forceTransaction: true,
-                attributes: {[CONST.TELEMETRY.ATTRIBUTE_COMMAND]: request.command, [CONST.TELEMETRY.ATTRIBUTE_ATTEMPT]: attempt},
-            });
+            startStartupPhaseSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY, attempt, request.command);
             return response;
         });
     }

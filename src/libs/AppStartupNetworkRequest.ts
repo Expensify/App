@@ -7,4 +7,9 @@ import {WRITE_COMMANDS} from './API/types';
  */
 const APP_STARTUP_NETWORK_REQUEST = new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP]);
 
+function isStartupNetworkRequest(command?: string): boolean {
+    return !!command && APP_STARTUP_NETWORK_REQUEST.has(command);
+}
+
 export default APP_STARTUP_NETWORK_REQUEST;
+export {isStartupNetworkRequest};
