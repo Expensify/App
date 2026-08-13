@@ -1,5 +1,4 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import {useHeaderContext} from '@components/HeaderWithBackButtonComposed/context';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip';
@@ -19,14 +18,16 @@ type HeaderRotateButtonProps = {
 
     /** Whether we should show a loading indicator replacing the rotate button. */
     isLoading?: boolean;
+
+    /** Optional fill color for the icon. */
+    iconFill?: string;
 };
 
-function HeaderRotateButton({onPress = () => {}, isLoading = false}: HeaderRotateButtonProps) {
+function HeaderRotateButton({onPress = () => {}, isLoading = false, iconFill}: HeaderRotateButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Rotate']);
-    const {iconFill} = useHeaderContext();
 
     if (isLoading) {
         return <ActivityIndicator style={[styles.touchableButtonImage]} />;
