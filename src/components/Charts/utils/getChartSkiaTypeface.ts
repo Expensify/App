@@ -45,8 +45,7 @@ function getChartSkiaTypefaceKey(fontFamily: string | undefined, fontStyle: Char
     return matchingKey ?? 'EXP_NEUE';
 }
 
-/** Ignores control characters (e.g. the `\n` line separators callers split on) that legitimately have no glyph. */
-function typefaceCanRenderText(typeface: SkTypeface, text: string): boolean {
+function canTypefaceRenderText(typeface: SkTypeface, text: string): boolean {
     for (const char of text) {
         if (char.codePointAt(0) === undefined || (char.codePointAt(0) ?? 0) < 0x20) {
             continue;
@@ -64,7 +63,7 @@ function typefaceCanRenderText(typeface: SkTypeface, text: string): boolean {
  * Some brand fonts (e.g. Expensify New Kansas) only cover Latin script and don't include rarer
  * currency symbols (e.g. the Vietnamese dong sign). Unlike CSS, Skia's `Font`/`SkText` draw with a
  * single typeface and never fall back to another font for a glyph it's missing, so an unsupported
- * character renders as a tofu box instead of substituting.
+ * character renders incorrectly.
  */
 function getGlyphFallbackKey(typefaceKey: ChartSkiaTypefaceKey): ChartSkiaTypefaceKey {
     if (typefaceKey === 'EXP_NEW_KANSAS_MEDIUM_ITALIC') {
@@ -133,7 +132,7 @@ function getChartSkiaTypeface(
     const typefaceKey = getChartSkiaTypefaceKey(fontFamily, normalizeFontStyle(fontStyle), normalizeChartFontWeight(fontWeight));
     const resolvedTypeface = resolveTypefaceWithFallbacks(typefaces, typefaceKey);
 
-    if (resolvedTypeface && text && !typefaceCanRenderText(resolvedTypeface, text)) {
+    if (resolvedTypeface && text && !canTypefaceRenderText(resolvedTypeface, text)) {
         const fallbackTypeface = resolveTypefaceWithFallbacks(typefaces, getGlyphFallbackKey(typefaceKey));
 
         if (fallbackTypeface) {
