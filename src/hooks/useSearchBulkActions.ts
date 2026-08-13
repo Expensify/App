@@ -591,10 +591,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
 
         return selectedItems.every((item) => {
-            const policyID = item.policyID ?? getReportFromSearchSnapshot(item.reportID, currentSearchResults?.data, allReports)?.policyID;
+            // Expense rows never carry a policyID, so a selection built from them has none either. The report the row belongs
+            // to is what holds it, which is also how the neighbouring fields on those selection entries are derived.
+            const policyID = item.policyID ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`]?.policyID;
             return !!policyID && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.outputCurrency === CONST.CURRENCY.CAD;
         });
-    }, [areAllMatchingItemsSelected, currentSearchResults?.data, allReports, queryJSON, selectedReports, selectedTransactions, policies]);
+    }, [areAllMatchingItemsSelected, allReports, queryJSON, selectedReports, selectedTransactions, policies]);
 
     const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, selectedReports, selectedTransactions, selectedBulkCurrency);
