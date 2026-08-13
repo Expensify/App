@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import {AccountIDToNameMapContextProvider, useAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
@@ -27,7 +27,7 @@ function buildList(entries: Array<[number, PersonalDetails | null]>): PersonalDe
 }
 
 const renderAccountIDToNameMap = async () => {
-    const hook = renderHook(() => useAccountIDToNameMap(), {wrapper: AccountIDToNameMapContextProvider});
+    const hook = renderHook(() => useAccountIDToNameMap());
     await act(async () => {
         await waitForBatchedUpdates();
     });
