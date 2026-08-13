@@ -547,8 +547,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             >
                 <HeaderWithBackButton
                     title={policyName}
+                    shouldUseHeadlineHeader
+                    titleStyles={styles.noWrap}
                     onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)}
                     policyAvatar={policyAvatar}
+                    policyAvatarSize={CONST.AVATAR_SIZE.SMALL}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />
 

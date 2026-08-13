@@ -293,7 +293,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
-                    icon={illustrations.Gears}
                     shouldUseHeadlineHeader
                     title={translate('workspace.common.moreFeatures')}
                     shouldShowBackButton={shouldUseNarrowLayout}

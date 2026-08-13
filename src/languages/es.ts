@@ -1716,6 +1716,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 bulkSubtitle: 'Elige un aprobador adicional para estos informes antes de que los enviemos por el resto del flujo de aprobación.',
             },
             bulkSubtitle: 'Elige una opción para cambiar el aprobador de estos informes.',
+            delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
+                `Este informe se envió a <mention-user>@${originalManager}</mention-user> en lugar de a ti (su sustituto de vacaciones) porque no eres miembro de la política de este informe`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
+                `Este informe se te envió a ti en lugar de a tu sustituto de vacaciones <mention-user>@${delegate}</mention-user> porque no es miembro de la política de este informe`,
+            delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
+                `Este informe se envió a <mention-user>@${originalManager}</mention-user> en lugar de a su delegado de vacaciones <mention-user>@${delegate}</mention-user> porque no es miembro de la política de este informe`,
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `Este informe se envió a <mention-user>@${originalManager}</mention-user> para su aprobación, ya que no puedes aprobar tus propios informes`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
+                `Este informe se te envió para su aprobación porque tu delegado de vacaciones, <mention-user>@${delegate}</mention-user>, no puede aprobar sus propios informes`,
+            delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
+                `Este informe se envió a <mention-user>@${originalManager}</mention-user> para su aprobación ya que su delegado de vacaciones, <mention-user>@${delegate}</mention-user>, no puede aprobar sus propios informes`,
         },
         chooseWorkspace: 'Elige un espacio de trabajo',
         routedDueToDEW: (to: string, reason?: string) => `informe enviado a ${to}${reason ? ` porque ${reason}` : ''}`,
