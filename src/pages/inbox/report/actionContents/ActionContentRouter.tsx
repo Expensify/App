@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getChangedApproverActionMessage,
     getCommuterExclusionMessage,
@@ -51,6 +52,7 @@ import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBa
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {policyRoleSelector} from '@src/selectors/Policy';
 import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -160,6 +162,7 @@ function ActionContentRouter({
     const styles = useThemeStyles();
 
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {selector: getStableReportSelector});
+    const [policyRole] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`, {selector: policyRoleSelector});
 
     // Report that owns this action for mutations (thread / merged-list cases use originalReport). This is a stable projection (heartbeat fields stripped).
     const actionOwnerReportStable = originalReport ?? report;
@@ -479,9 +482,11 @@ function ActionContentRouter({
         );
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION)) {
+        // Only admins can open the workspace distance settings, so members get plain text instead of a link.
+        const distanceSettingsPolicyID = policyRole === CONST.POLICY.ROLE.ADMIN ? policyID : undefined;
         return (
             <ReportActionItemBasicMessage>
-                <RenderHTML html={`<comment><muted-text>${getCommuterExclusionMessage(translate, action, report?.policyID)}</muted-text></comment>`} />
+                <RenderHTML html={`<comment><muted-text>${getCommuterExclusionMessage(translate, action, distanceSettingsPolicyID)}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
     }
