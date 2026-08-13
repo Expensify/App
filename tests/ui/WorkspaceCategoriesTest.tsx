@@ -24,6 +24,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -38,7 +39,7 @@ jest.mock('@components/Modal/ReanimatedModal', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {useEffect, useRef}: {useEffect: typeof React.useEffect; useRef: typeof React.useRef} = require('react');
 
-    return function MockReanimatedModal({isVisible, onModalHide, children}: {isVisible: boolean; onModalHide?: () => void; children: React.ReactNode}) {
+    function MockReanimatedModal({isVisible, onModalHide, children}: {isVisible: boolean; onModalHide?: () => void; children: React.ReactNode}) {
         const wasVisible = useRef<boolean>(isVisible);
 
         useEffect(() => {
@@ -52,8 +53,10 @@ jest.mock('@components/Modal/ReanimatedModal', () => {
             return null;
         }
 
-        return children as React.ReactElement;
-    };
+        return children;
+    }
+
+    return MockReanimatedModal;
 });
 
 TestHelper.setupGlobalFetchMock();
@@ -95,10 +98,12 @@ describe('WorkspaceCategories', () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
         });
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: false,
-            shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+            createMock<ResponsiveLayoutResult>({
+                isSmallScreenWidth: false,
+                shouldUseNarrowLayout: false,
+            }),
+        );
     });
 
     afterEach(async () => {
