@@ -175,7 +175,7 @@ function AuthScreensInitHandler() {
                     introSelected,
                     betas,
                     hasReportActions: false,
-                    currentUserAccountID: session?.accountID,
+                    currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                     hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                 });

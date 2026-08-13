@@ -202,6 +202,19 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(policy?.employeeList).toEqual(targetPolicy.employeeList);
             });
 
+            it('copies showTagGLCodes with rules so tag pickers match the source workspace', () => {
+                const sourcePolicy = makeSourcePolicy({glCodes: true, showTagGLCodes: true});
+                const targetPolicy = makeTargetPolicy({glCodes: false, showTagGLCodes: false});
+
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['rules'], {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                expect(policy?.glCodes).toBe(true);
+                expect(policy?.showTagGLCodes).toBe(true);
+                expect(policy?.pendingFields?.glCodes).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                expect(policy?.pendingFields?.showTagGLCodes).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            });
+
             it('copies only autoAddTripName from travelSettings, never the Spotnana identity fields or terms acceptance', () => {
                 const sourcePolicy = makeSourcePolicy({
                     travelSettings: {

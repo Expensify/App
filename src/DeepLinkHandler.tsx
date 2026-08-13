@@ -104,7 +104,16 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                     if (introSelected === undefined) {
                         Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
                     }
-                    openReportFromDeepLink(url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, guidedSetupAndTourStatus?.isSelfTourViewed, betas);
+                    openReportFromDeepLink(
+                        url,
+                        allReports,
+                        isCurrentlyAuthenticated,
+                        conciergeReportID,
+                        introSelected,
+                        guidedSetupAndTourStatus?.isSelfTourViewed,
+                        betas,
+                        session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    );
                     trackPendingPublicRoomFromDeepLink(url, isCurrentlyAuthenticated);
                 } else {
                     Report.doneCheckingPublicRoom();
@@ -138,7 +147,16 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             if (hasSecureLinkKey(state.url)) {
                 onInitialUrl(state.url as Route);
             }
-            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, guidedSetupAndTourStatus?.isSelfTourViewed, betas);
+            openReportFromDeepLink(
+                state.url,
+                allReports,
+                isCurrentlyAuthenticated,
+                conciergeReportID,
+                introSelected,
+                guidedSetupAndTourStatus?.isSelfTourViewed,
+                betas,
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            );
             trackPendingPublicRoomFromDeepLink(state.url, isCurrentlyAuthenticated);
         });
 
@@ -196,7 +214,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             introSelected,
             betas,
             hasReportActions: false,
-            currentUserAccountID: session?.accountID,
+            currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         });
