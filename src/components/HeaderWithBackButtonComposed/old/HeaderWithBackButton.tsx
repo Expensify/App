@@ -1,7 +1,7 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import HeaderBackButton from '@components/HeaderWithBackButtonComposed/primitives/HeaderBackButton';
 import HeaderCloseButtonTooltip from '@components/HeaderWithBackButtonComposed/primitives/HeaderCloseButtonTooltip';
+import HeaderDownloadButton from '@components/HeaderWithBackButtonComposed/primitives/HeaderDownloadButton';
 import HeaderHelpButton from '@components/HeaderWithBackButtonComposed/primitives/HeaderHelpButton';
 import HeaderIcon from '@components/HeaderWithBackButtonComposed/primitives/HeaderIcon';
 import HeaderMenuItemButtonTooltip from '@components/HeaderWithBackButtonComposed/primitives/HeaderMenuItemButtonTooltip';
@@ -13,20 +13,12 @@ import HeaderRotateButton from '@components/HeaderWithBackButtonComposed/primiti
 import HeaderSearchRouter from '@components/HeaderWithBackButtonComposed/primitives/HeaderSearchRouter';
 import HeaderThreeDotsMenu from '@components/HeaderWithBackButtonComposed/primitives/HeaderThreeDotsMenu';
 import HeaderTitle from '@components/HeaderWithBackButtonComposed/primitives/HeaderTitle';
-import Icon from '@components/Icon';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Tooltip from '@components/Tooltip';
 
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThrottledButtonState from '@hooks/useThrottledButtonState';
 
-import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -88,11 +80,7 @@ function HeaderWithBackButton({
     // Avatar-header routes skip Header, so register the dialog label here.
     useDialogLabelRegistration(shouldShowReportAvatarWithDisplay ? (report?.reportName ?? '') : '');
 
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Rotate', 'BackArrow', 'Close']);
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
-    const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
 
     const threeDotMenuTooltipsSection = (
@@ -186,37 +174,13 @@ function HeaderWithBackButton({
                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                     <View style={[styles.pr2, styles.flexRow, styles.alignItemsCenter]}>
                         {children}
-                        {shouldShowDownloadButton &&
-                            (!isDownloading ? (
-                                <Tooltip text={translate('common.download')}>
-                                    <PressableWithoutFeedback
-                                        onPress={(event) => {
-                                            // Blur the pressable in case this button triggers a Growl notification
-                                            // We do not want to overlap Growl with the Tooltip (#15271)
-                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-                                            (event?.currentTarget as HTMLElement)?.blur();
-
-                                            if (!isDownloadButtonActive) {
-                                                return;
-                                            }
-
-                                            onDownloadButtonPress();
-                                            temporarilyDisableDownloadButton();
-                                        }}
-                                        style={[styles.touchableButtonImage]}
-                                        role="button"
-                                        accessibilityLabel={translate('common.download')}
-                                        sentryLabel={CONST.SENTRY_LABEL.HEADER.DOWNLOAD_BUTTON}
-                                    >
-                                        <Icon
-                                            src={icons.Download}
-                                            fill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
-                                        />
-                                    </PressableWithoutFeedback>
-                                </Tooltip>
-                            ) : (
-                                <ActivityIndicator style={[styles.touchableButtonImage]} />
-                            ))}
+                        {shouldShowDownloadButton && (
+                            <HeaderDownloadButton
+                                onPress={onDownloadButtonPress}
+                                isLoading={isDownloading}
+                                iconFill={iconFill}
+                            />
+                        )}
                         {shouldShowRotateButton && (
                             <HeaderRotateButton
                                 onPress={onRotateButtonPress}
