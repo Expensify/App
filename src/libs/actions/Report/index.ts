@@ -4292,8 +4292,6 @@ function buildNewReportOptimisticData({
         });
     }
 
-    // Skip seeding the FORMULA title field when a custom report name is set — otherwise a later
-    // expense edit would recompute the name from the policy title formula and overwrite it.
     if (!reportName) {
         optimisticData.push(...updateTitleFieldToMatchPolicy(reportID, policy));
     }
