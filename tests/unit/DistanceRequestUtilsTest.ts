@@ -1,6 +1,9 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 
 import CONST from '@src/CONST';
+import en from '@src/languages/en';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -397,6 +400,42 @@ describe('DistanceRequestUtils', () => {
             );
 
             expect(result).toBe(`0.00 ${translateLocal('common.miles')}`);
+        });
+    });
+
+    describe('getDistanceDisplayDetailsWithCommuter', () => {
+        it.each([
+            [1, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 'Removed 1.00 commuter mile'],
+            [2, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 'Removed 2.00 commuter miles'],
+            [1, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, 'Removed 1.00 commuter kilometer'],
+            [2, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, 'Removed 2.00 commuter kilometers'],
+        ])('localizes a commuter exclusion of %s %s', (commuterExclusion, unit, expected) => {
+            const translation = en.distance.commuterExclusion.removedCommuterDistance[unit]({distance: commuterExclusion.toFixed(2)});
+
+            expect(commuterExclusion === 1 ? translation.one : translation.other).toBe(expected);
+        });
+
+        it('passes commuter distance semantics to localization', () => {
+            const translateMock = jest.fn();
+            const translate: LocaleContextProps['translate'] = (path, ...parameters) => {
+                translateMock(path, ...parameters);
+                return translateLocal(path, ...parameters);
+            };
+
+            DistanceRequestUtils.getDistanceDisplayDetailsWithCommuter(
+                {
+                    commuterExclusion: 1,
+                    reimbursableDistance: 3,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                translate,
+            );
+
+            expect(translateMock).toHaveBeenCalledWith('distance.commuterExclusion.removedCommuterDistance.mi', {
+                distance: '1.00',
+                count: 1,
+            });
         });
     });
 
