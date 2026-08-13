@@ -26,6 +26,9 @@ type ProductMarketingWindowProps = {
     /** Resolved illustration asset for illustration-backed variants. Typed optional to match ImageSVG's src. */
     illustration: IconAsset | undefined;
 
+    /** Whether the CTA must wait for its destination data to settle. */
+    isCtaDisabled?: boolean;
+
     /** Called when the primary CTA is pressed. */
     onCtaPress: () => void;
 
@@ -33,7 +36,7 @@ type ProductMarketingWindowProps = {
     onDismiss: () => void;
 };
 
-function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: ProductMarketingWindowProps) {
+function ProductMarketingWindow({variant, illustration, isCtaDisabled = false, onCtaPress, onDismiss}: ProductMarketingWindowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isExtraSmallScreenHeight, isInLandscapeMode} = useResponsiveLayout();
@@ -116,6 +119,7 @@ function ProductMarketingWindow({variant, illustration, onCtaPress, onDismiss}: 
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={buttonSize}
                         style={styles.flex1}
+                        isDisabled={isCtaDisabled}
                         onPress={onCtaPress}
                         sentryLabel={CONST.SENTRY_LABEL.PRODUCT_MARKETING_WINDOW.CTA}
                         testID="ProductMarketingWindowCTA"

@@ -10256,9 +10256,14 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Nowe typy ról dla administratorów',
-                body: 'Daj swojemu zespołowi bardziej szczegółowe uprawnienia dzięki nowym rolom administratora kart, osób i płatności.',
-                cta: 'Wypróbuj to',
+                heading: 'Ulepszone mapowanie dostawców',
+                body: 'Twórz dostawców i niestandardowe reguły, aby łatwo mapować ich do najpopularniejszych systemów księgowych.',
+                cta: 'Wypróbuj',
+            },
+            member: {
+                heading: 'Gotowi agenci dla Ciebie',
+                body: 'Używaj gotowych lub niestandardowych agentów, aby automatycznie kodować, dzielić i przesyłać wydatki w Twoim imieniu.',
+                cta: 'Wypróbuj',
             },
         },
     },

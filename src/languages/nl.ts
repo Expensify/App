@@ -10287,8 +10287,13 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Nieuwe roltypen voor beheerders',
-                body: 'Geef je team meer gedetailleerde toegangsrechten met nieuwe kaart-, personen- en betalingsbeheerrollen.',
+                heading: 'Verbeterde leverancierskoppeling',
+                body: 'Maak leveranciers en aangepaste regels aan om ze eenvoudig aan belangrijke boekhoudpakketten te koppelen.',
+                cta: 'Probeer het uit',
+            },
+            member: {
+                heading: 'Vooraf gebouwde agents voor jou',
+                body: 'Gebruik vooraf gebouwde of aangepaste agents om uitgaven automatisch namens jou te coderen, splitsen en indienen.',
                 cta: 'Probeer het uit',
             },
         },
