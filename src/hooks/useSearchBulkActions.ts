@@ -600,7 +600,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             // Archiving a workspace removes its policy from Onyx, so its output currency is no longer readable. An expense
-            // report's currency is the workspace's output currency, so the template stays available after archiving.
+            // report's currency is the workspace's output currency, so we can keep currency-specific templates available after archiving.
             return (policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.outputCurrency ?? report?.currency) === CONST.CURRENCY.CAD;
         });
     }, [areAllMatchingItemsSelected, allReports, queryJSON, selectedReports, selectedTransactions, policies]);
