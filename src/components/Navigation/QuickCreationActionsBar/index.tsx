@@ -88,8 +88,13 @@ function QuickCreationActionsBar() {
             return false;
         }
 
+        // A traveler is provisioned against their default workspace, so booking from any other workspace opens a session they have no travel profile for.
+        if (activePolicy && !hasAcceptedTravelTerms(activePolicy, travelSettings)) {
+            return false;
+        }
+
         return hasAcceptedTravelTerms(travelEnabledPolicy, travelSettings);
-    }, [travelEnabledPolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings]);
+    }, [travelEnabledPolicy, activePolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings]);
 
     const handleCreateWorkspaceReport = useCallback(
         (shouldDismissEmptyReportsConfirmation?: boolean) => {
