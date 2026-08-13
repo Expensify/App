@@ -318,6 +318,27 @@ describe('MoneyRequestReceiptView', () => {
             expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 1}))).toBeNull();
         });
 
+        // An optimistic merge that swaps a PDF for an image can leave the PDF's count behind, so the
+        // badge has to follow the current file type rather than the leftover count
+        it('does not show the page count when a stale count is left on an image receipt', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, {
+                    ...transactionWithMultiPagePDFReceipt,
+                    receipt: {...transactionWithMultiPagePDFReceipt.receipt, source: 'https://example.com/photo.jpg', filename: 'photo.jpg'},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('receipt.pageCount', {pageCount: 3}))).toBeNull();
+        });
+
         // An image receipt carries no page count at all, which is also what a PDF uploaded before the
         // backend started reporting one looks like
         it('does not show the page count for a receipt without one', async () => {

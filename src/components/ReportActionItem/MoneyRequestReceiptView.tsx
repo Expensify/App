@@ -86,6 +86,7 @@ import type {ValueOf} from 'type-fest';
 import {useRoute} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {conciergePersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
+import {Str} from 'expensify-common';
 import mapValues from 'lodash/mapValues';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -550,9 +551,11 @@ function MoneyRequestReceiptView({
     // Map distance receipts show both hover actions just like regular receipts, so we don't exclude isMapDistanceRequest here.
     const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !mergeTransactionID;
 
-    // Held back until the receipt has loaded: the container stretches while loading, which would strand
-    // the badge at the bottom of that taller box instead of sitting on the receipt.
-    const shouldShowReceiptPageCount = receiptPageCount > 1 && !isLoading;
+    // A page count only means anything for a PDF, and optimistic writers that swap the receipt with a
+    // merge can leave the replaced PDF's count behind, so the current file type decides this rather
+    // than the count alone. Held back until the receipt has loaded too: the container stretches while
+    // loading, which would strand the badge at the bottom of that taller box.
+    const shouldShowReceiptPageCount = receiptPageCount > 1 && Str.isPDF(receiptURIs?.filename ?? '') && !isLoading;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (
