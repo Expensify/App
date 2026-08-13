@@ -133,14 +133,16 @@ const renderManager = (topmostRouteName?: string, theme: ThemePreferenceWithoutS
         </ThemeProvider>,
     );
 
-async function setupOnyxBaseline({isAdmin, activePolicyID = POLICY_ID}: {isAdmin: boolean; activePolicyID?: string}) {
+async function setupOnyxBaseline({isAdmin, activePolicyID = POLICY_ID, initializeBetas = true}: {isAdmin: boolean; activePolicyID?: string; initializeBetas?: boolean}) {
     await Onyx.clear();
     await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
     await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         [USER_ACCOUNT_ID]: buildPersonalDetails(USER_EMAIL, USER_ACCOUNT_ID, 'User'),
     });
     await Onyx.merge(ONYXKEYS.SESSION, {email: USER_EMAIL, accountID: USER_ACCOUNT_ID});
-    await Onyx.set(ONYXKEYS.BETAS, []);
+    if (initializeBetas) {
+        await Onyx.set(ONYXKEYS.BETAS, []);
+    }
     if (isAdmin) {
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildAdminPolicy());
         await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, activePolicyID);
@@ -175,6 +177,7 @@ describe('ProductMarketingWindowManager', () => {
     it('shows the member variant for a user without an admin role on any workspace', async () => {
         await act(async () => {
             await setupOnyxBaseline({isAdmin: false});
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CUSTOM_AGENT]);
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -184,6 +187,25 @@ describe('ProductMarketingWindowManager', () => {
         expect(screen.getByText(memberHeading)).toBeTruthy();
         expect(screen.getByText(memberBody)).toBeTruthy();
         expect(screen.UNSAFE_getByType(Image).props.source).toBe(August2026PromoEmployeesImage);
+    });
+
+    it('does not show the member variant until the Custom Agent beta is available', async () => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: false, initializeBetas: false});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText(memberHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CUSTOM_AGENT]);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.getByText(memberHeading)).toBeTruthy();
     });
 
     it('shows the admin variant when the user administers at least one active workspace', async () => {
@@ -577,7 +599,7 @@ describe('ProductMarketingWindowManager', () => {
         await act(async () => {
             await setupOnyxBaseline({isAdmin: true, activePolicyID: 'non-admin-policy'});
             await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildVendorEnabledAdminPolicy());
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...buildAdminPolicy(), areConnectionsEnabled: true});
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -591,6 +613,7 @@ describe('ProductMarketingWindowManager', () => {
         expect(mockNavigate).not.toHaveBeenCalled();
 
         await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildVendorEnabledAdminPolicy());
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${POLICY_ID}`, true);
             await waitForBatchedUpdatesWithAct();
         });
@@ -600,6 +623,24 @@ describe('ProductMarketingWindowManager', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_VENDORS.getRoute(POLICY_ID));
+    });
+
+    it('uses More Features without fetching fallback workspace connections when Vendor Matching beta is disabled', async () => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true, activePolicyID: 'non-admin-policy'});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...buildAdminPolicy(), areConnectionsEnabled: true});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockOpenPolicyAccountingPage).not.toHaveBeenCalled();
+        expect(screen.getByText(adminCtaLabel)).not.toBeDisabled();
+        fireEvent.press(screen.getByText(adminCtaLabel));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(POLICY_ID));
     });
 
     it.each([
@@ -630,6 +671,7 @@ describe('ProductMarketingWindowManager', () => {
     it('routes the member CTA to the new Agents page', async () => {
         await act(async () => {
             await setupOnyxBaseline({isAdmin: false});
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CUSTOM_AGENT]);
             await waitForBatchedUpdatesWithAct();
         });
 

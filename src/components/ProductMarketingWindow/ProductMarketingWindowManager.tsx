@@ -69,15 +69,25 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const illustrations = useMemoizedLazyIllustrations(illustrationNames);
     const targetAdminPolicy = activeAdminPolicies?.find((policy) => policy.id === activePolicyID) ?? activeAdminPolicies?.at(0);
     const variant = getProductMarketingAnnouncementVariant(announcement, !!targetAdminPolicy, lastDismissedMarketingWindow);
-    const shouldPrefetchTargetPolicyConnections = !!targetAdminPolicy && targetAdminPolicy.id !== activePolicyID;
+    const isMemberVariantUnavailable = variant === announcement?.member && !isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
+    const shouldPrefetchTargetPolicyConnections = isVendorMatchingBetaEnabled && !!targetAdminPolicy && targetAdminPolicy.id !== activePolicyID;
     const {isFetchNeeded, isLoadingFetchedFlag, hasBeenFetched} = usePolicyConnectionsPrefetch(targetAdminPolicy, shouldPrefetchTargetPolicyConnections);
     const isAdminCtaPending = shouldPrefetchTargetPolicyConnections && (isLoadingFetchedFlag || (isFetchNeeded && hasBeenFetched === undefined));
     const isAdminPolicyConnectionDataAvailable = !shouldPrefetchTargetPolicyConnections || hasBeenFetched === true;
-    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const isCoveredByCenteredModalScreen = !!topmostRouteName && CENTERED_MODAL_SCREEN_NAVIGATORS.has(topmostRouteName);
     const isLoading = isLoadingOnyxValue(lastDismissedMarketingWindowMetadata, activeAdminPoliciesMetadata, activePolicyIDMetadata, isLoadingAppMetadata, accountMetadata) || isLoadingApp;
 
-    if (!announcement || !variant || isLoading || isProductMarketingWindowCovered || isAnonymousSession || isActingAsDelegate || isCoveredByCenteredModalScreen) {
+    if (
+        !announcement ||
+        !variant ||
+        isMemberVariantUnavailable ||
+        isLoading ||
+        isProductMarketingWindowCovered ||
+        isAnonymousSession ||
+        isActingAsDelegate ||
+        isCoveredByCenteredModalScreen
+    ) {
         return null;
     }
 
