@@ -227,8 +227,7 @@ function AccessOrNotFoundWrapper({
     // We only update the feature state if it isn't pending.
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
     // Without this, we can be unexpectedly navigated to the More Features page.
-    const shouldRedirectToMoreFeatures =
-        isFocused && !isEmptyObject(policy) && !isFeatureEnabled && !(pendingField && !isOffline) && !shouldShowNotFoundPage;
+    const shouldRedirectToMoreFeatures = isFocused && !isEmptyObject(policy) && !isFeatureEnabled && !(pendingField && !isOffline) && !shouldShowNotFoundPage;
 
     useEffect(() => {
         if (!shouldRedirectToMoreFeatures) {
