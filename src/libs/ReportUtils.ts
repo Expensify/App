@@ -28,7 +28,6 @@ import type {
     BankAccountList,
     Beta,
     BillingGraceEndPeriod,
-    CurrencyList,
     IntroSelected,
     OnyxInputOrEntry,
     OutstandingReportsByPolicyIDDerivedValue,
@@ -1015,7 +1014,6 @@ type BuildOptimisticExpenseReportParams = {
     optimisticIOUReportID?: string;
     reportTransactions?: Record<string, Transaction>;
     createdTimestamp?: string;
-    currencyList?: CurrencyList;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
@@ -7039,9 +7037,9 @@ function computeOptimisticReportName(
     policy: OnyxEntry<Policy>,
     policyID: string | undefined,
     reportTransactions: Record<string, Transaction>,
-    currencyList?: CurrencyList,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ): string | null {
-    const result = computeOptimisticReportNameWithMetadata(report, policy, policyID, reportTransactions, currencyList);
+    const result = computeOptimisticReportNameWithMetadata(report, policy, policyID, reportTransactions, getCurrencyDecimals);
     if (!result || result.hasUnresolvedTokens) {
         return null;
     }
@@ -7057,7 +7055,7 @@ function computeOptimisticReportNameWithMetadata(
     policy: OnyxEntry<Policy>,
     policyID: string | undefined,
     reportTransactions: Record<string, Transaction>,
-    currencyList?: CurrencyList,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ): {value: string; hasUnresolvedTokens: boolean} | null {
     if (!isGroupPolicyPolicyUtils(policy)) {
         return null;
@@ -7067,7 +7065,7 @@ function computeOptimisticReportNameWithMetadata(
     const formulaContext: FormulaContext = {
         report,
         policy,
-        currencyList,
+        getCurrencyDecimals,
         allTransactions: reportTransactions,
     };
 
@@ -7139,7 +7137,6 @@ function buildOptimisticExpenseReport({
     optimisticIOUReportID,
     reportTransactions,
     createdTimestamp,
-    currencyList,
     getCurrencyDecimals,
 }: BuildOptimisticExpenseReportParams): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
@@ -7192,7 +7189,7 @@ function buildOptimisticExpenseReport({
     }
 
     // Compute optimistic report name if applicable
-    const computedName = computeOptimisticReportName(expenseReport, policy, policyID, reportTransactions ?? {}, currencyList);
+    const computedName = computeOptimisticReportName(expenseReport, policy, policyID, reportTransactions ?? {}, getCurrencyDecimals);
     if (computedName !== null) {
         expenseReport.reportName = computedName;
     }
@@ -7212,7 +7209,7 @@ function buildOptimisticEmptyReport(
     policy: OnyxEntry<Policy>,
     timeOfCreation: string,
     betas: OnyxEntry<Beta[]>,
-    currencyList?: CurrencyList,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ) {
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, betas, true);
     const optimisticEmptyReport: OptimisticNewReport = {
@@ -7239,7 +7236,7 @@ function buildOptimisticEmptyReport(
     };
 
     // Compute optimistic report name if applicable
-    const optimisticReportName = computeOptimisticReportName(optimisticEmptyReport as Report, policy, policy?.id, {}, currencyList);
+    const optimisticReportName = computeOptimisticReportName(optimisticEmptyReport as Report, policy, policy?.id, {}, getCurrencyDecimals);
     if (optimisticReportName !== null) {
         optimisticEmptyReport.reportName = optimisticReportName;
     }
@@ -14427,6 +14424,5 @@ export type {
     PartialReportAction,
     SelfDMParameters,
     OptimisticReportAction,
-    CreateDraftTransactionParams,
     ActionErrorsByTransaction,
 };

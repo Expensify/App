@@ -611,9 +611,12 @@ function MoneyRequestView({
     );
 
     const distanceUnitValue = transaction?.comment?.customUnit?.distanceUnit ?? unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    const commuterExclusionData = transaction?.comment?.originalTransactionID
-        ? null
-        : DistanceRequestUtils.getCommuterExclusionDisplayData(transaction?.comment?.customUnit, distanceUnitValue);
+    // Commuter exclusions are a workspace control, so they are never surfaced on a personal (self-DM or P2P) expense,
+    // even if one carries the fields from a workspace rate it was created with.
+    const commuterExclusionData =
+        transaction?.comment?.originalTransactionID || !isPolicyExpenseChat
+            ? null
+            : DistanceRequestUtils.getCommuterExclusionDisplayData(transaction?.comment?.customUnit, distanceUnitValue);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, translate, false, isManualDistanceRequest, commuterExclusionData);
     const {distanceToDisplayDescription, distanceToDisplayHintText} = DistanceRequestUtils.getDistanceDisplayDetailsWithCommuter(commuterExclusionData, distanceUnitValue, translate);
 
