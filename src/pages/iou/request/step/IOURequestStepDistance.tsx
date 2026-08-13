@@ -5,6 +5,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -339,6 +340,11 @@ function IOURequestStepDistance({
         return stop;
     }, []);
 
+    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        policyID: policy?.id,
+        isDistanceRequest: true,
+    });
+
     useEffect(() => {
         if (numberOfWaypoints <= numberOfPreviousWaypoints) {
             return;
@@ -504,6 +510,9 @@ function IOURequestStepDistance({
     );
 
     const submitWaypoints = useCallback(() => {
+        if (blockDistanceRequestIfNeeded()) {
+            return;
+        }
         // If there is any error or loading state, don't let user go to next page.
         if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || (!isEditing && isLoading)) {
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
@@ -593,6 +602,7 @@ function IOURequestStepDistance({
         suppressDiscardPrompt();
         navigateToNextStep();
     }, [
+        blockDistanceRequestIfNeeded,
         duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,
         hasRouteError,
@@ -630,6 +640,9 @@ function IOURequestStepDistance({
     ]);
 
     const submitManualDistance = useCallback(() => {
+        if (blockDistanceRequestIfNeeded()) {
+            return;
+        }
         isManuallyEditing.current = false;
 
         // For a map-based distance edit, require valid waypoints even when saving from the Manual tab.
@@ -726,6 +739,7 @@ function IOURequestStepDistance({
         removeBackupTransaction(transaction?.transactionID);
         navigateBackAfterSave();
     }, [
+        blockDistanceRequestIfNeeded,
         transactionBackup,
         getHasSelectedRouteChanged,
         duplicateWaypointsError,

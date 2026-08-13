@@ -998,6 +998,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Λογαριασμός',
                 cta: 'Επικυρώστε',
             },
+            addHomeAddress: {title: 'Προσθέστε τη διεύθυνση κατοικίας σας για παρακολούθηση αποστάσεων', subtitle: 'Λογαριασμός', cta: 'Προσθέστε διεύθυνση'},
             fixFailedBilling: {
                 title: 'Δεν μπορέσαμε να χρεώσουμε την αποθηκευμένη κάρτα σας',
                 subtitle: 'Συνδρομή',
@@ -1282,6 +1283,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Δημιουργία χρονοχρέωσης',
     },
     iou: {
+        homeAddressRequired: {
+            title: 'Η διεύθυνση κατοικίας είναι υποχρεωτική',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `Πριν καταγράψετε αποστάσεις, πρέπει να προσθέσετε τη διεύθυνση κατοικίας σας στο ιδιωτικό προφίλ σας. Το ${workspaceName} χρησιμοποιεί αυτή τη διεύθυνση για εκπτώσεις μετακίνησης.`
+                    : 'Πριν καταγράψετε αποστάσεις, πρέπει να προσθέσετε τη διεύθυνση κατοικίας σας στο ιδιωτικό προφίλ σας. Ο χώρος εργασίας χρησιμοποιεί αυτή τη διεύθυνση για εκπτώσεις μετακίνησης προς και από την εργασία.',
+            cta: 'Προσθήκη διεύθυνσης κατοικίας',
+        },
         amount: 'Ποσό',
         percent: 'Ποσοστό',
         date: 'Ημερομηνία',
@@ -3580,7 +3589,8 @@ ${amount} για ${merchant} - ${date}`,
         legalName: 'Νομικό όνομα',
         legalFirstName: 'Επίσημο μικρό όνομα',
         legalLastName: 'Επώνυμο (όπως αναγράφεται στα επίσημα έγγραφα)',
-        address: 'Διεύθυνση',
+        address: 'Οικιακή διεύθυνση',
+        commuterExclusionsHint: ({workspaceName}: {workspaceName: string}) => `Το ${workspaceName} χρησιμοποιεί αυτήν τη διεύθυνση για εξαιρέσεις μετακίνησης.`,
         error: {
             dateShouldBeBefore: (dateString: string) => `Η ημερομηνία πρέπει να είναι πριν από ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Η ημερομηνία πρέπει να είναι μετά από ${dateString}`,
@@ -7356,13 +7366,24 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 title: 'Εξαίρεση μετακινήσεων από και προς την εργασία',
                 summaryDisabled: 'Χωρίς εξαίρεση μετακίνησης',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Εξαίρεση ${distance} ${unit} ανά αίτημα`,
+                summaryHomeAndOffice: 'Χρησιμοποιήστε τις τοποθεσίες σπιτιού και γραφείου',
                 optionDisabledTitle: 'Να μην εξαιρούνται οι μετακινήσεις από και προς την εργασία',
-                optionDisabledHelp: 'Δεν εφαρμόζεται καμία εξαίρεση μετακίνησης.',
+                optionDisabledHelp: 'Δεν έχει αφαιρεθεί καμία μετακίνηση από τις αιτήσεις.',
                 optionFixedDistanceTitle: 'Εξαίρεση σταθερής απόστασης ανά αίτημα',
                 optionFixedDistanceHelp: 'Αφαιρέστε την ίδια απόσταση μετακίνησης από κάθε αίτημα. Ιδανικό για μέλη που υποβάλλουν ένα αίτημα ανά εργάσιμη ημέρα.',
+                optionHomeAndOfficeTitle: 'Υπολογισμός ανά σπίτι και γραφείο',
+                optionHomeAndOfficeHelp: 'Χρησιμοποιήστε τη διεύθυνση κατοικίας του μέλους, τη ρύθμιση εργασίας και την ανάθεση γραφείου για τον υπολογισμό των εξαιρέσεων μετακίνησης.',
                 distanceLabel: 'Απόσταση',
+                workspaceAddressRequired: {
+                    title: 'Όχι τόσο γρήγορα...',
+                    promptStart: 'Δεν μπορείτε να ενεργοποιήσετε τη ρύθμιση υπολογισμού με βάση το σπίτι και το γραφείο μέχρι πρώτα να προσθέσετε τοποθεσία γραφείου στο',
+                    linkText: 'Επισκόπηση',
+                    promptEnd: '.',
+                    cta: 'Το κατάλαβα',
+                },
                 errors: {
                     distanceMustBePositive: 'Η απόσταση πρέπει να είναι ένας θετικός ακέραιος αριθμός.',
+                    invalidAddress: 'Παρακαλούμε εισαγάγετε έγκυρη διεύθυνση',
                     distanceTooLarge: 'Η απόσταση είναι πολύ μεγάλη.',
                 },
             },
