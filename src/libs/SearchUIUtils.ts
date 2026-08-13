@@ -6598,7 +6598,8 @@ function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, i
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.ACTION) {
             minWidth += (isActionColumnWide ?? type === CONST.SEARCH.DATA_TYPES.TASK) ? 80 : 68;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
-            minWidth += 48;
+            // Matches the sibling date columns below: the "Created" header needs the same room as "Submitted"/"Approved".
+            minWidth += 72;
         } else if (
             column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED ||
             column === CONST.SEARCH.TABLE_COLUMNS.APPROVED ||
