@@ -6,14 +6,13 @@ import type {OnyxKey} from 'react-native-onyx';
 
 import type Middleware from './Middleware/types';
 
-import APP_STARTUP_NETWORK_REQUEST from './AppStartupNetworkRequest';
 import HttpUtils from './HttpUtils';
 import Log from './Log';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
 import {cancelSpan, endSpanWithAttributes, startSpan} from './telemetry/activeSpans';
 import MEASURED_REQUEST_PHASE_COMMANDS, {getNextRequestPhaseAttempt, getRequestPhaseSpanNames} from './telemetry/measuredRequestPhaseCommands';
-import trackStartupDataRender from './telemetry/trackStartupDataRender';
+import trackRequestPhaseRender from './telemetry/trackRequestPhaseRender';
 
 let middlewares: Middleware[] = [];
 
@@ -29,7 +28,7 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
 
     // The splash-based startup spans measure nothing for flows that never show a splash (magic code, copilot, supportal), and nothing at all for Search.
     const shouldMeasureResponseApply = MEASURED_REQUEST_PHASE_COMMANDS.has(request.command);
-    const applySpanName = getRequestPhaseSpanNames(request.command).APPLY;
+    const {APPLY: applySpanName, RENDER: renderSpanName} = getRequestPhaseSpanNames(request.command);
     const attempt = shouldMeasureResponseApply ? getNextRequestPhaseAttempt(applySpanName) : 0;
     const applySpanId = `${applySpanName}_${attempt}`;
     if (shouldMeasureResponseApply) {
@@ -52,11 +51,9 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
         result = result.then(
             (response) => {
                 endSpanWithAttributes(applySpanId, {[CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: response?.requestID});
-                // Only startup gets a render span: Search already brackets its render end-to-end with ManualNavigateToReportsContentLoad,
-                // so its render cost is that span minus the SearchData phases.
-                if (APP_STARTUP_NETWORK_REQUEST.has(request.command)) {
-                    trackStartupDataRender(request.command, attempt, response?.requestID);
-                }
+                // ManualNavigateToReportsContentLoad only covers the Reports tab tap, so it cannot stand in for this on the
+                // paths that re-run the whole list render without a tab navigation: pagination, in-page re-search, view switches.
+                trackRequestPhaseRender(renderSpanName, request.command, attempt, response?.requestID);
                 return response;
             },
             (error: unknown) => {
