@@ -108,6 +108,22 @@ describe('actions/App', () => {
         expect(mockFetch).not.toHaveBeenCalled();
     });
 
+    test('openApp is not deduped against an in-flight OpenApp when it carries preservation data', async () => {
+        const writeOpenApp = jest.spyOn(API, 'writeWithNoDuplicatesOpenAppConflictAction').mockImplementation(() => Promise.resolve());
+
+        App.openApp();
+        await waitForBatchedUpdates();
+        expect(writeOpenApp).toHaveBeenLastCalledWith(expect.anything(), expect.anything(), true);
+
+        App.openApp(true);
+        await waitForBatchedUpdates();
+        expect(writeOpenApp).toHaveBeenLastCalledWith(expect.anything(), expect.anything(), false);
+
+        App.openApp(false, {[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`]: 'a draft'});
+        await waitForBatchedUpdates();
+        expect(writeOpenApp).toHaveBeenLastCalledWith(expect.anything(), expect.anything(), false);
+    });
+
     test('trigger full reconnect', async () => {
         const triggerFullReconnect = jest.spyOn(App, 'triggerFullReconnect');
 

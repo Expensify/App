@@ -122,7 +122,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
 
     const actionsData = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`];
-    const reportActions = actionsData ? Object.values(actionsData) : [];
+    const exportedReportActions = actionsData ? Object.values(actionsData) : [];
 
     // Fetch policy categories directly from Onyx since they are not included in the search snapshot
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
@@ -136,7 +136,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const [transactionViolationsForRow] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
     const parentReportActionID = transactionItem?.reportAction?.reportActionID;
     const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {
-        selector: (actions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => actions?.[`${parentReportActionID}`],
+        selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${parentReportActionID}`],
     });
     const currentUserDetails = useCurrentUserPersonalDetails();
     const chatReportID = snapshotReport?.chatReportID ?? snapshotReport?.parentReportID;
@@ -157,7 +157,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         reportID: transactionItem.reportID,
         itemKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`,
         snapshotData,
-        snapshotActions: reportActions,
+        snapshotActions: exportedReportActions,
         enabled: !!snapshotData,
     });
     const transactionPreviewData: TransactionPreviewData = {
@@ -172,6 +172,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     // Use snapshotReport/snapshotPolicy as fallbacks to fix offline issues where
     // newly created reports aren't in the search snapshot yet
     const policyForViolations = parentPolicy ?? snapshotPolicy;
+    const rowPolicy = parentPolicy || snapshotPolicy.id || transactionItem.policy ? {...transactionItem.policy, ...snapshotPolicy, ...parentPolicy} : undefined;
     const reportForViolations = parentReport ?? snapshotReport;
 
     const onyxViolations = (transactionViolationsForRow ?? []).filter(
@@ -264,9 +265,10 @@ function TransactionListItemInner<TItem extends ListItem>({
         handleActionButtonPress,
         shouldDisableActionPointerEvents: shouldDisableSearchSubmitPress,
         transactionPreviewData,
-        reportActions,
+        exportedReportActions,
         policyCategories,
         policyTagLists,
+        rowPolicy,
         nonPersonalAndWorkspaceCards,
         isAttendeesEnabledForMovingPolicy,
         chatReport,
