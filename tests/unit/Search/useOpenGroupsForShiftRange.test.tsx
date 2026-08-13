@@ -9,10 +9,14 @@ function setup() {
     const registerGroupChildren = jest.fn();
     const addGroupToRange = jest.fn();
     const removeGroupFromRange = jest.fn();
+    let registryGeneration: number | undefined = 1;
+    const dropRegistry = () => {
+        registryGeneration = (registryGeneration ?? 0) + 1;
+    };
     const wrapper = ({children}: {children: React.ReactNode}) => (
-        <SearchShiftRangeChildrenContext value={{registerGroupChildren, addGroupToRange, removeGroupFromRange, registryGeneration: 1}}>{children}</SearchShiftRangeChildrenContext>
+        <SearchShiftRangeChildrenContext value={{registerGroupChildren, addGroupToRange, removeGroupFromRange, registryGeneration}}>{children}</SearchShiftRangeChildrenContext>
     );
-    return {addGroupToRange, removeGroupFromRange, wrapper};
+    return {addGroupToRange, removeGroupFromRange, dropRegistry, wrapper};
 }
 
 describe('useOpenGroupsForShiftRange', () => {
@@ -47,6 +51,16 @@ describe('useOpenGroupsForShiftRange', () => {
         expect(addGroupToRange).toHaveBeenCalledTimes(1);
         expect(addGroupToRange).toHaveBeenCalledWith('group-3');
         expect(removeGroupFromRange).not.toHaveBeenCalled();
+    });
+
+    it('opens its groups again when the registry is dropped for a new search', () => {
+        const {addGroupToRange, dropRegistry, wrapper} = setup();
+        const openGroupKeys = new Set(['group-1']);
+        const {rerender} = renderHook(({groupKeys}) => useOpenGroupsForShiftRange(groupKeys), {wrapper, initialProps: {groupKeys: openGroupKeys}});
+        addGroupToRange.mockClear();
+        dropRegistry();
+        rerender({groupKeys: openGroupKeys});
+        expect(addGroupToRange).toHaveBeenCalledWith('group-1');
     });
 
     it('closes every open group when the view goes away, since the provider outlives it', () => {

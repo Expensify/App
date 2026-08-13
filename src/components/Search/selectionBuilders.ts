@@ -328,7 +328,7 @@ type GroupSelectionParams = {
 
 /** Whether clicking a group's checkbox means "deselect": true once any row under it reads as checked, which is what the user is looking at. */
 function isGroupSelected({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): boolean {
-    if (groupKey && selectedTransactions[groupKey]?.isSelected) {
+    if (groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected})) {
         return true;
     }
     return children.some((child) => isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));

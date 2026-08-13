@@ -146,7 +146,7 @@ function TransactionGroupListItemImpl({
     // Expense-report rows are already part of the list, so only group-by views need this.
     useGroupOpenForShiftRange(groupItem.keyForList, isExpanded && !isExpenseReportType);
 
-    const {transactions, isGroupSelected} = useGroupChildrenForShiftRange({
+    const {transactions, isGroupChecked} = useGroupChildrenForShiftRange({
         groupKey: groupItem.keyForList,
         isExpenseReportType,
         groupTransactions: groupItem.transactions,
@@ -161,7 +161,7 @@ function TransactionGroupListItemImpl({
     // A group whose children are lazily loaded (it has a transactionsQueryJSON) is not empty, it just hasn't been fetched yet
     const isEmpty = transactions.length === 0 && groupItem.transactions.length === 0 && !groupItem.transactionsQueryJSON;
 
-    const isEmptyReportSelected = transactions.length === 0 && isGroupSelected;
+    const isEmptyReportSelected = transactions.length === 0 && isGroupChecked;
 
     const isSelectAllChecked = isEmptyReportSelected || (selectedItemsLength === transactionsWithoutPendingDelete.length && transactionsWithoutPendingDelete.length > 0);
     const isIndeterminate = selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length;

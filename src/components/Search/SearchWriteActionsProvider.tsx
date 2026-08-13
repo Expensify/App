@@ -229,26 +229,30 @@ function SearchWriteActionsProvider({
     const {childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey} = buildGroupChildrenIndex(renderedData, groupChildrenByKey, openGroupKeys, hasValidGroupBy);
     const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
 
-    // The group holds rows nobody can name yet, so enumerating it would drop the ones that never arrived.
-    const isCoveredByPartialGroup = (selection: SelectedTransactions, childKey: string) => {
+    // A child's parent, resolved once, or undefined where the group is not a whole-group selection this code may enumerate.
+    const resolveGroupBlock = (selection: SelectedTransactions, childKey: string) => {
         const groupKey = groupKeyByChildKey.get(childKey);
         if (!groupKey || getAreAllMatchingItemsSelected() || !selection[groupKey]?.isSelected) {
-            return false;
+            return undefined;
         }
+        const loaded = childrenByGroupKey.get(groupKey) ?? [];
         const totalCount = childCountByGroupKey.get(groupKey);
-        return totalCount !== undefined && (childrenByGroupKey.get(groupKey) ?? []).length < totalCount;
+        return {groupKey, loaded, isPartial: totalCount !== undefined && loaded.length < totalCount};
     };
+
+    // The group holds rows nobody can name yet, so enumerating it would drop the ones that never arrived.
+    const isCoveredByPartialGroup = (selection: SelectedTransactions, childKey: string) => !!resolveGroupBlock(selection, childKey)?.isPartial;
 
     // A group selected before its children loaded lives under the group key alone, so dropping one child needs the group written out first.
     const spellOutGroupSelection = (selection: SelectedTransactions, childKey: string): SelectedTransactions => {
-        const groupKey = groupKeyByChildKey.get(childKey);
-        // Select-all-matching already covers the group, so writing it out would only record the whole group as excluded.
-        if (!groupKey || getAreAllMatchingItemsSelected() || !selection[groupKey]?.isSelected) {
+        const block = resolveGroupBlock(selection, childKey);
+        if (!block) {
             return selection;
         }
+        const {groupKey} = block;
         const spelledOut: SelectedTransactions = {...selection};
         delete spelledOut[groupKey];
-        for (const child of childrenByGroupKey.get(groupKey) ?? []) {
+        for (const child of block.loaded) {
             if (isTransactionPendingDelete(child)) {
                 continue;
             }

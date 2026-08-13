@@ -40,7 +40,7 @@ import {View} from 'react-native';
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import Animated from 'react-native-reanimated';
 
-import type {GroupChildrenContentProps, GroupHeaderItemType, SearchListActionProps, SearchListItem, TransactionListItemType} from './types';
+import type {GroupHeaderItemType, SearchListActionProps, SearchListItem, TransactionListItemType} from './types';
 
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
@@ -50,7 +50,6 @@ import MonthListItemHeader from './MonthListItemHeader';
 import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TagListItemHeader from './TagListItemHeader';
-import useGroupChildRows from './useGroupChildRows';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -73,7 +72,6 @@ type GroupHeaderProps = SearchListActionProps & {
     isLastItem: boolean;
     originalKey: string;
     visibleColumns?: SearchCustomColumnIds[];
-    bankAccountList: GroupChildrenContentProps['bankAccountList'];
 };
 
 function GroupHeader({
@@ -98,7 +96,6 @@ function GroupHeader({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     visibleColumns,
-    bankAccountList,
 }: GroupHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -182,13 +179,8 @@ function GroupHeader({
     const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
-    // Built the same way the expanded rows are, so a group's action flags don't depend on which gesture selected it.
-    const effectiveTransactions = useGroupChildRows({
-        isExpenseReportType,
-        groupTransactions: groupItem.transactions,
-        snapshotData,
-        bankAccountList,
-    });
+    // The provider already derived these, so a header never rebuilds them: no rows means the group answers from its own key, which is what it does anyway.
+    const effectiveTransactions = groupItem.transactions;
 
     // Answered by the predicate the child rows render from, so the header cannot show unchecked above a block of checked rows.
     const {isSelectAllChecked, isIndeterminate} = useMemo(() => {

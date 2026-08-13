@@ -32,6 +32,7 @@ function useGroupChildrenRegistry(searchHash: number | undefined): GroupChildren
     if (registryHash !== searchHash) {
         setRegistryHash(searchHash);
         setGroupChildrenByKey(getEmptyObject<Record<string, TransactionListItemType[]>>());
+        setOpenGroupKeys(NO_OPEN_GROUPS);
     }
 
     // Built once (by construction, not by React Compiler) so the register effect can't loop.
@@ -39,8 +40,8 @@ function useGroupChildrenRegistry(searchHash: number | undefined): GroupChildren
         // Compared by value: an equal array must not re-register and re-render every row, but changed rows must replace the stale copy.
         registerGroupChildren: (groupKey, groupChildren) =>
             setGroupChildrenByKey((prev) => {
-                // An empty publish means the group's rows are gone, so it has to land: a group that has not loaded yet publishes nothing at all.
-                if (deepEqual(prev[groupKey], groupChildren) || (!(groupKey in prev) && groupChildren.length === 0)) {
+                // Whatever arrives is the truth: a group that has not loaded yet publishes nothing at all, so an empty list means its rows are gone.
+                if (deepEqual(prev[groupKey], groupChildren)) {
                     return prev;
                 }
                 return {...prev, [groupKey]: groupChildren};

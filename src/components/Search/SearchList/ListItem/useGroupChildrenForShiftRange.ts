@@ -21,7 +21,7 @@ type UseGroupChildrenForShiftRangeArgs = UseGroupChildRowsArgs & {
  */
 function useGroupChildrenForShiftRange({groupKey, ...rowArgs}: UseGroupChildrenForShiftRangeArgs): {
     transactions: TransactionListItemType[];
-    isGroupSelected: boolean;
+    isGroupChecked: boolean;
 } {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
 
@@ -32,8 +32,8 @@ function useGroupChildrenForShiftRange({groupKey, ...rowArgs}: UseGroupChildrenF
     const hasResolvedRows = !!rowArgs.snapshotData || rowArgs.groupTransactions.length > 0;
     useRegisterGroupChildrenForShiftRange(groupKey, rangeChildren, !rowArgs.isExpenseReportType && hasResolvedRows);
 
-    // A group selected before its children were fetched is stored under the group key, since no transaction IDs were known yet.
-    const isGroupSelected = !!selectedTransactions[groupKey]?.isSelected;
+    // Where no rows have loaded, the group's own key answers for it — the same question the split layout's header asks.
+    const isGroupChecked = isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected});
 
     // Stamp the live selection and the parent key onto each row, which is how a row checks whether its group was excluded. Expense-report rows carry both already.
     const transactions: TransactionListItemType[] = rowArgs.isExpenseReportType
@@ -50,7 +50,7 @@ function useGroupChildrenForShiftRange({groupKey, ...rowArgs}: UseGroupChildrenF
               selectionGroupKey: groupKey,
           }));
 
-    return {transactions, isGroupSelected};
+    return {transactions, isGroupChecked};
 }
 
 export default useGroupChildrenForShiftRange;

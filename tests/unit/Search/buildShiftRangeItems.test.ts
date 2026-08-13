@@ -113,6 +113,10 @@ describe('isGroupSelected', () => {
         expect(isGroupChecked(groupOf({}, {areAllMatchingItemsSelected: true}))).toBe(true);
     });
 
+    it('counts a group with no loaded rows that select-all-matching covers, the same as its checkbox does', () => {
+        expect(isGroupSelected(groupOf({}, {children: [], areAllMatchingItemsSelected: true}))).toBe(true);
+    });
+
     it('reads a group with no loaded rows from its own key, since there is nothing else to ask', () => {
         expect(isGroupChecked(groupOf({}, {children: [], areAllMatchingItemsSelected: true}))).toBe(true);
         expect(isGroupChecked(groupOf({}, {children: []}))).toBe(false);

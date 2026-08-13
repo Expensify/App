@@ -55,9 +55,14 @@ const selectEntry = (key: string): SelectedTransactions => {
 
 const mockSelectedTransactions: {current: SelectedTransactions} = {current: {}};
 const mockExcludedTransactions: {current: SelectedTransactions} = {current: {}};
+const mockAreAllMatchingItemsSelected = {current: false};
 jest.mock('@components/Search/SearchContext', () => ({
     ...jest.requireActual<Record<string, unknown>>('@components/Search/SearchContext'),
-    useSearchSelectionContext: () => ({selectedTransactions: mockSelectedTransactions.current, excludedTransactions: mockExcludedTransactions.current, areAllMatchingItemsSelected: false}),
+    useSearchSelectionContext: () => ({
+        selectedTransactions: mockSelectedTransactions.current,
+        excludedTransactions: mockExcludedTransactions.current,
+        areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected.current,
+    }),
 }));
 
 type HookArgs = Parameters<typeof useGroupChildrenForShiftRange>[0];
@@ -85,6 +90,7 @@ describe('useGroupChildrenForShiftRange', () => {
     beforeEach(() => {
         mockSelectedTransactions.current = {};
         mockExcludedTransactions.current = {};
+        mockAreAllMatchingItemsSelected.current = false;
         mockGetSections.mockClear();
     });
 
@@ -108,7 +114,7 @@ describe('useGroupChildrenForShiftRange', () => {
     it('reads a group selected before its children loaded as selected, since the selection sits under the group key', () => {
         mockSelectedTransactions.current = selectEntry(GROUP_KEY);
         const {result} = renderGroupChildren();
-        expect(result.current.isGroupSelected).toBe(true);
+        expect(result.current.isGroupChecked).toBe(true);
         expect(result.current.transactions.every((row) => row.isSelected)).toBe(true);
     });
 
@@ -120,10 +126,23 @@ describe('useGroupChildrenForShiftRange', () => {
         expect(result.current.transactions.map((row) => row.isSelected)).toEqual([false, true]);
     });
 
+    it('reads a group with no loaded rows as checked when select-all-matching covers it', () => {
+        mockAreAllMatchingItemsSelected.current = true;
+        const {result} = renderGroupChildren({snapshotData: undefined});
+        expect(result.current.isGroupChecked).toBe(true);
+    });
+
+    it('reads that same group as unchecked once it is excluded', () => {
+        mockAreAllMatchingItemsSelected.current = true;
+        mockExcludedTransactions.current = selectEntry(GROUP_KEY);
+        const {result} = renderGroupChildren({snapshotData: undefined});
+        expect(result.current.isGroupChecked).toBe(false);
+    });
+
     it('marks only the individually selected rows when the group itself is not selected', () => {
         mockSelectedTransactions.current = selectEntry(FIRST_CHILD_KEY);
         const {result} = renderGroupChildren();
-        expect(result.current.isGroupSelected).toBe(false);
+        expect(result.current.isGroupChecked).toBe(false);
         expect(result.current.transactions.map((row) => row.isSelected)).toEqual([true, false]);
     });
 

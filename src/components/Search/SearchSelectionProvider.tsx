@@ -109,7 +109,8 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
             const reconciledExcludedTransactions = options?.reconciledExcludedTransactions;
             // An empty map means the selection ran out, unless the caller is naming a row it just took out of it: that row was checked, so something was still selected.
             const hasNamedDeselection = !isEmptyObject(options?.deselectedWithoutEntry ?? {});
-            const shouldClearAllMatchingSelection = options?.shouldClearAllMatchingSelectionWhenEmpty && isEmptyObject(selectedTransactions) && !hasNamedDeselection;
+            const canRecordNamedDeselection = hasNamedDeselection && !!options?.shouldPreserveAllMatchingSelection;
+            const shouldClearAllMatchingSelection = options?.shouldClearAllMatchingSelectionWhenEmpty && isEmptyObject(selectedTransactions) && !canRecordNamedDeselection;
             // A deselection can only be recorded as an exclusion while an all-matching selection is being preserved.
             const shouldRecordExclusions = prevState.areAllMatchingItemsSelected && !!options?.shouldPreserveAllMatchingSelection && !shouldClearAllMatchingSelection;
             const hasDeselectedWithoutEntry = shouldRecordExclusions && hasNamedDeselection;
