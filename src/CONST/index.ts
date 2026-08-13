@@ -110,6 +110,8 @@ const cardActiveStates: number[] = [2, 3, 4, 7];
 
 const brokenConnectionScrapeStatuses: number[] = [200, 434, 531, 530, 500, 666];
 
+const reauthScrapeStatuses: number[] = [438, 532];
+
 // Hide not issued or not activated cards (states 2, 4) from card filter options in search, as no transactions can be made on cards in these states
 const cardHiddenFromSearchStates: number[] = [2, 4];
 
@@ -261,6 +263,7 @@ const CONST = {
     COMPOSER_FOCUS_DELAY: 150,
     MAX_TRANSITION_DURATION_MS: 1000,
     MAX_TRANSITION_START_WAIT_MS: 1000,
+    NAVIGATION_PREDICTION_WINDOW_MS: 150,
     EXPENSE_REPORT_DELETE_DELAY_MS: 300,
     ELEMENT_NAME: {
         INPUT: 'INPUT',
@@ -1760,6 +1763,8 @@ const CONST = {
                     UPDATE_FEATURE_ENABLED: 'POLICYCHANGELOG_UPDATE_FEATURE_ENABLED',
                     UPDATE_IS_ATTENDEE_TRACKING_ENABLED: 'POLICYCHANGELOG_UPDATE_IS_ATTENDEE_TRACKING_ENABLED',
                     UPDATE_REQUIRE_COMPANY_CARDS_ENABLED: 'POLICYCHANGELOG_UPDATE_REQUIRE_COMPANY_CARDS_ENABLED',
+                    UPDATE_REQUIRES_CATEGORY: 'POLICYCHANGELOG_UPDATE_REQUIRES_CATEGORY',
+                    UPDATE_REQUIRES_TAG: 'POLICYCHANGELOG_UPDATE_REQUIRES_TAG',
                     UPDATE_DEFAULT_APPROVER: 'POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER',
                     UPDATE_SUBMITS_TO: 'POLICYCHANGELOG_UPDATE_SUBMITS_TO',
                     UPDATE_FORWARDS_TO: 'POLICYCHANGELOG_UPDATE_FORWARDS_TO',
@@ -1957,10 +1962,12 @@ const CONST = {
             DOWNLOAD_CSV: 'downloadCSV',
             REPORT_LEVEL_EXPORT: 'report_level_export',
             EXPENSE_LEVEL_EXPORT: 'detailed_export',
+            MULTIPLE_TAX_EXPORT: 'multiple_tax_export',
         },
         EXPORT_OPTION_LABELS: {
             REPORT_LEVEL_EXPORT: 'All Data - Report Level Export',
             EXPENSE_LEVEL_EXPORT: 'All Data - Expense Level Export',
+            MULTIPLE_TAX_EXPORT: 'Canadian Multiple Tax Export',
             DEFAULT_CSV: 'Default CSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
@@ -2446,6 +2453,8 @@ const CONST = {
     TRANSACTION: {
         RESULTS_PAGE_SIZE: 20,
         DEFAULT_MERCHANT: 'Expense',
+        DEFAULT_ROUTE_KEY: 'route0',
+        ALTERNATE_ROUTE_KEY: 'route1',
         UNKNOWN_MERCHANT: 'Unknown Merchant',
         PARTIAL_TRANSACTION_MERCHANT: '(none)',
         TYPE: {
@@ -4837,6 +4846,10 @@ const CONST = {
     },
     COMPANY_CARDS: {
         BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
+
+        // Scrape result codes where the connection is broken because the user needs to re-authenticate with their bank
+        REAUTH_SCRAPE_STATUSES: reauthScrapeStatuses,
+
         // After a card connection has been broken and unresolved for this many days, stop actively
         // prompting the user: the time-sensitive home task and the RBR are removed (the error itself is kept).
         BROKEN_CONNECTION_DISMISS_AFTER_DAYS: 90,
@@ -8314,6 +8327,8 @@ const CONST = {
         GPS_TOOLTIP: 'gpsTooltip',
         HAS_FILTER_NEGATION: 'hasFilterNegation',
         MILEAGE_RATE_AUTO_UPDATED: 'mileageRateAutoUpdated',
+        REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleReceiptCouplingTooltip',
+        REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleItemizedReceiptCouplingTooltip',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
@@ -9447,6 +9462,14 @@ const CONST = {
         ROUTE_BORDER: 'route-border',
         WAYPOINTS_SOURCE: 'waypoints-source',
         WAYPOINTS: 'waypoints',
+    },
+
+    ALTERNATE_DIRECTIONS_MAP_VIEW_LAYERS: {
+        SOURCE: 'alternate-directions-route-source',
+        UNSELECTED_FILL: 'alternate-directions-unselected-route-fill',
+        UNSELECTED_BORDER: 'alternate-directions-unselected-route-border',
+        SELECTED_FILL: 'alternate-directions-selected-route-fill',
+        SELECTED_BORDER: 'alternate-directions-selected-route-border',
     },
 
     MAP_CURRENT_LOCATION_FILL_COLOR: '#0185FF',
