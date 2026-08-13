@@ -198,18 +198,17 @@ function createTodosReportsAndTransactions({
             continue;
         }
         const reportTransactions = transactionsByReportID[report.reportID] ?? [];
+        const allExpensesHeld = hasOnlyHeldExpenses(reportTransactions);
         const context: TodoBucketContext = {
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
             reportNameValuePair: allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`],
             reportTransactions,
             reportMetadata: allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
             allReportActions,
-            allExpensesHeld: hasOnlyHeldExpenses(reportTransactions),
-            currentUserPlacedHold: didCurrentUserPlaceHoldOnReportExpense(
-                allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`],
-                reportTransactions,
-                currentUserAccountID,
-            ),
+            allExpensesHeld,
+            currentUserPlacedHold:
+                allExpensesHeld &&
+                didCurrentUserPlaceHoldOnReportExpense(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`], reportTransactions, currentUserAccountID),
             ownerLogin: getLoginByAccountID(report.ownerAccountID, personalDetailsList),
             bankAccountList,
             currentUserAccountID,
@@ -261,18 +260,17 @@ function getTodoReportsForSearchKey(
             continue;
         }
         const reportTransactions = transactionsByReportID[report.reportID] ?? [];
+        const allExpensesHeld = hasOnlyHeldExpenses(reportTransactions);
         const context: TodoBucketContext = {
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
             reportNameValuePair: allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`],
             reportTransactions,
             reportMetadata: allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
             allReportActions,
-            allExpensesHeld: hasOnlyHeldExpenses(reportTransactions),
-            currentUserPlacedHold: didCurrentUserPlaceHoldOnReportExpense(
-                allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`],
-                reportTransactions,
-                currentUserAccountID,
-            ),
+            allExpensesHeld,
+            currentUserPlacedHold:
+                allExpensesHeld &&
+                didCurrentUserPlaceHoldOnReportExpense(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`], reportTransactions, currentUserAccountID),
             ownerLogin: getLoginByAccountID(report.ownerAccountID, personalDetailsList),
             bankAccountList,
             currentUserAccountID,
