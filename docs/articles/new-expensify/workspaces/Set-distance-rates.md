@@ -1,7 +1,7 @@
 ---
 title: Set Distance Rates
 description: Set and manage distance rates for mileage reimbursement in your Expensify workspace.
-keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates]
+keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates, exclude commutes, commute exclusion]
 ---
 
 # Set Distance Rates
@@ -107,4 +107,33 @@ When a Workspace has more than one distance rate, Expensify automatically applie
 - If a member manually selects a rate that isn't valid for the expense date, the expense shows a violation indicating the rate doesn't match the selected date. This is informational and does not block submission.
 
 **Note:** Setting effective dates is optional. If your rates don't have **Start date** or **End date** values, Expensify continues to apply rates as before.
+
+---
+
+# Exclude Commutes from Distance Rate Claims
+
+Workspace Admins can deduct a member's regular commute from each distance claim, so that only business-related mileage is reimbursed. This is useful when members submit distance expenses from their home and you don't want to reimburse the portion of the trip that covers their normal commute.
+
+## How to set a commute exclusion on distance rates
+
+1. Go to **Workspaces > [Workspace Name] > Distance Rates**.
+2. Click **Settings**.
+3. Click **Exclude commutes**.
+4. Choose how commutes are handled:
+   - **Do not exclude commutes** – No commute exclusion is applied.
+   - **Exclude a fixed distance per claim** – Removes the same commute distance from each claim. Best for members who submit one claim per workday.
+5. If you selected **Exclude a fixed distance per claim**, enter the amount in the **Distance** field. The distance must be greater than 0.
+6. Click **Save**.
+
+<!-- SCREENSHOT:
+Suggestion: Show the Exclude commutes page with "Exclude a fixed distance per claim" selected and a value in the Distance field.
+Location: After the steps in "How to set a commute exclusion on distance rates"
+Purpose: Help admins confirm they are on the correct page and selecting the right option.
+-->
+
+## What happens after you set a commute exclusion
+
+When **Exclude a fixed distance per claim** is selected, the distance you entered is subtracted from each distance claim before reimbursement is calculated. The deduction applies per claim, so it works best for members who submit one distance claim per workday.
+
+To stop excluding commutes, return to the **Exclude commutes** page, select **Do not exclude commutes**, and click **Save**.
 
